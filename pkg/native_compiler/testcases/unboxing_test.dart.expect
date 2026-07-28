@@ -6,7 +6,7 @@ B0 = EntryBlock()
   v7 = UnboxInt(v1)   # RA: R0 <- (R0)
   v8 = UnboxInt(v2)   # RA: R1 <- (R1)
   v5 = BinaryIntOp +(v7, v8)   # RA: R0 <- (R0, R1)
-  v9 = BoxInt(v5)   # RA: R0 <- (R0) temps: [R1, R2, R3]
+  v9 = BoxInt(v5)   # RA: R0 <- (R0) temps: [R1, R2, R3] SAFEPT{live: [R0, R1, R2, R3], objects: [R0]}
   ParallelMove input(vloc:R0 -> R0)
   Return(v9)   # RA: (R0)
 
@@ -30,7 +30,7 @@ B10 = TargetBlock() idom:B5 in-loop:B5
   v19 = BinaryIntOp +(v25, v29)   # RA: R2 <- (R2, -)
   Goto(B5)
 B11 = TargetBlock() idom:B5
-  v30 = BoxInt(v24)   # RA: R1 <- (R1) temps: [R0, R2, R3]
+  v30 = BoxInt(v24)   # RA: R1 <- (R1) temps: [R0, R2, R3] SAFEPT{live: [R0, R1, R2, R3], objects: [R1]}
   ParallelMove input(vloc:R1 -> R0)
   Return(v30)   # RA: (R0)
 
@@ -64,7 +64,7 @@ B21 = JoinBlock(B17, B16) idom:B7
 B13 = JoinBlock(B21, B6) idom:B0
   v31 = Phi(v36, v11)   # RA: R0 <- (R0, R0)
   v33 = BinaryIntOp <<(v31, v35)   # RA: R0 <- (R0, -)
-  v37 = BoxInt(v33)   # RA: R0 <- (R0) temps: [R1, R2, R3]
+  v37 = BoxInt(v33)   # RA: R0 <- (R0) temps: [R1, R2, R3] SAFEPT{live: [R0, R1, R2, R3], objects: [R0]}
   ParallelMove input(vloc:R0 -> R0)
   Return(v37)   # RA: (R0)
 

@@ -71,9 +71,9 @@ Statement createGetterWithInitializer(
         type.withDeclaredNullability(Nullability.nullable),
       );
       return new ReturnStatement(
-        new Let(
-          variable,
-          new ConditionalExpression(
+        extern.createLet(
+          variable: variable,
+          body: new ConditionalExpression(
             new StaticInvocation(
               coreTypes.isSentinelMethod,
               new Arguments(<Expression>[
@@ -84,7 +84,8 @@ Statement createGetterWithInitializer(
             new VariableGet(variable, type)..fileOffset = fileOffset,
             type,
           )..fileOffset = fileOffset,
-        )..fileOffset = fileOffset,
+          fileOffset: fileOffset,
+        ),
       )..fileOffset = fileOffset;
     case IsSetEncoding.useNull:
       // Generate:
@@ -95,16 +96,17 @@ Statement createGetterWithInitializer(
         type.withDeclaredNullability(Nullability.nullable),
       );
       return new ReturnStatement(
-        new Let(
-          variable,
-          new ConditionalExpression(
+        extern.createLet(
+          variable: variable,
+          body: new ConditionalExpression(
             new EqualsNull(new VariableGet(variable)..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             createVariableWrite(initializer)..fileOffset = fileOffset,
             new VariableGet(variable, type)..fileOffset = fileOffset,
             type,
           )..fileOffset = fileOffset,
-        )..fileOffset = fileOffset,
+          fileOffset: fileOffset,
+        ),
       )..fileOffset = fileOffset;
   }
 }
@@ -196,18 +198,18 @@ Statement createGetterWithInitializerWithRecheck(
         type,
       );
       return new ReturnStatement(
-        new Let(
-          variable,
-          new ConditionalExpression(
+        extern.createLet(
+          variable: variable,
+          body: new ConditionalExpression(
             new StaticInvocation(
               coreTypes.isSentinelMethod,
               new Arguments(<Expression>[
                 new VariableGet(variable)..fileOffset = fileOffset,
               ])..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
-            new Let(
-              temp,
-              new ConditionalExpression(
+            extern.createLet(
+              variable: temp,
+              body: new ConditionalExpression(
                 new StaticInvocation(
                   coreTypes.isSentinelMethod,
                   new Arguments(<Expression>[
@@ -221,11 +223,13 @@ Statement createGetterWithInitializerWithRecheck(
                 exception,
                 type,
               )..fileOffset = fileOffset,
+              fileOffset: fileOffset,
             ),
             new VariableGet(variable)..fileOffset = fileOffset,
             type,
           )..fileOffset = fileOffset,
-        )..fileOffset = fileOffset,
+          fileOffset: fileOffset,
+        ),
       )..fileOffset = fileOffset;
     case IsSetEncoding.useNull:
       // Generate:
@@ -239,14 +243,14 @@ Statement createGetterWithInitializerWithRecheck(
         type.withDeclaredNullability(Nullability.nullable),
       );
       return new ReturnStatement(
-        new Let(
-          variable,
-          new ConditionalExpression(
+        extern.createLet(
+          variable: variable,
+          body: new ConditionalExpression(
             new EqualsNull(new VariableGet(variable)..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
-            new Let(
-              temp,
-              new ConditionalExpression(
+            extern.createLet(
+              variable: temp,
+              body: new ConditionalExpression(
                 new EqualsNull(
                   createVariableRead(needsPromotion: false)
                     ..fileOffset = fileOffset,
@@ -257,11 +261,13 @@ Statement createGetterWithInitializerWithRecheck(
                 exception,
                 type,
               )..fileOffset = fileOffset,
+              fileOffset: fileOffset,
             ),
             new VariableGet(variable, type)..fileOffset = fileOffset,
             type,
           )..fileOffset = fileOffset,
-        )..fileOffset = fileOffset,
+          fileOffset: fileOffset,
+        ),
       )..fileOffset = fileOffset;
   }
 }
@@ -314,9 +320,9 @@ Statement createGetterBodyWithoutInitializer(
         type.withDeclaredNullability(Nullability.nullable),
       );
       return new ReturnStatement(
-        new Let(
-          variable,
-          new ConditionalExpression(
+        extern.createLet(
+          variable: variable,
+          body: new ConditionalExpression(
             new StaticInvocation(
               coreTypes.isSentinelMethod,
               new Arguments(<Expression>[
@@ -327,7 +333,8 @@ Statement createGetterBodyWithoutInitializer(
             new VariableGet(variable, type)..fileOffset = fileOffset,
             type,
           )..fileOffset = fileOffset,
-        )..fileOffset = fileOffset,
+          fileOffset: fileOffset,
+        ),
       )..fileOffset = fileOffset;
     case IsSetEncoding.useNull:
       // Generate:
@@ -338,16 +345,17 @@ Statement createGetterBodyWithoutInitializer(
         type.withDeclaredNullability(Nullability.nullable),
       );
       return new ReturnStatement(
-        new Let(
-          variable,
-          new ConditionalExpression(
+        extern.createLet(
+          variable: variable,
+          body: new ConditionalExpression(
             new EqualsNull(new VariableGet(variable)..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             exception,
             new VariableGet(variable, type)..fileOffset = fileOffset,
             type,
           )..fileOffset = fileOffset,
-        )..fileOffset = fileOffset,
+          fileOffset: fileOffset,
+        ),
       )..fileOffset = fileOffset;
   }
 }

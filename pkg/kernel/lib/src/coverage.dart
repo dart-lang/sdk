@@ -1005,8 +1005,20 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    visited.add(VariableKind.LocalFunctionVariable);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitLateVariable(LateVariable node) {
     visited.add(VariableKind.LateVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
+    visited.add(VariableKind.ConstVariable);
     node.visitChildren(this);
   }
 
@@ -1489,7 +1501,9 @@ enum StatementKind {
 
 enum VariableKind {
   CatchVariable,
+  ConstVariable,
   LateVariable,
+  LocalFunctionVariable,
   LocalVariable,
   NamedParameter,
   PositionalParameter,

@@ -9,20 +9,20 @@
 class C {
   List<int>? listQuestion;
   //         ^^^^^^^^^^^^
-  // [context 1] 'listQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 5] 'listQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 11] 'listQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 1] 'listQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 5] 'listQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 11] 'listQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 17] 'listQuestion' refers to a public property so it couldn't be promoted.
   // [context 21] 'listQuestion' refers to a public property so it couldn't be promoted.
   // [context 27] 'listQuestion' refers to a public property so it couldn't be promoted.
   Object? objectQuestion;
   //      ^^^^^^^^^^^^^^
-  // [context 4] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 8] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 9] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 10] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 14] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 15] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 4] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 8] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 9] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 10] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 14] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 15] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 20] 'objectQuestion' refers to a public property so it couldn't be promoted.
   // [context 24] 'objectQuestion' refers to a public property so it couldn't be promoted.
   // [context 25] 'objectQuestion' refers to a public property so it couldn't be promoted.
@@ -31,19 +31,19 @@ class C {
   // [context 31] 'objectQuestion' refers to a public property so it couldn't be promoted.
   Set<int>? setQuestion;
   //        ^^^^^^^^^^^
-  // [context 2] 'setQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 6] 'setQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 12] 'setQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 16] 'setQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 2] 'setQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 6] 'setQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 12] 'setQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 16] 'setQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 18] 'setQuestion' refers to a public property so it couldn't be promoted.
   // [context 22] 'setQuestion' refers to a public property so it couldn't be promoted.
   // [context 28] 'setQuestion' refers to a public property so it couldn't be promoted.
   // [context 32] 'setQuestion' refers to a public property so it couldn't be promoted.
   Map<int, int>? mapQuestion;
   //             ^^^^^^^^^^^
-  // [context 3] 'mapQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 7] 'mapQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 13] 'mapQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'mapQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 7] 'mapQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 13] 'mapQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 19] 'mapQuestion' refers to a public property so it couldn't be promoted.
   // [context 23] 'mapQuestion' refers to a public property so it couldn't be promoted.
   // [context 29] 'mapQuestion' refers to a public property so it couldn't be promoted.
@@ -125,7 +125,7 @@ set_from_object_question_type_disambiguate_by_entry(C c) {
   // [analyzer 8] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                 ^
   // [cfe 24] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
-  // [cfe] Unexpected type 'Object?' of a spread.  Expected 'dynamic' or an Iterable.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 set_from_object_question_type_disambiguate_by_previous_spread(C c) {
@@ -136,7 +136,8 @@ set_from_object_question_type_disambiguate_by_previous_spread(C c) {
   //                     ^^^^^^^^^^^^^^^^
   // [analyzer 9] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                       ^
-  // [cfe 25] Unexpected type 'Object?' of a map spread entry.  Expected 'dynamic' or a Map.
+  // [cfe 25] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 set_from_object_question_type_disambiguate_by_literal_args(C c) {
@@ -185,7 +186,8 @@ map_from_object_question_type_disambiguate_by_key_value_pair(C c) {
   //                     ^^^^^^^^^^^^^^^^
   // [analyzer 14] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                       ^
-  // [cfe 30] Unexpected type 'Object?' of a map spread entry.  Expected 'dynamic' or a Map.
+  // [cfe 30] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 map_from_object_question_type_disambiguate_by_previous_spread(C c) {
@@ -196,7 +198,8 @@ map_from_object_question_type_disambiguate_by_previous_spread(C c) {
   //                          ^^^^^^^^^^^^^^^^
   // [analyzer 15] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                            ^
-  // [cfe 31] Unexpected type 'Object?' of a map spread entry.  Expected 'dynamic' or a Map.
+  // [cfe 31] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 map_from_set_question_type_disambiguate_by_literal_args(C c) {

@@ -2351,7 +2351,7 @@ class FunctionInvocation extends InstanceInvocationExpression {
 /// An invocation of a local function declaration.
 class LocalFunctionInvocation extends InvocationExpression {
   /// The variable declaration for the function declaration.
-  Variable variable;
+  LocalFunctionVariable variable;
 
   @override
   Arguments arguments;
@@ -5146,6 +5146,12 @@ class Let extends Expression {
   new(this.variable, this.body) {
     variable.parent = this;
     body.parent = this;
+  }
+
+  Expression get value => variable.initializer!;
+
+  void set value(Expression value) {
+    variable.initializer = value;
   }
 
   @override

@@ -398,7 +398,7 @@ class KernelCompilationRequest : public ValueObject {
   KernelCompilationRequest()
       : monitor_(),
         port_(Dart_NewNativePort("kernel-compilation-port",
-                                 &HandleResponse,
+                                 HandleResponse,
                                  false)),
         next_(nullptr),
         prev_(nullptr) {

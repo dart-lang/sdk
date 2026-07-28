@@ -329,6 +329,9 @@ abstract base class Definition extends Instruction {
   /// Result type of this instruction.
   CType get type;
 
+  /// Whether this instruction can yield a `null` value.
+  bool get canBeNull => type.canBeNull;
+
   /// Whether this instruction can yield a zero value.
   bool get canBeZero => true;
 
@@ -773,6 +776,9 @@ final class Constant extends Definition with NoThrow, Pure {
     : super(graph, noPosition, inputCount: 0);
 
   @override
+  bool get canBeNull => value.isNull;
+
+  @override
   bool get canBeZero => value.isZero;
 
   @override
@@ -905,7 +911,9 @@ final class Parameter extends Definition with NoThrow, Pure {
   bool get isCatchParameter => block is CatchBlock;
 
   @override
-  CType get type => variable.type;
+  CType get type => (isFunctionParameter && variable.isCovariant)
+      ? const TopType()
+      : variable.type;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitParameter(this);

@@ -2127,12 +2127,22 @@ class Translator with KernelNodes {
     return _filterInferredType(node.type, inferredTypeMetadata[node]);
   }
 
-  DartType? _inferredTypeOfLocalVariable(Variable node) {
-    InferredType? inferredType = inferredTypeMetadata[node];
-    if (node.isFinal) {
-      inferredType ??= inferredTypeMetadata[node.initializer];
+  DartType? _inferredTypeOfLocalVariable(Variable variable) {
+    InferredType? inferredType = inferredTypeMetadata[variable];
+    if (variable.isFinal) {
+      if (variable.parent is Let && variable.type is VoidType) {
+        // This is most likely a CFE desugaring construct of index setters where
+        // the result of the `[]=` call is stored in a let variable of void type
+        // and never used. Since `[]=` calls don't have an actual return value we
+        // use top type for the (unused) variable for which we can synthesize a
+        // `null`.
+        //
+        // See also http://dartbug.com/63360
+        return null;
+      }
+      inferredType ??= inferredTypeMetadata[variable.initializer];
     }
-    return _filterInferredType(node.type, inferredType);
+    return _filterInferredType(variable.type, inferredType);
   }
 
   DartType? _filterInferredType(

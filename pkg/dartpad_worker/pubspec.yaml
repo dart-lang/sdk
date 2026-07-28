@@ -20,11 +20,13 @@ dependencies:
   http: any
   json_rpc_2: any
   kernel: any
+  linter: any
   path: any
   pub: any
   stream_channel: any
   tar: any
   unified_analytics: any
+  watcher: any
   web: any
 dev_dependencies:
   checks: any

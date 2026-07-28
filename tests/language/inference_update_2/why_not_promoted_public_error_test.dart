@@ -12,7 +12,7 @@ import 'why_not_promoted_public_lib.dart';
 class ClassInSameLibrary {
   final int? i;
   //         ^
-  // [context 1] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 1] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 3] 'i' refers to a public property so it couldn't be promoted.
   ClassInSameLibrary(this.i);
 }

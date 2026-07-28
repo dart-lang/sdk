@@ -131,7 +131,10 @@ test() => new C.m();
 late C c;
 ''');
     var cType = result.findElement.topVar('c').type;
-    expect(result.findNode.instanceCreation('new C.m()').staticType, cType);
+    expect(
+      result.findNode.constructorInvocation('new C.m()').staticType,
+      cType,
+    );
   }
 
   test_visitInstanceCreationExpression_typeParameters() async {
@@ -143,7 +146,7 @@ late I i;
 ''');
     var iType = result.findElement.topVar('i').type;
     InterfaceType type =
-        result.findNode.instanceCreation('new C<I>()').staticType
+        result.findNode.constructorInvocation('new C<I>()').staticType
             as InterfaceType;
     List<DartType> typeArgs = type.typeArguments;
     expect(typeArgs.length, 1);
@@ -157,7 +160,7 @@ test() => new C();
 late C c;
 ''');
     var cType = result.findElement.topVar('c').type;
-    expect(result.findNode.instanceCreation('new C()').staticType, cType);
+    expect(result.findNode.constructorInvocation('new C()').staticType, cType);
   }
 
   test_visitIntegerLiteral() async {

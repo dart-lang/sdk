@@ -45,11 +45,7 @@ class NoLeadingUnderscoresForLocalIdentifiers extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   void checkIdentifier(Token? id) {
     if (id == null) return;
     if (!id.lexeme.hasLeadingUnderscore) return;

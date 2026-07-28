@@ -970,6 +970,8 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group, Snapshot::Kind kind) {
     buffer.AddString(" x64");
 #elif defined(TARGET_ARCH_ARM)
     buffer.AddString(" arm");
+#elif defined(TARGET_ARCH_ARM64E)
+    buffer.AddString(" arm64e");
 #elif defined(TARGET_ARCH_ARM64)
     buffer.AddString(" arm64");
 #elif defined(TARGET_ARCH_RISCV32)

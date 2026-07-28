@@ -32,6 +32,7 @@ namespace dart {
   V(TypeArguments, null_type_arguments)                                        \
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(Closure, null_closure)                                                     \
+  V(Bytecode, null_bytecode)                                                   \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
@@ -131,8 +132,12 @@ class Roots {
   ~Roots() {}
 
 #define DECL(type, name)                                                       \
-  static type name() { return current_->raw_.name##_; }                        \
-  static void set_##name(type v) { current_->raw_.name##_ = v; }
+  static type name() {                                                         \
+    return current_->raw_.name##_;                                             \
+  }                                                                            \
+  static void set_##name(type v) {                                             \
+    current_->raw_.name##_ = v;                                                \
+  }
   RAW_ROOTS_LIST(DECL)
 #undef DECL
 

@@ -49,7 +49,7 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
   Future<void> processComponentAfterTfa(
     DeferredModuleLoadingMap loadingMap,
   ) async {
-    if (loadingMap.loadIds.isEmpty) {
+    if (loadingMap.moduleMap.length == 1) {
       // No deferred imports, use a monolithic module.
       moduleOutputData = ModuleOutputData.monolithic(
         ModuleMetadataBuilder(options).buildModuleMetadata(),

@@ -31,15 +31,15 @@ class A {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SuperExpression
+  condition2: SuperExpression
     superKeyword: super
     staticType: A
   question: ?
-  thenExpression: IntegerLiteral
+  thenExpression2: IntegerLiteral
     literal: 0
     staticType: int
   colon: :
-  elseExpression: IntegerLiteral
+  elseExpression2: IntegerLiteral
     literal: 1
     staticType: int
   staticType: int
@@ -86,16 +86,16 @@ class A {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: c
     element: <testLibrary>::@class::A::@method::f::@formalParameter::c
     staticType: bool
   question: ?
-  thenExpression: IntegerLiteral
+  thenExpression2: IntegerLiteral
     literal: 0
     staticType: int
   colon: :
-  elseExpression: SuperExpression
+  elseExpression2: SuperExpression
     superKeyword: super
     staticType: A
   staticType: Object
@@ -120,17 +120,17 @@ f(bool b, C1 c1, C2 c2, Object? o) {
     var node = result.findNode.conditionalExpression('b ? c1 : c2');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: c2
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
@@ -156,17 +156,17 @@ T f<T>(T t, bool b) {
     var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: t
     element: <testLibrary>::@function::f::@formalParameter::t
     staticType: T & int
   colon: :
-  elseExpression: NullLiteral
+  elseExpression2: NullLiteral
     literal: null
     staticType: Null
   staticType: int?
@@ -183,17 +183,17 @@ void f(bool b, (int, String) r1, ({int a}) r2) {
     var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: r1
     element: <testLibrary>::@function::f::@formalParameter::r1
     staticType: (int, String)
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: r2
     element: <testLibrary>::@function::f::@formalParameter::r2
     staticType: ({int a})
@@ -211,17 +211,17 @@ void f(bool b, ({int a}) r1, ({double a}) r2) {
     var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: r1
     element: <testLibrary>::@function::f::@formalParameter::r1
     staticType: ({int a})
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: r2
     element: <testLibrary>::@function::f::@formalParameter::r2
     staticType: ({double a})
@@ -243,16 +243,16 @@ class A {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: c
     element: <testLibrary>::@class::A::@method::f::@formalParameter::c
     staticType: bool
   question: ?
-  thenExpression: SuperExpression
+  thenExpression2: SuperExpression
     superKeyword: super
     staticType: A
   colon: :
-  elseExpression: IntegerLiteral
+  elseExpression2: IntegerLiteral
     literal: 0
     staticType: int
   staticType: Object
@@ -269,16 +269,16 @@ void f(bool b) {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: IntegerLiteral
+  thenExpression2: IntegerLiteral
     literal: 0
     staticType: int
   colon: :
-  elseExpression: DoubleLiteral
+  elseExpression2: DoubleLiteral
     literal: 1.2
     staticType: double
   staticType: num
@@ -295,16 +295,16 @@ void f(bool b) {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: IntegerLiteral
+  thenExpression2: IntegerLiteral
     literal: 42
     staticType: int
   colon: :
-  elseExpression: NullLiteral
+  elseExpression2: NullLiteral
     literal: null
     staticType: Null
   staticType: int?
@@ -339,17 +339,17 @@ f(bool b, C1<int> c1, C2<double> c2) {
 
     var node = result.findNode.conditionalExpression('b ? c1 : c2');
     assertResolvedNodeText(node, r'''ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1<int>
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: c2
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2<double>
@@ -376,17 +376,17 @@ f(bool b, B2 b2, C1 c1, Object? o) {
 
     var node = result.findNode.conditionalExpression('b ? b2 : c1');
     assertResolvedNodeText(node, r'''ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
@@ -411,17 +411,17 @@ f(bool b, C1 c1, B2 b2, Object? o) {
 
     var node = result.findNode.conditionalExpression('b ? c1 : b2');
     assertResolvedNodeText(node, r'''ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
@@ -443,17 +443,17 @@ B1 f(bool b, C1 c1, C2 c2) => b ? c1 : c2;
     var node = result.findNode.conditionalExpression('b ? c1 : c2');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: c2
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2

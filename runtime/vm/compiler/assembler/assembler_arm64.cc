@@ -1852,7 +1852,7 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
   __ ldr(TMP, compiler::Address(THR, entry.OffsetFromThread()));
   __ str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
   __ Comment("Leaf runtime call: %s", entry.name());
-  __ blr(TMP);
+  __ CallCFunction(TMP);
   __ LoadImmediate(TMP, VMTag::kDartTagId);
   __ str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
   __ SetupCSPFromThread(THR);

@@ -625,11 +625,20 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPatternField(covariant PatternFieldImpl node) {
     var nameNode = node.name;
+    var variablePattern = node.pattern.variablePattern;
+
     if (nameNode != null) {
-      var nameToken = nameNode.name ?? node.pattern.variablePattern?.name;
+      var nameToken = nameNode.name ?? variablePattern?.name;
       if (nameToken != null) {
         computer._addRegionForElement(nameToken, node.element);
       }
+    }
+
+    if (variablePattern case AssignedVariablePattern variablePattern) {
+      computer._addRegionForElement(
+        variablePattern.name,
+        variablePattern.element,
+      );
     }
 
     node.pattern.accept(this);

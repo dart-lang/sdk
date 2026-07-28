@@ -201,7 +201,7 @@ final class Simplification extends Pass
   @override
   Instruction visitNullCheck(NullCheck instr) {
     final operand = instr.operand;
-    if (!operand.type.isNullable) {
+    if (!operand.canBeNull) {
       return operand;
     }
     return instr;

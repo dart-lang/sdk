@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  85 "needsEvaluation"
+# -  86 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -62,6 +62,12 @@ analysis_option_deprecated:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
+analysis_options_deprecated_plugins:
+  status: needsFix
+  notes: |-
+    The fix is to remove the section. But I think there is something maybe also
+    we could do to remove the plugin package from the pubspec file. But that
+    might be conditional...
 analysis_option_deprecated_with_replacement:
   status: hasFix
 deprecated_lint:
@@ -100,6 +106,12 @@ incompatible_lint_included:
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
+incompatible_plugin_source:
+  status: needsFix
+  notes: |-
+    The fix is pretty simple; change this plugin source to be the same as the
+    other. We could even offer two fixes; the second would be to change the
+    other plugin source to match this one.
 invalid_option:
   status: needsFix
   notes: |-
@@ -2208,6 +2220,8 @@ file_names:
     The fix is to rename the file, but that's a refactoring.
 flutter_style_todos:
   status: hasFix
+future_sync_value:
+  status: hasFix
 hash_and_equals:
   status: hasFix
 implementation_imports:
@@ -2276,6 +2290,8 @@ matching_super_parameters:
        parameter name.
     2. Transpose two super parameters if doing so would match up their
        super-constructor parameters.
+migrate_design_widgets:
+  status: hasFix
 missing_code_block_language_in_doc_comment:
   status: needsEvaluation
 missing_whitespace_between_adjacent_strings:
@@ -2498,7 +2514,7 @@ sort_child_properties_last:
 sort_constructors_first:
   status: hasFix
 sort_pub_dependencies:
-  status: needsFix
+  status: hasFix
 sort_unnamed_constructors_first:
   status: hasFix
 specify_nonobvious_local_variable_types:
@@ -2607,6 +2623,8 @@ unnecessary_string_interpolations:
   status: hasFix
 unnecessary_this:
   status: hasFix
+unnecessary_this_alias:
+  status: needsEvaluation
 unnecessary_to_list_in_spreads:
   status: hasFix
 unnecessary_type_name_in_constructor:
@@ -3219,6 +3237,8 @@ missing_variable_in_for_each:
   status: noFix
 mixed_parameter_groups:
   status: noFix
+mixin_augmentation_has_on_clause:
+  status: needsEvaluation
 mixin_declares_constructor:
   status: hasFix
 mixin_with_clause:

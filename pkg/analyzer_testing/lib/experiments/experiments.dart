@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 
-/// A list of the experiments that are to be enabled for tests.
+/// A list of the experimental features that are to be enabled for tests.
 ///
 /// The list will be empty if there are no experiments that should be enabled.
 ///
@@ -12,12 +12,12 @@ import 'package:analyzer/dart/analysis/features.dart';
 /// begins. Experiments should be removed from this list when they are marked
 /// as being enabled by default.
 ///
-/// The flags in the list are kept in alphabetic order for ease of determining
-/// whether a given flag is already included.
-List<String> experimentsForTests = List.unmodifiable([
-  Feature.augmentations.enableString,
-  Feature.enhanced_parts.enableString,
-  Feature.static_extensions.enableString,
-  Feature.this_promotion.enableString,
-  Feature.variance.enableString,
+/// The features in the list are kept in alphabetic order by experiment flag
+/// for ease of determining whether a given feature is already included.
+final List<Feature> experimentalFeaturesForTests = List.unmodifiable([
+  Feature.augmentations,
+  Feature.enhanced_parts,
+  Feature.static_extensions,
+  Feature.this_promotion,
+  Feature.variance,
 ]);

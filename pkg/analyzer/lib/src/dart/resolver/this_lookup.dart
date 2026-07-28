@@ -24,7 +24,7 @@ class ThisLookup {
     SimpleIdentifier node,
   ) {
     var id = node.name;
-    var thisType = resolver.effectiveThisType;
+    var thisType = resolver.thisType;
     if (thisType == null) {
       return null;
     }
@@ -67,7 +67,7 @@ class ThisLookup {
     SimpleIdentifier node,
   ) {
     var id = node.name;
-    var thisType = resolver.effectiveThisType;
+    var thisType = resolver.thisType;
     if (thisType == null) {
       return null;
     }

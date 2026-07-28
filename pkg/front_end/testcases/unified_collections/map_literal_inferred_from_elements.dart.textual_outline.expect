@@ -1,0 +1,23 @@
+T id<T>(T t) => t;
+
+Map<int, String>? nullableIntMap1 = {0: '0', 1: '1', 2: '2'};
+
+Map<int, String>? nullableIntMap2 = null;
+
+var intList = [0, 1, 2];
+
+var intMap = {0: '0', 1: '1', 2: '2'};
+
+Map<num, String> numMap = {0: '0', 1: '1', 2: '2'};
+
+var intIntList = [(0, 1), (2, 3)];
+
+num? nullableNum1 = 0;
+
+num? nullableNum2 = null;
+
+String? nullableString1 = '0';
+
+String? nullableString2 = null;
+
+main() {}

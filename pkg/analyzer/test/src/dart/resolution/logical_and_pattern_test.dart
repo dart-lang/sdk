@@ -110,7 +110,7 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: int
     equals: =
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     patternTypeSchema: _

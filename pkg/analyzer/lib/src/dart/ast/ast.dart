@@ -118,12 +118,23 @@ final class AdjacentStringsImpl extends StringLiteralImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNodeList('strings', strings);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAdjacentStrings(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
@@ -154,9 +165,17 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     strings.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    strings.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -165,14 +184,15 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<StringLiteralImpl>)? visitStrings,
   }) {
     if (visitStrings != null) {
       visitStrings(strings);
     } else {
-      strings.accept(visitor);
+      strings.accept2(visitor);
     }
   }
 
@@ -187,6 +207,16 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (strings._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (strings._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -233,13 +263,29 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
     _initializeCommentAndAnnotations(comment, metadata);
   }
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
   }
 
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+  }
+
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _documentationComment;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
         false) {
       return _documentationComment;
@@ -301,7 +347,12 @@ abstract final class Annotation implements AstNode {
   Identifier get name;
 
   @override
+  @ToBeDeprecated('Use parent2 instead')
   AstNode get parent;
+
+  @experimental
+  @override
+  AstNode get parent2;
 
   /// The period before the constructor name, or `null` if this annotation isn't
   /// the invocation of a named constructor.
@@ -364,10 +415,10 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
        _typeArguments = typeArguments,
        _constructorName = constructorName,
        _arguments = arguments {
-    _becomeParentOf(name);
-    _becomeParentOf(typeArguments);
-    _becomeParentOf(constructorName);
-    _becomeParentOf(arguments);
+    _becomeParentOf12(name);
+    _becomeParentOf12(typeArguments);
+    _becomeParentOf12(constructorName);
+    _becomeParentOf12(arguments);
   }
 
   @generated
@@ -376,7 +427,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @generated
   set arguments(ArgumentListImpl? arguments) {
-    _arguments = _becomeParentOf(arguments);
+    _arguments = _becomeParentOf12(arguments);
   }
 
   @generated
@@ -391,7 +442,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @generated
   set constructorName(SimpleIdentifierImpl? constructorName) {
-    _constructorName = _becomeParentOf(constructorName);
+    _constructorName = _becomeParentOf12(constructorName);
   }
 
   @override
@@ -432,11 +483,16 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @generated
   set name(IdentifierImpl name) {
-    _name = _becomeParentOf(name);
+    _name = _becomeParentOf12(name);
   }
 
   @override
+  @ToBeDeprecated('Use parent2 instead')
   AstNodeImpl get parent => super.parent!;
+
+  @experimental
+  @override
+  AstNodeImpl get parent2 => super.parent2!;
 
   @generated
   @override
@@ -444,7 +500,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 
   @generated
@@ -459,12 +515,28 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('atSign', atSign)
+    ..addNode('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('period', period)
+    ..addNode('constructorName', constructorName)
+    ..addNode('arguments', arguments);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnnotation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAnnotation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -512,6 +584,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
@@ -520,14 +593,25 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     arguments?.accept(visitor);
   }
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    name.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    constructorName?.accept2(visitor);
+    arguments?.accept2(visitor);
+  }
+
   /// Visits the children of this node.
   ///
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(IdentifierImpl)? visitName,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(SimpleIdentifierImpl)? visitConstructorName,
@@ -536,27 +620,27 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     if (visitName != null) {
       visitName(name);
     } else {
-      name.accept(visitor);
+      name.accept2(visitor);
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (constructorName case var constructorName?) {
       if (visitConstructorName != null) {
         visitConstructorName(constructorName);
       } else {
-        constructorName.accept(visitor);
+        constructorName.accept2(visitor);
       }
     }
     if (arguments case var arguments?) {
       if (visitArguments != null) {
         visitArguments(arguments);
       } else {
-        arguments.accept(visitor);
+        arguments.accept2(visitor);
       }
     }
   }
@@ -564,6 +648,30 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (name._containsOffset(rangeOffset, rangeEnd)) {
+      return name;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (constructorName case var constructorName?) {
+      if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorName;
+      }
+    }
+    if (arguments case var arguments?) {
+      if (arguments._containsOffset(rangeOffset, rangeEnd)) {
+        return arguments;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
       return name;
     }
@@ -609,7 +717,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
 
   @generated
   AnonymousBlockBodyImpl({required BlockImpl block}) : _block = block {
-    _becomeParentOf(block);
+    _becomeParentOf12(block);
   }
 
   @generated
@@ -624,7 +732,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
 
   @generated
   set block(BlockImpl block) {
-    _block = _becomeParentOf(block);
+    _block = _becomeParentOf12(block);
   }
 
   @generated
@@ -639,12 +747,23 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()..addNode('block', block);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnonymousBlockBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitAnonymousBlockBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -672,9 +791,17 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
       resolver.visitAnonymousBlockBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     block.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    block.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -683,20 +810,30 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(BlockImpl)? visitBlock,
   }) {
     if (visitBlock != null) {
       visitBlock(block);
     } else {
-      block.accept(visitor);
+      block.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (block._containsOffset(rangeOffset, rangeEnd)) {
+      return block;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (block._containsOffset(rangeOffset, rangeEnd)) {
       return block;
     }
@@ -711,7 +848,11 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
 @experimental
 abstract final class AnonymousExpressionBody implements AnonymousMethodBody {
   /// The body expression.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The '=>' token.
   Token get functionDefinition;
@@ -720,7 +861,12 @@ abstract final class AnonymousExpressionBody implements AnonymousMethodBody {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('functionDefinition'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 @experimental
@@ -731,14 +877,15 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   final Token functionDefinition;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   AnonymousExpressionBodyImpl({
     required this.functionDefinition,
-    required ExpressionImpl expression,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+    required ExpressionImpl expression2,
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -750,16 +897,24 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -770,21 +925,34 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('functionDefinition', functionDefinition)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAnonymousExpressionBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitAnonymousExpressionBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -792,8 +960,8 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -804,9 +972,17 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
       resolver.visitAnonymousExpressionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -815,14 +991,15 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -831,6 +1008,15 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -885,7 +1071,7 @@ abstract final class AnonymousMethodInvocation implements Expression {
   /// The expression used to compute the receiver of the invocation.
   ///
   /// If this invocation isn't part of a cascade expression, then this is the
-  /// same as [target]. If this invocation is part of a cascade expression,
+  /// same as [target2]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
   Expression get realTarget;
 
@@ -894,12 +1080,20 @@ abstract final class AnonymousMethodInvocation implements Expression {
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
+  @ToBeDeprecated('Use target2 instead.')
   Expression? get target;
+
+  @experimental
+  Expression? get target2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('target'),
+    GenerateNodeProperty(
+      'target2',
+      v1Name: 'target',
+      v1Projection: V1Projection.expression,
+    ),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('parameters'),
     GenerateNodeProperty('body'),
@@ -910,7 +1104,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
     with DotShorthandMixin
     implements AnonymousMethodInvocation {
   @generated
-  ExpressionImpl? _target;
+  ExpressionImpl? _target2;
 
   @generated
   @override
@@ -928,23 +1122,27 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @generated
   AnonymousMethodInvocationImpl({
-    required ExpressionImpl? target,
+    required ExpressionImpl? target2,
     required this.operator,
     required FormalParameterListImpl? parameters,
     required AnonymousMethodBodyImpl body,
-  }) : _target = target,
+  }) : _target2 = target2,
        _parameters = parameters,
        _body = body {
-    _becomeParentOf(target);
-    _becomeParentOf(parameters);
-    _becomeParentOf(body);
+    _becomeParentOf2(target2);
+    _becomeParentOf1(switch (target2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
+    _becomeParentOf12(parameters);
+    _becomeParentOf12(body);
   }
 
   @generated
   @override
   Token get beginToken {
-    if (target case var target?) {
-      return target.beginToken;
+    if (target2 case var target2?) {
+      return target2.beginToken;
     }
     return operator;
   }
@@ -955,7 +1153,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @generated
   set body(AnonymousMethodBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -994,7 +1192,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @generated
   set parameters(FormalParameterListImpl? parameters) {
-    _parameters = _becomeParentOf(parameters);
+    _parameters = _becomeParentOf12(parameters);
   }
 
   @override
@@ -1003,18 +1201,32 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   @override
   ExpressionImpl get realTarget {
     if (isCascaded) {
-      return _ancestorCascade.target;
+      return _ancestorCascade.target2;
     }
-    return _target!;
+    return _target2!;
   }
 
   @generated
+  @ToBeDeprecated('Use target2 instead.')
   @override
-  ExpressionImpl? get target => _target;
+  ExpressionImpl? get target => switch (target2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set target(ExpressionImpl? target) {
-    _target = _becomeParentOf(target);
+  @experimental
+  @override
+  ExpressionImpl? get target2 => _target2;
+
+  @generated
+  @experimental
+  set target2(ExpressionImpl? target2) {
+    _target2 = _becomeParentOf2(target2);
+    _becomeParentOf1(switch (target2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   /// The cascade that contains this [AnonymousMethodInvocation].
@@ -1022,7 +1234,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   /// This method assumes that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -1039,21 +1251,36 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('target2', target2)
+    ..addToken('operator', operator)
+    ..addNode('parameters', parameters)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAnonymousMethodInvocation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitAnonymousMethodInvocation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      target = null;
+    if (identical(target2, oldNode)) {
+      target2 = null;
       return;
     }
     if (identical(parameters, oldNode)) {
@@ -1069,8 +1296,8 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as ExpressionImpl?;
+    if (identical(target2, oldNode)) {
+      target2 = newNode as ExpressionImpl?;
       return;
     }
     if (identical(parameters, oldNode)) {
@@ -1091,11 +1318,21 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
     parameters?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    target2?.accept2(visitor);
+    parameters?.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -1104,30 +1341,31 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitTarget,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitTarget2,
     void Function(FormalParameterListImpl)? visitParameters,
     void Function(AnonymousMethodBodyImpl)? visitBody,
   }) {
-    if (target case var target?) {
-      if (visitTarget != null) {
-        visitTarget(target);
+    if (target2 case var target2?) {
+      if (visitTarget2 != null) {
+        visitTarget2(target2);
       } else {
-        target.accept(visitor);
+        target2.accept2(visitor);
       }
     }
     if (parameters case var parameters?) {
       if (visitParameters != null) {
         visitParameters(parameters);
       } else {
-        parameters.accept(visitor);
+        parameters.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -1149,13 +1387,36 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target2 case var target2?) {
+      if (target2._containsOffset(rangeOffset, rangeEnd)) {
+        return target2;
+      }
+    }
+    if (parameters case var parameters?) {
+      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+        return parameters;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
 }
 
 /// A node that can occur in an [ArgumentList].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Argument implements AstNode {
   /// The expression that computes the value for this argument.
+  @ToBeDeprecated('Use argumentExpression2 instead.')
   Expression get argumentExpression;
+
+  @experimental
+  Expression get argumentExpression2;
 
   /// The parameter element representing the parameter to which the value of
   /// this argument is bound.
@@ -1167,8 +1428,11 @@ base mixin ArgumentImpl on AstNodeImpl implements Argument {
   ExpressionImpl get argumentExpression;
 
   @override
+  ExpressionImpl get argumentExpression2;
+
+  @override
   InternalFormalParameterElement? get correspondingParameter {
-    var parent = this.parent;
+    var parent = parentInPrimaryView;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     }
@@ -1190,7 +1454,11 @@ abstract final class ArgumentList implements AstNode {
   /// Although the language requires that positional arguments appear before
   /// named arguments unless the [Feature.named_arguments_anywhere] is enabled,
   /// this class allows them to be intermixed.
+  @ToBeDeprecated('Use arguments2 instead.')
   NodeList<Argument> get arguments;
+
+  @experimental
+  NodeList<Argument> get arguments2;
 
   /// The left parenthesis.
   Token get leftParenthesis;
@@ -1202,7 +1470,12 @@ abstract final class ArgumentList implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('arguments', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'arguments2',
+      v1Name: 'arguments',
+      v1Projection: V1Projection.argument,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -1212,8 +1485,17 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   final Token leftParenthesis;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<ArgumentImpl> arguments = NodeListImpl._();
+  final NodeListImpl<ArgumentImpl> arguments2 = NodeListImpl._();
+
+  @generated
+  @ToBeDeprecated('Use arguments2 instead.')
+  @override
+  late final NodeListImpl<ArgumentImpl> arguments = _V1ProjectedNodeListImpl(
+    arguments2,
+    V1Projection.toV1Argument,
+  );
 
   @generated
   @override
@@ -1232,10 +1514,14 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @generated
   ArgumentListImpl({
     required this.leftParenthesis,
-    required List<ArgumentImpl> arguments,
+    required List<ArgumentImpl> arguments2,
     required this.rightParenthesis,
   }) {
-    this.arguments._initialize(this, arguments);
+    this.arguments2._initializeProjected(
+      this,
+      arguments2,
+      V1Projection.toV1Argument,
+    );
   }
 
   @generated
@@ -1250,9 +1536,9 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   set correspondingStaticParameters(
     List<InternalFormalParameterElement?>? parameters,
   ) {
-    if (parameters != null && parameters.length != arguments.length) {
+    if (parameters != null && parameters.length != arguments2.length) {
       throw ArgumentError(
-        "Expected ${arguments.length} parameters, not ${parameters.length}",
+        "Expected ${arguments2.length} parameters, not ${parameters.length}",
       );
     }
     _correspondingStaticParameters = parameters;
@@ -1273,21 +1559,34 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('arguments2', arguments2)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitArgumentList(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitArgumentList(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (arguments.containsChild(oldNode)) {
+    if (arguments2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'arguments' because NodeList cannot be resized.",
+        "Cannot remove child 'arguments2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -1296,16 +1595,24 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (arguments.replaceChild(oldNode, newNode)) {
+    if (arguments2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     arguments.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    arguments2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -1314,14 +1621,15 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(NodeListImpl<ArgumentImpl>)? visitArguments,
+    AstVisitor2 visitor, {
+    void Function(NodeListImpl<ArgumentImpl>)? visitArguments2,
   }) {
-    if (visitArguments != null) {
-      visitArguments(arguments);
+    if (visitArguments2 != null) {
+      visitArguments2(arguments2);
     } else {
-      arguments.accept(visitor);
+      arguments2.accept2(visitor);
     }
   }
 
@@ -1329,6 +1637,16 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (arguments._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (arguments2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -1347,13 +1665,13 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     Argument argument,
   ) {
     if (_correspondingStaticParameters == null ||
-        _correspondingStaticParameters!.length != arguments.length) {
+        _correspondingStaticParameters!.length != arguments2.length) {
       // Either the AST structure hasn't been resolved, the invocation of which
       // this list is a part couldn't be resolved, or the argument list was
       // modified after the parameters were set.
       return null;
     }
-    int index = arguments.indexOf(argument);
+    int index = arguments2.indexOf(argument);
     if (index < 0) {
       // The argument isn't a child of this node.
       return null;
@@ -1372,7 +1690,11 @@ abstract final class AsExpression implements Expression {
   Token get asOperator;
 
   /// The expression used to compute the value being cast.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The type being cast to.
   TypeAnnotation get type;
@@ -1380,14 +1702,19 @@ abstract final class AsExpression implements Expression {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('asOperator'),
     GenerateNodeProperty('type'),
   ],
 )
 final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -1398,19 +1725,20 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   @generated
   AsExpressionImpl({
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.asOperator,
     required TypeAnnotationImpl type,
-  }) : _expression = expression,
+  }) : _expression2 = expression2,
        _type = type {
-    _becomeParentOf(expression);
-    _becomeParentOf(type);
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf12(type);
   }
 
   @generated
   @override
   Token get beginToken {
-    return expression.beginToken;
+    return expression2.beginToken;
   }
 
   @generated
@@ -1420,12 +1748,20 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -1437,7 +1773,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   @generated
   set type(TypeAnnotationImpl type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -1449,20 +1785,33 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('expression2', expression2)
+    ..addToken('asOperator', asOperator)
+    ..addNode('type', type);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAsExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     if (identical(type, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'type'.");
@@ -1473,8 +1822,8 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(type, oldNode)) {
@@ -1491,10 +1840,19 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
+    type.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -1503,20 +1861,21 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
     void Function(TypeAnnotationImpl)? visitType,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
   }
 
@@ -1525,6 +1884,18 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     if (type._containsOffset(rangeOffset, rangeEnd)) {
       return type;
@@ -1545,9 +1916,19 @@ abstract final class AssertInitializer
   childEntitiesOrder: [
     GenerateNodeProperty('assertKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'condition2',
+      v1Name: 'condition',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('comma'),
-    GenerateNodeProperty('message', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'message2',
+      v1Name: 'message',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -1562,14 +1943,14 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _condition;
+  ExpressionImpl _condition2;
 
   @generated
   @override
   final Token? comma;
 
   @generated
-  ExpressionImpl? _message;
+  ExpressionImpl? _message2;
 
   @generated
   @override
@@ -1579,14 +1960,19 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   AssertInitializerImpl({
     required this.assertKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl condition,
+    required ExpressionImpl condition2,
     required this.comma,
-    required ExpressionImpl? message,
+    required ExpressionImpl? message2,
     required this.rightParenthesis,
-  }) : _condition = condition,
-       _message = message {
-    _becomeParentOf(condition);
-    _becomeParentOf(message);
+  }) : _condition2 = condition2,
+       _message2 = message2 {
+    _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _becomeParentOf2(message2);
+    _becomeParentOf1(switch (message2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @generated
@@ -1596,12 +1982,20 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
+  @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
 
   @generated
-  set condition(ExpressionImpl condition) {
-    _condition = _becomeParentOf(condition);
+  @experimental
+  @override
+  ExpressionImpl get condition2 => _condition2;
+
+  @generated
+  @experimental
+  set condition2(ExpressionImpl condition2) {
+    _condition2 = _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
   }
 
   @generated
@@ -1611,12 +2005,26 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
+  @ToBeDeprecated('Use message2 instead.')
   @override
-  ExpressionImpl? get message => _message;
+  ExpressionImpl? get message => switch (message2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set message(ExpressionImpl? message) {
-    _message = _becomeParentOf(message);
+  @experimental
+  @override
+  ExpressionImpl? get message2 => _message2;
+
+  @generated
+  @experimental
+  set message2(ExpressionImpl? message2) {
+    _message2 = _becomeParentOf2(message2);
+    _becomeParentOf1(switch (message2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @generated
@@ -1631,23 +2039,39 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('assertKeyword', assertKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('condition2', condition2)
+    ..addToken('comma', comma)
+    ..addNode('message2', message2)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAssertInitializer(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAssertInitializer(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(condition, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'condition'.");
+    if (identical(condition2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'condition2'.");
     }
-    if (identical(message, oldNode)) {
-      message = null;
+    if (identical(message2, oldNode)) {
+      message2 = null;
       return;
     }
     super.removeChild(oldNode);
@@ -1656,22 +2080,31 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(condition, oldNode)) {
-      condition = newNode as ExpressionImpl;
+    if (identical(condition2, oldNode)) {
+      condition2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(message, oldNode)) {
-      message = newNode as ExpressionImpl?;
+    if (identical(message2, oldNode)) {
+      message2 = newNode as ExpressionImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
     message?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    condition2.accept2(visitor);
+    message2?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -1680,21 +2113,22 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitCondition,
-    void Function(ExpressionImpl)? visitMessage,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitCondition2,
+    void Function(ExpressionImpl)? visitMessage2,
   }) {
-    if (visitCondition != null) {
-      visitCondition(condition);
+    if (visitCondition2 != null) {
+      visitCondition2(condition2);
     } else {
-      condition.accept(visitor);
+      condition2.accept2(visitor);
     }
-    if (message case var message?) {
-      if (visitMessage != null) {
-        visitMessage(message);
+    if (message2 case var message2?) {
+      if (visitMessage2 != null) {
+        visitMessage2(message2);
       } else {
-        message.accept(visitor);
+        message2.accept2(visitor);
       }
     }
   }
@@ -1712,6 +2146,20 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (condition2._containsOffset(rangeOffset, rangeEnd)) {
+      return condition2;
+    }
+    if (message2 case var message2?) {
+      if (message2._containsOffset(rangeOffset, rangeEnd)) {
+        return message2;
+      }
+    }
+    return null;
+  }
 }
 
 /// An assertion, either in a block or in the initializer list of a constructor.
@@ -1720,19 +2168,27 @@ abstract final class Assertion implements AstNode {
   /// The token representing the `assert` keyword.
   Token get assertKeyword;
 
-  /// The comma between the [condition] and the [message], or `null` if no
+  /// The comma between the [condition2] and the [message2], or `null` if no
   /// message was supplied.
   Token? get comma;
 
   /// The condition that is being asserted to be `true`.
+  @ToBeDeprecated('Use condition2 instead.')
   Expression get condition;
+
+  @experimental
+  Expression get condition2;
 
   /// The left parenthesis.
   Token get leftParenthesis;
 
   /// The message to report if the assertion fails, or `null` if no message was
   /// supplied.
+  @ToBeDeprecated('Use message2 instead.')
   Expression? get message;
+
+  @experimental
+  Expression? get message2;
 
   /// The right parenthesis.
   Token get rightParenthesis;
@@ -1752,9 +2208,19 @@ abstract final class AssertStatement implements Assertion, Statement {
   childEntitiesOrder: [
     GenerateNodeProperty('assertKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'condition2',
+      v1Name: 'condition',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('comma'),
-    GenerateNodeProperty('message', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'message2',
+      v1Name: 'message',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('semicolon'),
   ],
@@ -1770,14 +2236,14 @@ final class AssertStatementImpl extends StatementImpl
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _condition;
+  ExpressionImpl _condition2;
 
   @generated
   @override
   final Token? comma;
 
   @generated
-  ExpressionImpl? _message;
+  ExpressionImpl? _message2;
 
   @generated
   @override
@@ -1791,15 +2257,20 @@ final class AssertStatementImpl extends StatementImpl
   AssertStatementImpl({
     required this.assertKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl condition,
+    required ExpressionImpl condition2,
     required this.comma,
-    required ExpressionImpl? message,
+    required ExpressionImpl? message2,
     required this.rightParenthesis,
     required this.semicolon,
-  }) : _condition = condition,
-       _message = message {
-    _becomeParentOf(condition);
-    _becomeParentOf(message);
+  }) : _condition2 = condition2,
+       _message2 = message2 {
+    _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _becomeParentOf2(message2);
+    _becomeParentOf1(switch (message2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @generated
@@ -1809,12 +2280,20 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
 
   @generated
-  set condition(ExpressionImpl condition) {
-    _condition = _becomeParentOf(condition);
+  @experimental
+  @override
+  ExpressionImpl get condition2 => _condition2;
+
+  @generated
+  @experimental
+  set condition2(ExpressionImpl condition2) {
+    _condition2 = _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
   }
 
   @generated
@@ -1824,12 +2303,26 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use message2 instead.')
   @override
-  ExpressionImpl? get message => _message;
+  ExpressionImpl? get message => switch (message2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set message(ExpressionImpl? message) {
-    _message = _becomeParentOf(message);
+  @experimental
+  @override
+  ExpressionImpl? get message2 => _message2;
+
+  @generated
+  @experimental
+  set message2(ExpressionImpl? message2) {
+    _message2 = _becomeParentOf2(message2);
+    _becomeParentOf1(switch (message2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @generated
@@ -1845,23 +2338,40 @@ final class AssertStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('assertKeyword', assertKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('condition2', condition2)
+    ..addToken('comma', comma)
+    ..addNode('message2', message2)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAssertStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAssertStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(condition, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'condition'.");
+    if (identical(condition2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'condition2'.");
     }
-    if (identical(message, oldNode)) {
-      message = null;
+    if (identical(message2, oldNode)) {
+      message2 = null;
       return;
     }
     super.removeChild(oldNode);
@@ -1870,22 +2380,31 @@ final class AssertStatementImpl extends StatementImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(condition, oldNode)) {
-      condition = newNode as ExpressionImpl;
+    if (identical(condition2, oldNode)) {
+      condition2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(message, oldNode)) {
-      message = newNode as ExpressionImpl?;
+    if (identical(message2, oldNode)) {
+      message2 = newNode as ExpressionImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
     message?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    condition2.accept2(visitor);
+    message2?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -1894,21 +2413,22 @@ final class AssertStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitCondition,
-    void Function(ExpressionImpl)? visitMessage,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitCondition2,
+    void Function(ExpressionImpl)? visitMessage2,
   }) {
-    if (visitCondition != null) {
-      visitCondition(condition);
+    if (visitCondition2 != null) {
+      visitCondition2(condition2);
     } else {
-      condition.accept(visitor);
+      condition2.accept2(visitor);
     }
-    if (message case var message?) {
-      if (visitMessage != null) {
-        visitMessage(message);
+    if (message2 case var message2?) {
+      if (visitMessage2 != null) {
+        visitMessage2(message2);
       } else {
-        message.accept(visitor);
+        message2.accept2(visitor);
       }
     }
   }
@@ -1922,6 +2442,20 @@ final class AssertStatementImpl extends StatementImpl
     if (message case var message?) {
       if (message._containsOffset(rangeOffset, rangeEnd)) {
         return message;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (condition2._containsOffset(rangeOffset, rangeEnd)) {
+      return condition2;
+    }
+    if (message2 case var message2?) {
+      if (message2._containsOffset(rangeOffset, rangeEnd)) {
+        return message2;
       }
     }
     return null;
@@ -1975,7 +2509,18 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAssignedVariablePattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitAssignedVariablePattern(this);
 
   @override
@@ -1992,7 +2537,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -2008,16 +2553,29 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -2030,80 +2588,116 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 abstract final class AssignmentExpression
     implements MethodReferenceExpression, CompoundAssignmentExpression {
   /// The expression used to compute the left hand side.
+  @ToBeDeprecated('Use leftHandSide2 instead.')
   Expression get leftHandSide;
+
+  @experimental
+  Expression get leftHandSide2;
 
   /// The assignment operator being applied.
   Token get operator;
 
   /// The expression used to compute the right-hand side.
+  @ToBeDeprecated('Use rightHandSide2 instead.')
   Expression get rightHandSide;
+
+  @experimental
+  Expression get rightHandSide2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('leftHandSide'),
+    GenerateNodeProperty(
+      'leftHandSide2',
+      v1Name: 'leftHandSide',
+      v1Projection: V1Projection.expression,
+    ),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightHandSide', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'rightHandSide2',
+      v1Name: 'rightHandSide',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class AssignmentExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
   @generated
-  ExpressionImpl _leftHandSide;
+  ExpressionImpl _leftHandSide2;
 
   @generated
   @override
   final Token operator;
 
   @generated
-  ExpressionImpl _rightHandSide;
+  ExpressionImpl _rightHandSide2;
 
   @override
   InternalMethodElement? element;
 
   @generated
   AssignmentExpressionImpl({
-    required ExpressionImpl leftHandSide,
+    required ExpressionImpl leftHandSide2,
     required this.operator,
-    required ExpressionImpl rightHandSide,
-  }) : _leftHandSide = leftHandSide,
-       _rightHandSide = rightHandSide {
-    _becomeParentOf(leftHandSide);
-    _becomeParentOf(rightHandSide);
+    required ExpressionImpl rightHandSide2,
+  }) : _leftHandSide2 = leftHandSide2,
+       _rightHandSide2 = rightHandSide2 {
+    _becomeParentOf2(leftHandSide2);
+    _becomeParentOf1(V1Projection.toV1Expression(leftHandSide2));
+    _becomeParentOf2(rightHandSide2);
+    _becomeParentOf1(V1Projection.toV1Expression(rightHandSide2));
   }
 
   @generated
   @override
   Token get beginToken {
-    return leftHandSide.beginToken;
+    return leftHandSide2.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
-    return rightHandSide.endToken;
+    return rightHandSide2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use leftHandSide2 instead.')
   @override
-  ExpressionImpl get leftHandSide => _leftHandSide;
+  ExpressionImpl get leftHandSide => V1Projection.toV1Expression(leftHandSide2);
 
   @generated
-  set leftHandSide(ExpressionImpl leftHandSide) {
-    _leftHandSide = _becomeParentOf(leftHandSide);
+  @experimental
+  @override
+  ExpressionImpl get leftHandSide2 => _leftHandSide2;
+
+  @generated
+  @experimental
+  set leftHandSide2(ExpressionImpl leftHandSide2) {
+    _leftHandSide2 = _becomeParentOf2(leftHandSide2);
+    _becomeParentOf1(V1Projection.toV1Expression(leftHandSide2));
   }
 
   @override
   Precedence get precedence => Precedence.assignment;
 
   @generated
+  @ToBeDeprecated('Use rightHandSide2 instead.')
   @override
-  ExpressionImpl get rightHandSide => _rightHandSide;
+  ExpressionImpl get rightHandSide =>
+      V1Projection.toV1Expression(rightHandSide2);
 
   @generated
-  set rightHandSide(ExpressionImpl rightHandSide) {
-    _rightHandSide = _becomeParentOf(rightHandSide);
+  @experimental
+  @override
+  ExpressionImpl get rightHandSide2 => _rightHandSide2;
+
+  @generated
+  @experimental
+  set rightHandSide2(ExpressionImpl rightHandSide2) {
+    _rightHandSide2 = _becomeParentOf2(rightHandSide2);
+    _becomeParentOf1(V1Projection.toV1Expression(rightHandSide2));
   }
 
   @generated
@@ -2112,6 +2706,13 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ..addNode('leftHandSide', leftHandSide)
     ..addToken('operator', operator)
     ..addNode('rightHandSide', rightHandSide);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('leftHandSide2', leftHandSide2)
+    ..addToken('operator', operator)
+    ..addNode('rightHandSide2', rightHandSide2);
 
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
@@ -2129,7 +2730,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
       if (formalParameters.isEmpty) {
         return null;
       }
-      if (operator.type == TokenType.EQ && leftHandSide is IndexExpression) {
+      if (operator.type == TokenType.EQ && leftHandSide2 is IndexExpression) {
         return formalParameters.length == 2
             ? (formalParameters[1] as InternalFormalParameterElement)
             : null;
@@ -2141,25 +2742,32 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAssignmentExpression(this);
 
   @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitAssignmentExpression(this);
+
+  @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(rightHandSide, child);
+    assert(identical(child.parent2, this));
+    return identical(rightHandSide2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(leftHandSide, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'leftHandSide'.");
+    if (identical(leftHandSide2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'leftHandSide2'.");
     }
-    if (identical(rightHandSide, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'rightHandSide'.");
+    if (identical(rightHandSide2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'rightHandSide2'.");
     }
     super.removeChild(oldNode);
   }
@@ -2167,12 +2775,12 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(leftHandSide, oldNode)) {
-      leftHandSide = newNode as ExpressionImpl;
+    if (identical(leftHandSide2, oldNode)) {
+      leftHandSide2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(rightHandSide, oldNode)) {
-      rightHandSide = newNode as ExpressionImpl;
+    if (identical(rightHandSide2, oldNode)) {
+      rightHandSide2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -2185,10 +2793,19 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftHandSide.accept(visitor);
     rightHandSide.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    leftHandSide2.accept2(visitor);
+    rightHandSide2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -2197,20 +2814,21 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitLeftHandSide,
-    void Function(ExpressionImpl)? visitRightHandSide,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitLeftHandSide2,
+    void Function(ExpressionImpl)? visitRightHandSide2,
   }) {
-    if (visitLeftHandSide != null) {
-      visitLeftHandSide(leftHandSide);
+    if (visitLeftHandSide2 != null) {
+      visitLeftHandSide2(leftHandSide2);
     } else {
-      leftHandSide.accept(visitor);
+      leftHandSide2.accept2(visitor);
     }
-    if (visitRightHandSide != null) {
-      visitRightHandSide(rightHandSide);
+    if (visitRightHandSide2 != null) {
+      visitRightHandSide2(rightHandSide2);
     } else {
-      rightHandSide.accept(visitor);
+      rightHandSide2.accept2(visitor);
     }
   }
 
@@ -2222,6 +2840,18 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     }
     if (rightHandSide._containsOffset(rangeOffset, rangeEnd)) {
       return rightHandSide;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (leftHandSide2._containsOffset(rangeOffset, rangeEnd)) {
+      return leftHandSide2;
+    }
+    if (rightHandSide2._containsOffset(rangeOffset, rangeEnd)) {
+      return rightHandSide2;
     }
     return null;
   }
@@ -2245,7 +2875,14 @@ abstract final class AstNode implements SyntacticEntity {
   /// An iterator that can be used to iterate through all the entities (either
   /// AST nodes or tokens) that make up the contents of this node, including doc
   /// comments but excluding other comments.
+  @ToBeDeprecated('Use childEntities2 instead')
   Iterable<SyntacticEntity> get childEntities;
+
+  /// An iterator that can be used to iterate through all the entities (either
+  /// AST nodes or tokens) that make up the contents of this node, including doc
+  /// comments but excluding other comments.
+  @experimental
+  Iterable<SyntacticEntity> get childEntities2;
 
   /// The offset of the character immediately following the last character of
   /// this node's source range.
@@ -2278,32 +2915,71 @@ abstract final class AstNode implements SyntacticEntity {
   ///
   /// Note that the relationship between an AST node and its parent node may
   /// change over the lifetime of a node.
+  @ToBeDeprecated('Use parent2 instead')
   AstNode? get parent;
+
+  /// Returns this node's parent node, or `null` if this node is the root of an
+  /// AST structure.
+  ///
+  /// Note that the relationship between an AST node and its parent node may
+  /// change over the lifetime of a node.
+  @experimental
+  AstNode? get parent2;
 
   /// The node at the root of this node's AST structure.
   ///
   /// Note that this method's performance is linear with respect to the depth
   /// of the node in the AST structure (O(depth)).
+  @ToBeDeprecated('Use root2 instead')
   AstNode get root;
+
+  /// The node at the root of this node's AST structure.
+  ///
+  /// Note that this method's performance is linear with respect to the depth
+  /// of the node in the AST structure (O(depth)).
+  @experimental
+  AstNode get root2;
 
   /// Use the given [visitor] to visit this node.
   ///
   /// Returns the value returned by the visitor as a result of visiting this
   /// node.
+  @ToBeDeprecated('Use accept2 instead')
   E? accept<E>(AstVisitor<E> visitor);
+
+  /// Use the given [visitor] to visit this node.
+  ///
+  /// Returns the value returned by the visitor as a result of visiting this
+  /// node.
+  @experimental
+  E? accept2<E>(AstVisitor2<E> visitor);
 
   /// Returns the token before [target], or `null` if it can't be found.
   Token? findPrevious(Token target);
 
   /// Returns either this node or the most immediate ancestor of this node for
   /// which the [predicate] returns `true`, or `null` if there's no such node.
+  @ToBeDeprecated('Use thisOrAncestorMatching2 instead')
   E? thisOrAncestorMatching<E extends AstNode>(
+    bool Function(AstNode) predicate,
+  );
+
+  /// Returns either this node or the most immediate ancestor of this node for
+  /// which the [predicate] returns `true`, or `null` if there's no such node.
+  @experimental
+  E? thisOrAncestorMatching2<E extends AstNode>(
     bool Function(AstNode) predicate,
   );
 
   /// Returns either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there's no such node.
+  @ToBeDeprecated('Use thisOrAncestorOfType2 instead')
   E? thisOrAncestorOfType<E extends AstNode>();
+
+  /// Returns either this node or the most immediate ancestor of this node that
+  /// has the given type, or `null` if there's no such node.
+  @experimental
+  E? thisOrAncestorOfType2<E extends AstNode>();
 
   /// Returns a textual description of this node in a form approximating valid
   /// source.
@@ -2329,15 +3005,43 @@ abstract final class AstNode implements SyntacticEntity {
   /// Use the given [visitor] to visit all of the children of this node.
   ///
   /// The children are visited in lexical order.
+  @ToBeDeprecated('Use visitChildren2 instead')
   void visitChildren(AstVisitor visitor);
+
+  /// Use the given [visitor] to visit all of the children of this node.
+  ///
+  /// The children are visited in lexical order.
+  @experimental
+  void visitChildren2(AstVisitor2 visitor);
+}
+
+enum AstNodeApi {
+  /// The node exists only in the V1 AST view.
+  v1,
+
+  /// The node exists only in the V2 AST view.
+  v2,
+
+  /// The node is shared between both AST views.
+  shared,
 }
 
 sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNodeImpl? _parent;
 
+  AstNodeImpl? _parent2;
+
+  AstNodeApi get astNodeApi => _astNodeApi;
+
   @override
+  @ToBeDeprecated('Use childEntities2 instead')
   Iterable<SyntacticEntity> get childEntities =>
       _childEntities.syntacticEntities;
+
+  @override
+  @experimental
+  Iterable<SyntacticEntity> get childEntities2 =>
+      _childEntities2.syntacticEntities;
 
   @override
   int get end => endToken.end;
@@ -2351,34 +3055,76 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// The properties (tokens and nodes) of this node, with names, in the order
   /// in which these entities should normally appear, not necessarily in the
   /// order they really are (because of recovery).
+  @ToBeDeprecated('Use namedChildEntities2 instead')
   Iterable<ChildEntity> get namedChildEntities => _childEntities.entities;
+
+  /// The properties (tokens and nodes) of this node, with names, in the order
+  /// in which these entities should normally appear, not necessarily in the
+  /// order they really are (because of recovery).
+  @experimental
+  Iterable<ChildEntity> get namedChildEntities2 => _childEntities2.entities;
 
   @override
   int get offset => beginToken.offset;
 
   @override
-  AstNodeImpl? get parent => _parent;
+  @ToBeDeprecated('Use parent2 instead')
+  AstNodeImpl? get parent {
+    _checkV1View();
+    return _parent;
+  }
 
   @override
+  @experimental
+  AstNodeImpl? get parent2 {
+    _checkV2View();
+    return _parent2;
+  }
+
+  AstNodeImpl? get parentInPrimaryView {
+    return _astNodeApi == AstNodeApi.v1 ? _parent : _parent2;
+  }
+
+  @override
+  @ToBeDeprecated('Use root2 instead')
   AstNode get root {
+    _checkV1View();
     AstNodeImpl root = this;
-    var rootParent = parent;
+    var rootParent = _parent;
     while (rootParent != null) {
       root = rootParent;
-      rootParent = root.parent;
+      rootParent = root._parent;
     }
     return root;
   }
 
+  @override
+  @experimental
+  AstNode get root2 {
+    _checkV2View();
+    AstNodeImpl root = this;
+    var rootParent = parent2;
+    while (rootParent != null) {
+      root = rootParent;
+      rootParent = root.parent2;
+    }
+    return root;
+  }
+
+  AstNodeApi get _astNodeApi => AstNodeApi.shared;
+
   ChildEntities get _childEntities => ChildEntities();
+
+  ChildEntities get _childEntities2 => _childEntities;
 
   void detachFromParent() {
     _parent = null;
+    _parent2 = null;
   }
 
   @override
   Token? findPrevious(Token target) =>
-      util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
+      util.findPrevious(beginToken, target) ?? _parent?.findPrevious(target);
 
   /// Returns `true` if [child] is in a slot of this node that allows a value
   /// expression.
@@ -2401,7 +3147,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// This is only supported for nullable child slots. It is not supported for
   /// required child slots or for elements of a [NodeList].
   void removeFromParent() {
-    var parent = this.parent;
+    var parent = parent2;
     if (parent is! AstNodeImpl) {
       throw ArgumentError('The node is not a child of another node.');
     }
@@ -2427,29 +3173,57 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     if (identical(this, newNode)) {
       return;
     }
-    var parent = this.parent;
+    var parent = parent2;
     if (parent is! AstNodeImpl) {
       throw ArgumentError('The node is not a child of another node.');
     }
     parent.replaceChild(this, newNode);
   }
 
+  @ToBeDeprecated('Use thisOrAncestorMatching2 instead')
   @override
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
   ) {
+    _checkV1View();
     AstNode? node = this;
     while (node != null && !predicate(node)) {
-      node = node.parent;
+      node = (node as AstNodeImpl)._parent;
     }
     return node as E?;
   }
 
   @override
+  @experimental
+  E? thisOrAncestorMatching2<E extends AstNode>(
+    bool Function(AstNode) predicate,
+  ) {
+    _checkV2View();
+    AstNode? node = this;
+    while (node != null && !predicate(node)) {
+      node = node.parent2;
+    }
+    return node as E?;
+  }
+
+  @override
+  @ToBeDeprecated('Use thisOrAncestorOfType2 instead')
   E? thisOrAncestorOfType<E extends AstNode>() {
+    _checkV1View();
     AstNode? node = this;
     while (node != null && node is! E) {
-      node = node.parent;
+      node = (node as AstNodeImpl)._parent;
+    }
+    return node as E?;
+  }
+
+  @override
+  @experimental
+  E? thisOrAncestorOfType2<E extends AstNode>() {
+    _checkV2View();
+    AstNode? node = this;
+    while (node != null && node is! E) {
+      node = node.parent2;
     }
     return node as E?;
   }
@@ -2457,7 +3231,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   @override
   String toSource() {
     StringBuffer buffer = StringBuffer();
-    accept(ToSourceVisitor(buffer));
+    accept2(ToSourceVisitor(buffer));
     return buffer.toString();
   }
 
@@ -2465,10 +3239,49 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   String toString() => toSource();
 
   /// Returns the [child] node after making this node the parent of the [child]
-  /// node.
-  T _becomeParentOf<T extends AstNodeImpl?>(T child) {
+  /// node in the V1 tree view.
+  T _becomeParentOf1<T extends AstNodeImpl?>(T child) {
     child?._parent = this;
     return child;
+  }
+
+  /// Returns the [child] node after making this node the parent of the [child]
+  /// node in both tree views.
+  T _becomeParentOf12<T extends AstNodeImpl?>(T child) {
+    child?._parent = this;
+    child?._parent2 = this;
+    return child;
+  }
+
+  /// Returns the [child] node after making this node the parent of the [child]
+  /// node in the V2 tree view.
+  T _becomeParentOf2<T extends AstNodeImpl?>(T child) {
+    child?._parent2 = this;
+    return child;
+  }
+
+  /// Makes this node the parent in every tree view in which it exists.
+  T _becomeParentOfOwnedView<T extends AstNodeImpl?>(T child) {
+    switch (_astNodeApi) {
+      case AstNodeApi.v1:
+        return _becomeParentOf1<T>(child);
+      case AstNodeApi.v2:
+        return _becomeParentOf2<T>(child);
+      case AstNodeApi.shared:
+        return _becomeParentOf12<T>(child);
+    }
+  }
+
+  void _checkV1View() {
+    if (_astNodeApi == AstNodeApi.v2) {
+      throw StateError('$runtimeType is not in the V1 AST view.');
+    }
+  }
+
+  void _checkV2View() {
+    if (_astNodeApi == AstNodeApi.v1) {
+      throw StateError('$runtimeType is not in the V2 AST view.');
+    }
   }
 
   /// Returns the child of this node that completely contains the range.
@@ -2476,6 +3289,13 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// Returns `null` if none of the children contain the range (which means that
   /// this node is the covering node).
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd);
+
+  /// Returns the child of this node that completely contains the range.
+  ///
+  /// Returns `null` if none of the children contain the range (which means that
+  /// this node is the covering node).
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) =>
+      _childContainingRange(rangeOffset, rangeEnd);
 
   /// Returns whether this node contains the range from [rangeOffset] to
   /// [rangeEnd].
@@ -2526,7 +3346,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
           stack.addAll(tokenList.reversed);
         case AstNodeImpl node:
           // Push in reverse order, so process in source order.
-          var entities = node._childEntities.entities;
+          var entities = node._childEntities2.entities;
           stack.addAll(entities.reversed.map((e) => e.value));
         case NodeListImpl nodeList:
           // Push in reverse order, so process in source order.
@@ -2570,13 +3390,22 @@ abstract final class AwaitExpression implements Expression {
   Token get awaitKeyword;
 
   /// The expression whose value is being waited on.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('awaitKeyword'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class AwaitExpressionImpl extends ExpressionImpl
@@ -2586,14 +3415,15 @@ final class AwaitExpressionImpl extends ExpressionImpl
   final Token awaitKeyword;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   AwaitExpressionImpl({
     required this.awaitKeyword,
-    required ExpressionImpl expression,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+    required ExpressionImpl expression2,
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -2605,16 +3435,24 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -2628,20 +3466,32 @@ final class AwaitExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('awaitKeyword', awaitKeyword)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAwaitExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -2649,8 +3499,8 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -2663,9 +3513,17 @@ final class AwaitExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -2674,14 +3532,15 @@ final class AwaitExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -2690,6 +3549,15 @@ final class AwaitExpressionImpl extends ExpressionImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -2703,13 +3571,21 @@ final class AwaitExpressionImpl extends ExpressionImpl
 abstract final class BinaryExpression
     implements Expression, MethodReferenceExpression {
   /// The expression used to compute the left operand.
+  @ToBeDeprecated('Use leftOperand2 instead.')
   Expression get leftOperand;
+
+  @experimental
+  Expression get leftOperand2;
 
   /// The binary operator being applied.
   Token get operator;
 
   /// The expression used to compute the right operand.
+  @ToBeDeprecated('Use rightOperand2 instead.')
   Expression get rightOperand;
+
+  @experimental
+  Expression get rightOperand2;
 
   /// The function type of the invocation, or `null` if the AST structure hasn't
   /// been resolved or if the invocation couldn't be resolved.
@@ -2718,22 +3594,32 @@ abstract final class BinaryExpression
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'leftOperand2',
+      v1Name: 'leftOperand',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'rightOperand2',
+      v1Name: 'rightOperand',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class BinaryExpressionImpl extends ExpressionImpl
     implements BinaryExpression {
   @generated
-  ExpressionImpl _leftOperand;
+  ExpressionImpl _leftOperand2;
 
   @generated
   @override
   final Token operator;
 
   @generated
-  ExpressionImpl _rightOperand;
+  ExpressionImpl _rightOperand2;
 
   @override
   MethodElement? element;
@@ -2743,46 +3629,64 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @generated
   BinaryExpressionImpl({
-    required ExpressionImpl leftOperand,
+    required ExpressionImpl leftOperand2,
     required this.operator,
-    required ExpressionImpl rightOperand,
-  }) : _leftOperand = leftOperand,
-       _rightOperand = rightOperand {
-    _becomeParentOf(leftOperand);
-    _becomeParentOf(rightOperand);
+    required ExpressionImpl rightOperand2,
+  }) : _leftOperand2 = leftOperand2,
+       _rightOperand2 = rightOperand2 {
+    _becomeParentOf2(leftOperand2);
+    _becomeParentOf1(V1Projection.toV1Expression(leftOperand2));
+    _becomeParentOf2(rightOperand2);
+    _becomeParentOf1(V1Projection.toV1Expression(rightOperand2));
   }
 
   @generated
   @override
   Token get beginToken {
-    return leftOperand.beginToken;
+    return leftOperand2.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
-    return rightOperand.endToken;
+    return rightOperand2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use leftOperand2 instead.')
   @override
-  ExpressionImpl get leftOperand => _leftOperand;
+  ExpressionImpl get leftOperand => V1Projection.toV1Expression(leftOperand2);
 
   @generated
-  set leftOperand(ExpressionImpl leftOperand) {
-    _leftOperand = _becomeParentOf(leftOperand);
+  @experimental
+  @override
+  ExpressionImpl get leftOperand2 => _leftOperand2;
+
+  @generated
+  @experimental
+  set leftOperand2(ExpressionImpl leftOperand2) {
+    _leftOperand2 = _becomeParentOf2(leftOperand2);
+    _becomeParentOf1(V1Projection.toV1Expression(leftOperand2));
   }
 
   @override
   Precedence get precedence => Precedence.forTokenType(operator.type);
 
   @generated
+  @ToBeDeprecated('Use rightOperand2 instead.')
   @override
-  ExpressionImpl get rightOperand => _rightOperand;
+  ExpressionImpl get rightOperand => V1Projection.toV1Expression(rightOperand2);
 
   @generated
-  set rightOperand(ExpressionImpl rightOperand) {
-    _rightOperand = _becomeParentOf(rightOperand);
+  @experimental
+  @override
+  ExpressionImpl get rightOperand2 => _rightOperand2;
+
+  @generated
+  @experimental
+  set rightOperand2(ExpressionImpl rightOperand2) {
+    _rightOperand2 = _becomeParentOf2(rightOperand2);
+    _becomeParentOf1(V1Projection.toV1Expression(rightOperand2));
   }
 
   @generated
@@ -2794,23 +3698,36 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('leftOperand2', leftOperand2)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand2', rightOperand2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBinaryExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(leftOperand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'leftOperand'.");
+    if (identical(leftOperand2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'leftOperand2'.");
     }
-    if (identical(rightOperand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'rightOperand'.");
+    if (identical(rightOperand2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'rightOperand2'.");
     }
     super.removeChild(oldNode);
   }
@@ -2818,12 +3735,12 @@ final class BinaryExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(leftOperand, oldNode)) {
-      leftOperand = newNode as ExpressionImpl;
+    if (identical(leftOperand2, oldNode)) {
+      leftOperand2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(rightOperand, oldNode)) {
-      rightOperand = newNode as ExpressionImpl;
+    if (identical(rightOperand2, oldNode)) {
+      rightOperand2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -2836,10 +3753,19 @@ final class BinaryExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    leftOperand2.accept2(visitor);
+    rightOperand2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -2848,20 +3774,21 @@ final class BinaryExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitLeftOperand,
-    void Function(ExpressionImpl)? visitRightOperand,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitLeftOperand2,
+    void Function(ExpressionImpl)? visitRightOperand2,
   }) {
-    if (visitLeftOperand != null) {
-      visitLeftOperand(leftOperand);
+    if (visitLeftOperand2 != null) {
+      visitLeftOperand2(leftOperand2);
     } else {
-      leftOperand.accept(visitor);
+      leftOperand2.accept2(visitor);
     }
-    if (visitRightOperand != null) {
-      visitRightOperand(rightOperand);
+    if (visitRightOperand2 != null) {
+      visitRightOperand2(rightOperand2);
     } else {
-      rightOperand.accept(visitor);
+      rightOperand2.accept2(visitor);
     }
   }
 
@@ -2873,6 +3800,18 @@ final class BinaryExpressionImpl extends ExpressionImpl
     }
     if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
       return rightOperand;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (leftOperand2._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand2;
+    }
+    if (rightOperand2._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand2;
     }
     return null;
   }
@@ -2954,12 +3893,25 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockClassBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockClassBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -2984,9 +3936,17 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     members.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    members.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -2995,20 +3955,31 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
   }) {
     if (visitMembers != null) {
       visitMembers(members);
     } else {
-      members.accept(visitor);
+      members.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (members._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -3095,12 +4066,27 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('constants', constants)
+    ..addToken('semicolon', semicolon)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockEnumBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockEnumBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -3133,10 +4119,19 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constants.accept(visitor);
     members.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    constants.accept2(visitor);
+    members.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -3145,26 +4140,41 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<EnumConstantDeclarationImpl>)? visitConstants,
     void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
   }) {
     if (visitConstants != null) {
       visitConstants(constants);
     } else {
-      constants.accept(visitor);
+      constants.accept2(visitor);
     }
     if (visitMembers != null) {
       visitMembers(members);
     } else {
-      members.accept(visitor);
+      members.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (constants._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (constants._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -3213,7 +4223,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
     required this.star,
     required BlockImpl block,
   }) : _block = block {
-    _becomeParentOf(block);
+    _becomeParentOf12(block);
   }
 
   @generated
@@ -3234,7 +4244,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   set block(BlockImpl block) {
-    _block = _becomeParentOf(block);
+    _block = _becomeParentOf12(block);
   }
 
   @generated
@@ -3261,12 +4271,25 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addToken('star', star)
+    ..addNode('block', block);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockFunctionBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -3294,9 +4317,17 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
       resolver.visitBlockFunctionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     block.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    block.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -3305,20 +4336,30 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(BlockImpl)? visitBlock,
   }) {
     if (visitBlock != null) {
       visitBlock(block);
     } else {
-      block.accept(visitor);
+      block.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (block._containsOffset(rangeOffset, rangeEnd)) {
+      return block;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (block._containsOffset(rangeOffset, rangeEnd)) {
       return block;
     }
@@ -3378,12 +4419,25 @@ final class BlockImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('statements', statements)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlock(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlock(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -3408,9 +4462,17 @@ final class BlockImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     statements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    statements.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -3419,20 +4481,31 @@ final class BlockImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<StatementImpl>)? visitStatements,
   }) {
     if (visitStatements != null) {
       visitStatements(statements);
     } else {
-      statements.accept(visitor);
+      statements.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (statements._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -3494,12 +4567,23 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('literal', literal);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBooleanLiteral(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBooleanLiteral(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -3510,16 +4594,29 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -3581,7 +4678,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
     required LabelReferenceImpl? label,
     required this.semicolon,
   }) : _label = label {
-    _becomeParentOf(label);
+    _becomeParentOf12(label);
   }
 
   @generated
@@ -3602,7 +4699,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 
   @generated
   set label(LabelReferenceImpl? label) {
-    _label = _becomeParentOf(label);
+    _label = _becomeParentOf12(label);
   }
 
   @generated
@@ -3614,12 +4711,25 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('breakKeyword', breakKeyword)
+    ..addNode('label', label)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBreakStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBreakStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -3644,9 +4754,17 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     label?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    label?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -3655,15 +4773,16 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(LabelReferenceImpl)? visitLabel,
   }) {
     if (label case var label?) {
       if (visitLabel != null) {
         visitLabel(label);
       } else {
-        label.accept(visitor);
+        label.accept2(visitor);
       }
     }
   }
@@ -3671,6 +4790,17 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (label case var label?) {
+      if (label._containsOffset(rangeOffset, rangeEnd)) {
+        return label;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (label case var label?) {
       if (label._containsOffset(rangeOffset, rangeEnd)) {
         return label;
@@ -3699,69 +4829,106 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CascadeExpression implements Expression {
   /// The cascade sections sharing the common target.
+  @ToBeDeprecated('Use cascadeSections2 instead.')
   NodeList<Expression> get cascadeSections;
+
+  @experimental
+  NodeList<Expression> get cascadeSections2;
 
   /// Whether this cascade is null aware (as opposed to non-null).
   bool get isNullAware;
 
   /// The target of the cascade sections.
+  @ToBeDeprecated('Use target2 instead.')
   Expression get target;
+
+  @experimental
+  Expression get target2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('target', isInValueExpressionSlot: true),
-    GenerateNodeProperty('cascadeSections'),
+    GenerateNodeProperty(
+      'target2',
+      v1Name: 'target',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
+    GenerateNodeProperty(
+      'cascadeSections2',
+      v1Name: 'cascadeSections',
+      v1Projection: V1Projection.expression,
+    ),
   ],
 )
 final class CascadeExpressionImpl extends ExpressionImpl
     implements CascadeExpression {
   @generated
-  ExpressionImpl _target;
+  ExpressionImpl _target2;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<ExpressionImpl> cascadeSections = NodeListImpl._();
+  final NodeListImpl<ExpressionImpl> cascadeSections2 = NodeListImpl._();
+
+  @generated
+  @ToBeDeprecated('Use cascadeSections2 instead.')
+  @override
+  late final NodeListImpl<ExpressionImpl> cascadeSections =
+      _V1ProjectedNodeListImpl(cascadeSections2, V1Projection.toV1Expression);
 
   @generated
   CascadeExpressionImpl({
-    required ExpressionImpl target,
-    required List<ExpressionImpl> cascadeSections,
-  }) : _target = target {
-    _becomeParentOf(target);
-    this.cascadeSections._initialize(this, cascadeSections);
+    required ExpressionImpl target2,
+    required List<ExpressionImpl> cascadeSections2,
+  }) : _target2 = target2 {
+    _becomeParentOf2(target2);
+    _becomeParentOf1(V1Projection.toV1Expression(target2));
+    this.cascadeSections2._initializeProjected(
+      this,
+      cascadeSections2,
+      V1Projection.toV1Expression,
+    );
   }
 
   @generated
   @override
   Token get beginToken {
-    return target.beginToken;
+    return target2.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
-    if (cascadeSections.endToken case var result?) {
+    if (cascadeSections2.endToken case var result?) {
       return result;
     }
-    return target.endToken;
+    return target2.endToken;
   }
 
   @override
   bool get isNullAware {
-    return target.endToken.next!.type == TokenType.QUESTION_PERIOD_PERIOD;
+    return target2.endToken.next!.type == TokenType.QUESTION_PERIOD_PERIOD;
   }
 
   @override
   Precedence get precedence => Precedence.cascade;
 
   @generated
+  @ToBeDeprecated('Use target2 instead.')
   @override
-  ExpressionImpl get target => _target;
+  ExpressionImpl get target => V1Projection.toV1Expression(target2);
 
   @generated
-  set target(ExpressionImpl target) {
-    _target = _becomeParentOf(target);
+  @experimental
+  @override
+  ExpressionImpl get target2 => _target2;
+
+  @generated
+  @experimental
+  set target2(ExpressionImpl target2) {
+    _target2 = _becomeParentOf2(target2);
+    _becomeParentOf1(V1Projection.toV1Expression(target2));
   }
 
   @generated
@@ -3772,24 +4939,36 @@ final class CascadeExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('target2', target2)
+    ..addNodeList('cascadeSections2', cascadeSections2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCascadeExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(target, child);
+    assert(identical(child.parent2, this));
+    return identical(target2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'target'.");
+    if (identical(target2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target2'.");
     }
-    if (cascadeSections.containsChild(oldNode)) {
+    if (cascadeSections2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'cascadeSections' because NodeList cannot be resized.",
+        "Cannot remove child 'cascadeSections2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -3798,11 +4977,11 @@ final class CascadeExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as ExpressionImpl;
+    if (identical(target2, oldNode)) {
+      target2 = newNode as ExpressionImpl;
       return;
     }
-    if (cascadeSections.replaceChild(oldNode, newNode)) {
+    if (cascadeSections2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -3815,10 +4994,19 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target.accept(visitor);
     cascadeSections.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    target2.accept2(visitor);
+    cascadeSections2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -3827,20 +5015,21 @@ final class CascadeExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitTarget,
-    void Function(NodeListImpl<ExpressionImpl>)? visitCascadeSections,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitTarget2,
+    void Function(NodeListImpl<ExpressionImpl>)? visitCascadeSections2,
   }) {
-    if (visitTarget != null) {
-      visitTarget(target);
+    if (visitTarget2 != null) {
+      visitTarget2(target2);
     } else {
-      target.accept(visitor);
+      target2.accept2(visitor);
     }
-    if (visitCascadeSections != null) {
-      visitCascadeSections(cascadeSections);
+    if (visitCascadeSections2 != null) {
+      visitCascadeSections2(cascadeSections2);
     } else {
-      cascadeSections.accept(visitor);
+      cascadeSections2.accept2(visitor);
     }
   }
 
@@ -3851,6 +5040,19 @@ final class CascadeExpressionImpl extends ExpressionImpl
       return target;
     }
     if (cascadeSections._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target2._containsOffset(rangeOffset, rangeEnd)) {
+      return target2;
+    }
+    if (cascadeSections2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -3892,7 +5094,7 @@ final class CaseClauseImpl extends AstNodeImpl
     required this.caseKeyword,
     required GuardedPatternImpl guardedPattern,
   }) : _guardedPattern = guardedPattern {
-    _becomeParentOf(guardedPattern);
+    _becomeParentOf12(guardedPattern);
   }
 
   @generated
@@ -3913,7 +5115,7 @@ final class CaseClauseImpl extends AstNodeImpl
 
   @generated
   set guardedPattern(GuardedPatternImpl guardedPattern) {
-    _guardedPattern = _becomeParentOf(guardedPattern);
+    _guardedPattern = _becomeParentOf12(guardedPattern);
   }
 
   @generated
@@ -3924,12 +5126,24 @@ final class CaseClauseImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('caseKeyword', caseKeyword)
+    ..addNode('guardedPattern', guardedPattern);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCaseClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCaseClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -3953,9 +5167,17 @@ final class CaseClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    guardedPattern.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -3964,20 +5186,30 @@ final class CaseClauseImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(GuardedPatternImpl)? visitGuardedPattern,
   }) {
     if (visitGuardedPattern != null) {
       visitGuardedPattern(guardedPattern);
     } else {
-      guardedPattern.accept(visitor);
+      guardedPattern.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
+      return guardedPattern;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
       return guardedPattern;
     }
@@ -4030,8 +5262,8 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
     required TypeAnnotationImpl type,
   }) : _pattern = pattern,
        _type = type {
-    _becomeParentOf(pattern);
-    _becomeParentOf(type);
+    _becomeParentOf12(pattern);
+    _becomeParentOf12(type);
   }
 
   @generated
@@ -4052,7 +5284,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @override
@@ -4064,7 +5296,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @generated
   set type(TypeAnnotationImpl type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @override
@@ -4079,7 +5311,20 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addToken('asToken', asToken)
+    ..addNode('type', type);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCastPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -4089,7 +5334,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -4125,7 +5370,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    type.accept(resolverVisitor);
+    type.accept2(resolverVisitor);
     var requiredType = type.typeOrThrow;
 
     var analysisResult = resolverVisitor.analyzeCastPattern(
@@ -4147,10 +5392,19 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
     type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    pattern.accept2(visitor);
+    type.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -4159,26 +5413,39 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitPattern,
     void Function(TypeAnnotationImpl)? visitType,
   }) {
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
       return pattern;
     }
@@ -4294,10 +5561,10 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
        _exceptionParameter = exceptionParameter,
        _stackTraceParameter = stackTraceParameter,
        _body = body {
-    _becomeParentOf(exceptionType);
-    _becomeParentOf(exceptionParameter);
-    _becomeParentOf(stackTraceParameter);
-    _becomeParentOf(body);
+    _becomeParentOf12(exceptionType);
+    _becomeParentOf12(exceptionParameter);
+    _becomeParentOf12(stackTraceParameter);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -4336,7 +5603,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @generated
   set body(BlockImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -4351,7 +5618,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @generated
   set exceptionParameter(CatchClauseParameterImpl? exceptionParameter) {
-    _exceptionParameter = _becomeParentOf(exceptionParameter);
+    _exceptionParameter = _becomeParentOf12(exceptionParameter);
   }
 
   @generated
@@ -4360,7 +5627,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @generated
   set exceptionType(TypeAnnotationImpl? exceptionType) {
-    _exceptionType = _becomeParentOf(exceptionType);
+    _exceptionType = _becomeParentOf12(exceptionType);
   }
 
   @generated
@@ -4369,7 +5636,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @generated
   set stackTraceParameter(CatchClauseParameterImpl? stackTraceParameter) {
-    _stackTraceParameter = _becomeParentOf(stackTraceParameter);
+    _stackTraceParameter = _becomeParentOf12(stackTraceParameter);
   }
 
   @generated
@@ -4387,12 +5654,31 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('onKeyword', onKeyword)
+    ..addNode('exceptionType', exceptionType)
+    ..addToken('catchKeyword', catchKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('exceptionParameter', exceptionParameter)
+    ..addToken('comma', comma)
+    ..addNode('stackTraceParameter', stackTraceParameter)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCatchClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCatchClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -4440,6 +5726,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     exceptionType?.accept(visitor);
@@ -4448,14 +5735,25 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     body.accept(visitor);
   }
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    exceptionType?.accept2(visitor);
+    exceptionParameter?.accept2(visitor);
+    stackTraceParameter?.accept2(visitor);
+    body.accept2(visitor);
+  }
+
   /// Visits the children of this node.
   ///
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitExceptionType,
     void Function(CatchClauseParameterImpl)? visitExceptionParameter,
     void Function(CatchClauseParameterImpl)? visitStackTraceParameter,
@@ -4465,33 +5763,57 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
       if (visitExceptionType != null) {
         visitExceptionType(exceptionType);
       } else {
-        exceptionType.accept(visitor);
+        exceptionType.accept2(visitor);
       }
     }
     if (exceptionParameter case var exceptionParameter?) {
       if (visitExceptionParameter != null) {
         visitExceptionParameter(exceptionParameter);
       } else {
-        exceptionParameter.accept(visitor);
+        exceptionParameter.accept2(visitor);
       }
     }
     if (stackTraceParameter case var stackTraceParameter?) {
       if (visitStackTraceParameter != null) {
         visitStackTraceParameter(stackTraceParameter);
       } else {
-        stackTraceParameter.accept(visitor);
+        stackTraceParameter.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (exceptionType case var exceptionType?) {
+      if (exceptionType._containsOffset(rangeOffset, rangeEnd)) {
+        return exceptionType;
+      }
+    }
+    if (exceptionParameter case var exceptionParameter?) {
+      if (exceptionParameter._containsOffset(rangeOffset, rangeEnd)) {
+        return exceptionParameter;
+      }
+    }
+    if (stackTraceParameter case var stackTraceParameter?) {
+      if (stackTraceParameter._containsOffset(rangeOffset, rangeEnd)) {
+        return stackTraceParameter;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (exceptionType case var exceptionType?) {
       if (exceptionType._containsOffset(rangeOffset, rangeEnd)) {
         return exceptionType;
@@ -4557,27 +5879,51 @@ final class CatchClauseParameterImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitCatchClauseParameter(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCatchClauseParameter(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -4827,12 +6173,12 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
        _implementsClause = implementsClause,
        _nativeClause = nativeClause,
        _body = body {
-    _becomeParentOf(namePart);
-    _becomeParentOf(extendsClause);
-    _becomeParentOf(withClause);
-    _becomeParentOf(implementsClause);
-    _becomeParentOf(nativeClause);
-    _becomeParentOf(body);
+    _becomeParentOf12(namePart);
+    _becomeParentOf12(extendsClause);
+    _becomeParentOf12(withClause);
+    _becomeParentOf12(implementsClause);
+    _becomeParentOf12(nativeClause);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -4841,7 +6187,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set body(ClassBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -4856,7 +6202,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set extendsClause(ExtendsClauseImpl? extendsClause) {
-    _extendsClause = _becomeParentOf(extendsClause);
+    _extendsClause = _becomeParentOf12(extendsClause);
   }
 
   @generated
@@ -4892,7 +6238,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf(implementsClause);
+    _implementsClause = _becomeParentOf12(implementsClause);
   }
 
   @generated
@@ -4901,7 +6247,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set namePart(ClassNamePartImpl namePart) {
-    _namePart = _becomeParentOf(namePart);
+    _namePart = _becomeParentOf12(namePart);
   }
 
   @generated
@@ -4910,7 +6256,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set nativeClause(NativeClauseImpl? nativeClause) {
-    _nativeClause = _becomeParentOf(nativeClause);
+    _nativeClause = _becomeParentOf12(nativeClause);
   }
 
   @generated
@@ -4919,7 +6265,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set withClause(WithClauseImpl? withClause) {
-    _withClause = _becomeParentOf(withClause);
+    _withClause = _becomeParentOf12(withClause);
   }
 
   @generated
@@ -4942,12 +6288,36 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('classKeyword', classKeyword)
+    ..addNode('namePart', namePart)
+    ..addNode('extendsClause', extendsClause)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('nativeClause', nativeClause)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitClassDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -5010,9 +6380,10 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     namePart.accept(visitor);
     extendsClause?.accept(visitor);
     withClause?.accept(visitor);
@@ -5021,14 +6392,28 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
     body.accept(visitor);
   }
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    namePart.accept2(visitor);
+    extendsClause?.accept2(visitor);
+    withClause?.accept2(visitor);
+    implementsClause?.accept2(visitor);
+    nativeClause?.accept2(visitor);
+    body.accept2(visitor);
+  }
+
   /// Visits the children of this node.
   ///
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(ClassNamePartImpl)? visitNamePart,
     void Function(ExtendsClauseImpl)? visitExtendsClause,
     void Function(WithClauseImpl)? visitWithClause,
@@ -5036,44 +6421,44 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
     void Function(NativeClauseImpl)? visitNativeClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitNamePart != null) {
       visitNamePart(namePart);
     } else {
-      namePart.accept(visitor);
+      namePart.accept2(visitor);
     }
     if (extendsClause case var extendsClause?) {
       if (visitExtendsClause != null) {
         visitExtendsClause(extendsClause);
       } else {
-        extendsClause.accept(visitor);
+        extendsClause.accept2(visitor);
       }
     }
     if (withClause case var withClause?) {
       if (visitWithClause != null) {
         visitWithClause(withClause);
       } else {
-        withClause.accept(visitor);
+        withClause.accept2(visitor);
       }
     }
     if (implementsClause case var implementsClause?) {
       if (visitImplementsClause != null) {
         visitImplementsClause(implementsClause);
       } else {
-        implementsClause.accept(visitor);
+        implementsClause.accept2(visitor);
       }
     }
     if (nativeClause case var nativeClause?) {
       if (visitNativeClause != null) {
         visitNativeClause(nativeClause);
       } else {
-        nativeClause.accept(visitor);
+        nativeClause.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -5081,6 +6466,41 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
+    }
+    if (extendsClause case var extendsClause?) {
+      if (extendsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return extendsClause;
+      }
+    }
+    if (withClause case var withClause?) {
+      if (withClause._containsOffset(rangeOffset, rangeEnd)) {
+        return withClause;
+      }
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    if (nativeClause case var nativeClause?) {
+      if (nativeClause._containsOffset(rangeOffset, rangeEnd)) {
+        return nativeClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (namePart._containsOffset(rangeOffset, rangeEnd)) {
@@ -5286,10 +6706,10 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
        _superclass = superclass,
        _withClause = withClause,
        _implementsClause = implementsClause {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(superclass);
-    _becomeParentOf(withClause);
-    _becomeParentOf(implementsClause);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(superclass);
+    _becomeParentOf12(withClause);
+    _becomeParentOf12(implementsClause);
   }
 
   @generated
@@ -5331,7 +6751,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @generated
   set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf(implementsClause);
+    _implementsClause = _becomeParentOf12(implementsClause);
   }
 
   @generated
@@ -5340,7 +6760,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @generated
   set superclass(NamedTypeImpl superclass) {
-    _superclass = _becomeParentOf(superclass);
+    _superclass = _becomeParentOf12(superclass);
   }
 
   @generated
@@ -5349,7 +6769,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -5358,7 +6778,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @generated
   set withClause(WithClauseImpl withClause) {
-    _withClause = _becomeParentOf(withClause);
+    _withClause = _becomeParentOf12(withClause);
   }
 
   @generated
@@ -5382,12 +6802,37 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addToken('equals', equals)
+    ..addNode('superclass', superclass)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassTypeAlias(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitClassTypeAlias(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -5434,13 +6879,25 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeParameters?.accept(visitor);
     superclass.accept(visitor);
     withClause.accept(visitor);
     implementsClause?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    typeParameters?.accept2(visitor);
+    superclass.accept2(visitor);
+    withClause.accept2(visitor);
+    implementsClause?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -5449,36 +6906,37 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(NamedTypeImpl)? visitSuperclass,
     void Function(WithClauseImpl)? visitWithClause,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (visitSuperclass != null) {
       visitSuperclass(superclass);
     } else {
-      superclass.accept(visitor);
+      superclass.accept2(visitor);
     }
     if (visitWithClause != null) {
       visitWithClause(withClause);
     } else {
-      withClause.accept(visitor);
+      withClause.accept2(visitor);
     }
     if (implementsClause case var implementsClause?) {
       if (visitImplementsClause != null) {
         visitImplementsClause(implementsClause);
       } else {
-        implementsClause.accept(visitor);
+        implementsClause.accept2(visitor);
       }
     }
   }
@@ -5487,6 +6945,31 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (superclass._containsOffset(rangeOffset, rangeEnd)) {
+      return superclass;
+    }
+    if (withClause._containsOffset(rangeOffset, rangeEnd)) {
+      return withClause;
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (typeParameters case var typeParameters?) {
@@ -5634,8 +7117,13 @@ final class CommentImpl extends AstNodeImpl
     ..addNodeList('references', references)
     ..addTokenList('tokens', tokens);
 
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);
+
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitComment(this);
 
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -5655,9 +7143,16 @@ final class CommentImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _references.accept(visitor);
+  }
+
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _references.accept2(visitor);
   }
 
   @override
@@ -5670,6 +7165,7 @@ final class CommentImpl extends AstNodeImpl
 ///
 ///    commentReferableExpression ::=
 ///        [ConstructorReference]
+///      | [ConstructorTearOff]
 ///      | [FunctionReference]
 ///      | [PrefixedIdentifier]
 ///      | [PropertyAccess]
@@ -5692,7 +7188,11 @@ sealed class CommentReferableExpressionImpl extends ExpressionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReference implements AstNode {
   /// The comment-referable expression being referenced.
+  @ToBeDeprecated('Use expression2 instead.')
   CommentReferableExpression get expression;
+
+  @experimental
+  CommentReferableExpression get expression2;
 
   /// The token representing the `new` keyword, or `null` if there was no `new`
   /// keyword.
@@ -5702,7 +7202,11 @@ abstract final class CommentReference implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('newKeyword'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.commentReferableExpression,
+    ),
     GenerateNodeProperty('isSynthetic'),
   ],
 )
@@ -5713,7 +7217,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   final Token? newKeyword;
 
   @generated
-  CommentReferableExpressionImpl _expression;
+  CommentReferableExpressionImpl _expression2;
 
   @generated
   @override
@@ -5722,10 +7226,11 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   CommentReferenceImpl({
     required this.newKeyword,
-    required CommentReferableExpressionImpl expression,
+    required CommentReferableExpressionImpl expression2,
     required this.isSynthetic,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1CommentReferableExpression(expression2));
   }
 
   @generated
@@ -5734,22 +7239,31 @@ final class CommentReferenceImpl extends AstNodeImpl
     if (newKeyword case var newKeyword?) {
       return newKeyword;
     }
-    return expression.beginToken;
+    return expression2.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  CommentReferableExpressionImpl get expression => _expression;
+  CommentReferableExpressionImpl get expression =>
+      V1Projection.toV1CommentReferableExpression(expression2);
 
   @generated
-  set expression(CommentReferableExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  CommentReferableExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(CommentReferableExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1CommentReferableExpression(expression2));
   }
 
   @generated
@@ -5760,20 +7274,32 @@ final class CommentReferenceImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('newKeyword', newKeyword)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCommentReference(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCommentReference(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -5781,17 +7307,25 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as CommentReferableExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as CommentReferableExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -5800,14 +7334,15 @@ final class CommentReferenceImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(CommentReferableExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(CommentReferableExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -5816,6 +7351,15 @@ final class CommentReferenceImpl extends AstNodeImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -5899,7 +7443,18 @@ abstract final class CompilationUnit implements AstNode {
   ///
   /// The minimal covering node is the node, rooted at the receiver, with the
   /// shortest length whose range completely includes the given range.
+  @ToBeDeprecated('Use nodeCovering2 instead')
   AstNode? nodeCovering({required int offset, int length = 0});
+
+  /// Returns the minimal covering node for the range of characters beginning at
+  /// the [offset] with the given [length].
+  ///
+  /// Returns `null` if the range is outside the range covered by the receiver.
+  ///
+  /// The minimal covering node is the node, rooted at the receiver, with the
+  /// shortest length whose range completely includes the given range.
+  @experimental
+  AstNode? nodeCovering2({required int offset, int length = 0});
 }
 
 final class CompilationUnitImpl extends AstNodeImpl
@@ -5959,7 +7514,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     required this.invalidNodes,
     required this.languageVersion,
   }) : _scriptTag = scriptTag {
-    _becomeParentOf(_scriptTag);
+    _becomeParentOf12(_scriptTag);
     _directives._initialize(this, directives);
     _declarations._initialize(this, declarations);
   }
@@ -6000,7 +7555,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   ScriptTagImpl? get scriptTag => _scriptTag;
 
   set scriptTag(ScriptTagImpl? scriptTag) {
-    _scriptTag = _becomeParentOf(scriptTag);
+    _scriptTag = _becomeParentOf12(scriptTag);
   }
 
   @override
@@ -6027,9 +7582,15 @@ final class CompilationUnitImpl extends AstNodeImpl
     return lastDirective.offset < firstDeclaration.offset;
   }
 
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCompilationUnit(this);
 
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCompilationUnit(this);
+
+  @ToBeDeprecated('Use nodeCovering2 instead')
   @override
   AstNode? nodeCovering({required int offset, int length = 0}) {
     var end = offset + length;
@@ -6042,6 +7603,23 @@ final class CompilationUnitImpl extends AstNodeImpl
     while (currentNode != null) {
       previousNode = currentNode;
       currentNode = previousNode._childContainingRange(offset, end);
+    }
+    return previousNode;
+  }
+
+  @experimental
+  @override
+  AstNode? nodeCovering2({required int offset, int length = 0}) {
+    var end = offset + length;
+
+    if (offset < 0 || end > this.end) {
+      return null;
+    }
+    AstNodeImpl previousNode = this;
+    var currentNode = previousNode._childContainingRange2(offset, end);
+    while (currentNode != null) {
+      previousNode = currentNode;
+      currentNode = previousNode._childContainingRange2(offset, end);
     }
     return previousNode;
   }
@@ -6080,6 +7658,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _scriptTag?.accept(visitor);
@@ -6092,6 +7671,23 @@ final class CompilationUnitImpl extends AstNodeImpl
       for (int i = 0; i < length; i++) {
         AstNode child = sortedMembers[i];
         child.accept(visitor);
+      }
+    }
+  }
+
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _scriptTag?.accept2(visitor);
+    if (_directivesAreBeforeDeclarations) {
+      _directives.accept2(visitor);
+      _declarations.accept2(visitor);
+    } else {
+      List<AstNode> sortedMembers = sortedDirectivesAndDeclarations;
+      int length = sortedMembers.length;
+      for (int i = 0; i < length; i++) {
+        AstNode child = sortedMembers[i];
+        child.accept2(visitor);
       }
     }
   }
@@ -6209,101 +7805,157 @@ abstract final class ConditionalExpression implements Expression {
   Token get colon;
 
   /// The condition used to determine which of the expressions is executed next.
+  @ToBeDeprecated('Use condition2 instead.')
   Expression get condition;
 
+  @experimental
+  Expression get condition2;
+
   /// The expression that is executed if the condition evaluates to `false`.
+  @ToBeDeprecated('Use elseExpression2 instead.')
   Expression get elseExpression;
+
+  @experimental
+  Expression get elseExpression2;
 
   /// The token used to separate the condition from the then expression.
   Token get question;
 
   /// The expression that is executed if the condition evaluates to `true`.
+  @ToBeDeprecated('Use thenExpression2 instead.')
   Expression get thenExpression;
+
+  @experimental
+  Expression get thenExpression2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'condition2',
+      v1Name: 'condition',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('question'),
-    GenerateNodeProperty('thenExpression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'thenExpression2',
+      v1Name: 'thenExpression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('colon'),
-    GenerateNodeProperty('elseExpression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'elseExpression2',
+      v1Name: 'elseExpression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ConditionalExpressionImpl extends ExpressionImpl
     implements ConditionalExpression {
   @generated
-  ExpressionImpl _condition;
+  ExpressionImpl _condition2;
 
   @generated
   @override
   final Token question;
 
   @generated
-  ExpressionImpl _thenExpression;
+  ExpressionImpl _thenExpression2;
 
   @generated
   @override
   final Token colon;
 
   @generated
-  ExpressionImpl _elseExpression;
+  ExpressionImpl _elseExpression2;
 
   @generated
   ConditionalExpressionImpl({
-    required ExpressionImpl condition,
+    required ExpressionImpl condition2,
     required this.question,
-    required ExpressionImpl thenExpression,
+    required ExpressionImpl thenExpression2,
     required this.colon,
-    required ExpressionImpl elseExpression,
-  }) : _condition = condition,
-       _thenExpression = thenExpression,
-       _elseExpression = elseExpression {
-    _becomeParentOf(condition);
-    _becomeParentOf(thenExpression);
-    _becomeParentOf(elseExpression);
+    required ExpressionImpl elseExpression2,
+  }) : _condition2 = condition2,
+       _thenExpression2 = thenExpression2,
+       _elseExpression2 = elseExpression2 {
+    _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _becomeParentOf2(thenExpression2);
+    _becomeParentOf1(V1Projection.toV1Expression(thenExpression2));
+    _becomeParentOf2(elseExpression2);
+    _becomeParentOf1(V1Projection.toV1Expression(elseExpression2));
   }
 
   @generated
   @override
   Token get beginToken {
-    return condition.beginToken;
+    return condition2.beginToken;
   }
 
   @generated
+  @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
 
   @generated
-  set condition(ExpressionImpl condition) {
-    _condition = _becomeParentOf(condition);
+  @experimental
+  @override
+  ExpressionImpl get condition2 => _condition2;
+
+  @generated
+  @experimental
+  set condition2(ExpressionImpl condition2) {
+    _condition2 = _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
   }
 
   @generated
+  @ToBeDeprecated('Use elseExpression2 instead.')
   @override
-  ExpressionImpl get elseExpression => _elseExpression;
+  ExpressionImpl get elseExpression =>
+      V1Projection.toV1Expression(elseExpression2);
 
   @generated
-  set elseExpression(ExpressionImpl elseExpression) {
-    _elseExpression = _becomeParentOf(elseExpression);
+  @experimental
+  @override
+  ExpressionImpl get elseExpression2 => _elseExpression2;
+
+  @generated
+  @experimental
+  set elseExpression2(ExpressionImpl elseExpression2) {
+    _elseExpression2 = _becomeParentOf2(elseExpression2);
+    _becomeParentOf1(V1Projection.toV1Expression(elseExpression2));
   }
 
   @generated
   @override
   Token get endToken {
-    return elseExpression.endToken;
+    return elseExpression2.endToken;
   }
 
   @override
   Precedence get precedence => Precedence.conditional;
 
   @generated
+  @ToBeDeprecated('Use thenExpression2 instead.')
   @override
-  ExpressionImpl get thenExpression => _thenExpression;
+  ExpressionImpl get thenExpression =>
+      V1Projection.toV1Expression(thenExpression2);
 
   @generated
-  set thenExpression(ExpressionImpl thenExpression) {
-    _thenExpression = _becomeParentOf(thenExpression);
+  @experimental
+  @override
+  ExpressionImpl get thenExpression2 => _thenExpression2;
+
+  @generated
+  @experimental
+  set thenExpression2(ExpressionImpl thenExpression2) {
+    _thenExpression2 = _becomeParentOf2(thenExpression2);
+    _becomeParentOf1(V1Projection.toV1Expression(thenExpression2));
   }
 
   @generated
@@ -6317,27 +7969,43 @@ final class ConditionalExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('condition2', condition2)
+    ..addToken('question', question)
+    ..addNode('thenExpression2', thenExpression2)
+    ..addToken('colon', colon)
+    ..addNode('elseExpression2', elseExpression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitConditionalExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConditionalExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(condition, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'condition'.");
+    if (identical(condition2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'condition2'.");
     }
-    if (identical(thenExpression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'thenExpression'.");
+    if (identical(thenExpression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'thenExpression2'.");
     }
-    if (identical(elseExpression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'elseExpression'.");
+    if (identical(elseExpression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'elseExpression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -6345,16 +8013,16 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(condition, oldNode)) {
-      condition = newNode as ExpressionImpl;
+    if (identical(condition2, oldNode)) {
+      condition2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(thenExpression, oldNode)) {
-      thenExpression = newNode as ExpressionImpl;
+    if (identical(thenExpression2, oldNode)) {
+      thenExpression2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(elseExpression, oldNode)) {
-      elseExpression = newNode as ExpressionImpl;
+    if (identical(elseExpression2, oldNode)) {
+      elseExpression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -6367,11 +8035,21 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
     thenExpression.accept(visitor);
     elseExpression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    condition2.accept2(visitor);
+    thenExpression2.accept2(visitor);
+    elseExpression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -6380,26 +8058,27 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitCondition,
-    void Function(ExpressionImpl)? visitThenExpression,
-    void Function(ExpressionImpl)? visitElseExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitCondition2,
+    void Function(ExpressionImpl)? visitThenExpression2,
+    void Function(ExpressionImpl)? visitElseExpression2,
   }) {
-    if (visitCondition != null) {
-      visitCondition(condition);
+    if (visitCondition2 != null) {
+      visitCondition2(condition2);
     } else {
-      condition.accept(visitor);
+      condition2.accept2(visitor);
     }
-    if (visitThenExpression != null) {
-      visitThenExpression(thenExpression);
+    if (visitThenExpression2 != null) {
+      visitThenExpression2(thenExpression2);
     } else {
-      thenExpression.accept(visitor);
+      thenExpression2.accept2(visitor);
     }
-    if (visitElseExpression != null) {
-      visitElseExpression(elseExpression);
+    if (visitElseExpression2 != null) {
+      visitElseExpression2(elseExpression2);
     } else {
-      elseExpression.accept(visitor);
+      elseExpression2.accept2(visitor);
     }
   }
 
@@ -6414,6 +8093,21 @@ final class ConditionalExpressionImpl extends ExpressionImpl
     }
     if (elseExpression._containsOffset(rangeOffset, rangeEnd)) {
       return elseExpression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (condition2._containsOffset(rangeOffset, rangeEnd)) {
+      return condition2;
+    }
+    if (thenExpression2._containsOffset(rangeOffset, rangeEnd)) {
+      return thenExpression2;
+    }
+    if (elseExpression2._containsOffset(rangeOffset, rangeEnd)) {
+      return elseExpression2;
     }
     return null;
   }
@@ -6512,9 +8206,9 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }) : _name = name,
        _value = value,
        _uri = uri {
-    _becomeParentOf(name);
-    _becomeParentOf(value);
-    _becomeParentOf(uri);
+    _becomeParentOf12(name);
+    _becomeParentOf12(value);
+    _becomeParentOf12(uri);
   }
 
   @generated
@@ -6535,7 +8229,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @generated
   set name(DottedNameImpl name) {
-    _name = _becomeParentOf(name);
+    _name = _becomeParentOf12(name);
   }
 
   @generated
@@ -6544,7 +8238,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @generated
   set uri(StringLiteralImpl uri) {
-    _uri = _becomeParentOf(uri);
+    _uri = _becomeParentOf12(uri);
   }
 
   @generated
@@ -6553,7 +8247,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @generated
   set value(StringLiteralImpl? value) {
-    _value = _becomeParentOf(value);
+    _value = _becomeParentOf12(value);
   }
 
   @generated
@@ -6569,12 +8263,29 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('ifKeyword', ifKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('name', name)
+    ..addToken('equalToken', equalToken)
+    ..addNode('value', value)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('uri', uri);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConfiguration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitConfiguration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return identical(value, child);
   }
 
@@ -6613,11 +8324,21 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
     value?.accept(visitor);
     uri.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    name.accept2(visitor);
+    value?.accept2(visitor);
+    uri.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -6626,8 +8347,9 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DottedNameImpl)? visitName,
     void Function(StringLiteralImpl)? visitValue,
     void Function(StringLiteralImpl)? visitUri,
@@ -6635,25 +8357,42 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
     if (visitName != null) {
       visitName(name);
     } else {
-      name.accept(visitor);
+      name.accept2(visitor);
     }
     if (value case var value?) {
       if (visitValue != null) {
         visitValue(value);
       } else {
-        value.accept(visitor);
+        value.accept2(visitor);
       }
     }
     if (visitUri != null) {
       visitUri(uri);
     } else {
-      uri.accept(visitor);
+      uri.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (name._containsOffset(rangeOffset, rangeEnd)) {
+      return name;
+    }
+    if (value case var value?) {
+      if (value._containsOffset(rangeOffset, rangeEnd)) {
+        return value;
+      }
+    }
+    if (uri._containsOffset(rangeOffset, rangeEnd)) {
+      return uri;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
       return name;
     }
@@ -6674,7 +8413,7 @@ final class ConstantContextForExpressionImpl extends AstNodeImpl {
   final ExpressionImpl expression;
 
   ConstantContextForExpressionImpl(this.variable, this.expression) {
-    _becomeParentOf(expression);
+    _becomeParentOf12(expression);
   }
 
   @override
@@ -6709,13 +8448,22 @@ abstract final class ConstantPattern implements DartPattern {
   Token? get constKeyword;
 
   /// The constant expression being used as a pattern.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('constKeyword'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ConstantPatternImpl extends DartPatternImpl
@@ -6725,14 +8473,15 @@ final class ConstantPatternImpl extends DartPatternImpl
   final Token? constKeyword;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   ConstantPatternImpl({
     required this.constKeyword,
-    required ExpressionImpl expression,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+    required ExpressionImpl expression2,
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -6741,22 +8490,30 @@ final class ConstantPatternImpl extends DartPatternImpl
     if (constKeyword case var constKeyword?) {
       return constKeyword;
     }
-    return expression.beginToken;
+    return expression2.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -6770,7 +8527,19 @@ final class ConstantPatternImpl extends DartPatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitConstantPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -6782,15 +8551,15 @@ final class ConstantPatternImpl extends DartPatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -6798,8 +8567,8 @@ final class ConstantPatternImpl extends DartPatternImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -6814,17 +8583,25 @@ final class ConstantPatternImpl extends DartPatternImpl
     var analysisResult = resolverVisitor.analyzeConstantPattern(
       context,
       this,
-      expression,
+      expression2,
     );
-    expression = resolverVisitor.popRewrite()!;
+    expression2 = resolverVisitor.popRewrite()!;
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -6833,14 +8610,15 @@ final class ConstantPatternImpl extends DartPatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -6849,6 +8627,15 @@ final class ConstantPatternImpl extends DartPatternImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -7040,11 +8827,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
        _parameters = parameters,
        _redirectedConstructor = redirectedConstructor,
        _body = body {
-    _becomeParentOf(typeName);
-    _becomeParentOf(parameters);
+    _becomeParentOf12(typeName);
+    _becomeParentOf12(parameters);
     this.initializers._initialize(this, initializers);
-    _becomeParentOf(redirectedConstructor);
-    _becomeParentOf(body);
+    _becomeParentOf12(redirectedConstructor);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -7053,7 +8840,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   set body(FunctionBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -7099,7 +8886,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     if (externalKeyword != null) return true;
     if (body is! EmptyFunctionBody) return true;
     if (redirectedConstructor != null || initializers.isNotEmpty) return true;
-    return parameters.parameters.any((parameter) {
+    return parameters.allFormalParameters.any((parameter) {
       return parameter is FieldFormalParameterImpl ||
           parameter is SuperFormalParameterImpl;
     });
@@ -7116,7 +8903,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   /// and isn't external.
   bool get isTrivial =>
       redirectedConstructor == null &&
-      parameters.parameters.isEmpty &&
+      parameters.allFormalParameters.isEmpty &&
       initializers.isEmpty &&
       body is EmptyFunctionBody &&
       externalKeyword == null;
@@ -7127,7 +8914,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   set parameters(FormalParameterListImpl parameters) {
-    _parameters = _becomeParentOf(parameters);
+    _parameters = _becomeParentOf12(parameters);
   }
 
   @generated
@@ -7136,7 +8923,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   set redirectedConstructor(ConstructorNameImpl? redirectedConstructor) {
-    _redirectedConstructor = _becomeParentOf(redirectedConstructor);
+    _redirectedConstructor = _becomeParentOf12(redirectedConstructor);
   }
 
   @generated
@@ -7145,7 +8932,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   set typeName(SimpleIdentifierImpl? typeName) {
-    _typeName = _becomeParentOf(typeName);
+    _typeName = _becomeParentOf12(typeName);
   }
 
   @generated
@@ -7167,13 +8954,37 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('factoryKeyword', factoryKeyword)
+    ..addToken('newKeyword', newKeyword)
+    ..addNode('typeName', typeName)
+    ..addToken('period', period)
+    ..addToken('name', name)
+    ..addNode('parameters', parameters)
+    ..addToken('separator', separator)
+    ..addNodeList('initializers', initializers)
+    ..addNode('redirectedConstructor', redirectedConstructor)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitConstructorDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -7228,14 +9039,27 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeName?.accept(visitor);
     parameters.accept(visitor);
     initializers.accept(visitor);
     redirectedConstructor?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    typeName?.accept2(visitor);
+    parameters.accept2(visitor);
+    initializers.accept2(visitor);
+    redirectedConstructor?.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -7244,43 +9068,44 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitTypeName,
     void Function(FormalParameterListImpl)? visitParameters,
     void Function(NodeListImpl<ConstructorInitializerImpl>)? visitInitializers,
     void Function(ConstructorNameImpl)? visitRedirectedConstructor,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (typeName case var typeName?) {
       if (visitTypeName != null) {
         visitTypeName(typeName);
       } else {
-        typeName.accept(visitor);
+        typeName.accept2(visitor);
       }
     }
     if (visitParameters != null) {
       visitParameters(parameters);
     } else {
-      parameters.accept(visitor);
+      parameters.accept2(visitor);
     }
     if (visitInitializers != null) {
       visitInitializers(initializers);
     } else {
-      initializers.accept(visitor);
+      initializers.accept2(visitor);
     }
     if (redirectedConstructor case var redirectedConstructor?) {
       if (visitRedirectedConstructor != null) {
         visitRedirectedConstructor(redirectedConstructor);
       } else {
-        redirectedConstructor.accept(visitor);
+        redirectedConstructor.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -7288,6 +9113,35 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeName case var typeName?) {
+      if (typeName._containsOffset(rangeOffset, rangeEnd)) {
+        return typeName;
+      }
+    }
+    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return parameters;
+    }
+    if (initializers._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (redirectedConstructor case var redirectedConstructor?) {
+      if (redirectedConstructor._containsOffset(rangeOffset, rangeEnd)) {
+        return redirectedConstructor;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (typeName case var typeName?) {
@@ -7325,7 +9179,11 @@ abstract final class ConstructorFieldInitializer
   Token get equals;
 
   /// The expression computing the value to which the field is initialized.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The name of the field being initialized.
   SimpleIdentifier get fieldName;
@@ -7344,7 +9202,12 @@ abstract final class ConstructorFieldInitializer
     GenerateNodeProperty('period'),
     GenerateNodeProperty('fieldName'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
@@ -7365,7 +9228,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   final Token equals;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   ConstructorFieldInitializerImpl({
@@ -7373,11 +9236,12 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     required this.period,
     required SimpleIdentifierImpl fieldName,
     required this.equals,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
   }) : _fieldName = fieldName,
-       _expression = expression {
-    _becomeParentOf(fieldName);
-    _becomeParentOf(expression);
+       _expression2 = expression2 {
+    _becomeParentOf12(fieldName);
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -7395,16 +9259,24 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -7413,7 +9285,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @generated
   set fieldName(SimpleIdentifierImpl fieldName) {
-    _fieldName = _becomeParentOf(fieldName);
+    _fieldName = _becomeParentOf12(fieldName);
   }
 
   @generated
@@ -7427,14 +9299,30 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('thisKeyword', thisKeyword)
+    ..addToken('period', period)
+    ..addNode('fieldName', fieldName)
+    ..addToken('equals', equals)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitConstructorFieldInitializer(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorFieldInitializer(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
@@ -7443,8 +9331,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     if (identical(fieldName, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'fieldName'.");
     }
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -7456,18 +9344,27 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
       fieldName = newNode as SimpleIdentifierImpl;
       return;
     }
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fieldName.accept(visitor);
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    fieldName.accept2(visitor);
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -7476,20 +9373,21 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitFieldName,
-    void Function(ExpressionImpl)? visitExpression,
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
     if (visitFieldName != null) {
       visitFieldName(fieldName);
     } else {
-      fieldName.accept(visitor);
+      fieldName.accept2(visitor);
     }
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -7501,6 +9399,18 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     }
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (fieldName._containsOffset(rangeOffset, rangeEnd)) {
+      return fieldName;
+    }
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -7517,6 +9427,301 @@ sealed class ConstructorInitializer implements AstNode {}
 
 sealed class ConstructorInitializerImpl extends AstNodeImpl
     implements ConstructorInitializer {}
+
+/// An invocation of a constructor.
+///
+///    constructorInvocation ::=
+///        ('new' | 'const')? [ConstructorReference2] [ArgumentList]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorInvocation implements Expression {
+  /// The list of arguments to the constructor.
+  ArgumentList get argumentList;
+
+  /// The constructor being invoked.
+  ConstructorReference2 get constructorReference;
+
+  /// Whether this invocation will be evaluated at compile-time, either because
+  /// the keyword `const` was explicitly provided or because no keyword was
+  /// provided and this expression is in a constant context.
+  bool get isConst;
+
+  /// The `new` or `const` keyword, or `null` if no keyword was written.
+  Token? get keyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('keyword', isTokenFinal: false),
+    GenerateNodeProperty('constructorReference'),
+    GenerateNodeProperty(
+      'typeArguments',
+      withOverride: false,
+      type: _TypeLiteral<TypeArgumentList?>,
+    ),
+    GenerateNodeProperty('argumentList'),
+  ],
+)
+final class ConstructorInvocationImpl extends ExpressionImpl
+    implements ConstructorInvocation {
+  @generated
+  @override
+  Token? keyword;
+
+  @generated
+  ConstructorReference2Impl _constructorReference;
+
+  @generated
+  TypeArgumentListImpl? _typeArguments;
+
+  @generated
+  ArgumentListImpl _argumentList;
+
+  InstanceCreationExpressionImpl? _instanceCreationExpression;
+
+  @generated
+  ConstructorInvocationImpl({
+    required this.keyword,
+    required ConstructorReference2Impl constructorReference,
+    required TypeArgumentListImpl? typeArguments,
+    required ArgumentListImpl argumentList,
+  }) : _constructorReference = constructorReference,
+       _typeArguments = typeArguments,
+       _argumentList = argumentList {
+    _becomeParentOf2(constructorReference);
+    _becomeParentOf2(typeArguments);
+    _becomeParentOf2(argumentList);
+  }
+
+  @generated
+  @override
+  ArgumentListImpl get argumentList => _argumentList;
+
+  @generated
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf2(argumentList);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (keyword case var keyword?) {
+      return keyword;
+    }
+    return constructorReference.beginToken;
+  }
+
+  @override
+  bool get canBeConst {
+    var element = constructorReference.element;
+    if (element == null || !element.isConst) return false;
+
+    element.baseElement.computeConstantDependencies();
+
+    var oldKeyword = keyword;
+    try {
+      keyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      keyword = oldKeyword;
+    }
+  }
+
+  @generated
+  @override
+  ConstructorReference2Impl get constructorReference => _constructorReference;
+
+  @generated
+  set constructorReference(ConstructorReference2Impl constructorReference) {
+    _constructorReference = _becomeParentOf2(constructorReference);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  InstanceCreationExpressionImpl get instanceCreationExpression =>
+      _instanceCreationExpression ??= InstanceCreationExpressionImpl._(this);
+
+  @override
+  bool get isConst {
+    if (!isImplicit) {
+      return keyword!.keyword == Keyword.CONST;
+    } else {
+      return inConstantContext;
+    }
+  }
+
+  /// Whether this is an implicit constructor invocation.
+  bool get isImplicit => keyword == null;
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  @generated
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf2(typeArguments);
+    _instanceCreationExpression?._becomeParentOf1(typeArguments);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ConstructorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNode('constructorReference', constructorReference)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(constructorReference, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'constructorReference'.",
+      );
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(constructorReference, oldNode)) {
+      constructorReference = newNode as ConstructorReference2Impl;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitConstructorInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ConstructorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    constructorReference.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ConstructorReference2Impl)? visitConstructorReference,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitConstructorReference != null) {
+      visitConstructorReference(constructorReference);
+    } else {
+      constructorReference.accept2(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (constructorReference._containsOffset(rangeOffset, rangeEnd)) {
+      return constructorReference;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+}
 
 /// The name of a constructor.
 ///
@@ -7545,28 +9750,41 @@ abstract final class ConstructorName
   ],
 )
 final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   NamedTypeImpl _type;
 
-  @generated
-  @override
-  Token? period;
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  Token? _period;
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   SimpleIdentifierImpl? _name;
 
-  @override
-  InternalConstructorElement? element;
+  AstNodeApi? _astNodeApiOverride;
 
-  @generated
+  _ConstructorReferenceV2Origin? _v2Origin;
+
+  InternalConstructorElement? _element;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   ConstructorNameImpl({
     required NamedTypeImpl type,
-    required this.period,
+    required Token? period,
     required SimpleIdentifierImpl? name,
   }) : _type = type,
+       _period = period,
        _name = name {
-    _becomeParentOf(type);
-    _becomeParentOf(name);
+    _becomeParentOf12(type);
+    _becomeParentOf12(name);
+  }
+
+  ConstructorNameImpl.v1Projection(_ConstructorReferenceV2Origin origin)
+    : _type = origin.typeReference.namedType,
+      _period = origin.selector?.period,
+      _name = origin.selector?.name,
+      _v2Origin = origin,
+      _astNodeApiOverride = AstNodeApi.v1 {
+    _becomeParentOf1(_type);
+    _becomeParentOf1(_name);
   }
 
   @generated
@@ -7575,7 +9793,19 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     return type.beginToken;
   }
 
-  @generated
+  @override
+  InternalConstructorElement? get element => _v2Origin?.element ?? _element;
+
+  set element(InternalConstructorElement? value) {
+    var origin = _v2Origin;
+    if (origin != null) {
+      origin.element = value;
+    } else {
+      _element = value;
+    }
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   Token get endToken {
     if (name case var name?) {
@@ -7587,23 +9817,64 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     return type.endToken;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  SimpleIdentifierImpl? get name => _name;
+  SimpleIdentifierImpl? get name {
+    var origin = _v2Origin;
+    if (origin == null) return _name;
+    var result = origin.selector?.name;
+    if (result != null) {
+      result.element = origin.element;
+      if (origin is ConstructorTearOffImpl) {
+        result.tearOffTypeArgumentTypes = origin.tearOffTypeArgumentTypes;
+      }
+      _becomeParentOf1(result);
+    }
+    return result;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set name(SimpleIdentifierImpl? name) {
-    _name = _becomeParentOf(name);
+    if (_v2Origin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _name = _becomeParentOf12(name);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  NamedTypeImpl get type => _type;
-
-  @generated
-  set type(NamedTypeImpl type) {
-    _type = _becomeParentOf(type);
+  Token? get period {
+    var origin = _v2Origin;
+    return origin != null ? origin.selector?.period : _period;
   }
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  set period(Token? period) {
+    if (_v2Origin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _period = period;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  NamedTypeImpl get type {
+    var result = _v2Origin?.typeReference.namedType ?? _type;
+    _becomeParentOf1(result);
+    return result;
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  set type(NamedTypeImpl type) {
+    if (_v2Origin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _type = _becomeParentOf12(type);
+  }
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @generated
   @override
@@ -7612,14 +9883,37 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     ..addToken('period', period)
     ..addNode('name', name);
 
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @override
+  ChildEntities get _childEntities2 {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addNode('type', type)
+      ..addToken('period', period)
+      ..addNode('name', name);
+  }
+
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorName(this);
+
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
+    return visitor.visitConstructorName(this);
+  }
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -7650,11 +9944,48 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     super.replaceChild(oldNode, newNode);
   }
 
+  ConstructorReference2Impl toConstructorReference2() {
+    var typeReference =
+        ConstructorTypeReferenceImpl(
+            importPrefix: type.importPrefix,
+            name: type.name,
+            typeArguments: type.typeArguments,
+          )
+          ..element = type.element
+          ..type = type.type;
+    var selector = switch (period) {
+      var period? => ConstructorSelectorImpl.v2(
+        period: period,
+        name2: name?.token ?? period.next!,
+      ),
+      _ => null,
+    };
+    return ConstructorReference2Impl(
+      typeReference: typeReference,
+      selector: selector,
+    )..element = element;
+  }
+
+  @override
+  String toSource() => _v2Origin?.toSource() ?? super.toSource();
+
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
     name?.accept(visitor);
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
+    type.accept2(visitor);
+    name?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -7662,22 +9993,26 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NamedTypeImpl)? visitType,
     void Function(SimpleIdentifierImpl)? visitName,
   }) {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
     if (name case var name?) {
       if (visitName != null) {
         visitName(name);
       } else {
-        name.accept(visitor);
+        name.accept2(visitor);
       }
     }
   }
@@ -7685,6 +10020,23 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    if (name case var name?) {
+      if (name._containsOffset(rangeOffset, rangeEnd)) {
+        return name;
+      }
+    }
+    return null;
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
     if (type._containsOffset(rangeOffset, rangeEnd)) {
       return type;
     }
@@ -7704,6 +10056,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 /// Objects of this type aren't produced directly by the parser (because the
 /// parser can't tell whether an identifier refers to a type); they are
 /// produced at resolution time.
+@ToBeDeprecated('Use ConstructorTearOff instead')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorReference
     implements Expression, CommentReferableExpression {
@@ -7711,64 +10064,150 @@ abstract final class ConstructorReference
   ConstructorName get constructorName;
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('constructorName')])
-final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
-    implements ConstructorReference {
+/// A source-level reference to a constructor.
+///
+///    constructorReference ::=
+///        [ConstructorTypeReference] [ConstructorSelector]?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorReference2 implements AstNode {
+  /// The element associated with the referenced constructor based on static
+  /// type information.
+  ///
+  /// This is the constructor element after applying any explicit or inferred
+  /// type arguments. Use [ConstructorElement.baseElement] to access the
+  /// declaration element.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if the
+  /// constructor couldn't be resolved.
+  ConstructorElement? get element;
+
+  /// The constructor selector, or `null` if the unnamed constructor is
+  /// referenced without an explicit `.new` selector.
+  ConstructorSelector? get selector;
+
+  /// The reference to the type defining the constructor.
+  ConstructorTypeReference get typeReference;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('typeReference'),
+    GenerateNodeProperty('selector'),
+  ],
+)
+final class ConstructorReference2Impl extends AstNodeImpl
+    implements _ConstructorReferenceV2Origin, ConstructorReference2 {
   @generated
-  ConstructorNameImpl _constructorName;
+  ConstructorTypeReferenceImpl _typeReference;
 
   @generated
-  ConstructorReferenceImpl({required ConstructorNameImpl constructorName})
-    : _constructorName = constructorName {
-    _becomeParentOf(constructorName);
+  ConstructorSelectorImpl? _selector;
+
+  InternalConstructorElement? _element;
+
+  /// The cached V1 compatibility projection for this reference.
+  late final ConstructorNameImpl constructorName =
+      ConstructorNameImpl.v1Projection(this);
+
+  @generated
+  ConstructorReference2Impl({
+    required ConstructorTypeReferenceImpl typeReference,
+    required ConstructorSelectorImpl? selector,
+  }) : _typeReference = typeReference,
+       _selector = selector {
+    _becomeParentOf2(typeReference);
+    _becomeParentOf2(selector);
   }
 
   @generated
   @override
   Token get beginToken {
-    return constructorName.beginToken;
+    return typeReference.beginToken;
   }
 
-  @generated
   @override
-  ConstructorNameImpl get constructorName => _constructorName;
+  InternalConstructorElement? get element => _element;
 
-  @generated
-  set constructorName(ConstructorNameImpl constructorName) {
-    _constructorName = _becomeParentOf(constructorName);
+  @override
+  set element(InternalConstructorElement? element) {
+    _element = element;
+    selector?.name.element = element;
   }
 
   @generated
   @override
   Token get endToken {
-    return constructorName.endToken;
+    if (selector case var selector?) {
+      return selector.endToken;
+    }
+    return typeReference.endToken;
   }
 
+  @generated
   @override
-  Precedence get precedence => Precedence.postfix;
+  ConstructorSelectorImpl? get selector => _selector;
+
+  @generated
+  set selector(ConstructorSelectorImpl? selector) {
+    _selector = _becomeParentOf2(selector);
+  }
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()..addNode('constructorName', constructorName);
+  ConstructorTypeReferenceImpl get typeReference => _typeReference;
+
+  @generated
+  set typeReference(ConstructorTypeReferenceImpl typeReference) {
+    _typeReference = _becomeParentOf2(typeReference);
+  }
 
   @generated
   @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitConstructorReference(this);
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ConstructorReference2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeReference', typeReference)
+    ..addNode('selector', selector);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorReference2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorReference2(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(constructorName, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'constructorName'.");
+    if (identical(typeReference, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'typeReference'.");
+    }
+    if (identical(selector, oldNode)) {
+      selector = null;
+      return;
     }
     super.removeChild(oldNode);
   }
@@ -7776,23 +10215,30 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as ConstructorNameImpl;
+    if (identical(typeReference, oldNode)) {
+      typeReference = newNode as ConstructorTypeReferenceImpl;
+      return;
+    }
+    if (identical(selector, oldNode)) {
+      selector = newNode as ConstructorSelectorImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitConstructorReference(this, contextType: contextType);
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ConstructorReference2 is not in the V1 AST view.');
   }
 
   @generated
+  @experimental
   @override
-  void visitChildren(AstVisitor visitor) {
-    constructorName.accept(visitor);
+  void visitChildren2(AstVisitor2 visitor) {
+    typeReference.accept2(visitor);
+    selector?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -7801,15 +10247,164 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ConstructorNameImpl)? visitConstructorName,
+    AstVisitor2 visitor, {
+    void Function(ConstructorTypeReferenceImpl)? visitTypeReference,
+    void Function(ConstructorSelectorImpl)? visitSelector,
   }) {
-    if (visitConstructorName != null) {
-      visitConstructorName(constructorName);
+    if (visitTypeReference != null) {
+      visitTypeReference(typeReference);
     } else {
-      constructorName.accept(visitor);
+      typeReference.accept2(visitor);
     }
+    if (selector case var selector?) {
+      if (visitSelector != null) {
+        visitSelector(selector);
+      } else {
+        selector.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorReference2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeReference._containsOffset(rangeOffset, rangeEnd)) {
+      return typeReference;
+    }
+    if (selector case var selector?) {
+      if (selector._containsOffset(rangeOffset, rangeEnd)) {
+        return selector;
+      }
+    }
+    return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  childEntitiesOrder: [GenerateNodeProperty('constructorName')],
+  generateConstructor: false,
+)
+@ToBeDeprecated('Use ConstructorTearOffImpl instead')
+final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
+    implements ConstructorReference {
+  final ConstructorTearOffImpl _origin;
+
+  @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
+  ConstructorReferenceImpl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  ConstructorNameImpl get constructorName => _origin.constructorName;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @override
+  ChildEntities get _childEntities =>
+      ChildEntities()..addNode('constructorName', constructorName);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('ConstructorReference is not in the V2 AST view.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitConstructorReference(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('ConstructorReference is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projections are never resolved')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('ConstructorReference is a V1 projection.');
+  }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  String toSource() => _origin.toSource();
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constructorName.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('ConstructorReference is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(constructorName);
   }
 
   @generated
@@ -7820,13 +10415,24 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorReference is not in the V2 AST view.');
+  }
 }
 
 /// An AST node that makes reference to a constructor.
+@ToBeDeprecated('Use element on the concrete node instead')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorReferenceNode implements AstNode {
   /// The element associated with the referenced constructor based on static
   /// type information.
+  ///
+  /// This is the constructor element after applying any explicit or inferred
+  /// type arguments. Use [ConstructorElement.baseElement] to access the
+  /// declaration element.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// constructor couldn't be resolved.
@@ -7840,7 +10446,12 @@ abstract final class ConstructorReferenceNode implements AstNode {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorSelector implements AstNode {
   /// The constructor name.
+  @ToBeDeprecated('Use name2 instead.')
   SimpleIdentifier get name;
+
+  /// The constructor name.
+  @experimental
+  Token get name2;
 
   /// The period before the constructor name.
   Token get period;
@@ -7849,7 +10460,7 @@ abstract final class ConstructorSelector implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('period'),
-    GenerateNodeProperty('name'),
+    GenerateNodeProperty('name2'),
   ],
 )
 final class ConstructorSelectorImpl extends AstNodeImpl
@@ -7859,15 +10470,21 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   final Token period;
 
   @generated
-  SimpleIdentifierImpl _name;
+  @override
+  final Token name2;
+
+  AstNodeApi? _astNodeApiOverride;
+
+  @override
+  late final SimpleIdentifierImpl name = _becomeParentOf1(
+    SimpleIdentifierImpl.v1Projection(token: name2),
+  );
 
   @generated
-  ConstructorSelectorImpl({
-    required this.period,
-    required SimpleIdentifierImpl name,
-  }) : _name = name {
-    _becomeParentOf(name);
-  }
+  ConstructorSelectorImpl({required this.period, required this.name2});
+
+  ConstructorSelectorImpl.v2({required this.period, required this.name2})
+    : _astNodeApiOverride = AstNodeApi.v2;
 
   @generated
   @override
@@ -7878,19 +10495,14 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @generated
   @override
   Token get endToken {
-    return name.endToken;
+    return name2;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Some instances exist only in the V2 AST view')
   @override
-  SimpleIdentifierImpl get name => _name;
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
-  @generated
-  set name(SimpleIdentifierImpl name) {
-    _name = _becomeParentOf(name);
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -7898,20 +10510,213 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('name2', name2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorSelector(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorSelector(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    name.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (name._containsOffset(rangeOffset, rangeEnd)) {
+      return name;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// An expression representing a constructor tear-off.
+///
+/// For example, `C.named` or `C.new`.
+///
+///    constructorTearOff ::=
+///        [ConstructorTypeReference] [ConstructorSelector]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorTearOff
+    implements Expression, CommentReferableExpression {
+  /// The element associated with the referenced constructor based on static
+  /// type information.
+  ///
+  /// This is the constructor element after applying any explicit or inferred
+  /// type arguments. Use [ConstructorElement.baseElement] to access the
+  /// declaration element.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if the
+  /// constructor couldn't be resolved.
+  ConstructorElement? get element;
+
+  /// The constructor selector.
+  ConstructorSelector get selector;
+
+  /// The reference to the type defining the constructor.
+  ConstructorTypeReference get typeReference;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('typeReference'),
+    GenerateNodeProperty('selector'),
+  ],
+)
+final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
+    implements _ConstructorReferenceV2Origin, ConstructorTearOff {
+  @generated
+  ConstructorTypeReferenceImpl _typeReference;
+
+  @generated
+  ConstructorSelectorImpl _selector;
+
+  InternalConstructorElement? _element;
+
+  ConstructorReferenceImpl? _constructorReference;
+
+  late final ConstructorNameImpl constructorName =
+      ConstructorNameImpl.v1Projection(this);
+
+  List<TypeImpl>? tearOffTypeArgumentTypes;
+
+  @generated
+  ConstructorTearOffImpl({
+    required ConstructorTypeReferenceImpl typeReference,
+    required ConstructorSelectorImpl selector,
+  }) : _typeReference = typeReference,
+       _selector = selector {
+    _becomeParentOf2(typeReference);
+    _becomeParentOf2(selector);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return typeReference.beginToken;
+  }
+
+  ConstructorReferenceImpl get constructorReference {
+    return _constructorReference ??= ConstructorReferenceImpl._(this);
+  }
+
+  @override
+  InternalConstructorElement? get element => _element;
+
+  @override
+  set element(InternalConstructorElement? element) {
+    _element = element;
+    selector.name.element = element;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return selector.endToken;
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @generated
+  @override
+  ConstructorSelectorImpl get selector => _selector;
+
+  @generated
+  set selector(ConstructorSelectorImpl selector) {
+    _selector = _becomeParentOf2(selector);
+  }
+
+  @generated
+  @override
+  ConstructorTypeReferenceImpl get typeReference => _typeReference;
+
+  @generated
+  set typeReference(ConstructorTypeReferenceImpl typeReference) {
+    _typeReference = _becomeParentOf2(typeReference);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ConstructorTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeReference', typeReference)
+    ..addNode('selector', selector);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorTearOff(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(name, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'name'.");
+    if (identical(typeReference, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'typeReference'.");
+    }
+    if (identical(selector, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'selector'.");
     }
     super.removeChild(oldNode);
   }
@@ -7919,17 +10724,36 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(name, oldNode)) {
-      name = newNode as SimpleIdentifierImpl;
+    if (identical(typeReference, oldNode)) {
+      typeReference = newNode as ConstructorTypeReferenceImpl;
+      return;
+    }
+    if (identical(selector, oldNode)) {
+      selector = newNode as ConstructorSelectorImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitConstructorTearOff(this, contextType: contextType);
+  }
+
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    name.accept(visitor);
+    throw StateError('ConstructorTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeReference.accept2(visitor);
+    selector.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -7938,22 +10762,280 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(SimpleIdentifierImpl)? visitName,
+    AstVisitor2 visitor, {
+    void Function(ConstructorTypeReferenceImpl)? visitTypeReference,
+    void Function(ConstructorSelectorImpl)? visitSelector,
   }) {
-    if (visitName != null) {
-      visitName(name);
+    if (visitTypeReference != null) {
+      visitTypeReference(typeReference);
     } else {
-      name.accept(visitor);
+      typeReference.accept2(visitor);
+    }
+    if (visitSelector != null) {
+      visitSelector(selector);
+    } else {
+      selector.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (name._containsOffset(rangeOffset, rangeEnd)) {
-      return name;
+    throw StateError('ConstructorTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeReference._containsOffset(rangeOffset, rangeEnd)) {
+      return typeReference;
+    }
+    if (selector._containsOffset(rangeOffset, rangeEnd)) {
+      return selector;
+    }
+    return null;
+  }
+}
+
+/// A reference to the type defining a constructor.
+///
+/// This node represents the type-shaped syntax at the start of a constructor
+/// reference, but isn't a [TypeAnnotation] and doesn't have a resolved
+/// [DartType].
+///
+///    constructorTypeReference ::=
+///        [ImportPrefixReference]? name [TypeArgumentList]?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorTypeReference implements AstNode {
+  /// The element to which [name] resolves, considering [importPrefix].
+  ///
+  /// Resolution of this element doesn't use [typeArguments]. The type
+  /// arguments are interpreted when resolving the enclosing constructor
+  /// reference.
+  ///
+  /// In valid code this is an [InterfaceElement] or [TypeAliasElement]. It is
+  /// the element named in source. For a type alias, this is the alias element
+  /// rather than the element of its aliased type.
+  ///
+  /// Returns `null` before resolution or if [name] doesn't resolve.
+  Element? get element;
+
+  /// The optional import prefix before [name].
+  ImportPrefixReference? get importPrefix;
+
+  /// The name of the type defining the constructor.
+  Token get name;
+
+  /// The type arguments associated with the type, or `null` if there are no
+  /// type arguments.
+  TypeArgumentList? get typeArguments;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('importPrefix'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('typeArguments'),
+  ],
+)
+final class ConstructorTypeReferenceImpl extends AstNodeImpl
+    implements ConstructorTypeReference {
+  @generated
+  ImportPrefixReferenceImpl? _importPrefix;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  TypeArgumentListImpl? _typeArguments;
+
+  @override
+  Element? element;
+
+  /// The instantiated type used while resolving the enclosing constructor.
+  TypeImpl? type;
+
+  /// The cached V1 compatibility projection for this type reference.
+  late final NamedTypeImpl namedType = NamedTypeImpl.v1Projection(this);
+
+  @generated
+  ConstructorTypeReferenceImpl({
+    required ImportPrefixReferenceImpl? importPrefix,
+    required this.name,
+    required TypeArgumentListImpl? typeArguments,
+  }) : _importPrefix = importPrefix,
+       _typeArguments = typeArguments {
+    _becomeParentOf2(importPrefix);
+    _becomeParentOf2(typeArguments);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (importPrefix case var importPrefix?) {
+      return importPrefix.beginToken;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (typeArguments case var typeArguments?) {
+      return typeArguments.endToken;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  ImportPrefixReferenceImpl? get importPrefix => _importPrefix;
+
+  @generated
+  set importPrefix(ImportPrefixReferenceImpl? importPrefix) {
+    _importPrefix = _becomeParentOf2(importPrefix);
+  }
+
+  @generated
+  @override
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  @generated
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf2(typeArguments);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ConstructorTypeReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorTypeReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorTypeReference(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = null;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = newNode as ImportPrefixReferenceImpl?;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ConstructorTypeReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    importPrefix?.accept2(visitor);
+    typeArguments?.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+  }) {
+    if (importPrefix case var importPrefix?) {
+      if (visitImportPrefix != null) {
+        visitImportPrefix(importPrefix);
+      } else {
+        importPrefix.accept2(visitor);
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorTypeReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (importPrefix case var importPrefix?) {
+      if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+        return importPrefix;
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
     }
     return null;
   }
@@ -8015,7 +11097,7 @@ final class ContinueStatementImpl extends StatementImpl
     required LabelReferenceImpl? label,
     required this.semicolon,
   }) : _label = label {
-    _becomeParentOf(label);
+    _becomeParentOf12(label);
   }
 
   @generated
@@ -8036,7 +11118,7 @@ final class ContinueStatementImpl extends StatementImpl
 
   @generated
   set label(LabelReferenceImpl? label) {
-    _label = _becomeParentOf(label);
+    _label = _becomeParentOf12(label);
   }
 
   @generated
@@ -8048,12 +11130,25 @@ final class ContinueStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('continueKeyword', continueKeyword)
+    ..addNode('label', label)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitContinueStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitContinueStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -8078,9 +11173,17 @@ final class ContinueStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     label?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    label?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -8089,15 +11192,16 @@ final class ContinueStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(LabelReferenceImpl)? visitLabel,
   }) {
     if (label case var label?) {
       if (visitLabel != null) {
         visitLabel(label);
       } else {
-        label.accept(visitor);
+        label.accept2(visitor);
       }
     }
   }
@@ -8105,6 +11209,17 @@ final class ContinueStatementImpl extends StatementImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (label case var label?) {
+      if (label._containsOffset(rangeOffset, rangeEnd)) {
+        return label;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (label case var label?) {
       if (label._containsOffset(rangeOffset, rangeEnd)) {
         return label;
@@ -8163,13 +11278,13 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// - Matching context: [GuardedPatternImpl]
   AstNodeImpl? get patternContext {
     for (DartPatternImpl current = this; ;) {
-      var parent = current.parent;
+      var parent = current.parent2;
       if (parent is MapPatternEntryImpl) {
-        parent = parent.parent;
+        parent = parent.parent2;
       } else if (parent is PatternFieldImpl) {
-        parent = parent.parent;
+        parent = parent.parent2;
       } else if (parent is RestPatternElementImpl) {
-        parent = parent.parent;
+        parent = parent.parent2;
       }
       if (parent is ForEachPartsWithPatternImpl) {
         return parent;
@@ -8295,7 +11410,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     required TypeAnnotationImpl? type,
     required this.name,
   }) : _type = type {
-    _becomeParentOf(type);
+    _becomeParentOf12(type);
   }
 
   @generated
@@ -8328,7 +11443,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @generated
   set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -8340,12 +11455,26 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDeclaredIdentifier(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitDeclaredIdentifier(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -8370,10 +11499,19 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     type?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -8382,16 +11520,17 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitType,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
       } else {
-        type.accept(visitor);
+        type.accept2(visitor);
       }
     }
   }
@@ -8400,6 +11539,20 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (type case var type?) {
@@ -8455,7 +11608,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     required TypeAnnotationImpl? type,
     required super.name,
   }) : _type = type {
-    _becomeParentOf(type);
+    _becomeParentOf12(type);
   }
 
   @generated
@@ -8494,7 +11647,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @generated
   set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -8506,7 +11659,21 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDeclaredVariablePattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDeclaredVariablePattern(this);
 
   @override
@@ -8521,7 +11688,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -8573,9 +11740,17 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    type?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -8584,15 +11759,16 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitType,
   }) {
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
       } else {
-        type.accept(visitor);
+        type.accept2(visitor);
       }
     }
   }
@@ -8604,6 +11780,197 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       if (type._containsOffset(rangeOffset, rangeEnd)) {
         return type;
       }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    return null;
+  }
+}
+
+/// Formal parameters enclosed in square or curly brackets.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DelimitedFormalParameters implements AstNode {
+  /// The formal parameters between the delimiters.
+  NodeList<FormalParameter> get formalParameters;
+
+  /// Whether these are named formal parameters.
+  ///
+  /// If `false`, these are optional positional formal parameters.
+  bool get isNamed;
+
+  /// The left square bracket (`[`) or left curly brace (`{`).
+  Token get leftDelimiter;
+
+  /// The right square bracket (`]`) or right curly brace (`}`).
+  Token get rightDelimiter;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftDelimiter'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('rightDelimiter'),
+  ],
+)
+final class DelimitedFormalParametersImpl extends AstNodeImpl
+    implements DelimitedFormalParameters {
+  @generated
+  @override
+  final Token leftDelimiter;
+
+  @generated
+  @override
+  final NodeListImpl<FormalParameterImpl> formalParameters = NodeListImpl._();
+
+  @generated
+  @override
+  final Token rightDelimiter;
+
+  @generated
+  DelimitedFormalParametersImpl({
+    required this.leftDelimiter,
+    required List<FormalParameterImpl> formalParameters,
+    required this.rightDelimiter,
+  }) {
+    this.formalParameters._initialize(this, formalParameters);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftDelimiter;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightDelimiter;
+  }
+
+  @override
+  bool get isNamed => leftDelimiter.type == TokenType.OPEN_CURLY_BRACKET;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftDelimiter', leftDelimiter)
+    ..addNodeList('formalParameters', formalParameters)
+    ..addToken('rightDelimiter', rightDelimiter);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitDelimitedFormalParameters(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (formalParameters.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'formalParameters' because NodeList cannot be resized.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (formalParameters.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    formalParameters.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(NodeListImpl<FormalParameterImpl>)? visitFormalParameters,
+  }) {
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+  }
+
+  @override
+  T _becomeParentOfOwnedView<T extends AstNodeImpl?>(T child) {
+    _becomeParentOf2(child);
+    if (_parent2 case FormalParameterListImpl formalParameterList) {
+      formalParameterList._becomeParentOf1(child);
+    }
+    return child;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (formalParameters._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
     }
     return null;
   }
@@ -8646,7 +12013,11 @@ abstract final class DoStatement implements Statement {
   Statement get body;
 
   /// The condition that determines when the loop terminates.
+  @ToBeDeprecated('Use condition2 instead.')
   Expression get condition;
+
+  @experimental
+  Expression get condition2;
 
   /// The token representing the `do` keyword.
   Token get doKeyword;
@@ -8670,7 +12041,12 @@ abstract final class DoStatement implements Statement {
     GenerateNodeProperty('body'),
     GenerateNodeProperty('whileKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'condition2',
+      v1Name: 'condition',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('semicolon'),
   ],
@@ -8692,7 +12068,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _condition;
+  ExpressionImpl _condition2;
 
   @generated
   @override
@@ -8708,13 +12084,14 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
     required StatementImpl body,
     required this.whileKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl condition,
+    required ExpressionImpl condition2,
     required this.rightParenthesis,
     required this.semicolon,
   }) : _body = body,
-       _condition = condition {
-    _becomeParentOf(body);
-    _becomeParentOf(condition);
+       _condition2 = condition2 {
+    _becomeParentOf12(body);
+    _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
   }
 
   @generated
@@ -8729,16 +12106,24 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 
   @generated
   set body(StatementImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
+  @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
 
   @generated
-  set condition(ExpressionImpl condition) {
-    _condition = _becomeParentOf(condition);
+  @experimental
+  @override
+  ExpressionImpl get condition2 => _condition2;
+
+  @generated
+  @experimental
+  set condition2(ExpressionImpl condition2) {
+    _condition2 = _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
   }
 
   @generated
@@ -8760,13 +12145,30 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('doKeyword', doKeyword)
+    ..addNode('body', body)
+    ..addToken('whileKeyword', whileKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('condition2', condition2)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDoStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(condition, child);
+    assert(identical(child.parent2, this));
+    return identical(condition2, child);
   }
 
   @generated
@@ -8775,8 +12177,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
     if (identical(body, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'body'.");
     }
-    if (identical(condition, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'condition'.");
+    if (identical(condition2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'condition2'.");
     }
     super.removeChild(oldNode);
   }
@@ -8788,18 +12190,27 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
       body = newNode as StatementImpl;
       return;
     }
-    if (identical(condition, oldNode)) {
-      condition = newNode as ExpressionImpl;
+    if (identical(condition2, oldNode)) {
+      condition2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     body.accept(visitor);
     condition.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    body.accept2(visitor);
+    condition2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -8808,20 +12219,21 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(StatementImpl)? visitBody,
-    void Function(ExpressionImpl)? visitCondition,
+    void Function(ExpressionImpl)? visitCondition2,
   }) {
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
-    if (visitCondition != null) {
-      visitCondition(condition);
+    if (visitCondition2 != null) {
+      visitCondition2(condition2);
     } else {
-      condition.accept(visitor);
+      condition2.accept2(visitor);
     }
   }
 
@@ -8833,6 +12245,18 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
     }
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
       return condition;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    if (condition2._containsOffset(rangeOffset, rangeEnd)) {
+      return condition2;
     }
     return null;
   }
@@ -8902,7 +12326,7 @@ final class DotShorthandConstructorInvocationImpl
     required super.typeArguments,
     required super.argumentList,
   }) : _constructorName = constructorName {
-    _becomeParentOf(constructorName);
+    _becomeParentOf12(constructorName);
   }
 
   @generated
@@ -8940,7 +12364,7 @@ final class DotShorthandConstructorInvocationImpl
 
   @generated
   set constructorName(SimpleIdentifierImpl constructorName) {
-    _constructorName = _becomeParentOf(constructorName);
+    _constructorName = _becomeParentOf12(constructorName);
   }
 
   @generated
@@ -8971,13 +12395,29 @@ final class DotShorthandConstructorInvocationImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('period', period)
+    ..addNode('constructorName', constructorName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandConstructorInvocation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDotShorthandConstructorInvocation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -9025,11 +12465,21 @@ final class DotShorthandConstructorInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    constructorName.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -9038,8 +12488,9 @@ final class DotShorthandConstructorInvocationImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitConstructorName,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
@@ -9047,25 +12498,42 @@ final class DotShorthandConstructorInvocationImpl
     if (visitConstructorName != null) {
       visitConstructorName(constructorName);
     } else {
-      constructorName.accept(visitor);
+      constructorName.accept2(visitor);
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
       visitArgumentList(argumentList);
     } else {
-      argumentList.accept(visitor);
+      argumentList.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
+      return constructorName;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
       return constructorName;
     }
@@ -9122,7 +12590,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     required super.typeArguments,
     required super.argumentList,
   }) : _memberName = memberName {
-    _becomeParentOf(memberName);
+    _becomeParentOf12(memberName);
   }
 
   @generated
@@ -9146,7 +12614,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @generated
   set memberName(SimpleIdentifierImpl memberName) {
-    _memberName = _becomeParentOf(memberName);
+    _memberName = _becomeParentOf12(memberName);
   }
 
   @override
@@ -9162,13 +12630,28 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('memberName', memberName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandInvocation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDotShorthandInvocation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -9213,11 +12696,21 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     memberName.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    memberName.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -9226,8 +12719,9 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitMemberName,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
@@ -9235,25 +12729,42 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     if (visitMemberName != null) {
       visitMemberName(memberName);
     } else {
-      memberName.accept(visitor);
+      memberName.accept2(visitor);
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
       visitArgumentList(argumentList);
     } else {
-      argumentList.accept(visitor);
+      argumentList.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (memberName._containsOffset(rangeOffset, rangeEnd)) {
+      return memberName;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (memberName._containsOffset(rangeOffset, rangeEnd)) {
       return memberName;
     }
@@ -9321,7 +12832,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     required this.period,
     required SimpleIdentifierImpl propertyName,
   }) : _propertyName = propertyName {
-    _becomeParentOf(propertyName);
+    _becomeParentOf12(propertyName);
   }
 
   @generated
@@ -9345,7 +12856,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @generated
   set propertyName(SimpleIdentifierImpl propertyName) {
-    _propertyName = _becomeParentOf(propertyName);
+    _propertyName = _becomeParentOf12(propertyName);
   }
 
   @generated
@@ -9356,13 +12867,26 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('propertyName', propertyName);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandPropertyAccess(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDotShorthandPropertyAccess(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -9392,9 +12916,17 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     propertyName.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    propertyName.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -9403,20 +12935,30 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitPropertyName,
   }) {
     if (visitPropertyName != null) {
       visitPropertyName(propertyName);
     } else {
-      propertyName.accept(visitor);
+      propertyName.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
+      return propertyName;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
       return propertyName;
     }
@@ -9462,26 +13004,50 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addTokenList('tokens', tokens);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDottedName(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDottedName(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -9540,12 +13106,23 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('literal', literal);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoubleLiteral(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDoubleLiteral(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -9556,16 +13133,29 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -9609,26 +13199,50 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyClassBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyClassBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -9676,26 +13290,50 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyEnumBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyEnumBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -9742,12 +13380,23 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -9756,16 +13405,29 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
       resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -9811,26 +13473,50 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -9898,9 +13584,9 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   }) : _typeArguments = typeArguments,
        _constructorSelector = constructorSelector,
        _argumentList = argumentList {
-    _becomeParentOf(typeArguments);
-    _becomeParentOf(constructorSelector);
-    _becomeParentOf(argumentList);
+    _becomeParentOf12(typeArguments);
+    _becomeParentOf12(constructorSelector);
+    _becomeParentOf12(argumentList);
   }
 
   @generated
@@ -9909,7 +13595,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 
   @generated
   set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf12(argumentList);
   }
 
   @generated
@@ -9930,7 +13616,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 
   @generated
   set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
-    _constructorSelector = _becomeParentOf(constructorSelector);
+    _constructorSelector = _becomeParentOf12(constructorSelector);
   }
 
   @generated
@@ -9945,7 +13631,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 
   @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 
   @generated
@@ -9957,13 +13643,27 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('constructorSelector', constructorSelector)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitEnumConstantArguments(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitEnumConstantArguments(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -10003,11 +13703,21 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     constructorSelector?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    constructorSelector?.accept2(visitor);
+    argumentList.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -10016,8 +13726,9 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ConstructorSelectorImpl)? visitConstructorSelector,
     void Function(ArgumentListImpl)? visitArgumentList,
@@ -10026,26 +13737,45 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (constructorSelector case var constructorSelector?) {
       if (visitConstructorSelector != null) {
         visitConstructorSelector(constructorSelector);
       } else {
-        constructorSelector.accept(visitor);
+        constructorSelector.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
       visitArgumentList(argumentList);
     } else {
-      argumentList.accept(visitor);
+      argumentList.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (constructorSelector case var constructorSelector?) {
+      if (constructorSelector._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorSelector;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
       if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
         return typeArguments;
@@ -10121,7 +13851,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     required this.name,
     required EnumConstantArgumentsImpl? arguments,
   }) : _arguments = arguments {
-    _becomeParentOf(arguments);
+    _becomeParentOf12(arguments);
   }
 
   @generated
@@ -10130,7 +13860,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @generated
   set arguments(EnumConstantArgumentsImpl? arguments) {
-    _arguments = _becomeParentOf(arguments);
+    _arguments = _becomeParentOf12(arguments);
   }
 
   @generated
@@ -10160,13 +13890,27 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('name', name)
+    ..addNode('arguments', arguments);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitEnumConstantDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitEnumConstantDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -10191,10 +13935,19 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     arguments?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    arguments?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -10203,16 +13956,17 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(EnumConstantArgumentsImpl)? visitArguments,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (arguments case var arguments?) {
       if (visitArguments != null) {
         visitArguments(arguments);
       } else {
-        arguments.accept(visitor);
+        arguments.accept2(visitor);
       }
     }
   }
@@ -10221,6 +13975,20 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (arguments case var arguments?) {
+      if (arguments._containsOffset(rangeOffset, rangeEnd)) {
+        return arguments;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (arguments case var arguments?) {
@@ -10317,10 +14085,10 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
        _withClause = withClause,
        _implementsClause = implementsClause,
        _body = body {
-    _becomeParentOf(namePart);
-    _becomeParentOf(withClause);
-    _becomeParentOf(implementsClause);
-    _becomeParentOf(body);
+    _becomeParentOf12(namePart);
+    _becomeParentOf12(withClause);
+    _becomeParentOf12(implementsClause);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -10329,7 +14097,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set body(EnumBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -10353,7 +14121,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf(implementsClause);
+    _implementsClause = _becomeParentOf12(implementsClause);
   }
 
   @generated
@@ -10362,7 +14130,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set namePart(ClassNamePartImpl namePart) {
-    _namePart = _becomeParentOf(namePart);
+    _namePart = _becomeParentOf12(namePart);
   }
 
   @generated
@@ -10371,7 +14139,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set withClause(WithClauseImpl? withClause) {
-    _withClause = _becomeParentOf(withClause);
+    _withClause = _becomeParentOf12(withClause);
   }
 
   @generated
@@ -10386,12 +14154,28 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('enumKeyword', enumKeyword)
+    ..addNode('namePart', namePart)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEnumDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -10438,13 +14222,25 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     namePart.accept(visitor);
     withClause?.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    namePart.accept2(visitor);
+    withClause?.accept2(visitor);
+    implementsClause?.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -10453,37 +14249,38 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(ClassNamePartImpl)? visitNamePart,
     void Function(WithClauseImpl)? visitWithClause,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
     void Function(EnumBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitNamePart != null) {
       visitNamePart(namePart);
     } else {
-      namePart.accept(visitor);
+      namePart.accept2(visitor);
     }
     if (withClause case var withClause?) {
       if (visitWithClause != null) {
         visitWithClause(withClause);
       } else {
-        withClause.accept(visitor);
+        withClause.accept2(visitor);
       }
     }
     if (implementsClause case var implementsClause?) {
       if (visitImplementsClause != null) {
         visitImplementsClause(implementsClause);
       } else {
-        implementsClause.accept(visitor);
+        implementsClause.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -10491,6 +14288,31 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
+    }
+    if (withClause case var withClause?) {
+      if (withClause._containsOffset(rangeOffset, rangeEnd)) {
+        return withClause;
+      }
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (namePart._containsOffset(rangeOffset, rangeEnd)) {
@@ -10580,12 +14402,27 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('exportKeyword', exportKeyword)
+    ..addNode('uri', uri)
+    ..addNodeList('configurations', configurations)
+    ..addNodeList('combinators', combinators)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExportDirective(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExportDirective(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -10625,12 +14462,23 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     uri.accept(visitor);
     configurations.accept(visitor);
     combinators.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    uri.accept2(visitor);
+    configurations.accept2(visitor);
+    combinators.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -10639,27 +14487,28 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(StringLiteralImpl)? visitUri,
     void Function(NodeListImpl<ConfigurationImpl>)? visitConfigurations,
     void Function(NodeListImpl<CombinatorImpl>)? visitCombinators,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitUri != null) {
       visitUri(uri);
     } else {
-      uri.accept(visitor);
+      uri.accept2(visitor);
     }
     if (visitConfigurations != null) {
       visitConfigurations(configurations);
     } else {
-      configurations.accept(visitor);
+      configurations.accept2(visitor);
     }
     if (visitCombinators != null) {
       visitCombinators(combinators);
     } else {
-      combinators.accept(visitor);
+      combinators.accept2(visitor);
     }
   }
 
@@ -10667,6 +14516,26 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (uri._containsOffset(rangeOffset, rangeEnd)) {
+      return uri;
+    }
+    if (configurations._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (combinators._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (uri._containsOffset(rangeOffset, rangeEnd)) {
@@ -10773,7 +14642,11 @@ abstract final class Expression
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExpressionFunctionBody implements FunctionBody {
   /// The expression representing the body of the function.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The token introducing the expression that represents the body of the
   /// function.
@@ -10800,7 +14673,12 @@ abstract final class ExpressionFunctionBody implements FunctionBody {
     GenerateNodeProperty('keyword'),
     GenerateNodeProperty('star'),
     GenerateNodeProperty('functionDefinition'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -10820,7 +14698,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   final Token functionDefinition;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -10831,10 +14709,11 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
     required this.keyword,
     required this.star,
     required this.functionDefinition,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.semicolon,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -10855,16 +14734,24 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
     if (semicolon case var semicolon?) {
       return semicolon;
     }
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -10887,21 +14774,37 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addToken('star', star)
+    ..addToken('functionDefinition', functionDefinition)
+    ..addNode('expression2', expression2)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitExpressionFunctionBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExpressionFunctionBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -10909,8 +14812,8 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -10921,9 +14824,17 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
       resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -10932,14 +14843,15 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -10948,6 +14860,15 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -10962,20 +14883,25 @@ sealed class ExpressionImpl extends AstNodeImpl
   ExpressionImpl get argumentExpression => this;
 
   @override
+  ExpressionImpl get argumentExpression2 => this;
+
+  @override
   bool get canBeConst => false;
 
   @override
   InternalFormalParameterElement? get correspondingParameter {
-    var parent = this.parent;
+    // V1 compatibility projections, such as the constructor-name identifier
+    // of a ConstructorReference, don't have a V2 parent.
+    var parent = parentInPrimaryView;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpressionImpl) {
-      if (identical(parent.index, this)) {
+      if (identical(parent.index2, this)) {
         return parent._staticParameterElementForIndex;
       }
     } else if (parent is BinaryExpressionImpl) {
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
-      if (identical(parent.rightOperand, this)) {
+      if (identical(parent.rightOperand2, this)) {
         var parameters = parent.staticInvokeType?.formalParameters;
         if (parameters != null && parameters.isNotEmpty) {
           return parameters[0];
@@ -10983,7 +14909,7 @@ sealed class ExpressionImpl extends AstNodeImpl
         return null;
       }
     } else if (parent is AssignmentExpressionImpl) {
-      if (identical(parent.rightHandSide, this)) {
+      if (identical(parent.rightHandSide2, this)) {
         return parent._staticParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpressionImpl) {
@@ -11002,8 +14928,11 @@ sealed class ExpressionImpl extends AstNodeImpl
   ExpressionImpl get fieldExpression => this;
 
   @override
+  ExpressionImpl get fieldExpression2 => this;
+
+  @override
   bool get inConstantContext {
-    return constantContext(includeSelf: false) != null;
+    return constantContext2(includeSelf: false) != null;
   }
 
   @override
@@ -11017,7 +14946,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() {
-    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
+    var unitNode = thisOrAncestorOfType2<CompilationUnitImpl>();
     var unitFragment = unitNode?.declaredFragment;
     if (unitFragment == null) {
       throw ArgumentError('This AST structure has not yet been resolved.');
@@ -11032,7 +14961,7 @@ sealed class ExpressionImpl extends AstNodeImpl
     );
 
     var dependencies = <ConstantEvaluationTarget>[];
-    accept(ReferenceFinder(dependencies.add));
+    accept2(ReferenceFinder(dependencies.add));
 
     computeConstants(
       declaredVariables: declaredVariables,
@@ -11090,7 +15019,7 @@ sealed class ExpressionImpl extends AstNodeImpl
           }
         case EnumConstantArguments():
           return (current, null);
-        case InstanceCreationExpression():
+        case InstanceCreationExpressionImpl():
           var keyword = current.keyword;
           if (keyword != null && keyword.keyword == Keyword.CONST) {
             return (current, keyword);
@@ -11127,6 +15056,74 @@ sealed class ExpressionImpl extends AstNodeImpl
           return null;
       }
       current = current?.parent;
+    }
+  }
+
+  /// Returns the [AstNode] that puts node into the constant context, and
+  /// the explicit `const` keyword of that node. The keyword might be absent
+  /// if the constness is implicit.
+  ///
+  /// Returns `null` if node is not in the constant context.
+  (AstNode, Token?)? constantContext2({required bool includeSelf}) {
+    AstNode? current = this;
+    if (!includeSelf) {
+      current = current.parent2;
+    }
+
+    while (true) {
+      switch (current) {
+        case Annotation():
+          return (current, null);
+        case ConstantContextForExpressionImpl():
+          return (current, null);
+        case ConstantPatternImpl():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+          return null;
+        case DotShorthandConstructorInvocation():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case EnumConstantArguments():
+          return (current, null);
+        case ConstructorInvocation():
+          var keyword = current.keyword;
+          if (keyword != null && keyword.keyword == Keyword.CONST) {
+            return (current, keyword);
+          }
+        case RecordLiteral():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case SwitchCase():
+          return (current, null);
+        case TypedLiteralImpl():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case VariableDeclarationList():
+          var keyword = current.keyword;
+          if (keyword != null && keyword.keyword == Keyword.CONST) {
+            return (current, keyword);
+          }
+          return null;
+        case ArgumentList():
+        case Expression():
+        case ForElement():
+        case IfElement():
+        case InterpolationExpression():
+        case MapLiteralEntry():
+        case NamedArgument():
+        case RecordLiteralNamedField():
+        case NullAwareElement():
+        case SpreadElement():
+        case VariableDeclaration():
+          break;
+        default:
+          return null;
+      }
+      current = current?.parent2;
     }
   }
 
@@ -11196,7 +15193,11 @@ sealed class ExpressionImpl extends AstNodeImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExpressionStatement implements Statement {
   /// The expression that comprises the statement.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The semicolon terminating the statement, or `null` if the expression is a
   /// function expression and therefore isn't followed by a semicolon.
@@ -11205,14 +15206,19 @@ abstract final class ExpressionStatement implements Statement {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('semicolon'),
   ],
 )
 final class ExpressionStatementImpl extends StatementImpl
     implements ExpressionStatement {
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -11220,16 +15226,17 @@ final class ExpressionStatementImpl extends StatementImpl
 
   @generated
   ExpressionStatementImpl({
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.semicolon,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
   @override
   Token get beginToken {
-    return expression.beginToken;
+    return expression2.beginToken;
   }
 
   @generated
@@ -11238,21 +15245,29 @@ final class ExpressionStatementImpl extends StatementImpl
     if (semicolon case var semicolon?) {
       return semicolon;
     }
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
   bool get isSynthetic =>
-      _expression.isSynthetic && (semicolon == null || semicolon!.isSynthetic);
+      _expression2.isSynthetic && (semicolon == null || semicolon!.isSynthetic);
 
   @generated
   @override
@@ -11262,20 +15277,33 @@ final class ExpressionStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('expression2', expression2)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExpressionStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitExpressionStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -11283,17 +15311,25 @@ final class ExpressionStatementImpl extends StatementImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -11302,14 +15338,15 @@ final class ExpressionStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -11318,6 +15355,15 @@ final class ExpressionStatementImpl extends StatementImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -11355,7 +15401,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
     required this.extendsKeyword,
     required NamedTypeImpl superclass,
   }) : _superclass = superclass {
-    _becomeParentOf(superclass);
+    _becomeParentOf12(superclass);
   }
 
   @generated
@@ -11376,7 +15422,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 
   @generated
   set superclass(NamedTypeImpl superclass) {
-    _superclass = _becomeParentOf(superclass);
+    _superclass = _becomeParentOf12(superclass);
   }
 
   @generated
@@ -11387,12 +15433,24 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('extendsKeyword', extendsKeyword)
+    ..addNode('superclass', superclass);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtendsClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExtendsClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -11416,9 +15474,17 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     superclass.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    superclass.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -11427,20 +15493,30 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NamedTypeImpl)? visitSuperclass,
   }) {
     if (visitSuperclass != null) {
       visitSuperclass(superclass);
     } else {
-      superclass.accept(visitor);
+      superclass.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (superclass._containsOffset(rangeOffset, rangeEnd)) {
+      return superclass;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (superclass._containsOffset(rangeOffset, rangeEnd)) {
       return superclass;
     }
@@ -11540,9 +15616,9 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }) : _typeParameters = typeParameters,
        _onClause = onClause,
        _body = body {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(onClause);
-    _becomeParentOf(body);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(onClause);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -11551,7 +15627,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set body(ClassBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -11575,7 +15651,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set onClause(ExtensionOnClauseImpl? onClause) {
-    _onClause = _becomeParentOf(onClause);
+    _onClause = _becomeParentOf12(onClause);
   }
 
   @generated
@@ -11584,7 +15660,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -11600,13 +15676,31 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('extensionKeyword', extensionKeyword)
+    ..addToken('typeKeyword', typeKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('onClause', onClause)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitExtensionDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExtensionDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -11646,12 +15740,23 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    typeParameters?.accept2(visitor);
+    onClause?.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -11660,31 +15765,32 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(ExtensionOnClauseImpl)? visitOnClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (onClause case var onClause?) {
       if (visitOnClause != null) {
         visitOnClause(onClause);
       } else {
-        onClause.accept(visitor);
+        onClause.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -11692,6 +15798,28 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (onClause case var onClause?) {
+      if (onClause._containsOffset(rangeOffset, rangeEnd)) {
+        return onClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (typeParameters case var typeParameters?) {
@@ -11743,7 +15871,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
     required this.onKeyword,
     required TypeAnnotationImpl extendedType,
   }) : _extendedType = extendedType {
-    _becomeParentOf(extendedType);
+    _becomeParentOf12(extendedType);
   }
 
   @generated
@@ -11764,7 +15892,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 
   @generated
   set extendedType(TypeAnnotationImpl extendedType) {
-    _extendedType = _becomeParentOf(extendedType);
+    _extendedType = _becomeParentOf12(extendedType);
   }
 
   @generated
@@ -11775,12 +15903,24 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('onKeyword', onKeyword)
+    ..addNode('extendedType', extendedType);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOnClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExtensionOnClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -11804,9 +15944,17 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     extendedType.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    extendedType.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -11815,20 +15963,30 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitExtendedType,
   }) {
     if (visitExtendedType != null) {
       visitExtendedType(extendedType);
     } else {
-      extendedType.accept(visitor);
+      extendedType.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (extendedType._containsOffset(rangeOffset, rangeEnd)) {
+      return extendedType;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (extendedType._containsOffset(rangeOffset, rangeEnd)) {
       return extendedType;
     }
@@ -11922,9 +16080,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }) : _importPrefix = importPrefix,
        _typeArguments = typeArguments,
        _argumentList = argumentList {
-    _becomeParentOf(importPrefix);
-    _becomeParentOf(typeArguments);
-    _becomeParentOf(argumentList);
+    _becomeParentOf12(importPrefix);
+    _becomeParentOf12(typeArguments);
+    _becomeParentOf12(argumentList);
   }
 
   @generated
@@ -11933,7 +16091,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf12(argumentList);
   }
 
   @generated
@@ -11957,7 +16115,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   set importPrefix(ImportPrefixReferenceImpl? importPrefix) {
-    _importPrefix = _becomeParentOf(importPrefix);
+    _importPrefix = _becomeParentOf12(importPrefix);
   }
 
   @override
@@ -11976,7 +16134,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 
   @generated
@@ -11989,12 +16147,26 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOverride(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExtensionOverride(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -12040,11 +16212,21 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    importPrefix?.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -12053,8 +16235,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
@@ -12063,26 +16246,45 @@ final class ExtensionOverrideImpl extends ExpressionImpl
       if (visitImportPrefix != null) {
         visitImportPrefix(importPrefix);
       } else {
-        importPrefix.accept(visitor);
+        importPrefix.accept2(visitor);
       }
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
       visitArgumentList(argumentList);
     } else {
-      argumentList.accept(visitor);
+      argumentList.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (importPrefix case var importPrefix?) {
+      if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+        return importPrefix;
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (importPrefix case var importPrefix?) {
       if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
         return importPrefix;
@@ -12194,9 +16396,9 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   }) : _namePart = namePart,
        _implementsClause = implementsClause,
        _body = body {
-    _becomeParentOf(namePart);
-    _becomeParentOf(implementsClause);
-    _becomeParentOf(body);
+    _becomeParentOf12(namePart);
+    _becomeParentOf12(implementsClause);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -12205,7 +16407,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set body(ClassBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -12229,7 +16431,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf(implementsClause);
+    _implementsClause = _becomeParentOf12(implementsClause);
   }
 
   @generated
@@ -12238,7 +16440,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set namePart(ClassNamePartImpl namePart) {
-    _namePart = _becomeParentOf(namePart);
+    _namePart = _becomeParentOf12(namePart);
   }
 
   @override
@@ -12256,7 +16458,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     }
 
     var formalParameters = primaryConstructor.formalParameters;
-    return formalParameters.parameters.firstOrNull.tryCast();
+    return formalParameters.allFormalParameters.firstOrNull.tryCast();
   }
 
   @generated
@@ -12271,13 +16473,30 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('extensionKeyword', extensionKeyword)
+    ..addToken('typeKeyword', typeKeyword)
+    ..addNode('namePart', namePart)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitExtensionTypeDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExtensionTypeDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -12316,12 +16535,23 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     namePart.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    namePart.accept2(visitor);
+    implementsClause?.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -12330,29 +16560,30 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(ClassNamePartImpl)? visitNamePart,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitNamePart != null) {
       visitNamePart(namePart);
     } else {
-      namePart.accept(visitor);
+      namePart.accept2(visitor);
     }
     if (implementsClause case var implementsClause?) {
       if (visitImplementsClause != null) {
         visitImplementsClause(implementsClause);
       } else {
-        implementsClause.accept(visitor);
+        implementsClause.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -12360,6 +16591,26 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (namePart._containsOffset(rangeOffset, rangeEnd)) {
@@ -12475,7 +16726,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
     required VariableDeclarationListImpl fields,
     required this.semicolon,
   }) : _fields = fields {
-    _becomeParentOf(fields);
+    _becomeParentOf12(fields);
   }
 
   @override
@@ -12493,7 +16744,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @generated
   set fields(VariableDeclarationListImpl fields) {
-    _fields = _becomeParentOf(fields);
+    _fields = _becomeParentOf12(fields);
   }
 
   @generated
@@ -12528,12 +16779,34 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('staticKeyword', staticKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addNode('fields', fields)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFieldDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFieldDeclaration(this);
+
+  bool isAbstractWhenAugmentationsEnabled(FeatureSet featureSet) {
+    return abstractKeyword != null &&
+        featureSet.isEnabled(Feature.augmentations);
+  }
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -12557,10 +16830,19 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     fields.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    fields.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -12569,15 +16851,16 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(VariableDeclarationListImpl)? visitFields,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitFields != null) {
       visitFields(fields);
     } else {
-      fields.accept(visitor);
+      fields.accept2(visitor);
     }
   }
 
@@ -12585,6 +16868,18 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (fields._containsOffset(rangeOffset, rangeEnd)) {
+      return fields;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (fields._containsOffset(rangeOffset, rangeEnd)) {
@@ -12713,13 +17008,33 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
+    ..addNode('type', type)
+    ..addToken('thisKeyword', thisKeyword)
+    ..addToken('period', period)
+    ..addToken('name', name)
+    ..addNode('functionTypedSuffix', functionTypedSuffix)
+    ..addNode('defaultClause', defaultClause);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitFieldFormalParameter(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFieldFormalParameter(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -12759,10 +17074,24 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
-  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
+    type?.accept(visitor);
+    functionTypedSuffix?.accept(visitor);
+    defaultClause?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    functionTypedSuffix?.accept2(visitor);
+    defaultClause?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -12770,34 +17099,35 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
+  @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitType,
     void Function(FunctionTypedFormalParameterSuffixImpl)?
     visitFunctionTypedSuffix,
     void Function(FormalParameterDefaultClauseImpl)? visitDefaultClause,
   }) {
-    _visitCommentAndAnnotations(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
       } else {
-        type.accept(visitor);
+        type.accept2(visitor);
       }
     }
     if (functionTypedSuffix case var functionTypedSuffix?) {
       if (visitFunctionTypedSuffix != null) {
         visitFunctionTypedSuffix(functionTypedSuffix);
       } else {
-        functionTypedSuffix.accept(visitor);
+        functionTypedSuffix.accept2(visitor);
       }
     }
     if (defaultClause case var defaultClause?) {
       if (visitDefaultClause != null) {
         visitDefaultClause(defaultClause);
       } else {
-        defaultClause.accept(visitor);
+        defaultClause.accept2(visitor);
       }
     }
   }
@@ -12806,6 +17136,30 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (functionTypedSuffix._containsOffset(rangeOffset, rangeEnd)) {
+        return functionTypedSuffix;
+      }
+    }
+    if (defaultClause case var defaultClause?) {
+      if (defaultClause._containsOffset(rangeOffset, rangeEnd)) {
+        return defaultClause;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (type case var type?) {
@@ -12834,33 +17188,46 @@ sealed class ForEachParts implements ForLoopParts {
   Token get inKeyword;
 
   /// The expression evaluated to produce the iterator.
+  @ToBeDeprecated('Use iterable2 instead.')
   Expression get iterable;
+
+  /// The expression evaluated to produce the iterator.
+  @experimental
+  Expression get iterable2;
 }
 
 sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   @override
   final Token inKeyword;
 
-  ExpressionImpl _iterable;
+  ExpressionImpl _iterable2;
 
   /// Initializes a newly created for-each statement whose loop control variable
   /// is declared internally (in the for-loop part).
-  ForEachPartsImpl({required this.inKeyword, required ExpressionImpl iterable})
-    : _iterable = iterable {
-    _becomeParentOf(_iterable);
+  ForEachPartsImpl({required this.inKeyword, required ExpressionImpl iterable2})
+    : _iterable2 = iterable2 {
+    _becomeParentOf2(iterable2);
+    _becomeParentOf1(V1Projection.toV1Expression(iterable2));
   }
 
   @override
   Token get beginToken => inKeyword;
 
   @override
-  Token get endToken => _iterable.endToken;
+  Token get endToken => iterable2.endToken;
 
+  @ToBeDeprecated('Use iterable2 instead.')
   @override
-  ExpressionImpl get iterable => _iterable;
+  ExpressionImpl get iterable => V1Projection.toV1Expression(iterable2);
 
-  set iterable(ExpressionImpl expression) {
-    _iterable = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get iterable2 => _iterable2;
+
+  @experimental
+  set iterable2(ExpressionImpl iterable2) {
+    _iterable2 = _becomeParentOf2(iterable2);
+    _becomeParentOf1(V1Projection.toV1Expression(iterable2));
   }
 
   @override
@@ -12869,14 +17236,20 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
     ..addNode('iterable', iterable);
 
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable2', iterable2);
+
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
   void visitChildren(AstVisitor visitor) {
-    _iterable.accept(visitor);
+    iterable.accept(visitor);
   }
 
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (_iterable._containsOffset(rangeOffset, rangeEnd)) {
-      return _iterable;
+    if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
+      return iterable2;
     }
     return null;
   }
@@ -12898,7 +17271,9 @@ abstract final class ForEachPartsWithDeclaration implements ForEachParts {
     GenerateNodeProperty('loopVariable'),
     GenerateNodeProperty('inKeyword', isSuper: true),
     GenerateNodeProperty(
-      'iterable',
+      'iterable2',
+      v1Name: 'iterable',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -12913,9 +17288,9 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   ForEachPartsWithDeclarationImpl({
     required DeclaredIdentifierImpl loopVariable,
     required super.inKeyword,
-    required super.iterable,
+    required super.iterable2,
   }) : _loopVariable = loopVariable {
-    _becomeParentOf(loopVariable);
+    _becomeParentOf12(loopVariable);
   }
 
   @generated
@@ -12927,7 +17302,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   @generated
   @override
   Token get endToken {
-    return iterable.endToken;
+    return iterable2.endToken;
   }
 
   @generated
@@ -12936,7 +17311,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 
   @generated
   set loopVariable(DeclaredIdentifierImpl loopVariable) {
-    _loopVariable = _becomeParentOf(loopVariable);
+    _loopVariable = _becomeParentOf12(loopVariable);
   }
 
   @generated
@@ -12948,14 +17323,28 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('loopVariable', loopVariable)
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable2', iterable2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(iterable, child);
+    assert(identical(child.parent2, this));
+    return identical(iterable2, child);
   }
 
   @generated
@@ -12964,8 +17353,8 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     if (identical(loopVariable, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'loopVariable'.");
     }
-    if (identical(iterable, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'iterable'.");
+    if (identical(iterable2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'iterable2'.");
     }
     super.removeChild(oldNode);
   }
@@ -12977,18 +17366,27 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
       loopVariable = newNode as DeclaredIdentifierImpl;
       return;
     }
-    if (identical(iterable, oldNode)) {
-      iterable = newNode as ExpressionImpl;
+    if (identical(iterable2, oldNode)) {
+      iterable2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     loopVariable.accept(visitor);
     iterable.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    loopVariable.accept2(visitor);
+    iterable2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -12997,20 +17395,21 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DeclaredIdentifierImpl)? visitLoopVariable,
-    void Function(ExpressionImpl)? visitIterable,
+    void Function(ExpressionImpl)? visitIterable2,
   }) {
     if (visitLoopVariable != null) {
       visitLoopVariable(loopVariable);
     } else {
-      loopVariable.accept(visitor);
+      loopVariable.accept2(visitor);
     }
-    if (visitIterable != null) {
-      visitIterable(iterable);
+    if (visitIterable2 != null) {
+      visitIterable2(iterable2);
     } else {
-      iterable.accept(visitor);
+      iterable2.accept2(visitor);
     }
   }
 
@@ -13022,6 +17421,18 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     }
     if (iterable._containsOffset(rangeOffset, rangeEnd)) {
       return iterable;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (loopVariable._containsOffset(rangeOffset, rangeEnd)) {
+      return loopVariable;
+    }
+    if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
+      return iterable2;
     }
     return null;
   }
@@ -13043,7 +17454,9 @@ abstract final class ForEachPartsWithIdentifier implements ForEachParts {
     GenerateNodeProperty('identifier'),
     GenerateNodeProperty('inKeyword', isSuper: true),
     GenerateNodeProperty(
-      'iterable',
+      'iterable2',
+      v1Name: 'iterable',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -13058,9 +17471,9 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   ForEachPartsWithIdentifierImpl({
     required SimpleIdentifierImpl identifier,
     required super.inKeyword,
-    required super.iterable,
+    required super.iterable2,
   }) : _identifier = identifier {
-    _becomeParentOf(identifier);
+    _becomeParentOf12(identifier);
   }
 
   @generated
@@ -13072,7 +17485,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   Token get endToken {
-    return iterable.endToken;
+    return iterable2.endToken;
   }
 
   @generated
@@ -13081,7 +17494,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   @generated
   set identifier(SimpleIdentifierImpl identifier) {
-    _identifier = _becomeParentOf(identifier);
+    _identifier = _becomeParentOf12(identifier);
   }
 
   @generated
@@ -13093,14 +17506,28 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('identifier', identifier)
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable2', iterable2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithIdentifier(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithIdentifier(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(iterable, child);
+    assert(identical(child.parent2, this));
+    return identical(iterable2, child);
   }
 
   @generated
@@ -13109,8 +17536,8 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     if (identical(identifier, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'identifier'.");
     }
-    if (identical(iterable, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'iterable'.");
+    if (identical(iterable2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'iterable2'.");
     }
     super.removeChild(oldNode);
   }
@@ -13122,18 +17549,27 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
       identifier = newNode as SimpleIdentifierImpl;
       return;
     }
-    if (identical(iterable, oldNode)) {
-      iterable = newNode as ExpressionImpl;
+    if (identical(iterable2, oldNode)) {
+      iterable2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     identifier.accept(visitor);
     iterable.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    identifier.accept2(visitor);
+    iterable2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -13142,20 +17578,21 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitIdentifier,
-    void Function(ExpressionImpl)? visitIterable,
+    void Function(ExpressionImpl)? visitIterable2,
   }) {
     if (visitIdentifier != null) {
       visitIdentifier(identifier);
     } else {
-      identifier.accept(visitor);
+      identifier.accept2(visitor);
     }
-    if (visitIterable != null) {
-      visitIterable(iterable);
+    if (visitIterable2 != null) {
+      visitIterable2(iterable2);
     } else {
-      iterable.accept(visitor);
+      iterable2.accept2(visitor);
     }
   }
 
@@ -13167,6 +17604,18 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     }
     if (iterable._containsOffset(rangeOffset, rangeEnd)) {
       return iterable;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (identifier._containsOffset(rangeOffset, rangeEnd)) {
+      return identifier;
+    }
+    if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
+      return iterable2;
     }
     return null;
   }
@@ -13195,7 +17644,9 @@ abstract final class ForEachPartsWithPattern implements ForEachParts {
     GenerateNodeProperty('pattern'),
     GenerateNodeProperty('inKeyword', isSuper: true),
     GenerateNodeProperty(
-      'iterable',
+      'iterable2',
+      v1Name: 'iterable',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -13223,10 +17674,10 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     required this.keyword,
     required DartPatternImpl pattern,
     required super.inKeyword,
-    required super.iterable,
+    required super.iterable2,
   }) : _pattern = pattern {
     this.metadata._initialize(this, metadata);
-    _becomeParentOf(pattern);
+    _becomeParentOf12(pattern);
   }
 
   @generated
@@ -13241,7 +17692,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   @generated
   @override
   Token get endToken {
-    return iterable.endToken;
+    return iterable2.endToken;
   }
 
   /// If [keyword] is `final`, returns it.
@@ -13258,7 +17709,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @generated
@@ -13272,14 +17723,30 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNodeList('metadata', metadata)
+    ..addToken('keyword', keyword)
+    ..addNode('pattern', pattern)
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable2', iterable2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithPattern(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(iterable, child);
+    assert(identical(child.parent2, this));
+    return identical(iterable2, child);
   }
 
   @generated
@@ -13293,8 +17760,8 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     if (identical(pattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'pattern'.");
     }
-    if (identical(iterable, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'iterable'.");
+    if (identical(iterable2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'iterable2'.");
     }
     super.removeChild(oldNode);
   }
@@ -13309,19 +17776,29 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
       pattern = newNode as DartPatternImpl;
       return;
     }
-    if (identical(iterable, oldNode)) {
-      iterable = newNode as ExpressionImpl;
+    if (identical(iterable2, oldNode)) {
+      iterable2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
     pattern.accept(visitor);
     iterable.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    metadata.accept2(visitor);
+    pattern.accept2(visitor);
+    iterable2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -13330,26 +17807,27 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<AnnotationImpl>)? visitMetadata,
     void Function(DartPatternImpl)? visitPattern,
-    void Function(ExpressionImpl)? visitIterable,
+    void Function(ExpressionImpl)? visitIterable2,
   }) {
     if (visitMetadata != null) {
       visitMetadata(metadata);
     } else {
-      metadata.accept(visitor);
+      metadata.accept2(visitor);
     }
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
-    if (visitIterable != null) {
-      visitIterable(iterable);
+    if (visitIterable2 != null) {
+      visitIterable2(iterable2);
     } else {
-      iterable.accept(visitor);
+      iterable2.accept2(visitor);
     }
   }
 
@@ -13368,12 +17846,35 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (metadata._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
+      return iterable2;
+    }
+    return null;
+  }
 }
 
 /// The basic structure of a for element.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForElement
-    implements CollectionElement, ForLoop<CollectionElement> {}
+    implements CollectionElement, ForLoop<CollectionElement> {
+  @ToBeDeprecated('Use body2 instead.')
+  @override
+  CollectionElement get body;
+
+  @experimental
+  CollectionElement get body2;
+}
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
@@ -13382,7 +17883,12 @@ abstract final class ForElement
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty('forLoopParts'),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('body', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'body2',
+      v1Name: 'body',
+      v1Projection: V1Projection.collectionElement,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ForElementImpl extends AstNodeImpl
@@ -13410,7 +17916,7 @@ final class ForElementImpl extends AstNodeImpl
   final Token rightParenthesis;
 
   @generated
-  CollectionElementImpl _body;
+  CollectionElementImpl _body2;
 
   @generated
   ForElementImpl({
@@ -13419,11 +17925,12 @@ final class ForElementImpl extends AstNodeImpl
     required this.leftParenthesis,
     required ForLoopPartsImpl forLoopParts,
     required this.rightParenthesis,
-    required CollectionElementImpl body,
+    required CollectionElementImpl body2,
   }) : _forLoopParts = forLoopParts,
-       _body = body {
-    _becomeParentOf(forLoopParts);
-    _becomeParentOf(body);
+       _body2 = body2 {
+    _becomeParentOf12(forLoopParts);
+    _becomeParentOf2(body2);
+    _becomeParentOf1(V1Projection.toV1CollectionElement(body2));
   }
 
   @generated
@@ -13436,18 +17943,26 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use body2 instead.')
   @override
-  CollectionElementImpl get body => _body;
+  CollectionElementImpl get body => V1Projection.toV1CollectionElement(body2);
 
   @generated
-  set body(CollectionElementImpl body) {
-    _body = _becomeParentOf(body);
+  @experimental
+  @override
+  CollectionElementImpl get body2 => _body2;
+
+  @generated
+  @experimental
+  set body2(CollectionElementImpl body2) {
+    _body2 = _becomeParentOf2(body2);
+    _becomeParentOf1(V1Projection.toV1CollectionElement(body2));
   }
 
   @generated
   @override
   Token get endToken {
-    return body.endToken;
+    return body2.endToken;
   }
 
   @generated
@@ -13456,7 +17971,7 @@ final class ForElementImpl extends AstNodeImpl
 
   @generated
   set forLoopParts(ForLoopPartsImpl forLoopParts) {
-    _forLoopParts = _becomeParentOf(forLoopParts);
+    _forLoopParts = _becomeParentOf12(forLoopParts);
   }
 
   @generated
@@ -13471,13 +17986,29 @@ final class ForElementImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('awaitKeyword', awaitKeyword)
+    ..addToken('forKeyword', forKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('forLoopParts', forLoopParts)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('body2', body2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForElement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitForElement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(body, child);
+    assert(identical(child.parent2, this));
+    return identical(body2, child);
   }
 
   @generated
@@ -13486,8 +18017,8 @@ final class ForElementImpl extends AstNodeImpl
     if (identical(forLoopParts, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'forLoopParts'.");
     }
-    if (identical(body, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'body'.");
+    if (identical(body2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body2'.");
     }
     super.removeChild(oldNode);
   }
@@ -13499,8 +18030,8 @@ final class ForElementImpl extends AstNodeImpl
       forLoopParts = newNode as ForLoopPartsImpl;
       return;
     }
-    if (identical(body, oldNode)) {
-      body = newNode as CollectionElementImpl;
+    if (identical(body2, oldNode)) {
+      body2 = newNode as CollectionElementImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -13516,10 +18047,19 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     forLoopParts.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    forLoopParts.accept2(visitor);
+    body2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -13528,20 +18068,21 @@ final class ForElementImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(ForLoopPartsImpl)? visitForLoopParts,
-    void Function(CollectionElementImpl)? visitBody,
+    void Function(CollectionElementImpl)? visitBody2,
   }) {
     if (visitForLoopParts != null) {
       visitForLoopParts(forLoopParts);
     } else {
-      forLoopParts.accept(visitor);
+      forLoopParts.accept2(visitor);
     }
-    if (visitBody != null) {
-      visitBody(body);
+    if (visitBody2 != null) {
+      visitBody2(body2);
     } else {
-      body.accept(visitor);
+      body2.accept2(visitor);
     }
   }
 
@@ -13553,6 +18094,18 @@ final class ForElementImpl extends AstNodeImpl
     }
     if (body._containsOffset(rangeOffset, rangeEnd)) {
       return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
+      return forLoopParts;
+    }
+    if (body2._containsOffset(rangeOffset, rangeEnd)) {
+      return body2;
     }
     return null;
   }
@@ -13600,12 +18153,22 @@ sealed class ForLoopImpl<Body extends AstNode, BodyImpl extends Body>
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ForLoopParts implements AstNode {
   @override
+  @ToBeDeprecated('Use parent2 instead')
   ForLoop get parent;
+
+  @experimental
+  @override
+  ForLoop get parent2;
 }
 
 sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {
   @override
+  @ToBeDeprecated('Use parent2 instead')
   ForLoopImpl get parent => super.parent as ForLoopImpl;
+
+  @experimental
+  @override
+  ForLoopImpl get parent2 => super.parent2 as ForLoopImpl;
 }
 
 /// A node representing a parameter to a function.
@@ -13721,13 +18284,22 @@ abstract final class FormalParameterDefaultClause implements AstNode {
   Token get separator;
 
   /// The default value expression.
+  @ToBeDeprecated('Use value2 instead.')
   Expression get value;
+
+  @experimental
+  Expression get value2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('separator'),
-    GenerateNodeProperty('value', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'value2',
+      v1Name: 'value',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class FormalParameterDefaultClauseImpl extends AstNodeImpl
@@ -13737,14 +18309,15 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   final Token separator;
 
   @generated
-  ExpressionImpl _value;
+  ExpressionImpl _value2;
 
   @generated
   FormalParameterDefaultClauseImpl({
     required this.separator,
-    required ExpressionImpl value,
-  }) : _value = value {
-    _becomeParentOf(value);
+    required ExpressionImpl value2,
+  }) : _value2 = value2 {
+    _becomeParentOf2(value2);
+    _becomeParentOf1(V1Projection.toV1Expression(value2));
   }
 
   @generated
@@ -13756,16 +18329,24 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   @generated
   @override
   Token get endToken {
-    return value.endToken;
+    return value2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use value2 instead.')
   @override
-  ExpressionImpl get value => _value;
+  ExpressionImpl get value => V1Projection.toV1Expression(value2);
 
   @generated
-  set value(ExpressionImpl value) {
-    _value = _becomeParentOf(value);
+  @experimental
+  @override
+  ExpressionImpl get value2 => _value2;
+
+  @generated
+  @experimental
+  set value2(ExpressionImpl value2) {
+    _value2 = _becomeParentOf2(value2);
+    _becomeParentOf1(V1Projection.toV1Expression(value2));
   }
 
   @generated
@@ -13776,21 +18357,34 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('separator', separator)
+    ..addNode('value2', value2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitFormalParameterDefaultClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFormalParameterDefaultClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(value, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'value'.");
+    if (identical(value2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'value2'.");
     }
     super.removeChild(oldNode);
   }
@@ -13798,17 +18392,25 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(value, oldNode)) {
-      value = newNode as ExpressionImpl;
+    if (identical(value2, oldNode)) {
+      value2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     value.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    value2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -13817,14 +18419,15 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitValue,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitValue2,
   }) {
-    if (visitValue != null) {
-      visitValue(value);
+    if (visitValue2 != null) {
+      visitValue2(value2);
     } else {
-      value.accept(visitor);
+      value2.accept2(visitor);
     }
   }
 
@@ -13833,6 +18436,15 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (value._containsOffset(rangeOffset, rangeEnd)) {
       return value;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (value2._containsOffset(rangeOffset, rangeEnd)) {
+      return value2;
     }
     return null;
   }
@@ -13891,9 +18503,9 @@ sealed class FormalParameterImpl extends AstNodeImpl
        _functionTyped = functionTypedSuffix,
        _defaultClause = defaultClause {
     _initializeCommentAndAnnotations(comment, metadata);
-    _becomeParentOf(type);
-    _becomeParentOf(functionTypedSuffix);
-    _becomeParentOf(defaultClause);
+    _becomeParentOf12(type);
+    _becomeParentOf12(functionTypedSuffix);
+    _becomeParentOf12(defaultClause);
   }
 
   @override
@@ -13908,7 +18520,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
   FormalParameterDefaultClauseImpl? get defaultClause => _defaultClause;
 
   set defaultClause(FormalParameterDefaultClauseImpl? defaultClause) {
-    _defaultClause = _becomeParentOf(defaultClause);
+    _defaultClause = _becomeParentOf12(defaultClause);
   }
 
   @override
@@ -13966,7 +18578,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
   set functionTypedSuffix(
     FunctionTypedFormalParameterSuffixImpl? functionTypedSuffix,
   ) {
-    _functionTyped = _becomeParentOf(functionTypedSuffix);
+    _functionTyped = _becomeParentOf12(functionTypedSuffix);
   }
 
   @override
@@ -14006,7 +18618,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
   TypeAnnotationImpl? get type => _type;
 
   set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @override
@@ -14051,13 +18663,22 @@ sealed class FormalParameterImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
-  @mustCallSuper
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
     type?.accept(visitor);
     functionTypedSuffix?.accept(visitor);
     defaultClause?.accept(visitor);
+  }
+
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    functionTypedSuffix?.accept2(visitor);
+    defaultClause?.accept2(visitor);
   }
 
   @override
@@ -14093,11 +18714,14 @@ sealed class FormalParameterImpl extends AstNodeImpl
 /// The formal parameter list of a method declaration, function declaration, or
 /// function type alias.
 ///
-/// While the grammar requires all required positional parameters to be first,
-/// optionally being followed by either optional positional parameters or named
-/// parameters (but not both), this class doesn't enforce those constraints. All
-/// parameters are flattened into a single list, which can have any or all kinds
-/// of parameters (normal, named, and positional) in any order.
+/// Required positional parameters are represented by
+/// [requiredPositionalFormalParameters]. Optional positional or named
+/// parameters are represented by [delimitedFormalParameters], whose
+/// [DelimitedFormalParameters.isNamed] getter identifies the form of the
+/// delimited group.
+///
+/// The compatibility [parameters] getter projects both structural positions as
+/// a single, fixed-length list.
 ///
 ///    formalParameterList ::=
 ///        '(' ')'
@@ -14118,9 +18742,15 @@ sealed class FormalParameterImpl extends AstNodeImpl
 ///        '{' [FormalParameter] (',' [FormalParameter])* '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FormalParameterList implements AstNode {
+  /// The optional positional or named formal parameters, or `null` if there
+  /// are no delimited formal parameters.
+  @experimental
+  DelimitedFormalParameters? get delimitedFormalParameters;
+
   /// The left square bracket ('[') or left curly brace ('{') introducing the
   /// optional or named parameters, or `null` if there are neither optional nor
   /// named parameters.
+  @ToBeDeprecated('Use delimitedFormalParameters instead')
   Token? get leftDelimiter;
 
   /// The left parenthesis.
@@ -14133,11 +18763,20 @@ abstract final class FormalParameterList implements AstNode {
   List<FormalParameterFragment?> get parameterFragments;
 
   /// The parameters associated with the method.
+  @ToBeDeprecated(
+    'Use requiredPositionalFormalParameters and delimitedFormalParameters '
+    'instead',
+  )
   NodeList<FormalParameter> get parameters;
+
+  /// The required positional formal parameters at the start of this list.
+  @experimental
+  NodeList<FormalParameter> get requiredPositionalFormalParameters;
 
   /// The right square bracket (']') or right curly brace ('}') terminating the
   /// optional or named parameters, or `null` if there are neither optional nor
   /// named parameters.
+  @ToBeDeprecated('Use delimitedFormalParameters instead')
   Token? get rightDelimiter;
 
   /// The right parenthesis.
@@ -14147,9 +18786,8 @@ abstract final class FormalParameterList implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('parameters'),
-    GenerateNodeProperty('leftDelimiter'),
-    GenerateNodeProperty('rightDelimiter'),
+    GenerateNodeProperty('requiredPositionalFormalParameters'),
+    GenerateNodeProperty('delimitedFormalParameters'),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -14161,29 +18799,45 @@ final class FormalParameterListImpl extends AstNodeImpl
 
   @generated
   @override
-  final NodeListImpl<FormalParameterImpl> parameters = NodeListImpl._();
-
-  @generated
-  @override
-  final Token? leftDelimiter;
-
-  @generated
-  @override
-  final Token? rightDelimiter;
+  final NodeListImpl<FormalParameterImpl> requiredPositionalFormalParameters =
+      NodeListImpl._();
 
   @generated
   @override
   final Token rightParenthesis;
 
-  @generated
+  @DoNotGenerate(reason: 'The V2 child has custom parent handling')
+  DelimitedFormalParametersImpl? _delimitedFormalParameters;
+
+  @Deprecated(
+    'Use requiredPositionalFormalParameters and delimitedFormalParameters '
+    'instead',
+  )
+  @override
+  late final NodeListImpl<FormalParameterImpl> parameters =
+      _FormalParameterListV1NodeList(this);
+
+  /// A fixed-length view of all formal parameters, in lexical order.
+  late final List<FormalParameterImpl> allFormalParameters =
+      _FormalParameterListView(this);
+
+  @DoNotGenerate(reason: 'Establishes different V1 and V2 parents')
   FormalParameterListImpl({
     required this.leftParenthesis,
-    required List<FormalParameterImpl> parameters,
-    required this.leftDelimiter,
-    required this.rightDelimiter,
+    required List<FormalParameterImpl> requiredPositionalFormalParameters,
+    required DelimitedFormalParametersImpl? delimitedFormalParameters,
     required this.rightParenthesis,
-  }) {
-    this.parameters._initialize(this, parameters);
+  }) : _delimitedFormalParameters = delimitedFormalParameters {
+    this.requiredPositionalFormalParameters._initialize(
+      this,
+      requiredPositionalFormalParameters,
+    );
+    _becomeParentOf2(delimitedFormalParameters);
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      for (var parameter in delimitedFormalParameters.formalParameters) {
+        _becomeParentOf1(parameter);
+      }
+    }
   }
 
   @generated
@@ -14192,55 +18846,105 @@ final class FormalParameterListImpl extends AstNodeImpl
     return leftParenthesis;
   }
 
+  @DoNotGenerate(reason: 'Establishes different V1 and V2 parents')
+  @experimental
+  @override
+  DelimitedFormalParametersImpl? get delimitedFormalParameters =>
+      _delimitedFormalParameters;
+
+  @DoNotGenerate(reason: 'Establishes different V1 and V2 parents')
+  @experimental
+  set delimitedFormalParameters(
+    DelimitedFormalParametersImpl? delimitedFormalParameters,
+  ) {
+    _delimitedFormalParameters = _becomeParentOf2(delimitedFormalParameters);
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      for (var parameter in delimitedFormalParameters.formalParameters) {
+        _becomeParentOf1(parameter);
+      }
+    }
+  }
+
   @generated
   @override
   Token get endToken {
     return rightParenthesis;
   }
 
+  @Deprecated('Use delimitedFormalParameters instead')
   @override
-  List<FormalParameterFragmentImpl?> get parameterFragments {
-    return parameters.map((node) => node.declaredFragment).toList();
-  }
+  Token? get leftDelimiter => delimitedFormalParameters?.leftDelimiter;
 
   @override
-  @DoNotGenerate(reason: 'Has special logic for delimiters')
+  List<FormalParameterFragmentImpl?> get parameterFragments {
+    return allFormalParameters.map((node) => node.declaredFragment).toList();
+  }
+
+  @Deprecated('Use delimitedFormalParameters instead')
+  @override
+  Token? get rightDelimiter => delimitedFormalParameters?.rightDelimiter;
+
+  @override
+  @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
   ChildEntities get _childEntities {
     // TODO(paulberry): include commas.
     var result = ChildEntities()..addToken('leftParenthesis', leftParenthesis);
-    bool leftDelimiterNeeded = leftDelimiter != null;
-    int length = parameters.length;
-    for (int i = 0; i < length; i++) {
-      FormalParameter parameter = parameters[i];
-      if (leftDelimiterNeeded && leftDelimiter!.offset < parameter.offset) {
-        result.addToken('leftDelimiter', leftDelimiter);
-        leftDelimiterNeeded = false;
-      }
+    for (var parameter in requiredPositionalFormalParameters) {
       result.addNode('parameter', parameter);
     }
-    return result
-      ..addToken('rightDelimiter', rightDelimiter)
-      ..addToken('rightParenthesis', rightParenthesis);
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      result.addToken('leftDelimiter', delimitedFormalParameters.leftDelimiter);
+      for (var parameter in delimitedFormalParameters.formalParameters) {
+        result.addNode('parameter', parameter);
+      }
+      result.addToken(
+        'rightDelimiter',
+        delimitedFormalParameters.rightDelimiter,
+      );
+    }
+    return result..addToken('rightParenthesis', rightParenthesis);
   }
 
   @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList(
+      'requiredPositionalFormalParameters',
+      requiredPositionalFormalParameters,
+    )
+    ..addNode('delimitedFormalParameters', delimitedFormalParameters)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFormalParameterList(this);
 
   @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitFormalParameterList(this);
+
+  @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (parameters.containsChild(oldNode)) {
+    if (requiredPositionalFormalParameters.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'parameters' because NodeList cannot be resized.",
+        "Cannot remove child 'requiredPositionalFormalParameters' because NodeList cannot be resized.",
       );
+    }
+    if (identical(delimitedFormalParameters, oldNode)) {
+      delimitedFormalParameters = null;
+      return;
     }
     super.removeChild(oldNode);
   }
@@ -14248,16 +18952,30 @@ final class FormalParameterListImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (parameters.replaceChild(oldNode, newNode)) {
+    if (requiredPositionalFormalParameters.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    if (identical(delimitedFormalParameters, oldNode)) {
+      delimitedFormalParameters = newNode as DelimitedFormalParametersImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
+    // ignore: deprecated_member_use_from_same_package
     parameters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    requiredPositionalFormalParameters.accept2(visitor);
+    delimitedFormalParameters?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -14266,23 +18984,55 @@ final class FormalParameterListImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(NodeListImpl<FormalParameterImpl>)? visitParameters,
+    AstVisitor2 visitor, {
+    void Function(NodeListImpl<FormalParameterImpl>)?
+    visitRequiredPositionalFormalParameters,
+    void Function(DelimitedFormalParametersImpl)?
+    visitDelimitedFormalParameters,
   }) {
-    if (visitParameters != null) {
-      visitParameters(parameters);
+    if (visitRequiredPositionalFormalParameters != null) {
+      visitRequiredPositionalFormalParameters(
+        requiredPositionalFormalParameters,
+      );
     } else {
-      parameters.accept(visitor);
+      requiredPositionalFormalParameters.accept2(visitor);
     }
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      if (visitDelimitedFormalParameters != null) {
+        visitDelimitedFormalParameters(delimitedFormalParameters);
+      } else {
+        delimitedFormalParameters.accept2(visitor);
+      }
+    }
+  }
+
+  @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    // ignore: deprecated_member_use_from_same_package
+    if (parameters._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
   }
 
   @generated
   @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (parameters._elementContainingRange(rangeOffset, rangeEnd)
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (requiredPositionalFormalParameters._elementContainingRange(
+          rangeOffset,
+          rangeEnd,
+        )
         case var result?) {
       return result;
+    }
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      if (delimitedFormalParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return delimitedFormalParameters;
+      }
     }
     return null;
   }
@@ -14306,7 +19056,11 @@ sealed class ForParts implements ForLoopParts {
   Token get rightSeparator;
 
   /// The list of expressions run after each execution of the loop body.
+  @ToBeDeprecated('Use updaters2 instead.')
   NodeList<Expression> get updaters;
+
+  @experimental
+  NodeList<Expression> get updaters2;
 }
 
 sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
@@ -14318,7 +19072,14 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   final Token rightSeparator;
 
-  final NodeListImpl<ExpressionImpl> _updaters = NodeListImpl._();
+  final NodeListImpl<ExpressionImpl> _updaters2 = NodeListImpl._();
+
+  @ToBeDeprecated('Use updaters2 instead.')
+  @override
+  late final NodeListImpl<ExpressionImpl> updaters = _V1ProjectedNodeListImpl(
+    updaters2,
+    V1Projection.toV1Expression,
+  );
 
   /// Initializes a newly created for statement.
   ///
@@ -14328,10 +19089,14 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     required this.leftSeparator,
     required ExpressionImpl? condition,
     required this.rightSeparator,
-    required List<ExpressionImpl>? updaters,
+    required List<ExpressionImpl>? updaters2,
   }) : _condition = condition {
-    _becomeParentOf(_condition);
-    _updaters._initialize(this, updaters);
+    _becomeParentOf12(_condition);
+    _updaters2._initializeProjected(
+      this,
+      updaters2,
+      V1Projection.toV1Expression,
+    );
   }
 
   @override
@@ -14341,14 +19106,15 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   ExpressionImpl? get condition => _condition;
 
   set condition(ExpressionImpl? expression) {
-    _condition = _becomeParentOf(expression);
+    _condition = _becomeParentOf12(expression);
   }
 
   @override
-  Token get endToken => _updaters.endToken ?? rightSeparator;
+  Token get endToken => _updaters2.endToken ?? rightSeparator;
 
+  @experimental
   @override
-  NodeListImpl<ExpressionImpl> get updaters => _updaters;
+  NodeListImpl<ExpressionImpl> get updaters2 => _updaters2;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -14357,10 +19123,11 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     ..addToken('rightSeparator', rightSeparator)
     ..addNodeList('updaters', updaters);
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _condition?.accept(visitor);
-    _updaters.accept(visitor);
+    updaters.accept(visitor);
   }
 
   @override
@@ -14368,7 +19135,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     if (_condition?._containsOffset(rangeOffset, rangeEnd) ?? false) {
       return _condition;
     }
-    return _updaters._elementContainingRange(rangeOffset, rangeEnd);
+    return updaters._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -14394,7 +19161,9 @@ abstract final class ForPartsWithDeclarations implements ForParts {
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
-      'updaters',
+      'updaters2',
+      v1Name: 'updaters',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -14411,9 +19180,9 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     required super.leftSeparator,
     required super.condition,
     required super.rightSeparator,
-    required super.updaters,
+    required super.updaters2,
   }) : _variables = variables {
-    _becomeParentOf(variables);
+    _becomeParentOf12(variables);
   }
 
   @generated
@@ -14425,7 +19194,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   Token get endToken {
-    if (updaters.endToken case var result?) {
+    if (updaters2.endToken case var result?) {
       return result;
     }
     return rightSeparator;
@@ -14437,7 +19206,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
 
   @generated
   set variables(VariableDeclarationListImpl variables) {
-    _variables = _becomeParentOf(variables);
+    _variables = _becomeParentOf12(variables);
   }
 
   @generated
@@ -14451,13 +19220,29 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('variables', variables)
+    ..addToken('leftSeparator', leftSeparator)
+    ..addNode('condition', condition)
+    ..addToken('rightSeparator', rightSeparator)
+    ..addNodeList('updaters2', updaters2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForPartsWithDeclarations(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForPartsWithDeclarations(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return !identical(variables, child);
   }
 
@@ -14471,9 +19256,9 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
       condition = null;
       return;
     }
-    if (updaters.containsChild(oldNode)) {
+    if (updaters2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'updaters' because NodeList cannot be resized.",
+        "Cannot remove child 'updaters2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -14490,18 +19275,28 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
       condition = newNode as ExpressionImpl?;
       return;
     }
-    if (updaters.replaceChild(oldNode, newNode)) {
+    if (updaters2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
     condition?.accept(visitor);
     updaters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    variables.accept2(visitor);
+    condition?.accept2(visitor);
+    updaters2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -14510,28 +19305,29 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(VariableDeclarationListImpl)? visitVariables,
     void Function(ExpressionImpl)? visitCondition,
-    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters,
+    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters2,
   }) {
     if (visitVariables != null) {
       visitVariables(variables);
     } else {
-      variables.accept(visitor);
+      variables.accept2(visitor);
     }
     if (condition case var condition?) {
       if (visitCondition != null) {
         visitCondition(condition);
       } else {
-        condition.accept(visitor);
+        condition.accept2(visitor);
       }
     }
-    if (visitUpdaters != null) {
-      visitUpdaters(updaters);
+    if (visitUpdaters2 != null) {
+      visitUpdaters2(updaters2);
     } else {
-      updaters.accept(visitor);
+      updaters2.accept2(visitor);
     }
   }
 
@@ -14552,6 +19348,24 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (variables._containsOffset(rangeOffset, rangeEnd)) {
+      return variables;
+    }
+    if (condition case var condition?) {
+      if (condition._containsOffset(rangeOffset, rangeEnd)) {
+        return condition;
+      }
+    }
+    if (updaters2._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
 }
 
 /// The parts of a for loop that control the iteration when there are no
@@ -14566,12 +19380,21 @@ abstract final class ForPartsWithExpression implements ForParts {
   ///
   /// Note that a for statement can't have both a variable list and an
   /// initialization expression, but can validly have neither.
+  @ToBeDeprecated('Use initialization2 instead.')
   Expression? get initialization;
+
+  @experimental
+  Expression? get initialization2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('initialization', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'initialization2',
+      v1Name: 'initialization',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('leftSeparator', isSuper: true),
     GenerateNodeProperty(
       'condition',
@@ -14580,7 +19403,9 @@ abstract final class ForPartsWithExpression implements ForParts {
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
-      'updaters',
+      'updaters2',
+      v1Name: 'updaters',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -14589,24 +19414,28 @@ abstract final class ForPartsWithExpression implements ForParts {
 final class ForPartsWithExpressionImpl extends ForPartsImpl
     implements ForPartsWithExpression {
   @generated
-  ExpressionImpl? _initialization;
+  ExpressionImpl? _initialization2;
 
   @generated
   ForPartsWithExpressionImpl({
-    required ExpressionImpl? initialization,
+    required ExpressionImpl? initialization2,
     required super.leftSeparator,
     required super.condition,
     required super.rightSeparator,
-    required super.updaters,
-  }) : _initialization = initialization {
-    _becomeParentOf(initialization);
+    required super.updaters2,
+  }) : _initialization2 = initialization2 {
+    _becomeParentOf2(initialization2);
+    _becomeParentOf1(switch (initialization2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @generated
   @override
   Token get beginToken {
-    if (initialization case var initialization?) {
-      return initialization.beginToken;
+    if (initialization2 case var initialization2?) {
+      return initialization2.beginToken;
     }
     return leftSeparator;
   }
@@ -14614,19 +19443,33 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   @generated
   @override
   Token get endToken {
-    if (updaters.endToken case var result?) {
+    if (updaters2.endToken case var result?) {
       return result;
     }
     return rightSeparator;
   }
 
   @generated
+  @ToBeDeprecated('Use initialization2 instead.')
   @override
-  ExpressionImpl? get initialization => _initialization;
+  ExpressionImpl? get initialization => switch (initialization2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set initialization(ExpressionImpl? initialization) {
-    _initialization = _becomeParentOf(initialization);
+  @experimental
+  @override
+  ExpressionImpl? get initialization2 => _initialization2;
+
+  @generated
+  @experimental
+  set initialization2(ExpressionImpl? initialization2) {
+    _initialization2 = _becomeParentOf2(initialization2);
+    _becomeParentOf1(switch (initialization2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @generated
@@ -14640,30 +19483,46 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('initialization2', initialization2)
+    ..addToken('leftSeparator', leftSeparator)
+    ..addNode('condition', condition)
+    ..addToken('rightSeparator', rightSeparator)
+    ..addNodeList('updaters2', updaters2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForPartsWithExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForPartsWithExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(initialization, oldNode)) {
-      initialization = null;
+    if (identical(initialization2, oldNode)) {
+      initialization2 = null;
       return;
     }
     if (identical(condition, oldNode)) {
       condition = null;
       return;
     }
-    if (updaters.containsChild(oldNode)) {
+    if (updaters2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'updaters' because NodeList cannot be resized.",
+        "Cannot remove child 'updaters2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -14672,26 +19531,36 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(initialization, oldNode)) {
-      initialization = newNode as ExpressionImpl?;
+    if (identical(initialization2, oldNode)) {
+      initialization2 = newNode as ExpressionImpl?;
       return;
     }
     if (identical(condition, oldNode)) {
       condition = newNode as ExpressionImpl?;
       return;
     }
-    if (updaters.replaceChild(oldNode, newNode)) {
+    if (updaters2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     initialization?.accept(visitor);
     condition?.accept(visitor);
     updaters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    initialization2?.accept2(visitor);
+    condition?.accept2(visitor);
+    updaters2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -14700,30 +19569,31 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitInitialization,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitInitialization2,
     void Function(ExpressionImpl)? visitCondition,
-    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters,
+    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters2,
   }) {
-    if (initialization case var initialization?) {
-      if (visitInitialization != null) {
-        visitInitialization(initialization);
+    if (initialization2 case var initialization2?) {
+      if (visitInitialization2 != null) {
+        visitInitialization2(initialization2);
       } else {
-        initialization.accept(visitor);
+        initialization2.accept2(visitor);
       }
     }
     if (condition case var condition?) {
       if (visitCondition != null) {
         visitCondition(condition);
       } else {
-        condition.accept(visitor);
+        condition.accept2(visitor);
       }
     }
-    if (visitUpdaters != null) {
-      visitUpdaters(updaters);
+    if (visitUpdaters2 != null) {
+      visitUpdaters2(updaters2);
     } else {
-      updaters.accept(visitor);
+      updaters2.accept2(visitor);
     }
   }
 
@@ -14741,6 +19611,26 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
       }
     }
     if (updaters._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (initialization2 case var initialization2?) {
+      if (initialization2._containsOffset(rangeOffset, rangeEnd)) {
+        return initialization2;
+      }
+    }
+    if (condition case var condition?) {
+      if (condition._containsOffset(rangeOffset, rangeEnd)) {
+        return condition;
+      }
+    }
+    if (updaters2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -14770,7 +19660,9 @@ abstract final class ForPartsWithPattern implements ForParts {
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
-      'updaters',
+      'updaters2',
+      v1Name: 'updaters',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -14787,9 +19679,9 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
     required super.leftSeparator,
     required super.condition,
     required super.rightSeparator,
-    required super.updaters,
+    required super.updaters2,
   }) : _variables = variables {
-    _becomeParentOf(variables);
+    _becomeParentOf12(variables);
   }
 
   @generated
@@ -14801,7 +19693,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   @generated
   @override
   Token get endToken {
-    if (updaters.endToken case var result?) {
+    if (updaters2.endToken case var result?) {
       return result;
     }
     return rightSeparator;
@@ -14813,7 +19705,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 
   @generated
   set variables(PatternVariableDeclarationImpl variables) {
-    _variables = _becomeParentOf(variables);
+    _variables = _becomeParentOf12(variables);
   }
 
   @generated
@@ -14827,12 +19719,28 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('variables', variables)
+    ..addToken('leftSeparator', leftSeparator)
+    ..addNode('condition', condition)
+    ..addToken('rightSeparator', rightSeparator)
+    ..addNodeList('updaters2', updaters2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForPartsWithPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitForPartsWithPattern(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return !identical(variables, child);
   }
 
@@ -14846,9 +19754,9 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
       condition = null;
       return;
     }
-    if (updaters.containsChild(oldNode)) {
+    if (updaters2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'updaters' because NodeList cannot be resized.",
+        "Cannot remove child 'updaters2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -14865,18 +19773,28 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
       condition = newNode as ExpressionImpl?;
       return;
     }
-    if (updaters.replaceChild(oldNode, newNode)) {
+    if (updaters2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
     condition?.accept(visitor);
     updaters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    variables.accept2(visitor);
+    condition?.accept2(visitor);
+    updaters2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -14885,28 +19803,29 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(PatternVariableDeclarationImpl)? visitVariables,
     void Function(ExpressionImpl)? visitCondition,
-    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters,
+    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters2,
   }) {
     if (visitVariables != null) {
       visitVariables(variables);
     } else {
-      variables.accept(visitor);
+      variables.accept2(visitor);
     }
     if (condition case var condition?) {
       if (visitCondition != null) {
         visitCondition(condition);
       } else {
-        condition.accept(visitor);
+        condition.accept2(visitor);
       }
     }
-    if (visitUpdaters != null) {
-      visitUpdaters(updaters);
+    if (visitUpdaters2 != null) {
+      visitUpdaters2(updaters2);
     } else {
-      updaters.accept(visitor);
+      updaters2.accept2(visitor);
     }
   }
 
@@ -14922,6 +19841,24 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
       }
     }
     if (updaters._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (variables._containsOffset(rangeOffset, rangeEnd)) {
+      return variables;
+    }
+    if (condition case var condition?) {
+      if (condition._containsOffset(rangeOffset, rangeEnd)) {
+        return condition;
+      }
+    }
+    if (updaters2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -14987,8 +19924,8 @@ final class ForStatementImpl extends StatementImpl
     required StatementImpl body,
   }) : _forLoopParts = forLoopParts,
        _body = body {
-    _becomeParentOf(forLoopParts);
-    _becomeParentOf(body);
+    _becomeParentOf12(forLoopParts);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -15006,7 +19943,7 @@ final class ForStatementImpl extends StatementImpl
 
   @generated
   set body(StatementImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -15021,7 +19958,7 @@ final class ForStatementImpl extends StatementImpl
 
   @generated
   set forLoopParts(ForLoopPartsImpl forLoopParts) {
-    _forLoopParts = _becomeParentOf(forLoopParts);
+    _forLoopParts = _becomeParentOf12(forLoopParts);
   }
 
   @generated
@@ -15036,12 +19973,28 @@ final class ForStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('awaitKeyword', awaitKeyword)
+    ..addToken('forKeyword', forKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('forLoopParts', forLoopParts)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitForStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -15072,10 +20025,19 @@ final class ForStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     forLoopParts.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    forLoopParts.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -15084,26 +20046,39 @@ final class ForStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(ForLoopPartsImpl)? visitForLoopParts,
     void Function(StatementImpl)? visitBody,
   }) {
     if (visitForLoopParts != null) {
       visitForLoopParts(forLoopParts);
     } else {
-      forLoopParts.accept(visitor);
+      forLoopParts.accept2(visitor);
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
+      return forLoopParts;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
       return forLoopParts;
     }
@@ -15298,8 +20273,8 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     required FunctionExpressionImpl functionExpression,
   }) : _returnType = returnType,
        _functionExpression = functionExpression {
-    _becomeParentOf(returnType);
-    _becomeParentOf(functionExpression);
+    _becomeParentOf12(returnType);
+    _becomeParentOf12(functionExpression);
   }
 
   @generated
@@ -15332,7 +20307,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set functionExpression(FunctionExpressionImpl functionExpression) {
-    _functionExpression = _becomeParentOf(functionExpression);
+    _functionExpression = _becomeParentOf12(functionExpression);
   }
 
   @override
@@ -15353,7 +20328,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set returnType(TypeAnnotationImpl? returnType) {
-    _returnType = _becomeParentOf(returnType);
+    _returnType = _becomeParentOf12(returnType);
   }
 
   @generated
@@ -15368,12 +20343,29 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('propertyKeyword', propertyKeyword)
+    ..addToken('name', name)
+    ..addNode('functionExpression', functionExpression);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitFunctionDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return identical(functionExpression, child);
   }
 
@@ -15407,11 +20399,21 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     returnType?.accept(visitor);
     functionExpression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    functionExpression.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -15420,23 +20422,24 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitReturnType,
     void Function(FunctionExpressionImpl)? visitFunctionExpression,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (returnType case var returnType?) {
       if (visitReturnType != null) {
         visitReturnType(returnType);
       } else {
-        returnType.accept(visitor);
+        returnType.accept2(visitor);
       }
     }
     if (visitFunctionExpression != null) {
       visitFunctionExpression(functionExpression);
     } else {
-      functionExpression.accept(visitor);
+      functionExpression.accept2(visitor);
     }
   }
 
@@ -15444,6 +20447,23 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (functionExpression._containsOffset(rangeOffset, rangeEnd)) {
+      return functionExpression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (returnType case var returnType?) {
@@ -15477,7 +20497,7 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   FunctionDeclarationStatementImpl({
     required FunctionDeclarationImpl functionDeclaration,
   }) : _functionDeclaration = functionDeclaration {
-    _becomeParentOf(functionDeclaration);
+    _becomeParentOf12(functionDeclaration);
   }
 
   @generated
@@ -15498,7 +20518,7 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
 
   @generated
   set functionDeclaration(FunctionDeclarationImpl functionDeclaration) {
-    _functionDeclaration = _becomeParentOf(functionDeclaration);
+    _functionDeclaration = _becomeParentOf12(functionDeclaration);
   }
 
   @generated
@@ -15508,13 +20528,25 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('functionDeclaration', functionDeclaration);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitFunctionDeclarationStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFunctionDeclarationStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -15540,9 +20572,17 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     functionDeclaration.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    functionDeclaration.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -15551,20 +20591,30 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(FunctionDeclarationImpl)? visitFunctionDeclaration,
   }) {
     if (visitFunctionDeclaration != null) {
       visitFunctionDeclaration(functionDeclaration);
     } else {
-      functionDeclaration.accept(visitor);
+      functionDeclaration.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (functionDeclaration._containsOffset(rangeOffset, rangeEnd)) {
+      return functionDeclaration;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (functionDeclaration._containsOffset(rangeOffset, rangeEnd)) {
       return functionDeclaration;
     }
@@ -15633,9 +20683,9 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }) : _typeParameters = typeParameters,
        _parameters = parameters,
        _body = body {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(parameters);
-    _becomeParentOf(body);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(parameters);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -15656,7 +20706,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @generated
   set body(FunctionBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -15671,7 +20721,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @generated
   set parameters(FormalParameterListImpl? parameters) {
-    _parameters = _becomeParentOf(parameters);
+    _parameters = _becomeParentOf12(parameters);
   }
 
   @override
@@ -15683,7 +20733,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -15695,12 +20745,26 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitFunctionExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -15746,11 +20810,21 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
     parameters?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeParameters?.accept2(visitor);
+    parameters?.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -15759,8 +20833,9 @@ final class FunctionExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(FormalParameterListImpl)? visitParameters,
     void Function(FunctionBodyImpl)? visitBody,
@@ -15769,26 +20844,45 @@ final class FunctionExpressionImpl extends ExpressionImpl
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (parameters case var parameters?) {
       if (visitParameters != null) {
         visitParameters(parameters);
       } else {
-        parameters.accept(visitor);
+        parameters.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (parameters case var parameters?) {
+      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+        return parameters;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
       if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
         return typeParameters;
@@ -15825,13 +20919,21 @@ abstract final class FunctionExpressionInvocation
   ExecutableElement? get element;
 
   /// The expression producing the function being invoked.
+  @ToBeDeprecated('Use function2 instead.')
   @override
   Expression get function;
+
+  @experimental
+  Expression get function2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('function'),
+    GenerateNodeProperty(
+      'function2',
+      v1Name: 'function',
+      v1Projection: V1Projection.expression,
+    ),
     GenerateNodeProperty('typeArguments', isSuper: true),
     GenerateNodeProperty('argumentList', isSuper: true),
   ],
@@ -15840,24 +20942,25 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     with DotShorthandMixin
     implements RewrittenMethodInvocationImpl, FunctionExpressionInvocation {
   @generated
-  ExpressionImpl _function;
+  ExpressionImpl _function2;
 
   @override
   ExecutableElement? element;
 
   @generated
   FunctionExpressionInvocationImpl({
-    required ExpressionImpl function,
+    required ExpressionImpl function2,
     required super.typeArguments,
     required super.argumentList,
-  }) : _function = function {
-    _becomeParentOf(function);
+  }) : _function2 = function2 {
+    _becomeParentOf2(function2);
+    _becomeParentOf1(V1Projection.toV1Expression(function2));
   }
 
   @generated
   @override
   Token get beginToken {
-    return function.beginToken;
+    return function2.beginToken;
   }
 
   @generated
@@ -15867,12 +20970,20 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use function2 instead.')
   @override
-  ExpressionImpl get function => _function;
+  ExpressionImpl get function => V1Projection.toV1Expression(function2);
 
   @generated
-  set function(ExpressionImpl function) {
-    _function = _becomeParentOf(function);
+  @experimental
+  @override
+  ExpressionImpl get function2 => _function2;
+
+  @generated
+  @experimental
+  set function2(ExpressionImpl function2) {
+    _function2 = _becomeParentOf2(function2);
+    _becomeParentOf1(V1Projection.toV1Expression(function2));
   }
 
   @override
@@ -15887,21 +20998,35 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('function2', function2)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitFunctionExpressionInvocation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFunctionExpressionInvocation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(function, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'function'.");
+    if (identical(function2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'function2'.");
     }
     if (identical(typeArguments, oldNode)) {
       typeArguments = null;
@@ -15916,8 +21041,8 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(function, oldNode)) {
-      function = newNode as ExpressionImpl;
+    if (identical(function2, oldNode)) {
+      function2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(typeArguments, oldNode)) {
@@ -15938,11 +21063,21 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     function.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    function2.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -15951,28 +21086,29 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitFunction,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitFunction2,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
-    if (visitFunction != null) {
-      visitFunction(function);
+    if (visitFunction2 != null) {
+      visitFunction2(function2);
     } else {
-      function.accept(visitor);
+      function2.accept2(visitor);
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
       visitArgumentList(argumentList);
     } else {
-      argumentList.accept(visitor);
+      argumentList.accept2(visitor);
     }
   }
 
@@ -15981,6 +21117,23 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (function._containsOffset(rangeOffset, rangeEnd)) {
       return function;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (function2._containsOffset(rangeOffset, rangeEnd)) {
+      return function2;
     }
     if (typeArguments case var typeArguments?) {
       if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
@@ -16011,7 +21164,11 @@ abstract final class FunctionReference
   /// a class). In code with errors, this could be other kinds of expressions.
   /// For example, `(...)<int>` parses as a [FunctionReference] whose referent
   /// is a [ParenthesizedExpression].
+  @ToBeDeprecated('Use function2 instead.')
   Expression get function;
+
+  @experimental
+  Expression get function2;
 
   /// The type arguments being applied to the function, or `null` if there are
   /// no type arguments.
@@ -16027,7 +21184,11 @@ abstract final class FunctionReference
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('function'),
+    GenerateNodeProperty(
+      'function2',
+      v1Name: 'function',
+      v1Projection: V1Projection.expression,
+    ),
     GenerateNodeProperty('typeArguments'),
   ],
 )
@@ -16035,7 +21196,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     with DotShorthandMixin
     implements FunctionReference {
   @generated
-  ExpressionImpl _function;
+  ExpressionImpl _function2;
 
   @generated
   TypeArgumentListImpl? _typeArguments;
@@ -16045,18 +21206,19 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @generated
   FunctionReferenceImpl({
-    required ExpressionImpl function,
+    required ExpressionImpl function2,
     required TypeArgumentListImpl? typeArguments,
-  }) : _function = function,
+  }) : _function2 = function2,
        _typeArguments = typeArguments {
-    _becomeParentOf(function);
-    _becomeParentOf(typeArguments);
+    _becomeParentOf2(function2);
+    _becomeParentOf1(V1Projection.toV1Expression(function2));
+    _becomeParentOf12(typeArguments);
   }
 
   @generated
   @override
   Token get beginToken {
-    return function.beginToken;
+    return function2.beginToken;
   }
 
   @generated
@@ -16065,21 +21227,29 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     if (typeArguments case var typeArguments?) {
       return typeArguments.endToken;
     }
-    return function.endToken;
+    return function2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use function2 instead.')
   @override
-  ExpressionImpl get function => _function;
+  ExpressionImpl get function => V1Projection.toV1Expression(function2);
 
   @generated
-  set function(ExpressionImpl function) {
-    _function = _becomeParentOf(function);
+  @experimental
+  @override
+  ExpressionImpl get function2 => _function2;
+
+  @generated
+  @experimental
+  set function2(ExpressionImpl function2) {
+    _function2 = _becomeParentOf2(function2);
+    _becomeParentOf1(V1Projection.toV1Expression(function2));
   }
 
   @override
   Precedence get precedence =>
-      typeArguments == null ? function.precedence : Precedence.postfix;
+      typeArguments == null ? function2.precedence : Precedence.postfix;
 
   @generated
   @override
@@ -16087,7 +21257,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 
   @generated
@@ -16098,20 +21268,32 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('function2', function2)
+    ..addNode('typeArguments', typeArguments);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFunctionReference(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(function, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'function'.");
+    if (identical(function2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'function2'.");
     }
     if (identical(typeArguments, oldNode)) {
       typeArguments = null;
@@ -16123,8 +21305,8 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(function, oldNode)) {
-      function = newNode as ExpressionImpl;
+    if (identical(function2, oldNode)) {
+      function2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(typeArguments, oldNode)) {
@@ -16141,10 +21323,19 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     function.accept(visitor);
     typeArguments?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    function2.accept2(visitor);
+    typeArguments?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -16153,21 +21344,22 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitFunction,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitFunction2,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
   }) {
-    if (visitFunction != null) {
-      visitFunction(function);
+    if (visitFunction2 != null) {
+      visitFunction2(function2);
     } else {
-      function.accept(visitor);
+      function2.accept2(visitor);
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
   }
@@ -16177,6 +21369,20 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (function._containsOffset(rangeOffset, rangeEnd)) {
       return function;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (function2._containsOffset(rangeOffset, rangeEnd)) {
+      return function2;
     }
     if (typeArguments case var typeArguments?) {
       if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
@@ -16251,9 +21457,9 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }) : _returnType = returnType,
        _typeParameters = typeParameters,
        _parameters = parameters {
-    _becomeParentOf(returnType);
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(parameters);
+    _becomeParentOf12(returnType);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(parameters);
   }
 
   @generated
@@ -16277,7 +21483,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set parameters(FormalParameterListImpl parameters) {
-    _parameters = _becomeParentOf(parameters);
+    _parameters = _becomeParentOf12(parameters);
   }
 
   @generated
@@ -16286,7 +21492,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set returnType(TypeAnnotationImpl? returnType) {
-    _returnType = _becomeParentOf(returnType);
+    _returnType = _becomeParentOf12(returnType);
   }
 
   @generated
@@ -16295,7 +21501,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -16311,12 +21517,29 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionTypeAlias(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFunctionTypeAlias(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -16356,12 +21579,23 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    typeParameters?.accept2(visitor);
+    parameters.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -16370,31 +21604,32 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitReturnType,
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(FormalParameterListImpl)? visitParameters,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (returnType case var returnType?) {
       if (visitReturnType != null) {
         visitReturnType(returnType);
       } else {
-        returnType.accept(visitor);
+        returnType.accept2(visitor);
       }
     }
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (visitParameters != null) {
       visitParameters(parameters);
     } else {
-      parameters.accept(visitor);
+      parameters.accept2(visitor);
     }
   }
 
@@ -16402,6 +21637,28 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return parameters;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (returnType case var returnType?) {
@@ -16465,8 +21722,8 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
     required this.question,
   }) : _typeParameters = typeParameters,
        _formalParameters = formalParameters {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(formalParameters);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(formalParameters);
   }
 
   @generated
@@ -16493,7 +21750,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
 
   @generated
   set formalParameters(FormalParameterListImpl formalParameters) {
-    _formalParameters = _becomeParentOf(formalParameters);
+    _formalParameters = _becomeParentOf12(formalParameters);
   }
 
   @generated
@@ -16502,7 +21759,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -16514,13 +21771,27 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('formalParameters', formalParameters)
+    ..addToken('question', question);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitFunctionTypedFormalParameterSuffix(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFunctionTypedFormalParameterSuffix(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -16554,10 +21825,19 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
     formalParameters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeParameters?.accept2(visitor);
+    formalParameters.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -16566,8 +21846,9 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(FormalParameterListImpl)? visitFormalParameters,
   }) {
@@ -16575,13 +21856,13 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (visitFormalParameters != null) {
       visitFormalParameters(formalParameters);
     } else {
-      formalParameters.accept(visitor);
+      formalParameters.accept2(visitor);
     }
   }
 
@@ -16598,13 +21879,37 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    return null;
+  }
 }
 
 class GenerateNodeImpl {
+  /// Which AST API surface this node belongs to.
+  final AstNodeApi api;
+
   /// The order is important for [AstNodeImpl._childEntities].
   final List<GenerateNodeProperty> childEntitiesOrder;
 
-  const GenerateNodeImpl({required this.childEntitiesOrder});
+  /// Whether to generate the implementation class's unnamed constructor.
+  final bool generateConstructor;
+
+  const GenerateNodeImpl({
+    this.api = AstNodeApi.shared,
+    required this.childEntitiesOrder,
+    this.generateConstructor = true,
+  });
 }
 
 /// Description for a single property in the node implementation.
@@ -16613,6 +21918,16 @@ class GenerateNodeImpl {
 /// e.g. `Foo` in `class FooImpl extends BarImpl implements Baz, Foo`.
 class GenerateNodeProperty {
   final String name;
+
+  /// The name of the V1 child property, when [name] stores the
+  /// compatibility-preserving replacement child.
+  ///
+  /// For example, if the V2 child is `leftOperand2`, this can be
+  /// `leftOperand`.
+  final String? v1Name;
+
+  /// How the value of [name] is projected for the V1 API.
+  final V1Projection v1Projection;
 
   /// If `true`, then `super.name` should be generated in the constructor,
   /// and no field or getter is generated, unless [superNullAssertOverride].
@@ -16657,6 +21972,8 @@ class GenerateNodeProperty {
 
   const GenerateNodeProperty(
     this.name, {
+    this.v1Name,
+    this.v1Projection = V1Projection.none,
     this.isSuper = false,
     this.isNodeListFinal = true,
     this.isTokenFinal = true,
@@ -16765,9 +22082,9 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }) : _returnType = returnType,
        _typeParameters = typeParameters,
        _parameters = parameters {
-    _becomeParentOf(returnType);
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(parameters);
+    _becomeParentOf12(returnType);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(parameters);
   }
 
   @generated
@@ -16794,7 +22111,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @generated
   set parameters(FormalParameterListImpl parameters) {
-    _parameters = _becomeParentOf(parameters);
+    _parameters = _becomeParentOf12(parameters);
   }
 
   @generated
@@ -16803,7 +22120,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @generated
   set returnType(TypeAnnotationImpl? returnType) {
-    _returnType = _becomeParentOf(returnType);
+    _returnType = _becomeParentOf12(returnType);
   }
 
   @generated
@@ -16812,7 +22129,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -16826,12 +22143,28 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('returnType', returnType)
+    ..addToken('functionKeyword', functionKeyword)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('question', question);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericFunctionType(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitGenericFunctionType(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -16871,11 +22204,21 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    returnType?.accept2(visitor);
+    typeParameters?.accept2(visitor);
+    parameters.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -16884,8 +22227,9 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitReturnType,
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(FormalParameterListImpl)? visitParameters,
@@ -16894,26 +22238,45 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
       if (visitReturnType != null) {
         visitReturnType(returnType);
       } else {
-        returnType.accept(visitor);
+        returnType.accept2(visitor);
       }
     }
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (visitParameters != null) {
       visitParameters(parameters);
     } else {
-      parameters.accept(visitor);
+      parameters.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return parameters;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (returnType case var returnType?) {
       if (returnType._containsOffset(rangeOffset, rangeEnd)) {
         return returnType;
@@ -16994,8 +22357,8 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     required super.semicolon,
   }) : _typeParameters = typeParameters,
        _type = type {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(type);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(type);
   }
 
   @generated
@@ -17020,7 +22383,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   set functionType(GenericFunctionType? functionType) {
-    _type = _becomeParentOf(functionType as GenericFunctionTypeImpl?)!;
+    _type = _becomeParentOf12(functionType as GenericFunctionTypeImpl?)!;
   }
 
   @generated
@@ -17029,7 +22392,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set type(TypeAnnotationImpl type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -17038,7 +22401,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -17054,12 +22417,29 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addToken('equals', equals)
+    ..addNode('type', type)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericTypeAlias(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGenericTypeAlias(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -17091,11 +22471,21 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeParameters?.accept(visitor);
     type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    typeParameters?.accept2(visitor);
+    type.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -17104,23 +22494,24 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(TypeAnnotationImpl)? visitType,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
   }
 
@@ -17128,6 +22519,23 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (typeParameters case var typeParameters?) {
@@ -17178,8 +22586,8 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
     required WhenClauseImpl? whenClause,
   }) : _pattern = pattern,
        _whenClause = whenClause {
-    _becomeParentOf(pattern);
-    _becomeParentOf(whenClause);
+    _becomeParentOf12(pattern);
+    _becomeParentOf12(whenClause);
   }
 
   @generated
@@ -17203,7 +22611,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @generated
@@ -17212,7 +22620,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   @generated
   set whenClause(WhenClauseImpl? whenClause) {
-    _whenClause = _becomeParentOf(whenClause);
+    _whenClause = _becomeParentOf12(whenClause);
   }
 
   @generated
@@ -17223,12 +22631,24 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addNode('whenClause', whenClause);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGuardedPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGuardedPattern(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -17260,10 +22680,19 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
     whenClause?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    pattern.accept2(visitor);
+    whenClause?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -17272,21 +22701,22 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitPattern,
     void Function(WhenClauseImpl)? visitWhenClause,
   }) {
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
     if (whenClause case var whenClause?) {
       if (visitWhenClause != null) {
         visitWhenClause(whenClause);
       } else {
-        whenClause.accept(visitor);
+        whenClause.accept2(visitor);
       }
     }
   }
@@ -17294,6 +22724,20 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    if (whenClause case var whenClause?) {
+      if (whenClause._containsOffset(rangeOffset, rangeEnd)) {
+        return whenClause;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
       return pattern;
     }
@@ -17360,12 +22804,24 @@ final class HideCombinatorImpl extends CombinatorImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNodeList('hiddenNames', hiddenNames);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitHideCombinator(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitHideCombinator(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -17390,9 +22846,17 @@ final class HideCombinatorImpl extends CombinatorImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     hiddenNames.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    hiddenNames.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -17401,20 +22865,31 @@ final class HideCombinatorImpl extends CombinatorImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<SimpleIdentifierImpl>)? visitHiddenNames,
   }) {
     if (visitHiddenNames != null) {
       visitHiddenNames(hiddenNames);
     } else {
-      hiddenNames.accept(visitor);
+      hiddenNames.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (hiddenNames._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (hiddenNames._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -17455,12 +22930,16 @@ sealed class IdentifierImpl extends CommentReferableExpressionImpl
 /// The basic structure of an if element.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IfElement implements CollectionElement {
-  /// The `case` clause used to match a pattern against the [expression].
+  /// The `case` clause used to match a pattern against the [expression2].
   CaseClause? get caseClause;
 
   /// The statement that is executed if the condition evaluates to `false`, or
   /// `null` if there's no else statement.
+  @ToBeDeprecated('Use elseElement2 instead.')
   CollectionElement? get elseElement;
+
+  @experimental
+  CollectionElement? get elseElement2;
 
   /// The token representing the `else` keyword, or `null` if there's no else
   /// expression.
@@ -17469,7 +22948,11 @@ abstract final class IfElement implements CollectionElement {
   /// The expression used to either determine which of the statements is
   /// executed next or to compute the value to be matched against the pattern in
   /// the `case` clause.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The token representing the `if` keyword.
   Token get ifKeyword;
@@ -17481,19 +22964,38 @@ abstract final class IfElement implements CollectionElement {
   Token get rightParenthesis;
 
   /// The statement that is executed if the condition evaluates to `true`.
+  @ToBeDeprecated('Use thenElement2 instead.')
   CollectionElement get thenElement;
+
+  @experimental
+  CollectionElement get thenElement2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('ifKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('thenElement', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'thenElement2',
+      v1Name: 'thenElement',
+      v1Projection: V1Projection.collectionElement,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('elseKeyword'),
-    GenerateNodeProperty('elseElement', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'elseElement2',
+      v1Name: 'elseElement',
+      v1Projection: V1Projection.collectionElement,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class IfElementImpl extends AstNodeImpl
@@ -17508,7 +23010,7 @@ final class IfElementImpl extends AstNodeImpl
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   CaseClauseImpl? _caseClause;
@@ -17518,33 +23020,39 @@ final class IfElementImpl extends AstNodeImpl
   final Token rightParenthesis;
 
   @generated
-  CollectionElementImpl _thenElement;
+  CollectionElementImpl _thenElement2;
 
   @generated
   @override
   final Token? elseKeyword;
 
   @generated
-  CollectionElementImpl? _elseElement;
+  CollectionElementImpl? _elseElement2;
 
   @generated
   IfElementImpl({
     required this.ifKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required CaseClauseImpl? caseClause,
     required this.rightParenthesis,
-    required CollectionElementImpl thenElement,
+    required CollectionElementImpl thenElement2,
     required this.elseKeyword,
-    required CollectionElementImpl? elseElement,
-  }) : _expression = expression,
+    required CollectionElementImpl? elseElement2,
+  }) : _expression2 = expression2,
        _caseClause = caseClause,
-       _thenElement = thenElement,
-       _elseElement = elseElement {
-    _becomeParentOf(expression);
-    _becomeParentOf(caseClause);
-    _becomeParentOf(thenElement);
-    _becomeParentOf(elseElement);
+       _thenElement2 = thenElement2,
+       _elseElement2 = elseElement2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf12(caseClause);
+    _becomeParentOf2(thenElement2);
+    _becomeParentOf1(V1Projection.toV1CollectionElement(thenElement2));
+    _becomeParentOf2(elseElement2);
+    _becomeParentOf1(switch (elseElement2) {
+      var node? => V1Projection.toV1CollectionElement(node),
+      _ => null,
+    });
   }
 
   @generated
@@ -17559,56 +23067,93 @@ final class IfElementImpl extends AstNodeImpl
 
   @generated
   set caseClause(CaseClauseImpl? caseClause) {
-    _caseClause = _becomeParentOf(caseClause);
+    _caseClause = _becomeParentOf12(caseClause);
   }
 
   set condition(ExpressionImpl condition) {
-    _expression = _becomeParentOf(condition);
+    expression2 = condition;
   }
 
   @generated
+  @ToBeDeprecated('Use elseElement2 instead.')
   @override
-  CollectionElementImpl? get elseElement => _elseElement;
+  CollectionElementImpl? get elseElement => switch (elseElement2) {
+    var node? => V1Projection.toV1CollectionElement(node),
+    _ => null,
+  };
 
   @generated
-  set elseElement(CollectionElementImpl? elseElement) {
-    _elseElement = _becomeParentOf(elseElement);
+  @experimental
+  @override
+  CollectionElementImpl? get elseElement2 => _elseElement2;
+
+  @generated
+  @experimental
+  set elseElement2(CollectionElementImpl? elseElement2) {
+    _elseElement2 = _becomeParentOf2(elseElement2);
+    _becomeParentOf1(switch (elseElement2) {
+      var node? => V1Projection.toV1CollectionElement(node),
+      _ => null,
+    });
   }
 
   @generated
   @override
   Token get endToken {
-    if (elseElement case var elseElement?) {
-      return elseElement.endToken;
+    if (elseElement2 case var elseElement2?) {
+      return elseElement2.endToken;
     }
     if (elseKeyword case var elseKeyword?) {
       return elseKeyword;
     }
-    return thenElement.endToken;
+    return thenElement2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
   CollectionElementImpl? get ifFalse => elseElement;
 
   @override
+  CollectionElementImpl? get ifFalse2 => elseElement2;
+
+  @override
   CollectionElementImpl get ifTrue => thenElement;
 
-  @generated
   @override
-  CollectionElementImpl get thenElement => _thenElement;
+  CollectionElementImpl get ifTrue2 => thenElement2;
 
   @generated
-  set thenElement(CollectionElementImpl thenElement) {
-    _thenElement = _becomeParentOf(thenElement);
+  @ToBeDeprecated('Use thenElement2 instead.')
+  @override
+  CollectionElementImpl get thenElement =>
+      V1Projection.toV1CollectionElement(thenElement2);
+
+  @generated
+  @experimental
+  @override
+  CollectionElementImpl get thenElement2 => _thenElement2;
+
+  @generated
+  @experimental
+  set thenElement2(CollectionElementImpl thenElement2) {
+    _thenElement2 = _becomeParentOf2(thenElement2);
+    _becomeParentOf1(V1Projection.toV1CollectionElement(thenElement2));
   }
 
   @generated
@@ -17625,32 +23170,50 @@ final class IfElementImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('ifKeyword', ifKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression2', expression2)
+    ..addNode('caseClause', caseClause)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('thenElement2', thenElement2)
+    ..addToken('elseKeyword', elseKeyword)
+    ..addNode('elseElement2', elseElement2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfElement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfElement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child) ||
-        identical(thenElement, child) ||
-        identical(elseElement, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child) ||
+        identical(thenElement2, child) ||
+        identical(elseElement2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     if (identical(caseClause, oldNode)) {
       caseClause = null;
       return;
     }
-    if (identical(thenElement, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'thenElement'.");
+    if (identical(thenElement2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'thenElement2'.");
     }
-    if (identical(elseElement, oldNode)) {
-      elseElement = null;
+    if (identical(elseElement2, oldNode)) {
+      elseElement2 = null;
       return;
     }
     super.removeChild(oldNode);
@@ -17659,20 +23222,20 @@ final class IfElementImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(caseClause, oldNode)) {
       caseClause = newNode as CaseClauseImpl?;
       return;
     }
-    if (identical(thenElement, oldNode)) {
-      thenElement = newNode as CollectionElementImpl;
+    if (identical(thenElement2, oldNode)) {
+      thenElement2 = newNode as CollectionElementImpl;
       return;
     }
-    if (identical(elseElement, oldNode)) {
-      elseElement = newNode as CollectionElementImpl?;
+    if (identical(elseElement2, oldNode)) {
+      elseElement2 = newNode as CollectionElementImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -17688,6 +23251,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -17696,41 +23260,52 @@ final class IfElementImpl extends AstNodeImpl
     elseElement?.accept(visitor);
   }
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
+    caseClause?.accept2(visitor);
+    thenElement2.accept2(visitor);
+    elseElement2?.accept2(visitor);
+  }
+
   /// Visits the children of this node.
   ///
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
     void Function(CaseClauseImpl)? visitCaseClause,
-    void Function(CollectionElementImpl)? visitThenElement,
-    void Function(CollectionElementImpl)? visitElseElement,
+    void Function(CollectionElementImpl)? visitThenElement2,
+    void Function(CollectionElementImpl)? visitElseElement2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
     if (caseClause case var caseClause?) {
       if (visitCaseClause != null) {
         visitCaseClause(caseClause);
       } else {
-        caseClause.accept(visitor);
+        caseClause.accept2(visitor);
       }
     }
-    if (visitThenElement != null) {
-      visitThenElement(thenElement);
+    if (visitThenElement2 != null) {
+      visitThenElement2(thenElement2);
     } else {
-      thenElement.accept(visitor);
+      thenElement2.accept2(visitor);
     }
-    if (elseElement case var elseElement?) {
-      if (visitElseElement != null) {
-        visitElseElement(elseElement);
+    if (elseElement2 case var elseElement2?) {
+      if (visitElseElement2 != null) {
+        visitElseElement2(elseElement2);
       } else {
-        elseElement.accept(visitor);
+        elseElement2.accept2(visitor);
       }
     }
   }
@@ -17756,6 +23331,28 @@ final class IfElementImpl extends AstNodeImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
+    }
+    if (caseClause case var caseClause?) {
+      if (caseClause._containsOffset(rangeOffset, rangeEnd)) {
+        return caseClause;
+      }
+    }
+    if (thenElement2._containsOffset(rangeOffset, rangeEnd)) {
+      return thenElement2;
+    }
+    if (elseElement2 case var elseElement2?) {
+      if (elseElement2._containsOffset(rangeOffset, rangeEnd)) {
+        return elseElement2;
+      }
+    }
+    return null;
+  }
 }
 
 sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
@@ -17768,11 +23365,22 @@ sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
   /// `case` clause.
   ExpressionImpl get expression;
 
+  /// The expression used to either determine which of the statements is
+  /// executed next or to compute the value matched against the pattern in the
+  /// `case` clause.
+  ExpressionImpl get expression2;
+
   /// The node that is executed if the condition evaluates to `false`.
   E? get ifFalse;
 
+  /// The node that is executed if the condition evaluates to `false`.
+  E? get ifFalse2;
+
   /// The node that is executed if the condition evaluates to `true`.
   E get ifTrue;
+
+  /// The node that is executed if the condition evaluates to `true`.
+  E get ifTrue2;
 }
 
 /// An if statement.
@@ -17782,7 +23390,7 @@ sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
 ///        ('else' [Statement])?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IfStatement implements Statement {
-  /// The `case` clause used to match a pattern against the [expression].
+  /// The `case` clause used to match a pattern against the [expression2].
   CaseClause? get caseClause;
 
   /// The token representing the `else` keyword, or `null` if there's no else
@@ -17796,7 +23404,11 @@ abstract final class IfStatement implements Statement {
   /// The expression used to either determine which of the statements is
   /// executed next or to compute the value matched against the pattern in the
   /// `case` clause.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The token representing the `if` keyword.
   // TODO(scheglov): Extract shared `IfCondition`, see the patterns spec.
@@ -17816,7 +23428,12 @@ abstract final class IfStatement implements Statement {
   childEntitiesOrder: [
     GenerateNodeProperty('ifKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('thenStatement'),
@@ -17835,7 +23452,7 @@ final class IfStatementImpl extends StatementImpl
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   CaseClauseImpl? _caseClause;
@@ -17858,20 +23475,21 @@ final class IfStatementImpl extends StatementImpl
   IfStatementImpl({
     required this.ifKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required CaseClauseImpl? caseClause,
     required this.rightParenthesis,
     required StatementImpl thenStatement,
     required this.elseKeyword,
     required StatementImpl? elseStatement,
-  }) : _expression = expression,
+  }) : _expression2 = expression2,
        _caseClause = caseClause,
        _thenStatement = thenStatement,
        _elseStatement = elseStatement {
-    _becomeParentOf(expression);
-    _becomeParentOf(caseClause);
-    _becomeParentOf(thenStatement);
-    _becomeParentOf(elseStatement);
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf12(caseClause);
+    _becomeParentOf12(thenStatement);
+    _becomeParentOf12(elseStatement);
   }
 
   @generated
@@ -17886,11 +23504,11 @@ final class IfStatementImpl extends StatementImpl
 
   @generated
   set caseClause(CaseClauseImpl? caseClause) {
-    _caseClause = _becomeParentOf(caseClause);
+    _caseClause = _becomeParentOf12(caseClause);
   }
 
   set condition(ExpressionImpl condition) {
-    _expression = _becomeParentOf(condition);
+    expression2 = condition;
   }
 
   @generated
@@ -17899,7 +23517,7 @@ final class IfStatementImpl extends StatementImpl
 
   @generated
   set elseStatement(StatementImpl? elseStatement) {
-    _elseStatement = _becomeParentOf(elseStatement);
+    _elseStatement = _becomeParentOf12(elseStatement);
   }
 
   @generated
@@ -17915,19 +23533,33 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
   StatementImpl? get ifFalse => elseStatement;
 
   @override
+  StatementImpl? get ifFalse2 => elseStatement;
+
+  @override
   StatementImpl get ifTrue => thenStatement;
+
+  @override
+  StatementImpl get ifTrue2 => thenStatement;
 
   @generated
   @override
@@ -17935,7 +23567,7 @@ final class IfStatementImpl extends StatementImpl
 
   @generated
   set thenStatement(StatementImpl thenStatement) {
-    _thenStatement = _becomeParentOf(thenStatement);
+    _thenStatement = _becomeParentOf12(thenStatement);
   }
 
   @generated
@@ -17952,20 +23584,38 @@ final class IfStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('ifKeyword', ifKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression2', expression2)
+    ..addNode('caseClause', caseClause)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('thenStatement', thenStatement)
+    ..addToken('elseKeyword', elseKeyword)
+    ..addNode('elseStatement', elseStatement);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     if (identical(caseClause, oldNode)) {
       caseClause = null;
@@ -17984,8 +23634,8 @@ final class IfStatementImpl extends StatementImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(caseClause, oldNode)) {
@@ -18004,6 +23654,7 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -18012,41 +23663,52 @@ final class IfStatementImpl extends StatementImpl
     elseStatement?.accept(visitor);
   }
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
+    caseClause?.accept2(visitor);
+    thenStatement.accept2(visitor);
+    elseStatement?.accept2(visitor);
+  }
+
   /// Visits the children of this node.
   ///
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
     void Function(CaseClauseImpl)? visitCaseClause,
     void Function(StatementImpl)? visitThenStatement,
     void Function(StatementImpl)? visitElseStatement,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
     if (caseClause case var caseClause?) {
       if (visitCaseClause != null) {
         visitCaseClause(caseClause);
       } else {
-        caseClause.accept(visitor);
+        caseClause.accept2(visitor);
       }
     }
     if (visitThenStatement != null) {
       visitThenStatement(thenStatement);
     } else {
-      thenStatement.accept(visitor);
+      thenStatement.accept2(visitor);
     }
     if (elseStatement case var elseStatement?) {
       if (visitElseStatement != null) {
         visitElseStatement(elseStatement);
       } else {
-        elseStatement.accept(visitor);
+        elseStatement.accept2(visitor);
       }
     }
   }
@@ -18056,6 +23718,28 @@ final class IfStatementImpl extends StatementImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    if (caseClause case var caseClause?) {
+      if (caseClause._containsOffset(rangeOffset, rangeEnd)) {
+        return caseClause;
+      }
+    }
+    if (thenStatement._containsOffset(rangeOffset, rangeEnd)) {
+      return thenStatement;
+    }
+    if (elseStatement case var elseStatement?) {
+      if (elseStatement._containsOffset(rangeOffset, rangeEnd)) {
+        return elseStatement;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     if (caseClause case var caseClause?) {
       if (caseClause._containsOffset(rangeOffset, rangeEnd)) {
@@ -18134,12 +23818,24 @@ final class ImplementsClauseImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('implementsKeyword', implementsKeyword)
+    ..addNodeList('interfaces', interfaces);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImplementsClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitImplementsClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -18164,9 +23860,17 @@ final class ImplementsClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     interfaces.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    interfaces.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -18175,20 +23879,31 @@ final class ImplementsClauseImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<NamedTypeImpl>)? visitInterfaces,
   }) {
     if (visitInterfaces != null) {
       visitInterfaces(interfaces);
     } else {
-      interfaces.accept(visitor);
+      interfaces.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (interfaces._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (interfaces._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -18206,7 +23921,11 @@ final class ImplementsClauseImpl extends AstNodeImpl
 abstract final class ImplicitCallReference
     implements MethodReferenceExpression {
   /// The expression from which a `call` method is being referenced.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The type arguments being applied to the tear-off, or `null` if there are
   /// no type arguments.
@@ -18221,7 +23940,11 @@ abstract final class ImplicitCallReference
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+    ),
     GenerateNodeProperty('typeArguments'),
     GenerateNodeProperty('element'),
     GenerateNodeProperty('typeArgumentTypes', type: List<DartType>),
@@ -18230,7 +23953,7 @@ abstract final class ImplicitCallReference
 final class ImplicitCallReferenceImpl extends ExpressionImpl
     implements ImplicitCallReference {
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   TypeArgumentListImpl? _typeArguments;
@@ -18245,20 +23968,21 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @generated
   ImplicitCallReferenceImpl({
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required TypeArgumentListImpl? typeArguments,
     required this.element,
     required this.typeArgumentTypes,
-  }) : _expression = expression,
+  }) : _expression2 = expression2,
        _typeArguments = typeArguments {
-    _becomeParentOf(expression);
-    _becomeParentOf(typeArguments);
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf12(typeArguments);
   }
 
   @generated
   @override
   Token get beginToken {
-    return expression.beginToken;
+    return expression2.beginToken;
   }
 
   @generated
@@ -18267,21 +23991,29 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
     if (typeArguments case var typeArguments?) {
       return typeArguments.endToken;
     }
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
   Precedence get precedence =>
-      typeArguments == null ? expression.precedence : Precedence.postfix;
+      typeArguments == null ? expression2.precedence : Precedence.postfix;
 
   @generated
   @override
@@ -18289,7 +24021,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 
   @generated
@@ -18300,21 +24032,34 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('expression2', expression2)
+    ..addNode('typeArguments', typeArguments);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitImplicitCallReference(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImplicitCallReference(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     if (identical(typeArguments, oldNode)) {
       typeArguments = null;
@@ -18326,8 +24071,8 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(typeArguments, oldNode)) {
@@ -18344,10 +24089,19 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     typeArguments?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
+    typeArguments?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -18356,21 +24110,22 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
   }
@@ -18380,6 +24135,20 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     if (typeArguments case var typeArguments?) {
       if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
@@ -18465,7 +24234,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     required super.combinators,
     required super.semicolon,
   }) : _prefix = prefix {
-    _becomeParentOf(prefix);
+    _becomeParentOf12(prefix);
   }
 
   @generated
@@ -18486,7 +24255,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @generated
   set prefix(SimpleIdentifierImpl? prefix) {
-    _prefix = _becomeParentOf(prefix);
+    _prefix = _becomeParentOf12(prefix);
   }
 
   @generated
@@ -18503,12 +24272,30 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('importKeyword', importKeyword)
+    ..addNode('uri', uri)
+    ..addNodeList('configurations', configurations)
+    ..addToken('deferredKeyword', deferredKeyword)
+    ..addToken('asKeyword', asKeyword)
+    ..addNode('prefix', prefix)
+    ..addNodeList('combinators', combinators)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImportDirective(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitImportDirective(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -18556,13 +24343,25 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     uri.accept(visitor);
     configurations.accept(visitor);
     prefix?.accept(visitor);
     combinators.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    uri.accept2(visitor);
+    configurations.accept2(visitor);
+    prefix?.accept2(visitor);
+    combinators.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -18571,35 +24370,36 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(StringLiteralImpl)? visitUri,
     void Function(NodeListImpl<ConfigurationImpl>)? visitConfigurations,
     void Function(SimpleIdentifierImpl)? visitPrefix,
     void Function(NodeListImpl<CombinatorImpl>)? visitCombinators,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitUri != null) {
       visitUri(uri);
     } else {
-      uri.accept(visitor);
+      uri.accept2(visitor);
     }
     if (visitConfigurations != null) {
       visitConfigurations(configurations);
     } else {
-      configurations.accept(visitor);
+      configurations.accept2(visitor);
     }
     if (prefix case var prefix?) {
       if (visitPrefix != null) {
         visitPrefix(prefix);
       } else {
-        prefix.accept(visitor);
+        prefix.accept2(visitor);
       }
     }
     if (visitCombinators != null) {
       visitCombinators(combinators);
     } else {
-      combinators.accept(visitor);
+      combinators.accept2(visitor);
     }
   }
 
@@ -18607,6 +24407,31 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (uri._containsOffset(rangeOffset, rangeEnd)) {
+      return uri;
+    }
+    if (configurations._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (prefix case var prefix?) {
+      if (prefix._containsOffset(rangeOffset, rangeEnd)) {
+        return prefix;
+      }
+    }
+    if (combinators._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (uri._containsOffset(rangeOffset, rangeEnd)) {
@@ -18742,27 +24567,53 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('period', period);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitImportPrefixReference(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImportPrefixReference(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -18774,7 +24625,11 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexExpression implements MethodReferenceExpression {
   /// The expression used to compute the index.
+  @ToBeDeprecated('Use index2 instead.')
   Expression get index;
+
+  @experimental
+  Expression get index2;
 
   /// Whether this expression is cascaded.
   ///
@@ -18799,7 +24654,7 @@ abstract final class IndexExpression implements MethodReferenceExpression {
   /// The expression used to compute the object being indexed.
   ///
   /// If this index expression isn't part of a cascade expression, then this
-  /// is the same as [target]. If this index expression is part of a cascade
+  /// is the same as [target2]. If this index expression is part of a cascade
   /// expression, then the target expression stored with the cascade expression
   /// is returned.
   Expression get realTarget;
@@ -18812,7 +24667,11 @@ abstract final class IndexExpression implements MethodReferenceExpression {
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
+  @ToBeDeprecated('Use target2 instead.')
   Expression? get target;
+
+  @experimental
+  Expression? get target2;
 
   /// Returns `true` if this expression is computing a right-hand value (that
   /// is, if this expression is in a context where the operator '[]' is
@@ -18837,11 +24696,21 @@ abstract final class IndexExpression implements MethodReferenceExpression {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('target', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'target2',
+      v1Name: 'target',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'index2',
+      v1Name: 'index',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -18849,7 +24718,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     with DotShorthandMixin
     implements IndexExpression {
   @generated
-  ExpressionImpl? _target;
+  ExpressionImpl? _target2;
 
   @generated
   @override
@@ -18864,7 +24733,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   final Token leftBracket;
 
   @generated
-  ExpressionImpl _index;
+  ExpressionImpl _index2;
 
   @generated
   @override
@@ -18878,23 +24747,28 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @generated
   IndexExpressionImpl({
-    required ExpressionImpl? target,
+    required ExpressionImpl? target2,
     required this.period,
     required this.question,
     required this.leftBracket,
-    required ExpressionImpl index,
+    required ExpressionImpl index2,
     required this.rightBracket,
-  }) : _target = target,
-       _index = index {
-    _becomeParentOf(target);
-    _becomeParentOf(index);
+  }) : _target2 = target2,
+       _index2 = index2 {
+    _becomeParentOf2(target2);
+    _becomeParentOf1(switch (target2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
+    _becomeParentOf2(index2);
+    _becomeParentOf1(V1Projection.toV1Expression(index2));
   }
 
   @generated
   @override
   Token get beginToken {
-    if (target case var target?) {
-      return target.beginToken;
+    if (target2 case var target2?) {
+      return target2.beginToken;
     }
     if (period case var period?) {
       return period;
@@ -18912,12 +24786,20 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use index2 instead.')
   @override
-  ExpressionImpl get index => _index;
+  ExpressionImpl get index => V1Projection.toV1Expression(index2);
 
   @generated
-  set index(ExpressionImpl index) {
-    _index = _becomeParentOf(index);
+  @experimental
+  @override
+  ExpressionImpl get index2 => _index2;
+
+  @generated
+  @experimental
+  set index2(ExpressionImpl index2) {
+    _index2 = _becomeParentOf2(index2);
+    _becomeParentOf1(V1Projection.toV1Expression(index2));
   }
 
   @override
@@ -18943,18 +24825,32 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get realTarget {
     if (isCascaded) {
-      return _ancestorCascade.target;
+      return _ancestorCascade.target2;
     }
-    return _target!;
+    return _target2!;
   }
 
   @generated
+  @ToBeDeprecated('Use target2 instead.')
   @override
-  ExpressionImpl? get target => _target;
+  ExpressionImpl? get target => switch (target2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set target(ExpressionImpl? target) {
-    _target = _becomeParentOf(target);
+  @experimental
+  @override
+  ExpressionImpl? get target2 => _target2;
+
+  @generated
+  @experimental
+  set target2(ExpressionImpl? target2) {
+    _target2 = _becomeParentOf2(target2);
+    _becomeParentOf1(switch (target2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   /// The cascade that contains this [IndexExpression].
@@ -18962,7 +24858,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -18979,6 +24875,16 @@ final class IndexExpressionImpl extends ExpressionImpl
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
 
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('target2', target2)
+    ..addToken('period', period)
+    ..addToken('question', question)
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('index2', index2)
+    ..addToken('rightBracket', rightBracket);
+
   /// The parameter element representing the parameter to which the value of the
   /// index expression is bound, or `null` if the AST structure is not resolved,
   /// or the function being invoked is not known based on static type
@@ -18986,7 +24892,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   InternalFormalParameterElement? get _staticParameterElementForIndex {
     Element? element = this.element;
 
-    if (parent case CompoundAssignmentExpression parent) {
+    if (parent2 case CompoundAssignmentExpression parent) {
       element = parent.writeElement ?? parent.readElement;
     }
 
@@ -19001,15 +24907,21 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIndexExpression(this);
 
   @override
   bool inGetterContext() {
     // TODO(brianwilkerson): Convert this to a getter.
-    var parent = this.parent!;
+    var parent = parent2!;
     if (parent case AssignmentExpression assignment) {
-      if (identical(assignment.leftHandSide, this) &&
+      if (identical(assignment.leftHandSide2, this) &&
           assignment.operator.type == TokenType.EQ) {
         return false;
       }
@@ -19020,13 +24932,13 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inSetterContext() {
     // TODO(brianwilkerson): Convert this to a getter.
-    var parent = this.parent!;
+    var parent = parent2!;
     if (parent is PrefixExpressionImpl) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpressionImpl) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is AssignmentExpressionImpl) {
-      return identical(parent.leftHandSide, this);
+      return identical(parent.leftHandSide2, this);
     }
     return false;
   }
@@ -19034,19 +24946,19 @@ final class IndexExpressionImpl extends ExpressionImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      target = null;
+    if (identical(target2, oldNode)) {
+      target2 = null;
       return;
     }
-    if (identical(index, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'index'.");
+    if (identical(index2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'index2'.");
     }
     super.removeChild(oldNode);
   }
@@ -19054,12 +24966,12 @@ final class IndexExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as ExpressionImpl?;
+    if (identical(target2, oldNode)) {
+      target2 = newNode as ExpressionImpl?;
       return;
     }
-    if (identical(index, oldNode)) {
-      index = newNode as ExpressionImpl;
+    if (identical(index2, oldNode)) {
+      index2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -19072,10 +24984,19 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
     index.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    target2?.accept2(visitor);
+    index2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -19084,22 +25005,23 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitTarget,
-    void Function(ExpressionImpl)? visitIndex,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitTarget2,
+    void Function(ExpressionImpl)? visitIndex2,
   }) {
-    if (target case var target?) {
-      if (visitTarget != null) {
-        visitTarget(target);
+    if (target2 case var target2?) {
+      if (visitTarget2 != null) {
+        visitTarget2(target2);
       } else {
-        target.accept(visitor);
+        target2.accept2(visitor);
       }
     }
-    if (visitIndex != null) {
-      visitIndex(index);
+    if (visitIndex2 != null) {
+      visitIndex2(index2);
     } else {
-      index.accept(visitor);
+      index2.accept2(visitor);
     }
   }
 
@@ -19116,6 +25038,20 @@ final class IndexExpressionImpl extends ExpressionImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target2 case var target2?) {
+      if (target2._containsOffset(rangeOffset, rangeEnd)) {
+        return target2;
+      }
+    }
+    if (index2._containsOffset(rangeOffset, rangeEnd)) {
+      return index2;
+    }
+    return null;
+  }
 }
 
 /// An instance creation expression.
@@ -19123,6 +25059,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 ///    newExpression ::=
 ///        ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])?
 ///        [ArgumentList]
+@ToBeDeprecated('Use ConstructorInvocation instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InstanceCreationExpression implements Expression {
   /// The list of arguments to the constructor.
@@ -19142,6 +25079,7 @@ abstract final class InstanceCreationExpression implements Expression {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
   childEntitiesOrder: [
     GenerateNodeProperty('keyword', isTokenFinal: false),
     GenerateNodeProperty('constructorName'),
@@ -19153,112 +25091,77 @@ abstract final class InstanceCreationExpression implements Expression {
     GenerateNodeProperty('argumentList'),
   ],
 )
-// TODO(brianwilkerson): Consider making InstanceCreationExpressionImpl extend
-// InvocationExpressionImpl. This would probably be a breaking change, but is
-// also probably worth it.
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
-  @generated
-  @override
-  Token? keyword;
+  final ConstructorInvocationImpl _origin;
 
-  @generated
-  ConstructorNameImpl _constructorName;
-
-  @generated
-  TypeArgumentListImpl? _typeArguments;
-
-  @generated
-  ArgumentListImpl _argumentList;
-
-  @generated
+  @DoNotGenerate(reason: 'Only retained while callers migrate to V2')
   InstanceCreationExpressionImpl({
-    required this.keyword,
+    required Token? keyword,
     required ConstructorNameImpl constructorName,
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
-  }) : _constructorName = constructorName,
-       _typeArguments = typeArguments,
-       _argumentList = argumentList {
-    _becomeParentOf(constructorName);
-    _becomeParentOf(typeArguments);
-    _becomeParentOf(argumentList);
+  }) : _origin = ConstructorInvocationImpl(
+         keyword: keyword,
+         constructorReference: constructorName.toConstructorReference2(),
+         typeArguments: typeArguments,
+         argumentList: argumentList,
+       );
+
+  @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
+  InstanceCreationExpressionImpl._(this._origin) {
+    _attachV1Children();
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  ArgumentListImpl get argumentList => _argumentList;
+  ArgumentListImpl get argumentList => _origin.argumentList;
 
-  @generated
-  set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf(argumentList);
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken {
-    if (keyword case var keyword?) {
-      return keyword;
-    }
-    return constructorName.beginToken;
-  }
+  Token get beginToken => _origin.beginToken;
 
   @override
-  bool get canBeConst {
-    var element = constructorName.element;
-    if (element == null || !element.isConst) return false;
+  bool get canBeConst => _origin.canBeConst;
 
-    // Ensure that dependencies (e.g. default parameter values) are computed.
-    element.baseElement.computeConstantDependencies();
-
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    var oldKeyword = keyword;
-    try {
-      keyword = KeywordToken(Keyword.CONST, offset);
-      return !hasConstantVerifierError;
-    } finally {
-      keyword = oldKeyword;
-    }
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  ConstructorNameImpl get constructorName => _constructorName;
-
-  @generated
-  set constructorName(ConstructorNameImpl constructorName) {
-    _constructorName = _becomeParentOf(constructorName);
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return argumentList.endToken;
-  }
+  ConstructorNameImpl get constructorName =>
+      _origin.constructorReference.constructorName;
 
   @override
-  bool get isConst {
-    if (!isImplicit) {
-      return keyword!.keyword == Keyword.CONST;
-    } else {
-      return inConstantContext;
-    }
-  }
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  bool get isConst => _origin.isConst;
 
   /// Whether this is an implicit constructor invocation.
-  bool get isImplicit => keyword == null;
+  bool get isImplicit => _origin.isImplicit;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token? get keyword => _origin.keyword;
 
   @override
   Precedence get precedence => Precedence.primary;
 
-  @generated
-  TypeArgumentListImpl? get typeArguments => _typeArguments;
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  TypeArgumentListImpl? get typeArguments => _origin.typeArguments;
 
   @generated
-  set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
-  }
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -19270,57 +25173,58 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 {
+    throw StateError('InstanceCreationExpression is not in the V2 AST view.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
 
   @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('InstanceCreationExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(constructorName, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'constructorName'.");
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = null;
-      return;
-    }
-    if (identical(argumentList, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'argumentList'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as ConstructorNameImpl;
-      return;
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = newNode as TypeArgumentListImpl?;
-      return;
-    }
-    if (identical(argumentList, oldNode)) {
-      argumentList = newNode as ArgumentListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are never resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitInstanceCreationExpression(this, contextType: contextType);
+    throw StateError('InstanceCreationExpression is a V1 projection.');
   }
 
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  String toSource() => _origin.toSource();
+
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
@@ -19328,35 +25232,17 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     argumentList.accept(visitor);
   }
 
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
   @generated
-  void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ConstructorNameImpl)? visitConstructorName,
-    void Function(TypeArgumentListImpl)? visitTypeArguments,
-    void Function(ArgumentListImpl)? visitArgumentList,
-  }) {
-    if (visitConstructorName != null) {
-      visitConstructorName(constructorName);
-    } else {
-      constructorName.accept(visitor);
-    }
-    if (typeArguments case var typeArguments?) {
-      if (visitTypeArguments != null) {
-        visitTypeArguments(typeArguments);
-      } else {
-        typeArguments.accept(visitor);
-      }
-    }
-    if (visitArgumentList != null) {
-      visitArgumentList(argumentList);
-    } else {
-      argumentList.accept(visitor);
-    }
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('InstanceCreationExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(constructorName);
+    _becomeParentOf1(typeArguments);
+    _becomeParentOf1(argumentList);
   }
 
   @generated
@@ -19374,6 +25260,12 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
       return argumentList;
     }
     return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('InstanceCreationExpression is not in the V2 AST view.');
   }
 }
 
@@ -19429,13 +25321,13 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     return literal;
   }
 
-  /// Whether this literal's [parent] is a [PrefixExpression] of unary negation.
+  /// Whether this literal's [parent2] is a [PrefixExpression] of unary negation.
   ///
   /// Note: this does *not* indicate that the value itself is negated, just that
   /// the literal is the child of a negation operation. The literal value itself
   /// is always positive.
   bool get immediatelyNegated {
-    var parent = this.parent!;
+    var parent = parent2!;
     return parent is PrefixExpressionImpl &&
         parent.operator.type == TokenType.MINUS;
   }
@@ -19447,12 +25339,23 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('literal', literal);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIntegerLiteral(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -19463,16 +25366,29 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 
@@ -19553,7 +25469,11 @@ sealed class InterpolationElementImpl extends AstNodeImpl
 abstract final class InterpolationExpression implements InterpolationElement {
   /// The expression to be evaluated for the value to be converted into a
   /// string.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The token used to introduce the interpolation expression.
   ///
@@ -19569,7 +25489,12 @@ abstract final class InterpolationExpression implements InterpolationElement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -19580,7 +25505,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   final Token leftBracket;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -19589,10 +25514,11 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   @generated
   InterpolationExpressionImpl({
     required this.leftBracket,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.rightBracket,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -19607,16 +25533,24 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
     if (rightBracket case var rightBracket?) {
       return rightBracket;
     }
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -19628,21 +25562,35 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('expression2', expression2)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitInterpolationExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInterpolationExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -19650,17 +25598,25 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -19669,14 +25625,15 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -19685,6 +25642,15 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -19747,44 +25713,75 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   }
 
   @override
+  @ToBeDeprecated('Use parent2 instead')
   StringInterpolationImpl get parent => super.parent as StringInterpolationImpl;
+
+  @experimental
+  @override
+  StringInterpolationImpl get parent2 =>
+      super.parent2 as StringInterpolationImpl;
 
   @generated
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('contents', contents);
 
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('contents', contents);
+
   StringLexemeHelper get _lexemeHelper {
     String lexeme = contents.lexeme;
     return StringLexemeHelper(
       lexeme,
-      identical(this, parent.elements.first),
-      identical(this, parent.elements.last),
+      identical(this, parent2.elements.first),
+      identical(this, parent2.elements.last),
     );
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitInterpolationString(this);
 
   @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitInterpolationString(this);
+
+  @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -19850,22 +25847,22 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
     required ArgumentListImpl argumentList,
   }) : _typeArguments = typeArguments,
        _argumentList = argumentList {
-    _becomeParentOf(_typeArguments);
-    _becomeParentOf(_argumentList);
+    _becomeParentOf12(_typeArguments);
+    _becomeParentOf12(_argumentList);
   }
 
   @override
   ArgumentListImpl get argumentList => _argumentList;
 
   set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf12(argumentList);
   }
 
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 }
 
@@ -19876,7 +25873,11 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IsExpression implements Expression {
   /// The expression used to compute the value whose type is being tested.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The is operator.
   Token get isOperator;
@@ -19890,7 +25891,12 @@ abstract final class IsExpression implements Expression {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('isOperator'),
     GenerateNodeProperty('notOperator'),
     GenerateNodeProperty('type'),
@@ -19898,7 +25904,7 @@ abstract final class IsExpression implements Expression {
 )
 final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -19913,20 +25919,21 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @generated
   IsExpressionImpl({
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.isOperator,
     required this.notOperator,
     required TypeAnnotationImpl type,
-  }) : _expression = expression,
+  }) : _expression2 = expression2,
        _type = type {
-    _becomeParentOf(expression);
-    _becomeParentOf(type);
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf12(type);
   }
 
   @generated
   @override
   Token get beginToken {
-    return expression.beginToken;
+    return expression2.beginToken;
   }
 
   @generated
@@ -19936,12 +25943,20 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -19953,7 +25968,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @generated
   set type(TypeAnnotationImpl type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -19966,20 +25981,34 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('expression2', expression2)
+    ..addToken('isOperator', isOperator)
+    ..addToken('notOperator', notOperator)
+    ..addNode('type', type);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIsExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     if (identical(type, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'type'.");
@@ -19990,8 +26019,8 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(type, oldNode)) {
@@ -20008,10 +26037,19 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
+    type.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -20020,20 +26058,21 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
     void Function(TypeAnnotationImpl)? visitType,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
   }
 
@@ -20042,6 +26081,18 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     if (type._containsOffset(rangeOffset, rangeEnd)) {
       return type;
@@ -20102,7 +26153,7 @@ final class LabeledStatementImpl extends StatementImpl
     required StatementImpl statement,
   }) : _statement = statement {
     this.labels._initialize(this, labels);
-    _becomeParentOf(statement);
+    _becomeParentOf12(statement);
   }
 
   @generated
@@ -20126,7 +26177,7 @@ final class LabeledStatementImpl extends StatementImpl
 
   @generated
   set statement(StatementImpl statement) {
-    _statement = _becomeParentOf(statement);
+    _statement = _becomeParentOf12(statement);
   }
 
   @override
@@ -20140,12 +26191,24 @@ final class LabeledStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNodeList('labels', labels)
+    ..addNode('statement', statement);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabeledStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabeledStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -20177,10 +26240,19 @@ final class LabeledStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     statement.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    labels.accept2(visitor);
+    statement.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -20189,26 +26261,40 @@ final class LabeledStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
     void Function(StatementImpl)? visitStatement,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
     } else {
-      labels.accept(visitor);
+      labels.accept2(visitor);
     }
     if (visitStatement != null) {
       visitStatement(statement);
     } else {
-      statement.accept(visitor);
+      statement.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (labels._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (statement._containsOffset(rangeOffset, rangeEnd)) {
+      return statement;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -20261,26 +26347,51 @@ final class LabelImpl extends AstNodeImpl implements Label {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('colon', colon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabel(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabel(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -20326,26 +26437,49 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabelReference(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabelReference(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -20403,7 +26537,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     required DottedNameImpl? name,
     required this.semicolon,
   }) : _name = name {
-    _becomeParentOf(name);
+    _becomeParentOf12(name);
   }
 
   @generated
@@ -20424,7 +26558,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   set name(DottedNameImpl? name) {
-    _name = _becomeParentOf(name);
+    _name = _becomeParentOf12(name);
   }
 
   @generated
@@ -20436,12 +26570,25 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('libraryKeyword', libraryKeyword)
+    ..addNode('name', name)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryDirective(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLibraryDirective(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -20466,10 +26613,19 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     name?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    name?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -20478,16 +26634,17 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DottedNameImpl)? visitName,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (name case var name?) {
       if (visitName != null) {
         visitName(name);
       } else {
-        name.accept(visitor);
+        name.accept2(visitor);
       }
     }
   }
@@ -20496,6 +26653,20 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (name case var name?) {
+      if (name._containsOffset(rangeOffset, rangeEnd)) {
+        return name;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (name case var name?) {
@@ -20517,7 +26688,11 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ListLiteral implements TypedLiteral {
   /// The syntactic elements used to compute the elements of the list.
+  @ToBeDeprecated('Use elements2 instead.')
   NodeList<CollectionElement> get elements;
+
+  @experimental
+  NodeList<CollectionElement> get elements2;
 
   /// The left square bracket.
   Token get leftBracket;
@@ -20532,7 +26707,9 @@ abstract final class ListLiteral implements TypedLiteral {
     GenerateNodeProperty('typeArguments', isSuper: true),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty(
-      'elements',
+      'elements2',
+      v1Name: 'elements',
+      v1Projection: V1Projection.collectionElement,
       isNodeListFinal: false,
       isInValueExpressionSlot: true,
     ),
@@ -20545,8 +26722,15 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   final Token leftBracket;
 
   @generated
+  @experimental
   @override
-  NodeListImpl<CollectionElementImpl> elements = NodeListImpl._();
+  NodeListImpl<CollectionElementImpl> elements2 = NodeListImpl._();
+
+  @generated
+  @ToBeDeprecated('Use elements2 instead.')
+  @override
+  late final NodeListImpl<CollectionElementImpl> elements =
+      _V1ProjectedNodeListImpl(elements2, V1Projection.toV1CollectionElement);
 
   @generated
   @override
@@ -20557,10 +26741,14 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     required super.constKeyword,
     required super.typeArguments,
     required this.leftBracket,
-    required List<CollectionElementImpl> elements,
+    required List<CollectionElementImpl> elements2,
     required this.rightBracket,
   }) {
-    this.elements._initialize(this, elements);
+    this.elements2._initializeProjected(
+      this,
+      elements2,
+      V1Projection.toV1CollectionElement,
+    );
   }
 
   @generated
@@ -20592,18 +26780,36 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements2', elements2)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
 
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitListLiteral(this);
+
   void addElements(List<CollectionElementImpl> moreElements) {
-    elements = NodeListImpl._()
-      .._initialize(this, [...elements, ...moreElements]);
+    elements2 = NodeListImpl._()
+      .._initializeProjected(this, [
+        ...elements2,
+        ...moreElements,
+      ], V1Projection.toV1CollectionElement);
     AstNodeImpl.linkNodeTokens(this);
   }
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return !identical(typeArguments, child);
   }
 
@@ -20614,9 +26820,9 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
       typeArguments = null;
       return;
     }
-    if (elements.containsChild(oldNode)) {
+    if (elements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'elements' because NodeList cannot be resized.",
+        "Cannot remove child 'elements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -20629,7 +26835,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
       typeArguments = newNode as TypeArgumentListImpl?;
       return;
     }
-    if (elements.replaceChild(oldNode, newNode)) {
+    if (elements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -20642,10 +26848,19 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    elements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -20654,22 +26869,23 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeArgumentListImpl)? visitTypeArguments,
-    void Function(NodeListImpl<CollectionElementImpl>)? visitElements,
+    void Function(NodeListImpl<CollectionElementImpl>)? visitElements2,
   }) {
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
-    if (visitElements != null) {
-      visitElements(elements);
+    if (visitElements2 != null) {
+      visitElements2(elements2);
     } else {
-      elements.accept(visitor);
+      elements2.accept2(visitor);
     }
   }
 
@@ -20682,6 +26898,21 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
       }
     }
     if (elements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (elements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -20754,7 +26985,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
     required List<ListPatternElementImpl> elements,
     required this.rightBracket,
   }) : _typeArguments = typeArguments {
-    _becomeParentOf(typeArguments);
+    _becomeParentOf12(typeArguments);
     this.elements._initialize(this, elements);
   }
 
@@ -20782,7 +27013,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 
   @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 
   @generated
@@ -20795,7 +27026,21 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements', elements)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitListPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -20811,7 +27056,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -20858,10 +27103,19 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    elements.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -20870,8 +27124,9 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(NodeListImpl<ListPatternElementImpl>)? visitElements,
   }) {
@@ -20879,19 +27134,34 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (visitElements != null) {
       visitElements(elements);
     } else {
-      elements.accept(visitor);
+      elements.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (elements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
       if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
         return typeArguments;
@@ -20980,8 +27250,8 @@ final class LogicalAndPatternImpl extends DartPatternImpl
     required DartPatternImpl rightOperand,
   }) : _leftOperand = leftOperand,
        _rightOperand = rightOperand {
-    _becomeParentOf(leftOperand);
-    _becomeParentOf(rightOperand);
+    _becomeParentOf12(leftOperand);
+    _becomeParentOf12(rightOperand);
   }
 
   @generated
@@ -21002,7 +27272,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
 
   @generated
   set leftOperand(DartPatternImpl leftOperand) {
-    _leftOperand = _becomeParentOf(leftOperand);
+    _leftOperand = _becomeParentOf12(leftOperand);
   }
 
   @override
@@ -21014,7 +27284,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
 
   @generated
   set rightOperand(DartPatternImpl rightOperand) {
-    _rightOperand = _becomeParentOf(rightOperand);
+    _rightOperand = _becomeParentOf12(rightOperand);
   }
 
   @generated
@@ -21026,7 +27296,20 @@ final class LogicalAndPatternImpl extends DartPatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalAndPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalAndPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -21038,7 +27321,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -21085,10 +27368,19 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    leftOperand.accept2(visitor);
+    rightOperand.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -21097,26 +27389,39 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitLeftOperand,
     void Function(DartPatternImpl)? visitRightOperand,
   }) {
     if (visitLeftOperand != null) {
       visitLeftOperand(leftOperand);
     } else {
-      leftOperand.accept(visitor);
+      leftOperand.accept2(visitor);
     }
     if (visitRightOperand != null) {
       visitRightOperand(rightOperand);
     } else {
-      rightOperand.accept(visitor);
+      rightOperand.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand;
+    }
+    if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
       return leftOperand;
     }
@@ -21169,8 +27474,8 @@ final class LogicalOrPatternImpl extends DartPatternImpl
     required DartPatternImpl rightOperand,
   }) : _leftOperand = leftOperand,
        _rightOperand = rightOperand {
-    _becomeParentOf(leftOperand);
-    _becomeParentOf(rightOperand);
+    _becomeParentOf12(leftOperand);
+    _becomeParentOf12(rightOperand);
   }
 
   @generated
@@ -21191,7 +27496,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 
   @generated
   set leftOperand(DartPatternImpl leftOperand) {
-    _leftOperand = _becomeParentOf(leftOperand);
+    _leftOperand = _becomeParentOf12(leftOperand);
   }
 
   @override
@@ -21203,7 +27508,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 
   @generated
   set rightOperand(DartPatternImpl rightOperand) {
-    _rightOperand = _becomeParentOf(rightOperand);
+    _rightOperand = _becomeParentOf12(rightOperand);
   }
 
   @generated
@@ -21215,7 +27520,20 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalOrPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalOrPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -21227,7 +27545,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -21275,10 +27593,19 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    leftOperand.accept2(visitor);
+    rightOperand.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -21287,26 +27614,39 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitLeftOperand,
     void Function(DartPatternImpl)? visitRightOperand,
   }) {
     if (visitLeftOperand != null) {
       visitLeftOperand(leftOperand);
     } else {
-      leftOperand.accept(visitor);
+      leftOperand.accept2(visitor);
     }
     if (visitRightOperand != null) {
       visitRightOperand(rightOperand);
     } else {
-      rightOperand.accept(visitor);
+      rightOperand.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand;
+    }
+    if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
       return leftOperand;
     }
@@ -21324,7 +27664,11 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MapLiteralEntry implements CollectionElement {
   /// The expression computing the key with which the value is associated.
+  @ToBeDeprecated('Use key2 instead.')
   Expression get key;
+
+  @experimental
+  Expression get key2;
 
   /// The question prefix for the key that may present in null-aware map
   /// entries.
@@ -21334,7 +27678,11 @@ abstract final class MapLiteralEntry implements CollectionElement {
   Token get separator;
 
   /// The expression computing the value that is associated with the key.
+  @ToBeDeprecated('Use value2 instead.')
   Expression get value;
+
+  @experimental
+  Expression get value2;
 
   /// The question prefix for the value that may present in null-aware map
   /// entries.
@@ -21344,10 +27692,20 @@ abstract final class MapLiteralEntry implements CollectionElement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('keyQuestion'),
-    GenerateNodeProperty('key', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'key2',
+      v1Name: 'key',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('separator'),
     GenerateNodeProperty('valueQuestion'),
-    GenerateNodeProperty('value', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'value2',
+      v1Name: 'value',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class MapLiteralEntryImpl extends AstNodeImpl
@@ -21358,7 +27716,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   final Token? keyQuestion;
 
   @generated
-  ExpressionImpl _key;
+  ExpressionImpl _key2;
 
   @generated
   @override
@@ -21369,19 +27727,21 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   final Token? valueQuestion;
 
   @generated
-  ExpressionImpl _value;
+  ExpressionImpl _value2;
 
   @generated
   MapLiteralEntryImpl({
     required this.keyQuestion,
-    required ExpressionImpl key,
+    required ExpressionImpl key2,
     required this.separator,
     required this.valueQuestion,
-    required ExpressionImpl value,
-  }) : _key = key,
-       _value = value {
-    _becomeParentOf(key);
-    _becomeParentOf(value);
+    required ExpressionImpl value2,
+  }) : _key2 = key2,
+       _value2 = value2 {
+    _becomeParentOf2(key2);
+    _becomeParentOf1(V1Projection.toV1Expression(key2));
+    _becomeParentOf2(value2);
+    _becomeParentOf1(V1Projection.toV1Expression(value2));
   }
 
   @generated
@@ -21390,31 +27750,47 @@ final class MapLiteralEntryImpl extends AstNodeImpl
     if (keyQuestion case var keyQuestion?) {
       return keyQuestion;
     }
-    return key.beginToken;
+    return key2.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
-    return value.endToken;
+    return value2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use key2 instead.')
   @override
-  ExpressionImpl get key => _key;
+  ExpressionImpl get key => V1Projection.toV1Expression(key2);
 
   @generated
-  set key(ExpressionImpl key) {
-    _key = _becomeParentOf(key);
+  @experimental
+  @override
+  ExpressionImpl get key2 => _key2;
+
+  @generated
+  @experimental
+  set key2(ExpressionImpl key2) {
+    _key2 = _becomeParentOf2(key2);
+    _becomeParentOf1(V1Projection.toV1Expression(key2));
   }
 
   @generated
+  @ToBeDeprecated('Use value2 instead.')
   @override
-  ExpressionImpl get value => _value;
+  ExpressionImpl get value => V1Projection.toV1Expression(value2);
 
   @generated
-  set value(ExpressionImpl value) {
-    _value = _becomeParentOf(value);
+  @experimental
+  @override
+  ExpressionImpl get value2 => _value2;
+
+  @generated
+  @experimental
+  set value2(ExpressionImpl value2) {
+    _value2 = _becomeParentOf2(value2);
+    _becomeParentOf1(V1Projection.toV1Expression(value2));
   }
 
   @generated
@@ -21428,23 +27804,38 @@ final class MapLiteralEntryImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyQuestion', keyQuestion)
+    ..addNode('key2', key2)
+    ..addToken('separator', separator)
+    ..addToken('valueQuestion', valueQuestion)
+    ..addNode('value2', value2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteralEntry(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMapLiteralEntry(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(key, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'key'.");
+    if (identical(key2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'key2'.");
     }
-    if (identical(value, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'value'.");
+    if (identical(value2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'value2'.");
     }
     super.removeChild(oldNode);
   }
@@ -21452,12 +27843,12 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(key, oldNode)) {
-      key = newNode as ExpressionImpl;
+    if (identical(key2, oldNode)) {
+      key2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(value, oldNode)) {
-      value = newNode as ExpressionImpl;
+    if (identical(value2, oldNode)) {
+      value2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -21473,10 +27864,19 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     key.accept(visitor);
     value.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    key2.accept2(visitor);
+    value2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -21485,20 +27885,21 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitKey,
-    void Function(ExpressionImpl)? visitValue,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitKey2,
+    void Function(ExpressionImpl)? visitValue2,
   }) {
-    if (visitKey != null) {
-      visitKey(key);
+    if (visitKey2 != null) {
+      visitKey2(key2);
     } else {
-      key.accept(visitor);
+      key2.accept2(visitor);
     }
-    if (visitValue != null) {
-      visitValue(value);
+    if (visitValue2 != null) {
+      visitValue2(value2);
     } else {
-      value.accept(visitor);
+      value2.accept2(visitor);
     }
   }
 
@@ -21510,6 +27911,18 @@ final class MapLiteralEntryImpl extends AstNodeImpl
     }
     if (value._containsOffset(rangeOffset, rangeEnd)) {
       return value;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (key2._containsOffset(rangeOffset, rangeEnd)) {
+      return key2;
+    }
+    if (value2._containsOffset(rangeOffset, rangeEnd)) {
+      return value2;
     }
     return null;
   }
@@ -21552,7 +27965,11 @@ sealed class MapPatternElementImpl implements AstNodeImpl, MapPatternElement {}
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MapPatternEntry implements AstNode, MapPatternElement {
   /// The expression computing the key of the entry to be matched.
+  @ToBeDeprecated('Use key2 instead.')
   Expression get key;
+
+  @experimental
+  Expression get key2;
 
   /// The colon that separates the key from the value.
   Token get separator;
@@ -21563,7 +27980,12 @@ abstract final class MapPatternEntry implements AstNode, MapPatternElement {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('key', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'key2',
+      v1Name: 'key',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('separator'),
     GenerateNodeProperty('value'),
   ],
@@ -21571,7 +27993,7 @@ abstract final class MapPatternEntry implements AstNode, MapPatternElement {
 final class MapPatternEntryImpl extends AstNodeImpl
     implements MapPatternElementImpl, MapPatternEntry {
   @generated
-  ExpressionImpl _key;
+  ExpressionImpl _key2;
 
   @generated
   @override
@@ -21582,19 +28004,20 @@ final class MapPatternEntryImpl extends AstNodeImpl
 
   @generated
   MapPatternEntryImpl({
-    required ExpressionImpl key,
+    required ExpressionImpl key2,
     required this.separator,
     required DartPatternImpl value,
-  }) : _key = key,
+  }) : _key2 = key2,
        _value = value {
-    _becomeParentOf(key);
-    _becomeParentOf(value);
+    _becomeParentOf2(key2);
+    _becomeParentOf1(V1Projection.toV1Expression(key2));
+    _becomeParentOf12(value);
   }
 
   @generated
   @override
   Token get beginToken {
-    return key.beginToken;
+    return key2.beginToken;
   }
 
   @generated
@@ -21604,12 +28027,20 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use key2 instead.')
   @override
-  ExpressionImpl get key => _key;
+  ExpressionImpl get key => V1Projection.toV1Expression(key2);
 
   @generated
-  set key(ExpressionImpl key) {
-    _key = _becomeParentOf(key);
+  @experimental
+  @override
+  ExpressionImpl get key2 => _key2;
+
+  @generated
+  @experimental
+  set key2(ExpressionImpl key2) {
+    _key2 = _becomeParentOf2(key2);
+    _becomeParentOf1(V1Projection.toV1Expression(key2));
   }
 
   @generated
@@ -21618,7 +28049,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
 
   @generated
   set value(DartPatternImpl value) {
-    _value = _becomeParentOf(value);
+    _value = _becomeParentOf12(value);
   }
 
   @generated
@@ -21630,20 +28061,33 @@ final class MapPatternEntryImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('key2', key2)
+    ..addToken('separator', separator)
+    ..addNode('value', value);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPatternEntry(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMapPatternEntry(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(key, child);
+    assert(identical(child.parent2, this));
+    return identical(key2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(key, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'key'.");
+    if (identical(key2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'key2'.");
     }
     if (identical(value, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'value'.");
@@ -21654,8 +28098,8 @@ final class MapPatternEntryImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(key, oldNode)) {
-      key = newNode as ExpressionImpl;
+    if (identical(key2, oldNode)) {
+      key2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(value, oldNode)) {
@@ -21666,10 +28110,19 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     key.accept(visitor);
     value.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    key2.accept2(visitor);
+    value.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -21678,20 +28131,21 @@ final class MapPatternEntryImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitKey,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitKey2,
     void Function(DartPatternImpl)? visitValue,
   }) {
-    if (visitKey != null) {
-      visitKey(key);
+    if (visitKey2 != null) {
+      visitKey2(key2);
     } else {
-      key.accept(visitor);
+      key2.accept2(visitor);
     }
     if (visitValue != null) {
       visitValue(value);
     } else {
-      value.accept(visitor);
+      value.accept2(visitor);
     }
   }
 
@@ -21700,6 +28154,18 @@ final class MapPatternEntryImpl extends AstNodeImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (key._containsOffset(rangeOffset, rangeEnd)) {
       return key;
+    }
+    if (value._containsOffset(rangeOffset, rangeEnd)) {
+      return value;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (key2._containsOffset(rangeOffset, rangeEnd)) {
+      return key2;
     }
     if (value._containsOffset(rangeOffset, rangeEnd)) {
       return value;
@@ -21742,7 +28208,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
     required List<MapPatternElementImpl> elements,
     required this.rightBracket,
   }) : _typeArguments = typeArguments {
-    _becomeParentOf(typeArguments);
+    _becomeParentOf12(typeArguments);
     this.elements._initialize(this, elements);
   }
 
@@ -21770,7 +28236,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 
   @generated
@@ -21783,7 +28249,21 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements', elements)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMapPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -21806,7 +28286,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -21847,10 +28327,19 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    elements.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -21859,8 +28348,9 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(NodeListImpl<MapPatternElementImpl>)? visitElements,
   }) {
@@ -21868,19 +28358,34 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (visitElements != null) {
       visitElements(elements);
     } else {
-      elements.accept(visitor);
+      elements.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (elements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
       if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
         return typeArguments;
@@ -22050,10 +28555,10 @@ final class MethodDeclarationImpl extends ClassMemberImpl
        _typeParameters = typeParameters,
        _parameters = parameters,
        _body = body {
-    _becomeParentOf(returnType);
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(parameters);
-    _becomeParentOf(body);
+    _becomeParentOf12(returnType);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(parameters);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -22062,7 +28567,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @generated
   set body(FunctionBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -22122,7 +28627,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @generated
   set parameters(FormalParameterListImpl? parameters) {
-    _parameters = _becomeParentOf(parameters);
+    _parameters = _becomeParentOf12(parameters);
   }
 
   @generated
@@ -22131,7 +28636,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @generated
   set returnType(TypeAnnotationImpl? returnType) {
-    _returnType = _becomeParentOf(returnType);
+    _returnType = _becomeParentOf12(returnType);
   }
 
   @generated
@@ -22140,7 +28645,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -22159,12 +28664,32 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('modifierKeyword', modifierKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('propertyKeyword', propertyKeyword)
+    ..addToken('operatorKeyword', operatorKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMethodDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -22212,13 +28737,25 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    typeParameters?.accept2(visitor);
+    parameters?.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -22227,39 +28764,40 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitReturnType,
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(FormalParameterListImpl)? visitParameters,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (returnType case var returnType?) {
       if (visitReturnType != null) {
         visitReturnType(returnType);
       } else {
-        returnType.accept(visitor);
+        returnType.accept2(visitor);
       }
     }
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (parameters case var parameters?) {
       if (visitParameters != null) {
         visitParameters(parameters);
       } else {
-        parameters.accept(visitor);
+        parameters.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -22267,6 +28805,33 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (parameters case var parameters?) {
+      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+        return parameters;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (returnType case var returnType?) {
@@ -22326,7 +28891,7 @@ abstract final class MethodInvocation implements InvocationExpression {
   /// The expression used to compute the receiver of the invocation.
   ///
   /// If this invocation isn't part of a cascade expression, then this is the
-  /// same as [target]. If this invocation is part of a cascade expression,
+  /// same as [target2]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
   Expression? get realTarget;
 
@@ -22336,12 +28901,20 @@ abstract final class MethodInvocation implements InvocationExpression {
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
+  @ToBeDeprecated('Use target2 instead.')
   Expression? get target;
+
+  @experimental
+  Expression? get target2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('target'),
+    GenerateNodeProperty(
+      'target2',
+      v1Name: 'target',
+      v1Projection: V1Projection.expression,
+    ),
     GenerateNodeProperty('operator', isTokenFinal: false),
     GenerateNodeProperty('methodName'),
     GenerateNodeProperty('typeArguments', isSuper: true),
@@ -22352,7 +28925,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     with DotShorthandMixin
     implements MethodInvocation {
   @generated
-  ExpressionImpl? _target;
+  ExpressionImpl? _target2;
 
   @generated
   @override
@@ -22367,22 +28940,26 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @generated
   MethodInvocationImpl({
-    required ExpressionImpl? target,
+    required ExpressionImpl? target2,
     required this.operator,
     required SimpleIdentifierImpl methodName,
     required super.typeArguments,
     required super.argumentList,
-  }) : _target = target,
+  }) : _target2 = target2,
        _methodName = methodName {
-    _becomeParentOf(target);
-    _becomeParentOf(methodName);
+    _becomeParentOf2(target2);
+    _becomeParentOf1(switch (target2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
+    _becomeParentOf12(methodName);
   }
 
   @generated
   @override
   Token get beginToken {
-    if (target case var target?) {
-      return target.beginToken;
+    if (target2 case var target2?) {
+      return target2.beginToken;
     }
     if (operator case var operator?) {
       return operator;
@@ -22421,7 +28998,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @generated
   set methodName(SimpleIdentifierImpl methodName) {
-    _methodName = _becomeParentOf(methodName);
+    _methodName = _becomeParentOf12(methodName);
   }
 
   /// The invoke type of the [methodName].
@@ -22445,18 +29022,32 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   ExpressionImpl? get realTarget {
     if (isCascaded) {
-      return _ancestorCascade.target;
+      return _ancestorCascade.target2;
     }
-    return _target;
+    return _target2;
   }
 
   @generated
+  @ToBeDeprecated('Use target2 instead.')
   @override
-  ExpressionImpl? get target => _target;
+  ExpressionImpl? get target => switch (target2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set target(ExpressionImpl? target) {
-    _target = _becomeParentOf(target);
+  @experimental
+  @override
+  ExpressionImpl? get target2 => _target2;
+
+  @generated
+  @experimental
+  set target2(ExpressionImpl? target2) {
+    _target2 = _becomeParentOf2(target2);
+    _becomeParentOf1(switch (target2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   /// The cascade that contains this [IndexExpression].
@@ -22464,7 +29055,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -22482,20 +29073,35 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('target2', target2)
+    ..addToken('operator', operator)
+    ..addNode('methodName', methodName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMethodInvocation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      target = null;
+    if (identical(target2, oldNode)) {
+      target2 = null;
       return;
     }
     if (identical(methodName, oldNode)) {
@@ -22514,8 +29120,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as ExpressionImpl?;
+    if (identical(target2, oldNode)) {
+      target2 = newNode as ExpressionImpl?;
       return;
     }
     if (identical(methodName, oldNode)) {
@@ -22540,6 +29146,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -22548,42 +29155,53 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     argumentList.accept(visitor);
   }
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    target2?.accept2(visitor);
+    methodName.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
   /// Visits the children of this node.
   ///
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitTarget,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitTarget2,
     void Function(SimpleIdentifierImpl)? visitMethodName,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
-    if (target case var target?) {
-      if (visitTarget != null) {
-        visitTarget(target);
+    if (target2 case var target2?) {
+      if (visitTarget2 != null) {
+        visitTarget2(target2);
       } else {
-        target.accept(visitor);
+        target2.accept2(visitor);
       }
     }
     if (visitMethodName != null) {
       visitMethodName(methodName);
     } else {
-      methodName.accept(visitor);
+      methodName.accept2(visitor);
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
       visitArgumentList(argumentList);
     } else {
-      argumentList.accept(visitor);
+      argumentList.accept2(visitor);
     }
   }
 
@@ -22593,6 +29211,28 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     if (target case var target?) {
       if (target._containsOffset(rangeOffset, rangeEnd)) {
         return target;
+      }
+    }
+    if (methodName._containsOffset(rangeOffset, rangeEnd)) {
+      return methodName;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target2 case var target2?) {
+      if (target2._containsOffset(rangeOffset, rangeEnd)) {
+        return target2;
       }
     }
     if (methodName._containsOffset(rangeOffset, rangeEnd)) {
@@ -22724,10 +29364,10 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
        _onClause = onClause,
        _implementsClause = implementsClause,
        _body = body {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(onClause);
-    _becomeParentOf(implementsClause);
-    _becomeParentOf(body);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(onClause);
+    _becomeParentOf12(implementsClause);
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -22736,7 +29376,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set body(ClassBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -22763,7 +29403,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf(implementsClause);
+    _implementsClause = _becomeParentOf12(implementsClause);
   }
 
   @generated
@@ -22772,7 +29412,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set onClause(MixinOnClauseImpl? onClause) {
-    _onClause = _becomeParentOf(onClause);
+    _onClause = _becomeParentOf12(onClause);
   }
 
   @generated
@@ -22781,7 +29421,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -22798,12 +29438,30 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('onClause', onClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMixinDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -22851,13 +29509,25 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    typeParameters?.accept2(visitor);
+    onClause?.accept2(visitor);
+    implementsClause?.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -22866,39 +29536,40 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(MixinOnClauseImpl)? visitOnClause,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (onClause case var onClause?) {
       if (visitOnClause != null) {
         visitOnClause(onClause);
       } else {
-        onClause.accept(visitor);
+        onClause.accept2(visitor);
       }
     }
     if (implementsClause case var implementsClause?) {
       if (visitImplementsClause != null) {
         visitImplementsClause(implementsClause);
       } else {
-        implementsClause.accept(visitor);
+        implementsClause.accept2(visitor);
       }
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -22906,6 +29577,33 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (onClause case var onClause?) {
+      if (onClause._containsOffset(rangeOffset, rangeEnd)) {
+        return onClause;
+      }
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (typeParameters case var typeParameters?) {
@@ -22989,12 +29687,24 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('onKeyword', onKeyword)
+    ..addNodeList('superclassConstraints', superclassConstraints);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinOnClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMixinOnClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -23019,9 +29729,17 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     superclassConstraints.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    superclassConstraints.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23030,20 +29748,31 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<NamedTypeImpl>)? visitSuperclassConstraints,
   }) {
     if (visitSuperclassConstraints != null) {
       visitSuperclassConstraints(superclassConstraints);
     } else {
-      superclassConstraints.accept(visitor);
+      superclassConstraints.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (superclassConstraints._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (superclassConstraints._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -23060,8 +29789,13 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 ///        identifier ':' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedArgument implements Argument {
+  @ToBeDeprecated('Use argumentExpression2 instead.')
   @override
   Expression get argumentExpression;
+
+  @experimental
+  @override
+  Expression get argumentExpression2;
 
   /// The colon separating the name from the expression.
   Token get colon;
@@ -23074,7 +29808,12 @@ abstract final class NamedArgument implements Argument {
   childEntitiesOrder: [
     GenerateNodeProperty('name'),
     GenerateNodeProperty('colon'),
-    GenerateNodeProperty('argumentExpression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'argumentExpression2',
+      v1Name: 'argumentExpression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class NamedArgumentImpl extends AstNodeImpl
@@ -23089,24 +29828,34 @@ final class NamedArgumentImpl extends AstNodeImpl
   final Token colon;
 
   @generated
-  ExpressionImpl _argumentExpression;
+  ExpressionImpl _argumentExpression2;
 
   @generated
   NamedArgumentImpl({
     required this.name,
     required this.colon,
-    required ExpressionImpl argumentExpression,
-  }) : _argumentExpression = argumentExpression {
-    _becomeParentOf(argumentExpression);
+    required ExpressionImpl argumentExpression2,
+  }) : _argumentExpression2 = argumentExpression2 {
+    _becomeParentOf2(argumentExpression2);
+    _becomeParentOf1(V1Projection.toV1Expression(argumentExpression2));
   }
 
   @generated
+  @ToBeDeprecated('Use argumentExpression2 instead.')
   @override
-  ExpressionImpl get argumentExpression => _argumentExpression;
+  ExpressionImpl get argumentExpression =>
+      V1Projection.toV1Expression(argumentExpression2);
 
   @generated
-  set argumentExpression(ExpressionImpl argumentExpression) {
-    _argumentExpression = _becomeParentOf(argumentExpression);
+  @experimental
+  @override
+  ExpressionImpl get argumentExpression2 => _argumentExpression2;
+
+  @generated
+  @experimental
+  set argumentExpression2(ExpressionImpl argumentExpression2) {
+    _argumentExpression2 = _becomeParentOf2(argumentExpression2);
+    _becomeParentOf1(V1Projection.toV1Expression(argumentExpression2));
   }
 
   @generated
@@ -23118,7 +29867,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   @generated
   @override
   Token get endToken {
-    return argumentExpression.endToken;
+    return argumentExpression2.endToken;
   }
 
   @generated
@@ -23130,21 +29879,34 @@ final class NamedArgumentImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('colon', colon)
+    ..addNode('argumentExpression2', argumentExpression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedArgument(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNamedArgument(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(argumentExpression, oldNode)) {
+    if (identical(argumentExpression2, oldNode)) {
       throw UnsupportedError(
-        "Cannot remove required child 'argumentExpression'.",
+        "Cannot remove required child 'argumentExpression2'.",
       );
     }
     super.removeChild(oldNode);
@@ -23153,17 +29915,25 @@ final class NamedArgumentImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(argumentExpression, oldNode)) {
-      argumentExpression = newNode as ExpressionImpl;
+    if (identical(argumentExpression2, oldNode)) {
+      argumentExpression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     argumentExpression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    argumentExpression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23172,14 +29942,15 @@ final class NamedArgumentImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitArgumentExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitArgumentExpression2,
   }) {
-    if (visitArgumentExpression != null) {
-      visitArgumentExpression(argumentExpression);
+    if (visitArgumentExpression2 != null) {
+      visitArgumentExpression2(argumentExpression2);
     } else {
-      argumentExpression.accept(visitor);
+      argumentExpression2.accept2(visitor);
     }
   }
 
@@ -23188,6 +29959,15 @@ final class NamedArgumentImpl extends AstNodeImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (argumentExpression._containsOffset(rangeOffset, rangeEnd)) {
       return argumentExpression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (argumentExpression2._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentExpression2;
     }
     return null;
   }
@@ -23223,7 +30003,7 @@ abstract final class NamedType implements TypeAnnotation {
   Token get name;
 
   /// The type being named, or `null` if the AST structure hasn't been resolved,
-  /// or if this is part of a [ConstructorReference].
+  /// or if this is part of the legacy constructor-reference projection.
   @override
   DartType? get type;
 
@@ -23242,24 +30022,26 @@ abstract final class NamedType implements TypeAnnotation {
 )
 final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @generated
-  ImportPrefixReferenceImpl? _importPrefix;
-
-  @generated
   @override
   final Token name;
-
-  @generated
-  TypeArgumentListImpl? _typeArguments;
 
   @generated
   @override
   final Token? question;
 
-  @override
-  Element? element;
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  ImportPrefixReferenceImpl? _importPrefix;
 
-  @override
-  TypeImpl? type;
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  TypeArgumentListImpl? _typeArguments;
+
+  AstNodeApi? _astNodeApiOverride;
+
+  ConstructorTypeReferenceImpl? _constructorTypeReferenceOrigin;
+
+  Element? _element;
+
+  TypeImpl? _type;
 
   @generated
   NamedTypeImpl({
@@ -23269,8 +30051,19 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     required this.question,
   }) : _importPrefix = importPrefix,
        _typeArguments = typeArguments {
-    _becomeParentOf(importPrefix);
-    _becomeParentOf(typeArguments);
+    _becomeParentOf12(importPrefix);
+    _becomeParentOf12(typeArguments);
+  }
+
+  NamedTypeImpl.v1Projection(ConstructorTypeReferenceImpl origin)
+    : _importPrefix = origin.importPrefix,
+      name = origin.name,
+      _typeArguments = origin.typeArguments,
+      question = null,
+      _constructorTypeReferenceOrigin = origin,
+      _astNodeApiOverride = AstNodeApi.v1 {
+    _becomeParentOf1(_importPrefix);
+    _becomeParentOf1(_typeArguments);
   }
 
   @generated
@@ -23282,7 +30075,19 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     return name;
   }
 
-  @generated
+  @override
+  Element? get element => _constructorTypeReferenceOrigin?.element ?? _element;
+
+  set element(Element? value) {
+    var origin = _constructorTypeReferenceOrigin;
+    if (origin != null) {
+      origin.element = value;
+    } else {
+      _element = value;
+    }
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   Token get endToken {
     if (question case var question?) {
@@ -23294,13 +30099,21 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     return name;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  ImportPrefixReferenceImpl? get importPrefix => _importPrefix;
+  ImportPrefixReferenceImpl? get importPrefix {
+    var origin = _constructorTypeReferenceOrigin;
+    var result = origin != null ? origin.importPrefix : _importPrefix;
+    _becomeParentOf1(result);
+    return result;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set importPrefix(ImportPrefixReferenceImpl? importPrefix) {
-    _importPrefix = _becomeParentOf(importPrefix);
+    if (_constructorTypeReferenceOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _importPrefix = _becomeParentOf12(importPrefix);
   }
 
   @override
@@ -23319,14 +30132,47 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   bool get isSynthetic => name.isSynthetic && typeArguments == null;
 
-  @generated
   @override
-  TypeArgumentListImpl? get typeArguments => _typeArguments;
-
-  @generated
-  set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+  TypeImpl? get type {
+    var origin = _constructorTypeReferenceOrigin;
+    if (origin != null) {
+      if (origin.parent2 is ConstructorTearOffImpl) {
+        return null;
+      }
+      return origin.type;
+    }
+    return _type;
   }
+
+  set type(TypeImpl? value) {
+    var origin = _constructorTypeReferenceOrigin;
+    if (origin != null) {
+      origin.type = value;
+    } else {
+      _type = value;
+    }
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeArgumentListImpl? get typeArguments {
+    var origin = _constructorTypeReferenceOrigin;
+    var result = origin != null ? origin.typeArguments : _typeArguments;
+    _becomeParentOf1(result);
+    return result;
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _typeArguments = _becomeParentOf12(typeArguments);
+  }
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @generated
   @override
@@ -23336,14 +30182,38 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     ..addNode('typeArguments', typeArguments)
     ..addToken('question', question);
 
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @override
+  ChildEntities get _childEntities2 {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addNode('importPrefix', importPrefix)
+      ..addToken('name', name)
+      ..addNode('typeArguments', typeArguments)
+      ..addToken('question', question);
+  }
+
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedType(this);
+
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
+    return visitor.visitNamedType(this);
+  }
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -23375,11 +30245,27 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     super.replaceChild(oldNode, newNode);
   }
 
+  @override
+  String toSource() =>
+      _constructorTypeReferenceOrigin?.toSource() ?? super.toSource();
+
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
     typeArguments?.accept(visitor);
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
+    importPrefix?.accept2(visitor);
+    typeArguments?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23387,24 +30273,28 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
   }) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
     if (importPrefix case var importPrefix?) {
       if (visitImportPrefix != null) {
         visitImportPrefix(importPrefix);
       } else {
-        importPrefix.accept(visitor);
+        importPrefix.accept2(visitor);
       }
     }
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
   }
@@ -23412,6 +30302,25 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (importPrefix case var importPrefix?) {
+      if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+        return importPrefix;
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    return null;
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
     if (importPrefix case var importPrefix?) {
       if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
         return importPrefix;
@@ -23505,7 +30414,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
     required this.typeName,
     required TypeParameterListImpl? typeParameters,
   }) : _typeParameters = typeParameters {
-    _becomeParentOf(typeParameters);
+    _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -23529,7 +30438,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -23540,13 +30449,26 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('typeName', typeName)
+    ..addNode('typeParameters', typeParameters);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitNameWithTypeParameters(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitNameWithTypeParameters(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -23571,9 +30493,17 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeParameters?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23582,15 +30512,16 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
   }) {
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
   }
@@ -23598,6 +30529,17 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
       if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
         return typeParameters;
@@ -23639,7 +30581,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
     required this.nativeKeyword,
     required StringLiteralImpl? name,
   }) : _name = name {
-    _becomeParentOf(name);
+    _becomeParentOf12(name);
   }
 
   @generated
@@ -23663,7 +30605,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 
   @generated
   set name(StringLiteralImpl? name) {
-    _name = _becomeParentOf(name);
+    _name = _becomeParentOf12(name);
   }
 
   @generated
@@ -23674,12 +30616,24 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('nativeKeyword', nativeKeyword)
+    ..addNode('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNativeClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -23704,9 +30658,17 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    name?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23715,15 +30677,16 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(StringLiteralImpl)? visitName,
   }) {
     if (name case var name?) {
       if (visitName != null) {
         visitName(name);
       } else {
-        name.accept(visitor);
+        name.accept2(visitor);
       }
     }
   }
@@ -23731,6 +30694,17 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (name case var name?) {
+      if (name._containsOffset(rangeOffset, rangeEnd)) {
+        return name;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (name case var name?) {
       if (name._containsOffset(rangeOffset, rangeEnd)) {
         return name;
@@ -23784,7 +30758,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
     required StringLiteralImpl? stringLiteral,
     required this.semicolon,
   }) : _stringLiteral = stringLiteral {
-    _becomeParentOf(stringLiteral);
+    _becomeParentOf12(stringLiteral);
   }
 
   @generated
@@ -23805,7 +30779,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   set stringLiteral(StringLiteralImpl? stringLiteral) {
-    _stringLiteral = _becomeParentOf(stringLiteral);
+    _stringLiteral = _becomeParentOf12(stringLiteral);
   }
 
   @generated
@@ -23817,12 +30791,26 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('nativeKeyword', nativeKeyword)
+    ..addNode('stringLiteral', stringLiteral)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitNativeFunctionBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -23851,9 +30839,17 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
       resolver.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     stringLiteral?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    stringLiteral?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23862,15 +30858,16 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(StringLiteralImpl)? visitStringLiteral,
   }) {
     if (stringLiteral case var stringLiteral?) {
       if (visitStringLiteral != null) {
         visitStringLiteral(stringLiteral);
       } else {
-        stringLiteral.accept(visitor);
+        stringLiteral.accept2(visitor);
       }
     }
   }
@@ -23878,6 +30875,17 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (stringLiteral case var stringLiteral?) {
+      if (stringLiteral._containsOffset(rangeOffset, rangeEnd)) {
+        return stringLiteral;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (stringLiteral case var stringLiteral?) {
       if (stringLiteral._containsOffset(rangeOffset, rangeEnd)) {
         return stringLiteral;
@@ -23911,7 +30919,12 @@ abstract final class NodeList<E extends AstNode> implements List<E> {
   E operator [](int index);
 
   /// Use the given [visitor] to visit each of the nodes in this list.
+  @ToBeDeprecated('Use accept2 instead.')
   void accept(AstVisitor visitor);
+
+  /// Use the given [visitor] to visit each of the nodes in this list.
+  @experimental
+  void accept2(AstVisitor2 visitor);
 
   @Deprecated('NodeList cannot be resized')
   @override
@@ -23940,6 +30953,8 @@ final class NodeListImpl<E extends AstNodeImpl>
   late final AstNodeImpl _owner;
 
   late final List<E> _elements;
+
+  AstNodeImpl Function(E)? _toV1;
 
   /// Initializes a newly created list of nodes such that all of the nodes that
   /// are added to the list have their parent set to the given [owner].
@@ -23991,14 +31006,24 @@ final class NodeListImpl<E extends AstNodeImpl>
       throw RangeError("Index: $index, Size: ${_elements.length}");
     }
     _elements[index] = node;
-    _owner._becomeParentOf(node as AstNodeImpl);
+    _attach(node);
   }
 
   @override
+  @ToBeDeprecated('Use accept2 instead.')
   void accept(AstVisitor visitor) {
     int length = _elements.length;
     for (var i = 0; i < length; i++) {
       _elements[i].accept(visitor);
+    }
+  }
+
+  @experimental
+  @override
+  void accept2(AstVisitor2 visitor) {
+    int length = _elements.length;
+    for (var i = 0; i < length; i++) {
+      _elements[i].accept2(visitor);
     }
   }
 
@@ -24053,6 +31078,15 @@ final class NodeListImpl<E extends AstNodeImpl>
     return false;
   }
 
+  void _attach(E node) {
+    if (_toV1 case var toV1?) {
+      _owner._becomeParentOf2(node);
+      _owner._becomeParentOf1(toV1(node));
+    } else {
+      _owner._becomeParentOfOwnedView(node);
+    }
+  }
+
   /// Returns the child of this node that completely contains the range.
   ///
   /// Returns `null` if none of the children contain the range (which means that
@@ -24080,6 +31114,11 @@ final class NodeListImpl<E extends AstNodeImpl>
   /// Set the [owner] of this container, and populate it with [elements].
   void _initialize(AstNodeImpl owner, List<E>? elements) {
     _owner = owner;
+    _toV1 = null;
+    _initializeElements(elements);
+  }
+
+  void _initializeElements(List<E>? elements) {
     if (elements == null || elements.isEmpty) {
       _elements = const <Never>[];
     } else {
@@ -24087,9 +31126,20 @@ final class NodeListImpl<E extends AstNodeImpl>
       var length = elements.length;
       for (var i = 0; i < length; i++) {
         var node = elements[i];
-        owner._becomeParentOf(node as AstNodeImpl);
+        _attach(node);
       }
     }
+  }
+
+  /// Initializes a V2 list that exposes a projected V1 view.
+  void _initializeProjected<V1Node extends AstNodeImpl>(
+    AstNodeImpl owner,
+    List<E>? elements,
+    V1Node Function(E) toV1,
+  ) {
+    _owner = owner;
+    _toV1 = toV1;
+    _initializeElements(elements);
   }
 }
 
@@ -24126,7 +31176,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
     required DartPatternImpl pattern,
     required this.operator,
   }) : _pattern = pattern {
-    _becomeParentOf(pattern);
+    _becomeParentOf12(pattern);
   }
 
   @generated
@@ -24147,7 +31197,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @override
@@ -24164,7 +31214,19 @@ final class NullAssertPatternImpl extends DartPatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addToken('operator', operator);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAssertPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullAssertPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -24176,7 +31238,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -24216,9 +31278,17 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    pattern.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -24227,20 +31297,30 @@ final class NullAssertPatternImpl extends DartPatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitPattern,
   }) {
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
       return pattern;
     }
@@ -24257,13 +31337,22 @@ abstract final class NullAwareElement implements CollectionElement {
   Token get question;
 
   /// The expression computing the value that is associated with the element.
+  @ToBeDeprecated('Use value2 instead.')
   Expression get value;
+
+  @experimental
+  Expression get value2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('question'),
-    GenerateNodeProperty('value', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'value2',
+      v1Name: 'value',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class NullAwareElementImpl extends AstNodeImpl
@@ -24274,12 +31363,13 @@ final class NullAwareElementImpl extends AstNodeImpl
   final Token question;
 
   @generated
-  ExpressionImpl _value;
+  ExpressionImpl _value2;
 
   @generated
-  NullAwareElementImpl({required this.question, required ExpressionImpl value})
-    : _value = value {
-    _becomeParentOf(value);
+  NullAwareElementImpl({required this.question, required ExpressionImpl value2})
+    : _value2 = value2 {
+    _becomeParentOf2(value2);
+    _becomeParentOf1(V1Projection.toV1Expression(value2));
   }
 
   @generated
@@ -24291,16 +31381,24 @@ final class NullAwareElementImpl extends AstNodeImpl
   @generated
   @override
   Token get endToken {
-    return value.endToken;
+    return value2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use value2 instead.')
   @override
-  ExpressionImpl get value => _value;
+  ExpressionImpl get value => V1Projection.toV1Expression(value2);
 
   @generated
-  set value(ExpressionImpl value) {
-    _value = _becomeParentOf(value);
+  @experimental
+  @override
+  ExpressionImpl get value2 => _value2;
+
+  @generated
+  @experimental
+  set value2(ExpressionImpl value2) {
+    _value2 = _becomeParentOf2(value2);
+    _becomeParentOf1(V1Projection.toV1Expression(value2));
   }
 
   @generated
@@ -24311,20 +31409,32 @@ final class NullAwareElementImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('question', question)
+    ..addNode('value2', value2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAwareElement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullAwareElement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(value, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'value'.");
+    if (identical(value2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'value2'.");
     }
     super.removeChild(oldNode);
   }
@@ -24332,8 +31442,8 @@ final class NullAwareElementImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(value, oldNode)) {
-      value = newNode as ExpressionImpl;
+    if (identical(value2, oldNode)) {
+      value2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -24349,9 +31459,17 @@ final class NullAwareElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     value.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    value2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -24360,14 +31478,15 @@ final class NullAwareElementImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitValue,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitValue2,
   }) {
-    if (visitValue != null) {
-      visitValue(value);
+    if (visitValue2 != null) {
+      visitValue2(value2);
     } else {
-      value.accept(visitor);
+      value2.accept2(visitor);
     }
   }
 
@@ -24376,6 +31495,15 @@ final class NullAwareElementImpl extends AstNodeImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (value._containsOffset(rangeOffset, rangeEnd)) {
       return value;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (value2._containsOffset(rangeOffset, rangeEnd)) {
+      return value2;
     }
     return null;
   }
@@ -24414,7 +31542,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
     required DartPatternImpl pattern,
     required this.operator,
   }) : _pattern = pattern {
-    _becomeParentOf(pattern);
+    _becomeParentOf12(pattern);
   }
 
   @generated
@@ -24435,7 +31563,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @override
@@ -24452,7 +31580,19 @@ final class NullCheckPatternImpl extends DartPatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addToken('operator', operator);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullCheckPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullCheckPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -24464,7 +31604,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -24504,9 +31644,17 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    pattern.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -24515,20 +31663,30 @@ final class NullCheckPatternImpl extends DartPatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitPattern,
   }) {
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
       return pattern;
     }
@@ -24574,12 +31732,23 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('literal', literal);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullLiteral(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullLiteral(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -24590,16 +31759,29 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -24654,7 +31836,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     required List<PatternFieldImpl> fields,
     required this.rightParenthesis,
   }) : _type = type {
-    _becomeParentOf(type);
+    _becomeParentOf12(type);
     this.fields._initialize(this, fields);
   }
 
@@ -24679,7 +31861,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 
   @generated
   set type(NamedTypeImpl type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -24692,7 +31874,21 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('type', type)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitObjectPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitObjectPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -24704,7 +31900,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -24762,10 +31958,19 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
     fields.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    type.accept2(visitor);
+    fields.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -24774,26 +31979,40 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NamedTypeImpl)? visitType,
     void Function(NodeListImpl<PatternFieldImpl>)? visitFields,
   }) {
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
     if (visitFields != null) {
       visitFields(fields);
     } else {
-      fields.accept(visitor);
+      fields.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    if (fields._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
       return type;
     }
@@ -24812,7 +32031,11 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ParenthesizedExpression implements Expression {
   /// The expression within the parentheses.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The left parenthesis.
   Token get leftParenthesis;
@@ -24824,7 +32047,12 @@ abstract final class ParenthesizedExpression implements Expression {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -24835,7 +32063,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -24844,10 +32072,11 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @generated
   ParenthesizedExpressionImpl({
     required this.leftParenthesis,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.rightParenthesis,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -24863,12 +32092,20 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -24878,9 +32115,9 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   ExpressionImpl get unParenthesized {
     // This is somewhat inefficient, but it avoids a stack overflow in the
     // degenerate case.
-    var expression = _expression;
+    var expression = _expression2;
     while (expression is ParenthesizedExpressionImpl) {
-      expression = expression._expression;
+      expression = expression._expression2;
     }
     return expression;
   }
@@ -24894,21 +32131,35 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression2', expression2)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitParenthesizedExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParenthesizedExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -24916,8 +32167,8 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -24930,9 +32181,17 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -24941,14 +32200,15 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -24957,6 +32217,15 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -25004,7 +32273,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
     required DartPatternImpl pattern,
     required this.rightParenthesis,
   }) : _pattern = pattern {
-    _becomeParentOf(pattern);
+    _becomeParentOf12(pattern);
   }
 
   @generated
@@ -25025,7 +32294,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @override
@@ -25052,7 +32321,21 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('pattern', pattern)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitParenthesizedPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParenthesizedPattern(this);
 
   @override
@@ -25065,7 +32348,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -25100,9 +32383,17 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    pattern.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -25111,20 +32402,30 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitPattern,
   }) {
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
       return pattern;
     }
@@ -25200,12 +32501,25 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('partKeyword', partKeyword)
+    ..addNode('uri', uri)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPartDirective(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -25229,10 +32543,19 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     uri.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    uri.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -25241,15 +32564,16 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(StringLiteralImpl)? visitUri,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitUri != null) {
       visitUri(uri);
     } else {
-      uri.accept(visitor);
+      uri.accept2(visitor);
     }
   }
 
@@ -25257,6 +32581,18 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (uri._containsOffset(rangeOffset, rangeEnd)) {
+      return uri;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (uri._containsOffset(rangeOffset, rangeEnd)) {
@@ -25331,8 +32667,8 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     required this.semicolon,
   }) : _uri = uri,
        _libraryName = libraryName {
-    _becomeParentOf(uri);
-    _becomeParentOf(libraryName);
+    _becomeParentOf12(uri);
+    _becomeParentOf12(libraryName);
   }
 
   @generated
@@ -25353,7 +32689,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   set libraryName(DottedNameImpl? libraryName) {
-    _libraryName = _becomeParentOf(libraryName);
+    _libraryName = _becomeParentOf12(libraryName);
   }
 
   @generated
@@ -25362,7 +32698,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   set uri(StringLiteralImpl? uri) {
-    _uri = _becomeParentOf(uri);
+    _uri = _becomeParentOf12(uri);
   }
 
   @generated
@@ -25376,12 +32712,27 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('partKeyword', partKeyword)
+    ..addToken('ofKeyword', ofKeyword)
+    ..addNode('uri', uri)
+    ..addNode('libraryName', libraryName)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartOfDirective(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPartOfDirective(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -25414,11 +32765,21 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     uri?.accept(visitor);
     libraryName?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    uri?.accept2(visitor);
+    libraryName?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -25427,24 +32788,25 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(StringLiteralImpl)? visitUri,
     void Function(DottedNameImpl)? visitLibraryName,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (uri case var uri?) {
       if (visitUri != null) {
         visitUri(uri);
       } else {
-        uri.accept(visitor);
+        uri.accept2(visitor);
       }
     }
     if (libraryName case var libraryName?) {
       if (visitLibraryName != null) {
         visitLibraryName(libraryName);
       } else {
-        libraryName.accept(visitor);
+        libraryName.accept2(visitor);
       }
     }
   }
@@ -25453,6 +32815,25 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (uri case var uri?) {
+      if (uri._containsOffset(rangeOffset, rangeEnd)) {
+        return uri;
+      }
+    }
+    if (libraryName case var libraryName?) {
+      if (libraryName._containsOffset(rangeOffset, rangeEnd)) {
+        return libraryName;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (uri case var uri?) {
@@ -25479,7 +32860,11 @@ abstract final class PatternAssignment implements Expression {
   Token get equals;
 
   /// The expression that is matched by the pattern.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The pattern that matches the expression.
   DartPattern get pattern;
@@ -25489,7 +32874,12 @@ abstract final class PatternAssignment implements Expression {
   childEntitiesOrder: [
     GenerateNodeProperty('pattern'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class PatternAssignmentImpl extends ExpressionImpl
@@ -25502,9 +32892,9 @@ final class PatternAssignmentImpl extends ExpressionImpl
   final Token equals;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
-  /// The pattern type schema, used for downward inference of [expression];
+  /// The pattern type schema, used for downward inference of [expression2];
   /// or `null` if the node isn't resolved yet.
   TypeImpl? patternTypeSchema;
 
@@ -25512,11 +32902,12 @@ final class PatternAssignmentImpl extends ExpressionImpl
   PatternAssignmentImpl({
     required DartPatternImpl pattern,
     required this.equals,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
   }) : _pattern = pattern,
-       _expression = expression {
-    _becomeParentOf(pattern);
-    _becomeParentOf(expression);
+       _expression2 = expression2 {
+    _becomeParentOf12(pattern);
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -25528,16 +32919,24 @@ final class PatternAssignmentImpl extends ExpressionImpl
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -25546,7 +32945,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @override
@@ -25563,13 +32962,26 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addToken('equals', equals)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternAssignment(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
@@ -25578,8 +32990,8 @@ final class PatternAssignmentImpl extends ExpressionImpl
     if (identical(pattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'pattern'.");
     }
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -25591,8 +33003,8 @@ final class PatternAssignmentImpl extends ExpressionImpl
       pattern = newNode as DartPatternImpl;
       return;
     }
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -25605,10 +33017,19 @@ final class PatternAssignmentImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    pattern.accept2(visitor);
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -25617,20 +33038,21 @@ final class PatternAssignmentImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitPattern,
-    void Function(ExpressionImpl)? visitExpression,
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -25642,6 +33064,18 @@ final class PatternAssignmentImpl extends ExpressionImpl
     }
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -25697,8 +33131,8 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     required DartPatternImpl pattern,
   }) : _name = name,
        _pattern = pattern {
-    _becomeParentOf(name);
-    _becomeParentOf(pattern);
+    _becomeParentOf12(name);
+    _becomeParentOf12(pattern);
   }
 
   @generated
@@ -25732,7 +33166,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @generated
   set name(PatternFieldNameImpl? name) {
-    _name = _becomeParentOf(name);
+    _name = _becomeParentOf12(name);
   }
 
   @generated
@@ -25741,7 +33175,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @generated
@@ -25752,12 +33186,24 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('name', name)
+    ..addNode('pattern', pattern);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternField(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternField(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -25789,10 +33235,19 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
     pattern.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    name?.accept2(visitor);
+    pattern.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -25801,8 +33256,9 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(PatternFieldNameImpl)? visitName,
     void Function(DartPatternImpl)? visitPattern,
   }) {
@@ -25810,19 +33266,33 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
       if (visitName != null) {
         visitName(name);
       } else {
-        name.accept(visitor);
+        name.accept2(visitor);
       }
     }
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (name case var name?) {
+      if (name._containsOffset(rangeOffset, rangeEnd)) {
+        return name;
+      }
+    }
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (name case var name?) {
       if (name._containsOffset(rangeOffset, rangeEnd)) {
         return name;
@@ -25890,26 +33360,51 @@ final class PatternFieldNameImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('colon', colon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternFieldName(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternFieldName(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -25924,7 +33419,11 @@ abstract final class PatternVariableDeclaration implements AnnotatedNode {
   Token get equals;
 
   /// The expression that is matched by the pattern.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The `var` or `final` keyword introducing the declaration.
   Token get keyword;
@@ -25938,7 +33437,12 @@ abstract final class PatternVariableDeclaration implements AnnotatedNode {
     GenerateNodeProperty('keyword'),
     GenerateNodeProperty('pattern'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
@@ -25955,9 +33459,9 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   final Token equals;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
-  /// The pattern type schema, used for downward inference of [expression];
+  /// The pattern type schema, used for downward inference of [expression2];
   /// or `null` if the node isn't resolved yet.
   TypeImpl? patternTypeSchema;
 
@@ -25971,26 +33475,35 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     required this.keyword,
     required DartPatternImpl pattern,
     required this.equals,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
   }) : _pattern = pattern,
-       _expression = expression {
-    _becomeParentOf(pattern);
-    _becomeParentOf(expression);
+       _expression2 = expression2 {
+    _becomeParentOf12(pattern);
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   /// If [keyword] is `final`, returns it.
@@ -26013,7 +33526,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 
   @generated
   set pattern(DartPatternImpl pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @generated
@@ -26026,14 +33539,29 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('keyword', keyword)
+    ..addNode('pattern', pattern)
+    ..addToken('equals', equals)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPatternVariableDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPatternVariableDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
@@ -26042,8 +33570,8 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     if (identical(pattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'pattern'.");
     }
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -26055,19 +33583,29 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
       pattern = newNode as DartPatternImpl;
       return;
     }
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     pattern.accept(visitor);
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    pattern.accept2(visitor);
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -26076,21 +33614,22 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitPattern,
-    void Function(ExpressionImpl)? visitExpression,
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
-      pattern.accept(visitor);
+      pattern.accept2(visitor);
     }
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -26105,6 +33644,21 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     }
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -26143,7 +33697,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
     required PatternVariableDeclarationImpl declaration,
     required this.semicolon,
   }) : _declaration = declaration {
-    _becomeParentOf(declaration);
+    _becomeParentOf12(declaration);
   }
 
   @generated
@@ -26158,7 +33712,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   set declaration(PatternVariableDeclarationImpl declaration) {
-    _declaration = _becomeParentOf(declaration);
+    _declaration = _becomeParentOf12(declaration);
   }
 
   @generated
@@ -26175,13 +33729,26 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('declaration', declaration)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPatternVariableDeclarationStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPatternVariableDeclarationStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -26205,9 +33772,17 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     declaration.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    declaration.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -26216,20 +33791,30 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(PatternVariableDeclarationImpl)? visitDeclaration,
   }) {
     if (visitDeclaration != null) {
       visitDeclaration(declaration);
     } else {
-      declaration.accept(visitor);
+      declaration.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (declaration._containsOffset(rangeOffset, rangeEnd)) {
+      return declaration;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (declaration._containsOffset(rangeOffset, rangeEnd)) {
       return declaration;
     }
@@ -26254,7 +33839,11 @@ abstract final class PostfixExpression
   MethodElement? get element;
 
   /// The expression computing the operand for the operator.
+  @ToBeDeprecated('Use operand2 instead.')
   Expression get operand;
+
+  @experimental
+  Expression get operand2;
 
   /// The postfix operator being applied to the operand.
   Token get operator;
@@ -26262,7 +33851,12 @@ abstract final class PostfixExpression
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'operand2',
+      v1Name: 'operand',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('operator'),
   ],
 )
@@ -26270,7 +33864,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl, DotShorthandMixin
     implements PostfixExpression {
   @generated
-  ExpressionImpl _operand;
+  ExpressionImpl _operand2;
 
   @generated
   @override
@@ -26281,16 +33875,17 @@ final class PostfixExpressionImpl extends ExpressionImpl
 
   @generated
   PostfixExpressionImpl({
-    required ExpressionImpl operand,
+    required ExpressionImpl operand2,
     required this.operator,
-  }) : _operand = operand {
-    _becomeParentOf(operand);
+  }) : _operand2 = operand2 {
+    _becomeParentOf2(operand2);
+    _becomeParentOf1(V1Projection.toV1Expression(operand2));
   }
 
   @generated
   @override
   Token get beginToken {
-    return operand.beginToken;
+    return operand2.beginToken;
   }
 
   @generated
@@ -26300,12 +33895,20 @@ final class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use operand2 instead.')
   @override
-  ExpressionImpl get operand => _operand;
+  ExpressionImpl get operand => V1Projection.toV1Expression(operand2);
 
   @generated
-  set operand(ExpressionImpl operand) {
-    _operand = _becomeParentOf(operand);
+  @experimental
+  @override
+  ExpressionImpl get operand2 => _operand2;
+
+  @generated
+  @experimental
+  set operand2(ExpressionImpl operand2) {
+    _operand2 = _becomeParentOf2(operand2);
+    _becomeParentOf1(V1Projection.toV1Expression(operand2));
   }
 
   @override
@@ -26315,6 +33918,12 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('operand', operand)
+    ..addToken('operator', operator);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('operand2', operand2)
     ..addToken('operator', operator);
 
   /// The parameter element representing the parameter to which the value of the
@@ -26334,8 +33943,14 @@ final class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPostfixExpression(this);
 
   @DoNotGenerate(reason: 'Role depends on operator.')
   @override
@@ -26349,8 +33964,8 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(operand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'operand'.");
+    if (identical(operand2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand2'.");
     }
     super.removeChild(oldNode);
   }
@@ -26358,8 +33973,8 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(operand, oldNode)) {
-      operand = newNode as ExpressionImpl;
+    if (identical(operand2, oldNode)) {
+      operand2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -26372,9 +33987,17 @@ final class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -26383,14 +34006,15 @@ final class PostfixExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitOperand,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand2,
   }) {
-    if (visitOperand != null) {
-      visitOperand(operand);
+    if (visitOperand2 != null) {
+      visitOperand2(operand2);
     } else {
-      operand.accept(visitor);
+      operand2.accept2(visitor);
     }
   }
 
@@ -26399,6 +34023,15 @@ final class PostfixExpressionImpl extends ExpressionImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
       return operand;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand2._containsOffset(rangeOffset, rangeEnd)) {
+      return operand2;
     }
     return null;
   }
@@ -26455,8 +34088,8 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     required SimpleIdentifierImpl identifier,
   }) : _prefix = prefix,
        _identifier = identifier {
-    _becomeParentOf(prefix);
-    _becomeParentOf(identifier);
+    _becomeParentOf12(prefix);
+    _becomeParentOf12(identifier);
   }
 
   @generated
@@ -26482,7 +34115,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   set identifier(SimpleIdentifierImpl identifier) {
-    _identifier = _becomeParentOf(identifier);
+    _identifier = _becomeParentOf12(identifier);
   }
 
   @override
@@ -26506,7 +34139,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   set prefix(SimpleIdentifierImpl prefix) {
-    _prefix = _becomeParentOf(prefix);
+    _prefix = _becomeParentOf12(prefix);
   }
 
   @generated
@@ -26518,12 +34151,26 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('prefix', prefix)
+    ..addToken('period', period)
+    ..addNode('identifier', identifier);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitPrefixedIdentifier(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -26560,10 +34207,19 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     prefix.accept(visitor);
     identifier.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    prefix.accept2(visitor);
+    identifier.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -26572,26 +34228,39 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitPrefix,
     void Function(SimpleIdentifierImpl)? visitIdentifier,
   }) {
     if (visitPrefix != null) {
       visitPrefix(prefix);
     } else {
-      prefix.accept(visitor);
+      prefix.accept2(visitor);
     }
     if (visitIdentifier != null) {
       visitIdentifier(identifier);
     } else {
-      identifier.accept(visitor);
+      identifier.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (prefix._containsOffset(rangeOffset, rangeEnd)) {
+      return prefix;
+    }
+    if (identifier._containsOffset(rangeOffset, rangeEnd)) {
+      return identifier;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (prefix._containsOffset(rangeOffset, rangeEnd)) {
       return prefix;
     }
@@ -26619,7 +34288,11 @@ abstract final class PrefixExpression
   MethodElement? get element;
 
   /// The expression computing the operand for the operator.
+  @ToBeDeprecated('Use operand2 instead.')
   Expression get operand;
+
+  @experimental
+  Expression get operand2;
 
   /// The prefix operator being applied to the operand.
   Token get operator;
@@ -26628,7 +34301,12 @@ abstract final class PrefixExpression
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'operand2',
+      v1Name: 'operand',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class PrefixExpressionImpl extends ExpressionImpl
@@ -26639,7 +34317,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   final Token operator;
 
   @generated
-  ExpressionImpl _operand;
+  ExpressionImpl _operand2;
 
   @override
   MethodElement? element;
@@ -26647,9 +34325,10 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @generated
   PrefixExpressionImpl({
     required this.operator,
-    required ExpressionImpl operand,
-  }) : _operand = operand {
-    _becomeParentOf(operand);
+    required ExpressionImpl operand2,
+  }) : _operand2 = operand2 {
+    _becomeParentOf2(operand2);
+    _becomeParentOf1(V1Projection.toV1Expression(operand2));
   }
 
   @generated
@@ -26661,16 +34340,24 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @generated
   @override
   Token get endToken {
-    return operand.endToken;
+    return operand2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use operand2 instead.')
   @override
-  ExpressionImpl get operand => _operand;
+  ExpressionImpl get operand => V1Projection.toV1Expression(operand2);
 
   @generated
-  set operand(ExpressionImpl operand) {
-    _operand = _becomeParentOf(operand);
+  @experimental
+  @override
+  ExpressionImpl get operand2 => _operand2;
+
+  @generated
+  @experimental
+  set operand2(ExpressionImpl operand2) {
+    _operand2 = _becomeParentOf2(operand2);
+    _becomeParentOf1(V1Projection.toV1Expression(operand2));
   }
 
   @override
@@ -26681,6 +34368,12 @@ final class PrefixExpressionImpl extends ExpressionImpl
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('operator', operator)
     ..addNode('operand', operand);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand2', operand2);
 
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
@@ -26699,8 +34392,14 @@ final class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPrefixExpression(this);
 
   @DoNotGenerate(reason: 'Role depends on operator.')
   @override
@@ -26714,8 +34413,8 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(operand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'operand'.");
+    if (identical(operand2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand2'.");
     }
     super.removeChild(oldNode);
   }
@@ -26723,8 +34422,8 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(operand, oldNode)) {
-      operand = newNode as ExpressionImpl;
+    if (identical(operand2, oldNode)) {
+      operand2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -26737,9 +34436,17 @@ final class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -26748,14 +34455,15 @@ final class PrefixExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitOperand,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand2,
   }) {
-    if (visitOperand != null) {
-      visitOperand(operand);
+    if (visitOperand2 != null) {
+      visitOperand2(operand2);
     } else {
-      operand.accept(visitor);
+      operand2.accept2(visitor);
     }
   }
 
@@ -26767,12 +34475,24 @@ final class PrefixExpressionImpl extends ExpressionImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand2._containsOffset(rangeOffset, rangeEnd)) {
+      return operand2;
+    }
+    return null;
+  }
 }
 
 /// The body of a primary constructor.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 // TODO(scheglov): This should not be a `Declaration`.
 abstract final class PrimaryConstructorBody implements ClassMember {
+  /// The token for the `augment` keyword.
+  Token? get augmentKeyword;
+
   /// The body of the constructor.
   FunctionBody get body;
 
@@ -26794,6 +34514,7 @@ abstract final class PrimaryConstructorBody implements ClassMember {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('thisKeyword'),
     GenerateNodeProperty('colon'),
     GenerateNodeProperty('initializers'),
@@ -26802,6 +34523,10 @@ abstract final class PrimaryConstructorBody implements ClassMember {
 )
 final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     implements PrimaryConstructorBody {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
   @generated
   @override
   final Token thisKeyword;
@@ -26824,17 +34549,15 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   PrimaryConstructorBodyImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.thisKeyword,
     required this.colon,
     required List<ConstructorInitializerImpl> initializers,
     required FunctionBodyImpl body,
   }) : _body = body {
     this.initializers._initialize(this, initializers);
-    _becomeParentOf(body);
+    _becomeParentOf12(body);
   }
-
-  @override
-  Token? get augmentKeyword => null;
 
   @generated
   @override
@@ -26842,12 +34565,12 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
 
   @generated
   set body(FunctionBodyImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @override
   PrimaryConstructorDeclarationImpl? get declaration {
-    switch (parent?.parent) {
+    switch (parent2?.parent2) {
       case ClassDeclarationImpl parent:
         return parent.namePart.tryCast();
       case EnumDeclarationImpl parent:
@@ -26871,12 +34594,16 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
     return thisKeyword;
   }
 
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('thisKeyword', thisKeyword)
     ..addToken('colon', colon)
     ..addNodeList('initializers', initializers)
@@ -26884,13 +34611,29 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('thisKeyword', thisKeyword)
+    ..addToken('colon', colon)
+    ..addNodeList('initializers', initializers)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorBody(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPrimaryConstructorBody(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -26922,11 +34665,21 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     initializers.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    initializers.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -26935,21 +34688,22 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<ConstructorInitializerImpl>)? visitInitializers,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitInitializers != null) {
       visitInitializers(initializers);
     } else {
-      initializers.accept(visitor);
+      initializers.accept2(visitor);
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -26957,6 +34711,22 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (initializers._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (initializers._elementContainingRange(rangeOffset, rangeEnd)
@@ -26995,6 +34765,14 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
 
   /// The formal parameters of the constructor, including declaring.
   FormalParameterList get formalParameters;
+
+  /// Whether this primary constructor declaration is complete for augmentation
+  /// purposes.
+  ///
+  /// A primary constructor declaration is complete if it has a body, has an
+  /// initializer list, or has a declaring formal, field formal, super formal,
+  /// or extension type representation formal parameter.
+  bool get isComplete;
 }
 
 @GenerateNodeImpl(
@@ -27041,9 +34819,9 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   }) : _typeParameters = typeParameters,
        _constructorName = constructorName,
        _formalParameters = formalParameters {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(constructorName);
-    _becomeParentOf(formalParameters);
+    _becomeParentOf12(typeParameters);
+    _becomeParentOf12(constructorName);
+    _becomeParentOf12(formalParameters);
   }
 
   @generated
@@ -27057,7 +34835,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @override
   PrimaryConstructorBodyImpl? get body =>
-      parent.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
+      parent2.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
 
   @generated
   @override
@@ -27065,7 +34843,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @generated
   set constructorName(PrimaryConstructorNameImpl? constructorName) {
-    _constructorName = _becomeParentOf(constructorName);
+    _constructorName = _becomeParentOf12(constructorName);
   }
 
   @generated
@@ -27088,7 +34866,26 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @generated
   set formalParameters(FormalParameterListImpl formalParameters) {
-    _formalParameters = _becomeParentOf(formalParameters);
+    _formalParameters = _becomeParentOf12(formalParameters);
+  }
+
+  @override
+  bool get isComplete {
+    if (body case var body?) {
+      if (body.body is! EmptyFunctionBody) return true;
+      if (body.initializers.isNotEmpty) return true;
+    }
+
+    if (parent is ExtensionTypeDeclarationImpl) {
+      return true;
+    }
+
+    return formalParameters.allFormalParameters.any((formalParameter) {
+      return formalParameter is FieldFormalParameterImpl ||
+          formalParameter is SuperFormalParameterImpl ||
+          formalParameter is RegularFormalParameterImpl &&
+              formalParameter.finalOrVarKeyword != null;
+    });
   }
 
   /// Whether this is a trivial constructor.
@@ -27096,7 +34893,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   /// A trivial primary constructor declares no parameters, has no initializer
   /// list, and has no body (or an empty one).
   bool get isTrivial {
-    if (formalParameters.parameters.isNotEmpty) {
+    if (formalParameters.allFormalParameters.isNotEmpty) {
       return false;
     }
     if (body case var body?) {
@@ -27111,7 +34908,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+    _typeParameters = _becomeParentOf12(typeParameters);
   }
 
   @generated
@@ -27125,13 +34922,29 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('typeName', typeName)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('constructorName', constructorName)
+    ..addNode('formalParameters', formalParameters);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPrimaryConstructorDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -27173,11 +34986,21 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
     constructorName?.accept(visitor);
     formalParameters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeParameters?.accept2(visitor);
+    constructorName?.accept2(visitor);
+    formalParameters.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -27186,8 +35009,9 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(PrimaryConstructorNameImpl)? visitConstructorName,
     void Function(FormalParameterListImpl)? visitFormalParameters,
@@ -27196,26 +35020,45 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
       } else {
-        typeParameters.accept(visitor);
+        typeParameters.accept2(visitor);
       }
     }
     if (constructorName case var constructorName?) {
       if (visitConstructorName != null) {
         visitConstructorName(constructorName);
       } else {
-        constructorName.accept(visitor);
+        constructorName.accept2(visitor);
       }
     }
     if (visitFormalParameters != null) {
       visitFormalParameters(formalParameters);
     } else {
-      formalParameters.accept(visitor);
+      formalParameters.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (constructorName case var constructorName?) {
+      if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorName;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
       if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
         return typeParameters;
@@ -27282,27 +35125,53 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorName(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPrimaryConstructorName(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -27335,7 +35204,7 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   /// The expression used to compute the receiver of the invocation.
   ///
   /// If this invocation isn't part of a cascade expression, then this is the
-  /// same as [target]. If this invocation is part of a cascade expression,
+  /// same as [target2]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
   Expression get realTarget;
 
@@ -27344,12 +35213,20 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
+  @ToBeDeprecated('Use target2 instead.')
   Expression? get target;
+
+  @experimental
+  Expression? get target2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('target'),
+    GenerateNodeProperty(
+      'target2',
+      v1Name: 'target',
+      v1Projection: V1Projection.expression,
+    ),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('propertyName'),
   ],
@@ -27358,7 +35235,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     with DotShorthandMixin
     implements PropertyAccess {
   @generated
-  ExpressionImpl? _target;
+  ExpressionImpl? _target2;
 
   @generated
   @override
@@ -27369,20 +35246,24 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @generated
   PropertyAccessImpl({
-    required ExpressionImpl? target,
+    required ExpressionImpl? target2,
     required this.operator,
     required SimpleIdentifierImpl propertyName,
-  }) : _target = target,
+  }) : _target2 = target2,
        _propertyName = propertyName {
-    _becomeParentOf(target);
-    _becomeParentOf(propertyName);
+    _becomeParentOf2(target2);
+    _becomeParentOf1(switch (target2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
+    _becomeParentOf12(propertyName);
   }
 
   @generated
   @override
   Token get beginToken {
-    if (target case var target?) {
-      return target.beginToken;
+    if (target2 case var target2?) {
+      return target2.beginToken;
     }
     return operator;
   }
@@ -27419,24 +35300,38 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @generated
   set propertyName(SimpleIdentifierImpl propertyName) {
-    _propertyName = _becomeParentOf(propertyName);
+    _propertyName = _becomeParentOf12(propertyName);
   }
 
   @override
   ExpressionImpl get realTarget {
     if (isCascaded) {
-      return _ancestorCascade.target;
+      return _ancestorCascade.target2;
     }
-    return _target!;
+    return _target2!;
   }
 
   @generated
+  @ToBeDeprecated('Use target2 instead.')
   @override
-  ExpressionImpl? get target => _target;
+  ExpressionImpl? get target => switch (target2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set target(ExpressionImpl? target) {
-    _target = _becomeParentOf(target);
+  @experimental
+  @override
+  ExpressionImpl? get target2 => _target2;
+
+  @generated
+  @experimental
+  set target2(ExpressionImpl? target2) {
+    _target2 = _becomeParentOf2(target2);
+    _becomeParentOf1(switch (target2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   /// The cascade that contains this [IndexExpression].
@@ -27444,7 +35339,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   /// This method assumes that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -27460,20 +35355,33 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('target2', target2)
+    ..addToken('operator', operator)
+    ..addNode('propertyName', propertyName);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPropertyAccess(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      target = null;
+    if (identical(target2, oldNode)) {
+      target2 = null;
       return;
     }
     if (identical(propertyName, oldNode)) {
@@ -27485,8 +35393,8 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as ExpressionImpl?;
+    if (identical(target2, oldNode)) {
+      target2 = newNode as ExpressionImpl?;
       return;
     }
     if (identical(propertyName, oldNode)) {
@@ -27503,10 +35411,19 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
     propertyName.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    target2?.accept2(visitor);
+    propertyName.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -27515,22 +35432,23 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitTarget,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitTarget2,
     void Function(SimpleIdentifierImpl)? visitPropertyName,
   }) {
-    if (target case var target?) {
-      if (visitTarget != null) {
-        visitTarget(target);
+    if (target2 case var target2?) {
+      if (visitTarget2 != null) {
+        visitTarget2(target2);
       } else {
-        target.accept(visitor);
+        target2.accept2(visitor);
       }
     }
     if (visitPropertyName != null) {
       visitPropertyName(propertyName);
     } else {
-      propertyName.accept(visitor);
+      propertyName.accept2(visitor);
     }
   }
 
@@ -27540,6 +35458,20 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     if (target case var target?) {
       if (target._containsOffset(rangeOffset, rangeEnd)) {
         return target;
+      }
+    }
+    if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
+      return propertyName;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target2 case var target2?) {
+      if (target2._containsOffset(rangeOffset, rangeEnd)) {
+        return target2;
       }
     }
     if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
@@ -27561,7 +35493,11 @@ abstract final class RecordLiteral implements Literal {
   Token? get constKeyword;
 
   /// The syntactic elements used to compute the fields of the record.
+  @ToBeDeprecated('Use fields2 instead.')
   NodeList<RecordLiteralField> get fields;
+
+  @experimental
+  NodeList<RecordLiteralField> get fields2;
 
   /// Whether this literal is a constant expression.
   ///
@@ -27581,19 +35517,31 @@ abstract final class RecordLiteral implements Literal {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RecordLiteralField implements AstNode {
   /// The expression that computes the value for this field.
+  @ToBeDeprecated('Use fieldExpression2 instead.')
   Expression get fieldExpression;
+
+  @experimental
+  Expression get fieldExpression2;
 }
 
 base mixin RecordLiteralFieldImpl on AstNodeImpl implements RecordLiteralField {
   @override
   ExpressionImpl get fieldExpression;
+
+  @override
+  ExpressionImpl get fieldExpression2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('constKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('fields', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'fields2',
+      v1Name: 'fields',
+      v1Projection: V1Projection.recordLiteralField,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -27607,8 +35555,15 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   final Token leftParenthesis;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<RecordLiteralFieldImpl> fields = NodeListImpl._();
+  final NodeListImpl<RecordLiteralFieldImpl> fields2 = NodeListImpl._();
+
+  @generated
+  @ToBeDeprecated('Use fields2 instead.')
+  @override
+  late final NodeListImpl<RecordLiteralFieldImpl> fields =
+      _V1ProjectedNodeListImpl(fields2, V1Projection.toV1RecordLiteralField);
 
   @generated
   @override
@@ -27618,10 +35573,14 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   RecordLiteralImpl({
     required this.constKeyword,
     required this.leftParenthesis,
-    required List<RecordLiteralFieldImpl> fields,
+    required List<RecordLiteralFieldImpl> fields2,
     required this.rightParenthesis,
   }) {
-    this.fields._initialize(this, fields);
+    this.fields2._initializeProjected(
+      this,
+      fields2,
+      V1Projection.toV1RecordLiteralField,
+    );
   }
 
   @generated
@@ -27652,21 +35611,35 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields2', fields2)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordLiteral(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRecordLiteral(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (fields.containsChild(oldNode)) {
+    if (fields2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'fields' because NodeList cannot be resized.",
+        "Cannot remove child 'fields2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -27675,7 +35648,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (fields.replaceChild(oldNode, newNode)) {
+    if (fields2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -27688,9 +35661,17 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    fields2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -27699,14 +35680,15 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(NodeListImpl<RecordLiteralFieldImpl>)? visitFields,
+    AstVisitor2 visitor, {
+    void Function(NodeListImpl<RecordLiteralFieldImpl>)? visitFields2,
   }) {
-    if (visitFields != null) {
-      visitFields(fields);
+    if (visitFields2 != null) {
+      visitFields2(fields2);
     } else {
-      fields.accept(visitor);
+      fields2.accept2(visitor);
     }
   }
 
@@ -27714,6 +35696,16 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (fields2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -27729,8 +35721,13 @@ sealed class RecordLiteralNamedField implements RecordLiteralField {
   /// The colon separating the name from the expression.
   Token get colon;
 
+  @ToBeDeprecated('Use fieldExpression2 instead.')
   @override
   Expression get fieldExpression;
+
+  @experimental
+  @override
+  Expression get fieldExpression2;
 
   /// The name associated with the expression.
   Token get name;
@@ -27740,7 +35737,12 @@ sealed class RecordLiteralNamedField implements RecordLiteralField {
   childEntitiesOrder: [
     GenerateNodeProperty('name'),
     GenerateNodeProperty('colon'),
-    GenerateNodeProperty('fieldExpression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'fieldExpression2',
+      v1Name: 'fieldExpression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class RecordLiteralNamedFieldImpl extends AstNodeImpl
@@ -27755,15 +35757,16 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   final Token colon;
 
   @generated
-  ExpressionImpl _fieldExpression;
+  ExpressionImpl _fieldExpression2;
 
   @generated
   RecordLiteralNamedFieldImpl({
     required this.name,
     required this.colon,
-    required ExpressionImpl fieldExpression,
-  }) : _fieldExpression = fieldExpression {
-    _becomeParentOf(fieldExpression);
+    required ExpressionImpl fieldExpression2,
+  }) : _fieldExpression2 = fieldExpression2 {
+    _becomeParentOf2(fieldExpression2);
+    _becomeParentOf1(V1Projection.toV1Expression(fieldExpression2));
   }
 
   @generated
@@ -27775,16 +35778,25 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   @generated
   @override
   Token get endToken {
-    return fieldExpression.endToken;
+    return fieldExpression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use fieldExpression2 instead.')
   @override
-  ExpressionImpl get fieldExpression => _fieldExpression;
+  ExpressionImpl get fieldExpression =>
+      V1Projection.toV1Expression(fieldExpression2);
 
   @generated
-  set fieldExpression(ExpressionImpl fieldExpression) {
-    _fieldExpression = _becomeParentOf(fieldExpression);
+  @experimental
+  @override
+  ExpressionImpl get fieldExpression2 => _fieldExpression2;
+
+  @generated
+  @experimental
+  set fieldExpression2(ExpressionImpl fieldExpression2) {
+    _fieldExpression2 = _becomeParentOf2(fieldExpression2);
+    _becomeParentOf1(V1Projection.toV1Expression(fieldExpression2));
   }
 
   @generated
@@ -27796,21 +35808,37 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('colon', colon)
+    ..addNode('fieldExpression2', fieldExpression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRecordLiteralNamedField(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordLiteralNamedField(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(fieldExpression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'fieldExpression'.");
+    if (identical(fieldExpression2, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'fieldExpression2'.",
+      );
     }
     super.removeChild(oldNode);
   }
@@ -27818,17 +35846,25 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(fieldExpression, oldNode)) {
-      fieldExpression = newNode as ExpressionImpl;
+    if (identical(fieldExpression2, oldNode)) {
+      fieldExpression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fieldExpression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    fieldExpression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -27837,14 +35873,15 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitFieldExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitFieldExpression2,
   }) {
-    if (visitFieldExpression != null) {
-      visitFieldExpression(fieldExpression);
+    if (visitFieldExpression2 != null) {
+      visitFieldExpression2(fieldExpression2);
     } else {
-      fieldExpression.accept(visitor);
+      fieldExpression2.accept2(visitor);
     }
   }
 
@@ -27853,6 +35890,15 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fieldExpression._containsOffset(rangeOffset, rangeEnd)) {
       return fieldExpression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (fieldExpression2._containsOffset(rangeOffset, rangeEnd)) {
+      return fieldExpression2;
     }
     return null;
   }
@@ -27929,7 +35975,20 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRecordPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -27946,7 +36005,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -27999,9 +36058,17 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    fields.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -28010,20 +36077,31 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<PatternFieldImpl>)? visitFields,
   }) {
     if (visitFields != null) {
       visitFields(fields);
     } else {
-      fields.accept(visitor);
+      fields.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (fields._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -28088,7 +36166,7 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     required TypeAnnotationImpl type,
   }) : _type = type {
     this.metadata._initialize(this, metadata);
-    _becomeParentOf(type);
+    _becomeParentOf12(type);
   }
 
   @override
@@ -28101,7 +36179,7 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
   TypeAnnotationImpl get type => _type;
 
   set type(TypeAnnotationImpl type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @override
@@ -28110,6 +36188,7 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     ..addNode('type', type)
     ..addToken('name', name);
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
@@ -28168,7 +36247,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     required this.question,
   }) : _namedFields = namedFields {
     this.positionalFields._initialize(this, positionalFields);
-    _becomeParentOf(namedFields);
+    _becomeParentOf12(namedFields);
   }
 
   @generated
@@ -28192,7 +36271,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
 
   @generated
   set namedFields(RecordTypeAnnotationNamedFieldsImpl? namedFields) {
-    _namedFields = _becomeParentOf(namedFields);
+    _namedFields = _becomeParentOf12(namedFields);
   }
 
   @generated
@@ -28206,13 +36285,29 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('positionalFields', positionalFields)
+    ..addNode('namedFields', namedFields)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('question', question);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRecordTypeAnnotation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -28245,10 +36340,19 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     positionalFields.accept(visitor);
     namedFields?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    positionalFields.accept2(visitor);
+    namedFields?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -28257,8 +36361,9 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<RecordTypeAnnotationPositionalFieldImpl>)?
     visitPositionalFields,
     void Function(RecordTypeAnnotationNamedFieldsImpl)? visitNamedFields,
@@ -28266,13 +36371,13 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     if (visitPositionalFields != null) {
       visitPositionalFields(positionalFields);
     } else {
-      positionalFields.accept(visitor);
+      positionalFields.accept2(visitor);
     }
     if (namedFields case var namedFields?) {
       if (visitNamedFields != null) {
         visitNamedFields(namedFields);
       } else {
-        namedFields.accept(visitor);
+        namedFields.accept2(visitor);
       }
     }
   }
@@ -28280,6 +36385,21 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (positionalFields._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (namedFields case var namedFields?) {
+      if (namedFields._containsOffset(rangeOffset, rangeEnd)) {
+        return namedFields;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (positionalFields._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -28346,13 +36466,27 @@ final class RecordTypeAnnotationNamedFieldImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNodeList('metadata', metadata)
+    ..addNode('type', type)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRecordTypeAnnotationNamedField(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedField(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -28384,10 +36518,19 @@ final class RecordTypeAnnotationNamedFieldImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
     type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    metadata.accept2(visitor);
+    type.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -28396,26 +36539,40 @@ final class RecordTypeAnnotationNamedFieldImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<AnnotationImpl>)? visitMetadata,
     void Function(TypeAnnotationImpl)? visitType,
   }) {
     if (visitMetadata != null) {
       visitMetadata(metadata);
     } else {
-      metadata.accept(visitor);
+      metadata.accept2(visitor);
     }
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (metadata._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (metadata._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -28492,13 +36649,27 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('fields', fields)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRecordTypeAnnotationNamedFields(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedFields(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -28523,9 +36694,17 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    fields.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -28534,21 +36713,32 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<RecordTypeAnnotationNamedFieldImpl>)?
     visitFields,
   }) {
     if (visitFields != null) {
       visitFields(fields);
     } else {
-      fields.accept(visitor);
+      fields.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (fields._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -28610,13 +36800,27 @@ final class RecordTypeAnnotationPositionalFieldImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNodeList('metadata', metadata)
+    ..addNode('type', type)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRecordTypeAnnotationPositionalField(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotationPositionalField(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -28648,10 +36852,19 @@ final class RecordTypeAnnotationPositionalFieldImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
     type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    metadata.accept2(visitor);
+    type.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -28660,26 +36873,40 @@ final class RecordTypeAnnotationPositionalFieldImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<AnnotationImpl>)? visitMetadata,
     void Function(TypeAnnotationImpl)? visitType,
   }) {
     if (visitMetadata != null) {
       visitMetadata(metadata);
     } else {
-      metadata.accept(visitor);
+      metadata.accept2(visitor);
     }
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (metadata._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (metadata._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -28704,10 +36931,17 @@ abstract final class RedirectingConstructorInvocation
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
+  @ToBeDeprecated('Use constructorSelector instead.')
   SimpleIdentifier? get constructorName;
+
+  /// The selector of the constructor that is being invoked, or `null` if the
+  /// unnamed constructor is being invoked.
+  @experimental
+  ConstructorSelector? get constructorSelector;
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
+  @ToBeDeprecated('Use constructorSelector instead.')
   Token? get period;
 
   /// The token for the `this` keyword.
@@ -28717,8 +36951,7 @@ abstract final class RedirectingConstructorInvocation
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('thisKeyword'),
-    GenerateNodeProperty('period'),
-    GenerateNodeProperty('constructorName'),
+    GenerateNodeProperty('constructorSelector'),
     GenerateNodeProperty('argumentList'),
   ],
 )
@@ -28730,28 +36963,25 @@ final class RedirectingConstructorInvocationImpl
   final Token thisKeyword;
 
   @generated
-  @override
-  final Token? period;
-
-  @generated
-  SimpleIdentifierImpl? _constructorName;
-
-  @generated
   ArgumentListImpl _argumentList;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  ConstructorSelectorImpl? _constructorSelector;
 
   @override
   ConstructorElementImpl? element;
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   RedirectingConstructorInvocationImpl({
     required this.thisKeyword,
-    required this.period,
-    required SimpleIdentifierImpl? constructorName,
+    required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
-  }) : _constructorName = constructorName,
+  }) : _constructorSelector = constructorSelector,
        _argumentList = argumentList {
-    _becomeParentOf(constructorName);
-    _becomeParentOf(argumentList);
+    constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
+    _becomeParentOf2(constructorSelector);
+    _becomeParentOf1(constructorSelector?.name);
+    _becomeParentOf12(argumentList);
   }
 
   @generated
@@ -28760,7 +36990,7 @@ final class RedirectingConstructorInvocationImpl
 
   @generated
   set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf12(argumentList);
   }
 
   @generated
@@ -28769,13 +36999,18 @@ final class RedirectingConstructorInvocationImpl
     return thisKeyword;
   }
 
-  @generated
   @override
-  SimpleIdentifierImpl? get constructorName => _constructorName;
+  SimpleIdentifierImpl? get constructorName => constructorSelector?.name;
 
-  @generated
-  set constructorName(SimpleIdentifierImpl? constructorName) {
-    _constructorName = _becomeParentOf(constructorName);
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @override
+  ConstructorSelectorImpl? get constructorSelector => _constructorSelector;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
+    constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
+    _constructorSelector = _becomeParentOf2(constructorSelector);
+    _becomeParentOf1(constructorSelector?.name);
   }
 
   @generated
@@ -28784,7 +37019,10 @@ final class RedirectingConstructorInvocationImpl
     return argumentList.endToken;
   }
 
-  @generated
+  @override
+  Token? get period => constructorSelector?.period;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
@@ -28794,21 +37032,35 @@ final class RedirectingConstructorInvocationImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('thisKeyword', thisKeyword)
+    ..addNode('constructorSelector', constructorSelector)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRedirectingConstructorInvocation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRedirectingConstructorInvocation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = null;
+    if (identical(constructorSelector, oldNode)) {
+      constructorSelector = null;
       return;
     }
     if (identical(argumentList, oldNode)) {
@@ -28820,8 +37072,8 @@ final class RedirectingConstructorInvocationImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as SimpleIdentifierImpl?;
+    if (identical(constructorSelector, oldNode)) {
+      constructorSelector = newNode as ConstructorSelectorImpl?;
       return;
     }
     if (identical(argumentList, oldNode)) {
@@ -28831,11 +37083,20 @@ final class RedirectingConstructorInvocationImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    constructorSelector?.accept2(visitor);
+    argumentList.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -28844,31 +37105,46 @@ final class RedirectingConstructorInvocationImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(SimpleIdentifierImpl)? visitConstructorName,
+    AstVisitor2 visitor, {
+    void Function(ConstructorSelectorImpl)? visitConstructorSelector,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
-    if (constructorName case var constructorName?) {
-      if (visitConstructorName != null) {
-        visitConstructorName(constructorName);
+    if (constructorSelector case var constructorSelector?) {
+      if (visitConstructorSelector != null) {
+        visitConstructorSelector(constructorSelector);
       } else {
-        constructorName.accept(visitor);
+        constructorSelector.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
       visitArgumentList(argumentList);
     } else {
-      argumentList.accept(visitor);
+      argumentList.accept2(visitor);
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName case var constructorName?) {
       if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
         return constructorName;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (constructorSelector case var constructorSelector?) {
+      if (constructorSelector._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorSelector;
       }
     }
     if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
@@ -28987,13 +37263,31 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
+    ..addNode('type', type)
+    ..addToken('name', name)
+    ..addNode('functionTypedSuffix', functionTypedSuffix)
+    ..addNode('defaultClause', defaultClause);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRegularFormalParameter(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRegularFormalParameter(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -29033,10 +37327,24 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
-  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
+    type?.accept(visitor);
+    functionTypedSuffix?.accept(visitor);
+    defaultClause?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    functionTypedSuffix?.accept2(visitor);
+    defaultClause?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -29044,34 +37352,35 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
+  @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitType,
     void Function(FunctionTypedFormalParameterSuffixImpl)?
     visitFunctionTypedSuffix,
     void Function(FormalParameterDefaultClauseImpl)? visitDefaultClause,
   }) {
-    _visitCommentAndAnnotations(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
       } else {
-        type.accept(visitor);
+        type.accept2(visitor);
       }
     }
     if (functionTypedSuffix case var functionTypedSuffix?) {
       if (visitFunctionTypedSuffix != null) {
         visitFunctionTypedSuffix(functionTypedSuffix);
       } else {
-        functionTypedSuffix.accept(visitor);
+        functionTypedSuffix.accept2(visitor);
       }
     }
     if (defaultClause case var defaultClause?) {
       if (visitDefaultClause != null) {
         visitDefaultClause(defaultClause);
       } else {
-        defaultClause.accept(visitor);
+        defaultClause.accept2(visitor);
       }
     }
   }
@@ -29080,6 +37389,30 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (functionTypedSuffix._containsOffset(rangeOffset, rangeEnd)) {
+        return functionTypedSuffix;
+      }
+    }
+    if (defaultClause case var defaultClause?) {
+      if (defaultClause._containsOffset(rangeOffset, rangeEnd)) {
+        return defaultClause;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (type case var type?) {
@@ -29114,7 +37447,11 @@ abstract final class RelationalPattern implements DartPattern {
   MethodElement? get element;
 
   /// The expression used to compute the operand.
+  @ToBeDeprecated('Use operand2 instead.')
   Expression get operand;
+
+  @experimental
+  Expression get operand2;
 
   /// The relational operator being applied.
   Token get operator;
@@ -29123,7 +37460,12 @@ abstract final class RelationalPattern implements DartPattern {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'operand2',
+      v1Name: 'operand',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class RelationalPatternImpl extends DartPatternImpl
@@ -29133,7 +37475,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   final Token operator;
 
   @generated
-  ExpressionImpl _operand;
+  ExpressionImpl _operand2;
 
   @override
   MethodElement? element;
@@ -29141,9 +37483,10 @@ final class RelationalPatternImpl extends DartPatternImpl
   @generated
   RelationalPatternImpl({
     required this.operator,
-    required ExpressionImpl operand,
-  }) : _operand = operand {
-    _becomeParentOf(operand);
+    required ExpressionImpl operand2,
+  }) : _operand2 = operand2 {
+    _becomeParentOf2(operand2);
+    _becomeParentOf1(V1Projection.toV1Expression(operand2));
   }
 
   @generated
@@ -29155,16 +37498,24 @@ final class RelationalPatternImpl extends DartPatternImpl
   @generated
   @override
   Token get endToken {
-    return operand.endToken;
+    return operand2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use operand2 instead.')
   @override
-  ExpressionImpl get operand => _operand;
+  ExpressionImpl get operand => V1Projection.toV1Expression(operand2);
 
   @generated
-  set operand(ExpressionImpl operand) {
-    _operand = _becomeParentOf(operand);
+  @experimental
+  @override
+  ExpressionImpl get operand2 => _operand2;
+
+  @generated
+  @experimental
+  set operand2(ExpressionImpl operand2) {
+    _operand2 = _becomeParentOf2(operand2);
+    _becomeParentOf1(V1Projection.toV1Expression(operand2));
   }
 
   @override
@@ -29178,7 +37529,19 @@ final class RelationalPatternImpl extends DartPatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand2', operand2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRelationalPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -29190,15 +37553,15 @@ final class RelationalPatternImpl extends DartPatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(operand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'operand'.");
+    if (identical(operand2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand2'.");
     }
     super.removeChild(oldNode);
   }
@@ -29206,8 +37569,8 @@ final class RelationalPatternImpl extends DartPatternImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(operand, oldNode)) {
-      operand = newNode as ExpressionImpl;
+    if (identical(operand2, oldNode)) {
+      operand2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -29222,7 +37585,7 @@ final class RelationalPatternImpl extends DartPatternImpl
     var analysisResult = resolverVisitor.analyzeRelationalPattern(
       context,
       this,
-      operand,
+      operand2,
     );
     resolverVisitor.popRewrite();
     inferenceLogWriter?.exitPattern(this);
@@ -29230,9 +37593,17 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -29241,14 +37612,15 @@ final class RelationalPatternImpl extends DartPatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitOperand,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand2,
   }) {
-    if (visitOperand != null) {
-      visitOperand(operand);
+    if (visitOperand2 != null) {
+      visitOperand2(operand2);
     } else {
-      operand.accept(visitor);
+      operand2.accept2(visitor);
     }
   }
 
@@ -29257,6 +37629,15 @@ final class RelationalPatternImpl extends DartPatternImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
       return operand;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand2._containsOffset(rangeOffset, rangeEnd)) {
+      return operand2;
     }
     return null;
   }
@@ -29298,7 +37679,7 @@ final class RestPatternElementImpl extends AstNodeImpl
     required this.operator,
     required DartPatternImpl? pattern,
   }) : _pattern = pattern {
-    _becomeParentOf(pattern);
+    _becomeParentOf12(pattern);
   }
 
   @generated
@@ -29322,7 +37703,7 @@ final class RestPatternElementImpl extends AstNodeImpl
 
   @generated
   set pattern(DartPatternImpl? pattern) {
-    _pattern = _becomeParentOf(pattern);
+    _pattern = _becomeParentOf12(pattern);
   }
 
   @generated
@@ -29333,12 +37714,25 @@ final class RestPatternElementImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('pattern', pattern);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRestPatternElement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitRestPatternElement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -29363,9 +37757,17 @@ final class RestPatternElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    pattern?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -29374,15 +37776,16 @@ final class RestPatternElementImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(DartPatternImpl)? visitPattern,
   }) {
     if (pattern case var pattern?) {
       if (visitPattern != null) {
         visitPattern(pattern);
       } else {
-        pattern.accept(visitor);
+        pattern.accept2(visitor);
       }
     }
   }
@@ -29390,6 +37793,17 @@ final class RestPatternElementImpl extends AstNodeImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern case var pattern?) {
+      if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+        return pattern;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (pattern case var pattern?) {
       if (pattern._containsOffset(rangeOffset, rangeEnd)) {
         return pattern;
@@ -29441,12 +37855,23 @@ final class RethrowExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('rethrowKeyword', rethrowKeyword);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRethrowExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -29457,16 +37882,29 @@ final class RethrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -29479,7 +37917,11 @@ final class RethrowExpressionImpl extends ExpressionImpl
 abstract final class ReturnStatement implements Statement {
   /// The expression computing the value to be returned, or `null` if no
   /// explicit value was provided.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression? get expression;
+
+  @experimental
+  Expression? get expression2;
 
   /// The token representing the `return` keyword.
   Token get returnKeyword;
@@ -29491,7 +37933,12 @@ abstract final class ReturnStatement implements Statement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('returnKeyword'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -29502,7 +37949,7 @@ final class ReturnStatementImpl extends StatementImpl
   final Token returnKeyword;
 
   @generated
-  ExpressionImpl? _expression;
+  ExpressionImpl? _expression2;
 
   @generated
   @override
@@ -29511,10 +37958,14 @@ final class ReturnStatementImpl extends StatementImpl
   @generated
   ReturnStatementImpl({
     required this.returnKeyword,
-    required ExpressionImpl? expression,
+    required ExpressionImpl? expression2,
     required this.semicolon,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(switch (expression2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @generated
@@ -29530,12 +37981,26 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl? get expression => _expression;
+  ExpressionImpl? get expression => switch (expression2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set expression(ExpressionImpl? expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl? get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl? expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(switch (expression2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @generated
@@ -29547,20 +38012,33 @@ final class ReturnStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('returnKeyword', returnKeyword)
+    ..addNode('expression2', expression2)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitReturnStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitReturnStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      expression = null;
+    if (identical(expression2, oldNode)) {
+      expression2 = null;
       return;
     }
     super.removeChild(oldNode);
@@ -29569,17 +38047,25 @@ final class ReturnStatementImpl extends StatementImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl?;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -29588,15 +38074,16 @@ final class ReturnStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (expression case var expression?) {
-      if (visitExpression != null) {
-        visitExpression(expression);
+    if (expression2 case var expression2?) {
+      if (visitExpression2 != null) {
+        visitExpression2(expression2);
       } else {
-        expression.accept(visitor);
+        expression2.accept2(visitor);
       }
     }
   }
@@ -29607,6 +38094,17 @@ final class ReturnStatementImpl extends StatementImpl
     if (expression case var expression?) {
       if (expression._containsOffset(rangeOffset, rangeEnd)) {
         return expression;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2 case var expression2?) {
+      if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+        return expression2;
       }
     }
     return null;
@@ -29658,26 +38156,50 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('scriptTag', scriptTag);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitScriptTag(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitScriptTag(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -29698,7 +38220,11 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SetOrMapLiteral implements TypedLiteral {
   /// The syntactic elements used to compute the elements of the set or map.
+  @ToBeDeprecated('Use elements2 instead.')
   NodeList<CollectionElement> get elements;
+
+  @experimental
+  NodeList<CollectionElement> get elements2;
 
   /// Whether this literal represents a map literal.
   ///
@@ -29748,7 +38274,12 @@ abstract final class SetOrMapLiteral implements TypedLiteral {
     GenerateNodeProperty('constKeyword', isSuper: true),
     GenerateNodeProperty('typeArguments', isSuper: true),
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('elements', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'elements2',
+      v1Name: 'elements',
+      v1Projection: V1Projection.collectionElement,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -29759,8 +38290,15 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   final Token leftBracket;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<CollectionElementImpl> elements = NodeListImpl._();
+  final NodeListImpl<CollectionElementImpl> elements2 = NodeListImpl._();
+
+  @generated
+  @ToBeDeprecated('Use elements2 instead.')
+  @override
+  late final NodeListImpl<CollectionElementImpl> elements =
+      _V1ProjectedNodeListImpl(elements2, V1Projection.toV1CollectionElement);
 
   @generated
   @override
@@ -29778,10 +38316,14 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
     required super.constKeyword,
     required super.typeArguments,
     required this.leftBracket,
-    required List<CollectionElementImpl> elements,
+    required List<CollectionElementImpl> elements2,
     required this.rightBracket,
   }) {
-    this.elements._initialize(this, elements);
+    this.elements2._initializeProjected(
+      this,
+      elements2,
+      V1Projection.toV1CollectionElement,
+    );
   }
 
   @generated
@@ -29819,7 +38361,22 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements2', elements2)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSetOrMapLiteral(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSetOrMapLiteral(this);
 
   void becomeMap() {
     assert(
@@ -29844,7 +38401,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return !identical(typeArguments, child);
   }
 
@@ -29855,9 +38412,9 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
       typeArguments = null;
       return;
     }
-    if (elements.containsChild(oldNode)) {
+    if (elements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'elements' because NodeList cannot be resized.",
+        "Cannot remove child 'elements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -29870,7 +38427,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
       typeArguments = newNode as TypeArgumentListImpl?;
       return;
     }
-    if (elements.replaceChild(oldNode, newNode)) {
+    if (elements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -29883,10 +38440,19 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    elements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -29895,22 +38461,23 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeArgumentListImpl)? visitTypeArguments,
-    void Function(NodeListImpl<CollectionElementImpl>)? visitElements,
+    void Function(NodeListImpl<CollectionElementImpl>)? visitElements2,
   }) {
     if (typeArguments case var typeArguments?) {
       if (visitTypeArguments != null) {
         visitTypeArguments(typeArguments);
       } else {
-        typeArguments.accept(visitor);
+        typeArguments.accept2(visitor);
       }
     }
-    if (visitElements != null) {
-      visitElements(elements);
+    if (visitElements2 != null) {
+      visitElements2(elements2);
     } else {
-      elements.accept(visitor);
+      elements2.accept2(visitor);
     }
   }
 
@@ -29923,6 +38490,21 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
       }
     }
     if (elements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (elements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -29985,12 +38567,24 @@ final class ShowCombinatorImpl extends CombinatorImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNodeList('shownNames', shownNames);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitShowCombinator(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitShowCombinator(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -30015,9 +38609,17 @@ final class ShowCombinatorImpl extends CombinatorImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     shownNames.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    shownNames.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -30026,20 +38628,31 @@ final class ShowCombinatorImpl extends CombinatorImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<SimpleIdentifierImpl>)? visitShownNames,
   }) {
     if (visitShownNames != null) {
       visitShownNames(shownNames);
     } else {
-      shownNames.accept(visitor);
+      shownNames.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (shownNames._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (shownNames._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -30101,6 +38714,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   final Token token;
 
+  AstNodeApi? _astNodeApiOverride;
+
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure hasn't been resolved or if
   /// this identifier couldn't be resolved.
@@ -30122,12 +38737,15 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   SimpleIdentifierImpl({required this.token});
 
+  SimpleIdentifierImpl.v1Projection({required this.token})
+    : _astNodeApiOverride = AstNodeApi.v1;
+
   /// The cascade that contains this [SimpleIdentifier].
   CascadeExpressionImpl? get ancestorCascade {
     var operatorType = token.previous?.type;
     if (operatorType == TokenType.PERIOD_PERIOD ||
         operatorType == TokenType.QUESTION_PERIOD_PERIOD) {
-      return thisOrAncestorOfType<CascadeExpressionImpl>();
+      return thisOrAncestorOfType2<CascadeExpressionImpl>();
     }
     return null;
   }
@@ -30146,7 +38764,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool get isQualified {
-    var parent = this.parent!;
+    var parent = parentInPrimaryView!;
     if (parent is PrefixedIdentifierImpl) {
       return identical(parent.identifier, this);
     } else if (parent is PropertyAccessImpl) {
@@ -30169,23 +38787,38 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   Precedence get precedence => Precedence.primary;
 
+  @DoNotGenerate(reason: 'Some instances are V1 compatibility projections')
+  @override
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
+
   @generated
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('token', token);
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('token', token);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleIdentifier(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSimpleIdentifier(this);
 
   @override
   bool inDeclarationContext() {
-    var parent = this.parent;
+    var parent = parentInPrimaryView;
     switch (parent) {
       case ImportDirectiveImpl():
         return parent.prefix == this;
       case LabelImpl():
-        var parent2 = parent.parent;
-        return parent2 is StatementImpl || parent2 is SwitchMemberImpl;
+        var grandParent = parent.parent2;
+        return grandParent is StatementImpl || grandParent is SwitchMemberImpl;
       default:
         break;
     }
@@ -30194,7 +38827,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inGetterContext() {
-    AstNode initialParent = this.parent!;
+    AstNode initialParent = parentInPrimaryView!;
     AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
@@ -30202,13 +38835,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       if (identical(initialParent.prefix, this)) {
         return true;
       }
-      parent = initialParent.parent!;
+      parent = initialParent.parent2!;
       target = initialParent;
     } else if (initialParent is PropertyAccess) {
-      if (identical(initialParent.target, this)) {
+      if (identical(initialParent.target2, this)) {
         return true;
       }
-      parent = initialParent.parent!;
+      parent = initialParent.parent2!;
       target = initialParent;
     }
     // skip label
@@ -30217,7 +38850,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     }
     // analyze usage
     if (parent is AssignmentExpression) {
-      if (identical(parent.leftHandSide, target) &&
+      if (identical(parent.leftHandSide2, target) &&
           parent.operator.type == TokenType.EQ) {
         return false;
       }
@@ -30236,7 +38869,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inSetterContext() {
-    AstNode initialParent = this.parent!;
+    AstNode initialParent = parentInPrimaryView!;
     AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
@@ -30245,13 +38878,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       if (identical(initialParent.prefix, this)) {
         return false;
       }
-      parent = initialParent.parent!;
+      parent = initialParent.parent2!;
       target = initialParent;
     } else if (initialParent is PropertyAccess) {
-      if (identical(initialParent.target, this)) {
+      if (identical(initialParent.target2, this)) {
         return false;
       }
-      parent = initialParent.parent!;
+      parent = initialParent.parent2!;
       target = initialParent;
     }
     // analyze usage
@@ -30260,7 +38893,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     } else if (parent is PostfixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is AssignmentExpression) {
-      return identical(parent.leftHandSide, target);
+      return identical(parent.leftHandSide2, target);
     } else if (parent is ForEachPartsWithIdentifier) {
       return identical(parent.identifier, target);
     }
@@ -30270,7 +38903,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -30281,16 +38914,29 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -30378,18 +39024,30 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
 
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('literal', literal);
+
   StringLexemeHelper get _helper {
     return StringLexemeHelper(literal.lexeme, true, true);
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleStringLiteral(this);
 
   @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitSimpleStringLiteral(this);
+
+  @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -30400,12 +39058,19 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @override
   void _appendStringValue(StringBuffer buffer) {
@@ -30415,6 +39080,12 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -30457,7 +39128,11 @@ sealed class SingleStringLiteralImpl extends StringLiteralImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SpreadElement implements CollectionElement {
   /// The expression used to compute the collection being spread.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// Whether this is a null-aware spread, as opposed to a non-null spread.
   bool get isNullAware;
@@ -30469,7 +39144,12 @@ abstract final class SpreadElement implements CollectionElement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('spreadOperator'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class SpreadElementImpl extends AstNodeImpl
@@ -30480,14 +39160,15 @@ final class SpreadElementImpl extends AstNodeImpl
   final Token spreadOperator;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   SpreadElementImpl({
     required this.spreadOperator,
-    required ExpressionImpl expression,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+    required ExpressionImpl expression2,
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -30499,16 +39180,24 @@ final class SpreadElementImpl extends AstNodeImpl
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -30523,20 +39212,32 @@ final class SpreadElementImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('spreadOperator', spreadOperator)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSpreadElement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSpreadElement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -30544,8 +39245,8 @@ final class SpreadElementImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -30561,9 +39262,17 @@ final class SpreadElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -30572,14 +39281,15 @@ final class SpreadElementImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -30588,6 +39298,15 @@ final class SpreadElementImpl extends AstNodeImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -30725,6 +39444,11 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   ChildEntities get _childEntities =>
       ChildEntities()..addNodeList('elements', elements);
 
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNodeList('elements', elements);
+
   StringLexemeHelper get _firstHelper {
     var lastString = elements.first as InterpolationString;
     String lexeme = lastString.contents.lexeme;
@@ -30732,13 +39456,20 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitStringInterpolation(this);
 
   @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitStringInterpolation(this);
+
+  @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -30769,9 +39500,17 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     elements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    elements.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -30780,14 +39519,15 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<InterpolationElementImpl>)? visitElements,
   }) {
     if (visitElements != null) {
       visitElements(elements);
     } else {
-      elements.accept(visitor);
+      elements.accept2(visitor);
     }
   }
 
@@ -30799,6 +39539,16 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (elements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (elements._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -30943,10 +39693,17 @@ abstract final class SuperConstructorInvocation
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
+  @ToBeDeprecated('Use constructorSelector instead.')
   SimpleIdentifier? get constructorName;
+
+  /// The selector of the constructor that is being invoked, or `null` if the
+  /// unnamed constructor is being invoked.
+  @experimental
+  ConstructorSelector? get constructorSelector;
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
+  @ToBeDeprecated('Use constructorSelector instead.')
   Token? get period;
 
   /// The token for the `super` keyword.
@@ -30956,8 +39713,7 @@ abstract final class SuperConstructorInvocation
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('superKeyword'),
-    GenerateNodeProperty('period'),
-    GenerateNodeProperty('constructorName'),
+    GenerateNodeProperty('constructorSelector'),
     GenerateNodeProperty('argumentList'),
   ],
 )
@@ -30968,28 +39724,25 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   final Token superKeyword;
 
   @generated
-  @override
-  final Token? period;
-
-  @generated
-  SimpleIdentifierImpl? _constructorName;
-
-  @generated
   ArgumentListImpl _argumentList;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  ConstructorSelectorImpl? _constructorSelector;
 
   @override
   InternalConstructorElement? element;
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   SuperConstructorInvocationImpl({
     required this.superKeyword,
-    required this.period,
-    required SimpleIdentifierImpl? constructorName,
+    required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
-  }) : _constructorName = constructorName,
+  }) : _constructorSelector = constructorSelector,
        _argumentList = argumentList {
-    _becomeParentOf(constructorName);
-    _becomeParentOf(argumentList);
+    constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
+    _becomeParentOf2(constructorSelector);
+    _becomeParentOf1(constructorSelector?.name);
+    _becomeParentOf12(argumentList);
   }
 
   @generated
@@ -30998,7 +39751,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @generated
   set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf(argumentList);
+    _argumentList = _becomeParentOf12(argumentList);
   }
 
   @generated
@@ -31007,13 +39760,18 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     return superKeyword;
   }
 
-  @generated
   @override
-  SimpleIdentifierImpl? get constructorName => _constructorName;
+  SimpleIdentifierImpl? get constructorName => constructorSelector?.name;
 
-  @generated
-  set constructorName(SimpleIdentifierImpl? constructorName) {
-    _constructorName = _becomeParentOf(constructorName);
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @override
+  ConstructorSelectorImpl? get constructorSelector => _constructorSelector;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
+    constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
+    _constructorSelector = _becomeParentOf2(constructorSelector);
+    _becomeParentOf1(constructorSelector?.name);
   }
 
   @generated
@@ -31022,7 +39780,10 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     return argumentList.endToken;
   }
 
-  @generated
+  @override
+  Token? get period => constructorSelector?.period;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('superKeyword', superKeyword)
@@ -31032,21 +39793,35 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('superKeyword', superKeyword)
+    ..addNode('constructorSelector', constructorSelector)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSuperConstructorInvocation(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSuperConstructorInvocation(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = null;
+    if (identical(constructorSelector, oldNode)) {
+      constructorSelector = null;
       return;
     }
     if (identical(argumentList, oldNode)) {
@@ -31058,8 +39833,8 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as SimpleIdentifierImpl?;
+    if (identical(constructorSelector, oldNode)) {
+      constructorSelector = newNode as ConstructorSelectorImpl?;
       return;
     }
     if (identical(argumentList, oldNode)) {
@@ -31069,11 +39844,20 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    constructorSelector?.accept2(visitor);
+    argumentList.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -31082,31 +39866,46 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(SimpleIdentifierImpl)? visitConstructorName,
+    AstVisitor2 visitor, {
+    void Function(ConstructorSelectorImpl)? visitConstructorSelector,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
-    if (constructorName case var constructorName?) {
-      if (visitConstructorName != null) {
-        visitConstructorName(constructorName);
+    if (constructorSelector case var constructorSelector?) {
+      if (visitConstructorSelector != null) {
+        visitConstructorSelector(constructorSelector);
       } else {
-        constructorName.accept(visitor);
+        constructorSelector.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
       visitArgumentList(argumentList);
     } else {
-      argumentList.accept(visitor);
+      argumentList.accept2(visitor);
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName case var constructorName?) {
       if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
         return constructorName;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (constructorSelector case var constructorSelector?) {
+      if (constructorSelector._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorSelector;
       }
     }
     if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
@@ -31158,12 +39957,23 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('superKeyword', superKeyword);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSuperExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -31174,16 +39984,29 @@ final class SuperExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -31308,13 +40131,33 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
+    ..addNode('type', type)
+    ..addToken('superKeyword', superKeyword)
+    ..addToken('period', period)
+    ..addToken('name', name)
+    ..addNode('functionTypedSuffix', functionTypedSuffix)
+    ..addNode('defaultClause', defaultClause);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSuperFormalParameter(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSuperFormalParameter(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -31354,10 +40197,24 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
-  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
+    type?.accept(visitor);
+    functionTypedSuffix?.accept(visitor);
+    defaultClause?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    functionTypedSuffix?.accept2(visitor);
+    defaultClause?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -31365,34 +40222,35 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
+  @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitType,
     void Function(FunctionTypedFormalParameterSuffixImpl)?
     visitFunctionTypedSuffix,
     void Function(FormalParameterDefaultClauseImpl)? visitDefaultClause,
   }) {
-    _visitCommentAndAnnotations(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
       } else {
-        type.accept(visitor);
+        type.accept2(visitor);
       }
     }
     if (functionTypedSuffix case var functionTypedSuffix?) {
       if (visitFunctionTypedSuffix != null) {
         visitFunctionTypedSuffix(functionTypedSuffix);
       } else {
-        functionTypedSuffix.accept(visitor);
+        functionTypedSuffix.accept2(visitor);
       }
     }
     if (defaultClause case var defaultClause?) {
       if (visitDefaultClause != null) {
         visitDefaultClause(defaultClause);
       } else {
-        defaultClause.accept(visitor);
+        defaultClause.accept2(visitor);
       }
     }
   }
@@ -31401,6 +40259,30 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (functionTypedSuffix._containsOffset(rangeOffset, rangeEnd)) {
+        return functionTypedSuffix;
+      }
+    }
+    if (defaultClause case var defaultClause?) {
+      if (defaultClause._containsOffset(rangeOffset, rangeEnd)) {
+        return defaultClause;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (type case var type?) {
@@ -31429,31 +40311,41 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchCase implements SwitchMember {
   /// The expression controlling whether the statements are executed.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('labels', isSuper: true),
     GenerateNodeProperty('keyword', isSuper: true),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('colon', isSuper: true),
     GenerateNodeProperty('statements', isSuper: true),
   ],
 )
 final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   SwitchCaseImpl({
     required super.labels,
     required super.keyword,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required super.colon,
     required super.statements,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -31475,12 +40367,20 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -31494,13 +40394,28 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNodeList('labels', labels)
+    ..addToken('keyword', keyword)
+    ..addNode('expression2', expression2)
+    ..addToken('colon', colon)
+    ..addNodeList('statements', statements);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchCase(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchCase(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
@@ -31511,8 +40426,8 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
         "Cannot remove child 'labels' because NodeList cannot be resized.",
       );
     }
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     if (statements.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -31528,8 +40443,8 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     if (labels.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     if (statements.replaceChild(oldNode, newNode)) {
@@ -31539,11 +40454,21 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     expression.accept(visitor);
     statements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    labels.accept2(visitor);
+    expression2.accept2(visitor);
+    statements.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -31552,26 +40477,27 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
-    void Function(ExpressionImpl)? visitExpression,
+    void Function(ExpressionImpl)? visitExpression2,
     void Function(NodeListImpl<StatementImpl>)? visitStatements,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
     } else {
-      labels.accept(visitor);
+      labels.accept2(visitor);
     }
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
     if (visitStatements != null) {
       visitStatements(statements);
     } else {
-      statements.accept(visitor);
+      statements.accept2(visitor);
     }
   }
 
@@ -31584,6 +40510,23 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     }
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (labels._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     if (statements._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
@@ -31646,12 +40589,26 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNodeList('labels', labels)
+    ..addToken('keyword', keyword)
+    ..addToken('colon', colon)
+    ..addNodeList('statements', statements);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchDefault(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchDefault(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -31684,10 +40641,19 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     statements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    labels.accept2(visitor);
+    statements.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -31696,26 +40662,41 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
     void Function(NodeListImpl<StatementImpl>)? visitStatements,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
     } else {
-      labels.accept(visitor);
+      labels.accept2(visitor);
     }
     if (visitStatements != null) {
       visitStatements(statements);
     } else {
-      statements.accept(visitor);
+      statements.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (labels._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -31739,7 +40720,11 @@ abstract final class SwitchExpression implements Expression {
   NodeList<SwitchExpressionCase> get cases;
 
   /// The expression used to determine which of the switch cases is selected.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The left curly bracket.
   Token get leftBracket;
@@ -31768,9 +40753,13 @@ abstract final class SwitchExpressionCase implements AstNode {
 
   /// The expression whose value is returned from the switch expression if the
   /// pattern matches.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
 
-  /// The refutable pattern that must match for the [expression] to be executed.
+  @experimental
+  Expression get expression2;
+
+  /// The refutable pattern that must match for the [expression2] to be executed.
   GuardedPattern get guardedPattern;
 }
 
@@ -31778,7 +40767,12 @@ abstract final class SwitchExpressionCase implements AstNode {
   childEntitiesOrder: [
     GenerateNodeProperty('guardedPattern'),
     GenerateNodeProperty('arrow'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class SwitchExpressionCaseImpl extends AstNodeImpl
@@ -31792,17 +40786,18 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   final Token arrow;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   SwitchExpressionCaseImpl({
     required GuardedPatternImpl guardedPattern,
     required this.arrow,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
   }) : _guardedPattern = guardedPattern,
-       _expression = expression {
-    _becomeParentOf(guardedPattern);
-    _becomeParentOf(expression);
+       _expression2 = expression2 {
+    _becomeParentOf12(guardedPattern);
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -31814,16 +40809,24 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -31832,7 +40835,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
 
   @generated
   set guardedPattern(GuardedPatternImpl guardedPattern) {
-    _guardedPattern = _becomeParentOf(guardedPattern);
+    _guardedPattern = _becomeParentOf12(guardedPattern);
   }
 
   @generated
@@ -31844,14 +40847,28 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('guardedPattern', guardedPattern)
+    ..addToken('arrow', arrow)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSwitchExpressionCase(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSwitchExpressionCase(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
@@ -31860,8 +40877,8 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
     if (identical(guardedPattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'guardedPattern'.");
     }
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -31873,18 +40890,27 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
       guardedPattern = newNode as GuardedPatternImpl;
       return;
     }
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    guardedPattern.accept2(visitor);
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -31893,20 +40919,21 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(GuardedPatternImpl)? visitGuardedPattern,
-    void Function(ExpressionImpl)? visitExpression,
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
     if (visitGuardedPattern != null) {
       visitGuardedPattern(guardedPattern);
     } else {
-      guardedPattern.accept(visitor);
+      guardedPattern.accept2(visitor);
     }
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -31921,13 +40948,30 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
+      return guardedPattern;
+    }
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
+    }
+    return null;
+  }
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('switchKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('cases'),
@@ -31945,7 +40989,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -31967,13 +41011,14 @@ final class SwitchExpressionImpl extends ExpressionImpl
   SwitchExpressionImpl({
     required this.switchKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.rightParenthesis,
     required this.leftBracket,
     required List<SwitchExpressionCaseImpl> cases,
     required this.rightBracket,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
     this.cases._initialize(this, cases);
   }
 
@@ -31990,12 +41035,20 @@ final class SwitchExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -32014,20 +41067,37 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('switchKeyword', switchKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression2', expression2)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('cases', cases)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     if (cases.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -32040,8 +41110,8 @@ final class SwitchExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     if (cases.replaceChild(oldNode, newNode)) {
@@ -32057,10 +41127,19 @@ final class SwitchExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     cases.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
+    cases.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -32069,20 +41148,21 @@ final class SwitchExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
     void Function(NodeListImpl<SwitchExpressionCaseImpl>)? visitCases,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
     if (visitCases != null) {
       visitCases(cases);
     } else {
-      cases.accept(visitor);
+      cases.accept2(visitor);
     }
   }
 
@@ -32091,6 +41171,18 @@ final class SwitchExpressionImpl extends ExpressionImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    if (cases._elementContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     if (cases._elementContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
@@ -32211,7 +41303,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     required super.colon,
     required super.statements,
   }) : _guardedPattern = guardedPattern {
-    _becomeParentOf(guardedPattern);
+    _becomeParentOf12(guardedPattern);
   }
 
   @generated
@@ -32238,7 +41330,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 
   @generated
   set guardedPattern(GuardedPatternImpl guardedPattern) {
-    _guardedPattern = _becomeParentOf(guardedPattern);
+    _guardedPattern = _becomeParentOf12(guardedPattern);
   }
 
   @generated
@@ -32252,12 +41344,27 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNodeList('labels', labels)
+    ..addToken('keyword', keyword)
+    ..addNode('guardedPattern', guardedPattern)
+    ..addToken('colon', colon)
+    ..addNodeList('statements', statements);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchPatternCase(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchPatternCase(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -32297,11 +41404,21 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     guardedPattern.accept(visitor);
     statements.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    labels.accept2(visitor);
+    guardedPattern.accept2(visitor);
+    statements.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -32310,8 +41427,9 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
     void Function(GuardedPatternImpl)? visitGuardedPattern,
     void Function(NodeListImpl<StatementImpl>)? visitStatements,
@@ -32319,23 +41437,40 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     if (visitLabels != null) {
       visitLabels(labels);
     } else {
-      labels.accept(visitor);
+      labels.accept2(visitor);
     }
     if (visitGuardedPattern != null) {
       visitGuardedPattern(guardedPattern);
     } else {
-      guardedPattern.accept(visitor);
+      guardedPattern.accept2(visitor);
     }
     if (visitStatements != null) {
       visitStatements(statements);
     } else {
-      statements.accept(visitor);
+      statements.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (labels._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
+      return guardedPattern;
+    }
+    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -32358,7 +41493,11 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchStatement implements Statement {
   /// The expression used to determine which of the switch members is selected.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The left curly bracket.
   Token get leftBracket;
@@ -32397,7 +41536,12 @@ class SwitchStatementCaseGroup {
   childEntitiesOrder: [
     GenerateNodeProperty('switchKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('members'),
@@ -32415,7 +41559,7 @@ final class SwitchStatementImpl extends StatementImpl
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -32440,13 +41584,14 @@ final class SwitchStatementImpl extends StatementImpl
   SwitchStatementImpl({
     required this.switchKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.rightParenthesis,
     required this.leftBracket,
     required List<SwitchMemberImpl> members,
     required this.rightBracket,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
     this.members._initialize(this, members);
   }
 
@@ -32463,12 +41608,20 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -32484,20 +41637,37 @@ final class SwitchStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('switchKeyword', switchKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression2', expression2)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(expression, child);
+    assert(identical(child.parent2, this));
+    return identical(expression2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     if (members.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -32510,8 +41680,8 @@ final class SwitchStatementImpl extends StatementImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     if (members.replaceChild(oldNode, newNode)) {
@@ -32521,10 +41691,19 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     members.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
+    members.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -32533,20 +41712,21 @@ final class SwitchStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
     void Function(NodeListImpl<SwitchMemberImpl>)? visitMembers,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
     if (visitMembers != null) {
       visitMembers(members);
     } else {
-      members.accept(visitor);
+      members.accept2(visitor);
     }
   }
 
@@ -32555,6 +41735,19 @@ final class SwitchStatementImpl extends StatementImpl
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     if (members._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
@@ -32634,12 +41827,24 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('poundSign', poundSign)
+    ..addTokenList('components', components);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSymbolLiteral(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -32650,16 +41855,29 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -32722,12 +41940,23 @@ final class ThisExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('thisKeyword', thisKeyword);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitThisExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -32738,16 +41967,29 @@ final class ThisExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
   /// Visits the children of this node.
   @generated
-  void visitChildrenWithHooks(AstVisitor visitor) {}
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -32759,7 +42001,11 @@ final class ThisExpressionImpl extends ExpressionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ThrowExpression implements Expression {
   /// The expression computing the exception to be thrown.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The token representing the `throw` keyword.
   Token get throwKeyword;
@@ -32768,7 +42014,12 @@ abstract final class ThrowExpression implements Expression {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('throwKeyword'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ThrowExpressionImpl extends ExpressionImpl
@@ -32778,14 +42029,15 @@ final class ThrowExpressionImpl extends ExpressionImpl
   final Token throwKeyword;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   ThrowExpressionImpl({
     required this.throwKeyword,
-    required ExpressionImpl expression,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+    required ExpressionImpl expression2,
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -32797,16 +42049,24 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @override
@@ -32820,20 +42080,32 @@ final class ThrowExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('throwKeyword', throwKeyword)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitThrowExpression(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -32841,8 +42113,8 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -32855,9 +42127,17 @@ final class ThrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -32866,14 +42146,15 @@ final class ThrowExpressionImpl extends ExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -32885,6 +42166,25 @@ final class ThrowExpressionImpl extends ExpressionImpl
     }
     return null;
   }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
+    }
+    return null;
+  }
+}
+
+/// Marks an API that should become deprecated once its replacement is ready for
+/// public migration guidance.
+final class ToBeDeprecated {
+  /// An optional note for maintainers.
+  final String message;
+
+  /// Creates a marker for an API that will be deprecated later.
+  const ToBeDeprecated([this.message = '']);
 }
 
 /// The declaration of one or more top-level variables of the same type.
@@ -32958,7 +42258,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     required VariableDeclarationListImpl variables,
     required this.semicolon,
   }) : _variables = variables {
-    _becomeParentOf(variables);
+    _becomeParentOf12(variables);
   }
 
   @override
@@ -32991,7 +42291,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set variables(VariableDeclarationListImpl variables) {
-    _variables = _becomeParentOf(variables);
+    _variables = _becomeParentOf12(variables);
   }
 
   @generated
@@ -33005,13 +42305,29 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addNode('variables', variables)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitTopLevelVariableDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitTopLevelVariableDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -33035,10 +42351,19 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     variables.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    variables.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -33047,15 +42372,16 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(VariableDeclarationListImpl)? visitVariables,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (visitVariables != null) {
       visitVariables(variables);
     } else {
-      variables.accept(visitor);
+      variables.accept2(visitor);
     }
   }
 
@@ -33063,6 +42389,18 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (variables._containsOffset(rangeOffset, rangeEnd)) {
+      return variables;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
@@ -33136,9 +42474,9 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
     required BlockImpl? finallyBlock,
   }) : _body = body,
        _finallyBlock = finallyBlock {
-    _becomeParentOf(body);
+    _becomeParentOf12(body);
     this.catchClauses._initialize(this, catchClauses);
-    _becomeParentOf(finallyBlock);
+    _becomeParentOf12(finallyBlock);
   }
 
   @generated
@@ -33153,7 +42491,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @generated
   set body(BlockImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
@@ -33177,7 +42515,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @generated
   set finallyBlock(BlockImpl? finallyBlock) {
-    _finallyBlock = _becomeParentOf(finallyBlock);
+    _finallyBlock = _becomeParentOf12(finallyBlock);
   }
 
   @generated
@@ -33191,12 +42529,27 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('tryKeyword', tryKeyword)
+    ..addNode('body', body)
+    ..addNodeList('catchClauses', catchClauses)
+    ..addToken('finallyKeyword', finallyKeyword)
+    ..addNode('finallyBlock', finallyBlock);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTryStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTryStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -33236,11 +42589,21 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     body.accept(visitor);
     catchClauses.accept(visitor);
     finallyBlock?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    body.accept2(visitor);
+    catchClauses.accept2(visitor);
+    finallyBlock?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -33249,8 +42612,9 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(BlockImpl)? visitBody,
     void Function(NodeListImpl<CatchClauseImpl>)? visitCatchClauses,
     void Function(BlockImpl)? visitFinallyBlock,
@@ -33258,18 +42622,18 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
     if (visitCatchClauses != null) {
       visitCatchClauses(catchClauses);
     } else {
-      catchClauses.accept(visitor);
+      catchClauses.accept2(visitor);
     }
     if (finallyBlock case var finallyBlock?) {
       if (visitFinallyBlock != null) {
         visitFinallyBlock(finallyBlock);
       } else {
-        finallyBlock.accept(visitor);
+        finallyBlock.accept2(visitor);
       }
     }
   }
@@ -33277,6 +42641,24 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    if (catchClauses._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (finallyBlock case var finallyBlock?) {
+      if (finallyBlock._containsOffset(rangeOffset, rangeEnd)) {
+        return finallyBlock;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (body._containsOffset(rangeOffset, rangeEnd)) {
       return body;
     }
@@ -33438,12 +42820,25 @@ final class TypeArgumentListImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('arguments', arguments)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeArgumentList(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTypeArgumentList(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -33468,9 +42863,17 @@ final class TypeArgumentListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     arguments.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    arguments.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -33479,20 +42882,31 @@ final class TypeArgumentListImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<TypeAnnotationImpl>)? visitArguments,
   }) {
     if (visitArguments != null) {
       visitArguments(arguments);
     } else {
-      arguments.accept(visitor);
+      arguments.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (arguments._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (arguments._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -33539,7 +42953,7 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     required this.constKeyword,
     required TypeArgumentListImpl? typeArguments,
   }) : _typeArguments = typeArguments {
-    _becomeParentOf(_typeArguments);
+    _becomeParentOf12(_typeArguments);
   }
 
   @override
@@ -33562,7 +42976,7 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
+    _typeArguments = _becomeParentOf12(typeArguments);
   }
 
   @override
@@ -33570,6 +42984,7 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     ..addToken('constKeyword', constKeyword)
     ..addNode('typeArguments', typeArguments);
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _typeArguments?.accept(visitor);
@@ -33609,7 +43024,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @generated
   TypeLiteralImpl({required NamedTypeImpl type}) : _type = type {
-    _becomeParentOf(type);
+    _becomeParentOf12(type);
   }
 
   @generated
@@ -33641,7 +43056,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @generated
   set type(NamedTypeImpl type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -33650,12 +43065,22 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()..addNode('type', type);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTypeLiteral(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -33685,9 +43110,17 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    type.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -33696,20 +43129,30 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NamedTypeImpl)? visitType,
   }) {
     if (visitType != null) {
       visitType(type);
     } else {
-      type.accept(visitor);
+      type.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
       return type;
     }
@@ -33778,7 +43221,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     required this.extendsKeyword,
     required TypeAnnotationImpl? bound,
   }) : _bound = bound {
-    _becomeParentOf(bound);
+    _becomeParentOf12(bound);
   }
 
   @generated
@@ -33787,7 +43230,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @generated
   set bound(TypeAnnotationImpl? bound) {
-    _bound = _becomeParentOf(bound);
+    _bound = _becomeParentOf12(bound);
   }
 
   @generated
@@ -33821,12 +43264,26 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('varianceKeyword', varianceKeyword)
+    ..addToken('name', name)
+    ..addToken('extendsKeyword', extendsKeyword)
+    ..addNode('bound', bound);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameter(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTypeParameter(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -33851,10 +43308,19 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     bound?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    bound?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -33863,16 +43329,17 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitBound,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (bound case var bound?) {
       if (visitBound != null) {
         visitBound(bound);
       } else {
-        bound.accept(visitor);
+        bound.accept2(visitor);
       }
     }
   }
@@ -33881,6 +43348,20 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (bound case var bound?) {
+      if (bound._containsOffset(rangeOffset, rangeEnd)) {
+        return bound;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (bound case var bound?) {
@@ -33959,12 +43440,25 @@ final class TypeParameterListImpl extends AstNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('typeParameters', typeParameters)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameterList(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTypeParameterList(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -33989,9 +43483,17 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeParameters.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -34000,20 +43502,31 @@ final class TypeParameterListImpl extends AstNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<TypeParameterImpl>)? visitTypeParameters,
   }) {
     if (visitTypeParameters != null) {
       visitTypeParameters(typeParameters);
     } else {
-      typeParameters.accept(visitor);
+      typeParameters.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (typeParameters._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -34048,14 +43561,14 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
     required super.metadata,
     required StringLiteralImpl uri,
   }) : _uri = uri {
-    _becomeParentOf(_uri);
+    _becomeParentOf12(_uri);
   }
 
   @override
   StringLiteralImpl get uri => _uri;
 
   set uri(StringLiteralImpl uri) {
-    _uri = _becomeParentOf(uri);
+    _uri = _becomeParentOf12(uri);
   }
 
   @override
@@ -34119,6 +43632,68 @@ class UriValidationCode {
   String toString() => name;
 }
 
+/// The kind of V1 view projection generated for a child property.
+enum V1Projection {
+  /// No projection is needed.
+  none,
+
+  /// Project an [ArgumentImpl] child to the V1 argument view.
+  argument,
+
+  /// Project a [CollectionElementImpl] child to the V1 collection view.
+  collectionElement,
+
+  /// Project a [CommentReferableExpressionImpl] child to its V1 view.
+  commentReferableExpression,
+
+  /// Project an [ExpressionImpl] child to the V1 expression view.
+  expression,
+
+  /// Project a [RecordLiteralFieldImpl] child to the V1 record view.
+  recordLiteralField;
+
+  static ArgumentImpl toV1Argument(ArgumentImpl node) {
+    if (node is ExpressionImpl) {
+      return toV1Expression(node);
+    }
+    return node;
+  }
+
+  static CollectionElementImpl toV1CollectionElement(
+    CollectionElementImpl node,
+  ) {
+    if (node is ExpressionImpl) {
+      return toV1Expression(node);
+    }
+    return node;
+  }
+
+  static CommentReferableExpressionImpl toV1CommentReferableExpression(
+    CommentReferableExpressionImpl node,
+  ) {
+    return toV1Expression(node) as CommentReferableExpressionImpl;
+  }
+
+  static ExpressionImpl toV1Expression(ExpressionImpl node) {
+    if (node is ConstructorInvocationImpl) {
+      return node.instanceCreationExpression;
+    }
+    if (node is ConstructorTearOffImpl) {
+      return node.constructorReference;
+    }
+    return node;
+  }
+
+  static RecordLiteralFieldImpl toV1RecordLiteralField(
+    RecordLiteralFieldImpl node,
+  ) {
+    if (node is ExpressionImpl) {
+      return toV1Expression(node);
+    }
+    return node;
+  }
+}
+
 /// An identifier that has an initial value associated with it.
 ///
 /// Instances of this class are always children of the class
@@ -34149,7 +43724,11 @@ abstract final class VariableDeclaration implements Declaration {
 
   /// The expression used to compute the initial value for the variable, or
   /// `null` if the initial value isn't specified.
+  @ToBeDeprecated('Use initializer2 instead.')
   Expression? get initializer;
+
+  @experimental
+  Expression? get initializer2;
 
   /// Whether this variable was declared with the 'const' modifier.
   bool get isConst;
@@ -34171,7 +43750,12 @@ abstract final class VariableDeclaration implements Declaration {
   childEntitiesOrder: [
     GenerateNodeProperty('name'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty('initializer', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'initializer2',
+      v1Name: 'initializer',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class VariableDeclarationImpl extends DeclarationImpl
@@ -34185,7 +43769,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   final Token? equals;
 
   @generated
-  ExpressionImpl? _initializer;
+  ExpressionImpl? _initializer2;
 
   @override
   VariableFragmentImpl? declaredFragment;
@@ -34196,9 +43780,9 @@ final class VariableDeclarationImpl extends DeclarationImpl
   Scope? initializerScope;
 
   /// When this node is read as a part of summaries, we usually don't want
-  /// to read the [initializer], but we need to know if there is one in
+  /// to read the [initializer2], but we need to know if there is one in
   /// the code. So, this flag might be set to `true` even though
-  /// [initializer] is `null`.
+  /// [initializer2] is `null`.
   bool hasInitializer = false;
 
   @generated
@@ -34207,9 +43791,13 @@ final class VariableDeclarationImpl extends DeclarationImpl
     required super.metadata,
     required this.name,
     required this.equals,
-    required ExpressionImpl? initializer,
-  }) : _initializer = initializer {
-    _becomeParentOf(initializer);
+    required ExpressionImpl? initializer2,
+  }) : _initializer2 = initializer2 {
+    _becomeParentOf2(initializer2);
+    _becomeParentOf1(switch (initializer2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   /// This overridden implementation of [documentationComment] looks in the
@@ -34219,7 +43807,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   CommentImpl? get documentationComment {
     var comment = super.documentationComment;
     if (comment == null) {
-      var node = parent?.parent;
+      var node = parent2?.parent2;
       if (node is AnnotatedNodeImpl) {
         return node.documentationComment;
       }
@@ -34230,8 +43818,8 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @generated
   @override
   Token get endToken {
-    if (initializer case var initializer?) {
-      return initializer.endToken;
+    if (initializer2 case var initializer2?) {
+      return initializer2.endToken;
     }
     if (equals case var equals?) {
       return equals;
@@ -34246,29 +43834,43 @@ final class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use initializer2 instead.')
   @override
-  ExpressionImpl? get initializer => _initializer;
+  ExpressionImpl? get initializer => switch (initializer2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
   @generated
-  set initializer(ExpressionImpl? initializer) {
-    _initializer = _becomeParentOf(initializer);
+  @experimental
+  @override
+  ExpressionImpl? get initializer2 => _initializer2;
+
+  @generated
+  @experimental
+  set initializer2(ExpressionImpl? initializer2) {
+    _initializer2 = _becomeParentOf2(initializer2);
+    _becomeParentOf1(switch (initializer2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @override
   bool get isConst {
-    var parent = this.parent;
+    var parent = parent2;
     return parent is VariableDeclarationListImpl && parent.isConst;
   }
 
   @override
   bool get isFinal {
-    var parent = this.parent;
+    var parent = parent2;
     return parent is VariableDeclarationListImpl && parent.isFinal;
   }
 
   @override
   bool get isLate {
-    var parent = this.parent;
+    var parent = parent2;
     return parent is VariableDeclarationListImpl && parent.isLate;
   }
 
@@ -34281,20 +43883,34 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('name', name)
+    ..addToken('equals', equals)
+    ..addNode('initializer2', initializer2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariableDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitVariableDeclaration(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(initializer, oldNode)) {
-      initializer = null;
+    if (identical(initializer2, oldNode)) {
+      initializer2 = null;
       return;
     }
     super.removeChild(oldNode);
@@ -34303,18 +43919,27 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(initializer, oldNode)) {
-      initializer = newNode as ExpressionImpl?;
+    if (identical(initializer2, oldNode)) {
+      initializer2 = newNode as ExpressionImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     initializer?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    initializer2?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -34323,16 +43948,17 @@ final class VariableDeclarationImpl extends DeclarationImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitInitializer,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitInitializer2,
   }) {
-    super.visitChildren(visitor);
-    if (initializer case var initializer?) {
-      if (visitInitializer != null) {
-        visitInitializer(initializer);
+    _visitCommentAndAnnotations2(visitor);
+    if (initializer2 case var initializer2?) {
+      if (visitInitializer2 != null) {
+        visitInitializer2(initializer2);
       } else {
-        initializer.accept(visitor);
+        initializer2.accept2(visitor);
       }
     }
   }
@@ -34346,6 +43972,20 @@ final class VariableDeclarationImpl extends DeclarationImpl
     if (initializer case var initializer?) {
       if (initializer._containsOffset(rangeOffset, rangeEnd)) {
         return initializer;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (initializer2 case var initializer2?) {
+      if (initializer2._containsOffset(rangeOffset, rangeEnd)) {
+        return initializer2;
       }
     }
     return null;
@@ -34430,7 +44070,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
     required TypeAnnotationImpl? type,
     required List<VariableDeclarationImpl> variables,
   }) : _type = type {
-    _becomeParentOf(type);
+    _becomeParentOf12(type);
     this.variables._initialize(this, variables);
   }
 
@@ -34485,7 +44125,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @generated
   set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -34498,13 +44138,28 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('lateKeyword', lateKeyword)
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addNodeList('variables', variables);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitVariableDeclarationList(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitVariableDeclarationList(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -34537,11 +44192,21 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     type?.accept(visitor);
     variables.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    variables.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -34550,23 +44215,24 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitType,
     void Function(NodeListImpl<VariableDeclarationImpl>)? visitVariables,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations2(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
       } else {
-        type.accept(visitor);
+        type.accept2(visitor);
       }
     }
     if (visitVariables != null) {
       visitVariables(variables);
     } else {
-      variables.accept(visitor);
+      variables.accept2(visitor);
     }
   }
 
@@ -34574,6 +44240,24 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (variables._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     if (type case var type?) {
@@ -34623,7 +44307,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
     required VariableDeclarationListImpl variables,
     required this.semicolon,
   }) : _variables = variables {
-    _becomeParentOf(variables);
+    _becomeParentOf12(variables);
   }
 
   @generated
@@ -34644,7 +44328,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   set variables(VariableDeclarationListImpl variables) {
-    _variables = _becomeParentOf(variables);
+    _variables = _becomeParentOf12(variables);
   }
 
   @generated
@@ -34655,13 +44339,26 @@ final class VariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('variables', variables)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitVariableDeclarationStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitVariableDeclarationStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -34685,9 +44382,17 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    variables.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -34696,20 +44401,30 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(VariableDeclarationListImpl)? visitVariables,
   }) {
     if (visitVariables != null) {
       visitVariables(variables);
     } else {
-      variables.accept(visitor);
+      variables.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (variables._containsOffset(rangeOffset, rangeEnd)) {
+      return variables;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
       return variables;
     }
@@ -34749,7 +44464,11 @@ sealed class VariablePatternImpl extends DartPatternImpl
 abstract final class WhenClause implements AstNode {
   /// The condition that is evaluated when the pattern matches, that must
   /// evaluate to `true` in order for the [expression] to be executed.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The `when` keyword.
   Token get whenKeyword;
@@ -34758,7 +44477,12 @@ abstract final class WhenClause implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('whenKeyword'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
@@ -34767,14 +44491,15 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   final Token whenKeyword;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   WhenClauseImpl({
     required this.whenKeyword,
-    required ExpressionImpl expression,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+    required ExpressionImpl expression2,
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -34786,16 +44511,24 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return expression2.endToken;
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -34806,20 +44539,32 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('whenKeyword', whenKeyword)
+    ..addNode('expression2', expression2);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhenClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWhenClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -34827,17 +44572,25 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -34846,14 +44599,15 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -34862,6 +44616,15 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -34877,7 +44640,11 @@ abstract final class WhileStatement implements Statement {
   Statement get body;
 
   /// The expression used to determine whether to execute the body of the loop.
+  @ToBeDeprecated('Use condition2 instead.')
   Expression get condition;
+
+  @experimental
+  Expression get condition2;
 
   /// The left parenthesis.
   Token get leftParenthesis;
@@ -34893,7 +44660,12 @@ abstract final class WhileStatement implements Statement {
   childEntitiesOrder: [
     GenerateNodeProperty('whileKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'condition2',
+      v1Name: 'condition',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('body'),
   ],
@@ -34908,7 +44680,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   final Token leftParenthesis;
 
   @generated
-  ExpressionImpl _condition;
+  ExpressionImpl _condition2;
 
   @generated
   @override
@@ -34921,13 +44693,14 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   WhileStatementImpl({
     required this.whileKeyword,
     required this.leftParenthesis,
-    required ExpressionImpl condition,
+    required ExpressionImpl condition2,
     required this.rightParenthesis,
     required StatementImpl body,
-  }) : _condition = condition,
+  }) : _condition2 = condition2,
        _body = body {
-    _becomeParentOf(condition);
-    _becomeParentOf(body);
+    _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _becomeParentOf12(body);
   }
 
   @generated
@@ -34942,16 +44715,24 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
 
   @generated
   set body(StatementImpl body) {
-    _body = _becomeParentOf(body);
+    _body = _becomeParentOf12(body);
   }
 
   @generated
+  @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
 
   @generated
-  set condition(ExpressionImpl condition) {
-    _condition = _becomeParentOf(condition);
+  @experimental
+  @override
+  ExpressionImpl get condition2 => _condition2;
+
+  @generated
+  @experimental
+  set condition2(ExpressionImpl condition2) {
+    _condition2 = _becomeParentOf2(condition2);
+    _becomeParentOf1(V1Projection.toV1Expression(condition2));
   }
 
   @generated
@@ -34971,20 +44752,35 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('whileKeyword', whileKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('condition2', condition2)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhileStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWhileStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(condition, child);
+    assert(identical(child.parent2, this));
+    return identical(condition2, child);
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(condition, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'condition'.");
+    if (identical(condition2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'condition2'.");
     }
     if (identical(body, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'body'.");
@@ -34995,8 +44791,8 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(condition, oldNode)) {
-      condition = newNode as ExpressionImpl;
+    if (identical(condition2, oldNode)) {
+      condition2 = newNode as ExpressionImpl;
       return;
     }
     if (identical(body, oldNode)) {
@@ -35007,10 +44803,19 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
     body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    condition2.accept2(visitor);
+    body.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -35019,20 +44824,21 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitCondition,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitCondition2,
     void Function(StatementImpl)? visitBody,
   }) {
-    if (visitCondition != null) {
-      visitCondition(condition);
+    if (visitCondition2 != null) {
+      visitCondition2(condition2);
     } else {
-      condition.accept(visitor);
+      condition2.accept2(visitor);
     }
     if (visitBody != null) {
       visitBody(body);
     } else {
-      body.accept(visitor);
+      body.accept2(visitor);
     }
   }
 
@@ -35041,6 +44847,18 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
       return condition;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (condition2._containsOffset(rangeOffset, rangeEnd)) {
+      return condition2;
     }
     if (body._containsOffset(rangeOffset, rangeEnd)) {
       return body;
@@ -35092,7 +44910,7 @@ final class WildcardPatternImpl extends DartPatternImpl
     required TypeAnnotationImpl? type,
     required this.name,
   }) : _type = type {
-    _becomeParentOf(type);
+    _becomeParentOf12(type);
   }
 
   @generated
@@ -35131,7 +44949,7 @@ final class WildcardPatternImpl extends DartPatternImpl
 
   @generated
   set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf(type);
+    _type = _becomeParentOf12(type);
   }
 
   @generated
@@ -35143,7 +44961,20 @@ final class WildcardPatternImpl extends DartPatternImpl
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWildcardPattern(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWildcardPattern(this);
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
@@ -35157,7 +44988,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -35206,9 +45037,17 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    type?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -35217,15 +45056,16 @@ final class WildcardPatternImpl extends DartPatternImpl
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitType,
   }) {
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
       } else {
-        type.accept(visitor);
+        type.accept2(visitor);
       }
     }
   }
@@ -35233,6 +45073,17 @@ final class WildcardPatternImpl extends DartPatternImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (type case var type?) {
       if (type._containsOffset(rangeOffset, rangeEnd)) {
         return type;
@@ -35301,12 +45152,24 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('withKeyword', withKeyword)
+    ..addNodeList('mixinTypes', mixinTypes);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWithClause(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWithClause(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return false;
   }
 
@@ -35331,9 +45194,17 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     mixinTypes.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    mixinTypes.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -35342,20 +45213,31 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
+    AstVisitor2 visitor, {
     void Function(NodeListImpl<NamedTypeImpl>)? visitMixinTypes,
   }) {
     if (visitMixinTypes != null) {
       visitMixinTypes(mixinTypes);
     } else {
-      mixinTypes.accept(visitor);
+      mixinTypes.accept2(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (mixinTypes._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (mixinTypes._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -35371,7 +45253,11 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class YieldStatement implements Statement {
   /// The expression whose value is yielded.
+  @ToBeDeprecated('Use expression2 instead.')
   Expression get expression;
+
+  @experimental
+  Expression get expression2;
 
   /// The semicolon following the expression.
   Token get semicolon;
@@ -35387,7 +45273,12 @@ abstract final class YieldStatement implements Statement {
   childEntitiesOrder: [
     GenerateNodeProperty('yieldKeyword'),
     GenerateNodeProperty('star'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty(
+      'expression2',
+      v1Name: 'expression',
+      v1Projection: V1Projection.expression,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -35401,7 +45292,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   final Token? star;
 
   @generated
-  ExpressionImpl _expression;
+  ExpressionImpl _expression2;
 
   @generated
   @override
@@ -35411,10 +45302,11 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   YieldStatementImpl({
     required this.yieldKeyword,
     required this.star,
-    required ExpressionImpl expression,
+    required ExpressionImpl expression2,
     required this.semicolon,
-  }) : _expression = expression {
-    _becomeParentOf(expression);
+  }) : _expression2 = expression2 {
+    _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -35430,12 +45322,20 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => _expression;
+  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
 
   @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
+  @experimental
+  @override
+  ExpressionImpl get expression2 => _expression2;
+
+  @generated
+  @experimental
+  set expression2(ExpressionImpl expression2) {
+    _expression2 = _becomeParentOf2(expression2);
+    _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
   @generated
@@ -35448,20 +45348,34 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
 
   @generated
   @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('yieldKeyword', yieldKeyword)
+    ..addToken('star', star)
+    ..addNode('expression2', expression2)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitYieldStatement(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitYieldStatement(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
+    assert(identical(child.parent2, this));
     return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression'.");
+    if (identical(expression2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
     super.removeChild(oldNode);
   }
@@ -35469,17 +45383,25 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression, oldNode)) {
-      expression = newNode as ExpressionImpl;
+    if (identical(expression2, oldNode)) {
+      expression2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -35488,14 +45410,15 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
   @generated
+  @experimental
   void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(ExpressionImpl)? visitExpression,
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitExpression != null) {
-      visitExpression(expression);
+    if (visitExpression2 != null) {
+      visitExpression2(expression2);
     } else {
-      expression.accept(visitor);
+      expression2.accept2(visitor);
     }
   }
 
@@ -35504,6 +45427,15 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
+      return expression2;
     }
     return null;
   }
@@ -35529,7 +45461,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   CommentImpl? get documentationComment => _documentationComment;
 
   set documentationComment(CommentImpl? comment) {
-    _documentationComment = _becomeParentOf(comment);
+    _documentationComment = _becomeParentOf12(comment);
   }
 
   /// The first token following the comment and metadata.
@@ -35548,6 +45480,14 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   @override
   @mustCallSuper
   ChildEntities get _childEntities {
+    return ChildEntities()
+      ..addNode('documentationComment', _documentationComment)
+      ..addNodeList('metadata', metadata);
+  }
+
+  @override
+  @mustCallSuper
+  ChildEntities get _childEntities2 {
     return ChildEntities()
       ..addNode('documentationComment', _documentationComment)
       ..addNodeList('metadata', metadata);
@@ -35598,7 +45538,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
     CommentImpl? comment,
     List<AnnotationImpl>? metadata,
   ) {
-    _documentationComment = _becomeParentOf(comment);
+    _documentationComment = _becomeParentOf12(comment);
     _metadata._initialize(this, metadata);
   }
 
@@ -35606,6 +45546,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   /// [metadata] (if any).
   ///
   /// Intended to be called from the [AstNode.visitChildren] method.
+  @ToBeDeprecated('Use _visitCommentAndAnnotations2 instead.')
   void _visitCommentAndAnnotations(AstVisitor<dynamic> visitor) {
     if (_commentIsBeforeAnnotations()) {
       _documentationComment?.accept(visitor);
@@ -35617,6 +45558,149 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
         children[i].accept(visitor);
       }
     }
+  }
+
+  /// Visits the AST nodes associated with [documentationComment] and
+  /// [metadata] (if any).
+  ///
+  /// Intended to be called from the [AstNode.visitChildren2] method.
+  void _visitCommentAndAnnotations2(AstVisitor2<dynamic> visitor) {
+    if (_commentIsBeforeAnnotations()) {
+      _documentationComment?.accept2(visitor);
+      _metadata.accept2(visitor);
+    } else {
+      List<AstNode> children = sortedCommentAndAnnotations;
+      int length = children.length;
+      for (int i = 0; i < length; i++) {
+        children[i].accept2(visitor);
+      }
+    }
+  }
+}
+
+abstract interface class _ConstructorReferenceV2Origin {
+  InternalConstructorElement? get element;
+
+  set element(InternalConstructorElement? value);
+
+  ConstructorSelectorImpl? get selector;
+
+  ConstructorTypeReferenceImpl get typeReference;
+
+  String toSource();
+}
+
+final class _FormalParameterListV1NodeList
+    extends NodeListImpl<FormalParameterImpl> {
+  final FormalParameterListImpl _ownerNode;
+
+  _FormalParameterListV1NodeList(this._ownerNode) : super._();
+
+  @override
+  Token? get beginToken => isEmpty ? null : this[0].beginToken;
+
+  @override
+  Token? get endToken => isEmpty ? null : this[length - 1].endToken;
+
+  @override
+  int get length => _ownerNode.allFormalParameters.length;
+
+  @Deprecated('NodeList cannot be resized')
+  @override
+  set length(int newLength) {
+    throw UnsupportedError('Cannot resize NodeList.');
+  }
+
+  @override
+  FormalParameterListImpl get owner => _ownerNode;
+
+  NodeListImpl<FormalParameterImpl>? get _delimited =>
+      _ownerNode._delimitedFormalParameters?.formalParameters;
+
+  @override
+  FormalParameterImpl operator [](int index) =>
+      _ownerNode.allFormalParameters[index];
+
+  @override
+  void operator []=(int index, FormalParameterImpl node) {
+    throw UnsupportedError('Cannot mutate a projected V1 NodeList.');
+  }
+
+  @override
+  @ToBeDeprecated('Use accept2 instead.')
+  void accept(AstVisitor visitor) {
+    for (var parameter in this) {
+      parameter.accept(visitor);
+    }
+  }
+
+  @experimental
+  @override
+  void accept2(AstVisitor2 visitor) {
+    throw UnsupportedError('Cannot visit a projected V1 NodeList as V2.');
+  }
+
+  @override
+  bool containsChild(AstNodeImpl oldNode) {
+    return any((parameter) => identical(parameter, oldNode));
+  }
+
+  @override
+  bool replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('Cannot mutate a projected V1 NodeList.');
+  }
+
+  @override
+  AstNodeImpl? _elementContainingRange(int rangeOffset, int rangeEnd) {
+    if (_ownerNode.requiredPositionalFormalParameters._elementContainingRange(
+          rangeOffset,
+          rangeEnd,
+        )
+        case var result?) {
+      return result;
+    }
+    return _delimited?._elementContainingRange(rangeOffset, rangeEnd);
+  }
+}
+
+final class _FormalParameterListView extends ListBase<FormalParameterImpl> {
+  final FormalParameterListImpl _node;
+
+  _FormalParameterListView(this._node);
+
+  @override
+  int get length =>
+      _node.requiredPositionalFormalParameters.length +
+      (_delimited?.length ?? 0);
+
+  @override
+  set length(int newLength) {
+    throw UnsupportedError('Cannot resize a formal parameter list view.');
+  }
+
+  NodeListImpl<FormalParameterImpl>? get _delimited =>
+      _node._delimitedFormalParameters?.formalParameters;
+
+  @override
+  FormalParameterImpl operator [](int index) {
+    var required = _node.requiredPositionalFormalParameters;
+    if (index >= 0 && index < required.length) {
+      return required[index];
+    }
+
+    if (_delimited case var delimited?) {
+      var delimitedIndex = index - required.length;
+      if (delimitedIndex >= 0 && delimitedIndex < delimited.length) {
+        return delimited[delimitedIndex];
+      }
+    }
+
+    throw RangeError('Index: $index, Size: $length');
+  }
+
+  @override
+  void operator []=(int index, FormalParameterImpl node) {
+    throw UnsupportedError('Cannot mutate a formal parameter list view.');
   }
 }
 
@@ -35638,4 +45722,92 @@ enum _SetOrMapKind {
   /// - the literal is invalid because resolution isn't able to resolve the
   ///   ambiguity.
   unresolved,
+}
+
+final class _V1ProjectedNodeListImpl<
+  V2Node extends AstNodeImpl,
+  V1Node extends AstNodeImpl
+>
+    extends NodeListImpl<V1Node> {
+  final NodeListImpl<V2Node> _base;
+  final V1Node Function(V2Node node) _project;
+
+  _V1ProjectedNodeListImpl(this._base, this._project) : super._();
+
+  @override
+  Token? get beginToken {
+    if (isEmpty) {
+      return null;
+    }
+    return this[0].beginToken;
+  }
+
+  @override
+  Token? get endToken {
+    if (isEmpty) {
+      return null;
+    }
+    return this[length - 1].endToken;
+  }
+
+  @override
+  int get length => _base.length;
+
+  @Deprecated('NodeList cannot be resized')
+  @override
+  set length(int newLength) {
+    throw UnsupportedError("Cannot resize NodeList.");
+  }
+
+  @override
+  AstNodeImpl get owner => _base.owner;
+
+  @override
+  V1Node operator [](int index) {
+    return _project(_base[index]);
+  }
+
+  @override
+  void operator []=(int index, V1Node node) {
+    throw UnsupportedError("Cannot mutate a projected V1 NodeList.");
+  }
+
+  @override
+  @ToBeDeprecated('Use accept2 instead.')
+  void accept(AstVisitor visitor) {
+    int length = this.length;
+    for (var i = 0; i < length; i++) {
+      this[i].accept(visitor);
+    }
+  }
+
+  @experimental
+  @override
+  void accept2(AstVisitor2 visitor) {
+    throw UnsupportedError("Cannot visit a projected V1 NodeList as V2.");
+  }
+
+  @override
+  bool containsChild(AstNodeImpl oldNode) {
+    int length = this.length;
+    for (var i = 0; i < length; i++) {
+      if (identical(_base[i], oldNode) || identical(this[i], oldNode)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError("Cannot mutate a projected V1 NodeList.");
+  }
+
+  @override
+  AstNodeImpl? _elementContainingRange(int rangeOffset, int rangeEnd) {
+    if (_base._elementContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return _project(result as V2Node);
+    }
+    return null;
+  }
 }

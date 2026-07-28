@@ -786,7 +786,8 @@ import 'a.dart';
   void _configureToCheckNotResolved({required Set<String> identifiers}) {
     _testResolvedUnit = (resolvedUnitResult) {
       var unit = resolvedUnitResult.parsedUnit;
-      unit.accept(
+      // ignore:experimental_member_use
+      unit.accept2(
         FunctionAstVisitor(
           simpleIdentifier: (node) {
             if (identifiers.contains(node.name) && node.element != null) {

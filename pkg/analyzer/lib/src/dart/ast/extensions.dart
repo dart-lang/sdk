@@ -34,6 +34,29 @@ Element? _readElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+Element? _readElement2(AstNode node) {
+  var parent = node.parent2;
+
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
+    return parent.readElement;
+  }
+  if (parent is PostfixExpression && parent.operand2 == node) {
+    return parent.readElement;
+  }
+  if (parent is PrefixExpression && parent.operand2 == node) {
+    return parent.readElement;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _readElement2(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _readElement2(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _writeElement(AstNode node) {
   var parent = node.parent;
 
@@ -52,6 +75,29 @@ Element? _writeElement(AstNode node) {
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
     return _writeElement(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+Element? _writeElement2(AstNode node) {
+  var parent = node.parent2;
+
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
+    return parent.writeElement;
+  }
+  if (parent is PostfixExpression && parent.operand2 == node) {
+    return parent.writeElement;
+  }
+  if (parent is PrefixExpression && parent.operand2 == node) {
+    return parent.writeElement;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _writeElement2(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _writeElement2(parent);
   }
   return null;
 }
@@ -79,9 +125,37 @@ DartType? _writeType(AstNode node) {
   return null;
 }
 
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+DartType? _writeType2(AstNode node) {
+  var parent = node.parent2;
+
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
+    return parent.writeType;
+  }
+  if (parent is PostfixExpression && parent.operand2 == node) {
+    return parent.writeType;
+  }
+  if (parent is PrefixExpression && parent.operand2 == node) {
+    return parent.writeType;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _writeType2(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _writeType2(parent);
+  }
+  return null;
+}
+
 extension ArgumentListExtension on ArgumentList {
   /// Returns the named argument with the given [name], or `null` if none.
   NamedArgument? byName(String name) => arguments
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((e) => e.name.lexeme == name);
+
+  /// Returns the named argument with the given [name], or `null` if none.
+  NamedArgument? byName2(String name) => arguments2
       .whereType<NamedArgument>()
       .firstWhereOrNull((e) => e.name.lexeme == name);
 
@@ -89,6 +163,14 @@ extension ArgumentListExtension on ArgumentList {
   Argument? elementAtOrNull(int index) {
     if (index < arguments.length) {
       return arguments[index];
+    }
+    return null;
+  }
+
+  /// Returns the argument with the given [index], or `null` if none.
+  Argument? elementAtOrNull2(int index) {
+    if (index < arguments2.length) {
+      return arguments2[index];
     }
     return null;
   }
@@ -169,8 +251,23 @@ extension FormalParameterExtension on FormalParameter {
     return thisOrAncestorOfType<FunctionBody>() != null;
   }
 
+  bool get isOfLocalFunction2 {
+    return thisOrAncestorOfType2<FunctionBody>() != null;
+  }
+
   FormalParameterList get parentFormalParameterList {
-    return parent as FormalParameterList;
+    return switch (parent) {
+      FormalParameterList parent => parent,
+      _ => throw StateError('Formal parameter has no formal parameter list'),
+    };
+  }
+
+  FormalParameterList get parentFormalParameterList2 {
+    return switch (parent2) {
+      FormalParameterList parent => parent,
+      DelimitedFormalParameters(parent2: FormalParameterList parent) => parent,
+      _ => throw StateError('Formal parameter has no formal parameter list'),
+    };
   }
 
   AstNode get typeOrSelf {
@@ -188,6 +285,10 @@ extension IdentifierExtension on Identifier {
     return _readElement(this);
   }
 
+  Element? get readElement2 {
+    return _readElement2(this);
+  }
+
   SimpleIdentifier get simpleName {
     var self = this;
     if (self is SimpleIdentifier) {
@@ -201,16 +302,52 @@ extension IdentifierExtension on Identifier {
     return _writeElement(this);
   }
 
+  Element? get writeElement2 {
+    return _writeElement2(this);
+  }
+
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
+  }
+
+  Element? get writeOrReadElement2 {
+    return _writeElement2(this) ?? element;
   }
 
   DartType? get writeOrReadType {
     return _writeType(this) ?? staticType;
   }
+
+  DartType? get writeOrReadType2 {
+    return _writeType2(this) ?? staticType;
+  }
 }
 
 extension IdentifierImplExtension on IdentifierImpl {
+  ConstructorTypeReferenceImpl toConstructorTypeReference({
+    required TypeArgumentListImpl? typeArguments,
+  }) {
+    var self = this;
+    if (self is PrefixedIdentifierImpl) {
+      return ConstructorTypeReferenceImpl(
+        importPrefix: ImportPrefixReferenceImpl(
+          name: self.prefix.token,
+          period: self.period,
+        )..element = self.prefix.element,
+        name: self.identifier.token,
+        typeArguments: typeArguments,
+      )..element = self.identifier.element;
+    } else if (self is SimpleIdentifierImpl) {
+      return ConstructorTypeReferenceImpl(
+        importPrefix: null,
+        name: self.token,
+        typeArguments: typeArguments,
+      )..element = self.element;
+    } else {
+      throw UnimplementedError('(${self.runtimeType}) $self');
+    }
+  }
+
   NamedTypeImpl toNamedType({
     required TypeArgumentListImpl? typeArguments,
     required Token? question,
@@ -243,6 +380,10 @@ extension IdentifierImplExtension on IdentifierImpl {
 extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
+  }
+
+  Element? get writeOrReadElement2 {
+    return _writeElement2(this) ?? element;
   }
 }
 

@@ -57,8 +57,8 @@ ClassDeclaration
             fieldName: SimpleIdentifier
               token: <empty> <synthetic>
             equals: = <synthetic>
-            expression: PropertyAccess
-              target: ThisExpression
+            expression2: PropertyAccess
+              target2: ThisExpression
                 thisKeyword: this
               operator: .
               propertyName: SimpleIdentifier
@@ -86,12 +86,12 @@ ClassDeclaration
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = const C.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: const
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: C
         period: .
@@ -106,12 +106,12 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = const C<int>.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: const
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -119,9 +119,9 @@ InstanceCreationExpression
           NamedType
             name: int
         rightBracket: >
-    period: .
-    name: SimpleIdentifier
-      token: new
+    selector: ConstructorSelector
+      period: .
+      name2: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -132,19 +132,19 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = const prefix.C.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: const
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
       name: C
-    period: .
-    name: SimpleIdentifier
-      token: new
+    selector: ConstructorSelector
+      period: .
+      name2: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -155,12 +155,12 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = const prefix.C<int>.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: const
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
@@ -171,9 +171,9 @@ InstanceCreationExpression
           NamedType
             name: int
         rightBracket: >
-    period: .
-    name: SimpleIdentifier
-      token: new
+    selector: ConstructorSelector
+      period: .
+      name2: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -184,12 +184,12 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = new C.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: C
         period: .
@@ -204,12 +204,12 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = new C<int>.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -217,9 +217,9 @@ InstanceCreationExpression
           NamedType
             name: int
         rightBracket: >
-    period: .
-    name: SimpleIdentifier
-      token: new
+    selector: ConstructorSelector
+      period: .
+      name2: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -230,19 +230,19 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = new prefix.C.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
       name: C
-    period: .
-    name: SimpleIdentifier
-      token: new
+    selector: ConstructorSelector
+      period: .
+      name2: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -253,12 +253,12 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = new prefix.C<int>.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
@@ -269,9 +269,9 @@ InstanceCreationExpression
           NamedType
             name: int
         rightBracket: >
-    period: .
-    name: SimpleIdentifier
-      token: new
+    selector: ConstructorSelector
+      period: .
+      name2: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -285,7 +285,7 @@ var x = C.new();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: C
   operator: .
   methodName: SimpleIdentifier
@@ -300,11 +300,11 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -312,9 +312,9 @@ InstanceCreationExpression
           NamedType
             name: int
         rightBracket: >
-    period: .
-    name: SimpleIdentifier
-      token: new
+    selector: ConstructorSelector
+      period: .
+      name2: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -328,7 +328,7 @@ var x = prefix.C.new();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
     period: .
@@ -347,11 +347,11 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
@@ -362,9 +362,9 @@ InstanceCreationExpression
           NamedType
             name: int
         rightBracket: >
-    period: .
-    name: SimpleIdentifier
-      token: new
+    selector: ConstructorSelector
+      period: .
+      name2: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -412,8 +412,8 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
-      target: SimpleIdentifier
+    expression2: MethodInvocation
+      target2: SimpleIdentifier
         token: C
       operator: .
       methodName: SimpleIdentifier
@@ -447,8 +447,8 @@ var x = C<int>.new;
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target: FunctionReference
-    function: SimpleIdentifier
+  target2: FunctionReference
+    function2: SimpleIdentifier
       token: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -469,9 +469,9 @@ var x = C<int>.new.toString();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PropertyAccess
-    target: FunctionReference
-      function: SimpleIdentifier
+  target2: PropertyAccess
+    target2: FunctionReference
+      function2: SimpleIdentifier
         token: C
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -499,7 +499,7 @@ class C {}
     var node = parseResult.findNode.commentReference('C.new');
     assertParsedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
     period: .
@@ -515,7 +515,7 @@ var x = C.new.toString();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
     period: .
@@ -537,7 +537,7 @@ var x = prefix.C.new;
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
     period: .
@@ -556,8 +556,8 @@ var x = prefix.C<int>.new;
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target: FunctionReference
-    function: PrefixedIdentifier
+  target2: FunctionReference
+    function2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
       period: .
@@ -582,9 +582,9 @@ var x = prefix.C<int>.new.toString();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PropertyAccess
-    target: FunctionReference
-      function: PrefixedIdentifier
+  target2: PropertyAccess
+    target2: FunctionReference
+      function2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
         period: .
@@ -615,8 +615,8 @@ var x = prefix.C.new.toString();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PropertyAccess
-    target: PrefixedIdentifier
+  target2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
       period: .
@@ -807,12 +807,15 @@ ConstructorDeclaration
   initializers
     SuperConstructorInvocation
       superKeyword: super
-      period: .
-      constructorName: SimpleIdentifier
-        token: new
+      constructorSelector: ConstructorSelector
+        period: .
+        name2: new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
+      period: .
+      constructorName: SimpleIdentifier
+        token: new
   body: EmptyFunctionBody
     semicolon: ;
 ''');
@@ -839,12 +842,15 @@ ConstructorDeclaration
   initializers
     RedirectingConstructorInvocation
       thisKeyword: this
-      period: .
-      constructorName: SimpleIdentifier
-        token: new
+      constructorSelector: ConstructorSelector
+        period: .
+        name2: new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
+      period: .
+      constructorName: SimpleIdentifier
+        token: new
   body: EmptyFunctionBody
     semicolon: ;
 ''');

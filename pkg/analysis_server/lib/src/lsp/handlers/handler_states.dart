@@ -23,6 +23,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_summary.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_update_diagnostic_information.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_workspace_analysis_complete.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
@@ -91,9 +92,7 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         TextDocumentCloseHandler.new,
         CompletionHandler.new,
         CompletionResolveHandler.new,
-        DefinitionHandler.new,
         DocumentLinkHandler.new,
-        ReferencesHandler.new,
         ChangeWorkspaceFoldersHandler.new,
         PrepareRenameHandler.new,
         RenameHandler.new,
@@ -128,6 +127,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         CodeLensHandler.new,
         CommandResolveHandler.new,
         ConnectToDtdHandler.new,
+        DefinitionHandler.new,
         DiagnosticServerHandler.new,
         DocumentColorHandler.new,
         DocumentColorPresentationHandler.new,
@@ -150,6 +150,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         OutgoingCallHierarchyHandler.new,
         PrepareCallHierarchyHandler.new,
         PrepareTypeHierarchyHandler.new,
+        ReferencesHandler.new,
         SignatureHelpHandler.new,
         SummaryHandler.new,
         SuperHandler.new,
@@ -158,6 +159,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         TypeHierarchySupertypesHandler.new,
         UpdateDiagnosticInformationHandler.new,
         WillRenameFilesHandler.new,
+        WorkspaceAnalysisCompleteHandler.new,
         WorkspaceFlutterWidgetPreviewsHandler.new,
         WorkspaceSymbolHandler.new,
       ];

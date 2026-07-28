@@ -53,11 +53,7 @@ class AlwaysSpecifyTypes extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final MultiAnalysisRule rule) extends SimpleAstVisitor<void> {
   void checkLiteral(TypedLiteral literal) {
     if (literal.typeArguments == null) {
       rule.reportAtToken(

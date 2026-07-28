@@ -170,6 +170,7 @@ class BundleWriter {
 
   void _writeClassFragment(ClassFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
+      _sink.writeUint30(fragment.withClauseMixinStartIndex);
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
@@ -292,6 +293,7 @@ class BundleWriter {
 
   void _writeEnumFragment(EnumFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
+      _sink.writeUint30(fragment.withClauseMixinStartIndex);
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
@@ -435,7 +437,7 @@ class BundleWriter {
   void _writeFieldFragment(FieldFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _resolutionSink._writeMetadata(fragment.metadata);
-      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
     });
   }
 
@@ -512,7 +514,7 @@ class BundleWriter {
     fragment.writeFlags(_sink);
 
     _resolutionSink._writeMetadata(fragment.metadata);
-    _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+    _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
   }
 
   void _writeFragmentId(FragmentImpl fragment) {
@@ -835,7 +837,7 @@ class BundleWriter {
   void _writeTopLevelVariableFragment(TopLevelVariableFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _resolutionSink._writeMetadata(fragment.metadata);
-      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
     });
   }
 
@@ -1088,7 +1090,7 @@ class ResolutionSink extends BinaryWriter {
 
   void _writeNode(AstNode node) {
     var astWriter = AstBinaryWriter(sink: this);
-    node.accept(astWriter);
+    node.accept2(astWriter);
   }
 
   void _writeNullabilitySuffix(NullabilitySuffix suffix) {

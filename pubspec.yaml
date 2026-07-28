@@ -11,7 +11,7 @@ environment:
   #
   # It needs to be updated before testing language features introduced in the
   # next language version.
-  sdk: ^3.13.0-0
+  sdk: ^3.14.0-0
 
 # These are the packages that are contained in the SDK.
 workspace:
@@ -38,9 +38,11 @@ workspace:
   - pkg/dartdev
   - pkg/dartpad
   - pkg/dartpad_worker
+  - pkg/dap_adapters
   - pkg/dart_data_home
   - pkg/dart_internal
   - pkg/dart_runtime_service
+  - pkg/dart_runtime_service_dds
   - pkg/dart_runtime_service_vm
   - pkg/dart_service_protocol_shared
   - pkg/dds

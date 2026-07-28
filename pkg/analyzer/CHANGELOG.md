@@ -1,4 +1,8 @@
-## 14.1.0-dev
+## 14.2.0-dev
+
+* Added experimental structural formal parameter list APIs: `FormalParameterList.requiredPositionalFormalParameters`, `FormalParameterList.delimitedFormalParameters`, and the `DelimitedFormalParameters` node.
+
+## 14.1.0
 
 * Internal changes only
 

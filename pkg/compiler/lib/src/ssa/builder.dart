@@ -8179,7 +8179,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // have been included if necessary, see [makeStaticArgumentList].
     if (!isInstanceMember ||
         currentNode == null || // In erroneous code, currentNode can be null.
-        _providedArgumentsKnownToBeComplete(currentNode) ||
         function is ConstructorBodyEntity ||
         selector!.isGetter) {
       // For these cases, the provided argument list is known to be complete.
@@ -8475,17 +8474,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     _returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
-  }
-
-  bool _providedArgumentsKnownToBeComplete(ir.Node currentNode) {
-    /* When inlining the iterator methods generated for a for-in loop, the
-     * [currentNode] is the [ForIn] tree. The compiler-generated iterator
-     * invocations are known to have fully specified argument lists, no default
-     * arguments are used. See invocations of [pushInvokeDynamic] in
-     * [visitForIn].
-     */
-    // TODO(redemption): Is this valid here?
-    return currentNode is ir.ForInStatement;
   }
 
   void _emitReturn(HInstruction? value, SourceInformation? sourceInformation) {

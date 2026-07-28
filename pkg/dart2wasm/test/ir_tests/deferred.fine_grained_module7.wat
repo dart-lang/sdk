@@ -8,7 +8,7 @@
   (global $"\"foo3Code(\"" (ref $JSExternWrapper) <...>)
   (global $3 (ref $BoxedInt) <...>)
   (global $FooConst3 (ref $Object)
-    (i32.const 112)
+    (i32.const 113)
     (i32.const 0)
     (struct.new $Object))
   (global $fooGlobal3 (mut (ref null $#Top))

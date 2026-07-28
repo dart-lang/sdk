@@ -869,6 +869,20 @@ String _generateSupportJs(TranslatorOptions options) {
   const String supportsWasmGC =
       'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,95,1,120,0]))';
 
+  // Copied from
+  // https://github.com/GoogleChromeLabs/wasm-feature-detect/blob/main/src/detectors/simd/module.wat
+  //
+  // Uses `i8x16.popcnt` so only engines with full Wasm SIMD support validate:
+  // ```
+  //     (module
+  //       (func (result v128)
+  //         i32.const 0
+  //         i8x16.splat
+  //         i8x16.popcnt))
+  // ```
+  const String supportsWasmSimd =
+      'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11]))';
+
   // Imports a `js-string` builtin spec function *with wrong signature*. An engine
   //
   //   * *without* knowledge about `js-string` builtin would accept such an import at
@@ -887,6 +901,7 @@ String _generateSupportJs(TranslatorOptions options) {
 
   final requiredFeatures = [
     supportsWasmGC,
+    supportsWasmSimd,
     if (options.requireJsStringBuiltin) supportsJsStringBuiltins,
   ];
   return '(${requiredFeatures.join('&&')})';

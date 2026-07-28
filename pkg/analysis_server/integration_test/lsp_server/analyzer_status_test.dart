@@ -20,7 +20,7 @@ class AnalyzerStatusTest extends AbstractLspAnalysisServerIntegrationTest {
     newFile(mainFilePath, initialContents);
 
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     // Set up futures to wait for the new events.
     var startNotification = waitForAnalysisStart();

@@ -90,10 +90,9 @@ List<LocatedMessage> verifyGetStaticType(
   component.accept(visitor);
   return [
     for (StaticTypeError error in visitor.errors)
+      // Coverage-ignore(suite): Not run.
       diag.internalProblemVerificationError
-          // Coverage-ignore(suite): Not run.
           .withArguments(details: error.message)
-          // Coverage-ignore(suite): Not run.
           .withLocation(
             error.context.location!.file,
             error.context.fileOffset,

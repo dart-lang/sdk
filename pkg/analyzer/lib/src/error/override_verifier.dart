@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/listener.dart';
 /// Instances of the class `OverrideVerifier` visit all of the declarations in a
 /// compilation unit to verify that if they have an override annotation it is
 /// being used correctly.
-class OverrideVerifier extends RecursiveAstVisitor<void> {
+class OverrideVerifier extends RecursiveAstVisitor2<void> {
   /// The error reporter used to report errors.
   final DiagnosticReporter _errorReporter;
 

@@ -20,7 +20,7 @@ export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 /// - Offsets that fall between the name and type/formal parameter list of a
 ///   declaration will return the declaration node and not the parameter list
 ///   node.
-class NodeLocator2 extends UnifyingAstVisitor<void> {
+class NodeLocator extends UnifyingAstVisitor<void> {
   /// The inclusive start offset of the range used to identify the node.
   final int _startOffset;
 
@@ -35,7 +35,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   ///
   /// If [endOffset] is not provided, then it is considered the same as the
   /// given [startOffset].
-  NodeLocator2(int startOffset, [int? endOffset])
+  NodeLocator(int startOffset, [int? endOffset])
     : _startOffset = startOffset,
       _endOffset = endOffset ?? startOffset;
 
@@ -147,6 +147,157 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
         SilentException(
+          'Exception caught while traversing an AST structure.',
+          exception,
+          stackTrace,
+        ),
+      );
+    }
+    // Found a child.
+    if (_foundNode != null) {
+      return;
+    }
+    // Check this node.
+    if (start <= _startOffset && _endOffset < end) {
+      _foundNode = node;
+    }
+  }
+}
+
+/// An object used to locate the [AstNode] associated with a source range.
+/// More specifically, they will return the deepest [AstNode] which completely
+/// encompasses the specified range with some exceptions:
+///
+/// - Offsets that fall between the name and type/formal parameter list of a
+///   declaration will return the declaration node and not the parameter list
+///   node.
+class NodeLocator2 extends UnifyingAstVisitor2<void> {
+  /// The inclusive start offset of the range used to identify the node.
+  final int _startOffset;
+
+  /// The inclusive end offset of the range used to identify the node.
+  final int _endOffset;
+
+  /// The found node or `null` if there is no such node.
+  AstNode? _foundNode;
+
+  /// Initialize a newly created locator to locate the deepest [AstNode] for
+  /// which `node.offset <= [startOffset]` and `[endOffset] < node.end`.
+  ///
+  /// If [endOffset] is not provided, then it is considered the same as the
+  /// given [startOffset].
+  NodeLocator2(int startOffset, [int? endOffset])
+    : _startOffset = startOffset,
+      _endOffset = endOffset ?? startOffset;
+
+  /// Search within the given AST [node] and return the node that was found,
+  /// or `null` if no node was found.
+  AstNode? searchWithin(AstNode? node) {
+    if (node == null) {
+      return null;
+    }
+    try {
+      node.accept2(this);
+    } catch (exception, stackTrace) {
+      // TODO(39284): should this exception be silent?
+      AnalysisEngine.instance.instrumentationService.logException(
+        SilentException(
+          'Unable to locate element at offset '
+          '($_startOffset - $_endOffset)',
+          exception,
+          stackTrace,
+        ),
+      );
+      return null;
+    }
+    return _foundNode;
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset &&
+        _startOffset == node.namePart.typeName.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitClassDeclaration(node);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset) {
+      var end = node.name?.end ?? node.typeName?.end;
+      if (end != null && _startOffset == end) {
+        _foundNode = node;
+        return;
+      }
+    }
+
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    // Don't visit a new tree if the result has been already found.
+    if (_foundNode != null) {
+      return;
+    }
+    // Check whether the current node covers the selection.
+    Token beginToken = node.beginToken;
+    Token endToken = node.endToken;
+    // Don't include synthetic tokens.
+    while (endToken != beginToken) {
+      // Fasta scanner reports unterminated string literal errors
+      // and generates a synthetic string token with non-zero length.
+      // Because of this, check for length > 0 rather than !isSynthetic.
+      if (endToken.isEof || endToken.length > 0) {
+        break;
+      }
+      endToken = endToken.previous!;
+    }
+    int end = endToken.end;
+    int start = node.offset;
+    if (end <= _startOffset || start > _endOffset) {
+      return;
+    }
+    // Check children.
+    try {
+      node.visitChildren2(this);
+    } catch (exception, stackTrace) {
+      // Ignore the exception and proceed in order to visit the rest of the
+      // structure.
+      // TODO(39284): should this exception be silent?
+      AnalysisEngine.instance.instrumentationService.logException(
+        SilentException(
           "Exception caught while traversing an AST structure.",
           exception,
           stackTrace,
@@ -171,112 +322,130 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
 ///
 /// Completion test code coverage is 95%. The two basic blocks that are not
 /// executed cannot be executed. They are included for future reference.
-class ScopedNameFinder extends GeneralizingAstVisitor<void> {
+class ScopedNameFinder extends GeneralizingAstVisitor<void>
+    with _ScopedNameFinderMixin {
+  @override
+  final int position;
+
+  ScopedNameFinder(this.position);
+
+  @override
+  AstNode? parentOf(AstNode node) => node.parent;
+
+  @override
+  void visitNode(AstNode node) {
+    immediateChild = node;
+    parentOf(node)?.accept(this);
+  }
+}
+
+/// The V2 AST equivalent of [ScopedNameFinder].
+class ScopedNameFinder2 extends GeneralizingAstVisitor2<void>
+    with _ScopedNameFinderMixin {
+  @override
+  final int position;
+
+  ScopedNameFinder2(this.position);
+
+  @override
+  AstNode? parentOf(AstNode node) => node.parent2;
+
+  @override
+  void visitNode(AstNode node) {
+    immediateChild = node;
+    parentOf(node)?.accept2(this);
+  }
+}
+
+mixin _ScopedNameFinderMixin {
   Declaration? _declarationNode;
 
-  AstNode? _immediateChild;
+  AstNode? immediateChild;
 
   final Set<String> _locals = {};
 
-  final int _position;
-
   bool _referenceIsWithinLocalFunction = false;
-
-  ScopedNameFinder(this._position);
 
   Declaration? get declaration => _declarationNode;
 
   Set<String> get locals => _locals;
 
-  @override
+  int get position;
+
+  AstNode? parentOf(AstNode node);
+
   void visitBlock(Block node) {
     _checkStatements(node.statements);
-    super.visitBlock(node);
+    visitNode(node);
   }
 
-  @override
   void visitCatchClause(CatchClause node) {
     _addToScope(node.exceptionParameter?.name);
     _addToScope(node.stackTraceParameter?.name);
-    super.visitCatchClause(node);
+    visitNode(node);
   }
 
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!identical(_immediateChild, node.parameters)) {
+    if (!identical(immediateChild, node.parameters)) {
       _addParameters(node.parameters.parameters);
     }
     _declarationNode = node;
   }
 
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _declarationNode = node;
   }
 
-  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _addToScope(node.loopVariable.name);
-    super.visitForEachPartsWithDeclaration(node);
+    visitNode(node);
   }
 
-  @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     _addVariables(node.variables.variables);
-    super.visitForPartsWithDeclarations(node);
+    visitNode(node);
   }
 
-  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.parent is! FunctionDeclarationStatement) {
+    if (parentOf(node) is! FunctionDeclarationStatement) {
       _declarationNode = node;
     } else {
-      super.visitFunctionDeclaration(node);
+      visitNode(node);
     }
   }
 
-  @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     _referenceIsWithinLocalFunction = true;
-    super.visitFunctionDeclarationStatement(node);
+    visitNode(node);
   }
 
-  @override
   void visitFunctionExpression(FunctionExpression node) {
     var parameters = node.parameters;
-    if (parameters != null && !identical(_immediateChild, parameters)) {
+    if (parameters != null && !identical(immediateChild, parameters)) {
       _addParameters(parameters.parameters);
     }
-    super.visitFunctionExpression(node);
+    visitNode(node);
   }
 
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _declarationNode = node;
     var parameters = node.parameters;
-    if (parameters != null && !identical(_immediateChild, parameters)) {
+    if (parameters != null && !identical(immediateChild, parameters)) {
       _addParameters(parameters.parameters);
     }
   }
 
-  @override
-  void visitNode(AstNode node) {
-    _immediateChild = node;
-    node.parent?.accept(this);
-  }
+  void visitNode(AstNode node);
 
-  @override
   void visitSwitchMember(SwitchMember node) {
     _checkStatements(node.statements);
-    super.visitSwitchMember(node);
+    visitNode(node);
   }
 
-  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _declarationNode = node;
   }
 
-  @override
   void visitTypeAlias(TypeAlias node) {
     _declarationNode = node;
   }
@@ -304,7 +473,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   /// immediate child.
   void _checkStatements(List<Statement> statements) {
     for (Statement statement in statements) {
-      if (identical(statement, _immediateChild)) {
+      if (identical(statement, immediateChild)) {
         return;
       }
       if (statement is VariableDeclarationStatement) {
@@ -317,11 +486,11 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   }
 
   bool _isInRange(Token token) {
-    if (_position < 0) {
+    if (position < 0) {
       // if source position is not set then all nodes are in range
       return true;
       // not reached
     }
-    return token.end < _position;
+    return token.end < position;
   }
 }

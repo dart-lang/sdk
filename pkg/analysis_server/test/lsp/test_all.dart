@@ -68,6 +68,7 @@ import 'type_hierarchy_test.dart' as type_hierarchy;
 import 'update_diagnostic_information_test.dart'
     as update_diagnostic_information;
 import 'will_rename_files_test.dart' as will_rename_files;
+import 'workspace_analysis_complete_test.dart' as workspace_analysis_complete;
 import 'workspace_apply_edit_test.dart' as workspace_apply_edit;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
@@ -135,6 +136,7 @@ void main() {
     type_hierarchy.main();
     update_diagnostic_information.main();
     will_rename_files.main();
+    workspace_analysis_complete.main();
     workspace_apply_edit.main();
     workspace_symbols.main();
   }, name: 'lsp');

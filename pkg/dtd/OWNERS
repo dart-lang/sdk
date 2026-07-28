@@ -1,2 +1,4 @@
-file:/tools/OWNERS_DEVTOOLS
-file:/tools/OWNERS_VM
+set noparent
+file:/tools/OWNERS_DEV_INFRA
+# In addition to Dev Infra team allow global owners.
+file:/OWNERS

@@ -229,7 +229,6 @@ class BuilderFactory {
     }
     if (augmentations != null) {
       for (Fragment augmentation in augmentations) {
-        // Coverage-ignore-block(suite): Not run.
         _createBuilder(augmentation);
       }
     }

@@ -66,9 +66,8 @@ class B extends core::_Enum /*isEnum*/  {
     return "B.${this.{core::_Enum::_name}{core::String}}";
 }
 static method a1(self::A? a) → core::int? {
-  #L1:
   switch(a) /* isExplicitlyExhaustive, self::A? */ {
-    #L2:
+    #L1:
     case #C3:
       {
         return 0;
@@ -76,14 +75,13 @@ static method a1(self::A? a) → core::int? {
   }
 }
 static method a2(self::A? a) → core::int? {
-  #L3:
   switch(a) /* isExplicitlyExhaustive, self::A? */ {
-    #L4:
+    #L2:
     case #C11:
       {
         return null;
       }
-    #L5:
+    #L3:
     case #C3:
       {
         return 0;
@@ -91,14 +89,13 @@ static method a2(self::A? a) → core::int? {
   }
 }
 static method b1(self::B b) → core::int {
-  #L6:
   switch(b) /* isExplicitlyExhaustive, self::B */ {
-    #L7:
+    #L4:
     case #C8:
       {
         return 0;
       }
-    #L8:
+    #L5:
     case #C9:
       {
         return 1;
@@ -106,14 +103,13 @@ static method b1(self::B b) → core::int {
   }
 }
 static method b2(self::B? b) → core::int? {
-  #L9:
   switch(b) /* isExplicitlyExhaustive, self::B? */ {
-    #L10:
+    #L6:
     case #C11:
       {
         return null;
       }
-    #L11:
+    #L7:
     case #C8:
       {
         return 0;
@@ -121,9 +117,8 @@ static method b2(self::B? b) → core::int? {
   }
 }
 static method c1(mai::C? c) → core::int? {
-  #L12:
   switch(c) /* isExplicitlyExhaustive, mai::C? */ {
-    #L13:
+    #L8:
     case #C12:
       {
         return 0;
@@ -131,14 +126,13 @@ static method c1(mai::C? c) → core::int? {
   }
 }
 static method c2(mai::C? c) → core::int? {
-  #L14:
   switch(c) /* isExplicitlyExhaustive, mai::C? */ {
-    #L15:
+    #L9:
     case #C11:
       {
         return null;
       }
-    #L16:
+    #L10:
     case #C12:
       {
         return 0;
@@ -146,14 +140,13 @@ static method c2(mai::C? c) → core::int? {
   }
 }
 static method d1(mai::D d) → core::int {
-  #L17:
   switch(d) /* isExplicitlyExhaustive, mai::D */ {
-    #L18:
+    #L11:
     case #C13:
       {
         return 0;
       }
-    #L19:
+    #L12:
     case #C14:
       {
         return 1;
@@ -161,14 +154,13 @@ static method d1(mai::D d) → core::int {
   }
 }
 static method d2(mai::D? d) → core::int? {
-  #L20:
   switch(d) /* isExplicitlyExhaustive, mai::D? */ {
-    #L21:
+    #L13:
     case #C11:
       {
         return null;
       }
-    #L22:
+    #L14:
     case #C13:
       {
         return 0;

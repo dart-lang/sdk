@@ -21,12 +21,12 @@
   "code": "B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n"
 },
   {
-  "id": "constant/B.C__RootZone = new A._RootZone();\n",
+  "id": "constant/B.C_Zone = new A.Zone();\n",
   "kind": "constant",
   "name": "",
-  "size": 35,
+  "size": 25,
   "outputUnit": "outputUnit/main",
-  "code": "B.C__RootZone = new A._RootZone();\n"
+  "code": "B.C_Zone = new A.Zone();\n"
 },
   {
   "id": "constant/B.C__StringStackTrace = new A._StringStackTrace();\n",

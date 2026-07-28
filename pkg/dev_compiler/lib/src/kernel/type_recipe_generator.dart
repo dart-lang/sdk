@@ -155,17 +155,20 @@ class TypeRecipeGenerator {
       }
       // Encode type rules for all supers.
       var toVisit = ListQueue<Supertype>.from(cls.supers);
-      var visited = <Supertype>{};
+      var visited = <Class>{};
       while (toVisit.isNotEmpty) {
         var currentClass = toVisit.removeFirst().classNode;
         if (currentClass == _coreTypes.objectClass) continue;
-        var currentType = _hierarchy.getClassAsInstanceOf(cls, currentClass)!;
-        if (visited.contains(currentType)) continue;
+        if (!visited.add(currentClass)) continue;
         // Add all supers to the visit queue.
         toVisit.addAll(currentClass.supers);
         // Skip encoding the synthetic classes in the type rules because they
         // will never be instantiated or appear in type tests.
         if (currentClass.isAnonymousMixin) continue;
+
+        var currentType = _hierarchy.getClassAsInstanceOf(cls, currentClass);
+        if (currentType == null) continue;
+
         // Encode the supertype portion of this type rule.
         var recipe = interfaceTypeRecipe(currentClass);
         var typeArgumentRecipes = [
@@ -184,7 +187,6 @@ class TypeRecipeGenerator {
           supertypeEntries[paramRecipe] = argumentRecipe;
         }
         supertypeEntries[recipe] = typeArgumentRecipes;
-        visited.add(currentType);
       }
       if (supertypeEntries.isNotEmpty) rules[recipe] = supertypeEntries;
     }

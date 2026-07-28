@@ -40,7 +40,7 @@ class FunctionExpressionInvocationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var function = node.function;
+    var function = node.function2;
 
     if (function is ExtensionOverrideImpl) {
       _resolveReceiverExtensionOverride(

@@ -42,7 +42,7 @@ class B extends A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_class_inSuper_getter_hasAugmentation_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -57,7 +57,7 @@ augment class B {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_class_inSuper_getter_hasAugmentation_inDeclaration() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -115,7 +115,7 @@ enum E with M {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_enum_inMixin_getter_hasAugmentation_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
@@ -130,7 +130,7 @@ augment enum E {;
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_enum_inMixin_getter_hasAugmentation_inDeclaration() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {

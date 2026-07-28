@@ -1438,7 +1438,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(branch == R9);
     }
 #endif
-    __ blr(branch);
+    __ CallCFunction(branch);
 
     // Restore the Dart stack pointer.
     __ mov(SP, CSP);

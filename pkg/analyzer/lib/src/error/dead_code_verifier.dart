@@ -30,7 +30,7 @@ class DeadCodeForPartsState {
 
 /// A visitor that finds dead code, other than unreachable code that is
 /// handled in [NullSafetyDeadCodeVerifier].
-class DeadCodeVerifier extends RecursiveAstVisitor<void> {
+class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   /// The diagnostic reporter by which diagnostics will be reported.
   final DiagnosticReporter _diagnosticReporter;
 
@@ -118,7 +118,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var initializer = node.initializer;
+    var initializer = node.initializer2;
     if (initializer != null && node.isLate) {
       var element = node.declaredFragment!.element;
       // TODO(pq): ask the LocalVariableElement once implemented
@@ -240,8 +240,8 @@ class NullSafetyDeadCodeVerifier {
       return;
     }
 
-    var parent = firstDeadNode.parent;
-    if (parent is Assertion && identical(firstDeadNode, parent.message)) {
+    var parent = firstDeadNode.parent2;
+    if (parent is Assertion && identical(firstDeadNode, parent.message2)) {
       // Don't report "dead code" for the message part of an assert statement,
       // because this causes nuisance warnings for redundant `!= null`
       // asserts.
@@ -307,10 +307,10 @@ class NullSafetyDeadCodeVerifier {
           offset = node.end;
         }
       } else if (parent is ForParts) {
-        if (parent.updaters.lastOrNull case var last?) node = last;
+        if (parent.updaters2.lastOrNull case var last?) node = last;
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
-        node = parent.rightOperand;
+        node = parent.rightOperand2;
       } else if (parent is LogicalOrPattern &&
           firstDeadNode == parent.rightOperand) {
         offset = parent.operator.offset;
@@ -399,13 +399,13 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyCascadeExpression(CascadeExpression node) {
-    var first = node.cascadeSections.firstOrNull;
+    var first = node.cascadeSections2.firstOrNull;
     if (first is PropertyAccess) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.operator);
+      _verifyUnassignedSimpleIdentifier(node, node.target2, first.operator);
     } else if (first is MethodInvocation) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.operator);
+      _verifyUnassignedSimpleIdentifier(node, node.target2, first.operator);
     } else if (first is IndexExpression) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.period);
+      _verifyUnassignedSimpleIdentifier(node, node.target2, first.period);
     }
   }
 
@@ -417,15 +417,15 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyIndexExpression(IndexExpression node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.question);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.question);
   }
 
   void verifyMethodInvocation(MethodInvocation node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.operator);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
   }
 
   void verifyPropertyAccess(PropertyAccess node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.operator);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
   }
 
   void visitNode(AstNode node) {
@@ -458,7 +458,7 @@ class NullSafetyDeadCodeVerifier {
   }
 
   bool _containsFirstDeadNode(AstNode parent) {
-    for (var node = _firstDeadNode; node != null; node = node.parent) {
+    for (var node = _firstDeadNode; node != null; node = node.parent2) {
       if (node == parent) return true;
     }
     return false;
@@ -488,12 +488,12 @@ class NullSafetyDeadCodeVerifier {
       var element = target.element;
       if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(target, element)) {
-        var parent = node.parent;
+        var parent = node.parent2;
         while (parent is MethodInvocation ||
             parent is PropertyAccess ||
             parent is IndexExpression) {
           node = parent!;
-          parent = node.parent;
+          parent = node.parent2;
         }
         _diagnosticReporter.report(
           diag.deadCode.atOffset(
@@ -507,7 +507,7 @@ class NullSafetyDeadCodeVerifier {
 }
 
 /// A visitor that finds a [BreakStatement] for a specified [DoStatement].
-class _BreakDoStatementVisitor extends RecursiveAstVisitor<void> {
+class _BreakDoStatementVisitor extends RecursiveAstVisitor2<void> {
   bool hasBreakStatement = false;
   final DoStatement doStatement;
 
@@ -627,7 +627,7 @@ class _LabelTracker {
 extension DoStatementExtension on DoStatement {
   bool get hasBreakStatement {
     var visitor = _BreakDoStatementVisitor(this);
-    body.visitChildren(visitor);
+    body.visitChildren2(visitor);
     return visitor.hasBreakStatement;
   }
 }

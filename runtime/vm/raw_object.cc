@@ -518,12 +518,9 @@ COMPRESSED_VISITOR(FunctionType)
 COMPRESSED_VISITOR(RecordType)
 COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
-// Use relaxed atomic to allow concurrent marker access
-// objects filled in CopyMutableObjectGraph.
-VARIABLE_COMPRESSED_VISITOR(
-    Closure,
-    UntaggedClosure::LengthBits::decode(Smi::Value(
-        raw_obj->untag()->length_and_flags<std::memory_order_relaxed>())))
+VARIABLE_COMPRESSED_VISITOR(Closure,
+                            UntaggedClosure::LengthBits::decode(Smi::Value(
+                                raw_obj->untag()->length_and_flags())))
 COMPRESSED_VISITOR(LibraryPrefix)
 COMPRESSED_VISITOR(Bytecode)
 REGULAR_VISITOR(SingleTargetCache)

@@ -402,9 +402,6 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   final Set<String> _priorityFiles = {};
 
   @override
-  Future<void> get currentAnalysis => waitForTasksFinished();
-
-  @override
   Future<void> closeFile(Uri uri) async {
     // closeFile should both remove the overlay and remove from priority files,
     // since that's equivalent of what the LSP document handlers do and shared
@@ -460,6 +457,9 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
     // For legacy, we can use addOverlay to replace the whole file.
     await addOverlay(fromUri(uri), content);
   }
+
+  @override
+  Future<void> workspaceAnalysisComplete() => waitForTasksFinished();
 
   void _updatePriorityFiles() {
     setPriorityFiles(_priorityFiles.map(getFile).toList());

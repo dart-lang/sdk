@@ -733,7 +733,7 @@ bool File::CreateLink(Namespace* namespc,
 
 bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
   int pipe_fds[2];
-  int status = _pipe(pipe_fds, 4096, _O_BINARY);
+  int status = _pipe(pipe_fds, 4096, _O_BINARY | _O_NOINHERIT);
   if (status != 0) {
     return false;
   }

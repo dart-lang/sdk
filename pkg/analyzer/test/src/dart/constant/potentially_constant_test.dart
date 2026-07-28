@@ -473,7 +473,7 @@ class A {
 }
 
 class B<T> {}
-''', (result) => result.findNode.constructorReference('B<int>.new'));
+''', (result) => result.findNode.constructorTearOff('B<int>.new'));
   }
 
   test_constructorReference_explicitTypeArguments_nonConst() async {
@@ -487,7 +487,7 @@ class A {
 
 class B<T> {}
 ''',
-      (result) => result.findNode.constructorReference('B<self.A>.new'),
+      (result) => result.findNode.constructorTearOff('B<self.A>.new'),
       (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
@@ -500,7 +500,7 @@ class A {
 }
 
 class B {}
-''', (result) => result.findNode.constructorReference('B.new'));
+''', (result) => result.findNode.constructorTearOff('B.new'));
   }
 
   test_dotShorthandConstructorInvocation_const() async {
@@ -629,7 +629,7 @@ class A {
 var x = new A(); // x
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.instanceCreation('A(); // x')],
+      (result) => [result.findNode.constructorInvocation('A(); // x')],
     );
   }
 
@@ -1409,7 +1409,7 @@ class const C(int a) {
   late final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
       (result) => [result.findNode.simple('a +')],
     );
   }
@@ -1419,7 +1419,7 @@ class const C(int a) {
 class const C(int a) {
   final int f = a + 1;
 }
-''', (result) => result.findNode.variableDeclaration('f =').initializer!);
+''', (result) => result.findNode.variableDeclaration('f =').initializer2!);
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_static() async {
@@ -1429,18 +1429,22 @@ class const C(int a) {
   static final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
       (result) => [result.findNode.simple('a +')],
     );
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inInitializer() async {
-    await _assertConst(r'''
+    await _assertConst(
+      r'''
 class const C(int a) {
   final int f;
   this : f = a + 1;
 }
-''', (result) => result.findNode.constructorFieldInitializer('f =').expression);
+''',
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
+    );
   }
 
   test_simpleIdentifier_parameterOfConstSecondaryConstructor_inBody() async {
@@ -1458,12 +1462,16 @@ class C {
   }
 
   test_simpleIdentifier_parameterOfConstSecondaryConstructor_inInitializer() async {
-    await _assertConst(r'''
+    await _assertConst(
+      r'''
 class C {
   final int f;
   const C(int a) : f = a + 1;
 }
-''', (result) => result.findNode.constructorFieldInitializer('f =').expression);
+''',
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
+    );
   }
 
   test_simpleIdentifier_parameterOfNotConstPrimaryConstructor_inConstructorFieldInitializer() async {
@@ -1474,7 +1482,8 @@ class C(int a) {
   this : f = a + 1;
 }
 ''',
-      (result) => result.findNode.constructorFieldInitializer('f =').expression,
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
       (result) => [result.findNode.simple('a +')],
     );
   }
@@ -1486,7 +1495,7 @@ class C(int a) {
   final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
       (result) => [result.findNode.simple('a +')],
     );
   }
@@ -1499,7 +1508,8 @@ class C {
   C(int a) : f = a + 1;
 }
 ''',
-      (result) => result.findNode.constructorFieldInitializer('f =').expression,
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
       (result) => [result.findNode.simple('a +')],
     );
   }
@@ -1654,6 +1664,6 @@ class A<T> {
   }
 
   Expression _xInitializer(TestResolvedUnitResult result) {
-    return result.findNode.variableDeclaration('x = ').initializer!;
+    return result.findNode.variableDeclaration('x = ').initializer2!;
   }
 }

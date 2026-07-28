@@ -206,6 +206,13 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   Label body, load_tramp_addr;
   const intptr_t kCallLength = 5;
+  // Padding for ubsan target function pointer validation
+  while (__ CodeSize() <
+         FfiCallbackMetadata::kUbsanTargetValidationPaddingSize) {
+    __ Breakpoint();
+  }
+  ASSERT_EQUAL(FfiCallbackMetadata::kUbsanTargetValidationPaddingSize,
+               __ CodeSize());
   for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
        ++i) {
     // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
@@ -221,8 +228,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT_EQUAL(__ CodeSize(),
-               FfiCallbackMetadata::kNativeCallbackTrampolineSize *
-                   FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
+               FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+                   FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                       FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   const intptr_t shared_stub_start = __ CodeSize();
 

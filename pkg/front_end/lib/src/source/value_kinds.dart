@@ -44,9 +44,9 @@ import 'stack_listener_impl.dart' as type;
 
 class ValueKinds {
   static const ValueKind AnnotationList =
-      const SingleValueKind<List<type.Expression>>();
+      const SingleValueKind<List<type.InternalExpression>>();
   static const ValueKind AnnotationListOrNull =
-      const SingleValueKind<List<type.Expression>>(NullValues.Metadata);
+      const SingleValueKind<List<type.InternalExpression>>(NullValues.Metadata);
   static const ValueKind AnonymousMethodParameters =
       const SingleValueKind<type.AnonymousMethodParameters>();
   static const ValueKind AnonymousMethodParameterBuilder =
@@ -94,23 +94,28 @@ class ValueKinds {
   static const ValueKind ContinueTarget =
       const SingleValueKind<type.JumpTarget>(NullValues.ContinueTarget);
   static const ValueKind DartType = const SingleValueKind<type.DartType>();
+  static const ValueKind Element =
+      const SingleValueKind<type.InternalElement>();
   static const ValueKind EnumConstantInfo =
       const SingleValueKind<type.EnumConstantInfo>();
   static const ValueKind EnumConstantInfoOrNull =
       const SingleValueKind<type.EnumConstantInfo>(NullValues.EnumConstantInfo);
   static const ValueKind EnumConstantInfoOrParserRecovery =
       const UnionValueKind([EnumConstantInfo, ParserRecovery]);
-  static const ValueKind Expression = const SingleValueKind<type.Expression>();
+  static const ValueKind Expression =
+      const SingleValueKind<type.InternalExpression>();
   static const ValueKind ExpressionOrPatternGuardCase =
       const SingleValueKind<type.ExpressionOrPatternGuardCase>();
   static const ValueKind ExpressionOrPatternGuardCaseList =
       const SingleValueKind<List<type.ExpressionOrPatternGuardCase>>();
   static const ValueKind ExpressionOrNull =
-      const SingleValueKind<type.Expression>(NullValues.Expression);
+      const SingleValueKind<type.InternalExpression>(NullValues.Expression);
   static const ValueKind FieldInitializerTokenOrNull =
       const SingleValueKind<type.Token>(NullValues.FieldInitializer);
   static const ValueKind FieldInitializerOrNull =
-      const SingleValueKind<type.Expression>(NullValues.FieldInitializer);
+      const SingleValueKind<type.InternalExpression>(
+        NullValues.FieldInitializer,
+      );
   static const ValueKind FormalParameters =
       const SingleValueKind<type.FormalParameters>();
   static const ValueKind FormalListOrNull =
@@ -141,8 +146,6 @@ class ValueKinds {
   static const ValueKind Label = const SingleValueKind<type.Label>();
   static const ValueKind LabelListOrNull =
       const SingleValueKind<List<type.Label>>(NullValues.Labels);
-  static const ValueKind MapLiteralEntry =
-      const SingleValueKind<type.MapLiteralEntry>();
   static const ValueKind MapPatternEntry =
       const SingleValueKind<type.InternalMapPatternEntry>();
   static const ValueKind ParameterList =
@@ -170,7 +173,7 @@ class ValueKinds {
   static const ValueKind Modifiers = const SingleValueKind<type.Modifiers>();
   static const ValueKind Name = const SingleValueKind<type.String>();
   static const ValueKind NamedExpression =
-      const SingleValueKind<type.NamedExpression>();
+      const SingleValueKind<type.InternalNamedExpression>();
   static const ValueKind NameList = const SingleValueKind<List<type.String>>();
   static const ValueKind NameListOrNull =
       const SingleValueKind<List<type.String>>(NullValues.IdentifierList);

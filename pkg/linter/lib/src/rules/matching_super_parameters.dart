@@ -32,11 +32,7 @@ class MatchingSuperParameters extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  const new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitConstructor(node.parameters, node.initializers, node.parent?.parent);

@@ -30,11 +30,11 @@ void f(A a) {
     var node = result.findNode.functionExpressionInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: ExtensionOverride
+  function2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -46,7 +46,7 @@ FunctionExpressionInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -71,7 +71,7 @@ void f(A a) {
     var node = result.findNode.functionExpressionInvocation('(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: ExtensionOverride
+  function2: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -83,7 +83,7 @@ FunctionExpressionInvocation
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -97,7 +97,7 @@ FunctionExpressionInvocation
       String
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -126,7 +126,7 @@ void f(p.A a) {
     var node = result.findNode.functionExpressionInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: ExtensionOverride
+  function2: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -134,7 +134,7 @@ FunctionExpressionInvocation
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -146,7 +146,7 @@ FunctionExpressionInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -174,7 +174,7 @@ void f(p.A a) {
     var node = result.findNode.functionExpressionInvocation('(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: ExtensionOverride
+  function2: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -190,7 +190,7 @@ FunctionExpressionInvocation
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -204,7 +204,7 @@ FunctionExpressionInvocation
       String
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -230,11 +230,11 @@ void f(A a) {
     var node = result.findNode.propertyAccess('E(a)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -269,12 +269,12 @@ void f(A a) {
     var node = result.findNode.functionExpressionInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: ExtensionOverride
+  function2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -292,7 +292,7 @@ FunctionExpressionInvocation
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -318,7 +318,7 @@ void f(A a) {
     var node = result.findNode.propertyAccess('(a)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -330,7 +330,7 @@ PropertyAccess
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -368,7 +368,7 @@ void f(p.A a) {
     var node = result.findNode.propertyAccess('E(a)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -376,7 +376,7 @@ PropertyAccess
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -412,7 +412,7 @@ void f(p.A a) {
     var node = result.findNode.propertyAccess('(a)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -428,7 +428,7 @@ PropertyAccess
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -463,11 +463,11 @@ void f(int? a) {
     var node = result.findNode.index('[0]');
     assertResolvedNodeText(node, r'''
 IndexExpression
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -479,7 +479,7 @@ IndexExpression
     staticType: null
   question: ?
   leftBracket: [
-  index: IntegerLiteral
+  index2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -503,12 +503,12 @@ void f(int? a) {
     var node = result.findNode.assignment('[0] =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: IndexExpression
-    target: ExtensionOverride
+  leftHandSide2: IndexExpression
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -520,7 +520,7 @@ AssignmentExpression
       staticType: null
     question: ?
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
@@ -528,7 +528,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
@@ -555,11 +555,11 @@ void f(A a) {
     var node = result.findNode.methodInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -596,7 +596,7 @@ void f(A a) {
     var node = result.findNode.methodInvocation('(a)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -608,7 +608,7 @@ MethodInvocation
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -650,7 +650,7 @@ void f(p.A a) {
     var node = result.findNode.methodInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -658,7 +658,7 @@ MethodInvocation
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -698,7 +698,7 @@ void f(p.A a) {
     var node = result.findNode.methodInvocation('(a)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -714,7 +714,7 @@ MethodInvocation
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -753,11 +753,11 @@ void f(int? a) {
     var node = result.findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -794,11 +794,11 @@ void f(A a) {
     var node = result.findNode.binary('(a)');
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: ExtensionOverride
+  leftOperand2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -809,7 +809,7 @@ BinaryExpression
     extendedType: A
     staticType: null
   operator: +
-  rightOperand: IntegerLiteral
+  rightOperand2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -833,7 +833,7 @@ void f(A a) {
     var node = result.findNode.binary('(a)');
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: ExtensionOverride
+  leftOperand2: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -845,7 +845,7 @@ BinaryExpression
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -858,7 +858,7 @@ BinaryExpression
     typeArgumentTypes
       int
   operator: +
-  rightOperand: IntegerLiteral
+  rightOperand2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -885,12 +885,12 @@ f(){
     var node = result.findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PropertyAccess
-    target: ExtensionOverride
+  operand2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
             correspondingParameter: <null>
@@ -932,7 +932,7 @@ void f(p.A a) {
     var node = result.findNode.binary('(a)');
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: ExtensionOverride
+  leftOperand2: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -940,7 +940,7 @@ BinaryExpression
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -951,7 +951,7 @@ BinaryExpression
     extendedType: A
     staticType: null
   operator: +
-  rightOperand: IntegerLiteral
+  rightOperand2: IntegerLiteral
     literal: 1
     correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -978,7 +978,7 @@ void f(p.A a) {
     var node = result.findNode.binary('(a)');
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: ExtensionOverride
+  leftOperand2: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -994,7 +994,7 @@ BinaryExpression
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -1007,7 +1007,7 @@ BinaryExpression
     typeArgumentTypes
       int
   operator: +
-  rightOperand: IntegerLiteral
+  rightOperand2: IntegerLiteral
     literal: 1
     correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -1055,11 +1055,11 @@ void f(int? a) {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -1104,12 +1104,12 @@ void f(A a) {
     var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1126,7 +1126,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
     staticType: int
@@ -1153,8 +1153,8 @@ void f(A a) {
     var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1166,7 +1166,7 @@ AssignmentExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1185,7 +1185,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
     staticType: int
@@ -1215,8 +1215,8 @@ void f(p.A a) {
     var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -1224,7 +1224,7 @@ AssignmentExpression
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1241,7 +1241,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
     staticType: int
@@ -1271,8 +1271,8 @@ void f(p.A a) {
     var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -1288,7 +1288,7 @@ AssignmentExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1307,7 +1307,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
     staticType: int
@@ -1335,12 +1335,12 @@ void f(A a) {
     var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1357,7 +1357,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -1385,8 +1385,8 @@ void f(A a) {
     var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1398,7 +1398,7 @@ AssignmentExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1417,7 +1417,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -1448,8 +1448,8 @@ void f(p.A a) {
     var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -1457,7 +1457,7 @@ AssignmentExpression
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1474,7 +1474,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -1505,8 +1505,8 @@ void f(p.A a) {
     var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -1522,7 +1522,7 @@ AssignmentExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1541,7 +1541,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -1568,11 +1568,11 @@ f(C c) => E(c).a;
     var node = result.findNode.propertyAccess('E(c)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: c
           correspondingParameter: <null>

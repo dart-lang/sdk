@@ -161,14 +161,15 @@ class CompileAndDumpIr extends RecursiveVisitor {
       scopes: ComputedScopes(function.member, enableAsserts: true),
     ).buildFlowGraph();
     final backEndState = BackEndState();
-    final constraints = Arm64Constraints();
+    final stackFrame = Arm64StackFrame(function);
+    final constraints = Arm64Constraints(stackFrame);
     final vmOffsets = Arm64VMOffsets();
     final objectLayout = ObjectLayout(
       vmOffsets,
       wordSize: 8,
       compressedWordSize: 8,
     );
-    backEndState.stackFrame = Arm64StackFrame(function);
+    backEndState.stackFrame = stackFrame;
     backEndState.unboxing = Unboxing();
     final pipeline = Pipeline([
       SSAComputation(),

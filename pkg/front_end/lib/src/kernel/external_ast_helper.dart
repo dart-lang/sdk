@@ -8,7 +8,30 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';
 
+import '../source/check_helper.dart';
 import 'internal_ast.dart';
+
+/// Returns a clone of [node].
+///
+/// This assumes that `isPureExpression(node)` is `true`.
+Expression clonePureExpression(Expression node) {
+  if (node is ThisExpression) {
+    return createThisExpression(fileOffset: node.fileOffset);
+  } else if (node is VariableGet) {
+    assert(
+      node.variable.isFinal && !node.variable.isLate,
+      "Trying to clone VariableGet of non-final variable"
+      " ${node.variable}.",
+    );
+    return createVariableGet(
+      node.variable,
+      promotedType: node.promotedType,
+      fileOffset: node.fileOffset,
+    );
+  }
+  // Coverage-ignore-block(suite): Not run.
+  throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
+}
 
 /// Returns a block like this:
 ///
@@ -298,6 +321,26 @@ ConstructorTearOff createConstructorTearOff(
   return new ConstructorTearOff(target)..fileOffset = fileOffset;
 }
 
+ConstVariable createConstVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool hasDeclaredInitializer = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new ConstVariable(
+      name: name,
+      type: type,
+      isFinal: isFinal,
+      isWildcard: isWildcard,
+      hasDeclaredInitializer: hasDeclaredInitializer,
+    )
+    ..fileOffset = fileOffset
+    ..fileEqualsOffset = fileEqualsOffset;
+}
+
 ContinueSwitchStatement createContinueSwitchStatement({
   required int fileOffset,
 }) {
@@ -309,8 +352,8 @@ AsExpression createCovarianceCheckedInstanceGet(
   Expression receiver,
   Name name, {
   required Member interfaceTarget,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -319,9 +362,9 @@ AsExpression createCovarianceCheckedInstanceGet(
         receiver,
         name,
         interfaceTarget: interfaceTarget,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
@@ -335,8 +378,8 @@ AsExpression createCovarianceCheckedInstanceInvocation(
   Arguments arguments, {
   required Procedure interfaceTarget,
   required FunctionType functionType,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -347,9 +390,9 @@ AsExpression createCovarianceCheckedInstanceInvocation(
         arguments,
         interfaceTarget: interfaceTarget,
         functionType: functionType,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
@@ -361,8 +404,8 @@ AsExpression createCovarianceCheckedInstanceTearOff(
   Expression receiver,
   Name name, {
   required Procedure interfaceTarget,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -371,9 +414,9 @@ AsExpression createCovarianceCheckedInstanceTearOff(
         receiver,
         name,
         interfaceTarget: interfaceTarget,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
@@ -503,7 +546,7 @@ ForStatement createForStatement({
 }
 
 FunctionDeclaration createFunctionDeclaration({
-  required Variable variable,
+  required LocalFunctionVariable variable,
   required FunctionNode function,
   required int fileOffset,
 }) {
@@ -734,6 +777,14 @@ InvalidExpression createInvalidExpression(
   return new InvalidExpression(message, expression)..fileOffset = fileOffset;
 }
 
+InvalidExpression createInvalidExpressionFromErrorText(
+  ErrorText errorText, {
+  Expression? expression,
+}) {
+  return new InvalidExpression(errorText.message, expression)
+    ..fileOffset = errorText.fileOffset;
+}
+
 InvalidInitializer createInvalidInitializer(
   InvalidExpression expression, {
   bool isSuperInitializer = false,
@@ -741,6 +792,17 @@ InvalidInitializer createInvalidInitializer(
 }) {
   return new InvalidInitializer(expression.message)
     ..fileOffset = expression.fileOffset
+    ..isSuperInitializer = isSuperInitializer
+    ..isRedirectingInitializer = isRedirectingInitializer;
+}
+
+InvalidInitializer createInvalidInitializerFromErrorText(
+  ErrorText errorText, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
+  return new InvalidInitializer(errorText.message)
+    ..fileOffset = errorText.fileOffset
     ..isSuperInitializer = isSuperInitializer
     ..isRedirectingInitializer = isRedirectingInitializer;
 }
@@ -791,7 +853,6 @@ LateVariable createLateVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
@@ -801,7 +862,6 @@ LateVariable createLateVariable({
       name: name,
       type: type,
       isFinal: isFinal,
-      isConst: isConst,
       isWildcard: isWildcard,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
@@ -881,7 +941,7 @@ LoadLibrary createLoadLibrary(
 /// Creates an invocation of the local function [variable] with the provided
 /// [arguments].
 LocalFunctionInvocation createLocalFunctionInvocation(
-  Variable variable, {
+  LocalFunctionVariable variable, {
   Arguments? arguments,
   required int fileOffset,
 }) {
@@ -894,11 +954,35 @@ LocalFunctionInvocation createLocalFunctionInvocation(
   )..fileOffset = fileOffset;
 }
 
+LocalFunctionVariable createLocalFunctionVariable({
+  required String name,
+  required DartType? type,
+  bool isWildcard = false,
+  required int fileOffset,
+  required bool isLowered,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new LocalFunctionVariable(
+      name: name,
+      type: type,
+      isWildcard: isWildcard,
+      isLowered: isLowered,
+    )
+    ..fileOffset = fileOffset
+    ..fileEqualsOffset = fileEqualsOffset;
+}
+
+LocalInitializer createLocalInitializer({
+  required SyntheticVariable variable,
+  required int fileOffset,
+}) {
+  return new LocalInitializer(variable)..fileOffset = fileOffset;
+}
+
 LocalVariable createLocalVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
@@ -908,7 +992,6 @@ LocalVariable createLocalVariable({
       name: name,
       type: type,
       isFinal: isFinal,
-      isConst: isConst,
       isWildcard: isWildcard,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
@@ -925,7 +1008,6 @@ Expression createLogicalExpression({
   return new LogicalExpression(left, operator, right)..fileOffset = fileOffset;
 }
 
-// Coverage-ignore(suite): Not run.
 MapLiteralEntry createMapLiteralEntry(
   Expression key,
   Expression value, {
@@ -1285,6 +1367,14 @@ RecordPattern createRecordPattern({
     ..fileOffset = fileOffset;
 }
 
+RedirectingFactoryTearOff createRedirectingFactoryTearOff(
+  Procedure procedure, {
+  required int fileOffset,
+}) {
+  assert(procedure.isRedirectingFactory);
+  return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
+}
+
 RelationalPattern createRelationalPattern({
   required RelationalPatternKind kind,
   required Expression expression,
@@ -1620,8 +1710,7 @@ Expression createVariableSet(
   bool allowFinalAssignment = false,
   required int fileOffset,
 }) {
-  // TODO(johnniwinther): Add a [LocalFunctionVariable] for this.
-  if (variable.parent is FunctionDeclaration) {
+  if (variable is LocalFunctionVariable) {
     return createLocalFunctionInvocation(
       variable,
       arguments: createArguments([value], fileOffset: fileOffset),
@@ -1669,4 +1758,17 @@ YieldStatement createYieldStatement(
 }) {
   return new YieldStatement(expression, isYieldStar: isYieldStar)
     ..fileOffset = fileOffset;
+}
+
+/// Returns `true` if [node] is a pure expression.
+///
+/// A pure expression is an expression that is deterministic and side effect
+/// free, such as `this` or a variable get of a final variable.
+bool isPureExpression(Expression node) {
+  if (node is ThisExpression) {
+    return true;
+  } else if (node is VariableGet) {
+    return node.variable.isFinal && !node.variable.isLate;
+  }
+  return false;
 }

@@ -287,7 +287,13 @@ class Scrape {
   }
 
   void _parseFile(File file, String shortPath) {
-    var source = file.readAsStringSync();
+    String source;
+    try {
+      source = file.readAsStringSync();
+    } catch (error) {
+      print('Failed to read $shortPath:\n$error');
+      return;
+    }
 
     var diagnosticListener = SimpleDiagnosticListener(this, _printErrors);
     var featureSet = FeatureSet.latestLanguageVersion();

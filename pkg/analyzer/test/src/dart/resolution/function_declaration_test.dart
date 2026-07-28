@@ -55,7 +55,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -103,7 +103,7 @@ FunctionDeclaration
       keyword: async
       star: *
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -381,6 +381,19 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: double
+            element: dart:core::@class::double
+            type: double
+          name: a
+          declaredFragment: <testLibraryFragment> a@19
+            element: isPublic
+              type: double
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: double
@@ -393,7 +406,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -444,7 +457,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -490,7 +503,7 @@ FunctionDeclaration
       keyword: sync
       star: *
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -595,6 +608,26 @@ TypeParameter
             defaultType: null
       rightBracket: >
     parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: _
+            element: <null>
+            type: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: isPrivate
+              type: InvalidType
+        RegularFormalParameter
+          type: NamedType
+            name: _
+            element: <null>
+            type: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: isPrivate
+              type: InvalidType
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

@@ -1114,7 +1114,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
             defaultValue.constant,
           );
         } else if (defaultValue is BasicLiteral ||
-            defaultValue is SymbolLiteral ||
             defaultValue is TypeLiteral) {
           param.defaultValue = _visit(defaultValue) as Type;
         } else {
@@ -1391,10 +1390,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         staticResultType = emptyType;
       } else if (target is Procedure) {
         final returnType = target.function.returnType;
-        // TODO(dartbug.com/54200): static type cannot be trusted when
-        // function type is returned.
-        if (returnType is TypeParameterType ||
-            (returnType != staticDartType && returnType is! FunctionType)) {
+        if (returnType is TypeParameterType || returnType != staticDartType) {
           staticResultType = _typesBuilder.fromStaticType(staticDartType, true);
         }
       }
@@ -2456,9 +2452,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
-  TypeExpr visitSymbolLiteral(SymbolLiteral node) {
-    return _staticType(node);
-  }
+  TypeExpr visitSymbolLiteral(SymbolLiteral node) => throw UnsupportedError(
+    "Expected SymbolLiteral to be lowered to SymbolConstant by CFE",
+  );
 
   @override
   TypeExpr visitThisExpression(ThisExpression node) {
@@ -3203,6 +3199,16 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
 
   @override
   Type visitSymbolConstant(SymbolConstant constant) {
+    final Class? concreteClass = summaryCollector.target
+        .concreteConstSymbolLiteralClass(
+          summaryCollector._environment.coreTypes,
+        );
+    if (concreteClass != null) {
+      return summaryCollector._entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
+    }
     return summaryCollector._symbolType;
   }
 

@@ -59,7 +59,7 @@ final class NaiveInt32x4List extends WasmTypedDataBase
     int _y = _storage[(index * 4) + 1];
     int _z = _storage[(index * 4) + 2];
     int _w = _storage[(index * 4) + 3];
-    return NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return I32x4._truncated(_x, _y, _z, _w);
   }
 
   void operator []=(int index, Int32x4 value) {
@@ -414,7 +414,7 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cy = y < other.y;
     bool _cz = z < other.z;
     bool _cw = w < other.w;
-    return NaiveInt32x4._truncated(
+    return I32x4._truncated(
       _cx ? -1 : 0,
       _cy ? -1 : 0,
       _cz ? -1 : 0,
@@ -427,7 +427,7 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cy = y <= other.y;
     bool _cz = z <= other.z;
     bool _cw = w <= other.w;
-    return NaiveInt32x4._truncated(
+    return I32x4._truncated(
       _cx ? -1 : 0,
       _cy ? -1 : 0,
       _cz ? -1 : 0,
@@ -440,7 +440,7 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cy = y > other.y;
     bool _cz = z > other.z;
     bool _cw = w > other.w;
-    return NaiveInt32x4._truncated(
+    return I32x4._truncated(
       _cx ? -1 : 0,
       _cy ? -1 : 0,
       _cz ? -1 : 0,
@@ -453,7 +453,7 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cy = y >= other.y;
     bool _cz = z >= other.z;
     bool _cw = w >= other.w;
-    return NaiveInt32x4._truncated(
+    return I32x4._truncated(
       _cx ? -1 : 0,
       _cy ? -1 : 0,
       _cz ? -1 : 0,
@@ -466,7 +466,7 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cy = y == other.y;
     bool _cz = z == other.z;
     bool _cw = w == other.w;
-    return NaiveInt32x4._truncated(
+    return I32x4._truncated(
       _cx ? -1 : 0,
       _cy ? -1 : 0,
       _cz ? -1 : 0,
@@ -479,7 +479,7 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     bool _cy = y != other.y;
     bool _cz = z != other.z;
     bool _cw = w != other.w;
-    return NaiveInt32x4._truncated(
+    return I32x4._truncated(
       _cx ? -1 : 0,
       _cy ? -1 : 0,
       _cz ? -1 : 0,
@@ -715,98 +715,61 @@ final class NaiveFloat64x2 extends WasmTypedDataBase implements Float64x2 {
   Float64x2 sqrt() => NaiveFloat64x2._doubles(math.sqrt(x), math.sqrt(y));
 }
 
-final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
-  final int x;
-  final int y;
-  final int z;
-  final int w;
+@pragma("wasm:entry-point")
+final class I32x4 extends WasmTypedDataBase implements Int32x4 {
+  @pragma("wasm:entry-point")
+  final WasmV128 _bits;
 
+  // Scratch storage used by shuffle / shuffleMix. Lane reads from `_bits`
+  // already use single wasm v128 lane-extract intrinsics, so no scratch is
+  // needed for the simple element-wise operators.
   static final Int32List _list = Int32List(4);
 
-  static int _truncate(x) {
-    _list[0] = x;
-    return _list[0];
-  }
+  @pragma("wasm:entry-point")
+  I32x4._wrap(this._bits);
 
-  NaiveInt32x4(int x, int y, int z, int w)
-    : this.x = _truncate(x),
-      this.y = _truncate(y),
-      this.z = _truncate(z),
-      this.w = _truncate(w);
+  factory I32x4(int x, int y, int z, int w) =>
+      I32x4._wrap(WasmI32x4.fromInts(x, y, z, w).value);
 
-  NaiveInt32x4.bool(bool x, bool y, bool z, bool w)
-    : this.x = x ? -1 : 0,
-      this.y = y ? -1 : 0,
-      this.z = z ? -1 : 0,
-      this.w = w ? -1 : 0;
+  factory I32x4.bool(bool x, bool y, bool z, bool w) => I32x4._wrap(
+    WasmI32x4.fromInts(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0).value,
+  );
 
-  factory NaiveInt32x4.fromFloat32x4Bits(Float32x4 f) {
+  factory I32x4.fromFloat32x4Bits(Float32x4 f) {
     Float32List floatList = NaiveFloat32x4._list;
     floatList[0] = f.x;
     floatList[1] = f.y;
     floatList[2] = f.z;
     floatList[3] = f.w;
     var view = floatList.buffer.asInt32List();
-    return NaiveInt32x4._truncated(view[0], view[1], view[2], view[3]);
+    return I32x4._truncated(view[0], view[1], view[2], view[3]);
   }
 
-  NaiveInt32x4._truncated(this.x, this.y, this.z, this.w);
+  factory I32x4._truncated(int x, int y, int z, int w) =>
+      I32x4._wrap(WasmI32x4.fromInts(x, y, z, w).value);
+
+  int get x => WasmI32x4(_bits).extractLane(0).toIntSigned();
+  int get y => WasmI32x4(_bits).extractLane(1).toIntSigned();
+  int get z => WasmI32x4(_bits).extractLane(2).toIntSigned();
+  int get w => WasmI32x4(_bits).extractLane(3).toIntSigned();
 
   String toString() =>
       '[${_int32ToHex(x)}, ${_int32ToHex(y)}, '
       '${_int32ToHex(z)}, ${_int32ToHex(w)}]';
 
-  Int32x4 operator |(Int32x4 other) {
-    int _x = x | other.x;
-    int _y = y | other.y;
-    int _z = z | other.z;
-    int _w = w | other.w;
-    return NaiveInt32x4._truncated(_x, _y, _z, _w);
-  }
+  Int32x4 operator |(Int32x4 other) =>
+      I32x4._wrap(_bits | (other as I32x4)._bits);
+  Int32x4 operator &(Int32x4 other) =>
+      I32x4._wrap(_bits & (other as I32x4)._bits);
+  Int32x4 operator ^(Int32x4 other) =>
+      I32x4._wrap(_bits ^ (other as I32x4)._bits);
+  Int32x4 operator +(Int32x4 other) =>
+      I32x4._wrap((WasmI32x4(_bits) + WasmI32x4((other as I32x4)._bits)).value);
+  Int32x4 operator -(Int32x4 other) =>
+      I32x4._wrap((WasmI32x4(_bits) - WasmI32x4((other as I32x4)._bits)).value);
+  Int32x4 operator -() => I32x4._wrap((-WasmI32x4(_bits)).value);
 
-  Int32x4 operator &(Int32x4 other) {
-    int _x = x & other.x;
-    int _y = y & other.y;
-    int _z = z & other.z;
-    int _w = w & other.w;
-    return NaiveInt32x4._truncated(_x, _y, _z, _w);
-  }
-
-  Int32x4 operator ^(Int32x4 other) {
-    int _x = x ^ other.x;
-    int _y = y ^ other.y;
-    int _z = z ^ other.z;
-    int _w = w ^ other.w;
-    return NaiveInt32x4._truncated(_x, _y, _z, _w);
-  }
-
-  Int32x4 operator +(Int32x4 other) {
-    int _x = x + other.x;
-    int _y = y + other.y;
-    int _z = z + other.z;
-    int _w = w + other.w;
-    return NaiveInt32x4._truncated(_x, _y, _z, _w);
-  }
-
-  Int32x4 operator -(Int32x4 other) {
-    int _x = x - other.x;
-    int _y = y - other.y;
-    int _z = z - other.z;
-    int _w = w - other.w;
-    return NaiveInt32x4._truncated(_x, _y, _z, _w);
-  }
-
-  Int32x4 operator -() {
-    return NaiveInt32x4._truncated(-x, -y, -z, -w);
-  }
-
-  int get signMask {
-    int mx = (x & 0x80000000) >> 31;
-    int my = (y & 0x80000000) >> 31;
-    int mz = (z & 0x80000000) >> 31;
-    int mw = (w & 0x80000000) >> 31;
-    return mx | my << 1 | mz << 2 | mw << 3;
-  }
+  int get signMask => WasmI32x4(_bits).bitmask.toIntUnsigned();
 
   Int32x4 shuffle(int mask) {
     // mask < 0 || mask > 255
@@ -819,7 +782,7 @@ final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
     int _y = _list[(mask >> 2) & 0x3];
     int _z = _list[(mask >> 4) & 0x3];
     int _w = _list[(mask >> 6) & 0x3];
-    return NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return I32x4._truncated(_x, _y, _z, _w);
   }
 
   Int32x4 shuffleMix(Int32x4 other, int mask) {
@@ -838,56 +801,41 @@ final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
     _list[3] = other.w;
     int _z = _list[(mask >> 4) & 0x3];
     int _w = _list[(mask >> 6) & 0x3];
-    return NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return I32x4._truncated(_x, _y, _z, _w);
   }
 
-  Int32x4 withX(int x) {
-    int _x = _truncate(x);
-    return NaiveInt32x4._truncated(_x, y, z, w);
-  }
+  Int32x4 withX(int x) =>
+      I32x4._wrap(WasmI32x4(_bits).replaceLane(0, WasmI32.fromInt(x)));
 
-  Int32x4 withY(int y) {
-    int _y = _truncate(y);
-    return NaiveInt32x4._truncated(x, _y, z, w);
-  }
+  Int32x4 withY(int y) =>
+      I32x4._wrap(WasmI32x4(_bits).replaceLane(1, WasmI32.fromInt(y)));
 
-  Int32x4 withZ(int z) {
-    int _z = _truncate(z);
-    return NaiveInt32x4._truncated(x, y, _z, w);
-  }
+  Int32x4 withZ(int z) =>
+      I32x4._wrap(WasmI32x4(_bits).replaceLane(2, WasmI32.fromInt(z)));
 
-  Int32x4 withW(int w) {
-    int _w = _truncate(w);
-    return NaiveInt32x4._truncated(x, y, z, _w);
-  }
+  Int32x4 withW(int w) =>
+      I32x4._wrap(WasmI32x4(_bits).replaceLane(3, WasmI32.fromInt(w)));
 
   bool get flagX => x != 0;
-
   bool get flagY => y != 0;
-
   bool get flagZ => z != 0;
-
   bool get flagW => w != 0;
 
-  Int32x4 withFlagX(bool flagX) {
-    int _x = flagX ? -1 : 0;
-    return NaiveInt32x4._truncated(_x, y, z, w);
-  }
+  Int32x4 withFlagX(bool flagX) => I32x4._wrap(
+    WasmI32x4(_bits).replaceLane(0, WasmI32.fromInt(flagX ? -1 : 0)),
+  );
 
-  Int32x4 withFlagY(bool flagY) {
-    int _y = flagY ? -1 : 0;
-    return NaiveInt32x4._truncated(x, _y, z, w);
-  }
+  Int32x4 withFlagY(bool flagY) => I32x4._wrap(
+    WasmI32x4(_bits).replaceLane(1, WasmI32.fromInt(flagY ? -1 : 0)),
+  );
 
-  Int32x4 withFlagZ(bool flagZ) {
-    int _z = flagZ ? -1 : 0;
-    return NaiveInt32x4._truncated(x, y, _z, w);
-  }
+  Int32x4 withFlagZ(bool flagZ) => I32x4._wrap(
+    WasmI32x4(_bits).replaceLane(2, WasmI32.fromInt(flagZ ? -1 : 0)),
+  );
 
-  Int32x4 withFlagW(bool flagW) {
-    int _w = flagW ? -1 : 0;
-    return NaiveInt32x4._truncated(x, y, z, _w);
-  }
+  Int32x4 withFlagW(bool flagW) => I32x4._wrap(
+    WasmI32x4(_bits).replaceLane(3, WasmI32.fromInt(flagW ? -1 : 0)),
+  );
 
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue) {
     var floatList = NaiveFloat32x4._list;

@@ -1012,46 +1012,7 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
   final DartType _resultType;
   final bool isObjectAccess;
   final int fileOffset;
-
-  /// Static type of the covariance check operand for the created expression,
-  /// if any.
-  ///
-  /// If the created expression needs to be checked due to covariantly occurring
-  /// type parameters, [covarianceCheckedExpressionStaticType] returns the
-  /// static type of the expression being checked. Note that that type is
-  /// different from the target type of the check. Consider the following
-  /// example:
-  ///
-  ///   e as{CovarianceChecks} T
-  ///
-  /// In the example, `e` is the created expression, `T` is the target type of
-  /// the check, and [covarianceCheckedExpressionStaticType], if not null, is
-  /// the static type of `e`, such that runtime type of all possible values `e`
-  /// evaluates to is a subtype of that static type. Not that the type is
-  /// different from the notion of static type as defined by the Dart language
-  /// specification.
-  ///
-  /// If the covariance check isn't needed for the created expression,
-  /// [covarianceCheckedExpressionStaticType] returns null.
-  ///
-  /// See also the documentation of [typeForCovariantCheck]
-  final DartType? covarianceCheckedExpressionStaticType;
-
-  /// The target type of the covariance check for the created expression, if
-  /// any.
-  ///
-  /// Some [InstanceGet] expressions might require a type check due to the class
-  /// type parameters appearing contravariantly in the return type of the
-  /// getter. In that case [typeForCovariantCheck] represents the target type of
-  /// the check. Consider the following example:
-  ///
-  ///   e as {CovarianceCheck} T
-  ///
-  /// In the example, `e` is the created expression, and `T` is the target type
-  /// of the check.
-  ///
-  /// See also the documentation of [covarianceCheckedExpressionStaticType].
-  final DartType? typeForCovariantCheck;
+  final CovarianceCheckTypes? covarianceCheckTypes;
 
   new(
     this._receiver,
@@ -1059,16 +1020,8 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
     this._resultType, {
     required this.fileOffset,
     this.isObjectAccess = false,
-    this.typeForCovariantCheck,
-    this.covarianceCheckedExpressionStaticType,
-  }) : assert(
-         // [typeForCovariantCheck] and [covarianceCheckedExpressionStaticType]
-         // should be provided together or absent together.
-         typeForCovariantCheck == null &&
-                 covarianceCheckedExpressionStaticType == null ||
-             typeForCovariantCheck != null &&
-                 covarianceCheckedExpressionStaticType != null,
-       );
+    this.covarianceCheckTypes,
+  });
 
   @override
   Expression createVariableCacheReadExpression(
@@ -1077,12 +1030,11 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
     required int fileOffset,
   }) {
     Expression cacheVariableReadExpression;
-    if (covarianceCheckedExpressionStaticType
-        case DartType covarianceCheckedExpressionStaticType?) {
+    if (covarianceCheckTypes case var covarianceCheckTypes?) {
       cacheVariableReadExpression = createCovarianceCheckedVariableGet(
         variableCache,
-        operandStaticType: covarianceCheckedExpressionStaticType,
-        checkedType: typeForCovariantCheck!,
+        operandStaticType: covarianceCheckTypes.operandStaticType,
+        checkedType: covarianceCheckTypes.checkedType,
         fileOffset: fileOffset,
       );
     } else {
@@ -1104,7 +1056,7 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
     Member target = _target;
     Expression result;
     if (target is Procedure && !target.isGetter) {
-      if (typeForCovariantCheck case var typeForCovariantCheck?) {
+      if (covarianceCheckTypes case var covarianceCheckTypes?) {
         // Coverage-ignore-block(suite): Not run.
         result = createCovarianceCheckedInstanceTearOff(
           isObjectAccess
@@ -1117,8 +1069,8 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
           ),
           _target.name,
           interfaceTarget: target,
-          checkType: typeForCovariantCheck,
-          objectNullableType: typeEnvironment.objectNullableRawType,
+          checkedType: covarianceCheckTypes.checkedType,
+          operandStaticType: covarianceCheckTypes.operandStaticType,
           fileOffset: fileOffset,
         );
       } else {
@@ -1138,7 +1090,7 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
         );
       }
     } else {
-      if (typeForCovariantCheck case var typeForCovariantCheck?) {
+      if (covarianceCheckTypes case var covarianceCheckTypes?) {
         result = createCovarianceCheckedInstanceGet(
           isObjectAccess
               ? InstanceAccessKind.Object
@@ -1150,8 +1102,8 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
           ),
           _target.name,
           interfaceTarget: target,
-          checkType: typeForCovariantCheck,
-          objectNullableType: typeEnvironment.objectNullableRawType,
+          checkedType: covarianceCheckTypes.checkedType,
+          operandStaticType: covarianceCheckTypes.operandStaticType,
           fileOffset: fileOffset,
         );
       } else {
@@ -1694,3 +1646,22 @@ class DelayedNotExpression extends AbstractDelayedExpression {
     return identical(this, expression) || _expression.uses(expression);
   }
 }
+
+/// Target type of a covariance check and the static type of the operand.
+///
+/// If an expression needs to be checked due to covariantly occurring type
+/// parameters, [operandStaticType] is the static type of the expression being
+/// checked, and [checkedType] is the target type of the check. Consider the
+/// following example:
+///
+///   e as{CovarianceChecks} T
+///
+/// Here, `e` is the checked expression, `T` is the [checkedType], and
+/// [operandStaticType] is the static type of `e` such that the runtime types of
+/// all possible values `e` evaluates to are subtypes of [operandStaticType].
+/// Note that [operandStaticType] is different from the notion of static type as
+/// defined by the Dart language specification.
+class CovarianceCheckTypes({
+  required final DartType operandStaticType,
+  required final DartType checkedType,
+});

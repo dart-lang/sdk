@@ -66,16 +66,12 @@ class _PublicImport {
   new({required this.lookup});
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-
+class _Visitor(final MultiAnalysisRule rule) extends SimpleAstVisitor<void> {
   /// Public imports of the current unit.
   List<_PublicImport> _publicImports = [];
 
   /// Cache for [_isPubliclyImported].
   Map<Element, bool> _isImportedMemo = Map.identity();
-
-  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

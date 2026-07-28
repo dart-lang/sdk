@@ -36,12 +36,8 @@ class PreferInterpolationToComposeStrings extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   final skippedNodes = <AstNode>{};
-
-  new(this.rule);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {

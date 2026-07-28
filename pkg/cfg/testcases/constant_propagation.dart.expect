@@ -83,6 +83,82 @@ B0 = EntryBlock()
   DirectCall print(v16)
   Return(v13)
 
+--- reorderPredecessors
+B0 = EntryBlock() dominates:(B27)
+  v10 = Constant(1)
+  Constant(true)
+  v41 = Constant(42)
+  v73 = Constant(null)
+  v110 = Constant(128)
+  v121 = Constant(5)
+  v1 = Parameter(bytes)
+  v2 = Parameter(i)
+  v3 = Parameter(end)
+  v4 = Parameter(c1)
+  v5 = Parameter(c2)
+  v11 = BinaryIntOp +(v2, v10)
+  v15 = InterfaceCall List.[](v1, v2)
+  v21 = BinaryIntOp +(v11, v10)
+  v25 = InterfaceCall List.[](v1, v11)
+  Goto(B27)
+B27 = JoinBlock(B0, B113) idom:B0 dominates:(B33) loop-header (depth:1 body:(B27, B33, B44, B60, B62, B82, B59, B65, B43, B50, B113) back-edges:(B113))
+  v140 = Phi(v25, v107)
+  v137 = Phi(v15, v139)
+  v133 = Phi(v21, v103)
+  Goto(B33)
+B33 = JoinBlock(B27, B82) idom:B27 dominates:(B44, B54, B43) loop-header (depth:2 body:(B33, B44, B60, B62, B82, B59, B65) back-edges:(B82))
+  v139 = Phi(v140, v95)
+  Phi(v137, v134)
+  v132 = Phi(v133, v91)
+  v42 = Comparison int ==(v139, v41)
+  Branch(v42, true: B43, false: B44)
+B43 = TargetBlock() idom:B33 dominates:(B50, B49) in-loop:B27
+  v48 = Comparison int ==(v132, v3)
+  Branch(v48, true: B49, false: B50)
+B49 = TargetBlock() idom:B43
+  Goto(B54)
+B50 = TargetBlock() idom:B43 dominates:(B113, B112) in-loop:B27
+  v103 = BinaryIntOp +(v132, v10)
+  v107 = InterfaceCall List.[](v1, v132)
+  v111 = Comparison int <(v107, v110)
+  Branch(v111, true: B112, false: B113)
+B112 = TargetBlock() idom:B50
+  Goto(B54)
+B113 = TargetBlock() idom:B50 in-loop:B27
+  Goto(B27)
+B44 = TargetBlock() idom:B33 dominates:(B60, B62, B59) in-loop:B33
+  Branch(v4, true: B59, false: B60)
+B59 = TargetBlock() idom:B44 dominates:(B66, B65) in-loop:B33
+  Branch(v5, true: B65, false: B66)
+B65 = TargetBlock() idom:B59 in-loop:B33
+  Goto(B62)
+B66 = TargetBlock() idom:B59
+  DirectCall print(v139)
+  Return(v73)
+B60 = TargetBlock() idom:B44 in-loop:B33
+  Goto(B62)
+B62 = JoinBlock(B60, B65) idom:B44 dominates:(B82, B81) in-loop:B33
+  v134 = Phi(v139, v41)
+  v80 = Comparison int ==(v132, v3)
+  Branch(v80, true: B81, false: B82)
+B81 = TargetBlock() idom:B62
+  Goto(B54)
+B54 = JoinBlock(B81, B112, B49) idom:B33 dominates:(B124, B126, B123)
+  v135 = Phi(v134, v139, v139)
+  v122 = Comparison int >(v135, v121)
+  Branch(v122, true: B123, false: B124)
+B123 = TargetBlock() idom:B54
+  DirectCall print(v135)
+  Goto(B126)
+B124 = TargetBlock() idom:B54
+  Goto(B126)
+B126 = JoinBlock(B124, B123) idom:B54
+  Return(v73)
+B82 = TargetBlock() idom:B62 in-loop:B33
+  v91 = BinaryIntOp +(v132, v10)
+  v95 = InterfaceCall List.[](v1, v132)
+  Goto(B33)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

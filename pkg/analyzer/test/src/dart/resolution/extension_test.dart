@@ -71,7 +71,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: f
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> f@34
@@ -112,7 +112,7 @@ ExtensionDeclaration
         name: g
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
             staticType: int
           semicolon: ;
@@ -191,6 +191,19 @@ ExtensionDeclaration
         propertyKeyword: set
         name: s
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+                element: dart:core::@class::int
+                type: int
+              name: v
+              declaredFragment: <testLibraryFragment> v@33
+                element: isPublic
+                  type: int
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

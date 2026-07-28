@@ -45,9 +45,10 @@ class LateVarInitTransformer {
       Nullability.nonNullable,
     );
     final fn = FunctionDeclaration(
-      SyntheticVariable(
-        cosmeticName: "#${node.declaration.variable.cosmeticName}#initializer",
+      LocalFunctionVariable(
+        name: "#${node.declaration.variable.cosmeticName}#initializer",
         type: functionType,
+        isSynthesized: true,
       ),
       fnNode,
     )..id = localFunctionIdGenerator.allocateId();

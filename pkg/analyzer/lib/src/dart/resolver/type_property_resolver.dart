@@ -113,9 +113,9 @@ class TypePropertyResolver {
 
       if (parentNode == null) {
         if (receiver != null) {
-          parentNode = receiver.parent;
+          parentNode = receiver.parent2;
         } else if (propertyErrorEntity is AstNode) {
-          parentNode = propertyErrorEntity.parent;
+          parentNode = propertyErrorEntity.parent2;
         } else {
           throw StateError(
             'Either `receiver` must be non-null or '
@@ -130,7 +130,7 @@ class TypePropertyResolver {
         locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
       } else {
         if (parentNode is CascadeExpression) {
-          parentNode = parentNode.cascadeSections.first;
+          parentNode = parentNode.cascadeSections2.first;
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
           locatableDiagnostic = diag.uncheckedOperatorInvocationOfNullableValue
@@ -158,7 +158,7 @@ class TypePropertyResolver {
             )(),
           );
         } else {
-          var thisType = _resolver.thisType;
+          var thisType = _resolver.unpromotedThisType;
           if (thisType != null) {
             messages = _resolver.computeWhyNotPromotedMessages(
               nameErrorEntity,

@@ -657,6 +657,7 @@ extension type Instr(int value) {
   R31Type rnMode() =>
       (isAddSubImmOp() ||
           isLoadStoreRegOp() ||
+          isLoadStoreExclusiveOp() ||
           (isAddSubShiftExtOp() && isExtend()))
       ? R31Type.R31IsSP
       : R31Type.R31IsZR;
@@ -1573,9 +1574,7 @@ class ARM64Decoder {
   }
 
   void decodeLoadStoreExclusive(Instr instr) {
-    if (instr.bit(31) != 1 ||
-        instr.bit(21) != 0 ||
-        instr.bit(23) != instr.bit(15)) {
+    if (instr.bit(21) != 0 || instr.bit(23) != instr.bit(15)) {
       unknown(instr);
     }
     final isLoad = instr.bit(22) == 1;

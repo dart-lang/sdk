@@ -113,11 +113,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final DirectivesOrdering rule;
-
-  new(this.rule);
-
+class _Visitor(final DirectivesOrdering rule) extends SimpleAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     var lintedNodes = <AstNode>{};

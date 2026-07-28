@@ -44,7 +44,7 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: int
     equals: =
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     patternTypeSchema: num
@@ -75,7 +75,7 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: int
     equals: =
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     patternTypeSchema: _
@@ -109,7 +109,18 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: A
     equals: =
-    expression: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -174,7 +185,7 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: List<InvalidType>
     equals: =
-    expression: ListLiteral
+    expression2: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
@@ -218,7 +229,7 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: int
     equals: =
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     patternTypeSchema: num
@@ -256,7 +267,7 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: int
     equals: =
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -296,7 +307,7 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: int
     equals: =
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     patternTypeSchema: _
@@ -341,7 +352,7 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: (int, String)
     equals: =
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: (int, String)
@@ -379,17 +390,17 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: (int,)
     equals: =
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
         staticType: T Function<T>(T)
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           RecordLiteral
             leftParenthesis: (
-            fields
+            fields2
               IntegerLiteral
                 literal: 0
                 staticType: int

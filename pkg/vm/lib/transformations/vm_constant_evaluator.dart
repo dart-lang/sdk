@@ -13,7 +13,7 @@ import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter, SimpleErrorReporter;
 
 import '../target_os.dart';
-import 'pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 /// Evaluates uses of static fields and getters using VM-specific and
 /// platform-specific knowledge.

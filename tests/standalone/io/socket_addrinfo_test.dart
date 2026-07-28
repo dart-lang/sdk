@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:expect/expect.dart';
 import 'package:expect/async_helper.dart';
-import 'package:path/path.dart' as p;
 
 void main() async {
   asyncStart();
@@ -28,7 +27,8 @@ void main() async {
 
     int serverHits = 0;
 
-    var subscription = httpServer.listen((request) async {
+    /// Local server for testing `HttpClient`'s IP-address handling.
+    httpServer.forEach((request) async {
       serverHits++;
       await request.drain();
       request.response
@@ -43,14 +43,14 @@ void main() async {
     var response = await request.close();
     var content = await response.transform(utf8.decoder).join();
     Expect.equals('ok', content);
-
     Expect.equals(1, serverHits);
 
     // Legacy inet_aton accepted numeric aliases.
-    for (var loopbackAlias in [
+    for (var invalidIPv4 in [
       '0x7f.0.0.1',
+      '127.0.0.0x1',
+      '127.0.0x0.1',
       '127.0x0.0.1',
-      '127.0x0.0.0x1',
       '0x7f.0.1',
       '0x7f.1',
       '127.0.1',
@@ -58,20 +58,26 @@ void main() async {
       '0177.0.0.1',
       '0177.0.1',
       '0177.1',
-      '177.0.0.01',
-      '177.0.00.1',
+      '012.0.0.1',
+      '127.0.0.01',
+      '127.0.00.1',
+      '127.00.0.1',
       '2130706431',
       '0x7f000001',
     ]) {
+      Expect.isNull(InternetAddress.tryParse(invalidIPv4));
+      Expect.throws<FormatException>(() => Uri.parseIPv4Address(invalidIPv4));
+
       await asyncExpectThrows<SocketException>(
-        InternetAddress.lookup(loopbackAlias, type: .IPv4),
-        'lookup $loopbackAlias',
+        InternetAddress.lookup(invalidIPv4, type: .IPv4),
+        'lookup $invalidIPv4',
       );
 
       await asyncExpectThrows<SocketException>(
-        client.getUrl(Uri.parse('http://$loopbackAlias:${server.port}/')),
-        'getUrl $loopbackAlias',
+        client.getUrl(Uri.parse('http://$invalidIPv4:${server.port}/')),
+        'getUrl $invalidIPv4',
       );
+      Expect.equals(1, serverHits);
     }
 
     Expect.equals(1, serverHits);
@@ -80,6 +86,7 @@ void main() async {
     // Test don't need to wait for this,
     // just closing to not keep isolate alive.
     socket?.close().ignore();
+    // No need to close server when its socket is closed.
   }
   asyncEnd();
 }

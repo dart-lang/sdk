@@ -102821,8 +102821,8 @@ class _AlwaysReportedLint extends AnalysisRule {
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(
-    RuleVisitorRegistry registry,
+  void registerNodeProcessors2(
+    RuleVisitorRegistry2 registry,
     RuleContext context,
   ) {
     var visitor = _AlwaysReportedLintVisitor(this);
@@ -102831,7 +102831,7 @@ class _AlwaysReportedLint extends AnalysisRule {
 }
 
 /// A visitor for [_AlwaysReportedLint] that reports the lint for all files.
-class _AlwaysReportedLintVisitor extends SimpleAstVisitor<void> {
+class _AlwaysReportedLintVisitor extends SimpleAstVisitor2<void> {
   final AnalysisRule rule;
 
   _AlwaysReportedLintVisitor(this.rule);

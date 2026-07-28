@@ -19,7 +19,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
 class ReferencesHandler
-    extends LspMessageHandler<ReferenceParams, List<Location>?> {
+    extends SharedMessageHandler<ReferenceParams, List<Location>?> {
   new(super.server);
 
   @override
@@ -28,6 +28,9 @@ class ReferencesHandler
   @override
   LspJsonHandler<ReferenceParams> get jsonHandler =>
       ReferenceParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<List<Location>?>> handle(

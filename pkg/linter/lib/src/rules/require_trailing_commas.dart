@@ -48,12 +48,8 @@ class RequireTrailingCommas extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   late LineInfo _lineInfo;
-
-  new(this.rule);
 
   @override
   void visitArgumentList(ArgumentList node) {

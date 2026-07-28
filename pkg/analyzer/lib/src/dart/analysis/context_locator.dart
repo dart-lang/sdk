@@ -5,6 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -508,16 +509,16 @@ class _ContextLocator {
   ) {
     if (optionsFile == null) return const [];
 
-    List<String> excludePatterns;
+    List<AnalysisOptionsExcludePattern> excludePatterns;
     try {
-      var options = _analysisOptionsParseSession
+      excludePatterns = _analysisOptionsParseSession
           .parse(
             sourceFactory: sourceFactory,
             contextRoot: optionsFile.parent,
             file: optionsFile,
           )
-          .analysisOptions;
-      excludePatterns = options.excludePatterns;
+          .analysisOptions
+          .excludePatterns2;
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
       // aren't any excluded files that need to be read.
@@ -527,18 +528,19 @@ class _ContextLocator {
     var pathContext = _resourceProvider.pathContext;
     List<LocatedGlob> patterns = [];
 
-    void addGlob(List<String> components) {
+    void addGlob(Folder parent, List<String> components) {
       var pattern = posix.joinAll(components);
-      patterns.add(
-        LocatedGlob(optionsFile.parent, Glob(pattern, context: pathContext)),
-      );
+      patterns.add(LocatedGlob(parent, Glob(pattern, context: pathContext)));
     }
 
-    for (String excludedPath in excludePatterns) {
-      var excludedComponents = posix.split(excludedPath);
-      addGlob(excludedComponents);
+    for (var excluded in excludePatterns) {
+      var excludedComponents = posix.split(excluded.pattern);
+      addGlob(excluded.declaringFile.parent, excludedComponents);
       if (excludedComponents.length > 1 && excludedComponents.last == '**') {
-        addGlob(excludedComponents..removeLast());
+        addGlob(
+          excluded.declaringFile.parent,
+          excludedComponents..removeLast(),
+        );
       }
     }
 

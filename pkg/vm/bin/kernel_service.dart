@@ -515,6 +515,9 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
     // no actual content specified for the source file.
     if (sourceFiles.isNotEmpty && sourceFiles[1] == null) {
       // Just use first compiler that should represent main isolate as a source for cloning.
+      if (isolateCompilers.isEmpty) {
+        throw "Kernel service was not set up for incremental compilation when started";
+      }
       var source = isolateCompilers.entries.first;
       compiler = await source.value.clone(isolateGroupId);
     } else {
@@ -972,53 +975,53 @@ Future _processLoadRequest(request) async {
   // script should only be null for kUpdateSourcesTag.
   assert(script != null);
 
-  // TODO(aam): There should be no need to have an option to choose
-  // one compiler or another. We should always use an incremental
-  // compiler as its functionality is a super set of the other one. We need to
-  // watch the performance though.
-  FileSystem fileSystem;
-  if (incremental) {
-    compiler = await lookupOrBuildNewIncrementalCompiler(
-      isolateGroupId,
-      sourceFiles,
-      platformKernelPath,
-      platformKernel,
-      enableAsserts: enableAsserts,
-      experimentalFlags: experimentalFlags,
-      packageConfig: packageConfig,
-      multirootFilepaths: multirootFilepaths,
-      multirootScheme: multirootScheme,
-      invocationModes: invocationModes,
-      verbosityLevel: verbosityLevel,
-      enableMirrors: enableMirrors,
-      generateBytecode: generateBytecode,
-    );
-    fileSystem = compiler.fileSystem;
-  } else {
-    fileSystem = _buildFileSystem(
-      sourceFiles,
-      platformKernel,
-      multirootFilepaths,
-      multirootScheme,
-    );
-    compiler = new SingleShotCompilerWrapper(
-      isolateGroupId,
-      fileSystem,
-      platformKernelPath,
-      requireMain: false,
-      embedSources: embedSources,
-      enableAsserts: enableAsserts,
-      experimentalFlags: experimentalFlags,
-      packageConfig: packageConfig,
-      invocationModes: invocationModes,
-      verbosityLevel: verbosityLevel,
-      enableMirrors: enableMirrors,
-      generateBytecode: generateBytecode,
-    );
-  }
-
   CompilationResult result;
   try {
+    // TODO(aam): There should be no need to have an option to choose
+    // one compiler or another. We should always use an incremental
+    // compiler as its functionality is a super set of the other one. We need to
+    // watch the performance though.
+    FileSystem fileSystem;
+    if (incremental) {
+      compiler = await lookupOrBuildNewIncrementalCompiler(
+        isolateGroupId,
+        sourceFiles,
+        platformKernelPath,
+        platformKernel,
+        enableAsserts: enableAsserts,
+        experimentalFlags: experimentalFlags,
+        packageConfig: packageConfig,
+        multirootFilepaths: multirootFilepaths,
+        multirootScheme: multirootScheme,
+        invocationModes: invocationModes,
+        verbosityLevel: verbosityLevel,
+        enableMirrors: enableMirrors,
+        generateBytecode: generateBytecode,
+      );
+      fileSystem = compiler.fileSystem;
+    } else {
+      fileSystem = _buildFileSystem(
+        sourceFiles,
+        platformKernel,
+        multirootFilepaths,
+        multirootScheme,
+      );
+      compiler = new SingleShotCompilerWrapper(
+        isolateGroupId,
+        fileSystem,
+        platformKernelPath,
+        requireMain: false,
+        embedSources: embedSources,
+        enableAsserts: enableAsserts,
+        experimentalFlags: experimentalFlags,
+        packageConfig: packageConfig,
+        invocationModes: invocationModes,
+        verbosityLevel: verbosityLevel,
+        enableMirrors: enableMirrors,
+        generateBytecode: generateBytecode,
+      );
+    }
+
     if (verbose) {
       print("DFE: scriptUri: ${script}");
     }
@@ -1102,7 +1105,7 @@ Future _processLoadRequest(request) async {
 
   if (tag == kTrainTag) {
     // In training mode make sure to read the sdk a few more times...
-    ProcessedOptions p = new ProcessedOptions(options: compiler.options);
+    ProcessedOptions p = new ProcessedOptions(options: compiler!.options);
     final bytes = (await p.loadSdkSummaryBytes())!;
     for (int i = 0; i < 5; i++) {
       p.loadComponent(bytes, null);

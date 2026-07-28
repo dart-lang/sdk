@@ -58,15 +58,16 @@ def _CheckFormat(input_api, identification, extension, windows,
                                            bool], exclude_folders):
     files = files_to_check_for_format(input_api, extension, exclude_folders)
     if not files:
-        return []
+        return [], []
 
     # Check for formatting errors in bulk first. This is orders of magnitude
     # faster than checking file-by-file on large changes with hundreds of files.
     if not hasFormatErrors(filenames=[f.AbsoluteLocalPath() for f in files]):
-        return []
+        return [], []
 
     print("Formatting errors found, comparing against old versions.")
     unformatted_files = []
+    warnings = []
     for git_file in files:
         filename = git_file.AbsoluteLocalPath()
         if hasFormatErrors(filename=filename):
@@ -82,12 +83,12 @@ def _CheckFormat(input_api, identification, extension, windows,
                 old_version_has_errors = False
 
             if old_version_has_errors:
-                print("WARNING: %s has existing and possibly new %s issues" %
-                      (git_file.LocalPath(), identification))
+                warnings.append("%s has existing and possibly new %s issues" %
+                                (git_file.LocalPath(), identification))
             else:
                 unformatted_files.append(filename)
 
-    return unformatted_files
+    return unformatted_files, warnings
 
 
 def load_source(modname, filename):
@@ -114,8 +115,11 @@ def _CheckDartFormat(input_api, output_api):
         dart += '.exe'
 
     if not os.path.isfile(dart):
-        print('WARNING: dart not found: %s' % (dart))
-        return []
+        return [
+            output_api.PresubmitError(
+                'dart not found (please ensure to use a gclient based '
+                'checkout of dart-lang/sdk): %s' % dart)
+        ]
 
     def HasFormatErrors(filename: str = None,
                         filenames: list = None,
@@ -172,21 +176,22 @@ def _CheckDartFormat(input_api, output_api):
         # parsed and formatted. Don't treat those as errors.
         return process.returncode == 1
 
-    unformatted_files = _CheckFormat(input_api, "dart format", ".dart", windows,
-                                     HasFormatErrors, [])
+    unformatted_files, warnings = _CheckFormat(input_api, "dart format",
+                                               ".dart", windows,
+                                               HasFormatErrors, [])
 
+    results = [output_api.PresubmitPromptWarning(w) for w in warnings]
     if unformatted_files:
         lineSep = " \\\n"
         if windows:
             lineSep = " ^\n"
-        return [
+        results.append(
             output_api.PresubmitError(
                 'File output does not match dart format.\n'
                 'Fix these issues with:\n'
-                '%s format %s' % (dart, lineSep.join(unformatted_files)))
-        ]
+                '%s format %s' % (dart, lineSep.join(unformatted_files))))
 
-    return []
+    return results
 
 
 def _CheckStatusFiles(input_api, output_api):
@@ -201,12 +206,18 @@ def _CheckStatusFiles(input_api, output_api):
         dart += '.exe'
 
     if not os.path.isfile(dart):
-        print('WARNING: dart not found: %s' % dart)
-        return []
+        return [
+            output_api.PresubmitError(
+                'dart not found (please ensure to use a gclient based '
+                'checkout of dart-lang/sdk): %s' % dart)
+        ]
 
     if not os.path.isfile(lint):
-        print('WARNING: Status file linter not found: %s' % lint)
-        return []
+        return [
+            output_api.PresubmitError(
+                'Status file linter not found (please ensure to use a '
+                'gclient based checkout of dart-lang/sdk): %s' % lint)
+        ]
 
     def HasFormatErrors(filename=None, filenames=None, contents=None):
         if filenames:
@@ -222,24 +233,25 @@ def _CheckStatusFiles(input_api, output_api):
         "pkg/status_file/test/data/",
         "pkg/front_end/",
     ]
-    unformatted_files = _CheckFormat(input_api, "status file", ".status",
-                                     windows, HasFormatErrors, exclude_folders)
+    unformatted_files, warnings = _CheckFormat(input_api, "status file",
+                                               ".status", windows,
+                                               HasFormatErrors, exclude_folders)
 
+    results = [output_api.PresubmitPromptWarning(w) for w in warnings]
     if unformatted_files:
         normalize = os.path.join(local_root, 'pkg', 'status_file', 'bin',
                                  'normalize.dart')
         lineSep = " \\\n"
         if windows:
             lineSep = " ^\n"
-        return [
+        results.append(
             output_api.PresubmitError(
                 'Status files are not normalized.\n'
                 'Fix these issues with:\n'
-                '%s %s -w%s%s' % (dart, normalize, lineSep,
-                                  lineSep.join(unformatted_files)))
-        ]
+                '%s %s -w%s%s' %
+                (dart, normalize, lineSep, lineSep.join(unformatted_files))))
 
-    return []
+    return results
 
 
 def _CheckValidHostsInDEPS(input_api, output_api):

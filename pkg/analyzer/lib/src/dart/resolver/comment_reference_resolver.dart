@@ -29,7 +29,7 @@ class CommentReferenceResolver {
   void resolve(CommentReference commentReference) {
     _resolver.diagnosticReporter.lockLevel++;
     try {
-      var expression = commentReference.expression;
+      var expression = commentReference.expression2;
       if (expression is SimpleIdentifierImpl) {
         _resolveSimpleIdentifierReference(
           expression,
@@ -113,7 +113,7 @@ class CommentReferenceResolver {
     PropertyAccessImpl expression, {
     required bool hasNewKeyword,
   }) {
-    var target = expression.target;
+    var target = expression.target2;
     if (target is! PrefixedIdentifierImpl) {
       // A PropertyAccess with a target more complex than a
       // [PrefixedIdentifier] is not a valid comment reference.
@@ -172,25 +172,20 @@ class CommentReferenceResolver {
     }
 
     if (element == null) {
+      var enclosingInstanceElement = _resolver.enclosingInstanceElement;
+      if (enclosingInstanceElement == null) {
+        return null;
+      }
+      var thisType = _typeSystem.resolveToBound(
+        enclosingInstanceElement.thisType,
+      );
       InterfaceTypeImpl enclosingType;
-      var enclosingClass = _resolver.enclosingClass;
-      if (enclosingClass != null) {
-        enclosingType = enclosingClass.thisType;
+      if (thisType is InterfaceTypeImpl) {
+        enclosingType = thisType;
+      } else if (thisType is FunctionType) {
+        enclosingType = _typeProvider.functionType;
       } else {
-        var enclosingExtension = _resolver.enclosingExtension;
-        if (enclosingExtension == null) {
-          return null;
-        }
-        var extendedType = _typeSystem.resolveToBound(
-          enclosingExtension.extendedType,
-        );
-        if (extendedType is InterfaceTypeImpl) {
-          enclosingType = extendedType;
-        } else if (extendedType is FunctionType) {
-          enclosingType = _typeProvider.functionType;
-        } else {
-          return null;
-        }
+        return null;
       }
       var result = _typePropertyResolver.resolve(
         receiver: null,

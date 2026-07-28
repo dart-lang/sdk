@@ -1897,7 +1897,7 @@ test.dart f@5
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_searchReferences_class_constructor_declaredInAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -6366,7 +6366,7 @@ class B extends A<String> {}
 ''');
   }
 
-  @SkippedTest(
+  @FailingTest(
     // When this test begins passing, the temporary test
     // test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005
     // can be removed.

@@ -243,6 +243,30 @@ class _WasmTransformer extends Transformer {
     return result;
   }
 
+  @override
+  TreeNode visitConstructor(Constructor node) {
+    _currentMember = node;
+    _cachedTypeContext = null;
+    _implicitFinalVariables.clear();
+
+    // NOTE: We handle constructors specially in order to ensure we process
+    // parameters before initializers (the `node.accept(this)` would use the
+    // wrong order)
+    transformList(node.function.positionalParameters, node.function);
+    transformList(node.function.namedParameters, node.function);
+    transformList(node.initializers, node);
+    if (node.function.body case final body?) {
+      node.function.body = transform(body);
+    }
+
+    for (final node in _implicitFinalVariables) {
+      node.isFinal = true;
+    }
+    _currentMember = null;
+    _cachedTypeContext = null;
+    return node;
+  }
+
   /// Checks to see if it is safe to reuse `super._typeArguments`.
   bool canReuseSuperMethod(Class cls) {
     // We search for the first non-abstract super in [cls]'s inheritance chain

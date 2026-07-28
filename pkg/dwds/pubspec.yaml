@@ -42,9 +42,7 @@ dev_dependencies:
   dart_flutter_team_lints: any
   dwds_test_common: any
   graphs: any
-  io: any
   mime: any
   test: any
   web: any
-  webdriver: any
   yaml: any

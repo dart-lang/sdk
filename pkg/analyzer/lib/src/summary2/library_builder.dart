@@ -96,7 +96,7 @@ class LibraryBuilder {
   int _nextLocalReferenceId = 0;
 
   /// The fields that were speculatively created as [FieldFragmentImpl],
-  /// but we want to clear [VariableFragmentImpl.constantInitializer] for it
+  /// but we want to clear [VariableFragmentImpl.constantInitializer2] for it
   /// if the class will not end up with a `const` constructor. We don't know
   /// at the time when we create them, because of future augmentations.
   final Set<FieldFragmentImpl> finalInstanceFields = Set.identity();
@@ -266,7 +266,7 @@ class LibraryBuilder {
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.body.members) {
             if (executable is ast.MethodDeclarationImpl) {
-              executable.body.accept(collector);
+              executable.body.accept2(collector);
             }
           }
           var fragment = declaration.declaredFragment!;
@@ -308,7 +308,7 @@ class LibraryBuilder {
     for (var fieldFragment in finalInstanceFields) {
       var enclosingElement = fieldFragment.enclosingFragment.element;
       if (!hasConstConstructor(enclosingElement)) {
-        fieldFragment.constantInitializer = null;
+        fieldFragment.constantInitializer2 = null;
       }
     }
   }
@@ -347,7 +347,7 @@ class LibraryBuilder {
   void resolveMetadata() {
     for (var linkingUnit in units) {
       var resolver = MetadataResolver(linker, linkingUnit.fragment, this);
-      linkingUnit.node.accept(resolver);
+      linkingUnit.node.accept2(resolver);
     }
   }
 
@@ -360,7 +360,7 @@ class LibraryBuilder {
         linkingUnit.fragment.scope,
         libraryFragment: linkingUnit.fragment,
       );
-      linkingUnit.node.accept(resolver);
+      linkingUnit.node.accept2(resolver);
     }
   }
 

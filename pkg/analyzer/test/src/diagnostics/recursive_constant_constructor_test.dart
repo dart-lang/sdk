@@ -16,24 +16,20 @@ main() {
 
 @reflectiveTest
 class RecursiveConstantConstructorTest extends PubPackageResolutionTest {
-  test_newHead_named_redirectingConstructorInvocation() async {
+  test_redirectCycle_named_doesNotReportRecursiveConstantConstructor() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   const new named() : this.named();
-//      ^^^^^^^^^
-// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
 //                    ^^^^^^^^^^^^
 // [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
 ''');
   }
 
-  test_newHead_unnamed_redirectingConstructorInvocation() async {
+  test_redirectCycle_unnamed_doesNotReportRecursiveConstantConstructor() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   const new () : this();
-//      ^^^
-// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
 //               ^^^^^^
 // [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }

@@ -511,7 +511,7 @@ class InstanceMemberInferrer {
         var initializer = initializers.single as SuperConstructorInvocation;
         forCorrespondingPairs<FormalParameterElementImpl, Argument>(
           constructor.formalParameters.cast(),
-          initializer.argumentList.arguments,
+          initializer.argumentList.arguments2,
           (parameter, argument) {
             (argument as SimpleIdentifierImpl).setPseudoExpressionStaticType(
               parameter.type,

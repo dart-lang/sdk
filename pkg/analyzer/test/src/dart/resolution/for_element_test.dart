@@ -46,12 +46,12 @@ ForElement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: v
     element: v@58
     staticType: int
@@ -105,12 +105,12 @@ ForElement
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: v
     element: <testLibrary>::@function::f::@formalParameter::v
     staticType: dynamic
@@ -141,7 +141,7 @@ ForElement
       element: <testLibrary>::@class::C::@setter::x
       staticType: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -154,7 +154,7 @@ ForElement
       typeArgumentTypes
         Iterable<int>
   rightParenthesis: )
-  body: IntegerLiteral
+  body2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -182,7 +182,7 @@ ForElement
       element: <testLibrary>::@setter::x
       staticType: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -195,7 +195,7 @@ ForElement
       typeArgumentTypes
         Iterable<int>
   rightParenthesis: )
-  body: IntegerLiteral
+  body2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -218,12 +218,12 @@ ForElement
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: v
     element: <testLibrary>::@function::f::@formalParameter::v
     staticType: dynamic
@@ -251,11 +251,11 @@ ForElement
       element: <testLibrary>::@class::A::@method::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SuperExpression
+    iterable2: SuperExpression
       superKeyword: super
       staticType: A
   rightParenthesis: )
-  body: IntegerLiteral
+  body2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -280,9 +280,9 @@ ForElement
       element: <testLibrary>::@setter::v
       staticType: int
     inKeyword: in
-    iterable: ListLiteral
+    iterable2: ListLiteral
       leftBracket: [
-      elements
+      elements2
         IntegerLiteral
           literal: 1
           staticType: int
@@ -295,7 +295,7 @@ ForElement
       rightBracket: ]
       staticType: List<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: v
     element: <testLibrary>::@getter::v
     staticType: int
@@ -320,12 +320,12 @@ ForElement
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
   rightParenthesis: )
-  body: IntegerLiteral
+  body2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -365,7 +365,7 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -378,7 +378,7 @@ ForElement
       typeArgumentTypes
         Iterable<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@28
     staticType: int
@@ -411,7 +411,7 @@ ForElement
       rightParenthesis: )
       matchedValueType: Object?
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -424,7 +424,7 @@ ForElement
       typeArgumentTypes
         Iterable<Object?>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@24
     staticType: Object?
@@ -455,12 +455,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@25
     staticType: dynamic
@@ -491,12 +491,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@35
     staticType: int
@@ -529,12 +529,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@32
     staticType: InvalidType
@@ -565,12 +565,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@37
     staticType: int
@@ -605,12 +605,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@39
     staticType: num
@@ -640,12 +640,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@getter::x
       staticType: List<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: x
     element: x@43
     staticType: int
@@ -675,12 +675,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@getter::x
       staticType: List<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@43
     staticType: int
@@ -722,7 +722,7 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -735,7 +735,7 @@ ForElement
       typeArgumentTypes
         Stream<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@40
     staticType: int
@@ -769,7 +769,7 @@ ForElement
       rightParenthesis: )
       matchedValueType: Object?
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -782,7 +782,7 @@ ForElement
       typeArgumentTypes
         Stream<Object?>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@36
     staticType: Object?
@@ -814,12 +814,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@37
     staticType: dynamic
@@ -853,12 +853,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@44
     staticType: InvalidType
@@ -890,12 +890,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@49
     staticType: int
@@ -927,12 +927,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@51
     staticType: int
@@ -968,12 +968,12 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@53
     staticType: num
@@ -994,7 +994,7 @@ f(bool Function() b) {
     var node = result.findNode.functionExpressionInvocation('b()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool Function()
@@ -1055,7 +1055,7 @@ ForElement
         VariableDeclaration
           name: i
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: SimpleIdentifier
             token: i
             element: i@28
             staticType: dynamic
@@ -1064,12 +1064,12 @@ ForElement
               type: dynamic
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: i
         element: i@28
         staticType: dynamic
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 1
         correspondingParameter: <null>
         staticType: int
@@ -1077,9 +1077,9 @@ ForElement
       staticInvokeType: null
       staticType: dynamic
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: i
           element: i@28
           staticType: null
@@ -1091,7 +1091,7 @@ ForElement
         element: <null>
         staticType: dynamic
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: i
     element: i@28
     staticType: dynamic
@@ -1117,7 +1117,7 @@ ForElement
         VariableDeclaration
           name: i2
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: SimpleIdentifier
             token: i
             element: <testLibrary>::@function::f::@formalParameter::i
             staticType: int
@@ -1126,12 +1126,12 @@ ForElement
               type: int
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: i2
         element: i2@28
         staticType: int
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 10
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -1139,10 +1139,10 @@ ForElement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PrefixExpression
         operator: ++
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: i2
           element: i2@28
           staticType: null
@@ -1153,7 +1153,7 @@ ForElement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: i2
     element: i2@28
     staticType: int
@@ -1179,7 +1179,7 @@ ForElement
         VariableDeclaration
           name: i
           equals: =
-          initializer: IntegerLiteral
+          initializer2: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@23
@@ -1188,7 +1188,7 @@ ForElement
         VariableDeclaration
           name: j
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: SimpleIdentifier
             token: i
             element: i@23
             staticType: int
@@ -1197,12 +1197,12 @@ ForElement
               type: int
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: j
         element: j@30
         staticType: int
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 1
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -1210,9 +1210,9 @@ ForElement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: j
           element: j@30
           staticType: null
@@ -1224,7 +1224,7 @@ ForElement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: j
     element: j@30
     staticType: int
@@ -1249,7 +1249,7 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithExpression
-    initialization: PatternAssignment
+    initialization2: PatternAssignment
       pattern: ParenthesizedPattern
         leftParenthesis: (
         pattern: AssignedVariablePattern
@@ -1259,7 +1259,7 @@ ForElement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       patternTypeSchema: int
@@ -1267,7 +1267,7 @@ ForElement
     leftSeparator: ;
     rightSeparator: ;
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: a
     element: a@17
     staticType: int
@@ -1293,12 +1293,12 @@ ForElement
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
     rightSeparator: ;
-    updaters
+    updaters2
       SuperExpression
         superKeyword: super
         staticType: A
   rightParenthesis: )
-  body: IntegerLiteral
+  body2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -1345,7 +1345,7 @@ ForElement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
         element: <testLibrary>::@function::f::@formalParameter::x
         staticType: (int, bool)
@@ -1356,9 +1356,9 @@ ForElement
       element: b@40
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@37
           staticType: null
@@ -1370,7 +1370,7 @@ ForElement
         element: dart:core::@class::num::@method::-
         staticType: int
   rightParenthesis: )
-  body: SimpleIdentifier
+  body2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int, bool)
@@ -1414,7 +1414,7 @@ ForElement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
         element: <testLibrary>::@function::f::@formalParameter::x
         staticType: (int, bool)
@@ -1425,9 +1425,9 @@ ForElement
       element: b@40
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@37
           staticType: null
@@ -1439,7 +1439,7 @@ ForElement
         element: dart:core::@class::num::@method::-
         staticType: int
   rightParenthesis: )
-  body: IntegerLiteral
+  body2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -1482,7 +1482,7 @@ ForElement
         rightParenthesis: )
         matchedValueType: InvalidType
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
         element: a@37
         staticType: InvalidType
@@ -1493,9 +1493,9 @@ ForElement
       element: b@40
       staticType: InvalidType
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@37
           staticType: null
@@ -1507,7 +1507,7 @@ ForElement
         element: <null>
         staticType: InvalidType
   rightParenthesis: )
-  body: IntegerLiteral
+  body2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -1550,7 +1550,7 @@ ForElement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: (int, bool)
@@ -1561,9 +1561,9 @@ ForElement
       element: b@41
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a2
           element: a2@37
           staticType: null
@@ -1575,7 +1575,7 @@ ForElement
         element: dart:core::@class::num::@method::-
         staticType: int
   rightParenthesis: )
-  body: IntegerLiteral
+  body2: IntegerLiteral
     literal: 0
     staticType: int
 ''');

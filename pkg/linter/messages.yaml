@@ -1446,11 +1446,11 @@ LinterLintCode:
 
       ```dart
       void f(int x, int y) {
-        if (x > y)
-          print("1");
-        else
+        if (x > y) {
+          print('1');
+        } else
           [!;!]
-        print("2");
+        print('2');
       }
       ```
 
@@ -1461,10 +1461,11 @@ LinterLintCode:
 
       ```dart
       void f(int x, int y) {
-        if (x > y)
-          print("1");
-        else
-          print("2");
+        if (x > y) {
+          print('1');
+        } else {
+          print('2');
+        }
       }
       ```
 
@@ -1473,8 +1474,8 @@ LinterLintCode:
 
       ```dart
       void f(int x, int y) {
-        if (x > y) print("1");
-        print("2");
+        if (x > y) print('1');
+        print('2');
       }
       ```
     deprecatedDetails: |-
@@ -2206,28 +2207,29 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic when a non-overriding, public
-      function has a positional parameter of type `bool`.
+      function has two or more positional parameters of type `bool`.
 
-      Positional boolean parameters can cause ambiguity when
-      the function is invoked because the function of the
-      specified boolean value might not be clear from the value alone.
+      A function with multiple positional Boolean parameters can be a source of
+      ambiguity at call sites because the purpose of the specified
+      Boolean values might not be clear from the values alone.
       Named parameters make their intent explicit.
 
       #### Example
 
       The following code produces this diagnostic because
-      the function `f` has a positional parameter with a type of `bool`:
+      the function `f` has two positional parameters with a type of `bool`:
 
       ```dart
-      void f([!bool b!]) {}
+      void f(bool a, [!bool b!]) {}
       ```
 
       #### Common fixes
 
-      Convert the positional parameter to a named parameter:
+      Convert all of the positional parameters to be named parameters (possibly
+      excepting one):
 
       ```dart
-      void f({bool b = false}) {}
+      void f(bool a, {bool b = false}) {}
       ```
     deprecatedDetails: |-
       From [Effective Dart](https://dart.dev/effective-dart/design#avoid-positional-boolean-parameters):
@@ -4421,6 +4423,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [errorProne]
     hasPublishedDocs: true
+    # In the documentation, formatting is being ignored because formatting the
+    # `if` to be on a single line would prevent the diagnostic from being
+    # generated.
     documentation: |-
       #### Description
 
@@ -4433,6 +4438,7 @@ LinterLintCode:
       is not enclosed in a block:
 
       ```dart
+      %ignore=formatting
       int f(bool b) {
         if (b)
           [!return 1;!]
@@ -4838,7 +4844,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class C extends Widget {
+      class const C({super.key}) extends Widget {
         bool get p1 => true;
 
         bool get [!p2!] => false;
@@ -4862,7 +4868,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class C extends Widget {
+      class const C({super.key}) extends Widget {
         bool get p1 => true;
 
         bool get p2 => false;
@@ -5330,6 +5336,7 @@ LinterLintCode:
 
       ```dart
       class C {
+        @override
         String toString() => 'c';
       }
       ```
@@ -5362,7 +5369,9 @@ LinterLintCode:
 
       ```dart
       void f(bool condition) {
-        while (condition) [!;!]
+        while (condition) {
+          [!;!]
+        }
         g();
       }
 
@@ -5518,6 +5527,87 @@ LinterLintCode:
       stable: "2.9"
     categories: [errorProne]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a
+      `switch` statement over an instance of an enum-like class is
+      missing a `case` clause for one or more of the class's constants and
+      doesn't have a `default` clause.
+
+      Enum-like classes are non-abstract classes that have:
+
+      - Only private, non-factory constructors.
+      - Two or more `static const` fields whose type is the enclosing class.
+      - No subclasses in the defining library.
+
+      #### Example
+
+      The following code produces this diagnostic because the
+      `switch` statement is missing a `case` clause for the constant `C.c`:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        [!switch (c)!] {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the missing constant needs to be handled separately,
+      then add a `case` clause for it:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+          case .c:
+            print('c');
+        }
+      }
+      ```
+
+      If the missing constant doesn't need to be handled specially,
+      then add a `default` clause to cover it:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+          default:
+            print('other');
+        }
+      }
+      ```
     deprecatedDetails: |-
       Switching on instances of enum-like classes should be exhaustive.
 
@@ -5658,6 +5748,51 @@ LinterLintCode:
       ```dart
       // TODO(username): message.
       // TODO(username): message, https://URL-to-issue.
+      ```
+  futureSyncValue:
+    type: lint
+    parameters: none
+    problemMessage: "For synchronous values, `Future.syncValue` is more performant."
+    correctionMessage: "Try replacing `Future.value` with `Future.syncValue`."
+    state:
+      stable: "3.14"
+    categories: [nonPerformant]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the method `Future.value`
+      is called with a non-`Future` value. This includes the type `Object`,
+      but not `dynamic` or `FutureOr`.
+
+      The constructor internally checks whether the argument is a `Future`.
+      If the argument is already known not to be a `Future`, the check is
+      redundant and reduces performance.
+
+      #### Example
+
+      ```dart
+      Future<int> f() => Future.[!value!](1);
+      ```
+
+      #### Common fixes
+
+      Replace the call to `Future.value` with a call to `Future.syncValue`:
+
+      ```dart
+      Future<int> f() => Future.syncValue(1);
+      ```
+    deprecatedDetails: |-
+      **DO** use `Future.syncValue` when the argument is synchronous.
+
+      **BAD:**
+      ```dart
+      Future<int> f() => Future.value(1);
+      ```
+
+      **GOOD:**
+      ```dart
+      Future<int> f() => Future.value(1);
       ```
   hashAndEquals:
     type: lint
@@ -6800,7 +6935,6 @@ LinterLintCode:
 
       ```dart
       [!@TestOn('browser')!]
-
       import 'package:test/test.dart';
 
       void main() {}
@@ -7378,6 +7512,18 @@ LinterLintCode:
         );
       }
       ```
+  migrateDesignWidgets:
+    type: lint
+    parameters:
+      String libraryName: the name of the deprecated library
+    problemMessage: "The '#libraryName' library is deprecated."
+    correctionMessage: "Try using the Material or Cupertino package."
+    state:
+      testing: "3.13"
+    categories: [flutter]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      The 'package:flutter/material.dart' and 'package:flutter/cupertino.dart' libraries are deprecated.
   missingCodeBlockLanguageInDocComment:
     type: lint
     parameters: none
@@ -7554,6 +7700,98 @@ LinterLintCode:
       experimental: "2.9"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `switch` statement over an
+      enum value or an instance of an enum-like class has a `default` clause.
+
+      Enum-like classes are non-abstract classes that have:
+
+      - Only private, non-factory constructors.
+      - Two or more `static const` fields whose type is the enclosing class.
+      - No subclasses in the defining library.
+
+      #### Examples
+
+      The following code produces this diagnostic because the
+      `switch` statement over the enum value `e` has a `default` clause:
+
+      ```dart
+      enum E { a, b, c }
+
+      void f(E e) {
+        switch (e) {
+          case .a:
+            print('a');
+          [!default:
+            print('other');!]
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the
+      `switch` statement over `c`, an instance of the enum-like class `C`,
+      has a `default` clause:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          [!default:
+            print('other');!]
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the value is an `enum` value,
+      replace the `default` clause with `case` clauses for
+      the enum values that aren't already handled:
+
+      ```dart
+      enum E { a, b, c }
+
+      void f(E e) {
+        switch (e) {
+          case .a:
+            print('a');
+          case .b:
+          case .c:
+            print('other');
+        }
+      }
+      ```
+
+      If the value is an instance of an enum-like class,
+      replace the `default` clause with `case` clauses for
+      the constants that aren't already handled:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+          case .c:
+            print('other');
+        }
+      }
+      ```
     deprecatedDetails: |-
       Switches on enums and enum-like classes should not use a `default` clause.
 
@@ -7616,7 +7854,7 @@ LinterLintCode:
       the same value (1):
 
       ```dart
-      // @dart = 2.14
+      // @dart = 2.19
       void f(int v) {
         switch (v) {
           case 1:
@@ -7889,7 +8127,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends StatefulWidget {
+      class const MyWidget({super.key}) extends StatefulWidget {
         @override
         MyState createState() => [!MyState(0)!];
       }
@@ -7899,6 +8137,7 @@ LinterLintCode:
 
         MyState(this.x);
 
+        @override
         Widget build(BuildContext context) => MyWidget();
       }
       ```
@@ -7910,7 +8149,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends StatefulWidget {
+      class const MyWidget({super.key}) extends StatefulWidget {
         @override
         MyState createState() => MyState();
       }
@@ -7920,6 +8159,7 @@ LinterLintCode:
 
         MyState();
 
+        @override
         Widget build(BuildContext context) => MyWidget();
       }
       ```
@@ -8199,8 +8439,8 @@ LinterLintCode:
 
       The analyzer produces this diagnostic when either a parameter or local
       variable whose name consists of only underscores is referenced. Such
-      names will become non-binding in a future version of the Dart language,
-      making the reference illegal.
+      names became non-binding in Dart 3.7, making the reference illegal, so
+      this will only appear in code for earlier language versions.
 
       #### Example
 
@@ -9672,7 +9912,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final int f;
 
         [!C!](this.f);
       }
@@ -9688,7 +9928,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final int f;
 
         const C(this.f);
       }
@@ -9698,7 +9938,7 @@ LinterLintCode:
 
       ```dart
       class C {
-        final f;
+        final int f;
 
         C(this.f);
       }
@@ -9830,7 +10070,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final List<int> f;
 
         const C(this.f);
       }
@@ -9847,7 +10087,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final List<int> f;
 
         const C(this.f);
       }
@@ -9864,7 +10104,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final List<int> f;
 
         const C(this.f);
       }
@@ -9881,7 +10121,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final List<int> f;
 
         const C(this.f);
       }
@@ -10577,7 +10817,7 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic when `Map.fromIterable` is used to
-      build a map that could be built using the `for` element.
+      build a map that could be built using a `for` element.
 
       #### Example
 
@@ -10832,6 +11072,34 @@ LinterLintCode:
       stable: "2.3"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a conditional expression
+      is used as an element of a list or set literal and
+      an `if` element could be used instead.
+
+      #### Example
+
+      The following code produces this diagnostic because a
+      conditional expression is used to choose which of two values to
+      include in the created list:
+
+      ```dart
+      List<String> f(bool b) {
+        return ['a', [!b ? 'c' : 'd'!], 'e'];
+      }
+      ```
+
+      #### Common fixes
+
+      Use an `if` element to select the value:
+
+      ```dart
+      List<String> f(bool b) {
+        return ['a', if (b) 'c' else 'd', 'e'];
+      }
+      ```
     deprecatedDetails: |-
       When building collections, it is preferable to use `if` elements rather than
       conditionals.
@@ -10916,7 +11184,7 @@ LinterLintCode:
       class C {
         int c;
 
-        C(int c) : [!this.c = c!];
+        C(int c) : [!c = c!];
       }
       ```
 
@@ -11657,6 +11925,54 @@ LinterLintCode:
       stable: "2.3"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `addAll` is used to
+      add the items of another collection to a list created by a list literal,
+      in a situation where a spread element could be used instead.
+
+      #### Examples
+
+      The following code produces this diagnostic because the items of
+      the `numbers` list are added to a new list using `addAll`:
+
+      ```dart
+      List<int> f(List<int> numbers) {
+        return [0, 1]..[!addAll!](numbers);
+      }
+      ```
+
+      The following code produces this diagnostic because the items of
+      the nullable `numbers` list are added to a new list using `addAll`:
+
+      ```dart
+      List<int> f(List<int>? numbers) {
+        return [0, 1]..[!addAll!](numbers ?? const []);
+      }
+      ```
+
+      #### Common fixes
+
+      If the collection being added isn't nullable,
+      then use a spread element (`...`) to
+      include its items in the new list:
+
+      ```dart
+      List<int> f(List<int> numbers) {
+        return [0, 1, ...numbers];
+      }
+      ```
+
+      If the collection being added is nullable,
+      then use a null-aware spread element (`...?`) to conditionally
+      include its items in the new list if it's not `null`:
+
+      ```dart
+      List<int> f(List<int>? numbers) {
+        return [0, 1, ...?numbers];
+      }
+      ```
     deprecatedDetails: |-
       Use spread collections when possible.
 
@@ -12106,7 +12422,7 @@ LinterLintCode:
       annotated with `@deprecated`:
 
       ```dart
-      @[!deprecated!]
+      @[!Deprecated!]('...')
       void f() {}
 
       void g() {}
@@ -14304,7 +14620,6 @@ LinterLintCode:
       the enum's primary constructor isn't needed:
 
       ```dart
-      %experiments=primary-constructors
       enum [!const!] E(final int i) {
         a(1),
         b(2);
@@ -14315,7 +14630,6 @@ LinterLintCode:
       the enum's in-body constructor isn't needed:
 
       ```dart
-      %experiments=primary-constructors
       enum E {
         a(1),
         b(2);
@@ -14331,7 +14645,6 @@ LinterLintCode:
       Remove the unnecessary keyword:
 
       ```dart
-      %experiments=primary-constructors
       enum E(final int i) {
         a(1),
         b(2);
@@ -14339,7 +14652,6 @@ LinterLintCode:
       ```
 
       ```dart
-      %experiments=primary-constructors
       enum E {
         a(1),
         b(2);
@@ -15725,7 +16037,7 @@ LinterLintCode:
 
       ```dart
       class C {
-        int _f = 2;
+        final int _f = 2;
 
         int get f => [!this!]._f;
       }
@@ -15737,7 +16049,7 @@ LinterLintCode:
 
       ```dart
       class C {
-        int _f = 2;
+        final int _f = 2;
 
         int get f => _f;
       }
@@ -15775,6 +16087,82 @@ LinterLintCode:
           this.value = value;
         }
       }
+      ```
+  unnecessaryThisAlias:
+    type: lint
+    parameters: none
+    problemMessage: "Unnecessary 'this' alias."
+    correctionMessage: "Try removing the variable and using 'this' directly."
+    state:
+      experimental: "3.14"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable is initialized
+      to `this` and the variable is only used in ways that could just use `this`.
+
+      #### Example
+
+      The following code produces this diagnostic because the local variable `self`
+      is initialized to `this`, is never reassigned, and its only usage is a promotion
+      check that could be performed on `this` directly under the `this-promotion` feature:
+
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          var [!self!] = this;
+          if (self is D) {
+            // ...
+          }
+        }
+      }
+
+      class D extends C {}
+      ```
+
+      #### Common fixes
+
+      Remove the local variable and use `this` directly:
+
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          if (this is D) {
+            // ...
+          }
+        }
+      }
+
+      class D extends C {}
+      ```
+    deprecatedDetails: |-
+      **DON'T** assign `this` to a local variable to perform type promotion.
+
+      **BAD:**
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          var [!self!] = this;
+          if (self is D) {}
+        }
+      }
+      class D extends C {}
+      ```
+
+      **GOOD:**
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          if (this is D) {}
+        }
+      }
+      class D extends C {}
       ```
   unnecessaryToListInSpreads:
     type: lint
@@ -15851,7 +16239,6 @@ LinterLintCode:
       constructor declaration includes the type name:
 
       ```dart
-      %experiments=primary-constructors
       class C {
         [!C!]();
       }
@@ -15861,11 +16248,10 @@ LinterLintCode:
       constructor declaration includes the type name:
 
       ```dart
-      %experiments=primary-constructors
       class C {
         factory [!C!]() => C._();
 
-        new _() {}
+        new _();
       }
       ```
 
@@ -15875,7 +16261,6 @@ LinterLintCode:
       also remove the period before the name:
 
       ```dart
-      %experiments=primary-constructors
       class C {
         new();
       }
@@ -15884,11 +16269,10 @@ LinterLintCode:
       or
 
       ```dart
-      %experiments=primary-constructors
       class C {
         factory() => C._();
 
-        new _() {}
+        new _();
       }
       ```
     deprecatedDetails: |-
@@ -15935,6 +16319,7 @@ LinterLintCode:
 
       ```dart
       import 'dart:async';
+
       import 'package:meta/meta.dart';
 
       @awaitNotRequired
@@ -16036,6 +16421,82 @@ LinterLintCode:
       stable: "2.19"
     categories: [unusedCode]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a public declaration
+      in an executable library isn't referenced, directly or indirectly,
+      from an entry point of that library.
+
+      An executable library is a library that contains an entry point.
+      An entry point is a top-level function that is one of the following:
+
+      - Named `main`.
+      - Annotated with `@pragma('vm:entry-point')`.
+      - Annotated with Flutter's widget preview annotation, `@Preview`.
+
+      The analyzer doesn't report declarations annotated with
+      [`@visibleForTesting`][] from `package:meta` or
+      [`@Preview`][] from Flutter.
+
+      [`@Preview`]: https://api.flutter.dev/flutter/widget_previews/Preview-class.html
+
+      #### Examples
+
+      The following code produces this diagnostic because the function `f`
+      is not referenced from the `main` function:
+
+      ```dart
+      void main() {}
+
+      void [!f!]() {}
+      ```
+
+      The following code produces this diagnostic because the method `m`
+      is not referenced, even though its containing class `C` is:
+
+      ```dart
+      void main() {
+        C();
+      }
+
+      class C {
+        void [!m!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration is intended to be used,
+      then add the missing reference:
+
+      ```dart
+      void main() {
+        f();
+      }
+
+      void f() {}
+      ```
+
+      If the declaration isn't needed, then remove it:
+
+      ```dart
+      void main() {}
+      ```
+
+      If the declaration is public in order to be used by tests,
+      then add the [`@visibleForTesting`][] annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      void main() {}
+
+      @visibleForTesting
+      void f() {}
+      ```
+
+      [`@visibleForTesting`]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
     deprecatedDetails: |-
       Any member declared in an executable library should be used directly inside that
       library.  An executable library is a library that contains a `main` top-level
@@ -16315,7 +16776,7 @@ LinterLintCode:
 
       ```dart
       class C<X> {
-        bool Function([!X!]) f;
+        final bool Function([!X!]) f;
         C(this.f);
       }
       ```
@@ -16335,7 +16796,7 @@ LinterLintCode:
       class C<X> {
         // NB: Ensure manually that `_f` is only accessed on `this`.
         // ignore: unsafe_variance
-        bool Function(X) _f;
+        final bool Function(X) _f;
 
         C(this._f);
 
@@ -16350,7 +16811,7 @@ LinterLintCode:
 
       ```dart
       class C<X> {
-        bool Function(Never) f;
+        final bool Function(Never) f;
         C(this.f);
       }
       ```
@@ -16365,7 +16826,7 @@ LinterLintCode:
 
       ```dart
       class C<X> {
-        Function f;
+        final Function f;
         C(this.f);
       }
       ```
@@ -16504,7 +16965,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends Widget {
+      class const MyWidget({super.key}) extends Widget {
         void onButtonTapped(BuildContext context) async {
           await Future.delayed(const Duration(seconds: 1));
           Navigator.of([!context!]).pop();
@@ -16519,7 +16980,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends Widget {
+      class const MyWidget({super.key}) extends Widget {
         void onButtonTapped(BuildContext context) {
           Navigator.of(context).pop();
         }
@@ -16532,7 +16993,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends Widget {
+      class const MyWidget({super.key}) extends Widget {
         void onButtonTapped(BuildContext context) async {
           await Future.delayed(const Duration(seconds: 1));
           if (context.mounted) {
@@ -17005,6 +17466,45 @@ LinterLintCode:
       stable: "2.9"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the result of
+      applying the modulo operator `%` to an integer value,
+      with `2` as the right operand, is compared to `0` or `1` using `==`
+      rather than using the `isEven` or `isOdd` getter.
+
+      #### Examples
+
+      The following code produces this diagnostic because the result of
+      `x % 2` is compared to `0` to check whether `x` is even:
+
+      ```dart
+      bool f(int x) => [!x % 2 == 0!];
+      ```
+
+      The following code produces this diagnostic because the result of
+      `x % 2` is compared to `1` to check whether `x` is odd:
+
+      ```dart
+      bool f(int x) => [!x % 2 == 1!];
+      ```
+
+      #### Common fixes
+
+      If you're checking whether a value is even,
+      then use the `isEven` getter:
+
+      ```dart
+      bool f(int x) => x.isEven;
+      ```
+
+      If you're checking whether a value is odd,
+      then use the `isOdd` getter:
+
+      ```dart
+      bool f(int x) => x.isOdd;
+      ```
     deprecatedDetails: |-
       **PREFER** the use of intValue.isOdd/isEven to check for evenness.
 
@@ -17044,7 +17544,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       class MyWidget extends StatelessWidget {
-        [!MyWidget!]({required int height});
+        const [!MyWidget!]({required int height});
       }
       ```
 
@@ -17066,7 +17566,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       class MyWidget extends StatelessWidget {
-        MyWidget({super.key, required int height});
+        const MyWidget({super.key, required int height});
       }
       ```
     deprecatedDetails: |-
@@ -17084,7 +17584,7 @@ LinterLintCode:
       **GOOD:**
       ```dart
       class MyPublicWidget extends StatelessWidget {
-        MyPublicWidget({super.key});
+        const MyPublicWidget({super.key});
       }
       ```
   useLateForPrivateFieldsAndVariables:
@@ -17226,7 +17726,7 @@ LinterLintCode:
       null-aware marker '?' would be less brittle and less verbose.
 
       ```dart
-      f(int? x) => [[!if!] (x != null) x];
+      void f(int? x) => [[!if!] (x != null) x];
       ```
 
       #### Common fixes
@@ -17234,7 +17734,7 @@ LinterLintCode:
       Replace the null-check with the null-aware marker '?':
 
       ```dart
-      f(int? x) => [?x];
+      void f(int? x) => [?x];
       ```
     deprecatedDetails: |-
       Where possible, use null-aware elements in collection literals.

@@ -378,6 +378,32 @@ class A<T> {
 ''');
   }
 
+  test_indirect_recordType_namedField() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  const A();
+  void m() {
+    const A<({int count, T value})>();
+//                       ^
+// [diag.constWithTypeParameters] A constant creation can't use a type parameter as a type argument.
+  }
+}
+''');
+  }
+
+  test_indirect_recordType_positionalField() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  const A();
+  void m() {
+    const A<(T, int)>();
+//           ^
+// [diag.constWithTypeParameters] A constant creation can't use a type parameter as a type argument.
+  }
+}
+''');
+  }
+
   test_nonConstContext() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A<T> {

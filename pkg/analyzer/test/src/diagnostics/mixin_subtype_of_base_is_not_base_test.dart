@@ -54,4 +54,24 @@ mixin B implements A {}
 // [diag.mixinSubtypeOfBaseIsNotBase] The mixin 'B' must be 'base' because the supertype 'A' is 'base'.
 ''');
   }
+
+  test_mixin_implements_hasAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base class A {}
+mixin B implements A {}
+//    ^
+// [diag.mixinSubtypeOfBaseIsNotBase] The mixin 'B' must be 'base' because the supertype 'A' is 'base'.
+augment mixin B {}
+''');
+  }
+
+  test_mixin_implements_hasAugmentation_withImplementsClause() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base class A {}
+mixin B {}
+augment mixin B implements A {}
+//            ^
+// [diag.mixinSubtypeOfBaseIsNotBase] The mixin 'B' must be 'base' because the supertype 'A' is 'base'.
+''');
+  }
 }

@@ -66,3 +66,9 @@ dart tools/manage_deps.dart bump third_party/pkg/tools
 - **Branch already exists**: If the tool says a branch with the target name
   already exists, you will be prompted to delete it. Usually, it is safe to say
   "y" if you want a fresh bump.
+- **"CorpSSO login required. To log in, run glogin or gcert"**: This indicates a
+  Google-internal SSO authentication failure during fetching/syncing
+  dependencies. This error and the suggested fix (`gcert` / `glogin`) are only
+  applicable for Googlers. Since this requires interactive authentication, you
+  must ask the user to run `gcert` (or `glogin`) in their terminal to
+  authenticate, and then retry.

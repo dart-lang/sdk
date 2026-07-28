@@ -1135,6 +1135,10 @@ extension NullableObjectUtilExtension on Object? {
   /// `instanceOfString('Array')` check.
   ///
   /// There are a few values for [T] that are exceptions to this rule:
+  /// - `JSArray`: `isA<JSArray>` will check if the value is a JS array using
+  ///   both `Array.isArray` and `instanceof Array` to avoid false negatives
+  ///   from objects that have their prototype set to `Array.prototype` but
+  ///   are not actually arrays.
   /// - `JSTypedArray`: As `TypedArray` does not exist as a class in JavaScript,
   ///   this does some prototype checking to make `isA<JSTypedArray>` do the
   ///   right thing.

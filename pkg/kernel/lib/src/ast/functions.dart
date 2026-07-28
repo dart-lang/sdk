@@ -121,6 +121,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
+    thisVariable?.parent = this;
     _body?.parent = this;
   }
 

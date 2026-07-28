@@ -688,6 +688,22 @@ void foo(BuildContext context) async {
     );
   }
 
+  test_ifElement_referenceAfter_instanceCreationInThen() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+class A {}
+void foo(BuildContext context) {
+  [
+    if (true) A(),
+    context /* ref */,
+  ];
+}
+''');
+    var ifElement = findNode.listLiteral('if (');
+    var reference = findNode.expression('context /* ref */,');
+    expect(ifElement.asyncStateFor(reference, contextElement), isNull);
+  }
+
   test_ifElement_referenceInElse_asyncInCondition() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -2544,6 +2560,14 @@ Future<void> foo(BuildContext context) async {
 }
 
 Future<void> bar({required BuildContext context}) async {}
+''');
+  }
+
+  test_forEachStatement_instanceCreationIterable() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  for (var e in List<int>.empty()) {}
+}
 ''');
   }
 

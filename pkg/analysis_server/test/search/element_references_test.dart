@@ -354,6 +354,25 @@ void f() {
     assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
   }
 
+  Future<void> test_class_operator_unary() async {
+    addTestFile('''
+class A {
+  void operator -() {}
+}
+
+void f(A a) {
+  -a; // 1
+  -a; // 2
+  a - a;
+}
+''');
+    await findElementReferences(search: '-() {}', false);
+    expect(searchElement!.kind, ElementKind.METHOD);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.INVOCATION, '-a; // 1', 1);
+    assertHasResult(SearchResultKind.INVOCATION, '-a; // 2', 1);
+  }
+
   Future<void> test_enum_constructor_named() async {
     addTestFile('''
 /// [new E.named] 1

@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:vm/metadata/procedure_attributes.dart';
-import 'package:vm/transformations/pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 import 'package:vm/transformations/type_flow/analysis.dart';
 import 'package:vm/transformations/type_flow/calls.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';

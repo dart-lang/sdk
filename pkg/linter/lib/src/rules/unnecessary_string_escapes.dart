@@ -35,7 +35,7 @@ class UnnecessaryStringEscapes extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   /// The special escaped chars listed in language specification
   static const allowedEscapedChars = [
     '"',
@@ -51,10 +51,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     'x',
     'u',
   ];
-
-  final AnalysisRule rule;
-
-  new(this.rule);
 
   void visitLexeme(
     Token token, {

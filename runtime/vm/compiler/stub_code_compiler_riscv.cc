@@ -318,6 +318,13 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #else
   Label body;
 
+  // Padding for ubsan target function pointer validation
+  while (__ CodeSize() <
+         FfiCallbackMetadata::kUbsanTargetValidationPaddingSize) {
+    __ Breakpoint();
+  }
+  ASSERT_EQUAL(FfiCallbackMetadata::kUbsanTargetValidationPaddingSize,
+               __ CodeSize());
   // T1 is volatile and not used for passing any arguments.
   COMPILE_ASSERT(!IsCalleeSavedRegister(T1) && !IsArgumentRegister(T1));
   for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
@@ -329,8 +336,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT_EQUAL(__ CodeSize(),
-               FfiCallbackMetadata::kNativeCallbackTrampolineSize *
-                   FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
+               FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+                   FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                       FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   const intptr_t shared_stub_start = __ CodeSize();
 
@@ -424,7 +432,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
-                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+                       FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+                           FfiCallbackMetadata::kNativeCallbackSharedStubSize);
   ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
@@ -1287,6 +1296,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
 void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ Comment("InvokeDartCodeStub");
 
+  if (FLAG_support_cfi) __ lpad();
   __ EnterFrame(1 * target::kWordSize);
 
   // Push code object to PC marker slot.
@@ -2871,6 +2881,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
                       target::kWordSize));
     __ j(&again);
     __ Bind(&done);
+  } else if (FLAG_support_cfi) {
+    // TODO(63457): update scs CRS if enabled
   }
   __ mv(CALLEE_SAVED_TEMP, A0);  // Program counter.
   __ mv(SP, A1);                 // Stack pointer.

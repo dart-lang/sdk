@@ -99,8 +99,7 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
+      expectedMessage: "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
     );
   }
 
@@ -1594,7 +1593,7 @@ class _RenameConstructorTest extends RenameRefactoringTest {
     } else {
       setPositionOrRange(index);
     }
-    return NodeLocator2(
+    return NodeLocator(
       offset,
       offset + length,
     ).searchWithin(testUnit)?.thisOrAncestorOfType<T>();

@@ -1847,10 +1847,10 @@ class ConstantsTransformer extends RemovingTransformer {
           extern.createVariableStatement(declaration),
         for (DeclaredVariable declaredVariable
             in node.pattern.declaredVariables)
-          extern // Coverage-ignore(suite): Not run.
-              .createVariableStatement(
-                extern.createVariableDeclaration(declaredVariable),
-              ),
+          // Coverage-ignore(suite): Not run.
+          extern.createVariableStatement(
+            extern.createVariableDeclaration(declaredVariable),
+          ),
         ...replacementStatements,
         ...effects,
       ];
@@ -1867,10 +1867,10 @@ class ConstantsTransformer extends RemovingTransformer {
           extern.createVariableStatement(declaration),
         for (DeclaredVariable declaredVariable
             in node.pattern.declaredVariables)
-          extern // Coverage-ignore(suite): Not run.
-              .createVariableStatement(
-                extern.createVariableDeclaration(declaredVariable),
-              ),
+          // Coverage-ignore(suite): Not run.
+          extern.createVariableStatement(
+            extern.createVariableDeclaration(declaredVariable),
+          ),
         // TODO(cstefantsova): Provide a better diagnostic message.
         extern.createIfStatement(
           extern.createNot(readMatchingExpression),
@@ -6487,6 +6487,15 @@ class StatementConstantEvaluator
   @override
   // Coverage-ignore(suite): Not run.
   ExecutionStatus visitCatchVariable(CatchVariable node) => visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitLocalFunctionVariable(LocalFunctionVariable node) =>
+      visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitConstVariable(ConstVariable node) => visitVariable(node);
 
   @override
   // Coverage-ignore(suite): Not run.

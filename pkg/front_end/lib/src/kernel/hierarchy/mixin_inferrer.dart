@@ -385,9 +385,8 @@ class _MixinInferenceSolution {
           }
           Map<String, NamedType> namedParameterByName1 = <String, NamedType>{
             for (NamedType namedType in type1.namedParameters)
-              namedType // Coverage-ignore(suite): Not run.
-                      .name:
-                  namedType,
+              // Coverage-ignore(suite): Not run.
+              namedType.name: namedType,
           };
           for (NamedType namedType in type2.namedParameters) {
             // Coverage-ignore-block(suite): Not run.

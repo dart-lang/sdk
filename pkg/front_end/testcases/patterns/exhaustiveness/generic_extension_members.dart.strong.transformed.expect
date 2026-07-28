@@ -142,7 +142,6 @@ static method nonExhaustiveRestricted(self::A<core::num> a) → dynamic
     }
   } =>#t8;
 static method intersection(dynamic o) → dynamic {
-  #L5:
   {
     final synthesized dynamic #0#0 = o;
     synthesized (core::int) → void #0#2;
@@ -163,14 +162,14 @@ static method exhaustiveMixed(self::I<core::num> i) → core::num
     final synthesized self::I<core::num> #0#0 = i;
     synthesized core::num #0#1;
     synthesized core::bool #0#1#isSet = false;
-    #L6:
+    #L5:
     {
       {
         hoisted core::int member;
         if((#0#1#isSet ?{core::num} #0#1 : let final dynamic #t18 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) is core::int) {
           member = (#0#1#isSet ?{core::num} #0#1 : let final dynamic #t19 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) as{Unchecked} core::int;
           #t17 = member;
-          break #L6;
+          break #L5;
         }
       }
       {
@@ -178,7 +177,7 @@ static method exhaustiveMixed(self::I<core::num> i) → core::num
         if(#0#0 is self::J<core::num> && (#0#1#isSet ?{core::num} #0#1 : let final dynamic #t20 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0{self::J<core::num>})) is core::double) {
           member = (#0#1#isSet ?{core::num} #0#1 : let final dynamic #t21 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0{self::J<core::num>})) as{Unchecked} core::double;
           #t17 = member;
-          break #L6;
+          break #L5;
         }
       }
     }

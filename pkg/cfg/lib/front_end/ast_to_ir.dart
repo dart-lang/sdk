@@ -207,6 +207,19 @@ class AstToIr extends ast.RecursiveVisitor {
           }
       }
     }
+    for (final param in localVarIndexer.parameters) {
+      if (param.isCovariant) {
+        if (param.type is TopType) {
+          continue;
+        }
+        builder.addLoadLocal(param);
+        builder.addTypeCast(
+          param.type,
+          typeParameters: _typeParametersForType(param.type.dartType),
+        );
+        builder.addStoreLocal(param);
+      }
+    }
     if (function.isSuspendable) {
       final emittedValueType = function.functionNode!.emittedValueType!;
       builder.addTypeArguments([
@@ -2223,9 +2236,14 @@ class LocalVariableIndexer {
       parameters.add(closure);
     }
     if (function is ImplicitFieldSetter) {
-      parameters.add(
-        builder.declareLocalVariable('#value', null, function.valueType),
+      final field = function.member as ast.Field;
+      final localvar = builder.declareLocalVariable(
+        '#value',
+        null,
+        function.valueType,
+        isCovariant: field.isCovariantByClass || field.isCovariantByDeclaration,
       );
+      parameters.add(localvar);
     }
     if (functionNode != null) {
       for (final v in functionNode.positionalParameters) {
@@ -2245,6 +2263,9 @@ class LocalVariableIndexer {
         declaration.isLate
             ? const LateValueType()
             : typeTranslator.translate(declaration.type),
+        isCovariant:
+            declaration.isCovariantByClass ||
+            declaration.isCovariantByDeclaration,
       );
 
   LocalVariable exceptionVariable(ast.TreeNode tryBlock) {

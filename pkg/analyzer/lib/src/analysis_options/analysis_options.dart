@@ -34,7 +34,7 @@ final class AnalysisOptionsBuilder {
 
   List<ErrorProcessor> errorProcessors = [];
 
-  List<String> excludePatterns = [];
+  Set<AnalysisOptionsExcludePattern> excludePatterns = {};
 
   bool lint = false;
 
@@ -81,7 +81,7 @@ final class AnalysisOptionsBuilder {
           : Map.of(options.pluginsOptions.dependencyOverrides!),
     );
     errorProcessors = options.errorProcessors.toList();
-    excludePatterns = options.excludePatterns.toList();
+    excludePatterns = options.excludePatterns2.toSet();
     lint = options.lint;
     warning = options.warning;
     lintRules = options.lintRules.toList();
@@ -121,7 +121,7 @@ final class AnalysisOptionsBuilder {
             : Map.of(pluginsOptions.dependencyOverrides!),
       ),
       errorProcessors: errorProcessors.toList(),
-      excludePatterns: excludePatterns.toList(),
+      excludePatterns2: excludePatterns.toList(),
       lint: lint,
       warning: warning,
       lintRules: lintRules.toList(),
@@ -139,6 +139,30 @@ final class AnalysisOptionsBuilder {
       ),
       unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames.toSet(),
     );
+  }
+}
+
+/// An exclude pattern declared in an analysis options file.
+final class AnalysisOptionsExcludePattern {
+  /// The analysis options file that declares [pattern].
+  final File declaringFile;
+
+  /// The pattern as written in [declaringFile].
+  final String pattern;
+
+  AnalysisOptionsExcludePattern({
+    required this.declaringFile,
+    required this.pattern,
+  });
+
+  @override
+  int get hashCode => Object.hash(declaringFile, pattern);
+
+  @override
+  bool operator ==(Object other) {
+    return other is AnalysisOptionsExcludePattern &&
+        other.declaringFile == declaringFile &&
+        other.pattern == pattern;
   }
 }
 
@@ -178,8 +202,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   final List<ErrorProcessor> errorProcessors;
 
-  @override
-  final List<String> excludePatterns;
+  final List<AnalysisOptionsExcludePattern> excludePatterns2;
 
   /// The associated `analysis_options.yaml` file (or `null` if there is none).
   final File? file;
@@ -230,7 +253,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.file,
     required ExperimentStatus contextFeatures,
     required this.nonPackageFeatureSet,
-    required this.excludePatterns,
+    required this.excludePatterns2,
     required this.enabledLegacyPluginNames,
     required this.pluginsOptions,
     required this.errorProcessors,
@@ -264,6 +287,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     nonPackageFeatureSet = featureSet;
     _clearCachedSignatures();
   }
+
+  @Deprecated(
+    "Use 'AnalysisContext.contextRoot.isAnalyzed' or "
+    "'AnalysisContext.contextRoot.analyzedFiles' instead.",
+  )
+  @override
+  List<String> get excludePatterns => {
+    for (var excludePattern in excludePatterns2) excludePattern.pattern,
+  }.toList();
 
   @override
   bool get lint => _lint;
@@ -455,7 +487,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         for (var processor in errorProcessors)
           processor.code: processor.severity,
       },
-      'excludes': excludePatterns,
+      'excludes': [
+        for (var excludePattern in excludePatterns2)
+          {
+            'file': excludePattern.declaringFile.path,
+            'pattern': excludePattern.pattern,
+          },
+      ],
       'lint rules': lintRules.map(
         (e) => DebugLink(e.name, e.diagnosticCodes.first.url),
       ),
@@ -526,6 +564,18 @@ final class GitPluginSource implements PluginSource {
   GitPluginSource({required this.url, this.path, this.ref, this.tagPattern});
 
   @override
+  int get hashCode => Object.hash(url, path, ref, tagPattern);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GitPluginSource &&
+          url == other.url &&
+          path == other.path &&
+          ref == other.ref &&
+          tagPattern == other.tagPattern;
+
+  @override
   String toYaml({required String name}) {
     var buffer = StringBuffer()
       ..writeln('  $name:')
@@ -548,6 +598,13 @@ final class PathPluginSource implements PluginSource {
   final String path;
 
   PathPluginSource({required this.path});
+
+  @override
+  int get hashCode => path.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is PathPluginSource && path == other.path;
 
   @override
   String toYaml({required String name}) =>
@@ -623,6 +680,16 @@ final class VersionedPluginSource implements PluginSource {
   final String? hostedUrl;
 
   VersionedPluginSource({required this.constraint, this.hostedUrl});
+
+  @override
+  int get hashCode => Object.hash(constraint, hostedUrl);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VersionedPluginSource &&
+          constraint == other.constraint &&
+          hostedUrl == other.hostedUrl;
 
   @override
   String toYaml({required String name}) {

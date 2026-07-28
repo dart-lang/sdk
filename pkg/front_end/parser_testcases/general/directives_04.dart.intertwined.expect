@@ -1,0 +1,6 @@
+parseUnit()
+  skipErrorTokens()
+  listener: beginCompilationUnit()
+  syntheticPreviousToken()
+  reportAllErrorTokens()
+  listener: endCompilationUnit(0, )

@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'dsatur_test.dart' as dsatur;
 import 'notification_manager_test.dart' as notification_manager;
 import 'plugin_isolate_test.dart' as plugin_isolate;
 import 'plugin_locator_test.dart' as plugin_locator;
@@ -16,6 +17,7 @@ import 'result_merger_test.dart' as result_merger;
 
 void main() {
   defineReflectiveSuite(() {
+    dsatur.main();
     notification_manager.main();
     plugin_isolate.main();
     plugin_locator.main();

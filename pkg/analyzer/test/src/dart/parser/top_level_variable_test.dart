@@ -71,7 +71,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: foo
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -128,6 +128,26 @@ CompilationUnit
 ''');
   }
 
+  test_augment_external() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment external int foo;
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    assertParsedNodeText(node, r'''
+TopLevelVariableDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  variables: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: foo
+  semicolon: ;
+''');
+  }
+
   test_augment_language305() {
     var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
@@ -153,7 +173,7 @@ CompilationUnit
           VariableDeclaration
             name: foo
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');

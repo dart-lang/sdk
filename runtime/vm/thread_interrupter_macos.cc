@@ -105,11 +105,17 @@ class ThreadInterrupterMacOS {
     its.csp = state.__rsp;
     its.dsp = state.__rsp;
     its.lr = 0;
+#elif defined(HOST_ARCH_ARM64E)
+    its.pc = __darwin_arm_thread_state64_get_pc(state);
+    its.fp = __darwin_arm_thread_state64_get_fp(state);
+    its.csp = __darwin_arm_thread_state64_get_sp(state);
+    its.dsp = state.__x[15];
+    its.lr = __darwin_arm_thread_state64_get_lr(state);
 #elif defined(HOST_ARCH_ARM64)
     its.pc = state.__pc;
     its.fp = state.__fp;
     its.csp = state.__sp;
-    its.dsp = state.__sp;
+    its.dsp = state.__x[15];
     its.lr = state.__lr;
 #elif defined(HOST_ARCH_ARM)
     its.pc = state.__pc;

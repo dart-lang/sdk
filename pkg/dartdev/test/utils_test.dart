@@ -144,6 +144,44 @@ void main() {
         equals('word\nhttp://long-url'),
       );
     });
+
+    test('ansiColorCodes', () {
+      const green = '\x1B[32m';
+      const reset = '\x1B[0m';
+      expect(
+        wrapText('one ${green}two three$reset four', width: 10),
+        equals('one ${green}two\nthree$reset four'),
+      );
+    });
+
+    test('ansiMultipleEscapes', () {
+      const bold = '\x1B[1m';
+      const green = '\x1B[32m';
+      const reset = '\x1B[0m';
+      expect(
+        wrapText('one $bold${green}two three$reset four', width: 10),
+        equals('one $bold${green}two\nthree$reset four'),
+      );
+    });
+
+    test('ansiTrueColor', () {
+      const trueColor = '\x1B[38;2;255;85;85m';
+      const reset = '\x1B[0m';
+      expect(
+        wrapText('one ${trueColor}two three$reset four', width: 10),
+        equals('one ${trueColor}two\nthree$reset four'),
+      );
+    });
+
+    test('ansiColorAtWrapBoundary', () {
+      const green = '\x1B[32m';
+      const reset = '\x1B[0m';
+      // The escape sequence is immediately before a space that triggers wrapping.
+      expect(
+        wrapText('one two$green three$reset four', width: 7),
+        equals('one two$green\nthree$reset\nfour'),
+      );
+    });
   });
 
   group('MarkdownTable', () {

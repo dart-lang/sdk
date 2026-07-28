@@ -50,7 +50,7 @@ void hybridMain(StreamChannel<Object?> channel, Object? initialMessage) async {
 
   final server = await AssetServer.listen(
     printOnFailure: printOnFailure,
-    assetPath: buildRoot.resolve('dartpad/'),
+    dartAssetPath: buildRoot.resolve('dartpad/'),
     flutterAssetPath: hasFlutter ? flutterAssetPath : null,
   );
 

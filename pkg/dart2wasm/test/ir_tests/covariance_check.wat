@@ -39,7 +39,7 @@
                 local.set $var8
                 block $label6 (result i32)
                   local.get $var8
-                  i32.const 106
+                  i32.const 108
                   i32.eq
                   if
                     i32.const 1
@@ -88,7 +88,7 @@
       br_if $label0
       local.get $var0
       i32.const 0
-      i32.const 106
+      i32.const 108
       local.get $var1
       call $_throwInterfaceTypeAsCheckError1
       unreachable

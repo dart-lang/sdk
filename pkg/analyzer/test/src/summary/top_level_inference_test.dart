@@ -5489,7 +5489,7 @@ library
     // TODO(scheglov): I don't understand this yet
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_instanceCreation_hasTypeParameter() async {
     var library = await _encodeDecodeLibrary(r'''
 class A<T> {}
@@ -5874,7 +5874,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNull = null;
@@ -6176,7 +6176,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal_list_untyped_empty() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNonConst = [];
@@ -6496,7 +6496,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal_map_untyped_empty() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNonConst = {};
@@ -6696,7 +6696,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_methodInvocation_hasTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -8098,7 +8098,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_prefix_incDec_custom() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -8952,7 +8952,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_throw() async {
     var library = await _encodeDecodeLibrary(r'''
 var V = throw 42;

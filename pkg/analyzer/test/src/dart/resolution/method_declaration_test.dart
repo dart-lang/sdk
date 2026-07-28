@@ -152,7 +152,7 @@ class C {
 VariableDeclaration
   name: _
   equals: =
-  initializer: SimpleIdentifier
+  initializer2: SimpleIdentifier
     token: _
     element: <testLibrary>::@class::C::@getter::_
     staticType: int

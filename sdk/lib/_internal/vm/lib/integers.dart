@@ -165,6 +165,9 @@ abstract final class _IntegerImplementation implements int {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  // TODO(dartbug.com/63808): Remove the pragma once this getter is no longer
+  // force-optimized.
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get trailingZeroBitCount {
     final int v = this;
@@ -173,6 +176,9 @@ abstract final class _IntegerImplementation implements int {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  // TODO(dartbug.com/63808): Remove the pragma once this getter is no longer
+  // force-optimized.
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get oneBitCount {
     int v = this;

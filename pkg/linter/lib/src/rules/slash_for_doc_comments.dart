@@ -51,11 +51,7 @@ class SlashForDocComments extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   void checkComment(Comment? comment) {
     if (comment != null && isJavaStyle(comment)) {
       rule.reportAtNode(comment);

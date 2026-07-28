@@ -5271,6 +5271,18 @@ spreadMapEntryElementValueTypeMismatch:
       Map<String, String> b = <String, String>{...a};
     }
 
+
+spreadEntryOrElementTypeMismatch:
+  parameters:
+    Type spreadType: The type of the spread.
+  problemMessage: "Unexpected type '#spreadType' of a spread element.  Expected 'dynamic', a Map or an Iterable."
+  script:
+    - |
+      main() {
+        int a = 42;
+        var b = {...a, 0: 1};
+      }
+
 cantDisambiguateNotEnoughInformation:
   parameters: none
   problemMessage: "Not enough type information to disambiguate between literal set and literal map."
@@ -6060,6 +6072,11 @@ jsInteropIsATearoff:
   parameters: none
   problemMessage: "'isA' can't be torn off."
   correctionMessage: "Use a method that calls 'isA' and tear off that method instead."
+
+jsInteropExtensionConstructorJsAnnotationHasNoEffect:
+  parameters: none
+  problemMessage: "The '@JS' annotation on an extension type constructor has no effect."
+  correctionMessage: "Remove the '@JS' annotation from the extension type constructor and put it on the extension type to rename non-object literal constructors."
 
 jsInteropExtensionTypeNotInterop:
   parameters:

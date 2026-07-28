@@ -141,7 +141,7 @@ final class _ApplyState {
   _ApplyState(File file) : builder = AnalysisOptionsBuilder(file: file);
 
   void apply(_ParsedFileData fileData) {
-    _applyAnalyzer(fileData.analyzer);
+    _applyAnalyzer(fileData.file, fileData.analyzer);
     _applyCodeStyle(fileData.codeStyle);
     _applyFormatter(fileData.formatter);
     _applyPlugins(fileData.plugins);
@@ -161,11 +161,11 @@ final class _ApplyState {
     return builder.build();
   }
 
-  void _applyAnalyzer(_ParsedAnalyzerData analyzer) {
+  void _applyAnalyzer(File file, _ParsedAnalyzerData analyzer) {
     _applyEnableExperiments(analyzer.enableExperiments);
     _applyErrorProcessors(analyzer.errorProcessors);
     _applyCannotIgnore(analyzer.cannotIgnore);
-    _applyExcludes(analyzer.excludes);
+    _applyExcludes(file, analyzer.excludes);
     _applyLanguage(analyzer.language);
     _applyOptionalChecks(analyzer.optionalChecks);
   }
@@ -229,12 +229,12 @@ final class _ApplyState {
     }
   }
 
-  void _applyExcludes(_ParsedExcludesData excludes) {
+  void _applyExcludes(File file, _ParsedExcludesData excludes) {
     if (excludes.patterns case var patterns?) {
       for (var pattern in patterns) {
-        if (!builder.excludePatterns.contains(pattern)) {
-          builder.excludePatterns.add(pattern);
-        }
+        builder.excludePatterns.add(
+          AnalysisOptionsExcludePattern(declaringFile: file, pattern: pattern),
+        );
       }
     }
   }
@@ -366,7 +366,7 @@ final class _ParseRequest {
         applyState: applyState,
         file: initialParsedFileNode,
         isInitialFile: true,
-        handled: {},
+        includeChain: {initialParsedFileNode.file},
       );
       analysisOptions = applyState.build();
     } else {
@@ -385,19 +385,19 @@ final class _ParseRequest {
     required _ApplyState applyState,
     required _ParsedFileNode file,
     required bool isInitialFile,
-    required Set<File> handled,
+    required Set<File> includeChain,
   }) {
     for (var include in file.includeResolutions) {
       switch (include) {
         case _MissingInclude() || _MalformedInclude():
           break;
         case _ParsedInclude(file: var includedFile):
-          if (handled.add(includedFile.file)) {
+          if (!includeChain.contains(includedFile.file)) {
             _applyParsedFiles(
               applyState: applyState,
               file: includedFile,
               isInitialFile: false,
-              handled: handled,
+              includeChain: {...includeChain, includedFile.file},
             );
           }
       }

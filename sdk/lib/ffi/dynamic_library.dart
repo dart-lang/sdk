@@ -34,6 +34,8 @@ final class DynamicLibrary {
 
   /// Loads a code asset registered with [assetId] in a build hook.
   ///
+  /// EXPERIMENAL: Not available yet in Flutter under Dart 3.13.
+  ///
   /// See [Build hooks](https://dart.dev/tools/hooks) for information about
   /// registering code assets.
   ///
@@ -43,7 +45,7 @@ final class DynamicLibrary {
   ///
   /// Calling this function multiple times with the same [assetId] only loads
   /// the library once.
-  @Since('3.13')
+  @Since('3.14')
   external factory DynamicLibrary.codeAsset(String assetId);
 
   /// Looks up a symbol in the [DynamicLibrary] and returns its address in

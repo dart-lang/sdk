@@ -2318,7 +2318,7 @@ main() {
           intLiteral(
             0,
           ).pattern.thenExpr(second(checkReachable(false), intLiteral(1))),
-          default_.thenExpr(second(checkReachable(false), intLiteral(2))),
+          wildcard().thenExpr(second(checkReachable(false), intLiteral(2))),
         ]),
         checkReachable(false),
       ]);
@@ -2328,7 +2328,7 @@ main() {
       h.run([
         switchExpr(expr('int'), [
           intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
-          default_.thenExpr(second(checkReachable(true), intLiteral(2))),
+          wildcard().thenExpr(second(checkReachable(true), intLiteral(2))),
         ]),
         checkReachable(true),
       ]);
@@ -2338,7 +2338,7 @@ main() {
       h.run([
         switchExpr(expr('int'), [
           intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
-          default_.thenExpr(throw_(expr('C'))),
+          wildcard().thenExpr(throw_(expr('C'))),
         ]),
         checkReachable(false),
       ]);
@@ -5449,6 +5449,12 @@ main() {
   });
 
   group('why not promoted', () {
+    test('documentation links use HTTPS', () {
+      for (var link in NonPromotionDocumentationLink.values) {
+        expect(link.url, startsWith('https://'));
+      }
+    });
+
     test('due to assignment', () {
       var x = Var('x');
       late Expression writeExpression;
@@ -5461,7 +5467,7 @@ main() {
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
-              reasons.values.single as DemoteViaExplicitWrite<Var>;
+              reasons.values.single as DemoteViaExplicitWrite<Var, Node>;
           expect(nonPromotionReason.node, same(writeExpression));
           expect(
             nonPromotionReason.documentationLink,
@@ -5488,7 +5494,7 @@ main() {
             SharedTypeView(Type('int?')),
           ]) {
             var nonPromotionReason =
-                reasons[type] as DemoteViaExplicitWrite<Var>;
+                reasons[type] as DemoteViaExplicitWrite<Var, Node>;
             expect(nonPromotionReason.node, same(writeExpression));
             expect(
               nonPromotionReason.documentationLink,
@@ -5512,7 +5518,7 @@ main() {
           x.whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('int')]));
             var nonPromotionReason =
-                reasons.values.single as DemoteViaSuspension<Var>;
+                reasons.values.single as DemoteViaSuspension<Var, Node>;
             expect(nonPromotionReason.node, same(awaitExpression));
             expect(
               nonPromotionReason.documentationLink,
@@ -5537,7 +5543,7 @@ main() {
           x.whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('int')]));
             var nonPromotionReason =
-                reasons.values.single as DemoteViaSuspension<Var>;
+                reasons.values.single as DemoteViaSuspension<Var, Node>;
             expect(nonPromotionReason.node, same(yieldStatement));
             expect(
               nonPromotionReason.documentationLink,
@@ -5561,7 +5567,7 @@ main() {
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
-              reasons.values.single as DemoteViaExplicitWrite<Var>;
+              reasons.values.single as DemoteViaExplicitWrite<Var, Node>;
           expect(nonPromotionReason.node, same(writePattern));
           expect(
             nonPromotionReason.documentationLink,
@@ -5584,7 +5590,7 @@ main() {
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
-              reasons.values.single as DemoteViaExplicitWrite<Var>;
+              reasons.values.single as DemoteViaExplicitWrite<Var, Node>;
           expect(nonPromotionReason.node, same(writeExpression));
           expect(
             nonPromotionReason.documentationLink,
@@ -5608,7 +5614,7 @@ main() {
         x.whyNotPromoted((reasons) {
           var nonPromotionReason =
               reasons[SharedTypeView(Type('int'))]
-                  as DemoteViaExplicitWrite<Var>;
+                  as DemoteViaExplicitWrite<Var, Node>;
           expect(nonPromotionReason.node, same(writeExpression));
           expect(
             nonPromotionReason.documentationLink,
@@ -7420,7 +7426,9 @@ main() {
             wildcard().as_('num').when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'num'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             wildcard().as_('int').then([
               checkNotPromoted(c.property('_property')),
             ]),
@@ -8437,7 +8445,9 @@ main() {
             listPattern([]).when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'List<Object?>'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             listPattern([]).then([checkNotPromoted(c.property('_property'))]),
           ]),
         ]);
@@ -8678,7 +8688,9 @@ main() {
             ]).when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'Map<Object?, Object?>'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             mapPattern([
               mapPatternEntry(intLiteral(0), wildcard()),
             ]).then([checkNotPromoted(c.property('_property'))]),
@@ -8785,9 +8797,9 @@ main() {
                 wildcard().nullAssert.when(expr('bool')).then([
                   checkPromoted(c.property('_property'), 'int'),
                 ]),
-                wildcard()
-                    .when(second(c.write(expr('C')), expr('bool')))
-                    .then([]),
+                wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+                  break_(),
+                ]),
                 (wildcard().nullAssert..errorId = 'SECOND_NULL_ASSERT').then([
                   checkNotPromoted(c.property('_property')),
                 ]),
@@ -8955,9 +8967,9 @@ main() {
               wildcard().nullCheck.when(expr('bool')).then([
                 checkPromoted(c.property('_property'), 'int'),
               ]),
-              wildcard()
-                  .when(second(c.write(expr('C')), expr('bool')))
-                  .then([]),
+              wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+                break_(),
+              ]),
               wildcard().nullCheck.then([
                 checkNotPromoted(c.property('_property')),
               ]),
@@ -9142,7 +9154,9 @@ main() {
             objectPattern(requiredType: 'int', fields: [])
                 .when(expr('bool'))
                 .then([checkPromoted(c.property('_property'), 'int')]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             objectPattern(
               requiredType: 'int',
               fields: [],
@@ -9371,7 +9385,9 @@ main() {
             recordPattern([]).when(expr('bool')).then([
               checkPromoted(c.property('_property'), '()'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             recordPattern([]).then([checkNotPromoted(c.property('_property'))]),
           ]),
         ]);
@@ -10634,7 +10650,9 @@ main() {
             x.pattern(type: 'int').when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'int'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             y.pattern(type: 'int').then([
               checkNotPromoted(c.property('_property')),
             ]),
@@ -10822,7 +10840,9 @@ main() {
             wildcard(type: 'int').when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'int'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             wildcard(
               type: 'int',
             ).then([checkNotPromoted(c.property('_property'))]),
@@ -13299,6 +13319,23 @@ main() {
         x.eq(nullLiteral).not.invokeAnonymousMethod(isParameterless: true, [
           this_.conditional(checkPromoted(x, 'int'), expr('bool')),
         ], returnType: 'bool'),
+      ]);
+    });
+
+    test('Anonymous method this promotion tracked independently', () {
+      h.addSuperInterfaces('C', (_) => [Type('Object')]);
+      h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+      h.addSuperInterfaces('E', (_) => [Type('C'), Type('Object')]);
+      h.thisType = 'C';
+      h.run([
+        this_.as_('D'),
+        checkPromoted(this_, 'D'),
+        expr('C').invokeAnonymousMethod([
+          checkNotPromoted(this_),
+          this_.as_('E'),
+          checkPromoted(this_, 'E'),
+        ], returnType: 'void'),
+        checkPromoted(this_, 'D'),
       ]);
     });
   });

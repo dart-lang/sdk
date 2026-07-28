@@ -230,9 +230,9 @@ class _UnitApiSignatureComputer {
 
     for (var variable in variables) {
       _addToken(variable.name);
-      signature.addBool(variable.initializer != null);
+      signature.addBool(variable.initializer2 != null);
       if (includeInitializers) {
-        _addNode(variable.initializer);
+        _addNode(variable.initializer2);
       }
     }
   }
@@ -242,7 +242,7 @@ extension on MixinDeclaration {
   List<String> get superInvokedNames {
     var names = <String>{};
     var collector = MixinSuperInvokedNamesCollector(names);
-    accept(collector);
+    accept2(collector);
     return names.toList(growable: false);
   }
 }

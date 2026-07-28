@@ -1,5 +1,5 @@
 name: dartpad
-version: 0.0.3
+version: 0.0.4-wip
 description: Client library for launching and communicating with dartpad-worker.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/dartpad
 issue_tracker: https://github.com/dart-lang/sdk/issues

@@ -13,6 +13,7 @@ import 'dart:js_interop'
 import 'dart:_js_helper' show dartifyRaw, JSValue, JSAnyToExternRef;
 import 'dart:_string' show JSStringImpl;
 import 'dart:_wasm';
+import 'dart:_js_interop_wasm';
 
 /// Contains active futures for any entities (either module names or IDs)
 /// currently being loaded.

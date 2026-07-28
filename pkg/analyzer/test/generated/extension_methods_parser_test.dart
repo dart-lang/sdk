@@ -300,7 +300,7 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression: MethodInvocation
+            expression2: MethodInvocation
               methodName: SimpleIdentifier
                 token: late
               argumentList: ArgumentList

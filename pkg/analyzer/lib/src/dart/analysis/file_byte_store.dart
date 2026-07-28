@@ -20,6 +20,24 @@ class CacheCleanUpRequest {
   CacheCleanUpRequest(this.cachePath, this.maxSizeBytes, this.replyTo);
 }
 
+/// The result that is sent from the clean-up isolate back to the main
+/// isolate.
+class CacheCleanUpResult {
+  final int currentSizeBytes;
+  final int deletedBytes;
+  final int deletedFileCount;
+  final int elapsedMilliseconds;
+  final int fileCount;
+
+  CacheCleanUpResult({
+    required this.currentSizeBytes,
+    required this.deletedBytes,
+    required this.deletedFileCount,
+    required this.elapsedMilliseconds,
+    required this.fileCount,
+  });
+}
+
 /// [ByteStore] that stores values as files and performs cache eviction.
 ///
 /// Only the process that manages the cache, e.g. Analysis Server, should use
@@ -34,12 +52,34 @@ class EvictingFileByteStore implements ByteStore {
   final FileByteStore _fileByteStore;
 
   int _bytesWrittenSinceCleanup = 0;
+  int _cleanUpCount = 0;
+  int _deletedBytes = 0;
+  int _deletedFileCount = 0;
   bool _evictionIsolateIsRunning = false;
+  int? _lastCleanUpTimeMilliseconds;
+  int? _lastKnownSizeBytes;
+  int? _lastScannedFileCount;
 
   EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
     : _fileByteStore = FileByteStore(_cachePath) {
     _requestCacheCleanUp();
   }
+
+  String get cachePath => _cachePath;
+  int get cleanUpCount => _cleanUpCount;
+  int get deletedBytes => _deletedBytes;
+  int get deletedFileCount => _deletedFileCount;
+  int get failedReadCount => _fileByteStore.failedReadCount;
+  int get failedWriteCount => _fileByteStore.failedWriteCount;
+  int? get lastCleanUpTimeMilliseconds => _lastCleanUpTimeMilliseconds;
+  int? get lastKnownSizeBytes => _lastKnownSizeBytes;
+  int? get lastScannedFileCount => _lastScannedFileCount;
+  int get maxSizeBytes => _maxSizeBytes;
+  int get pendingWriteCount => _fileByteStore.pendingWriteCount;
+  int get readCount => _fileByteStore.readCount;
+  int get readMissCount => _fileByteStore.readMissCount;
+  int get writeBytes => _fileByteStore.writeBytes;
+  int get writeCount => _fileByteStore.writeCount;
 
   @override
   Uint8List? get(String key) => _fileByteStore.get(key);
@@ -78,7 +118,13 @@ class EvictingFileByteStore implements ByteStore {
         _cleanUpSendPort!.send(
           CacheCleanUpRequest(_cachePath, _maxSizeBytes, response.sendPort),
         );
-        await response.first;
+        var result = await response.first as CacheCleanUpResult;
+        _cleanUpCount++;
+        _deletedBytes += result.deletedBytes;
+        _deletedFileCount += result.deletedFileCount;
+        _lastCleanUpTimeMilliseconds = result.elapsedMilliseconds;
+        _lastKnownSizeBytes = result.currentSizeBytes;
+        _lastScannedFileCount = result.fileCount;
       } finally {
         _evictionIsolateIsRunning = false;
         _bytesWrittenSinceCleanup = 0;
@@ -94,25 +140,34 @@ class EvictingFileByteStore implements ByteStore {
     initialReplyTo.send(port.sendPort);
     port.listen((request) {
       if (request is CacheCleanUpRequest) {
-        _cleanUpFolder(request.cachePath, request.maxSizeBytes);
+        var result = _cleanUpFolder(request.cachePath, request.maxSizeBytes);
         // Let the client know that we're done.
-        request.replyTo.send(true);
+        request.replyTo.send(result);
       }
     });
   }
 
-  static void _cleanUpFolder(String cachePath, int maxSizeBytes) {
+  static CacheCleanUpResult _cleanUpFolder(String cachePath, int maxSizeBytes) {
+    var stopwatch = Stopwatch()..start();
     List<FileSystemEntity> resources;
     try {
       resources = Directory(cachePath).listSync(recursive: true);
     } catch (_) {
-      return;
+      return CacheCleanUpResult(
+        currentSizeBytes: 0,
+        deletedBytes: 0,
+        deletedFileCount: 0,
+        elapsedMilliseconds: stopwatch.elapsedMilliseconds,
+        fileCount: 0,
+      );
     }
 
     // Prepare the list of files and their statistics.
     List<File> files = <File>[];
     Map<File, FileStat> fileStatMap = {};
     int currentSizeBytes = 0;
+    int deletedBytes = 0;
+    int deletedFileCount = 0;
     for (FileSystemEntity resource in resources) {
       if (resource is File) {
         try {
@@ -139,9 +194,20 @@ class EvictingFileByteStore implements ByteStore {
       }
       try {
         file.deleteSync();
-        currentSizeBytes -= fileStatMap[file]!.size;
+        var deletedSize = fileStatMap[file]!.size;
+        currentSizeBytes -= deletedSize;
+        deletedBytes += deletedSize;
+        deletedFileCount++;
       } catch (_) {}
     }
+
+    return CacheCleanUpResult(
+      currentSizeBytes: currentSizeBytes,
+      deletedBytes: deletedBytes,
+      deletedFileCount: deletedFileCount,
+      elapsedMilliseconds: stopwatch.elapsedMilliseconds,
+      fileCount: files.length,
+    );
   }
 }
 
@@ -154,6 +220,12 @@ class FileByteStore implements ByteStore {
   final String _tempSuffix;
   final Map<String, Uint8List> _writeInProgress = {};
   final FuturePool _pool = FuturePool(20);
+  int _failedReadCount = 0;
+  int _failedWriteCount = 0;
+  int _readCount = 0;
+  int _readMissCount = 0;
+  int _writeBytes = 0;
+  int _writeCount = 0;
 
   /// If the same cache path is used from more than one isolate of the same
   /// process, then a unique [tempNameSuffix] must be provided for each isolate.
@@ -161,9 +233,21 @@ class FileByteStore implements ByteStore {
     : _tempSuffix =
           '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 
+  int get failedReadCount => _failedReadCount;
+  int get failedWriteCount => _failedWriteCount;
+  int get pendingWriteCount => _writeInProgress.length;
+  int get readCount => _readCount;
+  int get readMissCount => _readMissCount;
+  int get writeBytes => _writeBytes;
+  int get writeCount => _writeCount;
+
   @override
   Uint8List? get(String key) {
-    if (!_canShard(key)) return null;
+    _readCount++;
+    if (!_canShard(key)) {
+      _readMissCount++;
+      return null;
+    }
 
     var bytes = _writeInProgress[key];
     if (bytes != null) {
@@ -174,9 +258,19 @@ class FileByteStore implements ByteStore {
       var shardPath = _getShardPath(key);
       var path = join(shardPath, key);
       var bytes = File(path).readAsBytesSync();
-      return _validator.getData(bytes);
+      var data = _validator.getData(bytes);
+      if (data == null) {
+        _readMissCount++;
+      }
+      return data;
+    } on PathNotFoundException {
+      // The entry is not cached yet, an ordinary miss.
+      _readMissCount++;
+      return null;
     } catch (_) {
       // ignore exceptions
+      _failedReadCount++;
+      _readMissCount++;
       return null;
     }
   }
@@ -187,6 +281,8 @@ class FileByteStore implements ByteStore {
       return bytes;
     }
 
+    _writeCount++;
+    _writeBytes += bytes.length;
     _writeInProgress[key] = bytes;
 
     var wrappedBytes = _validator.wrapData(bytes);
@@ -206,6 +302,7 @@ class FileByteStore implements ByteStore {
         }
       } catch (_) {
         // ignore exceptions
+        _failedWriteCount++;
       }
     });
 

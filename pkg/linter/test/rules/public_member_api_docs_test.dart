@@ -431,7 +431,10 @@ class PublicMemberApiDocsTestPackageTest extends LintRuleTest {
     );
     newAnalysisOptionsYamlFile(
       myPackageRootPath,
-      analysisOptionsContent(experiments: experiments, rules: [lintRule]),
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        rules: [lintRule],
+      ),
     );
     newFolder(fixturePackageLibPath);
     writePackageConfig(

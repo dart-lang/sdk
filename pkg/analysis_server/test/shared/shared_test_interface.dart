@@ -15,11 +15,6 @@ import 'package:analyzer_testing/package_config_file_builder.dart';
 /// notification from [openFile] whereas when using the legacy server (even for
 /// LSP-over-Legacy tests) will send an `analysis.updateContent` request.
 abstract interface class SharedTestInterface {
-  /// A future that completes when the current analysis completes.
-  ///
-  /// If there is no analysis in progress, completes immediately.
-  Future<void> get currentAnalysis;
-
   /// Sets whether the test should fail if error diagnostics are generated.
   ///
   /// This is used to avoid accidentally including invalid code in tests but can
@@ -75,6 +70,11 @@ abstract interface class SharedTestInterface {
 
   /// Converts [filePath] to a file:/// URI.
   Uri toUri(String filePath);
+
+  /// Returns when current analysis completes.
+  ///
+  /// If there is no analysis in progress, completes immediately.
+  Future<void> workspaceAnalysisComplete();
 
   /// Writes a package_config.json for the package under test (considered
   /// 'package:test').

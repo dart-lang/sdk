@@ -40,11 +40,11 @@ f() {
     var node = result.findNode.binary('+ 1');
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: ExtensionOverride
+  leftOperand2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
@@ -52,7 +52,7 @@ BinaryExpression
     extendedType: String
     staticType: null
   operator: +
-  rightOperand: IntegerLiteral
+  rightOperand2: IntegerLiteral
     literal: 1
     correspondingParameter: <null>
     staticType: int

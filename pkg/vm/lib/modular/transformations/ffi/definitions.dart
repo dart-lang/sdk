@@ -14,6 +14,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/util/graph.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'abi.dart';
 import 'common.dart';
@@ -313,7 +314,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         node.addAnnotation(
           ConstantExpression(
             InstanceConstant(pragmaClass.reference, [], {
-              pragmaName.fieldReference: StringConstant("vm:deeply-immutable"),
+              pragmaName.fieldReference: StringConstant(
+                vmDeeplyImmutablePragmaName,
+              ),
               pragmaOptions.fieldReference: NullConstant(),
             }),
           ),

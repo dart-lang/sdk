@@ -30,7 +30,7 @@ Future<void> addNamedSuperFormalParameters(
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
   visitChildren(parent, (element) {
-    if (name == null || element.name == name) {
+    if (name == null || element.lookupName == name) {
       children.add(element);
     }
     return false;

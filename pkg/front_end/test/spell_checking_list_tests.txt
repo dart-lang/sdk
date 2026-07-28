@@ -21,6 +21,7 @@ acr
 acts
 adapter
 adaptor
+additions
 adequately
 adopted
 advantages
@@ -103,6 +104,7 @@ bitmask
 bivariant
 bkonyi
 bla
+blabla
 blah
 bleeding
 bler
@@ -300,6 +302,7 @@ dw
 e's
 ea
 ease
+eb
 ec
 echo
 edits
@@ -365,6 +368,7 @@ flipped
 floor
 fluctuate
 foo'bar'baz
+foobarbaz
 foos
 forbidden
 forces
@@ -974,6 +978,7 @@ worse
 wrongly
 ws
 x's
+xb
 xf
 xfq
 xlate

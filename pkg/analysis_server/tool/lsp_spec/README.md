@@ -311,6 +311,28 @@ workspace independently is not supported.
 The response includes a summary of the results and a `WorkspaceEdit` containing
 the changes to be applied.
 
+### dart/workspace/analysis/complete Method
+
+Direction: Client -> Server
+Params: None
+Returns: None
+
+Waits for any in-progress analysis (and any in-progress work that may lead to
+analysis) to complete before returning. This can be used as a way to ensure a
+client has collected diagnostic notifications for a whole workspace before
+continuing.
+
+Clients should send this request after other requests (such as `initialize` or
+`workspace/didChangeWorkspaceFolders`) and then wait for the response before
+assuming all analysis has completed (and diagnostics have been sent).
+
+This request can get blocked behind client-to-server requests (for example
+fetching configuration), so clients should continue to handle reverse-requests
+during this period if they have indicated support for them.
+
+Clients should check that there is a `workspaceAnalysisComplete` key in the
+servers experimental capabilities before assuming this method is available.
+
 ### dart/openUri Notification
 
 Direction: Server -> Client

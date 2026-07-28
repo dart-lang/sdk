@@ -127,7 +127,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -143,7 +143,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -156,7 +156,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -172,7 +172,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -657,9 +657,13 @@ import 'missing.dart' as p;
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
 p.T c = new p.T();
+//            ^
+// [diag.newWithNonType] The name 'T' isn't a class.
 class D<E> extends p.T {
   D(int i) : super(i);
   p.U f = new p.V();
+//              ^
+// [diag.newWithNonType] The name 'V' isn't a class.
 }
 class F implements p.T {
   p.T m(p.U u) => null;
@@ -684,9 +688,13 @@ import 'missing.dart' show q, r, t, u, T, U, V, W;
 int a = q + r.s;
 String b = t(a) + u(v: 0);
 T c = new T();
+//        ^
+// [diag.newWithNonType] The name 'T' isn't a class.
 class D<E> extends T {
   D(int i) : super(i);
   U f = new V();
+//          ^
+// [diag.newWithNonType] The name 'V' isn't a class.
 }
 class F implements T {
   T m(U u) => null;
@@ -1376,7 +1384,7 @@ main() {
 
     var invocation = result.findNode.methodInvocation(');');
 
-    var arguments = invocation.argumentList.arguments;
+    var arguments = invocation.argumentList.arguments2;
 
     var argumentCount = arguments.length;
     expect(argumentCount, indices.length);

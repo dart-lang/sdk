@@ -757,7 +757,7 @@ class NodeCreator {
       return functionDeclaration;
     }
     FunctionDeclaration functionDeclaration = FunctionDeclaration(
-      LocalVariable(name: 'foo'),
+      LocalFunctionVariable(name: 'foo'),
       FunctionNode(Block([])),
     );
     _neededFunctionDeclarations.add(functionDeclaration);
@@ -1533,8 +1533,10 @@ class NodeCreator {
           )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.FunctionDeclaration:
-        return FunctionDeclaration(SyntheticVariable(), _createFunctionNode())
-          ..fileOffset = _needFileOffset();
+        return FunctionDeclaration(
+          LocalFunctionVariable(name: 'foo'),
+          _createFunctionNode(),
+        )..fileOffset = _needFileOffset();
       case StatementKind.IfStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () =>
@@ -1666,6 +1668,10 @@ class NodeCreator {
         return CatchVariable(name: 'e');
       case VariableKind.LateVariable:
         return LateVariable(name: 'foo');
+      case VariableKind.LocalFunctionVariable:
+        return LocalFunctionVariable(name: 'foo');
+      case VariableKind.ConstVariable:
+        return ConstVariable(name: 'foo');
       case VariableKind.LocalVariable:
         return _createOneOf(_pendingVariables, kind, index, [
           () => LocalVariable(name: 'foo')..fileOffset = _needFileOffset(),

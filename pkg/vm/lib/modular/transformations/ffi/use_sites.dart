@@ -879,21 +879,24 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     ];
 
     final closure = FunctionDeclaration(
-      SyntheticVariable(cosmeticName: closureName, type: dartSignature)
-        ..addAnnotation(
-          ConstantExpression(
-            InstanceConstant(coreTypes.pragmaClass.reference, [], {
-              coreTypes.pragmaName.fieldReference: StringConstant(
-                'vm:ffi:call-closure',
-              ),
-              coreTypes.pragmaOptions.fieldReference: InstanceConstant(
-                ffiCallClass.reference,
-                [nativeSignature],
-                {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
-              ),
-            }),
-          ),
+      LocalFunctionVariable(
+        name: closureName,
+        type: dartSignature,
+        isSynthesized: true,
+      )..addAnnotation(
+        ConstantExpression(
+          InstanceConstant(coreTypes.pragmaClass.reference, [], {
+            coreTypes.pragmaName.fieldReference: StringConstant(
+              'vm:ffi:call-closure',
+            ),
+            coreTypes.pragmaOptions.fieldReference: InstanceConstant(
+              ffiCallClass.reference,
+              [nativeSignature],
+              {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
+            ),
+          }),
         ),
+      ),
       FunctionNode(
         Block([
           for (final param in positionalParameters)

@@ -28,7 +28,7 @@ class A {
 
   // Default values are not allowed on redirecting factory constructors.
   factory A.badRedirectFactory({int x = 3, int y}) =
-  //                                ^
+  //                                  ^
   // [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR
   //                                    ^
   // [cfe] Can't have a default value here because any default values of 'A' would be used instead.

@@ -6,30 +6,42 @@ import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:native_compiler/back_end/stack_frame.dart';
 
 /// Stack frame layout used on arm64.
 ///
 /// Currently stack frame has the following layout (stack grows down):
 /// ```
-///        [param 1]
+///  (stackSlotIndex)
+///  |
+///  V     [param 1]
 ///        ...
-///        [param N]
-///        [saved LR]
-/// FP ->  [saved FP]
-///        [Code]
-///        [saved tagged ObjectPool]
-///        [suspend state (only for async/async*/sync* functions)]
-///        [shadow space for optional parameters]
-///        [spill slot 0]
-///        ...
-///        [spill slot M]
-///        [outgoing arguments area]
+/// -5     [param N]
+///        -------------------------------------------------------------+
+///        [saved LR]                                                   |
+/// FP ->  [saved FP]                                                   | Fixed frame
+///        [Code]                                                       | (numberOfFixedSlots)
+///        [saved tagged ObjectPool]                                    |
+///        -------------------------------------------------------------+
+///  0     [suspend state (only for async/async*/sync* functions)]      |
+///        [shadow space for optional parameters]                       |
+///  |     [spill slot 0]                                               | Allocated frame
+///  V     ...                                                          | (frameSizeInSlots)
+///        [spill slot M]                                               |
+/// S-1    [outgoing arguments area]                                    |
+///        -------------------------------------------------------------+
+///        (callee frame)
 /// ```
+///
+/// Stack slots are numbered in the order of growing stack, starting with the
+/// slot immediately following fixed frame. This numbering matches the
+/// bit numbering in the stack maps used by safepoints.
+///
 /// TODO: add catch block entry parameters area.
 final class Arm64StackFrame extends StackFrame {
-  /// Stack frame alignment.
-  static const int alignment = 2 * wordSize;
+  /// Stack frame alignment in stack slots (words).
+  static const int frameSizeAlignmentInSlots = 2;
 
   /// Number of fixed frame slots; distance between the last parameter
   /// slot and the first spill slot in words.
@@ -41,15 +53,11 @@ final class Arm64StackFrame extends StackFrame {
   /// Offset of the saved pool pointer relative to FP.
   static const int poolPointerOffsetFromFP = -2 * wordSize;
 
-  /// Offset of the suspend state, relative to FP
-  static const int _suspendStateOffsetFromFP = -3 * wordSize;
+  /// Offset of the 0-th allocated stack slot, relative to FP
+  static const int _firstSlotOffsetFromFP = -3 * wordSize;
 
   /// Number of stack slots used by suspend state.
   late final int _suspendStateStackSlots = (function.isSuspendable ? 1 : 0);
-
-  /// Offset of the first shadow parameter, relative to FP
-  late final int _shadowParametersOffsetFromFP =
-      _suspendStateOffsetFromFP - _suspendStateStackSlots * wordSize;
 
   /// Number of stack slots reserved for shadow parameters.
   late final int _shadowParametersStackSlots =
@@ -59,10 +67,12 @@ final class Arm64StackFrame extends StackFrame {
       ? function.numberOfParameters - argumentRegisters.length
       : 0;
 
-  late final int _firstSpillSlotOffsetFromFP =
-      _shadowParametersOffsetFromFP - _shadowParametersStackSlots * wordSize;
+  late final int _reservedStackSlots =
+      _suspendStateStackSlots + _shadowParametersStackSlots;
 
-  Arm64StackFrame(super.function);
+  Arm64StackFrame(super.function) {
+    reserveSpillSlots(_reservedStackSlots);
+  }
 
   @override
   int spillSlotSizeInWords(RegisterClass registerClass) => 1;
@@ -96,35 +106,38 @@ final class Arm64StackFrame extends StackFrame {
         return 2; // Result + 1 argument for Throw runtime call.
       case Throw(kind: .rethrowException):
         return 4; // Result + 3 argument for ReThrow runtime call.
+      case NullCheck():
+        return 1; // Result + 0 arguments for NullCastError runtime call.
       default:
         return 0;
     }
   }
 
+  int _slotOffsetFromFP(int stackSlotIndex) =>
+      _firstSlotOffsetFromFP - stackSlotIndex * wordSize;
+
   @override
   int offsetFromFP(StackLocation location) {
     assert(isFinalized);
-    switch (location) {
-      case SpillSlot():
-        return _firstSpillSlotOffsetFromFP - location.index * wordSize;
-      case ParameterStackLocation():
-        final paramIndex = location.paramIndex;
-        final numParams = function.numberOfParameters;
-        assert(0 <= paramIndex && paramIndex < numParams);
-        if (function.hasOptionalPositionalParameters ||
-            function.hasNamedParameters) {
-          return shadowParameterOffsetFromFP(paramIndex);
-        } else {
-          return lastParameterOffsetFromFP +
-              (numParams - paramIndex - 1) * wordSize;
-        }
-    }
+    return _slotOffsetFromFP(location.stackSlotIndex);
   }
 
   @override
   int get suspendStateOffsetFromFP {
     assert(function.isSuspendable);
-    return _suspendStateOffsetFromFP;
+    return _slotOffsetFromFP(0);
+  }
+
+  int _parameterSlotIndex(int paramIndex) {
+    final numParams = function.numberOfParameters;
+    assert(0 <= paramIndex && paramIndex < numParams);
+    if (function.hasOptionalPositionalParameters ||
+        function.hasNamedParameters) {
+      assert(paramIndex >= argumentRegisters.length);
+      return _suspendStateStackSlots + (paramIndex - argumentRegisters.length);
+    } else {
+      return -numberOfFixedSlots - numParams + paramIndex;
+    }
   }
 
   @override
@@ -134,17 +147,30 @@ final class Arm64StackFrame extends StackFrame {
     );
     assert(paramIndex >= argumentRegisters.length);
     assert(paramIndex < function.numberOfParameters);
-    return _shadowParametersOffsetFromFP -
-        (paramIndex - argumentRegisters.length) * wordSize;
+    return _slotOffsetFromFP(_parameterSlotIndex(paramIndex));
   }
 
   @override
-  int get frameSizeToAllocate => roundUp(
-    (_suspendStateStackSlots +
-            _shadowParametersStackSlots +
-            usedSpillSlots +
-            maxArgumentsStackSlots) *
-        wordSize,
-    alignment,
+  ParameterStackLocation getParameterSlot(
+    int paramIndex,
+    RegisterClass registerClass,
+  ) {
+    return ParameterStackLocation(
+      paramIndex,
+      _parameterSlotIndex(paramIndex),
+      registerClass,
+    );
+  }
+
+  @override
+  late final int frameSizeInSlots = roundUp(
+    usedSpillSlots + maxArgumentsStackSlots,
+    frameSizeAlignmentInSlots,
   );
+
+  @override
+  void recordReservedLocations(Safepoint safepoint) {
+    // TODO: unboxed parameters
+    safepoint.addLiveStackSlots(0, _reservedStackSlots, isObjectPointer: true);
+  }
 }

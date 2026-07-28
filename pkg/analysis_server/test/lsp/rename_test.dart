@@ -1629,7 +1629,7 @@ final a = new MyNewClass();
     var code = TestCode.parse(content);
     await initialize(workspaceFolders: workspaceFolders);
     await openFile(fileUri, code.code, version: documentVersion);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     var result = await rename(
       fileUri,

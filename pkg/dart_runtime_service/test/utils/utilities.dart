@@ -51,17 +51,25 @@ Future<String> registerServiceHelper({
   required VmService serviceProvider,
   required String serviceName,
   required ServiceCallback callback,
+  List<String>? ignoreMethods,
 }) async {
   final serviceNameCompleter = Completer<String>();
   late final StreamSubscription<void> sub;
   sub = client.onServiceEvent.listen((event) {
     if (event.kind == EventKind.kServiceRegistered &&
-        event.method!.endsWith(serviceName)) {
+        event.method!.endsWith(serviceName) &&
+        !(ignoreMethods?.contains(event.method!) ?? false)) {
       serviceNameCompleter.complete(event.method!);
       sub.cancel();
     }
   });
-  await client.streamListen(EventStreams.kService);
+  try {
+    await client.streamListen(EventStreams.kService);
+  } on RPCError catch (e) {
+    if (e.code != RpcException.streamAlreadySubscribed.code) {
+      rethrow;
+    }
+  }
 
   // Register the service.
   serviceProvider.registerServiceCallback(serviceName, callback);

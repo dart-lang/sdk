@@ -34,7 +34,6 @@ class Annotation {
     required this.createFileUriExpression,
   });
 
-  late int annotationIndex;
   late Expression expression;
 }
 

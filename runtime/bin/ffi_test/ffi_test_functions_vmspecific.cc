@@ -1370,6 +1370,25 @@ DART_EXPORT void WaitUntilNThreadsEnterBarrier(intptr_t num_threads,
                              exit_and_reenter_isolate);
 }
 
+DART_EXPORT intptr_t GetAddrFromObject(Dart_Handle object) {
+  Dart_PersistentHandle persistent_handle = Dart_NewPersistentHandle(object);
+  return reinterpret_cast<intptr_t>(persistent_handle);
+}
+
+DART_EXPORT Dart_Handle GetObjectFromAddr(intptr_t addr) {
+  Dart_PersistentHandle persistent_handle =
+      reinterpret_cast<Dart_PersistentHandle>(addr);
+
+  return Dart_HandleFromPersistent(persistent_handle);
+}
+
+DART_EXPORT void ReleaseAddr(intptr_t addr) {
+  Dart_PersistentHandle persistent_handle =
+      reinterpret_cast<Dart_PersistentHandle>(addr);
+
+  Dart_DeletePersistentHandle(persistent_handle);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Helper for the regression test for b/216834909
 ////////////////////////////////////////////////////////////////////////////////

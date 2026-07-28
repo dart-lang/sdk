@@ -182,10 +182,12 @@ class ImplementsRepeatedTest extends FixProcessorTest {
 
   Future<void> test_oneName() async {
     await resolveTestCode('''
+// @dart = 3.5
 class A {}
 class C implements A, A {}
 ''');
     await assertHasFix('''
+// @dart = 3.5
 class A {}
 class C implements A {}
 ''');
@@ -199,10 +201,12 @@ class ImplementsSuperClassTest extends FixProcessorTest {
 
   Future<void> test_oneName() async {
     await resolveTestCode('''
+// @dart = 3.5
 class A {}
 class C extends A implements A {}
 ''');
     await assertHasFix('''
+// @dart = 3.5
 class A {}
 class C extends A {}
 ''');

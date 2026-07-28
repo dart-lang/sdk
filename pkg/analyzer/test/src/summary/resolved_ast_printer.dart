@@ -18,7 +18,8 @@ import 'package:test/test.dart';
 import '../../util/element_printer.dart';
 
 /// Prints AST as a tree, with properties and children.
-class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
+class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
+    implements AstVisitor<void> {
   final TreeStringSink _sink;
   final ElementPrinter _elementPrinter;
   final ResolvedNodeTextConfiguration configuration;
@@ -28,6 +29,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   /// If `true`, resolution should be printed.
   final bool _withResolution;
+
+  _AstView _view = _AstView.v2;
 
   final Map<Token, String> _tokenIdMap = Map.identity();
 
@@ -376,6 +379,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _sink.writeln('ConstructorInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     _sink.writeln('ConstructorName');
     _sink.withIndent(() {
@@ -395,11 +408,43 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _sink.writeln('ConstructorReference2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+    });
+  }
+
+  @override
   void visitConstructorSelector(ConstructorSelector node) {
     _checkChildrenEntitiesLinking(node);
     _sink.writeln('ConstructorSelector');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _sink.writeln('ConstructorTearOff');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeElement('element', node.element);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitConstructorTypeReference(
+    covariant ConstructorTypeReferenceImpl node,
+  ) {
+    _sink.writeln('ConstructorTypeReference');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeType('type', node.type);
     });
   }
 
@@ -431,6 +476,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         _writeDeclaredFragment(node.declaredFragment);
         _writePatternMatchedValueType(node);
       }
+    });
+  }
+
+  @override
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    _sink.writeln('DelimitedFormalParameters');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1753,6 +1806,34 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     });
   }
 
+  void writeNode(AstNode node) {
+    var view = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
+        ? _AstView.v1
+        : _AstView.v2;
+    _withView(view, () {
+      _acceptInView(node);
+    });
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
+    if (node is FormalParameterListImpl &&
+        node.allFormalParameters.isNotEmpty) {
+      _sink.writeln('FormalParameterList(v1)');
+      _sink.withIndent(() {
+        _withView(_AstView.v1, () {
+          _writeNamedChildEntities(node);
+        });
+      });
+    }
+  }
+
+  void _acceptInView(AstNode node) {
+    switch (_view) {
+      case _AstView.v1:
+        node.accept(this);
+      case _AstView.v2:
+        node.accept2(this);
+    }
+  }
+
   void _assertFormalParameterDeclaredElement(FormalParameter node) {
     if (_withResolution) {
       var declaredFragment = node.declaredFragment;
@@ -1764,7 +1845,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// Check that children entities of the [node] link to each other.
   void _checkChildrenEntitiesLinking(AstNode node) {
     Token? lastEnd;
-    for (var entity in node.childEntities) {
+    for (var entity in _viewChildEntities(node)) {
       if (entity is Comment) {
         continue;
       }
@@ -1779,7 +1860,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   /// Check that the actual parent of [child] is [parent].
   void _checkParentOfChild(AstNode parent, AstNode child) {
-    var actualParent = child.parent;
+    var actualParent = _viewParent(child);
     if (actualParent == null) {
       fail('''
 No parent.
@@ -1801,6 +1882,30 @@ Expected parent: (${parent.runtimeType}) $parent
       return '<null>';
     }
     return _tokenIdMap[token] ??= 'T${_tokenIdMap.length}';
+  }
+
+  Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
+    return switch (_view) {
+      _AstView.v1 => node.childEntities,
+      _AstView.v2 => node.childEntities2,
+    };
+  }
+
+  AstNode? _viewParent(AstNode node) {
+    return switch (_view) {
+      _AstView.v1 => node.parent,
+      _AstView.v2 => node.parent2,
+    };
+  }
+
+  T _withView<T>(_AstView view, T Function() operation) {
+    var previousView = _view;
+    _view = view;
+    try {
+      return operation();
+    } finally {
+      _view = previousView;
+    }
   }
 
   void _writeDeclaredFragment(Fragment? fragment) {
@@ -1980,30 +2085,94 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeNamedChildEntities(AstNode node) {
     node as AstNodeImpl;
-    for (var entity in node.namedChildEntities) {
-      var value = entity.value;
-      if (value is Token) {
-        _writeToken(entity.name, value);
-      } else if (value is AstNode) {
-        _checkParentOfChild(node, value);
-        if (value is ArgumentList && configuration.skipArgumentList) {
-        } else {
-          _writeNode(entity.name, value);
-        }
-      } else if (value is List<Token>) {
-        _writeTokenList(entity.name, value);
-      } else if (value is List<AstNode>) {
-        _writeNodeList(node, entity.name, value);
-      } else {
-        throw UnimplementedError('(${value.runtimeType}) $value');
+    if (_view == _AstView.v1) {
+      for (var entity in node.namedChildEntities) {
+        _writeNamedChildEntity(node, entity);
       }
+      return;
+    }
+
+    var entities2 = node.namedChildEntities2.toList();
+    var entities = node.astNodeApi == AstNodeApi.v2
+        ? <ChildEntity>[]
+        : node.namedChildEntities.toList();
+    var entitiesByName = {for (var entity in entities) entity.name: entity};
+    var matchedV1Names = <String>{};
+
+    for (var entity2 in entities2) {
+      var entity = entitiesByName[entity2.name];
+      if (entity == null && entity2.name.endsWith('2')) {
+        var v1Name = entity2.name.substring(0, entity2.name.length - 1);
+        entity = entitiesByName[v1Name];
+      }
+      if (entity != null) {
+        matchedV1Names.add(entity.name);
+      }
+
+      _writeNamedChildEntity(node, entity2);
+
+      var entityValue = entity?.value;
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
+      if (entity2.value is FormalParameterListImpl &&
+          entityValue is FormalParameterListImpl &&
+          entityValue.allFormalParameters.isNotEmpty) {
+        _withView(_AstView.v1, () {
+          _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
+        });
+      } else if (entity != null &&
+          entity.name != entity2.name &&
+          !_sameChildEntityValue(entity2.value, entity.value)) {
+        _withView(_AstView.v1, () {
+          _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
+        });
+      }
+    }
+
+    // The V1 representation of a formal parameter list manually flattens its
+    // parameters. It is printed separately at the property containing the
+    // list, rather than as additional properties of the list itself.
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
+    if (node is FormalParameterListImpl) {
+      return;
+    }
+
+    _withView(_AstView.v1, () {
+      for (var entity in entities) {
+        if (!matchedV1Names.contains(entity.name)) {
+          _writeNamedChildEntity(node, entity);
+        }
+      }
+    });
+  }
+
+  void _writeNamedChildEntity(
+    AstNode parent,
+    ChildEntity entity, {
+    String? name,
+  }) {
+    name ??= entity.name;
+    var value = entity.value;
+    if (value is Token) {
+      _writeToken(name, value);
+    } else if (value is AstNode) {
+      _checkParentOfChild(parent, value);
+      if (value is ArgumentList && configuration.skipArgumentList) {
+      } else {
+        _writeNode(name, value);
+      }
+    } else if (value is List<Token>) {
+      _writeTokenList(name, value);
+    } else if (value is List<AstNode>) {
+      _writeNodeList(parent, name, value);
+    } else {
+      throw UnimplementedError('(${value.runtimeType}) $value');
     }
   }
 
   void _writeNode(String name, AstNode? node) {
     if (node != null) {
       _sink.writeWithIndent('$name: ');
-      node.accept(this);
+      _acceptInView(node);
     }
   }
 
@@ -2014,7 +2183,7 @@ Expected parent: (${parent.runtimeType}) $parent
         for (var node in nodeList) {
           _checkParentOfChild(parent, node);
           _sink.writeIndent();
-          node.accept(this);
+          _acceptInView(node);
         }
       });
     }
@@ -2024,16 +2193,16 @@ Expected parent: (${parent.runtimeType}) $parent
   /// writes the corresponding parameter element.
   void _writeParameterElement(AstNode node) {
     if (configuration.withParameterElements) {
-      if (node is Argument && node.parent is ArgumentList) {
+      if (node is Argument && _viewParent(node) is ArgumentList) {
         _writeElement('correspondingParameter', node.correspondingParameter);
         return;
       }
 
       if (node is Expression) {
-        var parent = node.parent;
-        if (parent is AssignmentExpression && parent.rightHandSide == node ||
-            parent is BinaryExpression && parent.rightOperand == node ||
-            parent is IndexExpression && parent.index == node) {
+        var parent = _viewParent(node);
+        if (parent is AssignmentExpression && parent.rightHandSide2 == node ||
+            parent is BinaryExpression && parent.rightOperand2 == node ||
+            parent is IndexExpression && parent.index2 == node) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }
       }
@@ -2198,7 +2367,7 @@ Expected parent: (${parent.runtimeType}) $parent
   static List<FormalParameterFragment> _expectedFormalParameterElements(
     FormalParameter node,
   ) {
-    var parametersParent = node.parentFormalParameterList.parent;
+    var parametersParent = node.parentFormalParameterList2.parent2;
     if (parametersParent is ConstructorDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
@@ -2223,6 +2392,24 @@ Expected parent: (${parent.runtimeType}) $parent
       '(${parametersParent.runtimeType}) $parametersParent',
     );
   }
+
+  static bool _sameChildEntityValue(Object value2, Object value) {
+    if (identical(value2, value)) {
+      return true;
+    }
+    if (value2 is List<AstNode> && value is List<AstNode>) {
+      if (value2.length != value.length) {
+        return false;
+      }
+      for (var i = 0; i < value2.length; i++) {
+        if (!identical(value2[i], value[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
 }
 
 class ResolvedNodeTextConfiguration {
@@ -2245,3 +2432,5 @@ class ResolvedNodeTextConfiguration {
   /// If `true`, print IDs of each token, `previous` and `next` tokens.
   bool withTokenPreviousNext = false;
 }
+
+enum _AstView { v1, v2 }

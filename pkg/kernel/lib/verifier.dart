@@ -866,6 +866,7 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
       _findExtensionTypeMember(node);
     }
     classTypeParametersAreInScope = !node.isStatic;
+    node.thisVariable?.accept(this);
     node.initializer?.accept(this);
     node.type.accept(this);
     classTypeParametersAreInScope = false;
@@ -1287,7 +1288,17 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
   void visitLateVariable(LateVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
     _verifyVariable(node);
   }
 

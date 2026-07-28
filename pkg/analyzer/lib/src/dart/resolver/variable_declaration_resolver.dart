@@ -26,9 +26,9 @@ class VariableDeclarationResolver {
        _strictInference = strictInference;
 
   void resolve(VariableDeclarationImpl node) {
-    var parent = node.parent as VariableDeclarationList;
+    var parent = node.parent2 as VariableDeclarationList;
 
-    var initializer = node.initializer;
+    var initializer = node.initializer2;
 
     if (initializer == null) {
       if (_strictInference && parent.type == null) {
@@ -98,7 +98,7 @@ class VariableDeclarationResolver {
     // into elements during linking.
     if (element is LocalVariableElementImpl && element.isConst) {
       var fragment = element.firstFragment;
-      fragment.constantInitializer = initializer;
+      fragment.constantInitializer2 = initializer;
     }
 
     _resolver.checkForAssignableExpressionAtType(

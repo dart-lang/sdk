@@ -163,7 +163,7 @@ class CanBeConstInstanceCreationTest extends AbstractLinterContextTest {
     String snippet,
     bool expectedResult,
   ) {
-    var node = result.findNode.instanceCreation(snippet);
+    var node = result.findNode.constructorInvocation(snippet);
     expect(node.canBeConst, expectedResult);
   }
 

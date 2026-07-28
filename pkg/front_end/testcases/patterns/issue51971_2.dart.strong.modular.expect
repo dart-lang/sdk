@@ -60,7 +60,6 @@ static method test1(dynamic x1) → dynamic {
   }
 }
 static method test2(dynamic x2) → dynamic {
-  #L1:
   {
     final synthesized dynamic #0#0 = x2;
     {
@@ -82,7 +81,6 @@ static method test2(dynamic x2) → dynamic {
   }
 }
 static method test3(dynamic x3) → dynamic {
-  #L2:
   {
     final synthesized dynamic #0#0 = x3;
     final const synthesized core::int #0#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
@@ -106,7 +104,6 @@ static method test3(dynamic x3) → dynamic {
   }
 }
 static method test4(dynamic x4) → dynamic {
-  #L3:
   {
     final synthesized dynamic #0#0 = x4;
     final const synthesized core::int #0#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
@@ -134,19 +131,19 @@ static method test5(dynamic x5) → dynamic {
     core::int #t11;
     final synthesized dynamic #0#0 = x5;
     final const synthesized core::int #0#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
-    #L4:
+    #L1:
     {
       {
         hoisted core::int a5;
         if(#0#0 is core::int && (let final dynamic #t12 = a5 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool}) {
           #t11 = 1;
-          break #L4;
+          break #L1;
         }
       }
       {
         if(true) {
           #t11 = 0;
-          break #L4;
+          break #L1;
         }
       }
     }

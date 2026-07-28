@@ -63,7 +63,7 @@ mixin M {}
     var node = result.findNode.commentReference('a]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: null
@@ -148,7 +148,7 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -278,7 +278,7 @@ mixin M<T> on C<T> {}
     var node = result.findNode.functionExpressionInvocation('f()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: M<T> Function<T>()
@@ -335,6 +335,19 @@ MethodDeclaration
   name: foo
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: _
+        declaredFragment: <testLibraryFragment> _@29
+          element: isPrivate
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -373,7 +386,7 @@ class X extends A with M {}
     var node = result.findNode.propertyAccess('super.foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -403,7 +416,7 @@ class X extends A with M {}
     var node = result.findNode.methodInvocation('foo(42)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -413,7 +426,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::x
@@ -442,8 +455,8 @@ class X extends A with M {}
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: SuperExpression
+  leftHandSide2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: M
     operator: .
@@ -453,7 +466,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int

@@ -251,15 +251,12 @@ class A {}
       waitForOutline(mainFileUri).then((outline) => mainOutline = outline),
     );
 
-    await Future.wait([
-      initialize(initializationOptions: {'outline': true}),
-      waitForAnalysisComplete(),
-    ]);
-    await pumpEventQueue(times: 5000);
+    await initialize(initializationOptions: {'outline': true});
+    await workspaceAnalysisComplete();
     expect(mainOutline, isNull); // Shouldn't be sent yet, file is not open.
 
     await openFile(mainFileUri, content);
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expect(mainOutline, isNotNull); // Should have been sent now.
   }
 }

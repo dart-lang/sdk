@@ -110,7 +110,7 @@ PatternAssignment
     matchedValueType: List<int>
     requiredType: List<int>
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: List<int>
@@ -150,7 +150,18 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: A
   equals: =
-  expression: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  expression(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -184,7 +195,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
@@ -213,7 +224,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression: MethodInvocation
+  expression2: MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g
@@ -254,7 +265,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: ({int foo})
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: ({int foo})
@@ -286,13 +297,13 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: ({int a})
   equals: =
-  expression: RecordLiteral
+  expression2: RecordLiteral
     leftParenthesis: (
-    fields
+    fields2
       RecordLiteralNamedField
         name: a
         colon: :
-        fieldExpression: IntegerLiteral
+        fieldExpression2: IntegerLiteral
           literal: 0
           staticType: int
     rightParenthesis: )
@@ -323,7 +334,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: (int,)
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int,)
@@ -349,7 +360,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: int
@@ -376,7 +387,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: int
@@ -406,7 +417,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: int

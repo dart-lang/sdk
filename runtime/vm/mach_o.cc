@@ -519,7 +519,9 @@ class MachOContents : public ZoneObject {
   const Type* As##Type() const {                                               \
     return const_cast<Type*>(const_cast<MachOContents*>(this)->As##Type());    \
   }                                                                            \
-  virtual bool Is##Type() const { return false; }
+  virtual bool Is##Type() const {                                              \
+    return false;                                                              \
+  }
 
   FOR_EACH_CHECKABLE_MACHO_CONTENTS_TYPE(DEFINE_BASE_TYPE_CHECKS)
 #undef DEFINE_BASE_TYPE_CHECKS
@@ -585,12 +587,10 @@ class MachOContents : public ZoneObject {
 // with the appropriate mach_o::LC_* constant.
 class MachOCommand : public MachOContents {
  public:
-  explicit MachOCommand(intptr_t cmd,
+  explicit MachOCommand(uint32_t cmd,
                         bool needs_offset = true,
                         bool in_segment = true)
-      : MachOContents(needs_offset, in_segment), cmd_(cmd) {
-    ASSERT(Utils::IsUint(32, cmd));
-  }
+      : MachOContents(needs_offset, in_segment), cmd_(cmd) {}
 
   DEFINE_TYPE_CHECK_FOR(MachOCommand)
 
@@ -1963,6 +1963,8 @@ class MachOHeader : public MachOContents {
   mach_o::cpu_subtype_t cpu_subtype() const {
 #if defined(TARGET_ARCH_X64)
     return mach_o::CPU_SUBTYPE_X86_64_ALL;
+#elif defined(TARGET_ARCH_ARM64E)
+    return mach_o::CPU_SUBTYPE_ARM64E_V0;
 #elif defined(TARGET_ARCH_ARM64)
     return mach_o::CPU_SUBTYPE_ARM64_ALL;
 #elif defined(TARGET_ARCH_IA32)

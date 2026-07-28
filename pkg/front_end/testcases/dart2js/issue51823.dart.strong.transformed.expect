@@ -21,14 +21,13 @@ class E extends core::_Enum /*isEnum*/  {
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method method(iss::E e) → dynamic {
-  #L1:
   switch(e) /* isExplicitlyExhaustive, iss::E */ {
-    #L2:
+    #L1:
     case #C10:
       {
         return 0;
       }
-    #L3:
+    #L2:
     case #C11:
       {
         return 1;

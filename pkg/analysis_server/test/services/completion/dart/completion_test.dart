@@ -10391,7 +10391,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(reason: 'instance members should not be suggested')
   Future<void> test_completion_this_bad_inTopLevelFunction_1() async {
     allowedIdentifiers = {'toString'};
     await computeSuggestions('''
@@ -10404,7 +10403,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(reason: 'instance members should not be suggested')
   Future<void>
   test_completion_this_bad_inTopLevelVariableDeclaration_1() async {
     allowedIdentifiers = {'toString'};
