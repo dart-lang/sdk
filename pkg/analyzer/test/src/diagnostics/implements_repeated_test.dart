@@ -65,9 +65,9 @@ augment class B implements A {}
     });
   }
 
-  test_class_implements_2times_language305() async {
+  test_class_implements_2times_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 class B implements A, A {}
 //                    ^
@@ -99,9 +99,9 @@ ImplementsClause
 ''');
   }
 
-  test_class_implements_2times_viaTypeAlias_language305() async {
+  test_class_implements_2times_viaTypeAlias_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 typedef B = A;
 class C implements A, B {}
@@ -117,9 +117,9 @@ class B implements A, A, A, A {}
 ''');
   }
 
-  test_class_implements_4times_language305() async {
+  test_class_implements_4times_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 class B implements A, A, A, A {}
 //                    ^
@@ -182,9 +182,9 @@ augment enum E implements A {}
     });
   }
 
-  test_enum_implements_2times_language305() async {
+  test_enum_implements_2times_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 enum E implements A, A {
 //                   ^
@@ -220,9 +220,9 @@ ImplementsClause
 ''');
   }
 
-  test_enum_implements_2times_viaTypeAlias_language305() async {
+  test_enum_implements_2times_viaTypeAlias_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 typedef B = A;
 enum E implements A, B {
@@ -242,9 +242,9 @@ enum E implements A, A, A, A {
 ''');
   }
 
-  test_enum_implements_4times_language305() async {
+  test_enum_implements_4times_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 enum E implements A, A, A, A {
 //                   ^
@@ -304,9 +304,9 @@ augment extension type A implements int {}
     });
   }
 
-  test_extensionType_implements_2times_language305() async {
+  test_extensionType_implements_2times_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type A(int it) implements int, int {}
 //                                       ^^^
 // [diag.implementsRepeated] 'int' can only be implemented once.
@@ -336,9 +336,9 @@ ImplementsClause
 ''');
   }
 
-  test_extensionType_implements_2times_viaTypeAlias_language305() async {
+  test_extensionType_implements_2times_viaTypeAlias_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 typedef A = int;
 extension type B(int it) implements int, A {}
 //                                       ^
@@ -352,9 +352,9 @@ extension type A(int it) implements int, int, int, int {}
 ''');
   }
 
-  test_extensionType_implements_4times_language305() async {
+  test_extensionType_implements_4times_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type A(int it) implements int, int, int, int {}
 //                                       ^^^
 // [diag.implementsRepeated] 'int' can only be implemented once.
@@ -399,9 +399,9 @@ augment mixin M implements A {}
     });
   }
 
-  test_mixin_implements_2times_language305() async {
+  test_mixin_implements_2times_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 mixin M implements A, A {}
 //                    ^
@@ -416,9 +416,9 @@ mixin M implements A, A, A, A {}
 ''');
   }
 
-  test_mixin_implements_4times_language305() async {
+  test_mixin_implements_4times_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 mixin M implements A, A, A, A {}
 //                    ^

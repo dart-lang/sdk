@@ -1915,13 +1915,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    node.type.accept2(this);
-    _tokenOrNull(node.period);
-    node.name?.accept2(this);
-  }
-
-  @override
   void visitConstructorSelector(ConstructorSelector node) {
     _tokenOrNull(node.period);
     _tokenOrNull(node.name2);

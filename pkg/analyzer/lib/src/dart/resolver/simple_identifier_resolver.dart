@@ -80,8 +80,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         return false;
       }
     }
-    if (parent is ConstructorNameImpl ||
-        parent is MethodInvocationImpl ||
+    if (parent is MethodInvocationImpl ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccessImpl ||
         parent is NamedTypeImpl) {

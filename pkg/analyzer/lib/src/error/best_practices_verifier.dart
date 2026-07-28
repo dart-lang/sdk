@@ -321,17 +321,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
     _elementUsageFrontierDetector.constructorInvocation(node);
     _deprecatedFunctionalityVerifier.constructorInvocation(node);
-    _invalidAccessVerifier.verifyConstructorInvocation(node);
     _nullSafeApiVerifier.instanceCreation(node);
     _checkForLiteralConstructorUse(node);
     super.visitConstructorInvocation(node);
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    _elementUsageFrontierDetector.constructorName(node);
-    _deprecatedFunctionalityVerifier.constructorName(node);
-    super.visitConstructorName(node);
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _elementUsageFrontierDetector.constructorReference2(node);
+    _deprecatedFunctionalityVerifier.constructorReference2(node);
+    _invalidAccessVerifier.verifyConstructorReference2(node);
+    super.visitConstructorReference2(node);
   }
 
   @override
@@ -1653,17 +1653,8 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    // This is the same logic used in [checkForDeprecatedMemberUseAtIdentifier]
-    // to avoid reporting an error twice for named constructors.
     var parent = identifier.parent2;
-    if (parent is ConstructorName && identical(identifier, parent.name)) {
-      return;
-    }
-    var grandparent = parent?.parent2;
-
-    var element = grandparent is ConstructorName
-        ? grandparent.element
-        : identifier.writeOrReadElement2;
+    var element = identifier.writeOrReadElement2;
 
     if (element == null) {
       return;
@@ -1706,19 +1697,18 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void verifyConstructorInvocation(ConstructorInvocation node) {
-    var reference = node.constructorReference;
-    var element = reference.element;
+  void verifyConstructorReference2(ConstructorReference2 node) {
+    var element = node.element;
     if (element == null || _inCurrentLibrary(element)) {
       return;
     }
 
     _checkForInvalidInternalAccess(
-      parent: reference,
-      nameToken: reference.typeReference.name,
+      parent: node,
+      nameToken: node.typeReference.name,
       element: element,
     );
-    _checkForOtherInvalidAccess(reference, element);
+    _checkForOtherInvalidAccess(node, element);
   }
 
   void verifyImport(ImportDirective node) {
@@ -1759,11 +1749,6 @@ class _InvalidAccessVerifier {
 
   void verifyNamedType(NamedType node) {
     var element = node.element;
-
-    var parent = node.parent2;
-    if (parent is ConstructorName) {
-      element = parent.element;
-    }
 
     if (element == null) {
       return;
@@ -1846,14 +1831,9 @@ class _InvalidAccessVerifier {
       String name;
       SyntacticEntity node;
 
-      var grandparent = parent?.parent2;
-
       if (parent is ConstructorReference2) {
         name = parent.toSource();
         node = parent;
-      } else if (grandparent is ConstructorName) {
-        name = grandparent.toSource();
-        node = grandparent;
       } else {
         name = nameToken.lexeme;
         node = nameToken;
@@ -2048,22 +2028,10 @@ class _InvalidAccessVerifier {
     String name;
     SyntacticEntity errorEntity = node;
 
-    var parent = node.parent2;
-    var grandparent = parent?.parent2;
     if (node is Identifier) {
-      if (grandparent is ConstructorName) {
-        name = grandparent.toSource();
-        errorEntity = grandparent;
-      } else {
-        name = node.name;
-      }
+      name = node.name;
     } else if (node is NamedType) {
-      if (parent is ConstructorName) {
-        name = parent.toSource();
-        errorEntity = parent;
-      } else {
-        name = node.name.lexeme;
-      }
+      name = node.name.lexeme;
     } else if (node is NamedArgument) {
       name = node.name.lexeme;
       errorEntity = node.name;

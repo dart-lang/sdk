@@ -337,11 +337,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorName(covariant ConstructorNameImpl node) {
-    node.visitChildrenWithHooks(this, visitName: (_) {});
-  }
-
-  @override
   void visitConstructorReference2(covariant ConstructorReference2Impl node) {
     node.typeReference.accept2(this);
   }
@@ -732,10 +727,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     node.typeArguments?.accept2(this);
 
     _namedTypeResolver.resolve(node, dataForTesting: dataForTesting);
-
-    if (_namedTypeResolver.rewriteResult != null) {
-      _namedTypeResolver.rewriteResult!.accept2(this);
-    }
   }
 
   @override

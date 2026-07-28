@@ -87,26 +87,19 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorInvocation(ConstructorInvocation node) {
-    var reference = node.constructorReference;
-    var typeReference = reference.typeReference;
+  void visitConstructorReference2(ConstructorReference2 node) {
+    var typeReference = node.typeReference;
     _checkSinceSdkVersion(
       typeReference.element,
       typeReference,
       errorEntity: typeReference.name,
     );
     _checkSinceSdkVersion(
-      reference.element,
-      reference,
-      errorEntity: reference.selector?.name2 ?? typeReference.name,
+      node.element,
+      node,
+      errorEntity: node.selector?.name2 ?? typeReference.name,
     );
-    super.visitConstructorInvocation(node);
-  }
-
-  @override
-  void visitConstructorName(ConstructorName node) {
-    _checkSinceSdkVersion(node.element, node);
-    super.visitConstructorName(node);
+    super.visitConstructorReference2(node);
   }
 
   @override
@@ -208,9 +201,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
           if (target is AssignmentExpression) {
             target = target.leftHandSide2;
           }
-          if (target is ConstructorName) {
-            errorEntity = target.name?.token ?? target.type.name;
-          } else if (target is ExtensionOverride) {
+          if (target is ExtensionOverride) {
             errorEntity = target.name;
           } else if (target is FunctionExpressionInvocation) {
             errorEntity = target.argumentList;

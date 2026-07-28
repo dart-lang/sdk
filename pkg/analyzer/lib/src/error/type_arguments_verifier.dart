@@ -256,11 +256,7 @@ class TypeArgumentsVerifier {
       explicitTypeArguments: node.typeArguments,
       allowSuperBoundedTypes: _shouldAllowSuperBoundedTypes(node),
     );
-    var parent = node.parent2;
-    if (parent is! ConstructorNameImpl ||
-        parent.parent2 is! ConstructorInvocationImpl) {
-      _checkForRawTypeName(node);
-    }
+    _checkForRawTypeName(node);
   }
 
   void checkSetLiteral(SetOrMapLiteral node) {
@@ -723,7 +719,6 @@ class TypeArgumentsVerifier {
   bool _shouldAllowSuperBoundedTypes(NamedType namedType) {
     switch (namedType.parent2) {
       case ClassTypeAlias _:
-      case ConstructorName _:
       case ExtendsClause _:
       case GenericTypeAlias _:
       case ImplementsClause _:

@@ -73,11 +73,14 @@ ClassDeclaration
           leftParenthesis: ( <synthetic>
           rightParenthesis: ) <synthetic>
         separator: =
-        redirectedConstructor: ConstructorName
-          type: NamedType
+        factoryRedirectionTarget: ConstructorReference2
+          typeReference: ConstructorTypeReference
             name: null
         body: EmptyFunctionBody
           semicolon: ;
+        redirectedConstructor: ConstructorName
+          type: NamedType
+            name: null
     rightBracket: }
 ''');
   }
@@ -679,14 +682,20 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: D
         period: .
       name: new
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: D
+        period: .
+      name: new
 ''');
   }
 
@@ -706,6 +715,20 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: D
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    selector: ConstructorSelector
+      period: .
+      name2: new
+  body: EmptyFunctionBody
+    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       name: D
@@ -718,8 +741,6 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: new
-  body: EmptyFunctionBody
-    semicolon: ;
 ''');
   }
 
@@ -739,6 +760,17 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: D
+    selector: ConstructorSelector
+      period: .
+      name2: new
+  body: EmptyFunctionBody
+    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -748,8 +780,6 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: new
-  body: EmptyFunctionBody
-    semicolon: ;
 ''');
   }
 
@@ -769,6 +799,23 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: D
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    selector: ConstructorSelector
+      period: .
+      name2: new
+  body: EmptyFunctionBody
+    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -784,8 +831,6 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: new
-  body: EmptyFunctionBody
-    semicolon: ;
 ''');
   }
 

@@ -267,6 +267,42 @@ f(A a) {
     expect(names, unorderedEquals(['A', 'B']));
   }
 
+  test_patternField_objectPattern_explicitName() {
+    var names = _computeReferencedNames('''
+f(Object? x) {
+  if (x case A(foo: 0)) {}
+}
+''');
+    expect(names, unorderedEquals(['Object', 'A', 'foo']));
+  }
+
+  test_patternField_objectPattern_implicitName() {
+    var names = _computeReferencedNames('''
+f(Object? x) {
+  if (x case A(: var foo)) {}
+}
+''');
+    expect(names, unorderedEquals(['Object', 'A', 'foo']));
+  }
+
+  test_patternField_objectPattern_nested() {
+    var names = _computeReferencedNames('''
+f(Object? x) {
+  if (x case A(foo: B(bar: 0))) {}
+}
+''');
+    expect(names, unorderedEquals(['Object', 'A', 'B', 'foo', 'bar']));
+  }
+
+  test_patternField_recordPattern_named() {
+    var names = _computeReferencedNames('''
+f(Object? x) {
+  if (x case (foo: 0)) {}
+}
+''');
+    expect(names, unorderedEquals(['Object', 'foo']));
+  }
+
   test_superToSubs_importPrefix() {
     var names = _computeReferencedNames('''
 import 'a.dart' as p1;

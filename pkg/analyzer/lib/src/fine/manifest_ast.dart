@@ -276,12 +276,6 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    node.visitChildren2(this);
-    _addElement(node.element);
-  }
-
-  @override
   void visitConstructorReference2(ConstructorReference2 node) {
     node.visitChildren2(this);
     _addElement(node.element);

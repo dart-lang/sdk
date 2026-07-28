@@ -94,6 +94,12 @@ class AstNodeImplGenerator {
     var generateConstructor = generateObject
         .getField('generateConstructor')!
         .toBoolValue()!;
+    if (api == _AstNodeApi.v1 && generateConstructor) {
+      throw StateError(
+        '${classElement.name}: V1-only nodes are projections and cannot '
+        'generate constructors.',
+      );
+    }
 
     currentClassElement = classElement;
     var interfaceElement = classElement.interfaces.last.element;
@@ -963,6 +969,17 @@ ${property.typeCode} get $v1Name => $projectedValue;
       return;
     }
 
+    if (implClass.api == _AstNodeApi.v1) {
+      buffer.write('''
+\n@generated
+@override
+void removeChild(AstNodeImpl oldNode) {
+  throw UnsupportedError('A V1 projection cannot be mutated.');
+}
+''');
+      return;
+    }
+
     if (implClass.nodeOrListProperties.isEmpty) {
       return;
     }
@@ -1013,6 +1030,17 @@ if ($propertyName.containsChild(oldNode)) {
 
   void _generateReplaceChild(_ImplClass implClass, StringBuffer buffer) {
     if (implClass.doNotGenerateLookupNames.contains('replaceChild')) {
+      return;
+    }
+
+    if (implClass.api == _AstNodeApi.v1) {
+      buffer.write('''
+\n@generated
+@override
+void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+  throw UnsupportedError('A V1 projection cannot be mutated.');
+}
+''');
       return;
     }
 

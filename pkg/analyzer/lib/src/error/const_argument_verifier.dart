@@ -207,9 +207,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     if (node.inCommentReference2) return false;
     if (node is SimpleIdentifier) {
       var parent = node.parent2;
-      if (parent is ConstructorName) {
-        parent = parent.parent2;
-      }
       while (parent is ParenthesizedExpression) {
         parent = parent.parent2;
       }

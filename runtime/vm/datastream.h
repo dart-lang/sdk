@@ -375,6 +375,21 @@ struct AbstractWriteStream : public ValueObject {
     return WriteLEB128(bit_cast<typename std::make_unsigned<T>::type>(value));
   }
 
+  void WriteFixed5LEB128(intptr_t value) {
+    ASSERT(value >= 0);
+    WriteByte((value & C::kDataByteMask) | C::kMoreDataMask);
+    value >>= C::kDataBitsPerByte;
+    WriteByte((value & C::kDataByteMask) | C::kMoreDataMask);
+    value >>= C::kDataBitsPerByte;
+    WriteByte((value & C::kDataByteMask) | C::kMoreDataMask);
+    value >>= C::kDataBitsPerByte;
+    WriteByte((value & C::kDataByteMask) | C::kMoreDataMask);
+    value >>= C::kDataBitsPerByte;
+    WriteByte((value & C::kDataByteMask));
+    value >>= C::kDataBitsPerByte;
+    ASSERT(value == 0);
+  }
+
   template <typename T>
   C::only_if_signed<T, void> WriteSLEB128(T value) {
     constexpr intptr_t kBitsPerT = kBitsPerByte * sizeof(T);

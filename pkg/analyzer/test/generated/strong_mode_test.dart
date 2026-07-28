@@ -3298,15 +3298,14 @@ class B<T2, U2> {
     var b = result.unit.declarations[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
     var bConstructor = classBody.members[0] as ConstructorDeclaration;
-    var redirected = bConstructor.redirectedConstructor as ConstructorName;
-
-    var typeName = redirected.type;
-    assertType(typeName.type, 'A<T2, U2>');
-    assertType(typeName.type, 'A<T2, U2>');
+    var redirected = bConstructor.factoryRedirectionTarget!;
 
     var constructorMember = redirected.element!;
+    var redirectedType = constructorMember.returnType;
+    assertType(redirectedType, 'A<T2, U2>');
+    assertType(redirectedType, 'A<T2, U2>');
     expect(constructorMember.displayString(), 'A<T2, U2>.named()');
-    expect(redirected.name!.element, constructorMember);
+    expect(redirected.selector, isNotNull);
   }
 
   test_redirectedConstructor_self() async {
@@ -3332,14 +3331,14 @@ class B<T2, U2> {
     var b = result.unit.declarations[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
     var bConstructor = classBody.members[0] as ConstructorDeclaration;
-    var redirected = bConstructor.redirectedConstructor as ConstructorName;
+    var redirected = bConstructor.factoryRedirectionTarget!;
 
-    var typeName = redirected.type;
-    assertType(typeName.type, 'A<T2, U2>');
-    assertType(typeName.type, 'A<T2, U2>');
-
-    expect(redirected.name, isNull);
-    expect(redirected.element!.displayString(), 'A<T2, U2>()');
+    var constructorMember = redirected.element!;
+    var redirectedType = constructorMember.returnType;
+    assertType(redirectedType, 'A<T2, U2>');
+    assertType(redirectedType, 'A<T2, U2>');
+    expect(redirected.selector, isNull);
+    expect(constructorMember.displayString(), 'A<T2, U2>()');
   }
 
   test_redirectingConstructor_propagation() async {

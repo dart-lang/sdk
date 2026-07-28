@@ -490,8 +490,6 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitConstructorInvocation(ConstructorInvocation node);
 
-  R? visitConstructorName(ConstructorName node);
-
   @experimental
   R? visitConstructorReference2(ConstructorReference2 node);
 

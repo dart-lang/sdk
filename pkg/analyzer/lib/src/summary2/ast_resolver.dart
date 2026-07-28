@@ -90,7 +90,7 @@ class AstResolver {
     // resolve initializers and/or a redirection.
     void accept(AstVisitor2<Object?> visitor) {
       node.initializers.accept2(visitor);
-      node.redirectedConstructor?.accept2(visitor);
+      node.factoryRedirectionTarget?.accept2(visitor);
     }
 
     _prepareEnclosingDeclarations();

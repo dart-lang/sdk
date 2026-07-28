@@ -104,7 +104,7 @@ class ScopeContext {
     required AstVisitor2 visitor,
     void Function(SimpleIdentifierImpl)? visitTypeName,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
-    void Function(ConstructorNameImpl)? visitRedirectedConstructor,
+    void Function(ConstructorReference2Impl)? visitFactoryRedirectionTarget,
   }) {
     var fragment = node.declaredFragment!;
 
@@ -118,9 +118,9 @@ class ScopeContext {
       node.documentationComment?.accept2(visitor);
     });
 
-    node.redirectedConstructor?.visitWithOverride(
+    node.factoryRedirectionTarget?.visitWithOverride(
       visitor,
-      visitRedirectedConstructor,
+      visitFactoryRedirectionTarget,
     );
 
     withFormalParameterScope(fragment.formalParameters, () {

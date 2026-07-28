@@ -66,6 +66,17 @@ augment extension E {
 ''');
   }
 
+  test_instance_field_abstract_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  abstract int v;
+//             ^
+// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
+}
+''');
+  }
+
   test_instance_field_abstract_final() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -96,17 +107,6 @@ extension E on int {
 
 augment extension E {
   augment external int get v;
-}
-''');
-  }
-
-  test_instance_field_abstract_language305() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-extension E on int {
-  abstract int v;
-//             ^
-// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
 ''');
   }

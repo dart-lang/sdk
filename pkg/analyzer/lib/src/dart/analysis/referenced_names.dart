@@ -280,13 +280,6 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    if (node.parent2 is! ConstructorDeclaration) {
-      super.visitConstructorName(node);
-    }
-  }
-
-  @override
   void visitConstructorSelector(ConstructorSelector node) {
     names.add(node.name2.lexeme);
   }
@@ -371,6 +364,15 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
     }
     _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
     super.visitNamedType(node);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    if (node.effectiveName case var name?) {
+      names.add(name);
+    }
+
+    super.visitPatternField(node);
   }
 
   @override

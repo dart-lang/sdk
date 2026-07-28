@@ -101,9 +101,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
-    var redirectedConstructor = node.redirectedConstructor;
-    if (redirectedConstructor != null) {
-      var redirectedElement = redirectedConstructor.element;
+    var factoryRedirectionTarget = node.factoryRedirectionTarget;
+    if (factoryRedirectionTarget != null) {
+      var redirectedElement = factoryRedirectionTarget.element;
       if (redirectedElement != null) {
         // TODO(scheglov): Only if not _isPubliclyAccessible
         _matchParameters(
@@ -120,10 +120,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitConstructorInvocation(ConstructorInvocation node) {
-    _useIdentifierElement(node.constructorReference.typeReference.element);
-    _useIdentifierElement(node.constructorReference.element);
     _addParametersForArguments(node.argumentList);
     super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _useIdentifierElement(node.typeReference.element);
+    _useIdentifierElement(node.element);
+    super.visitConstructorReference2(node);
   }
 
   @override
@@ -339,18 +344,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       _useIdentifierElement(node.readElement2);
       _useIdentifierElement(node.writeElement2);
       _useIdentifierElement(node.element);
-      var grandparent = parent.parent2;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
-          (element is ExecutableElement && parent is MethodInvocation) ||
-          // named constructor
-          (element is ConstructorElement &&
-              parent is ConstructorName &&
-              grandparent is ConstructorInvocation) ||
-          // unnamed constructor
-          (element is InterfaceElement &&
-              grandparent is ConstructorName &&
-              grandparent.parent2 is ConstructorInvocation);
+          element is ExecutableElement && parent is MethodInvocation;
       if (element is ExecutableElement &&
           isIdentifierRead &&
           !functionReferenceIsCall) {

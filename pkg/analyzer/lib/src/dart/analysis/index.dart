@@ -854,54 +854,28 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
-  void visitConstructorInvocation(ConstructorInvocation node) {
-    var reference = node.constructorReference;
-    var element = _getActualConstructorElement(reference.element?.baseElement);
-    if (reference.selector case var selector?) {
-      recordRelationOffset(
-        element,
-        IndexRelationKind.IS_INVOKED_BY,
-        selector.period.offset,
-        selector.name2.end - selector.period.offset,
-        true,
-      );
-    } else {
-      recordRelationOffset(
-        element,
-        IndexRelationKind.IS_INVOKED_BY,
-        reference.typeReference.end,
-        0,
-        true,
-      );
-    }
-    super.visitConstructorInvocation(node);
-  }
-
-  @override
-  void visitConstructorName(ConstructorName node) {
+  void visitConstructorReference2(ConstructorReference2 node) {
     var element = node.element?.baseElement;
     element = _getActualConstructorElement(element);
 
-    IndexRelationKind kind;
-    if (node.parent2 is ConstructorInvocation) {
-      kind = IndexRelationKind.IS_INVOKED_BY;
-    } else {
-      kind = IndexRelationKind.IS_REFERENCED_BY;
-    }
+    var kind = switch (node.parent2) {
+      ConstructorInvocation() => IndexRelationKind.IS_INVOKED_BY,
+      ConstructorDeclaration() => IndexRelationKind.IS_REFERENCED_BY,
+      _ => throw StateError('Unexpected ConstructorReference2 parent'),
+    };
 
     int offset;
     int length;
-    if (node.name != null) {
-      offset = node.period!.offset;
-      length = node.name!.end - offset;
+    if (node.selector case var selector?) {
+      offset = selector.period.offset;
+      length = selector.name2.end - offset;
     } else {
-      offset = node.type.end;
+      offset = node.typeReference.end;
       length = 0;
     }
 
     recordRelationOffset(element, kind, offset, length, true);
-
-    node.type.accept2(this);
+    super.visitConstructorReference2(node);
   }
 
   @override

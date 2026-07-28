@@ -175,7 +175,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
         });
 
         node.initializers.accept2(this);
-        node.redirectedConstructor?.accept2(this);
+        node.factoryRedirectionTarget?.accept2(this);
         node.body.accept2(this);
       });
     });

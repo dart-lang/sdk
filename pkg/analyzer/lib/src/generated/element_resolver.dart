@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -110,7 +109,7 @@ class ElementResolver {
 
   void visitConstructorDeclaration(ConstructorDeclarationImpl node) {
     var element = node.declaredFragment!.element;
-    var redirectedNode = node.redirectedConstructor;
+    var redirectedNode = node.factoryRedirectionTarget;
     if (redirectedNode != null) {
       // set redirected factory constructor
       var redirectedElement = redirectedNode.element;
@@ -138,24 +137,13 @@ class ElementResolver {
     }
   }
 
-  void visitConstructorName(covariant ConstructorNameImpl node) {
-    var type = node.type.type;
-    if (type == null) {
-      return;
-    }
-    if (type is DynamicType) {
-      // Nothing to do.
-    } else if (type is InterfaceTypeImpl) {
-      // look up ConstructorElement
-      InternalConstructorElement? constructor;
-      var name = node.name;
-      if (name == null) {
-        constructor = type.lookUpConstructor(null, _definingLibrary);
-      } else {
-        constructor = type.lookUpConstructor(name.name, _definingLibrary);
-        name.element = constructor;
-      }
-      node.element = constructor;
+  void visitConstructorReference2(covariant ConstructorReference2Impl node) {
+    var type = node.typeReference.type;
+    if (type is InterfaceTypeImpl) {
+      node.element = type.lookUpConstructor(
+        node.selector?.name2.lexeme,
+        _definingLibrary,
+      );
     }
   }
 

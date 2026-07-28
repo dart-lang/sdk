@@ -2500,7 +2500,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         );
 
         node.initializers.accept2(this);
-        node.redirectedConstructor?.accept2(this);
+        node.factoryRedirectionTarget?.accept2(this);
         node.body.resolve(this, returnType is DynamicType ? null : returnType);
         elementResolver.visitConstructorDeclaration(node);
 
@@ -2560,9 +2560,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    node.type.accept2(this);
-    elementResolver.visitConstructorName(node as ConstructorNameImpl);
+  void visitConstructorReference2(covariant ConstructorReference2Impl node) {
+    elementResolver.visitConstructorReference2(node);
   }
 
   @override

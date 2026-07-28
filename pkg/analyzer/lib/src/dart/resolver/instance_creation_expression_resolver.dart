@@ -16,8 +16,8 @@ import 'package:analyzer/src/generated/resolver.dart';
 ///
 /// This resolver is responsible for rewriting a given
 /// [ConstructorInvocation] as a [MethodInvocation] if the parsed
-/// [ConstructorName]'s `type` resolves to a [FunctionReference] or
-/// [ConstructorReference2], instead of a [NamedType].
+/// [ConstructorTypeReference] denotes a [FunctionReference] or a
+/// [ConstructorReference2], instead of a type.
 class ConstructorInvocationResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
@@ -35,13 +35,11 @@ class ConstructorInvocationResolver {
     //
     //     a.m<int>.apply();
     //
-    // the parser will give an ConstructorInvocation (`a.m<int>.apply()`)
-    // with a name of `a.m<int>.apply` (ConstructorName) with a type of
-    // `a.m<int>` (TypeName with a name of `a.m` (PrefixedIdentifier) and
-    // typeArguments of `<int>`) and a name of `apply` (SimpleIdentifier). If
-    // `a.m<int>` is actually a function reference, then the
-    // ConstructorInvocation needs to be rewritten as a MethodInvocation
-    // with a target of `a.m<int>` (a FunctionReference) and a name of `apply`.
+    // the parser will give a ConstructorInvocation (`a.m<int>.apply()`) whose
+    // ConstructorReference2 has `a.m<int>` as its ConstructorTypeReference and
+    // `apply` as its ConstructorSelector. If `a.m<int>` is actually a function
+    // reference, then the ConstructorInvocation needs to be rewritten as a
+    // MethodInvocation with a target of `a.m<int>` and a name of `apply`.
     if (node.keyword == null) {
       var typeNameTypeArguments =
           node.constructorReference.typeReference.typeArguments;
@@ -209,8 +207,8 @@ class ConstructorInvocationResolver {
     );
   }
 
-  /// Resolve [node] which has a [NamedType] with type arguments (given as
-  /// [typeNameTypeArguments]).
+  /// Resolve [node] whose [ConstructorTypeReference] has type arguments (given
+  /// as [typeNameTypeArguments]).
   ///
   /// The instance creation expression may actually be a method call on a
   /// type-instantiated function reference or constructor reference.

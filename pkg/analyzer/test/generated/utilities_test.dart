@@ -484,7 +484,7 @@ class B {
     _assertAnnotatedNode(parseResult.findNode.constructor('A.named'));
   }
 
-  void test_constructorDeclaration_redirectedConstructor() {
+  void test_constructorDeclaration_factoryRedirectionTarget() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   factory A() = R;
@@ -497,7 +497,7 @@ class B {
     _assertReplacementForChildren<ConstructorDeclaration>(
       destination: parseResult.findNode.constructor('factory A'),
       source: parseResult.findNode.constructor('factory B'),
-      childAccessors: [(node) => node.redirectedConstructor!],
+      childAccessors: [(node) => node.factoryRedirectionTarget!],
     );
   }
 

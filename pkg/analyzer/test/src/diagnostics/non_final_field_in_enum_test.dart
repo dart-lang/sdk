@@ -164,6 +164,18 @@ enum E {
 ''');
   }
 
+  test_fieldDeclaration_instance_abstract_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  abstract int foo;
+//             ^^^
+// [diag.nonFinalFieldInEnum] Enums can only declare final fields.
+}
+''');
+  }
+
   test_fieldDeclaration_instance_abstract_final() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -181,18 +193,6 @@ enum E {
   v;
   abstract final int foo;
   augment int get foo => 0;
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_abstract_language305() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-enum E {
-  v;
-  abstract int foo;
-//             ^^^
-// [diag.nonFinalFieldInEnum] Enums can only declare final fields.
 }
 ''');
   }

@@ -111,7 +111,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
       visitor: this,
       visitTypeName: (_) {},
       visitInitializers: (_) {},
-      visitRedirectedConstructor: (_) {},
+      visitFactoryRedirectionTarget: (_) {},
     );
   }
 

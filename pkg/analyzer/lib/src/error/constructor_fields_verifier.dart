@@ -55,7 +55,7 @@ class ConstructorFieldsVerifier {
   }) {
     var fragment = node.declaredFragment!;
     if (node.factoryKeyword != null ||
-        node.redirectedConstructor != null ||
+        node.factoryRedirectionTarget != null ||
         fragment.element.isExternal) {
       return;
     }

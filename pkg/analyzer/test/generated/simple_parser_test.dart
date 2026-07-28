@@ -1479,9 +1479,9 @@ CompilationUnit
 ''');
   }
 
-  void test_parseFunctionBody_empty_language305() {
+  void test_parseFunctionBody_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 void f() ;
 //       ^
 // [diag.missingFunctionBody] A function body must be provided.

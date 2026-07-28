@@ -253,9 +253,9 @@ augment class C {
 ''');
   }
 
-  test_class_secondaryConstructor_constFactory_emptyBody_language305() async {
+  test_class_secondaryConstructor_constFactory_emptyBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   const factory C();
 //^^^^^
@@ -549,18 +549,18 @@ class A {
 ''');
   }
 
-  test_class_secondaryConstructor_factory_typeName_named_external_noBody_language305() async {
+  test_class_secondaryConstructor_factory_typeName_named_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   external factory A.named();
 }
 ''');
   }
 
-  test_class_secondaryConstructor_factory_typeName_named_hasBody_language305() async {
+  test_class_secondaryConstructor_factory_typeName_named_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   factory A.named() => throw 0;
 }
@@ -577,9 +577,9 @@ class A {
 ''');
   }
 
-  test_class_secondaryConstructor_factory_typeName_named_noBody_language305() async {
+  test_class_secondaryConstructor_factory_typeName_named_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   factory A.named();
 //                 ^
@@ -622,9 +622,9 @@ class A {
 ''');
   }
 
-  test_class_secondaryConstructor_factory_typeName_unnamed_noBody_language305() async {
+  test_class_secondaryConstructor_factory_typeName_unnamed_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   factory A();
 //           ^
@@ -927,9 +927,9 @@ enum E {
 ''');
   }
 
-  test_enum_secondaryConstructor_constFactory_emptyBody_language305() async {
+  test_enum_secondaryConstructor_constFactory_emptyBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   const E();
@@ -1287,9 +1287,9 @@ extension type const E(int it) {
 ''');
   }
 
-  test_extensionType_secondaryConstructor_constFactory_emptyBody_language305() async {
+  test_extensionType_secondaryConstructor_constFactory_emptyBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type const E(int it) {
   const factory E.named();
 //^^^^^
