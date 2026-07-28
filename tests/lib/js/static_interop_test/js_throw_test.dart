@@ -35,4 +35,16 @@ void main() {
   final caughtError = catchAndReturn((() => jsThrow(JSError('foo'))).toJS);
   Expect.isTrue(caughtError.isA<JSError>());
   Expect.equals('foo', (caughtError as JSError).message);
+
+  Expect.throws(() => jsThrow('foo'.toJS));
+
+  var finallyRun = false;
+  Expect.throws(() {
+    try {
+      jsThrow('foo'.toJS);
+    } finally {
+      finallyRun = true;
+    }
+  });
+  Expect.isTrue(finallyRun);
 }
