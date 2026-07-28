@@ -646,10 +646,7 @@ void syncTests() {
   Expect.isTrue(confuse(arrayOfNullableBooleans) is JSArray<JSBoolean?>);
 
   var dartArrayOfNullableBooleans = arrayOfNullableBooleans.toDartBoolList;
-  Expect.equals(
-    dartArrayOfNullableBooleans.length,
-    listOfNullableBools.length,
-  );
+  Expect.equals(dartArrayOfNullableBooleans.length, listOfNullableBools.length);
   Expect.equals(dartArrayOfNullableBooleans[0], listOfNullableBools[0]);
   Expect.equals(dartArrayOfNullableBooleans[1], listOfNullableBools[1]);
 
