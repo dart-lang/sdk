@@ -832,6 +832,12 @@ class PluginServer {
     protocol.AnalysisSetConfigurationsParams params,
   ) async {
     _configurations = params.configurations;
+    if (_contextCollection case var contextCollection?) {
+      var includedPaths = contextCollection.contexts
+          .map((e) => e.contextRoot.root.path)
+          .toList();
+      await _createContextCollection(includedPaths);
+    }
     return protocol.AnalysisSetConfigurationsResult();
   }
 

@@ -78,6 +78,7 @@ library;
 import 'dart:math';
 
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
+import 'package:collection/collection.dart';
 
 /// Groups the plugin specification vertices into the minimal number of groups.
 List<List<PluginSpecVertex>> groupVerticesMinimal(
@@ -180,14 +181,12 @@ bool hasConflict(PluginSpecVertex v1, PluginSpecVertex v2) {
     }
   }
 
-  // Check if they specify different dependency overrides for the same package.
-  if (v1.dependencyOverrides != null && v2.dependencyOverrides != null) {
-    for (var entry in v1.dependencyOverrides!.entries) {
-      var otherOverride = v2.dependencyOverrides![entry.key];
-      if (otherOverride != null && otherOverride != entry.value) {
-        return true;
-      }
-    }
+  // Check dependency overrides. They must be identical to be compatible.
+  if (!const MapEquality().equals(
+    v1.dependencyOverrides,
+    v2.dependencyOverrides,
+  )) {
+    return true;
   }
 
   // Check subset/superset relationship. If one set of plugins (e.g.

@@ -215,6 +215,6 @@ environment:
       ],
     );
     var pubspec = pluginPackageGenerator.generatePubspec();
-    expect(pubspec, contains('analysis_server_plugin: ^0.3.8'));
+    expect(pubspec, contains('analysis_server_plugin: ^0.3.21-dev'));
   }
 }
