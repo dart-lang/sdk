@@ -128,7 +128,7 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "be0b1531c445a185d3e93887b8d0355fc766c314",
+  "core_rev": "25926e846003a123e5249df42c5a1ce30c246e3a",
   "dartdoc_rev": "1d56f263955f329b6701d8f84f069eb0aef353a4",
   "ecosystem_rev": "848b3bf3b757d2e9ae4d60030eeed5756c87783f",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
