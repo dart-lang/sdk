@@ -16,64 +16,7 @@ main() {
 
 @reflectiveTest
 class ImportPrefixResolutionTest extends PubPackageResolutionTest {
-  test_asExpression_expressionStatement() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-import 'dart:async' as p;
-
-main() {
-  p; // use
-//^
-// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
-}
-''');
-
-    var node = result.findNode.simple('p; // use');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: p
-  element: <testLibraryFragment>::@prefix::p
-  staticType: InvalidType
-''');
-  }
-
-  test_asExpression_forIn_iterable() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-import 'dart:async' as p;
-
-main() {
-  for (var x in p) {}
-//         ^
-// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
-//              ^
-// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
-}
-''');
-
-    var node = result.findNode.singleForStatement;
-    assertResolvedNodeText(node, r'''
-ForStatement
-  forKeyword: for
-  leftParenthesis: (
-  forLoopParts: ForEachPartsWithDeclaration
-    loopVariable: DeclaredIdentifier
-      keyword: var
-      name: x
-      declaredFragment: isPublic x@47
-        element: hasImplicitType isPublic
-          type: InvalidType
-    inKeyword: in
-    iterable2: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: InvalidType
-  rightParenthesis: )
-  body: Block
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_asExpression_instanceCreation_argument() async {
+  test_asExpression_constructorInvocation_argument() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as p;
 
@@ -136,6 +79,63 @@ InstanceCreationExpression
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
+''');
+  }
+
+  test_asExpression_expressionStatement() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async' as p;
+
+main() {
+  p; // use
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
+}
+''');
+
+    var node = result.findNode.simple('p; // use');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: p
+  element: <testLibraryFragment>::@prefix::p
+  staticType: InvalidType
+''');
+  }
+
+  test_asExpression_forIn_iterable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async' as p;
+
+main() {
+  for (var x in p) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//              ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithDeclaration
+    loopVariable: DeclaredIdentifier
+      keyword: var
+      name: x
+      declaredFragment: isPublic x@47
+        element: hasImplicitType isPublic
+          type: InvalidType
+    inKeyword: in
+    iterable2: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: InvalidType
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 

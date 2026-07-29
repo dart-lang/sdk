@@ -15,7 +15,7 @@ main() {
     defineReflectiveTests(AstRewritePrefixedIdentifierTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
 
-    // TODO(srawlins): Add AstRewriteInstanceCreationExpressionTest test, likely
+    // TODO(srawlins): Add AstRewriteConstructorInvocationTest test, likely
     // moving many test cases from ConstructorTearOffResolutionTest,
     // FunctionReferenceResolutionTest, and TypeLiteralResolutionTest.
     // TODO(srawlins): Add AstRewritePropertyAccessTest test, likely

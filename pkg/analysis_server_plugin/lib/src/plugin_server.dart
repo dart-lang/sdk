@@ -66,6 +66,9 @@ typedef _PluginState = ({
 /// The server that communicates with the analysis server, passing requests and
 /// responses between the analysis server and individual plugins.
 class PluginServer {
+  /// The map of registered features for each plugin, for namespacing purposes.
+  static final registries = <String, PluginRegistryImpl>{};
+
   /// The communication channel being used to communicate with the analysis
   /// server.
   late PluginCommunicationChannel _channel;
@@ -98,13 +101,13 @@ class PluginServer {
   /// The next modification stamp for a changed file in the [_resourceProvider].
   int _overlayModificationStamp = 0;
 
-  /// The map of registered features for each plugin, for namespacing purposes.
-  static final registries = <String, PluginRegistryImpl>{};
-
   /// The current subscription of [_contextCollection]'s
   /// [AnalysisDriverScheduler.events] Stream. This must be cancelled when
   /// [_contextCollection] is disposed.
   StreamSubscription<Object>? _eventsSubscription;
+
+  /// The map of configurations for each directory, mapped to plugin names.
+  Map<String, Map<String, protocol.PluginConfiguration>> _configurations = {};
 
   /// Whether we have received an 'analysis.setAnalysisRoots' request.
   ///
@@ -430,7 +433,18 @@ class PluginServer {
     // A mapping from each diagnostic code to its configured severity.
     var severityMapping = <DiagnosticCode, protocol.AnalysisErrorSeverity?>{};
 
-    for (var configuration in analysisOptions.pluginConfigurations) {
+    var protocolConfigs = _getConfigurationsForFile(
+      definingContextUnit.file.path,
+    );
+    var configurations = [
+      if (protocolConfigs != null)
+        for (var entry in protocolConfigs.entries)
+          _toAnalyzerConfiguration(entry.key, entry.value)
+      else
+        ...analysisOptions.pluginConfigurations,
+    ];
+
+    for (var configuration in configurations) {
       // TODO(srawlins): Enable timing similar to what the linter package's
       // `benchmark.dart` script does.
       var ruleVisitorRegistry = RuleVisitorRegistryImpl(enableTiming: false);
@@ -681,6 +695,31 @@ class PluginServer {
     }
   }
 
+  /// Returns the map of plugin configurations for the given [filePath].
+  ///
+  /// Since there could be nested directories with different configuration sets,
+  /// we find the "best matching" directory in [_configurations].
+  ///
+  /// The best matching path is the most specific one (i.e., the longest path)
+  /// that is either identical to [filePath] or contains [filePath].
+  Map<String, protocol.PluginConfiguration>? _getConfigurationsForFile(
+    String filePath,
+  ) {
+    String? bestMatchingPath;
+    for (var path in _configurations.keys) {
+      if (path == filePath ||
+          _resourceProvider.pathContext.isWithin(path, filePath)) {
+        if (bestMatchingPath == null || path.length > bestMatchingPath.length) {
+          bestMatchingPath = path;
+        }
+      }
+    }
+    if (bestMatchingPath != null) {
+      return _configurations[bestMatchingPath];
+    }
+    return null;
+  }
+
   /// Computes the response for the given [request].
   Future<Response?> _getResponse(Request request, int requestTime) async {
     ResponseResult? result;
@@ -759,6 +798,12 @@ class PluginServer {
         var params = protocol.PluginVersionCheckParams.fromRequest(request);
         result = await handlePluginVersionCheck(params);
 
+      case protocol.ANALYSIS_REQUEST_SET_CONFIGURATIONS:
+        var params = protocol.AnalysisSetConfigurationsParams.fromRequest(
+          request,
+        );
+        result = await _handleAnalysisSetConfigurations(params);
+
       default:
         // Anything else is unsupported.
         result = null;
@@ -781,6 +826,13 @@ class PluginServer {
     _receivedAnalysisRoots = true;
     await _createContextCollection(parameters.included);
     return protocol.AnalysisSetAnalysisRootsResult();
+  }
+
+  Future<ResponseResult?> _handleAnalysisSetConfigurations(
+    protocol.AnalysisSetConfigurationsParams params,
+  ) async {
+    _configurations = params.configurations;
+    return protocol.AnalysisSetConfigurationsResult();
   }
 
   /// Handles an 'analysis.setContextRoots' request.
@@ -1019,6 +1071,38 @@ class PluginServer {
           DateTime.now().millisecondsSinceEpoch,
         ),
       ).toNotification(),
+    );
+  }
+
+  PluginConfiguration _toAnalyzerConfiguration(
+    String name,
+    protocol.PluginConfiguration protocolConfig,
+  ) {
+    var diagnosticConfigs = <String, DiagnosticConfig>{};
+    for (var entry in protocolConfig.diagnosticSeverities.entries) {
+      var severityStr = entry.value.toLowerCase();
+      var severity = switch (severityStr) {
+        'error' => ConfiguredSeverity.error,
+        'warning' => ConfiguredSeverity.warning,
+        'info' => ConfiguredSeverity.info,
+        'ignore' => ConfiguredSeverity.disable,
+        'disable' => ConfiguredSeverity.disable,
+        'enable' => ConfiguredSeverity.enable,
+        _ => null,
+      };
+      if (severity != null) {
+        diagnosticConfigs[entry.key] = DiagnosticConfig(
+          name: entry.key,
+          severity: severity,
+        );
+      }
+    }
+
+    return PluginConfiguration(
+      name: name,
+      source: VersionedPluginSource(constraint: ''),
+      isEnabled: protocolConfig.enabled,
+      diagnosticConfigs: diagnosticConfigs,
     );
   }
 

@@ -1263,6 +1263,28 @@ const DiagnosticWithoutArguments augmentationTypeParameterName =
       expectedTypes: [],
     );
 
+/// Parameters:
+/// Type getterType: the return type of the getter being augmented
+/// Type setterType: the parameter type of the setter being augmented
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required DartType getterType,
+    required DartType setterType,
+  })
+>
+augmentationVariableDifferentGetterSetterTypes = DiagnosticWithArguments(
+  name: 'augmentation_variable_different_getter_setter_types',
+  problemMessage:
+      "The getter and setter augmented by this variable have different types: "
+      "'{0}' and '{1}'.",
+  correctionMessage:
+      "Try changing the getter and setter to have the same type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_variable_different_getter_setter_types',
+  withArguments: _withArgumentsAugmentationVariableDifferentGetterSetterTypes,
+  expectedTypes: [ExpectedType.type, ExpectedType.type],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments augmentationWithoutDeclaration =
     DiagnosticWithoutArgumentsImpl(
@@ -18961,6 +18983,17 @@ LocatableDiagnostic _withArgumentsAugmentationReturnTypeMismatch({
     expectedType,
     actualType,
   ]);
+}
+
+LocatableDiagnostic
+_withArgumentsAugmentationVariableDifferentGetterSetterTypes({
+  required DartType getterType,
+  required DartType setterType,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationVariableDifferentGetterSetterTypes,
+    [getterType, setterType],
+  );
 }
 
 LocatableDiagnostic _withArgumentsAugmentationWithoutGetterDeclaration({

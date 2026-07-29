@@ -26,7 +26,7 @@ class NullSafeApiVerifier {
 
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
-  void instanceCreation(ConstructorInvocationImpl expression) {
+  void constructorInvocation(ConstructorInvocationImpl expression) {
     var constructor = expression.constructorReference.element;
     if (constructor == null) return;
 

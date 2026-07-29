@@ -398,6 +398,21 @@ String get v => '';
 ''');
   }
 
+  test_topLevelVariable_constructorInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  A(Object? a);
+}
+
+final f = A(v);
+
+@doNotStore
+String get v => '';
+''');
+  }
+
   @FailingTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_dotShorthandPropertyAccess() async {
     await resolveTestCodeWithDiagnostics('''
@@ -430,21 +445,6 @@ String get v => '';
 import 'package:meta/meta.dart';
 
 final f = [if (true) v];
-
-@doNotStore
-String get v => '';
-''');
-  }
-
-  test_topLevelVariable_instanceCreationExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
-import 'package:meta/meta.dart';
-
-class A {
-  A(Object? a);
-}
-
-final f = A(v);
 
 @doNotStore
 String get v => '';

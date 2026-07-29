@@ -69,7 +69,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    isOriginDeclaration isStatic b
+    hasImplicitReturnType isOriginDeclaration isStatic b
       reference: <testLibrary>::@setter::b
       firstFragment: #F4
       formalParameters
@@ -78,7 +78,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::b
-    isOriginDeclaration isStatic a
+    hasImplicitReturnType isOriginDeclaration isStatic a
       reference: <testLibrary>::@setter::a
       firstFragment: #F6
       formalParameters
@@ -142,7 +142,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    isOriginDeclaration isStatic a
+    hasImplicitReturnType isOriginDeclaration isStatic a
       reference: <testLibrary>::@setter::a
       firstFragment: #F5
       formalParameters
@@ -993,7 +993,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       formalParameters
@@ -1039,7 +1039,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::x
   getters
-    isOriginDeclaration isStatic x
+    hasImplicitReturnType isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       documentationComment: /**\n * Docs\n */
@@ -1137,7 +1137,7 @@ library
           firstFragment: #F3
           superConstructor: <testLibrary>::@class::D::@constructor::new
       getters
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@getter::f
           firstFragment: #F4
           returnType: int
@@ -1233,7 +1233,7 @@ library
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
-    isOriginDeclaration isStatic y
+    hasImplicitReturnType isOriginDeclaration isStatic y
       reference: <testLibrary>::@getter::y
       firstFragment: #F4
       returnType: dynamic
@@ -1366,7 +1366,7 @@ library
       type: int
       setter: <testLibrary>::@setter::x
   setters
-    isOriginDeclaration isStatic x
+    hasImplicitReturnType isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F2
       formalParameters
@@ -1416,7 +1416,7 @@ library
       type: int
       setter: <testLibrary>::@setter::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F2
       formalParameters
@@ -1657,7 +1657,7 @@ library
       type: int
       setter: <testLibrary>::@setter::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F2
       metadata
@@ -1723,7 +1723,7 @@ library
       type: int
       setter: <testLibrary>::@setter::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F2
       formalParameters
@@ -1912,7 +1912,7 @@ library
       type: int
       setter: <testLibrary>::@setter::A
   setters
-    isOriginDeclaration isStatic A
+    hasImplicitReturnType isOriginDeclaration isStatic A
       reference: <testLibrary>::@setter::A
       firstFragment: #F4
       previousFragmentOfDifferentKind: #F1
@@ -1963,7 +1963,7 @@ library
       type: int
       setter: <testLibrary>::@setter::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F2
       previousFragmentOfDifferentKind: #F4
@@ -2026,7 +2026,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       previousFragmentOfDifferentKind: #F2
@@ -2084,7 +2084,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       previousFragmentOfDifferentKind: #F2
@@ -2150,7 +2150,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       previousFragmentOfDifferentKind: #F1
@@ -2204,7 +2204,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       previousFragmentOfDifferentKind: #F1
@@ -2273,7 +2273,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       previousFragmentOfDifferentKind: #F1
@@ -2408,7 +2408,7 @@ library
       type: int
       setter: <testLibrary>::@setter::f
   setters
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@setter::f
       firstFragment: #F2
       formalParameters
@@ -2468,7 +2468,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::x
-    isOriginDeclaration isStatic y
+    hasImplicitReturnType isOriginDeclaration isStatic y
       reference: <testLibrary>::@setter::y
       firstFragment: #F5
       formalParameters
@@ -2796,7 +2796,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo#1
       firstFragment: #F6
       formalParameters
@@ -2848,7 +2848,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       formalParameters
@@ -3380,7 +3380,7 @@ library
       returnType: InvalidType
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F5
       formalParameters

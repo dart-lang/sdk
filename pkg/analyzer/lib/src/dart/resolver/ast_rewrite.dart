@@ -148,7 +148,10 @@ class AstRewriter {
       }
       var element = nameScope.lookup(methodName.name).getter;
       if (element is InterfaceElement) {
-        return _toInstanceCreation_type(node: node, typeIdentifier: methodName);
+        return _toConstructorInvocation_type(
+          node: node,
+          typeIdentifier: methodName,
+        );
       } else if (element is ExtensionElementImpl) {
         var extensionOverride = ExtensionOverrideImpl(
           importPrefix: null,
@@ -161,7 +164,10 @@ class AstRewriter {
         return extensionOverride;
       } else if (element is TypeAliasElement &&
           element.aliasedType is InterfaceType) {
-        return _toInstanceCreation_type(node: node, typeIdentifier: methodName);
+        return _toConstructorInvocation_type(
+          node: node,
+          typeIdentifier: methodName,
+        );
       }
     } else if (target is SimpleIdentifierImpl && operator != null) {
       // Possible cases: C.n(), p.C() or p.C<>()
@@ -173,7 +179,7 @@ class AstRewriter {
       if (element is InterfaceElement) {
         // class C { C.named(); }
         // C.named()
-        return _toInstanceCreation_type_constructor(
+        return _toConstructorInvocation_type_constructor(
           node: node,
           typeIdentifier: target,
           constructorIdentifier: methodName,
@@ -183,7 +189,7 @@ class AstRewriter {
         // Possible cases: p.C() or p.C<>()
         var prefixedElement = element.scope.lookup(methodName.name).getter;
         if (prefixedElement is InterfaceElement) {
-          return _toInstanceCreation_prefix_type(
+          return _toConstructorInvocation_prefix_type(
             node: node,
             prefixIdentifier: target,
             typeIdentifier: methodName,
@@ -203,7 +209,7 @@ class AstRewriter {
           return extensionOverride;
         } else if (prefixedElement is TypeAliasElement &&
             prefixedElement.aliasedType is InterfaceType) {
-          return _toInstanceCreation_prefix_type(
+          return _toConstructorInvocation_prefix_type(
             node: node,
             prefixIdentifier: target,
             typeIdentifier: methodName,
@@ -215,7 +221,7 @@ class AstRewriter {
           // class C { C.named(); }
           // typedef X = C;
           // X.named()
-          return _toInstanceCreation_type_constructor(
+          return _toConstructorInvocation_type_constructor(
             node: node,
             typeIdentifier: target,
             constructorIdentifier: methodName,
@@ -231,7 +237,7 @@ class AstRewriter {
         var prefixedName = target.identifier.name;
         var element = prefixElement.scope.lookup(prefixedName).getter;
         if (element is InterfaceElement) {
-          return _instanceCreation_prefix_type_name(
+          return _constructorInvocation_prefix_type_name(
             node: node,
             typeNameIdentifier: target,
             constructorIdentifier: methodName,
@@ -240,7 +246,7 @@ class AstRewriter {
         } else if (element is TypeAliasElement) {
           var aliasedType = element.aliasedType;
           if (aliasedType is InterfaceType) {
-            return _instanceCreation_prefix_type_name(
+            return _constructorInvocation_prefix_type_name(
               node: node,
               typeNameIdentifier: target,
               constructorIdentifier: methodName,
@@ -464,7 +470,7 @@ class AstRewriter {
     return node;
   }
 
-  AstNode _instanceCreation_prefix_type_name({
+  AstNode _constructorInvocation_prefix_type_name({
     required MethodInvocationImpl node,
     required PrefixedIdentifierImpl typeNameIdentifier,
     required SimpleIdentifierImpl constructorIdentifier,
@@ -519,6 +525,102 @@ class AstRewriter {
       return parent.isInValueExpressionSlot(node);
     }
     return false;
+  }
+
+  ConstructorInvocation _toConstructorInvocation_prefix_type({
+    required MethodInvocationImpl node,
+    required SimpleIdentifierImpl prefixIdentifier,
+    required SimpleIdentifierImpl typeIdentifier,
+  }) {
+    var typeReference = ConstructorTypeReferenceImpl(
+      importPrefix: ImportPrefixReferenceImpl(
+        name: prefixIdentifier.token,
+        period: node.operator!,
+      ),
+      name: typeIdentifier.token,
+      typeArguments: node.typeArguments,
+    );
+    var constructorReference = ConstructorReference2Impl(
+      typeReference: typeReference,
+      selector: null,
+    );
+    var constructorInvocation = ConstructorInvocationImpl(
+      keyword: null,
+      constructorReference: constructorReference,
+      argumentList: node.argumentList,
+      typeArguments: null,
+    );
+    node.replaceWith(constructorInvocation);
+    return constructorInvocation;
+  }
+
+  ConstructorInvocation _toConstructorInvocation_type({
+    required MethodInvocationImpl node,
+    required SimpleIdentifierImpl typeIdentifier,
+  }) {
+    var typeReference = ConstructorTypeReferenceImpl(
+      importPrefix: null,
+      name: typeIdentifier.token,
+      typeArguments: node.typeArguments,
+    );
+    var constructorReference = ConstructorReference2Impl(
+      typeReference: typeReference,
+      selector: null,
+    );
+    var constructorInvocation = ConstructorInvocationImpl(
+      keyword: null,
+      constructorReference: constructorReference,
+      argumentList: node.argumentList,
+      typeArguments: null,
+    );
+    node.replaceWith(constructorInvocation);
+    return constructorInvocation;
+  }
+
+  AstNode _toConstructorInvocation_type_constructor({
+    required MethodInvocationImpl node,
+    required SimpleIdentifierImpl typeIdentifier,
+    required SimpleIdentifierImpl constructorIdentifier,
+    required InterfaceElement classElement,
+  }) {
+    var name = constructorIdentifier.name;
+    var constructorElement = classElement.getNamedConstructor(name);
+    if (constructorElement == null) {
+      return node;
+    }
+
+    var typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      _diagnosticReporter.report(
+        diag.wrongNumberOfTypeArgumentsConstructor
+            .withArguments(
+              className: typeIdentifier.name,
+              constructorName: constructorIdentifier.name,
+            )
+            .at(typeArguments),
+      );
+    }
+    var typeReference = ConstructorTypeReferenceImpl(
+      importPrefix: null,
+      name: typeIdentifier.token,
+      typeArguments: null,
+    );
+    var constructorReference = ConstructorReference2Impl(
+      typeReference: typeReference,
+      selector: ConstructorSelectorImpl.v2(
+        period: node.operator!,
+        name2: constructorIdentifier.token,
+      ),
+    );
+    // TODO(scheglov): I think we should drop "typeArguments" below.
+    var constructorInvocation = ConstructorInvocationImpl(
+      keyword: null,
+      constructorReference: constructorReference,
+      argumentList: node.argumentList,
+      typeArguments: typeArguments,
+    );
+    node.replaceWith(constructorInvocation);
+    return constructorInvocation;
   }
 
   AstNode _toConstructorReference_prefixed({
@@ -577,102 +679,6 @@ class AstRewriter {
     );
     node.replaceWith(constructorTearOff);
     return constructorTearOff;
-  }
-
-  ConstructorInvocation _toInstanceCreation_prefix_type({
-    required MethodInvocationImpl node,
-    required SimpleIdentifierImpl prefixIdentifier,
-    required SimpleIdentifierImpl typeIdentifier,
-  }) {
-    var typeReference = ConstructorTypeReferenceImpl(
-      importPrefix: ImportPrefixReferenceImpl(
-        name: prefixIdentifier.token,
-        period: node.operator!,
-      ),
-      name: typeIdentifier.token,
-      typeArguments: node.typeArguments,
-    );
-    var constructorReference = ConstructorReference2Impl(
-      typeReference: typeReference,
-      selector: null,
-    );
-    var constructorInvocation = ConstructorInvocationImpl(
-      keyword: null,
-      constructorReference: constructorReference,
-      argumentList: node.argumentList,
-      typeArguments: null,
-    );
-    node.replaceWith(constructorInvocation);
-    return constructorInvocation;
-  }
-
-  ConstructorInvocation _toInstanceCreation_type({
-    required MethodInvocationImpl node,
-    required SimpleIdentifierImpl typeIdentifier,
-  }) {
-    var typeReference = ConstructorTypeReferenceImpl(
-      importPrefix: null,
-      name: typeIdentifier.token,
-      typeArguments: node.typeArguments,
-    );
-    var constructorReference = ConstructorReference2Impl(
-      typeReference: typeReference,
-      selector: null,
-    );
-    var constructorInvocation = ConstructorInvocationImpl(
-      keyword: null,
-      constructorReference: constructorReference,
-      argumentList: node.argumentList,
-      typeArguments: null,
-    );
-    node.replaceWith(constructorInvocation);
-    return constructorInvocation;
-  }
-
-  AstNode _toInstanceCreation_type_constructor({
-    required MethodInvocationImpl node,
-    required SimpleIdentifierImpl typeIdentifier,
-    required SimpleIdentifierImpl constructorIdentifier,
-    required InterfaceElement classElement,
-  }) {
-    var name = constructorIdentifier.name;
-    var constructorElement = classElement.getNamedConstructor(name);
-    if (constructorElement == null) {
-      return node;
-    }
-
-    var typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      _diagnosticReporter.report(
-        diag.wrongNumberOfTypeArgumentsConstructor
-            .withArguments(
-              className: typeIdentifier.name,
-              constructorName: constructorIdentifier.name,
-            )
-            .at(typeArguments),
-      );
-    }
-    var typeReference = ConstructorTypeReferenceImpl(
-      importPrefix: null,
-      name: typeIdentifier.token,
-      typeArguments: null,
-    );
-    var constructorReference = ConstructorReference2Impl(
-      typeReference: typeReference,
-      selector: ConstructorSelectorImpl.v2(
-        period: node.operator!,
-        name2: constructorIdentifier.token,
-      ),
-    );
-    // TODO(scheglov): I think we should drop "typeArguments" below.
-    var constructorInvocation = ConstructorInvocationImpl(
-      keyword: null,
-      constructorReference: constructorReference,
-      argumentList: node.argumentList,
-      typeArguments: typeArguments,
-    );
-    node.replaceWith(constructorInvocation);
-    return constructorInvocation;
   }
 
   MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({

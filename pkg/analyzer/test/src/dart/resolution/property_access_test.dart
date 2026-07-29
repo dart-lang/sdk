@@ -16,6 +16,165 @@ main() {
 
 @reflectiveTest
 class PropertyAccessResolutionTest extends PubPackageResolutionTest {
+  test_constructorInvocation_read() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  int foo = 0;
+}
+
+void f() {
+  A().foo;
+}
+''');
+
+    var node = result.findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  target(v1): InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_constructorInvocation_readWrite_assignment() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  int foo = 0;
+}
+
+void f() {
+  A().foo += 1;
+}
+''');
+
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide2: PropertyAccess
+    target2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    target(v1): InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide2: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <testLibrary>::@class::A::@getter::foo
+  readType: int
+  writeElement: <testLibrary>::@class::A::@setter::foo
+  writeType: int
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_constructorInvocation_write() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  int foo = 0;
+}
+
+void f() {
+  A().foo = 1;
+}
+''');
+
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide2: PropertyAccess
+    target2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    target(v1): InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide2: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_extensionOverride_read() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {}
@@ -525,165 +684,6 @@ PropertyAccess
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: int
-  staticType: int
-''');
-  }
-
-  test_instanceCreation_read() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A {
-  int foo = 0;
-}
-
-void f() {
-  A().foo;
-}
-''');
-
-    var node = result.findNode.singlePropertyAccess;
-    assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ConstructorInvocation
-    constructorReference: ConstructorReference2
-      typeReference: ConstructorTypeReference
-        name: A
-        element: <testLibrary>::@class::A
-        type: A
-      element: <testLibrary>::@class::A::@constructor::new
-    argumentList: ArgumentList
-      leftParenthesis: (
-      rightParenthesis: )
-    staticType: A
-  target(v1): InstanceCreationExpression
-    constructorName: ConstructorName
-      type: NamedType
-        name: A
-        element: <testLibrary>::@class::A
-        type: A
-      element: <testLibrary>::@class::A::@constructor::new
-    argumentList: ArgumentList
-      leftParenthesis: (
-      rightParenthesis: )
-    staticType: A
-  operator: .
-  propertyName: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@getter::foo
-    staticType: int
-  staticType: int
-''');
-  }
-
-  test_instanceCreation_readWrite_assignment() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A {
-  int foo = 0;
-}
-
-void f() {
-  A().foo += 1;
-}
-''');
-
-    var node = result.findNode.assignment('foo += 1');
-    assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ConstructorInvocation
-      constructorReference: ConstructorReference2
-        typeReference: ConstructorTypeReference
-          name: A
-          element: <testLibrary>::@class::A
-          type: A
-        element: <testLibrary>::@class::A::@constructor::new
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticType: A
-    target(v1): InstanceCreationExpression
-      constructorName: ConstructorName
-        type: NamedType
-          name: A
-          element: <testLibrary>::@class::A
-          type: A
-        element: <testLibrary>::@class::A::@constructor::new
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticType: A
-    operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
-    staticType: null
-  operator: +=
-  rightHandSide2: IntegerLiteral
-    literal: 1
-    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-    staticType: int
-  readElement: <testLibrary>::@class::A::@getter::foo
-  readType: int
-  writeElement: <testLibrary>::@class::A::@setter::foo
-  writeType: int
-  element: dart:core::@class::num::@method::+
-  staticType: int
-''');
-  }
-
-  test_instanceCreation_write() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A {
-  int foo = 0;
-}
-
-void f() {
-  A().foo = 1;
-}
-''');
-
-    var node = result.findNode.assignment('foo = 1');
-    assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ConstructorInvocation
-      constructorReference: ConstructorReference2
-        typeReference: ConstructorTypeReference
-          name: A
-          element: <testLibrary>::@class::A
-          type: A
-        element: <testLibrary>::@class::A::@constructor::new
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticType: A
-    target(v1): InstanceCreationExpression
-      constructorName: ConstructorName
-        type: NamedType
-          name: A
-          element: <testLibrary>::@class::A
-          type: A
-        element: <testLibrary>::@class::A::@constructor::new
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticType: A
-    operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
-    staticType: null
-  operator: =
-  rightHandSide2: IntegerLiteral
-    literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
-    staticType: int
-  readElement: <null>
-  readType: null
-  writeElement: <testLibrary>::@class::A::@setter::foo
-  writeType: int
-  element: <null>
   staticType: int
 ''');
   }

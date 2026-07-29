@@ -1738,7 +1738,7 @@ library
       superclassConstraints
         A
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -1820,7 +1820,7 @@ library
       interfaces
         A
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -1900,7 +1900,7 @@ library
       superclassConstraints
         A
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -2163,7 +2163,7 @@ library
       superclassConstraints
         A
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: #F7
           formalParameters
@@ -3378,7 +3378,7 @@ library
               type: T
           returnType: void
           variable: <testLibrary>::@mixin::M::@field::f
-        isOriginDeclaration s
+        hasImplicitReturnType isOriginDeclaration s
           reference: <testLibrary>::@mixin::M::@setter::s
           firstFragment: #F19
           formalParameters
@@ -6335,7 +6335,7 @@ library
           type: int
           setter: <testLibrary>::@mixin::A::@setter::foo2
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@setter::foo1
           firstFragment: #F4
           formalParameters
@@ -6344,7 +6344,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@mixin::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@setter::foo2
           firstFragment: #F7
           formalParameters
@@ -6425,7 +6425,7 @@ library
           type: int
           setter: <testLibrary>::@mixin::A::@setter::foo2
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@setter::foo1
           firstFragment: #F5
           formalParameters
@@ -6434,7 +6434,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@mixin::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@setter::foo2
           firstFragment: #F9
           formalParameters
@@ -6567,7 +6567,7 @@ library
           type: int
           setter: <testLibrary>::@mixin::M::@setter::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F3
           formalParameters
@@ -6618,7 +6618,7 @@ library
           type: int
           setter: <testLibrary>::@mixin::M::@setter::foo
       setters
-        invokesSuperSelf isOriginDeclaration foo
+        hasImplicitReturnType invokesSuperSelf isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F3
           formalParameters

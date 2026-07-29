@@ -502,17 +502,7 @@ var x = const C(0);
     expect(context?.$2?.lexeme, 'const');
   }
 
-  test_inConstantContext_enumConstant_true() {
-    parse('''
-enum E {
-  v([]);
-  const E(_);
-}
-''');
-    assertInContext('[]', true);
-  }
-
-  test_inConstantContext_instanceCreation_annotation_true() {
+  test_inConstantContext_constructorInvocation_annotation_true() {
     parse('''
 @C(C(0))
 class C {
@@ -522,7 +512,31 @@ class C {
     assertInContext("C(0", true);
   }
 
-  test_inConstantContext_instanceCreation_fieldWithConstConstructor() {
+  test_inConstantContext_constructorInvocation_constructorInvocation_false() {
+    parse('''
+f() {
+  return new C(C());
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("C())", false);
+  }
+
+  test_inConstantContext_constructorInvocation_constructorInvocation_true() {
+    parse('''
+f() {
+  return new C(C());
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("C())", false);
+  }
+
+  test_inConstantContext_constructorInvocation_fieldWithConstConstructor() {
     parse('''
 class C {
   final d = D();
@@ -535,7 +549,7 @@ class D {
     assertInContext("D()", false);
   }
 
-  test_inConstantContext_instanceCreation_fieldWithoutConstConstructor() {
+  test_inConstantContext_constructorInvocation_fieldWithoutConstConstructor() {
     parse('''
 class C {
   final d = D();
@@ -548,7 +562,7 @@ class D {
     assertInContext("D()", false);
   }
 
-  test_inConstantContext_instanceCreation_functionLiteral() {
+  test_inConstantContext_constructorInvocation_functionLiteral() {
     parse('''
 const V = () => C();
 class C {
@@ -558,31 +572,7 @@ class C {
     assertInContext("C()", false);
   }
 
-  test_inConstantContext_instanceCreation_instanceCreation_false() {
-    parse('''
-f() {
-  return new C(C());
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("C())", false);
-  }
-
-  test_inConstantContext_instanceCreation_instanceCreation_true() {
-    parse('''
-f() {
-  return new C(C());
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("C())", false);
-  }
-
-  test_inConstantContext_instanceCreation_listLiteral_false() {
+  test_inConstantContext_constructorInvocation_listLiteral_false() {
     parse('''
 f() {
   return [C()];
@@ -594,7 +584,7 @@ class C {
     assertInContext("C()]", false);
   }
 
-  test_inConstantContext_instanceCreation_listLiteral_true() {
+  test_inConstantContext_constructorInvocation_listLiteral_true() {
     parse('''
 f() {
   return const [C()];
@@ -606,7 +596,7 @@ class C {
     assertInContext("C()]", true);
   }
 
-  test_inConstantContext_instanceCreation_mapLiteral_false() {
+  test_inConstantContext_constructorInvocation_mapLiteral_false() {
     parse('''
 f() {
   return {'a' : C()};
@@ -618,7 +608,7 @@ class C {
     assertInContext("C()}", false);
   }
 
-  test_inConstantContext_instanceCreation_mapLiteral_true() {
+  test_inConstantContext_constructorInvocation_mapLiteral_true() {
     parse('''
 f() {
   return const {'a' : C()};
@@ -630,7 +620,7 @@ class C {
     assertInContext("C()}", true);
   }
 
-  test_inConstantContext_instanceCreation_nestedListLiteral_false() {
+  test_inConstantContext_constructorInvocation_nestedListLiteral_false() {
     parse('''
 f() {
   return [[''], [C()]];
@@ -642,7 +632,7 @@ class C {
     assertInContext("C()]", false);
   }
 
-  test_inConstantContext_instanceCreation_nestedListLiteral_true() {
+  test_inConstantContext_constructorInvocation_nestedListLiteral_true() {
     parse('''
 f() {
   return const [[''], [C()]];
@@ -654,7 +644,7 @@ class C {
     assertInContext("C()]", true);
   }
 
-  test_inConstantContext_instanceCreation_nestedMapLiteral_false() {
+  test_inConstantContext_constructorInvocation_nestedMapLiteral_false() {
     parse('''
 f() {
   return {'a' : {C() : C()}};
@@ -667,7 +657,7 @@ class C {
     assertInContext("C()}", false);
   }
 
-  test_inConstantContext_instanceCreation_nestedMapLiteral_true() {
+  test_inConstantContext_constructorInvocation_nestedMapLiteral_true() {
     parse('''
 f() {
   return const {'a' : {C() : C()}};
@@ -680,7 +670,7 @@ class C {
     assertInContext("C()}", true);
   }
 
-  test_inConstantContext_instanceCreation_switch_true() {
+  test_inConstantContext_constructorInvocation_switch_true() {
     parse('''
 f(v) {
   switch (v) {
@@ -695,7 +685,7 @@ class C {
     assertInContext("C()", true);
   }
 
-  test_inConstantContext_instanceCreation_switch_true_language219() {
+  test_inConstantContext_constructorInvocation_switch_true_language219() {
     // Expected: true
     //   Actual: <false>
     parse('''
@@ -713,7 +703,7 @@ class C {
     assertInContext("C()", true);
   }
 
-  test_inConstantContext_instanceCreation_topLevelVariable_false() {
+  test_inConstantContext_constructorInvocation_topLevelVariable_false() {
     parse('''
 var c = C();
 class C {
@@ -723,7 +713,7 @@ class C {
     assertInContext("C()", false);
   }
 
-  test_inConstantContext_instanceCreation_topLevelVariable_true() {
+  test_inConstantContext_constructorInvocation_topLevelVariable_true() {
     parse('''
 const c = C();
 class C {
@@ -733,9 +723,43 @@ class C {
     assertInContext("C()", true);
   }
 
+  test_inConstantContext_enumConstant_true() {
+    parse('''
+enum E {
+  v([]);
+  const E(_);
+}
+''');
+    assertInContext('[]', true);
+  }
+
   test_inConstantContext_listLiteral_annotation_true() {
     parse('''
 @C([])
+class C {
+  const C(_);
+}
+''');
+    assertInContext("[]", true);
+  }
+
+  test_inConstantContext_listLiteral_constructorInvocation_false() {
+    parse('''
+f() {
+  return new C([]);
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("[]", false);
+  }
+
+  test_inConstantContext_listLiteral_constructorInvocation_true() {
+    parse('''
+f() {
+  return const C([]);
+}
 class C {
   const C(_);
 }
@@ -763,30 +787,6 @@ var c = [];
   test_inConstantContext_listLiteral_initializer_true() {
     parse('''
 const c = [];
-''');
-    assertInContext("[]", true);
-  }
-
-  test_inConstantContext_listLiteral_instanceCreation_false() {
-    parse('''
-f() {
-  return new C([]);
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("[]", false);
-  }
-
-  test_inConstantContext_listLiteral_instanceCreation_true() {
-    parse('''
-f() {
-  return const C([]);
-}
-class C {
-  const C(_);
-}
 ''');
     assertInContext("[]", true);
   }
@@ -897,6 +897,30 @@ class C {
     assertInContext("{}", true);
   }
 
+  test_inConstantContext_mapLiteral_constructorInvocation_false() {
+    parse('''
+f() {
+  return new C({});
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("{}", false);
+  }
+
+  test_inConstantContext_mapLiteral_constructorInvocation_true() {
+    parse('''
+f() {
+  return const C({});
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("{}", true);
+  }
+
   test_inConstantContext_mapLiteral_functionLiteral() {
     parse('''
 const V = () => {};
@@ -917,30 +941,6 @@ var c = {};
   test_inConstantContext_mapLiteral_initializer_true() {
     parse('''
 const c = {};
-''');
-    assertInContext("{}", true);
-  }
-
-  test_inConstantContext_mapLiteral_instanceCreation_false() {
-    parse('''
-f() {
-  return new C({});
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("{}", false);
-  }
-
-  test_inConstantContext_mapLiteral_instanceCreation_true() {
-    parse('''
-f() {
-  return const C({});
-}
-class C {
-  const C(_);
-}
 ''');
     assertInContext("{}", true);
   }

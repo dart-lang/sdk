@@ -349,7 +349,7 @@ library
           type: int
           setter: dart:foo::@class::A::@setter::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: dart:foo::@class::A::@setter::foo
           firstFragment: #F3
           sinceSdkVersion: 2.15.0

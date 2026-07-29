@@ -58,6 +58,8 @@ import 'augmentation_type_parameter_count_test.dart'
     as augmentation_type_parameter_count;
 import 'augmentation_type_parameter_name_test.dart'
     as augmentation_type_parameter_name;
+import 'augmentation_variable_different_getter_setter_types_test.dart'
+    as augmentation_variable_different_getter_setter_types;
 import 'augmentation_without_declaration_test.dart'
     as augmentation_without_declaration;
 import 'await_in_late_local_variable_initializer_test.dart'
@@ -998,6 +1000,7 @@ main() {
     augmentation_type_parameter_bound.main();
     augmentation_type_parameter_count.main();
     augmentation_type_parameter_name.main();
+    augmentation_variable_different_getter_setter_types.main();
     augmentation_without_declaration.main();
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();

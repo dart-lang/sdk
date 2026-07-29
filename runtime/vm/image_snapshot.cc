@@ -1279,7 +1279,8 @@ void AssemblyImageWriter::Finalize() {
 #endif
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64E)
-  assembly_stream_->WriteString(".ptrauth_abi_version 0\n");
+  // XCode clang generates this but Fuchsia clang does not.
+  // assembly_stream_->WriteString(".ptrauth_abi_version 0\n");
 #endif
 
 #if defined(DART_TARGET_OS_WINDOWS)

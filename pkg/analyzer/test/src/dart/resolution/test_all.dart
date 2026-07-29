@@ -21,6 +21,7 @@ import 'constant_pattern_test.dart' as constant_pattern;
 import 'constant_test.dart' as constant;
 import 'constructor_field_initializer_test.dart'
     as constructor_field_initializer;
+import 'constructor_invocation_test.dart' as constructor_invocation;
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
 import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
@@ -55,7 +56,6 @@ import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
 import 'index_expression_test.dart' as index_expression;
-import 'instance_creation_test.dart' as instance_creation;
 import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
@@ -168,7 +168,7 @@ main() {
     if_element.main();
     if_statement.main();
     index_expression.main();
-    instance_creation.main();
+    constructor_invocation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
     interpolation_string.main();

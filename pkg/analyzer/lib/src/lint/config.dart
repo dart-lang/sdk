@@ -19,7 +19,7 @@ Map<String, RuleConfig> parseDiagnosticsSection(YamlNode value) {
     return {
       for (var ruleNode in value.nodes)
         if (ruleNode case YamlScalar(value: String ruleName))
-          ruleName: RuleConfig._(
+          ruleName: RuleConfig(
             name: ruleName,
             severity: ConfiguredSeverity.enable,
           ),
@@ -91,12 +91,12 @@ RuleConfig? _parseRuleConfig(
       var severity = isEnabled
           ? ConfiguredSeverity.enable
           : ConfiguredSeverity.disable;
-      return RuleConfig._(name: ruleName, group: group, severity: severity);
+      return RuleConfig(name: ruleName, group: group, severity: severity);
     } else if (configNode case YamlScalar(value: String severityString)) {
       var severity =
           ConfiguredSeverity.values.asNameMap()[severityString] ??
           ConfiguredSeverity.enable;
-      return RuleConfig._(name: ruleName, group: group, severity: severity);
+      return RuleConfig(name: ruleName, group: group, severity: severity);
     }
   }
 
@@ -141,7 +141,7 @@ class RuleConfig {
   /// The rule's severity in this configuration.
   final ConfiguredSeverity severity;
 
-  RuleConfig._({required this.name, this.group, required this.severity});
+  RuleConfig({required this.name, this.group, required this.severity});
 
   /// Whether this rule is enabled or disabled in this configuration.
   bool get isEnabled => severity != ConfiguredSeverity.disable;

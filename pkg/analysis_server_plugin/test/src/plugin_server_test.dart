@@ -139,6 +139,81 @@ bool b = false;'''),
     }
   }
 
+  Future<void> test_setConfigurations_disabledInSubdirectory() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+    newFile(testFilePath, 'bool b = false;');
+
+    await channel.sendRequest(
+      protocol.AnalysisSetConfigurationsParams({
+        packagePath: {'no_literals': protocol.PluginConfiguration(true, {})},
+        join(packagePath, 'test'): {
+          'no_literals': protocol.PluginConfiguration(false, {}),
+        },
+      }),
+    );
+
+    await _setRoots();
+
+    var paramsQueue = _analysisErrorsParams;
+    var params1 = await paramsQueue.next;
+    var params2 = await paramsQueue.next;
+
+    var errorsMap = {
+      params1.file: params1.errors,
+      params2.file: params2.errors,
+    };
+
+    expect(errorsMap[filePath], hasLength(1));
+    expect(errorsMap[filePath]![0].code, 'no_bools');
+
+    expect(errorsMap[testFilePath], isEmpty);
+  }
+
+  Future<void> test_setConfigurations_differentSeverities() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+    newFile(testFilePath, 'bool b = false;');
+
+    await channel.sendRequest(
+      protocol.AnalysisSetConfigurationsParams({
+        join(packagePath, 'lib'): {
+          'no_literals': protocol.PluginConfiguration(true, {
+            'no_bools': 'warning',
+          }),
+        },
+        join(packagePath, 'test'): {
+          'no_literals': protocol.PluginConfiguration(true, {
+            'no_bools': 'info',
+          }),
+        },
+      }),
+    );
+
+    await _setRoots();
+
+    var paramsQueue = _analysisErrorsParams;
+    var params1 = await paramsQueue.next;
+    var params2 = await paramsQueue.next;
+
+    var errorsMap = {
+      params1.file: params1.errors,
+      params2.file: params2.errors,
+    };
+
+    expect(errorsMap[filePath], hasLength(1));
+    expect(
+      errorsMap[filePath]![0].severity,
+      protocol.AnalysisErrorSeverity.WARNING,
+    );
+
+    expect(errorsMap[testFilePath], hasLength(1));
+    expect(
+      errorsMap[testFilePath]![0].severity,
+      protocol.AnalysisErrorSeverity.INFO,
+    );
+  }
+
   Future<void> test_warningRulesCanBeDisabled() async {
     writeAnalysisOptionsWithPlugin(
       diagnosticConfiguration: {'no_bools': 'disable'},
@@ -894,6 +969,15 @@ String s = "hello";
 
   Future<void> test_warningRulesCanBeDisabled() async {
     writeAnalysisOptionsWithPlugin({'no_bools': 'disable'});
+    newFile(filePath, 'bool b = false;');
+    await _setRoots();
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_warningRulesCanBeDisabled_false() async {
+    writeAnalysisOptionsWithPlugin({'no_bools': 'false'});
     newFile(filePath, 'bool b = false;');
     await _setRoots();
     var paramsQueue = _analysisErrorsParams;

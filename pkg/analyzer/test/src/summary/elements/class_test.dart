@@ -1142,7 +1142,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::a
       setters
-        isOriginDeclaration b
+        hasImplicitReturnType isOriginDeclaration b
           reference: <testLibrary>::@class::A::@setter::b
           firstFragment: #F6
           formalParameters
@@ -1151,7 +1151,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::b
-        isOriginDeclaration a
+        hasImplicitReturnType isOriginDeclaration a
           reference: <testLibrary>::@class::A::@setter::a
           firstFragment: #F8
           formalParameters
@@ -1232,7 +1232,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::a
       setters
-        isOriginDeclaration a
+        hasImplicitReturnType isOriginDeclaration a
           reference: <testLibrary>::@class::A::@setter::a
           firstFragment: #F7
           formalParameters
@@ -20542,7 +20542,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::foo
           firstFragment: #F6
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F4
           formalParameters
@@ -20792,7 +20792,7 @@ library
           firstFragment: #F6
           previousFragmentOfDifferentKind: #F4
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F4
           formalParameters
@@ -26755,7 +26755,7 @@ library
             baseElement: <testLibrary>::@class::C::@constructor::new
             substitution: {T: U, U: T}
       methods
-        isOriginDeclaration B_
+        hasImplicitReturnType isOriginDeclaration B_
           reference: <testLibrary>::@class::B::@method::B_
           firstFragment: #F5
           returnType: dynamic
@@ -30590,7 +30590,7 @@ library
           returnType: InvalidType
           variable: <testLibrary>::@class::A::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           formalParameters
@@ -30968,7 +30968,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo#1
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -31409,7 +31409,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::C::@field::foo
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@setter::foo#1
           firstFragment: #F8
           formalParameters
@@ -31803,7 +31803,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           formalParameters
@@ -34486,7 +34486,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo#1
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -34757,7 +34757,7 @@ library
           returnType: InvalidType
           variable: <testLibrary>::@class::A::@field::foo
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           formalParameters
@@ -36488,7 +36488,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
       getters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@getter::foo
           firstFragment: #F8
           returnType: int
@@ -36579,7 +36579,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
       getters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@getter::foo
           firstFragment: #F8
           returnType: int
@@ -37017,7 +37017,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -37322,7 +37322,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo#1
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -37422,7 +37422,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F4
           returnType: dynamic
@@ -37611,7 +37611,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration get
+        hasImplicitReturnType isOriginDeclaration get
           reference: <testLibrary>::@class::A::@method::get
           firstFragment: #F3
           returnType: dynamic
@@ -38233,7 +38233,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo#1
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -38445,7 +38445,7 @@ library
           firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@class::C::@field::x
-        isOriginDeclaration y
+        hasImplicitReturnType isOriginDeclaration y
           reference: <testLibrary>::@class::C::@getter::y
           firstFragment: #F6
           returnType: dynamic
@@ -38721,7 +38721,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           returnType: dynamic
@@ -38990,7 +38990,7 @@ library
           firstFragment: #F3
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F8
           formalParameters
@@ -39076,7 +39076,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F4
           formalParameters
@@ -39160,7 +39160,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F4
           formalParameters
@@ -42578,7 +42578,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F6
           returnType: int
@@ -42649,7 +42649,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F6
           returnType: int
@@ -42727,7 +42727,7 @@ library
           firstFragment: #F3
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F4
           formalParameters
@@ -44068,7 +44068,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -44338,7 +44338,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -44390,7 +44390,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           documentationComment: /**\n   * Docs\n   */
@@ -44429,7 +44429,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isExternal isOriginDeclaration f
+        hasImplicitReturnType isExternal isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           returnType: dynamic
@@ -44551,7 +44551,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           formalParameters
@@ -44633,7 +44633,7 @@ library
           firstFragment: #F2
           superConstructor: <testLibrary>::@class::D::@constructor::new
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           returnType: int
@@ -44723,7 +44723,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration <null-name>
+        hasImplicitReturnType isOriginDeclaration <null-name>
           reference: <testLibrary>::@class::A::@method::#0
           firstFragment: #F3
           returnType: dynamic
@@ -45015,7 +45015,7 @@ library
           firstFragment: #F5
       supertype: A<T>
       methods
-        hasEnclosingTypeParameterReference isOriginDeclaration foo
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F6
           returnType: T
@@ -45190,7 +45190,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration isStatic f
+        hasImplicitReturnType isOriginDeclaration isStatic f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           returnType: dynamic
@@ -45561,7 +45561,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -45780,7 +45780,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -46101,11 +46101,11 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           returnType: dynamic
-        isOriginDeclaration g
+        hasImplicitReturnType isOriginDeclaration g
           reference: <testLibrary>::@class::C::@method::g
           firstFragment: #F4
           returnType: dynamic
@@ -47039,7 +47039,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@class::A::@setter::foo1
           firstFragment: #F5
           formalParameters
@@ -47048,7 +47048,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@class::A::@setter::foo2
           firstFragment: #F8
           formalParameters
@@ -47135,7 +47135,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@class::A::@setter::foo1
           firstFragment: #F6
           formalParameters
@@ -47144,7 +47144,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@class::A::@setter::foo2
           firstFragment: #F10
           formalParameters
@@ -47323,7 +47323,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -47378,7 +47378,7 @@ library
           type: int
           setter: <testLibrary>::@class::A::@setter::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F4
           formalParameters
@@ -47442,7 +47442,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::foo
           firstFragment: #F3
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -47516,7 +47516,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           previousFragmentOfDifferentKind: #F5
@@ -47584,7 +47584,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           previousFragmentOfDifferentKind: #F4
@@ -47689,7 +47689,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo#1
           firstFragment: #F9
           formalParameters
@@ -47768,7 +47768,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F7
           formalParameters
@@ -47833,7 +47833,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           formalParameters
@@ -47914,7 +47914,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -47923,7 +47923,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo#1
           firstFragment: #F8
           formalParameters
@@ -48242,7 +48242,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
@@ -48487,7 +48487,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration isStatic f
+        hasImplicitReturnType isOriginDeclaration isStatic f
           reference: <testLibrary>::@class::C::@setter::f
           firstFragment: #F4
           formalParameters
@@ -48634,7 +48634,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
@@ -48912,7 +48912,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F4
           formalParameters
@@ -48969,7 +48969,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       setters
-        invokesSuperSelf isOriginDeclaration foo
+        hasImplicitReturnType invokesSuperSelf isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F4
           formalParameters
@@ -49015,7 +49015,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration set
+        hasImplicitReturnType isOriginDeclaration set
           reference: <testLibrary>::@class::A::@method::set
           firstFragment: #F3
           formalParameters
@@ -49123,7 +49123,7 @@ library
           type: int
           setter: <testLibrary>::@class::C::@setter::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@setter::foo
           firstFragment: #F4
           formalParameters
@@ -49177,7 +49177,7 @@ library
           type: T
           setter: <testLibrary>::@class::C::@setter::foo
       setters
-        hasEnclosingTypeParameterReference isOriginDeclaration foo
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@setter::foo
           firstFragment: #F4
           formalParameters
@@ -49323,7 +49323,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -49387,7 +49387,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::foo
           firstFragment: #F3
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           previousFragmentOfDifferentKind: #F3
@@ -49487,7 +49487,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo#1
           firstFragment: #F9
           formalParameters
@@ -49566,7 +49566,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F7
           formalParameters
@@ -49631,7 +49631,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           formalParameters
@@ -49712,7 +49712,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -49721,7 +49721,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo#1
           firstFragment: #F8
           formalParameters
@@ -49872,7 +49872,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration isStatic foo
+        hasImplicitReturnType isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           previousFragmentOfDifferentKind: #F4
@@ -49955,7 +49955,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::C::@field::x
-        isOriginDeclaration y
+        hasImplicitReturnType isOriginDeclaration y
           reference: <testLibrary>::@class::C::@setter::y
           firstFragment: #F7
           formalParameters

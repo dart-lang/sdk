@@ -11409,7 +11409,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F5
           returnType: dynamic
@@ -11423,7 +11423,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F8
           returnType: dynamic
@@ -11438,7 +11438,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F10
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@method::foo
           firstFragment: #F11
           returnType: dynamic
@@ -16889,7 +16889,7 @@ library
           returnType: int
           variable: <testLibrary>::@enum::A::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F13
           previousFragmentOfDifferentKind: #F7
@@ -19272,7 +19272,7 @@ library
           returnType: List<B>
           variable: <testLibrary>::@enum::B::@field::values
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: #F8
           formalParameters
@@ -19404,7 +19404,7 @@ library
           returnType: List<B>
           variable: <testLibrary>::@enum::B::@field::values
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: #F8
           formalParameters
@@ -19536,7 +19536,7 @@ library
           returnType: List<B>
           variable: <testLibrary>::@enum::B::@field::values
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: #F8
           formalParameters
@@ -21748,7 +21748,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@enum::E::@setter::foo
           firstFragment: #F8
           formalParameters
@@ -21892,7 +21892,7 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@setter::foo1
           firstFragment: #F9
           formalParameters
@@ -21901,7 +21901,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@enum::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@setter::foo2
           firstFragment: #F12
           formalParameters
@@ -22054,7 +22054,7 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@setter::foo1
           firstFragment: #F10
           formalParameters
@@ -22063,7 +22063,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@enum::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@setter::foo2
           firstFragment: #F14
           formalParameters
@@ -22210,7 +22210,7 @@ library
           returnType: int
           variable: <testLibrary>::@enum::A::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F10
           previousFragmentOfDifferentKind: #F7
@@ -22341,7 +22341,7 @@ library
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F9
           formalParameters

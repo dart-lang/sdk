@@ -1405,7 +1405,7 @@ class AstBuilder extends StackListener {
     assert(optional('const', constKeyword));
     debugEvent("ConstExpression");
 
-    _handleInstanceCreation(constKeyword);
+    _handleConstructorInvocation(constKeyword);
   }
 
   @override
@@ -2131,7 +2131,7 @@ class AstBuilder extends StackListener {
   void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     debugEvent("ImplicitCreationExpression");
 
-    _handleInstanceCreation(null);
+    _handleConstructorInvocation(null);
   }
 
   @override
@@ -2589,7 +2589,7 @@ class AstBuilder extends StackListener {
     assert(optional('new', newKeyword));
     debugEvent("NewExpression");
 
-    _handleInstanceCreation(newKeyword);
+    _handleConstructorInvocation(newKeyword);
   }
 
   @override
@@ -6302,7 +6302,7 @@ class AstBuilder extends StackListener {
     return parseDocComment(dartdoc);
   }
 
-  void _handleInstanceCreation(Token? token) {
+  void _handleConstructorInvocation(Token? token) {
     var argumentList = pop() as ArgumentListImpl;
     ConstructorReference2Impl constructorReference;
     TypeArgumentListImpl? typeArguments;

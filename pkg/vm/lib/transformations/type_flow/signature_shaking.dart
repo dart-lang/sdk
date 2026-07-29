@@ -187,6 +187,7 @@ class _ParameterInfo {
       (!isUsed || (isNeverPassed || isConstant && !isChecked) && !isWritten);
 
   void observeParameter(Member member, Variable param, SignatureShaker shaker) {
+    if (member.isAbstract) return;
     final Type? type = shaker.typeFlowAnalysis.argumentType(member, param);
 
     // A parameter is considered constant if the TFA has inferred it to have a
@@ -382,6 +383,7 @@ class _Transform extends RecursiveVisitor {
     _ParameterInfo param,
     Variable variable,
   ) {
+    if (member.isAbstract) return;
     Constant value;
     if (param.isConstant) {
       Type type = shaker.typeFlowAnalysis.argumentType(member, variable)!;
