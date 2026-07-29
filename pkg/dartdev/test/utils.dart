@@ -73,6 +73,8 @@ class TestProject {
 
   String get mainPath => path.join(dirPath, relativeFilePath);
 
+  Uri get mainUri => Uri.file(mainPath);
+
   String get analysisOptionsPath => path.join(dirPath, 'analysis_options.yaml');
 
   String get packageConfigPath =>
@@ -80,7 +82,7 @@ class TestProject {
 
   final String name;
 
-  String get relativeFilePath => 'lib/main.dart';
+  String get relativeFilePath => path.join('lib', 'main.dart');
 
   Process? _process;
 

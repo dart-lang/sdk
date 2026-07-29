@@ -33,6 +33,7 @@ dependencies:
   hooks_runner: any
   http: any
   kernel: any
+  language_server_protocol: any
   logging: any
   meta: any
   package_config: any
