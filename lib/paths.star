@@ -74,6 +74,7 @@ _ANDROID_PATHS = [
 _MAC_PATHS = [
     ".*macos.*",
     ".*macho.*",
+    ".*mach_o.*",
 ]
 
 _WINDOWS_PATHS = [
