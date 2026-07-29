@@ -141,7 +141,7 @@ plugins:
         isolate1.requests.first as protocol.AnalysisSetConfigurationsParams;
     var config1 = setConfigurations1.configurations;
 
-    var rootPath = testPackageRootPath;
+    var rootPath = convertPath(testPackageRootPath);
     var innerPath = innerFolder.path;
 
     expect(config0[rootPath], isEmpty);
@@ -381,7 +381,7 @@ plugins:
         isolate.requests.first as protocol.AnalysisSetConfigurationsParams;
     var config = setConfigurations.configurations;
 
-    var rootPath = testPackageRootPath;
+    var rootPath = convertPath(testPackageRootPath);
     var innerPath = innerFolder.path;
 
     expect(config[rootPath]!['foo']!.enabled, isTrue);
