@@ -938,8 +938,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     InternalPattern pattern = toPattern(peek());
     createAndEnterLocalScope(kind: LocalScopeKind.ifCaseHead);
-    for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-      assert(!variable.hasInitializer);
+    for (InternalPatternVariable variable in pattern.patternVariables) {
       declareVariable(variable, _localScope);
     }
   }
@@ -1057,10 +1056,9 @@ class BodyBuilderImpl extends StackListenerImpl
           InternalPattern pattern = patternGuard.pattern;
           if (jointPatternVariables == null) {
             jointPatternVariables = [
-              for (InternalDeclaredVariable variable
-                  in pattern.declaredVariables)
+              for (InternalPatternVariable variable in pattern.patternVariables)
                 intern.createSyntheticVariable(
-                  name: variable.cosmeticName!,
+                  name: variable.name,
                   isFinal: variable.isFinal,
                   fileOffset: variable.fileOffset,
                   isSynthesized: false,
@@ -1075,9 +1073,8 @@ class BodyBuilderImpl extends StackListenerImpl
             }
           } else {
             Map<String, InternalDeclaredVariable> patternVariablesByName = {
-              for (InternalDeclaredVariable variable
-                  in pattern.declaredVariables)
-                variable.cosmeticName!: variable,
+              for (InternalPatternVariable variable in pattern.patternVariables)
+                variable.name: variable,
             };
             for (InternalDeclaredVariable jointVariable
                 in jointPatternVariables) {
@@ -1180,8 +1177,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // makes the variables visible in the 'when' clause of the head.
     Object? pattern = peek();
     if (pattern is InternalPattern) {
-      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-        assert(!variable.hasInitializer);
+      for (InternalPatternVariable variable in pattern.patternVariables) {
         declareVariable(variable, _localScope);
       }
     }
@@ -1212,8 +1208,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (patternGuard != null) {
         createAndEnterLocalScope(kind: LocalScopeKind.ifCaseHead);
         InternalPattern pattern = patternGuard.pattern;
-        for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-          assert(!variable.hasInitializer);
+        for (InternalPatternVariable variable in pattern.patternVariables) {
           declareVariable(variable, _localScope);
         }
         LocalScope thenScope = _localScope.createNestedScope(
@@ -2847,6 +2842,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     InternalExpression receiver;
     InternalAnonymousMethodParameter variable;
+    bool isParameterless = formals == null;
     bool isImplicitlyTyped;
     int typeOffset;
 
@@ -2896,6 +2892,7 @@ class BodyBuilderImpl extends StackListenerImpl
         isImplicitlyTyped: isImplicitlyTyped,
         isNullAware: isNullAware,
         isCascade: isCascade,
+        isParameterless: isParameterless,
         typeOffset: typeOffset,
         fileOffset: variableOffset,
       );
@@ -2908,6 +2905,7 @@ class BodyBuilderImpl extends StackListenerImpl
         isImplicitlyTyped: isImplicitlyTyped,
         isNullAware: isNullAware,
         isCascade: isCascade,
+        isParameterless: isParameterless,
         typeOffset: typeOffset,
         fileOffset: variableOffset,
       );
@@ -3169,50 +3167,46 @@ class BodyBuilderImpl extends StackListenerImpl
         push(intern.createAndPattern(operatorToken.charOffset, left, right));
         break;
       case '||':
-        Map<String, InternalDeclaredVariable> leftVariablesByName = {
-          for (InternalDeclaredVariable leftVariable in left.declaredVariables)
-            leftVariable.cosmeticName!: leftVariable,
+        Map<String, InternalPatternVariable> leftVariablesByName = {
+          for (InternalPatternVariable leftVariable in left.patternVariables)
+            leftVariable.name: leftVariable,
         };
-        for (InternalDeclaredVariable rightVariable
-            in right.declaredVariables) {
-          if (!leftVariablesByName.containsKey(rightVariable.cosmeticName)) {
+        for (InternalPatternVariable rightVariable in right.patternVariables) {
+          if (!leftVariablesByName.containsKey(rightVariable.name)) {
             addProblem(
               diag.missingVariablePattern.withArguments(
-                variableName: rightVariable.cosmeticName!,
+                variableName: rightVariable.name,
               ),
               left.fileOffset,
               noLength,
             );
           }
         }
-        Map<String, InternalDeclaredVariable> rightVariablesByName = {
-          for (InternalDeclaredVariable rightVariable
-              in right.declaredVariables)
-            rightVariable.cosmeticName!: rightVariable,
+        Map<String, InternalPatternVariable> rightVariablesByName = {
+          for (InternalPatternVariable rightVariable in right.patternVariables)
+            rightVariable.name: rightVariable,
         };
-        for (InternalDeclaredVariable leftVariable in left.declaredVariables) {
-          if (!rightVariablesByName.containsKey(leftVariable.cosmeticName)) {
+        for (InternalPatternVariable leftVariable in left.patternVariables) {
+          if (!rightVariablesByName.containsKey(leftVariable.name)) {
             addProblem(
               diag.missingVariablePattern.withArguments(
-                variableName: leftVariable.cosmeticName!,
+                variableName: leftVariable.name,
               ),
               right.fileOffset,
               noLength,
             );
           }
         }
-        List<InternalDeclaredVariable> jointVariables = [
-          for (InternalDeclaredVariable leftVariable in left.declaredVariables)
-            intern.createSyntheticVariable(
-              name: leftVariable.cosmeticName!,
+        List<InternalPatternVariable> jointVariables = [
+          for (InternalPatternVariable leftVariable in left.patternVariables)
+            intern.createSyntheticPatternVariable(
+              name: leftVariable.name,
               fileOffset: leftVariable.fileOffset,
-              isSynthesized: false,
               // TODO(johnniwinther): Should this be final if [leftVariable]
               //  is?
             ),
         ];
-        for (InternalDeclaredVariable variable in jointVariables) {
-          assert(!variable.hasInitializer);
+        for (InternalPatternVariable variable in jointVariables) {
           declareVariable(variable, _localScope);
           assignedVariables.declare(variable);
         }
@@ -4288,7 +4282,6 @@ class BodyBuilderImpl extends StackListenerImpl
   ) {
     debugEvent("FunctionName");
     Identifier name = pop() as Identifier;
-    Token nameToken = name.token;
     String identifierName = name.name;
     bool isWildcard =
         libraryFeatures.wildcardVariables.isEnabled && identifierName == '_';
@@ -4299,7 +4292,6 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalLocalFunctionVariable variable = intern.createLocalFunctionVariable(
       name: identifierName,
       type: null,
-      forSyntheticToken: nameToken.isSynthetic,
       isWildcard: isWildcard,
       fileOffset: name.nameOffset,
     );
@@ -4316,7 +4308,6 @@ class BodyBuilderImpl extends StackListenerImpl
       LocalScope scope = isFunctionExpression
           ? _localScope
           : _localScopes.previous;
-      assert(!variable.hasInitializer);
       InternalInvalidExpression? error = declareVariable(variable, scope);
       if (error != null) {
         push(
@@ -5079,8 +5070,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (scopeKind != LocalScopeKind.orPatternRight &&
         enclosingScopeIsPatternScope) {
       if (pattern is InternalPattern) {
-        for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-          assert(!variable.hasInitializer);
+        for (InternalPatternVariable variable in pattern.patternVariables) {
           declareVariable(variable, _localScope);
         }
       }
@@ -5568,8 +5558,8 @@ class BodyBuilderImpl extends StackListenerImpl
           expressionsOrPatternGuards.first.patternGuard;
       if (patternGuard != null) {
         InternalPattern pattern = patternGuard.pattern;
-        for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-          String variableName = variable.cosmeticName!;
+        for (InternalPatternVariable variable in pattern.patternVariables) {
+          String variableName = variable.name;
           if (usedNamesOffsets[variableName] case [int offset, ...]) {
             addProblem(
               diag.jointPatternVariableWithLabelDefault.withArguments(
@@ -6751,7 +6741,7 @@ class BodyBuilderImpl extends StackListenerImpl
         declaredVariables: const [],
       );
     } else {
-      InternalDeclaredVariable declaredVariable = intern.createLocalVariable(
+      InternalPatternVariable declaredVariable = intern.createPatternVariable(
         fileOffset: variable.charOffset,
         name: variable.lexeme,
         type: patternType,
@@ -6762,7 +6752,6 @@ class BodyBuilderImpl extends StackListenerImpl
         patternType,
         declaredVariable,
       );
-      assert(!declaredVariable.hasInitializer);
       declareVariable(declaredVariable, _localScope);
       assignedVariables.declare(declaredVariable);
     }
@@ -6966,7 +6955,9 @@ class BodyBuilderImpl extends StackListenerImpl
       // have erroneously set the `isStaticLate` flag, so un-set it.
       Object? declaration = peek();
       if (declaration case InternalVariableStatement(
-        declaration: InternalVariableDeclaration(:InternalVariable variable),
+        declaration: InternalVariableDeclaration(
+          :InternalLocalVariable variable,
+        ),
       )) {
         variable.isStaticLate = false;
       }
@@ -6999,8 +6990,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (pattern is InternalPattern) {
       pop(); // Metadata.
-      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-        assert(!variable.hasInitializer);
+      for (InternalPatternVariable variable in pattern.patternVariables) {
         declareVariable(variable, _localScope);
       }
       LocalScope forScope = _localScope.createNestedScope(
@@ -7016,7 +7006,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // using the variables with the same name within the same block.
       List<InternalVariableDeclaration> intermediateVariableDeclarations = [];
       List<InternalVariableDeclaration> internalVariableDeclarations = [];
-      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+      for (InternalPatternVariable variable in pattern.patternVariables) {
         variable.isFinal |= isFinal;
 
         // TODO(johnniwinther): Can we avoid creating synthetic variables here?
@@ -7037,7 +7027,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
         InternalDeclaredVariable internalVariable = intern
             .createSyntheticVariable(
-              name: variable.cosmeticName!,
+              name: variable.name,
               fileOffset: variable.fileOffset,
               isFinal: isFinal,
               isSynthesized: false,
@@ -7099,9 +7089,8 @@ class BodyBuilderImpl extends StackListenerImpl
     if (pattern is InternalPattern) {
       pop(); // Metadata.
       bool isFinal = patternKeyword?.lexeme == 'final';
-      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+      for (InternalPatternVariable variable in pattern.patternVariables) {
         variable.isFinal |= isFinal;
-        assert(!variable.hasInitializer);
         declareVariable(variable, _localScope);
       }
     }
@@ -8233,10 +8222,9 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalExpression initializer = popForValue();
     InternalPattern pattern = toPattern(pop());
     bool isFinal = keyword.lexeme == 'final';
-    for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+    for (InternalPatternVariable variable in pattern.patternVariables) {
       variable.isFinal = isFinal;
       variable.hasDeclaredInitializer = true;
-      assert(!variable.hasInitializer);
       declareVariable(variable, _localScope);
     }
     // TODO(johnniwinther,cstefantsova): Handle metadata.
@@ -8579,8 +8567,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // body of the case.
     Object? pattern = peek();
     if (pattern is InternalPattern) {
-      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-        assert(!variable.hasInitializer);
+      for (InternalPatternVariable variable in pattern.patternVariables) {
         declareVariable(variable, _localScope);
       }
     }
@@ -8601,8 +8588,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? pattern = pop();
     createAndEnterLocalScope(kind: LocalScopeKind.caseHead);
     if (pattern is InternalPattern) {
-      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-        assert(!variable.hasInitializer);
+      for (InternalPatternVariable variable in pattern.patternVariables) {
         declareVariable(variable, _localScope);
       }
     }
@@ -8635,8 +8621,7 @@ class BodyBuilderImpl extends StackListenerImpl
       } else {
         createAndEnterLocalScope(kind: LocalScopeKind.ifCaseHead);
         InternalPattern pattern = patternGuard.pattern;
-        for (InternalDeclaredVariable variable in pattern.declaredVariables) {
-          assert(!variable.hasInitializer);
+        for (InternalPatternVariable variable in pattern.patternVariables) {
           declareVariable(variable, _localScope);
         }
         LocalScope thenScope = _localScope.createNestedScope(
@@ -9657,7 +9642,6 @@ class BodyBuilderImpl extends StackListenerImpl
       variable.type = function.computeFunctionType();
 
       declaration.function = function;
-      assert(!variable.hasInitializer);
       // This is matched by the call to [beginNode] in [enterFunction].
       assignedVariables.endNode(
         declaration,
@@ -9739,7 +9723,6 @@ class BodyBuilderImpl extends StackListenerImpl
         isWildcard: isWildcard,
         hasDeclaredInitializer: initializer != null,
         isStaticLate: isFinal && initializer == null,
-        forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
         fileOffset: identifier.nameOffset,
         fileEqualsOffset: offsetForToken(equalsToken),
@@ -9751,7 +9734,6 @@ class BodyBuilderImpl extends StackListenerImpl
         isFinal: isFinal,
         isWildcard: isWildcard,
         hasDeclaredInitializer: initializer != null,
-        forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
         fileOffset: identifier.nameOffset,
         fileEqualsOffset: offsetForToken(equalsToken),
@@ -9765,7 +9747,6 @@ class BodyBuilderImpl extends StackListenerImpl
         isWildcard: isWildcard,
         isStaticLate: isFinal && initializer == null,
         hasDeclaredInitializer: initializer != null,
-        forSyntheticToken: identifier.token.isSynthetic,
         fileEqualsOffset: offsetForToken(equalsToken),
         isImplicitlyTyped: currentLocalVariableType == null,
       );
@@ -9944,7 +9925,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   void registerVariableRead(InternalVariable variable) {
-    if (!variable.isLocalFunction && !variable.isWildcard) {
+    if (variable is! InternalLocalFunctionVariable && !variable.isWildcard) {
       assignedVariables.read(variable);
     }
   }
@@ -11010,15 +10991,19 @@ class BodyBuilderImpl extends StackListenerImpl
       //  in for statements as statements.
       InternalVariableDeclaration variableDeclaration =
           variableOrExpression.declaration;
-      // Late for loop variables are not supported. An error has already been
-      // reported by the parser.
-      variableDeclaration.variable.isLate = false;
+      if (variableDeclaration.variable case InternalLateVariable variable) {
+        // Late for loop variables are not supported. An error has already been
+        // reported by the parser.
+        variable.isLate = false;
+      }
       return [variableDeclaration];
     } else if (variableOrExpression is InternalVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
-      // Late for loop variables are not supported. An error has already been
-      // reported by the parser.
-      variableOrExpression.variable.isLate = false;
+      if (variableOrExpression.variable case InternalLateVariable variable) {
+        // Late for loop variables are not supported. An error has already been
+        // reported by the parser.
+        variable.isLate = false;
+      }
       return [variableOrExpression];
     } else if (variableOrExpression is InternalExpression) {
       InternalSyntheticVariable variable = intern.createSyntheticVariable(
@@ -11087,20 +11072,22 @@ class BodyBuilderImpl extends StackListenerImpl
       // reported by the parser.
       declaration.updateInitializer(null);
       declaration.variable.hasDeclaredInitializer = false;
-      // Late for-in variables are not supported. An error has already been
-      // reported by the parser.
-      declaration.variable.isLate = false;
+      if (declaration.variable case InternalLateVariable variable) {
+        // Late for-in variables are not supported. An error has already been
+        // reported by the parser.
+        variable.isLate = false;
+      }
       InternalInvalidExpression? error;
-      if (declaration.variable.isConst) {
+      if (declaration.variable case InternalConstVariable variable) {
         error = buildProblem(
           message: diag.forInLoopWithConstVariable,
           fileUri: uri,
           fileOffset: declaration.fileOffset,
-          length: declaration.variable.cosmeticName!.length,
+          length: variable.name.length,
         );
         // As a recovery step, remove the const flag, to not confuse the
         // constant evaluator further in the pipeline.
-        declaration.variable.isConst = false;
+        variable.isConst = false;
       }
       return new SingleVariableDeclarationForInElement(
         variableDeclaration: declaration,
@@ -11112,20 +11099,22 @@ class BodyBuilderImpl extends StackListenerImpl
       // reported by the parser.
       lvalue.updateInitializer(null);
       lvalue.variable.hasDeclaredInitializer = false;
-      // Late for-in variables are not supported. An error has already been
-      // reported by the parser.
-      lvalue.variable.isLate = false;
+      if (lvalue.variable case InternalLateVariable variable) {
+        // Late for-in variables are not supported. An error has already been
+        // reported by the parser.
+        variable.isLate = false;
+      }
       InternalInvalidExpression? error;
-      if (lvalue.variable.isConst) {
+      if (lvalue.variable case InternalConstVariable variable) {
         error = buildProblem(
           message: diag.forInLoopWithConstVariable,
           fileUri: uri,
           fileOffset: lvalue.fileOffset,
-          length: lvalue.variable.cosmeticName!.length,
+          length: variable.name.length,
         );
         // As a recovery step, remove the const flag, to not confuse the
         // constant evaluator further in the pipeline.
-        lvalue.variable.isConst = false;
+        variable.isConst = false;
       }
       return new SingleVariableDeclarationForInElement(
         variableDeclaration: lvalue,

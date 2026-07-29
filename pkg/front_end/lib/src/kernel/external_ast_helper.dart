@@ -329,6 +329,7 @@ ConstVariable createConstVariable({
   required int fileOffset,
   bool hasDeclaredInitializer = false,
   int fileEqualsOffset = TreeNode.noOffset,
+  Expression? value,
 }) {
   return new ConstVariable(
       name: name,
@@ -336,6 +337,7 @@ ConstVariable createConstVariable({
       isFinal: isFinal,
       isWildcard: isWildcard,
       hasDeclaredInitializer: hasDeclaredInitializer,
+      value: value,
     )
     ..fileOffset = fileOffset
     ..fileEqualsOffset = fileEqualsOffset;
@@ -839,13 +841,13 @@ InvalidInitializer createInvalidInitializerFromMessage(
 
 InvalidPattern createInvalidPattern({
   required Expression error,
-  required List<InternalDeclaredVariable> declaredVariables,
+  required List<InternalPatternVariable> patternVariables,
   int? fileOffset,
 }) {
   return new InvalidPattern(
     error,
-    declaredVariables: declaredVariables
-        .map((InternalDeclaredVariable variable) => variable.astVariable)
+    declaredVariables: patternVariables
+        .map((InternalPatternVariable variable) => variable.astVariable)
         .toList(),
   )..fileOffset = fileOffset ?? error.fileOffset;
 }

@@ -24,6 +24,7 @@ library;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/src/text_util.dart';
@@ -32,6 +33,7 @@ import 'package:kernel/text/ast_to_text.dart' show Precedence;
 import '../base/problems.dart' show unsupported;
 import '../builder/declaration_builders.dart';
 import '../codes/diagnostic.dart' as diag;
+import '../source/source_library_builder.dart';
 import '../type_inference/element_inference.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
@@ -39,6 +41,7 @@ import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/type_schema.dart';
 import 'body_builder.dart';
 import 'external_ast_helper.dart' as extern;
+import 'late_lowering.dart' as late_lowering;
 
 part 'collections.dart';
 
@@ -51,6 +54,7 @@ typedef SharedMatchContext =
     >;
 
 abstract class InternalNode({required final int fileOffset}) {
+  // Coverage-ignore(suite): Not run.
   /// Returns the textual representation of this node for use in debugging.
   ///
   /// [toStringInternal] should only be used for debugging, but should not leak.
@@ -60,7 +64,6 @@ abstract class InternalNode({required final int fileOffset}) {
   ///
   /// This method is called internally by toString methods to create conciser
   /// textual representations.
-  // Coverage-ignore(suite): Not run.
   String toStringInternal() => toText(defaultAstTextStrategy);
 
   // Coverage-ignore(suite): Not run.
@@ -655,9 +658,10 @@ class AnonymousMethodExpression extends InternalExpression {
     required this.isImplicitlyTyped,
     required this.isNullAware,
     required this.isCascade,
+    required this.isParameterless,
     required this.typeOffset,
     required super.fileOffset,
-  }) : isParameterless = variable.isSynthesized;
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -695,9 +699,10 @@ class AnonymousMethodBlock extends InternalExpression {
     required this.isImplicitlyTyped,
     required this.isNullAware,
     required this.isCascade,
+    required this.isParameterless,
     required this.typeOffset,
     required super.fileOffset,
-  }) : isParameterless = variable.isSynthesized;
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -1056,24 +1061,24 @@ class InternalReturnStatement extends InternalStatement {
 }
 
 class InternalLocalVariable extends InternalDeclaredVariable {
-  @override
-  LocalVariable _astVariable;
+  final LocalVariable _astVariable;
 
-  @override
-  final bool forSyntheticToken;
+  final String name;
 
   @override
   final bool isImplicitlyTyped;
 
+  @override
+  bool isStaticLate;
+
   new({
-    required String name,
+    required this.name,
     required DartType? type,
     bool isFinal = false,
     bool isWildcard = false,
     bool hasDeclaredInitializer = false,
     required this.isImplicitlyTyped,
-    this.forSyntheticToken = false,
-    bool isStaticLate = false,
+    this.isStaticLate = false,
     required super.fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
   }) : _astVariable = extern.createLocalVariable(
@@ -1084,29 +1089,135 @@ class InternalLocalVariable extends InternalDeclaredVariable {
          hasDeclaredInitializer: hasDeclaredInitializer,
          fileOffset: fileOffset,
          fileEqualsOffset: fileEqualsOffset,
-       ) {
-    this.isStaticLate = isStaticLate;
-  }
-
-  @override
-  bool get isLocalFunction => false;
+       );
 
   @override
   LocalVariable get astVariable => _astVariable;
 
   @override
+  @Deprecated('User InternalDeclaredVariable.name instead.')
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => false;
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
   bool get isAssignable {
     if (isStaticLate) return true;
-    return super.isAssignable;
+    if (isFinal) return false;
+    return true;
+  }
+}
+
+class InternalPatternVariable extends InternalDeclaredVariable {
+  DeclaredVariable _astVariable;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  final String name;
+
+  new({
+    required this.name,
+    required DartType? type,
+    bool isFinal = false,
+    required super.fileOffset,
+    int fileEqualsOffset = TreeNode.noOffset,
+  }) : isImplicitlyTyped = false,
+       _astVariable = extern.createLocalVariable(
+         name: name,
+         type: type,
+         isFinal: isFinal,
+         fileOffset: fileOffset,
+       );
+
+  new synthetic({required this.name, required super.fileOffset})
+    : isImplicitlyTyped = true,
+      _astVariable = new SyntheticVariable(
+        cosmeticName: name,
+        type: const DynamicType(),
+        isSynthesized: false,
+      )..fileOffset = fileOffset;
+
+  @override
+  bool get isStaticLate => false;
+
+  @override
+  DeclaredVariable get astVariable => _astVariable;
+
+  @override
+  @Deprecated('Use InternalPatternVariable.name instead.')
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get isFinal => _astVariable.isFinal;
+
+  void set isFinal(bool value) {
+    _astVariable.isFinal = value;
+  }
+
+  @override
+  bool get isLate => false;
+
+  @override
+  bool get isWildcard => false;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  bool get isAssignable {
+    if (isFinal) {
+      return false;
+    }
+    return true;
   }
 }
 
 class InternalLocalFunctionVariable extends InternalDeclaredVariable {
-  @override
-  LocalFunctionVariable _astVariable;
-
-  @override
-  final bool forSyntheticToken;
+  final LocalFunctionVariable _astVariable;
 
   @override
   final bool isImplicitlyTyped;
@@ -1116,7 +1227,6 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
     required DartType? type,
     bool isWildcard = false,
     required this.isImplicitlyTyped,
-    this.forSyntheticToken = false,
     required super.fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
   }) : _astVariable = extern.createLocalFunctionVariable(
@@ -1129,85 +1239,73 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
        );
 
   @override
-  bool get isLocalFunction => true;
+  // Coverage-ignore(suite): Not run.
+  bool get isStaticLate => false;
 
   @override
   LocalFunctionVariable get astVariable => _astVariable;
 
   @override
-  bool get isAssignable {
-    if (isStaticLate) return true;
-    return super.isAssignable;
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
   }
+
+  @override
+  bool get isConst => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLate => false;
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  bool get isAssignable => false;
 }
 
 class InternalLateVariable extends InternalDeclaredVariable {
-  @override
-  LateVariable _astVariable;
-
-  @override
-  final bool forSyntheticToken;
+  final DeclaredVariable _astVariable;
 
   @override
   final bool isImplicitlyTyped;
 
+  final String name;
+
+  @override
+  final bool isStaticLate;
+
   new({
-    required String name,
+    required this.name,
     required DartType? type,
     bool isFinal = false,
     bool isWildcard = false,
     bool hasDeclaredInitializer = false,
     required this.isImplicitlyTyped,
-    this.forSyntheticToken = false,
-    bool isStaticLate = false,
     required super.fileOffset,
+    this.isStaticLate = false,
     int fileEqualsOffset = TreeNode.noOffset,
   }) : _astVariable = extern.createLateVariable(
-         name: name,
-         type: type,
-         isFinal: isFinal,
-         isWildcard: isWildcard,
-         hasDeclaredInitializer: hasDeclaredInitializer,
-         fileOffset: fileOffset,
-         fileEqualsOffset: fileEqualsOffset,
-       ) {
-    this.isStaticLate = isStaticLate;
-  }
-
-  @override
-  bool get isLocalFunction => false;
-
-  @override
-  LateVariable get astVariable => _astVariable;
-
-  @override
-  bool get isAssignable {
-    if (isStaticLate) return true;
-    return super.isAssignable;
-  }
-}
-
-class InternalConstVariable extends InternalDeclaredVariable {
-  @override
-  ConstVariable _astVariable;
-
-  @override
-  final bool forSyntheticToken;
-
-  @override
-  final bool isImplicitlyTyped;
-
-  new({
-    required String name,
-    required DartType? type,
-    bool isFinal = false,
-    bool isWildcard = false,
-    bool hasDeclaredInitializer = false,
-    required this.isImplicitlyTyped,
-    this.forSyntheticToken = false,
-    required super.fileOffset,
-    int fileEqualsOffset = TreeNode.noOffset,
-  }) : _astVariable = extern.createConstVariable(
          name: name,
          type: type,
          isFinal: isFinal,
@@ -1218,15 +1316,324 @@ class InternalConstVariable extends InternalDeclaredVariable {
        );
 
   @override
-  bool get isLocalFunction => false;
+  DeclaredVariable get astVariable => _astVariable;
 
   @override
-  ConstVariable get astVariable => _astVariable;
+  @Deprecated('Use InternalLateVariable.name instead.')
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => _astVariable.isLate;
+
+  void set isLate(bool value) {
+    _astVariable.isLate = value;
+  }
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
 
   @override
   bool get isAssignable {
     if (isStaticLate) return true;
-    return super.isAssignable;
+    if (isFinal) {
+      if (isLate) return !hasDeclaredInitializer;
+      return false;
+    }
+    return true;
+  }
+
+  VariableDeclarationInferenceResult computeLateLocalLowering({
+    required CoreTypes coreTypes,
+    required SourceLibraryBuilder libraryBuilder,
+    required DartType Function(DartType) computeNullable,
+    required Expression? initializer,
+    required List<VariableContext>? capturedContexts,
+    required int variableDeclarationFileOffset,
+  }) {
+    List<VariableDeclaration> variableDeclarations = [];
+    List<FunctionDeclaration> functionDeclarations = [];
+
+    late_lowering.IsSetEncoding isSetEncoding = late_lowering
+        .computeIsSetEncoding(
+          type,
+          late_lowering.computeIsSetStrategy(libraryBuilder),
+        );
+
+    Expression? initialValue;
+    if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
+      initialValue = extern.createStaticInvocation(
+        coreTypes.createSentinelMethod,
+        extern.createArguments([], types: [type], fileOffset: fileOffset),
+        fileOffset: fileOffset,
+      );
+    }
+
+    variableDeclarations.add(
+      extern.createVariableDeclaration(
+        astVariable,
+        initializer: initialValue,
+        fileOffset: variableDeclarationFileOffset,
+      ),
+    );
+
+    DeclaredVariable? isSetVariable;
+    if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
+      isSetVariable = extern.createVariable(
+        new BoolLiteral(false)..fileOffset = fileOffset,
+        coreTypes.boolRawType(Nullability.nonNullable),
+        cosmeticName: late_lowering.computeLateLocalIsSetName(name),
+        isLowered: true,
+        isFinal: false,
+        isSynthesized: false,
+      );
+      variableDeclarations.add(extern.createVariableDeclaration(isSetVariable));
+    }
+
+    Expression createVariableRead({bool needsPromotion = false}) {
+      if (needsPromotion) {
+        return new VariableGet(astVariable, type)..fileOffset = fileOffset;
+      } else {
+        return new VariableGet(astVariable)..fileOffset = fileOffset;
+      }
+    }
+
+    Expression createIsSetRead() =>
+        new VariableGet(isSetVariable!)..fileOffset = fileOffset;
+    Expression createVariableWrite(Expression value) =>
+        new VariableSet(astVariable, value);
+    Expression createIsSetWrite(Expression value) =>
+        new VariableSet(isSetVariable!, value);
+
+    LocalFunctionVariable getVariable = extern.createLocalFunctionVariable(
+      name: late_lowering.computeLateLocalGetterName(name),
+      type: const DynamicType(),
+      isLowered: true,
+      fileOffset: fileOffset,
+    );
+    FunctionDeclaration getter = new FunctionDeclaration(
+      getVariable,
+      new FunctionNode(
+        initializer == null
+            ? late_lowering.createGetterBodyWithoutInitializer(
+                coreTypes,
+                fileOffset,
+                name,
+                type,
+                createVariableRead: createVariableRead,
+                createIsSetRead: createIsSetRead,
+                isSetEncoding: isSetEncoding,
+                forField: false,
+              )
+            : (isFinal
+                  ? late_lowering.createGetterWithInitializerWithRecheck(
+                      coreTypes,
+                      fileOffset,
+                      name,
+                      type,
+                      initializer,
+                      createVariableRead: createVariableRead,
+                      createVariableWrite: createVariableWrite,
+                      createIsSetRead: createIsSetRead,
+                      createIsSetWrite: createIsSetWrite,
+                      isSetEncoding: isSetEncoding,
+                      forField: false,
+                    )
+                  : late_lowering.createGetterWithInitializer(
+                      coreTypes,
+                      fileOffset,
+                      name,
+                      type,
+                      initializer,
+                      createVariableRead: createVariableRead,
+                      createVariableWrite: createVariableWrite,
+                      createIsSetRead: createIsSetRead,
+                      createIsSetWrite: createIsSetWrite,
+                      isSetEncoding: isSetEncoding,
+                    )),
+        returnType: type,
+      )..capturedContexts = capturedContexts,
+    )..fileOffset = fileOffset;
+    getVariable.type = getter.function.computeFunctionType(
+      Nullability.nonNullable,
+    );
+    lateGetter = getVariable;
+    functionDeclarations.add(getter);
+
+    bool needsSetter = !isFinal || initializer == null;
+    if (needsSetter) {
+      isLateFinalWithoutInitializer = isFinal && initializer == null;
+      LocalFunctionVariable setVariable = extern.createLocalFunctionVariable(
+        name: late_lowering.computeLateLocalSetterName(name),
+        type: const DynamicType(),
+        isLowered: true,
+        fileOffset: fileOffset,
+      );
+      PositionalParameter setterParameter = extern.createPositionalParameter(
+        cosmeticName: "${name}#param",
+        type: type,
+        isSynthesized: false,
+        fileOffset: fileOffset,
+      );
+      FunctionDeclaration setter = new FunctionDeclaration(
+        setVariable,
+        new FunctionNode(
+          isFinal
+                ? late_lowering.createSetterBodyFinal(
+                    coreTypes,
+                    fileOffset,
+                    name,
+                    setterParameter,
+                    type,
+                    shouldReturnValue: true,
+                    createVariableRead: createVariableRead,
+                    createVariableWrite: createVariableWrite,
+                    createIsSetRead: createIsSetRead,
+                    createIsSetWrite: createIsSetWrite,
+                    isSetEncoding: isSetEncoding,
+                    forField: false,
+                  )
+                : late_lowering.createSetterBody(
+                    coreTypes,
+                    fileOffset,
+                    name,
+                    setterParameter,
+                    type,
+                    shouldReturnValue: true,
+                    createVariableWrite: createVariableWrite,
+                    createIsSetWrite: createIsSetWrite,
+                    isSetEncoding: isSetEncoding,
+                  )
+            ..fileOffset = fileOffset,
+          positionalParameters: [setterParameter],
+        ),
+      )
+      // TODO(johnniwinther): Reinsert the file offset when the vm doesn't
+      //  use it for function declaration identity.
+      /*..fileOffset = fileOffset*/;
+      setVariable.type = setter.function.computeFunctionType(
+        Nullability.nonNullable,
+      );
+      lateSetter = setVariable;
+      functionDeclarations.add(setter);
+    }
+    isLate = false;
+    lateType = type;
+    type = computeNullable(type);
+    lateName = name;
+    _astVariable.isLowered = true;
+    _astVariable.cosmeticName = late_lowering.computeLateLocalName(name);
+
+    return new VariableDeclarationInferenceResult.late(
+      variableDeclarations,
+      functionDeclarations,
+      fileOffset: fileOffset,
+    );
+  }
+}
+
+class InternalConstVariable extends InternalDeclaredVariable {
+  final DeclaredVariable _astVariable;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  final String name;
+
+  new({
+    required this.name,
+    required DartType? type,
+    bool isFinal = false,
+    bool isWildcard = false,
+    bool hasDeclaredInitializer = false,
+    required this.isImplicitlyTyped,
+    required super.fileOffset,
+    int fileEqualsOffset = TreeNode.noOffset,
+    Expression? value,
+  }) : _astVariable = extern.createConstVariable(
+         name: name,
+         type: type,
+         isFinal: isFinal,
+         isWildcard: isWildcard,
+         hasDeclaredInitializer: hasDeclaredInitializer,
+         fileOffset: fileOffset,
+         fileEqualsOffset: fileEqualsOffset,
+         value: value,
+       );
+
+  @override
+  bool get isStaticLate => false;
+
+  @override
+  DeclaredVariable get astVariable => _astVariable;
+
+  @override
+  @Deprecated('Use InternalConstVariable.name instead.')
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  bool get isConst => _astVariable.isConst;
+
+  void set isConst(bool value) {
+    _astVariable.isConst = value;
+  }
+
+  @override
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => _astVariable.isLate;
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  bool get isAssignable {
+    if (isStaticLate) return true;
+    if (isConst) return false;
+    // Coverage-ignore(suite): Not run.
+    if (isFinal) {
+      if (isLate) return !hasDeclaredInitializer;
+      return false;
+    }
+    return true;
   }
 }
 
@@ -1239,8 +1646,47 @@ sealed class InternalFunctionParameter extends InternalVariable
   @override
   FunctionParameter get astVariable;
 
-  @override
   FunctionParameter get _astVariable;
+
+  @override
+  bool get isStaticLate => false;
+
+  @override
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  @Deprecated('Use InternalFunctionParameter.hasDeclaredDefaultValue instead.')
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredDefaultValue;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => false;
+
+  @override
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => false;
+
+  bool get isRequired => _astVariable.isRequired;
+
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => _astVariable.isSynthesized;
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  bool get isAssignable => !isFinal;
 
   bool get hasErroneousDefaultValue => _astVariable.hasErroneousDefaultValue;
 
@@ -1248,16 +1694,11 @@ sealed class InternalFunctionParameter extends InternalVariable
     _astVariable.hasErroneousDefaultValue = value;
   }
 
-  @Deprecated('Use InternalFunctionParameter.hasErroneousDefaultValue instead.')
-  @override
-  bool get isErroneouslyInitialized;
-
-  @Deprecated('Use InternalFunctionParameter.hasErroneousDefaultValue instead.')
-  @override
-  void set isErroneouslyInitialized(bool value);
-
-  // Coverage-ignore(suite): Not run.
   bool get hasDeclaredDefaultValue => _astVariable.hasDeclaredDefaultValue;
+
+  void set hasDeclaredDefaultValue(bool value) {
+    _astVariable.hasDeclaredDefaultValue = value;
+  }
 
   InternalExpression? get defaultValue => _defaultValue;
 
@@ -1284,20 +1725,12 @@ class InternalPositionalParameter extends InternalFunctionParameter {
   PositionalParameter _astVariable;
 
   @override
-  final bool forSyntheticToken;
-
-  @override
   final bool isImplicitlyTyped;
-
-  @override
-  final bool isLocalFunction;
 
   new({
     required super.defaultValue,
     required this._astVariable,
     required this.isImplicitlyTyped,
-    this.forSyntheticToken = false,
-    this.isLocalFunction = false,
     required super.fileOffset,
   });
 
@@ -1308,11 +1741,7 @@ class InternalPositionalParameter extends InternalFunctionParameter {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpressionVariable(_astVariable);
-    List<String> modifiers = [
-      if (forSyntheticToken) "forSyntheticToken",
-      if (isImplicitlyTyped) "isImplicitlyTyped",
-      if (isLocalFunction) "isLocalFunction",
-    ];
+    List<String> modifiers = [if (isImplicitlyTyped) "isImplicitlyTyped"];
     if (modifiers.isNotEmpty) {
       printer.write("[${modifiers.join(",")}]");
     }
@@ -1324,20 +1753,12 @@ class InternalNamedParameter extends InternalFunctionParameter {
   NamedParameter _astVariable;
 
   @override
-  final bool forSyntheticToken;
-
-  @override
   final bool isImplicitlyTyped;
-
-  @override
-  final bool isLocalFunction;
 
   new({
     required super.defaultValue,
     required this._astVariable,
     required this.isImplicitlyTyped,
-    this.forSyntheticToken = false,
-    this.isLocalFunction = false,
     required super.fileOffset,
   });
 
@@ -1348,32 +1769,24 @@ class InternalNamedParameter extends InternalFunctionParameter {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpressionVariable(_astVariable);
-    List<String> modifiers = [
-      if (forSyntheticToken) "forSyntheticToken",
-      if (isImplicitlyTyped) "isImplicitlyTyped",
-      if (isLocalFunction) "isLocalFunction",
-    ];
+    List<String> modifiers = [if (isImplicitlyTyped) "isImplicitlyTyped"];
     if (modifiers.isNotEmpty) {
       printer.write("[${modifiers.join(",")}]");
     }
   }
 
-  // Coverage-ignore(suite): Not run.
   String get parameterName => _astVariable.parameterName;
+
+  @override
+  @Deprecated('Use InternalNamedParameter.parameterName instead.')
+  String? get cosmeticName;
 }
 
 class InternalCatchVariable extends InternalVariable {
-  @override
   CatchVariable _astVariable;
 
   @override
-  final bool forSyntheticToken;
-
-  @override
   final bool isImplicitlyTyped;
-
-  @override
-  final bool isLocalFunction;
 
   new({
     required String name,
@@ -1381,8 +1794,6 @@ class InternalCatchVariable extends InternalVariable {
     bool isWildcard = false,
     bool isFinal = false,
     required this.isImplicitlyTyped,
-    this.forSyntheticToken = false,
-    this.isLocalFunction = false,
     required super.fileOffset,
   }) : _astVariable = extern.createCatchVariable(
          name: name,
@@ -1393,17 +1804,64 @@ class InternalCatchVariable extends InternalVariable {
        );
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isStaticLate => false;
+
+  @override
   CatchVariable get astVariable => _astVariable;
+
+  @override
+  @Deprecated('Use InternalCatchVariable.catchVariableName instead.')
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @deprecated
+  void set cosmeticName(String? value) {
+    throw new UnsupportedError('$runtimeType.cosmeticName=');
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => false;
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAssignable {
+    if (isFinal) return false;
+    return true;
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpressionVariable(_astVariable);
-    List<String> modifiers = [
-      if (forSyntheticToken) "forSyntheticToken",
-      if (isImplicitlyTyped) "isImplicitlyTyped",
-      if (isLocalFunction) "isLocalFunction",
-    ];
+    List<String> modifiers = [if (isImplicitlyTyped) "isImplicitlyTyped"];
     if (modifiers.isNotEmpty) {
       printer.write("[${modifiers.join(",")}]");
     }
@@ -1414,11 +1872,7 @@ class InternalCatchVariable extends InternalVariable {
 }
 
 class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
-  @override
-  SyntheticVariable _astVariable;
-
-  @override
-  final bool forSyntheticToken;
+  final SyntheticVariable _astVariable;
 
   @override
   final bool isImplicitlyTyped;
@@ -1432,7 +1886,6 @@ class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
     required this.isImplicitlyTyped,
     required bool isFinal,
     required bool isSynthesized,
-    this.forSyntheticToken = false,
     required this.isWildcard,
     required super.fileOffset,
   }) : _astVariable = new SyntheticVariable(
@@ -1443,25 +1896,60 @@ class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
        )..fileOffset = fileOffset;
 
   @override
-  bool get isLocalFunction => false;
+  // Coverage-ignore(suite): Not run.
+  bool get isStaticLate => false;
 
   @override
   SyntheticVariable get astVariable => _astVariable;
+
+  @override
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => false;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAssignable {
+    if (isFinal) return false;
+    return true;
+  }
 }
 
 class InternalSyntheticVariable extends InternalDeclaredVariable {
-  @override
-  SyntheticVariable _astVariable;
-
-  @override
-  final bool forSyntheticToken;
+  final SyntheticVariable _astVariable;
 
   @override
   final bool isImplicitlyTyped;
 
   new({
     required this.isImplicitlyTyped,
-    this.forSyntheticToken = false,
     String? name,
     DartType? type,
     bool isFinal = false,
@@ -1477,10 +1965,48 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
        )..fileOffset = fileOffset;
 
   @override
-  bool get isLocalFunction => false;
+  bool get isStaticLate => false;
 
   @override
   SyntheticVariable get astVariable => _astVariable;
+
+  @override
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => false;
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  bool get isAssignable {
+    if (isFinal) return false;
+    return true;
+  }
 }
 
 sealed class InternalVariable({required super.fileOffset})
@@ -1497,17 +2023,9 @@ sealed class InternalVariable({required super.fileOffset})
   ///   in `lowering_predicates.dart`.
   Variable get astVariable;
 
-  Variable get _astVariable;
-
-  bool get forSyntheticToken;
-
   /// Determine whether the given [InternalVariable] had an implicit
   /// type.
   bool get isImplicitlyTyped;
-
-  /// Determines whether the given [InternalVariable] represents a
-  /// local function.
-  bool get isLocalFunction;
 
   /// Whether the variable is final with no initializer.
   ///
@@ -1515,7 +2033,7 @@ sealed class InternalVariable({required super.fileOffset})
   /// except that the don't have lazy evaluation semantics, and it is statically
   /// verified by the front end that they are always assigned before they are
   /// used.
-  bool isStaticLate = false;
+  bool get isStaticLate;
 
   /// The synthesized local getter function for a lowered late variable.
   ///
@@ -1548,87 +2066,21 @@ sealed class InternalVariable({required super.fileOffset})
   /// lowering is enabled.
   String? lateName;
 
-  String? get cosmeticName => _astVariable.cosmeticName;
+  String? get cosmeticName;
 
-  void set cosmeticName(String? value) {
-    _astVariable.cosmeticName = value;
-  }
+  bool get hasDeclaredInitializer;
 
-  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+  bool get isConst;
 
-  void set hasDeclaredInitializer(bool value) {
-    _astVariable.hasDeclaredInitializer = value;
-  }
+  bool get isFinal;
 
-  bool get isConst => _astVariable.isConst;
+  bool get isLate;
 
-  void set isConst(bool value) {
-    _astVariable.isConst = value;
-  }
+  bool get isWildcard;
 
-  // Coverage-ignore(suite): Not run.
-  bool get isErroneouslyInitialized => astVariable.isErroneouslyInitialized;
+  abstract DartType type;
 
-  void set isErroneouslyInitialized(bool value) {
-    _astVariable.isErroneouslyInitialized = value;
-  }
-
-  bool get isFinal => _astVariable.isFinal;
-
-  void set isFinal(bool value) {
-    _astVariable.isFinal = value;
-  }
-
-  bool get isLate => _astVariable.isLate;
-
-  void set isLate(bool value) {
-    _astVariable.isLate = value;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  bool get isLowered => _astVariable.isLowered;
-
-  void set isLowered(bool value) {
-    _astVariable.isLowered = value;
-  }
-
-  bool get isRequired => _astVariable.isRequired;
-
-  // Coverage-ignore(suite): Not run.
-  void set isRequired(bool value) {
-    _astVariable.isRequired = value;
-  }
-
-  bool get isSynthesized => _astVariable.isSynthesized;
-
-  // Coverage-ignore(suite): Not run.
-  void set isSynthesized(bool value) {
-    _astVariable.isSynthesized = value;
-  }
-
-  bool get isWildcard => _astVariable.isWildcard;
-
-  // Coverage-ignore(suite): Not run.
-  void set isWildcard(bool value) {
-    _astVariable.isWildcard = value;
-  }
-
-  DartType get type => _astVariable.type;
-
-  void set type(DartType value) {
-    _astVariable.type = value;
-  }
-
-  bool get isAssignable {
-    if (isConst) return false;
-    if (isFinal) {
-      if (isLate) return !hasDeclaredInitializer;
-      return false;
-    }
-    return true;
-  }
-
-  bool get hasInitializer => _astVariable.initializer != null;
+  bool get isAssignable;
 }
 
 sealed class InternalDeclaredVariable({required super.fileOffset})
@@ -1637,8 +2089,7 @@ sealed class InternalDeclaredVariable({required super.fileOffset})
   @override
   DeclaredVariable get astVariable;
 
-  @override
-  DeclaredVariable get _astVariable;
+  void set hasDeclaredInitializer(bool value);
 
   /// Writes this [InternalVariable] to the [printer].
   ///
@@ -1653,9 +2104,6 @@ sealed class InternalDeclaredVariable({required super.fileOffset})
     InternalExpression? initializer,
   }) {
     if (includeModifiersAndType) {
-      if (isRequired) {
-        printer.write('required ');
-      }
       if (isLate) {
         printer.write('late ');
       }
@@ -5210,7 +5658,7 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
     DartType type, {
     required int forOffset,
   }) {
-    DeclaredVariable loopVariable = variableDeclaration.variable._astVariable;
+    DeclaredVariable loopVariable = variableDeclaration.variable.astVariable;
     DartType loopVariableType;
     bool checkAssignment = true;
     if (variableDeclaration.variable.isImplicitlyTyped) {
@@ -5281,7 +5729,7 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeVariableInitialization(
-      variableDeclaration.variable._astVariable,
+      variableDeclaration.variable.astVariable,
       isImplicitlyTyped: variableDeclaration.variable.isImplicitlyTyped,
     );
   }
@@ -5319,14 +5767,14 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
       InternalVariableDeclaration variableDeclaration = variableDeclarations[i];
       if (i == 0) {
         printer.writeVariableInitialization(
-          variableDeclaration.variable._astVariable,
+          variableDeclaration.variable.astVariable,
           includeModifiersAndType: true,
           isImplicitlyTyped: variableDeclaration.variable.isImplicitlyTyped,
         );
       } else {
         printer.write(', ');
         printer.writeVariableInitialization(
-          variableDeclaration.variable._astVariable,
+          variableDeclaration.variable.astVariable,
           includeModifiersAndType: false,
         );
       }
@@ -5352,7 +5800,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
             in variableDeclarations)
           extern.createVariableStatement(
             extern.createVariableDeclaration(
-              variableDeclaration.variable._astVariable,
+              variableDeclaration.variable.astVariable,
               fileOffset: variableDeclaration.fileOffset,
             ),
           ),
@@ -6136,7 +6584,7 @@ sealed class InternalPattern({required super.fileOffset}) extends InternalNode {
   ///
   /// These variables are initialized to the values captured by the variable
   /// patterns nested in the pattern.
-  List<InternalDeclaredVariable> get declaredVariables;
+  List<InternalPatternVariable> get patternVariables;
 
   shared.PatternResult acceptInference(
     InferenceVisitorImpl visitor,
@@ -6149,11 +6597,10 @@ class InternalOrPattern extends InternalPattern {
   final InternalPattern left;
   final InternalPattern right;
 
-  final List<InternalDeclaredVariable> orPatternJointVariables;
+  final List<InternalPatternVariable> orPatternJointVariables;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables =>
-      orPatternJointVariables;
+  List<InternalPatternVariable> get patternVariables => orPatternJointVariables;
 
   new(
     this.left,
@@ -6185,9 +6632,9 @@ class InternalAndPattern extends InternalPattern {
   final InternalPattern right;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => [
-    ...left.declaredVariables,
-    ...right.declaredVariables,
+  List<InternalPatternVariable> get patternVariables => [
+    ...left.patternVariables,
+    ...right.patternVariables,
   ];
 
   new(this.left, this.right, {required super.fileOffset});
@@ -6216,7 +6663,7 @@ class InternalConstantPattern extends InternalPattern {
   new({required this.expression, required super.fileOffset});
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => const [];
+  List<InternalPatternVariable> get patternVariables => const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -6239,7 +6686,7 @@ class InternalAssignedVariablePattern extends InternalPattern {
   new(this.variable, {required super.fileOffset});
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => const [];
+  List<InternalPatternVariable> get patternVariables => const [];
 
   @override
   String get variableName => variable.cosmeticName!;
@@ -6270,8 +6717,8 @@ class InternalCastPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables =>
-      pattern.declaredVariables;
+  List<InternalPatternVariable> get patternVariables =>
+      pattern.patternVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -6294,11 +6741,11 @@ class InternalInvalidPattern extends InternalPattern {
   final InternalInvalidExpression invalidExpression;
 
   @override
-  final List<InternalDeclaredVariable> declaredVariables;
+  final List<InternalPatternVariable> patternVariables;
 
   new({
     required this.invalidExpression,
-    required this.declaredVariables,
+    required this.patternVariables,
     required super.fileOffset,
   });
 
@@ -6325,8 +6772,8 @@ class InternalListPattern extends InternalPattern {
   List<InternalPattern> patterns;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => [
-    for (InternalPattern pattern in patterns) ...pattern.declaredVariables,
+  List<InternalPatternVariable> get patternVariables => [
+    for (InternalPattern pattern in patterns) ...pattern.patternVariables,
   ];
 
   new({
@@ -6372,10 +6819,10 @@ class InternalMapPattern extends InternalPattern {
   final List<InternalMapPatternEntry> entries;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => [
+  List<InternalPatternVariable> get patternVariables => [
     for (InternalMapPatternEntry entry in entries)
       if (entry is! InternalMapPatternRestEntry)
-        ...entry.value.declaredVariables,
+        ...entry.value.patternVariables,
   ];
 
   new({
@@ -6449,8 +6896,8 @@ class InternalNamedPattern extends InternalPattern {
   final InternalPattern pattern;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables =>
-      pattern.declaredVariables;
+  List<InternalPatternVariable> get patternVariables =>
+      pattern.patternVariables;
 
   new({required this.name, required this.pattern, required super.fileOffset});
 
@@ -6485,8 +6932,8 @@ class InternalNullAssertPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables =>
-      pattern.declaredVariables;
+  List<InternalPatternVariable> get patternVariables =>
+      pattern.patternVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -6514,8 +6961,8 @@ class InternalNullCheckPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables =>
-      pattern.declaredVariables;
+  List<InternalPatternVariable> get patternVariables =>
+      pattern.patternVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -6556,9 +7003,9 @@ class InternalObjectPattern extends InternalPattern {
   });
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables {
+  List<InternalPatternVariable> get patternVariables {
     return [
-      for (InternalNamedPattern field in fields) ...field.declaredVariables,
+      for (InternalNamedPattern field in fields) ...field.patternVariables,
     ];
   }
 
@@ -6589,8 +7036,8 @@ class InternalRecordPattern extends InternalPattern {
   final List<InternalPattern> patterns;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => [
-    for (InternalPattern pattern in patterns) ...pattern.declaredVariables,
+  List<InternalPatternVariable> get patternVariables => [
+    for (InternalPattern pattern in patterns) ...pattern.patternVariables,
   ];
 
   new({required this.patterns, required super.fileOffset});
@@ -6630,7 +7077,7 @@ class InternalRelationalPattern extends InternalPattern {
   });
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => const [];
+  List<InternalPatternVariable> get patternVariables => const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -6673,8 +7120,8 @@ class InternalRestPattern extends InternalPattern {
   new({required this.subPattern, required super.fileOffset});
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables =>
-      subPattern?.declaredVariables ?? const [];
+  List<InternalPatternVariable> get patternVariables =>
+      subPattern?.patternVariables ?? const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -6701,15 +7148,15 @@ class InternalRestPattern extends InternalPattern {
 class InternalVariablePattern extends InternalPattern {
   // TODO(johnniwinther): Should this be accessed through [variable] instead?
   final DartType? type;
-  final InternalDeclaredVariable variable;
+  final InternalPatternVariable variable;
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => [variable];
+  List<InternalPatternVariable> get patternVariables => [variable];
 
   new({required this.type, required this.variable, required super.fileOffset});
 
   @override
-  String get variableName => variable.cosmeticName!;
+  String get variableName => variable.name;
 
   @override
   shared.PatternResult acceptInference(
@@ -6728,7 +7175,7 @@ class InternalVariablePattern extends InternalPattern {
     } else {
       printer.write("var ");
     }
-    printer.write(variable.cosmeticName!);
+    printer.write(variable.name);
   }
 }
 
@@ -6738,7 +7185,7 @@ class InternalWildcardPattern extends InternalPattern {
   new({required this.type, required super.fileOffset});
 
   @override
-  List<InternalDeclaredVariable> get declaredVariables => const [];
+  List<InternalPatternVariable> get patternVariables => const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -7276,7 +7723,6 @@ class InternalLet extends InternalExpression {
 }
 
 class InternalThisVariable extends InternalVariable {
-  @override
   final ThisVariable _astVariable;
 
   new({required DartType type, required super.fileOffset})
@@ -7287,11 +7733,11 @@ class InternalThisVariable extends InternalVariable {
 
   @override
   // Coverage-ignore(suite): Not run.
-  String get cosmeticName => _astVariable.cosmeticName;
+  bool get isStaticLate => false;
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get forSyntheticToken => false;
+  String get cosmeticName => _astVariable.cosmeticName;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -7299,7 +7745,37 @@ class InternalThisVariable extends InternalVariable {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isLocalFunction => false;
+  bool get hasDeclaredInitializer => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLate => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isWildcard => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DartType get type => _astVariable.type;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAssignable => false;
 
   @override
   // Coverage-ignore(suite): Not run.

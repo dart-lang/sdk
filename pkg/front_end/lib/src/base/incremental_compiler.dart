@@ -1989,8 +1989,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   type: substitution.substituteType(def.value.type),
                   hasDeclaredInitializer: true,
                   fileOffset: def.value.fileOffset,
+                  value: def.value.initializer,
                 );
-                variable.astVariable.value = def.value.initializer;
                 extraKnownVariables.add(variable);
               } else if (def.value.isInitializingFormal ||
                   def.value.isSuperInitializingFormal) {

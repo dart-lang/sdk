@@ -1281,7 +1281,7 @@ class Resolver {
     required InternalVariable variable,
     required int fileOffset,
   }) {
-    if (!variable.isLocalFunction && !variable.isWildcard) {
+    if (variable is! InternalLocalFunctionVariable && !variable.isWildcard) {
       assignedVariables.read(variable);
     }
     return intern.createVariableGet(variable, fileOffset: fileOffset);

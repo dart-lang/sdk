@@ -2243,7 +2243,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
     // (including required, positional optional, and named optional parameters).
     // If any type `Pi` is missing, denote it as `_`.
-    List<InternalVariable> formals = [
+    List<InternalFunctionParameter> formals = [
       ...function.positionalParameters,
       ...function.namedParameters,
     ];
@@ -2302,7 +2302,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      InternalVariable formal = formals[i];
+      InternalFunctionParameter formal = formals[i];
       if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
@@ -2337,7 +2337,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           i >= function.positionalParameters.length && !formal.isRequired;
       if ((isOptionalPositional || isOptionalNamed) &&
           formal.type.isPotentiallyNonNullable &&
-          !formal.hasDeclaredInitializer) {
+          !formal.hasDeclaredDefaultValue) {
         libraryBuilder.addProblem(
           diag.optionalNonNullableWithoutInitializerError.withArguments(
             parameterName: formal.cosmeticName!,
@@ -2347,7 +2347,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           formal.cosmeticName!.length,
           fileUri,
         );
-        formal.isErroneouslyInitialized = true;
+        formal.hasErroneousDefaultValue = true;
       }
     }
 
@@ -2381,15 +2381,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    for (InternalVariable formal in function.namedParameters) {
+    for (InternalNamedParameter formal in function.namedParameters) {
       // Required named parameters shouldn't have initializers.
-      if (formal.isRequired && formal.hasDeclaredInitializer) {
+      if (formal.isRequired && formal.hasDeclaredDefaultValue) {
         libraryBuilder.addProblem(
           diag.requiredNamedParameterHasDefaultValueError.withArguments(
-            parameterName: formal.cosmeticName!,
+            parameterName: formal.parameterName,
           ),
           formal.fileOffset,
-          formal.cosmeticName!.length,
+          formal.parameterName.length,
           fileUri,
         );
       }
@@ -4368,7 +4368,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(promotedType ?? variable.type),
         isSuper: true,
       );
-    } else if (!variable.isLocalFunction) {
+    } else if (variable is! InternalLocalFunctionVariable) {
       // Don't promote local functions.
       SharedTypeView? wrappedPromotedType;
       (wrappedPromotedType, expressionInfo) = flowAnalysis.variableRead(
@@ -4380,7 +4380,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     result.promotedType = promotedType;
     DartType resultType = promotedType ?? declaredOrInferredType;
     Expression resultExpression;
-    if (variable.isLocalFunction) {
+    if (variable is InternalLocalFunctionVariable) {
       return instantiateTearOff(
         resultType,
         typeContext,
@@ -4420,7 +4420,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
     if (variable.cosmeticName != null &&
-        !variable.isLocalFunction &&
+        variable is! InternalLocalFunctionVariable &&
         declaredOrInferredType is! InvalidType) {
       if (variable.isLate || variable.lateGetter != null) {
         if (isDefinitelyUnassigned) {
@@ -4553,7 +4553,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
     if (variable.cosmeticName != null &&
-        !variable.isLocalFunction &&
+        variable is! InternalLocalFunctionVariable &&
         variableType is! InvalidType) {
       if ((variable.isLate && variable.isFinal) ||
           variable.isLateFinalWithoutInitializer) {

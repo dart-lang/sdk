@@ -25,6 +25,7 @@ AnonymousMethodBlock createAnonymousMethodBlock({
   required bool isImplicitlyTyped,
   required bool isNullAware,
   required bool isCascade,
+  required bool isParameterless,
   required int typeOffset,
   required int fileOffset,
 }) {
@@ -35,6 +36,7 @@ AnonymousMethodBlock createAnonymousMethodBlock({
     isImplicitlyTyped: isImplicitlyTyped,
     isNullAware: isNullAware,
     isCascade: isCascade,
+    isParameterless: isParameterless,
     typeOffset: typeOffset,
     fileOffset: fileOffset,
   );
@@ -47,6 +49,7 @@ AnonymousMethodExpression createAnonymousMethodExpression({
   required bool isImplicitlyTyped,
   required bool isNullAware,
   required bool isCascade,
+  required bool isParameterless,
   required int typeOffset,
   required int fileOffset,
 }) {
@@ -57,6 +60,7 @@ AnonymousMethodExpression createAnonymousMethodExpression({
     isImplicitlyTyped: isImplicitlyTyped,
     isNullAware: isNullAware,
     isCascade: isCascade,
+    isParameterless: isParameterless,
     typeOffset: typeOffset,
     fileOffset: fileOffset,
   );
@@ -357,9 +361,9 @@ InternalConstVariable createConstVariable({
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
-  bool forSyntheticToken = false,
   bool isImplicitlyTyped = false,
   int fileEqualsOffset = TreeNode.noOffset,
+  Expression? value,
 }) {
   return new InternalConstVariable(
     name: name,
@@ -369,8 +373,8 @@ InternalConstVariable createConstVariable({
     hasDeclaredInitializer: hasDeclaredInitializer,
     fileOffset: fileOffset,
     fileEqualsOffset: fileEqualsOffset,
-    forSyntheticToken: forSyntheticToken,
     isImplicitlyTyped: isImplicitlyTyped,
+    value: value,
   );
 }
 
@@ -902,11 +906,11 @@ InternalInvalidInitializer createInvalidInitializerFromErrorText(
 
 InternalPattern createInvalidPattern(
   InternalInvalidExpression expression, {
-  required List<InternalDeclaredVariable> declaredVariables,
+  required List<InternalPatternVariable> declaredVariables,
 }) {
   return new InternalInvalidPattern(
     invalidExpression: expression,
-    declaredVariables: declaredVariables,
+    patternVariables: declaredVariables,
     fileOffset: expression.fileOffset,
   );
 }
@@ -914,11 +918,11 @@ InternalPattern createInvalidPattern(
 // Coverage-ignore(suite): Not run.
 InternalPattern createInvalidPatternFromErrorText(
   ErrorText errorText, {
-  required List<InternalDeclaredVariable> declaredVariables,
+  required List<InternalPatternVariable> declaredVariables,
 }) {
   return new InternalInvalidPattern(
     invalidExpression: createInvalidExpressionFromErrorText(errorText),
-    declaredVariables: declaredVariables,
+    patternVariables: declaredVariables,
     fileOffset: errorText.fileOffset,
   );
 }
@@ -958,7 +962,6 @@ InternalLateVariable createLateVariable({
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
-  bool forSyntheticToken = false,
   bool isImplicitlyTyped = false,
   bool isStaticLate = false,
   int fileEqualsOffset = TreeNode.noOffset,
@@ -971,7 +974,6 @@ InternalLateVariable createLateVariable({
     hasDeclaredInitializer: hasDeclaredInitializer,
     fileOffset: fileOffset,
     fileEqualsOffset: fileEqualsOffset,
-    forSyntheticToken: forSyntheticToken,
     isImplicitlyTyped: isImplicitlyTyped,
     isStaticLate: isStaticLate,
   );
@@ -1029,7 +1031,6 @@ InternalLocalFunctionVariable createLocalFunctionVariable({
   required DartType? type,
   bool isWildcard = false,
   required int fileOffset,
-  bool forSyntheticToken = false,
   bool isImplicitlyTyped = false,
   bool isStaticLate = false,
   int fileEqualsOffset = TreeNode.noOffset,
@@ -1038,7 +1039,6 @@ InternalLocalFunctionVariable createLocalFunctionVariable({
     name: name,
     type: type,
     isWildcard: isWildcard,
-    forSyntheticToken: forSyntheticToken,
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
     fileEqualsOffset: fileEqualsOffset,
@@ -1070,7 +1070,6 @@ InternalLocalVariable createLocalVariable({
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
-  bool forSyntheticToken = false,
   bool isImplicitlyTyped = false,
   bool isStaticLate = false,
   int fileEqualsOffset = TreeNode.noOffset,
@@ -1081,7 +1080,6 @@ InternalLocalVariable createLocalVariable({
     isFinal: isFinal,
     isWildcard: isWildcard,
     hasDeclaredInitializer: hasDeclaredInitializer,
-    forSyntheticToken: forSyntheticToken,
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
     isStaticLate: isStaticLate,
@@ -1249,7 +1247,6 @@ InternalNamedParameter createNamedParameter({
       fileOffset: fileOffset,
     ),
     isImplicitlyTyped: isImplicitlyTyped,
-    forSyntheticToken: forSyntheticToken,
     fileOffset: fileOffset,
   );
 }
@@ -1326,7 +1323,7 @@ InternalPattern createOrPattern(
   int fileOffset,
   InternalPattern left,
   InternalPattern right, {
-  required List<InternalDeclaredVariable> orPatternJointVariables,
+  required List<InternalPatternVariable> orPatternJointVariables,
 }) {
   return new InternalOrPattern(
     left,
@@ -1421,6 +1418,20 @@ InternalSwitchStatement createPatternSwitchStatement(
   );
 }
 
+InternalPatternVariable createPatternVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  required int fileOffset,
+}) {
+  return new InternalPatternVariable(
+    name: name,
+    type: type,
+    isFinal: isFinal,
+    fileOffset: fileOffset,
+  );
+}
+
 InternalPatternVariableDeclaration createPatternVariableDeclaration(
   int fileOffset,
   InternalPattern pattern,
@@ -1467,7 +1478,6 @@ InternalPositionalParameter createPositionalParameter({
       isWildcard: isWildcard,
       fileOffset: fileOffset,
     ),
-    forSyntheticToken: forSyntheticToken,
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
   );
@@ -1866,6 +1876,16 @@ InternalExpression createSymbolLiteral(int fileOffset, String value) {
   return new InternalSymbolLiteral(value, fileOffset: fileOffset);
 }
 
+InternalPatternVariable createSyntheticPatternVariable({
+  required String name,
+  required int fileOffset,
+}) {
+  return new InternalPatternVariable.synthetic(
+    name: name,
+    fileOffset: fileOffset,
+  );
+}
+
 InternalSyntheticVariable createSyntheticVariable({
   String? name,
   DartType? type,
@@ -2007,7 +2027,7 @@ InternalVariableGet createVariableGet(
 InternalPattern createVariablePattern(
   int fileOffset,
   DartType? type,
-  InternalDeclaredVariable variable,
+  InternalPatternVariable variable,
 ) {
   return new InternalVariablePattern(
     type: type,
