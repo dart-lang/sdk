@@ -40,6 +40,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because it flags a superset of the cases that this diagnostic
+    # handles.
     documentation: |-
       #### Description
 
@@ -52,6 +55,7 @@ LinterLintCode:
       doesn't have a return type:
 
       ```dart
+      %ignore=strict_top_level_inference
       [!f!]() {}
       ```
 
@@ -273,6 +277,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because it flags a superset of the cases that this diagnostic
+    # handles.
     documentation: |-
       #### Description
 
@@ -303,6 +310,7 @@ LinterLintCode:
       the parameter `p` lacks a type annotation:
 
       ```dart
+      %ignore=strict_top_level_inference
       void f([!p!]) {}
       ```
 
@@ -893,6 +901,8 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, style]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because the only suggested fix inherently violates the lint.
     documentation: |-
       #### Description
 
@@ -914,6 +924,7 @@ LinterLintCode:
       Remove the `dynamic` type annotation:
 
       ```dart
+      %ignore=strict_top_level_inference
       void f(p) {}
       ```
     deprecatedDetails: |-
@@ -1433,6 +1444,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, errorProne]
     hasPublishedDocs: true
+    # In the documentation, the `curly_braces_in_flow_control_structures`
+    # diagnostic is being ignored because the lint shouldn't be reported when
+    # there's already an error being reported.
     documentation: |-
       #### Description
 
@@ -1448,6 +1462,7 @@ LinterLintCode:
       following the `else` is an empty statement:
 
       ```dart
+      %ignore=curly_braces_in_flow_control_structures
       void f(int x, int y) {
         if (x > y) {
           print('1');
@@ -3161,6 +3176,9 @@ LinterLintCode:
     correctionMessage: "Try changing the type parameter name to not match an existing type."
     categories: [unintentional]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because the example only works for both fixes if there's no type
+    # name separate from the parameter name.
     documentation: |-
       #### Description
 
@@ -3186,6 +3204,7 @@ LinterLintCode:
       parameter named `int`, which shadows the type `int` from `dart:core`:
 
       ```dart
+      %ignore=strict_top_level_inference
       void f([!int!]) {}
       ```
 
@@ -3201,6 +3220,7 @@ LinterLintCode:
       rename the parameter so that it doesn't shadow the name of any visible type:
 
       ```dart
+      %ignore=strict_top_level_inference
       void f(int_) {}
       ```
     deprecatedDetails: |-
@@ -13540,6 +13560,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [errorProne]
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -13552,6 +13575,7 @@ LinterLintCode:
       tested:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         final int f;
 
@@ -13569,6 +13593,7 @@ LinterLintCode:
       Perform an `is` test as part of computing the return value:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         final int f;
 
@@ -13799,6 +13824,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [effectiveDart, publicInterface]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because it flags a superset of the cases that this diagnostic
+    # handles.
     documentation: |-
       #### Description
 
@@ -13812,6 +13840,7 @@ LinterLintCode:
       have explicit types:
 
       ```dart
+      %ignore=strict_top_level_inference
       [!f!](x, y) => '';
       ```
 
@@ -18362,6 +18391,9 @@ LinterLintCode:
       experimental: "3.12"
     categories: [languageFeatureUsage]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because it flags a superset of the cases that this diagnostic
+    # handles.
     documentation: |-
       NOTE: This rule is removed in Dart 3.13.0; it is no longer functional.
 
@@ -18382,6 +18414,7 @@ LinterLintCode:
       parameter `x` is declared with `var`:
 
       ```dart
+      %ignore=strict_top_level_inference
       // @dart=3.12
       void f([!var!] x) {
         print(x);
