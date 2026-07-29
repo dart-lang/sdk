@@ -2554,6 +2554,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     return {
       ...super.flagsForTesting,
       'hasEnclosingTypeParameterReference': hasEnclosingTypeParameterReference,
+      'hasImplicitReturnType': hasImplicitReturnType,
       'invokesSuperSelf': invokesSuperSelf,
       'isExtensionTypeMember': isExtensionTypeMember,
       'isExternal': isExternal,
@@ -12070,7 +12071,7 @@ enum _ElementStorageFlag {
 
 enum _ExecutableElementFlags {
   hasEnclosingTypeParameterReference(element: _ElementFlagSource.stored),
-  hasImplicitReturnType(fragment: true),
+  hasImplicitReturnType(fragment: true, element: _ElementFlagSource.computed),
   invokesSuperSelf(fragment: true, element: _ElementFlagSource.firstFragment),
   isAbstract(fragment: true),
   isAsynchronous(fragment: true),

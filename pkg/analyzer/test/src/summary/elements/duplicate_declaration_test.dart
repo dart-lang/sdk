@@ -1517,7 +1517,7 @@ library
       type: double
       setter: <testLibrary>::@setter::foo#1
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       formalParameters
@@ -1526,7 +1526,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo#1
       firstFragment: #F5
       formalParameters

@@ -1069,7 +1069,7 @@ library
             #F3 V (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: #E1 V
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -1201,7 +1201,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F6
           returnType: dynamic
@@ -1259,7 +1259,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F4
           typeParameters
@@ -1367,7 +1367,7 @@ library
             #F2 T (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: #E0 T
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -1401,7 +1401,7 @@ library
             #F2 T (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: #E0 T
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -2543,7 +2543,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    isOriginDeclaration isStatic h
+    hasImplicitReturnType isOriginDeclaration isStatic h
       reference: <testLibrary>::@function::h
       firstFragment: #F6
       formalParameters
@@ -2877,7 +2877,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F5
       formalParameters
@@ -2945,7 +2945,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F5
       formalParameters
@@ -3101,7 +3101,7 @@ library
           firstFragment: #F2
           superConstructor: package:test/a.dart::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F3
           formalParameters
@@ -5698,7 +5698,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F4
           formalParameters

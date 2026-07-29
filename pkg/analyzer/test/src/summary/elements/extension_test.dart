@@ -3626,7 +3626,7 @@ library
           type: int
           setter: <testLibrary>::@extension::A::@setter::foo2
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@extension::A::@setter::foo1
           firstFragment: #F4
           formalParameters
@@ -3635,7 +3635,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@extension::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@extension::A::@setter::foo2
           firstFragment: #F7
           formalParameters
@@ -3716,7 +3716,7 @@ library
           type: int
           setter: <testLibrary>::@extension::A::@setter::foo2
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@extension::A::@setter::foo1
           firstFragment: #F5
           formalParameters
@@ -3725,7 +3725,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@extension::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@extension::A::@setter::foo2
           firstFragment: #F9
           formalParameters
@@ -3857,7 +3857,7 @@ library
           type: int
           setter: <testLibrary>::@extension::E::@setter::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@extension::E::@setter::foo
           firstFragment: #F3
           formalParameters

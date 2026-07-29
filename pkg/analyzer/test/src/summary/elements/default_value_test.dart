@@ -62,7 +62,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       methods
-        hasEnclosingTypeParameterReference isOriginDeclaration X
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration X
           reference: <testLibrary>::@class::A::@method::X
           firstFragment: #F4
           formalParameters

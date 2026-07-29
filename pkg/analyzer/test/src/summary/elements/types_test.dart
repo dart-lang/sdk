@@ -38,7 +38,7 @@ library
         #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
@@ -71,7 +71,7 @@ library
       firstFragment: #F1
       aliasedType: dynamic Function(int)
   functions
-    isOriginDeclaration isStatic main
+    hasImplicitReturnType isOriginDeclaration isStatic main
       reference: <testLibrary>::@function::main
       firstFragment: #F2
       formalParameters
@@ -1878,7 +1878,7 @@ library
                     package:test/b.dart::@function::V
                   staticType: InvalidType
   functions
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
@@ -1928,7 +1928,7 @@ library
                   element: package:test/a.dart::@function::V
                   staticType: dynamic Function()
   functions
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
@@ -2007,7 +2007,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::V
   functions
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F5
       formalParameters
@@ -2018,7 +2018,7 @@ library
             fragment: #F6
             expression: expression_0
       returnType: dynamic
-    isOriginDeclaration isStatic V
+    hasImplicitReturnType isOriginDeclaration isStatic V
       reference: <testLibrary>::@function::V
       firstFragment: #F7
       returnType: dynamic

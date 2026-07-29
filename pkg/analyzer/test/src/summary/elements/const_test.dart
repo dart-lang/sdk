@@ -6860,7 +6860,7 @@ library
       returnType: dynamic Function()
       variable: <testLibrary>::@topLevelVariable::V
   functions
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F3
       returnType: dynamic
@@ -11628,7 +11628,7 @@ library
           returnType: dynamic Function()
           variable: <testLibrary>::@class::C::@field::a
       methods
-        isOriginDeclaration isStatic m
+        hasImplicitReturnType isOriginDeclaration isStatic m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F5
           returnType: dynamic

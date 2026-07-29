@@ -14455,7 +14455,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       setters
-        isExtensionTypeMember isOriginDeclaration foo
+        hasImplicitReturnType isExtensionTypeMember isOriginDeclaration foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -14587,7 +14587,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       setters
-        isExtensionTypeMember isOriginDeclaration foo1
+        hasImplicitReturnType isExtensionTypeMember isOriginDeclaration foo1
           reference: <testLibrary>::@extensionType::A::@setter::foo1
           firstFragment: #F12
           formalParameters
@@ -14596,7 +14596,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo1
-        isExtensionTypeMember isOriginDeclaration foo2
+        hasImplicitReturnType isExtensionTypeMember isOriginDeclaration foo2
           reference: <testLibrary>::@extensionType::A::@setter::foo2
           firstFragment: #F15
           formalParameters
@@ -14738,7 +14738,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       setters
-        isExtensionTypeMember isOriginDeclaration foo1
+        hasImplicitReturnType isExtensionTypeMember isOriginDeclaration foo1
           reference: <testLibrary>::@extensionType::A::@setter::foo1
           firstFragment: #F13
           formalParameters
@@ -14747,7 +14747,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo1
-        isExtensionTypeMember isOriginDeclaration foo2
+        hasImplicitReturnType isExtensionTypeMember isOriginDeclaration foo2
           reference: <testLibrary>::@extensionType::A::@setter::foo2
           firstFragment: #F17
           formalParameters

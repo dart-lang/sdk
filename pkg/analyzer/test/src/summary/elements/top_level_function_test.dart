@@ -2532,7 +2532,7 @@ library
       type: int
       setter: <testLibrary>::@setter::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F2
       formalParameters
@@ -2632,7 +2632,7 @@ library
           element: <testLibrary>::@function::f
           documentationComment: /**\n * Docs\n */
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       documentationComment: /**\n * Docs\n */
@@ -2654,7 +2654,7 @@ library
         #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
   functions
-    isOriginDeclaration isStatic main
+    hasImplicitReturnType isOriginDeclaration isStatic main
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       returnType: dynamic
@@ -2732,7 +2732,7 @@ library
         #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic main (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::main
   functions
-    isOriginDeclaration isStatic main
+    hasImplicitReturnType isOriginDeclaration isStatic main
       reference: <testLibrary>::@function::main
       firstFragment: #F2
       returnType: dynamic
@@ -2753,7 +2753,7 @@ library
         #F1 hasImplicitReturnType isComplete isExternal isOriginDeclaration isStatic f (nameOffset:9) (firstTokenOffset:0) (offset:9)
           element: <testLibrary>::@function::f
   functions
-    isExternal isOriginDeclaration isStatic f
+    hasImplicitReturnType isExternal isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
@@ -2949,7 +2949,7 @@ library
             #F2 requiredPositional hasImplicitType isFinal isOriginDeclaration x (nameOffset:8) (firstTokenOffset:2) (offset:8)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -2977,7 +2977,7 @@ library
             #F2 optionalNamed hasImplicitType isOriginDeclaration x (nameOffset:3) (firstTokenOffset:3) (offset:3)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3005,7 +3005,7 @@ library
             #F2 optionalPositional hasImplicitType isOriginDeclaration x (nameOffset:3) (firstTokenOffset:3) (offset:3)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3033,7 +3033,7 @@ library
             #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3061,7 +3061,7 @@ library
             #F2 requiredPositional isOriginDeclaration g (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: <testLibrary>::@function::f::@formalParameter::g
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3089,7 +3089,7 @@ library
             #F2 requiredPositional isOriginDeclaration g (nameOffset:6) (firstTokenOffset:2) (offset:6)
               element: <testLibrary>::@function::f::@formalParameter::g
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3117,7 +3117,7 @@ library
             #F2 requiredPositional isOriginDeclaration g (nameOffset:7) (firstTokenOffset:2) (offset:7)
               element: <testLibrary>::@function::f::@formalParameter::g
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3145,7 +3145,7 @@ library
             #F2 requiredPositional isOriginDeclaration i (nameOffset:6) (firstTokenOffset:2) (offset:6)
               element: <testLibrary>::@function::f::@formalParameter::i
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3237,7 +3237,7 @@ library
             #F3 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@function::f::@formalParameter::y
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
@@ -3265,7 +3265,7 @@ library
         #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
@@ -3482,11 +3482,11 @@ library
         #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
           element: <testLibrary>::@function::g
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
-    isOriginDeclaration isStatic g
+    hasImplicitReturnType isOriginDeclaration isStatic g
       reference: <testLibrary>::@function::g
       firstFragment: #F2
       returnType: dynamic
@@ -3507,7 +3507,7 @@ library
         #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic get (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::get
   functions
-    isOriginDeclaration isStatic get
+    hasImplicitReturnType isOriginDeclaration isStatic get
       reference: <testLibrary>::@function::get
       firstFragment: #F1
       returnType: dynamic
@@ -3672,7 +3672,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::main
   getters
-    isOriginDeclaration isStatic main
+    hasImplicitReturnType isOriginDeclaration isStatic main
       reference: <testLibrary>::@getter::main
       firstFragment: #F2
       returnType: dynamic
@@ -3824,7 +3824,7 @@ library
             #F2 requiredPositional isOriginDeclaration _ (nameOffset:8) (firstTokenOffset:4) (offset:8)
               element: <testLibrary>::@function::set::@formalParameter::_
   functions
-    isOriginDeclaration isStatic set
+    hasImplicitReturnType isOriginDeclaration isStatic set
       reference: <testLibrary>::@function::set
       firstFragment: #F1
       formalParameters
