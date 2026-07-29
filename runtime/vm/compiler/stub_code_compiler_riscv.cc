@@ -1076,7 +1076,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
 // Clobbered:
 //   T3, T4, T5
 void StubCodeCompiler::GenerateAllocateArrayStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
@@ -1250,7 +1250,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1268,7 +1268,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1512,7 +1512,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Output:
 //   A0: new allocated Context object.
 void StubCodeCompiler::GenerateAllocateContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
@@ -1590,7 +1590,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 // Output:
 //   A0: new allocated Context object.
 void StubCodeCompiler::GenerateCloneContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     // Load num. variable (int32) in the existing context.
@@ -2004,8 +2004,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   __ LoadImmediate(kTagsReg, tags);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
-      !target::Class::TraceAllocation(cls) &&
+  if (UseInlineAllocation() && !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
     RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
@@ -3346,7 +3345,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == S8);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == A0);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label call_runtime;
     NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &call_runtime, T3));
     __ mv(T3, AllocateTypedDataArrayABI::kLengthReg);

@@ -186,6 +186,11 @@ constexpr bool FLAG_target_thread_sanitizer = false;
 
 DECLARE_FLAG(bool, experimental_shared_data);
 
+inline bool UseInlineAllocation() {
+  return FLAG_inline_alloc && !FLAG_use_slow_path &&
+         !FLAG_target_memory_sanitizer;
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_FLAGS_H_
