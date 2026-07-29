@@ -977,6 +977,56 @@ class A {
 ''');
   }
 
+  test_locate_ConstructorInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void main() {
+ new A();
+}
+''');
+    var node = result.findNode.constructorInvocation('new A()');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_locate_ConstructorInvocation_type_prefixedIdentifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as pref;
+
+void main() {
+ new pref.A();
+}
+''');
+    var node = result.findNode.constructorInvocation('A();');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+package:test/a.dart::@class::A::@constructor::new
+''');
+  }
+
+  test_locate_ConstructorInvocation_type_simpleIdentifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void main() {
+ new A();
+}
+''');
+    var node = result.findNode.constructorInvocation('A();');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::new
+''');
+  }
+
   test_locate_ConstructorSelector_EnumConstantArguments_EnumConstantDeclaration() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1319,56 +1369,6 @@ void main() {
 SubstitutedMethodElementImpl
   baseElement: dart:core::@class::List::@method::[]
   substitution: {E: int}
-''');
-  }
-
-  test_locate_InstanceCreationExpression() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {}
-
-void main() {
- new A();
-}
-''');
-    var node = result.findNode.constructorInvocation('new A()');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::A::@constructor::new
-''');
-  }
-
-  test_locate_InstanceCreationExpression_type_prefixedIdentifier() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-    var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as pref;
-
-void main() {
- new pref.A();
-}
-''');
-    var node = result.findNode.constructorInvocation('A();');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-package:test/a.dart::@class::A::@constructor::new
-''');
-  }
-
-  test_locate_InstanceCreationExpression_type_simpleIdentifier() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-''');
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {}
-
-void main() {
- new A();
-}
-''');
-    var node = result.findNode.constructorInvocation('A();');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::A::@constructor::new
 ''');
   }
 

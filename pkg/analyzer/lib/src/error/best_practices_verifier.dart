@@ -321,7 +321,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
     _elementUsageFrontierDetector.constructorInvocation(node);
     _deprecatedFunctionalityVerifier.constructorInvocation(node);
-    _nullSafeApiVerifier.instanceCreation(node);
+    _nullSafeApiVerifier.constructorInvocation(node);
     _checkForLiteralConstructorUse(node);
     super.visitConstructorInvocation(node);
   }
@@ -1165,7 +1165,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
-  /// Check that the instance creation node is const if the constructor is
+  /// Check that the constructor invocation is const if the constructor is
   /// marked with [literal].
   void _checkForLiteralConstructorUse(ConstructorInvocation node) {
     var constructorReference = node.constructorReference;

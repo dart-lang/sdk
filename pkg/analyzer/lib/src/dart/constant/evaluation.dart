@@ -65,7 +65,7 @@ class ConstantEvaluationConfiguration {
 }
 
 /// Helper class encapsulating the methods for evaluating constants and
-/// constant instance creation expressions.
+/// constant constructor invocations.
 class ConstantEvaluationEngine {
   /// The set of variables declared on the command line using '-D'.
   final DeclaredVariables _declaredVariables;
@@ -359,7 +359,7 @@ class ConstantEvaluationEngine {
     ConstantVisitor constantVisitor, {
     ConstructorInvocationDataImpl? invocation,
   }) {
-    var result = _InstanceCreationEvaluator.evaluate(
+    var result = _ConstructorInvocationEvaluator.evaluate(
       this,
       _declaredVariables,
       library,
@@ -412,7 +412,7 @@ class ConstantEvaluationEngine {
     ConstructorInvocationDataImpl? invocation,
     required Map<FormalParameterElement, DartObjectImpl> implicitArgumentValues,
   }) {
-    return _InstanceCreationEvaluator.evaluate(
+    return _ConstructorInvocationEvaluator.evaluate(
       this,
       _declaredVariables,
       library,
@@ -571,12 +571,12 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   late final DartObjectComputer _dartObjectComputer;
 
   /// Initializes a newly created constant visitor. The [_evaluationEngine] is
-  /// used to evaluate instance creation expressions. The [lexicalEnvironment]
+  /// used to evaluate constructor invocations. The [lexicalEnvironment]
   /// is a map containing values which should override identifiers, or `null` if
   /// no overriding is necessary. The [_diagnosticReporter] is used to report
   /// errors found during evaluation.
   ///
-  /// The [substitution] is specified for instance creations.
+  /// The [substitution] is specified for constructor invocations.
   ConstantVisitor(
     this._evaluationEngine,
     this._library,
@@ -2766,54 +2766,10 @@ class DartObjectComputer {
   }
 }
 
-class _EnumConstant {
-  final int index;
-  final String name;
-
-  _EnumConstant({required this.index, required this.name});
-}
-
-/// The result of evaluation the initializers declared on a const constructor.
-class _InitializersEvaluationResult {
-  /// The result of a const evaluation of an initializer.
-  ///
-  /// If the evaluation of the const instance creation expression is incomplete,
-  /// then [result] will be `null`.
-  ///
-  /// If a redirecting initializer which redirects to a const constructor was
-  /// encountered, [result] is the result of evaluating that call.
-  ///
-  /// If an assert initializer is encountered, and the evaluation of this assert
-  /// results in an error or a `false` value, [result] is an [InvalidConstant].
-  final Constant? result;
-
-  /// Whether evaluation of the const instance creation expression which led to
-  /// evaluating constructor initializers is complete.
-  ///
-  /// If `true`, `result` should be used as the result of said const instance
-  /// creation expression evaluation.
-  final bool evaluationIsComplete;
-
-  /// If a superinitializer was encountered, the name of the super constructor,
-  /// otherwise `null`.
-  final String? superName;
-
-  /// If a superinitializer was encountered, the arguments passed to the super
-  /// constructor, otherwise `null`.
-  final List<Argument>? superArguments;
-
-  _InitializersEvaluationResult(
-    this.result, {
-    required this.evaluationIsComplete,
-    this.superName,
-    this.superArguments,
-  });
-}
-
-/// An evaluator which evaluates a const instance creation expression.
+/// An evaluator which evaluates a const constructor invocation.
 ///
-/// [_InstanceCreationEvaluator.evaluate] is the main entrypoint.
-class _InstanceCreationEvaluator {
+/// [_ConstructorInvocationEvaluator.evaluate] is the main entrypoint.
+class _ConstructorInvocationEvaluator {
   /// Parameter to "fromEnvironment" methods that denotes the default value.
   static const String _defaultValueParam = 'defaultValue';
 
@@ -2870,12 +2826,12 @@ class _InstanceCreationEvaluator {
 
   final Map<String, DartObjectImpl> _fieldMap = HashMap();
 
-  /// Constructor for [_InstanceCreationEvaluator].
+  /// Constructor for [_ConstructorInvocationEvaluator].
   ///
   /// This constructor is private, as the entry point for using a
-  /// [_InstanceCreationEvaluator] is the static method,
-  /// [_InstanceCreationEvaluator.evaluate].
-  _InstanceCreationEvaluator._(
+  /// [_ConstructorInvocationEvaluator] is the static method,
+  /// [_ConstructorInvocationEvaluator.evaluate].
+  _ConstructorInvocationEvaluator._(
     this._evaluationEngine,
     this._declaredVariables,
     this._library,
@@ -3556,7 +3512,7 @@ class _InstanceCreationEvaluator {
     );
   }
 
-  /// Evaluates [node] as an instance creation expression using [constructor].
+  /// Evaluates [node] as a constructor invocation using [constructor].
   static Constant evaluate(
     ConstantEvaluationEngine evaluationEngine,
     DeclaredVariables declaredVariables,
@@ -3685,7 +3641,7 @@ class _InstanceCreationEvaluator {
     );
     constructor = redirectionResult.constructor;
 
-    var evaluator = _InstanceCreationEvaluator._(
+    var evaluator = _ConstructorInvocationEvaluator._(
       evaluationEngine,
       declaredVariables,
       library,
@@ -3781,6 +3737,50 @@ class _InstanceCreationEvaluator {
       argumentNodeMap: resultArgumentNodeMap,
     );
   }
+}
+
+class _EnumConstant {
+  final int index;
+  final String name;
+
+  _EnumConstant({required this.index, required this.name});
+}
+
+/// The result of evaluation the initializers declared on a const constructor.
+class _InitializersEvaluationResult {
+  /// The result of a const evaluation of an initializer.
+  ///
+  /// If the evaluation of the const constructor invocation is incomplete,
+  /// then [result] will be `null`.
+  ///
+  /// If a redirecting initializer which redirects to a const constructor was
+  /// encountered, [result] is the result of evaluating that call.
+  ///
+  /// If an assert initializer is encountered, and the evaluation of this assert
+  /// results in an error or a `false` value, [result] is an [InvalidConstant].
+  final Constant? result;
+
+  /// Whether evaluation of the const constructor invocation which led to
+  /// evaluating constructor initializers is complete.
+  ///
+  /// If `true`, `result` should be used as the result of said const constructor
+  /// invocation evaluation.
+  final bool evaluationIsComplete;
+
+  /// If a superinitializer was encountered, the name of the super constructor,
+  /// otherwise `null`.
+  final String? superName;
+
+  /// If a superinitializer was encountered, the arguments passed to the super
+  /// constructor, otherwise `null`.
+  final List<Argument>? superArguments;
+
+  _InitializersEvaluationResult(
+    this.result, {
+    required this.evaluationIsComplete,
+    this.superName,
+    this.superArguments,
+  });
 }
 
 class _RedirectionResult {

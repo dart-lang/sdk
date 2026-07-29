@@ -46,7 +46,7 @@ ConstantPattern
 ''');
   }
 
-  test_expression_instanceCreation() async {
+  test_expression_constructorInvocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();

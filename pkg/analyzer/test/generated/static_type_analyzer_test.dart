@@ -112,17 +112,7 @@ test(bool b) => b ? 1 : 0;
     );
   }
 
-  test_visitDoubleLiteral() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-test() => 4.33;
-''');
-    expect(
-      result.findNode.doubleLiteral('4.33').staticType,
-      same(result.typeProvider.doubleType),
-    );
-  }
-
-  test_visitInstanceCreationExpression_named() async {
+  test_visitConstructorInvocation_named() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
   C.m();
@@ -137,7 +127,7 @@ late C c;
     );
   }
 
-  test_visitInstanceCreationExpression_typeParameters() async {
+  test_visitConstructorInvocation_typeParameters() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C<E> {}
 class I {}
@@ -153,7 +143,7 @@ late I i;
     expect(typeArgs[0], iType);
   }
 
-  test_visitInstanceCreationExpression_unnamed() async {
+  test_visitConstructorInvocation_unnamed() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 test() => new C();
@@ -161,6 +151,16 @@ late C c;
 ''');
     var cType = result.findElement.topVar('c').type;
     expect(result.findNode.constructorInvocation('new C()').staticType, cType);
+  }
+
+  test_visitDoubleLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+test() => 4.33;
+''');
+    expect(
+      result.findNode.doubleLiteral('4.33').staticType,
+      same(result.typeProvider.doubleType),
+    );
   }
 
   test_visitIntegerLiteral() async {

@@ -56,6 +56,61 @@ void f() {
 ''');
   }
 
+  test_constructorInvocation_const() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(int p);
+}
+main() {
+  const A();
+//        ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
+}
+''');
+  }
+
+  test_constructorInvocation_const_namedArgument_insteadOfRequiredPositional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(int p);
+}
+main() {
+  const A(p: 0);
+//        ^
+// [diag.undefinedNamedParameter] The named parameter 'p' isn't defined.
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
+}
+''');
+  }
+
+  test_constructorInvocation_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named(int x, int y, {int? n});
+}
+
+void f() {
+  A.named(5, n: 1);
+//         ^
+// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'named', but 1 found.
+}
+''');
+  }
+
+  test_constructorInvocation_positionalAndNamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int x, int y, {int? n});
+}
+
+void f() {
+  A(5, n: 1);
+//   ^
+// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'A.new', but 1 found.
+}
+''');
+  }
+
   test_enumConstant_withArgumentList() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -105,61 +160,6 @@ main() {
 //            ^
 // [diag.notEnoughPositionalArgumentsSingular] 1 positional argument expected, but 0 found.
 }''');
-  }
-
-  test_instanceCreationExpression_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A(int p);
-}
-main() {
-  const A();
-//        ^
-// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
-}
-''');
-  }
-
-  test_instanceCreationExpression_const_namedArgument_insteadOfRequiredPositional() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A(int p);
-}
-main() {
-  const A(p: 0);
-//        ^
-// [diag.undefinedNamedParameter] The named parameter 'p' isn't defined.
-// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
-}
-''');
-  }
-
-  test_instanceCreationExpression_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  A.named(int x, int y, {int? n});
-}
-
-void f() {
-  A.named(5, n: 1);
-//         ^
-// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'named', but 1 found.
-}
-''');
-  }
-
-  test_instanceCreationExpression_positionalAndNamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  A(int x, int y, {int? n});
-}
-
-void f() {
-  A(5, n: 1);
-//   ^
-// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'A.new', but 1 found.
-}
-''');
   }
 
   test_methodInvocation_function() async {

@@ -4192,7 +4192,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     );
   }
 
-  /// Verify that the given 'const' instance creation [expression] is not
+  /// Verify that the given 'const' constructor invocation [expression] is not
   /// creating a deferred type. The [constructorReference] identifies the
   /// constructor, and the [typeReference] identifies its declaring type.
   ///
@@ -4223,9 +4223,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Verify that the given instance creation [expression] is not being invoked
-  /// on an abstract class. The [typeNode] is the AST node where the diagnostic
-  /// is reported, and [type] is the type being constructed.
+  /// Verify that the given constructor invocation [expression] is not invoking
+  /// a constructor on an abstract class. The [typeNode] is the AST node where
+  /// the diagnostic is reported, and [type] is the type being constructed.
   void _checkForConstOrNewWithAbstractClass(
     ConstructorInvocation expression,
     AstNode typeNode,
@@ -4320,10 +4320,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     return true;
   }
 
-  /// Verify that the given 'const' instance creation [expression] is not being
-  /// invoked on a constructor that is not 'const'.
+  /// Verify that the given 'const' constructor invocation [expression] is not
+  /// invoking a constructor that is not 'const'.
   ///
-  /// This method assumes that the instance creation or dot shorthand
+  /// This method assumes that the constructor invocation or dot shorthand
   /// constructor invocation was tested to be 'const' before being called.
   ///
   /// See [diag.constWithNonConst].
@@ -4341,11 +4341,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Verify that the given 'const' instance creation [expression] resolves to a
-  /// constructor. The [constructorReference] identifies the constructor, and
-  /// the [typeReference] identifies its declaring type.
+  /// Verify that the given 'const' constructor invocation [expression] resolves
+  /// to a constructor. The [constructorReference] identifies the constructor,
+  /// and the [typeReference] identifies its declaring type.
   ///
-  /// This method assumes that the instance creation was tested to be 'const'
+  /// This method assumes that the constructor invocation was tested to be 'const'
   /// before being called.
   ///
   /// See [diag.constWithUndefinedConstructor], and
@@ -6423,11 +6423,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Verify that the given instance creation [expression] invokes an existing
-  /// constructor. The [constructorReference] identifies the constructor, and
-  /// the [typeReference] identifies its declaring type.
+  /// Verify that the given constructor invocation [expression] invokes an
+  /// existing constructor. The [constructorReference] identifies the
+  /// constructor, and the [typeReference] identifies its declaring type.
   ///
-  /// This method assumes that the instance creation was tested to be 'new'
+  /// This method assumes that the constructor invocation was tested to be 'new'
   /// before being called.
   ///
   /// See [diag.newWithUndefinedConstructor].

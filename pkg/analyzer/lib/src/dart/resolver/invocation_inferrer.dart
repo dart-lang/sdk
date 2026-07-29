@@ -133,8 +133,8 @@ class ConstructorInvocationInferrer
 
   @override
   TypeArgumentListImpl? get _typeArguments {
-    // For an instance creation expression the type arguments are on the
-    // constructor name.
+    // For a constructor invocation the type arguments are on the constructor
+    // reference.
     return node.constructorReference.typeReference.typeArguments;
   }
 
@@ -143,7 +143,7 @@ class ConstructorInvocationInferrer
     TypeArgumentList typeArgumentList,
     List<TypeParameterElement> typeParameters,
   ) {
-    // Error reporting for instance creations is done elsewhere.
+    // Error reporting for constructor invocations is done elsewhere.
   }
 
   @override

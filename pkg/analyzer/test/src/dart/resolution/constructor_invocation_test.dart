@@ -9,23 +9,23 @@ import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InstanceCreationExpressionResolutionTest);
+    defineReflectiveTests(ConstructorInvocationResolutionTest);
     defineReflectiveTests(
-      InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs,
+      ConstructorInvocationResolutionTest_WithoutConstructorTearoffs,
     );
     defineReflectiveTests(
-      InstanceCreationExpressionResolutionTest_WithoutPrivateNamedParameters,
+      ConstructorInvocationResolutionTest_WithoutPrivateNamedParameters,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class InstanceCreationExpressionResolutionTest extends PubPackageResolutionTest
-    with InstanceCreationTestCases {}
+class ConstructorInvocationResolutionTest extends PubPackageResolutionTest
+    with ConstructorInvocationTestCases {}
 
 @reflectiveTest
-class InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs
+class ConstructorInvocationResolutionTest_WithoutConstructorTearoffs
     extends PubPackageResolutionTest
     with WithoutConstructorTearoffsMixin {
   test_unnamedViaNew() async {
@@ -89,7 +89,7 @@ InstanceCreationExpression
 }
 
 @reflectiveTest
-class InstanceCreationExpressionResolutionTest_WithoutPrivateNamedParameters
+class ConstructorInvocationResolutionTest_WithoutPrivateNamedParameters
     extends PubPackageResolutionTest
     with WithoutPrivateNamedParametersMixin {
   test_preFeature() async {
@@ -154,7 +154,7 @@ InstanceCreationExpression
   }
 }
 
-mixin InstanceCreationTestCases on PubPackageResolutionTest {
+mixin ConstructorInvocationTestCases on PubPackageResolutionTest {
   test_arguments_named() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {

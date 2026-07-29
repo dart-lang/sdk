@@ -965,8 +965,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
       }
       if (enclosingElement is ConstructorElement &&
           enclosingElement.enclosingElement.typeParameters.isNotEmpty) {
-        // There is an issue matching arguments of instance creation
-        // expressions for generic classes with parameters, so for now,
+        // There is an issue matching arguments of constructor invocations for
+        // generic classes with parameters, so for now,
         // consider every parameter of a constructor of a generic class
         // "used". See https://github.com/dart-lang/sdk/issues/47839.
         return true;

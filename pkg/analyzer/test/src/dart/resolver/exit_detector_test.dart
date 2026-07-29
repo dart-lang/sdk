@@ -345,6 +345,14 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
     _assertFalse('null?.b(throw 42);');
   }
 
+  test_constructorInvocation() async {
+    _assertFalse('new A(b);');
+  }
+
+  test_constructorInvocation_argumentThrows() async {
+    _assertTrue('new A(throw 42);');
+  }
+
   test_doStatement_break_and_throw() async {
     _assertFalse('''
 {
@@ -597,14 +605,6 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
 
   test_indexExpression_target() async {
     _assertTrue("(throw 42)[b];");
-  }
-
-  test_instanceCreationExpression() async {
-    _assertFalse('new A(b);');
-  }
-
-  test_instanceCreationExpression_argumentThrows() async {
-    _assertTrue('new A(throw 42);');
   }
 
   test_isExpression() async {

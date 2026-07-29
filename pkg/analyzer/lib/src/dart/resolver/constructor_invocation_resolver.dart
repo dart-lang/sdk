@@ -210,7 +210,7 @@ class ConstructorInvocationResolver {
   /// Resolve [node] whose [ConstructorTypeReference] has type arguments (given
   /// as [typeNameTypeArguments]).
   ///
-  /// The instance creation expression may actually be a method call on a
+  /// The constructor invocation may actually be a method call on a
   /// type-instantiated function reference or constructor reference.
   void _resolveWithTypeNameWithTypeArguments(
     ConstructorInvocationImpl node,

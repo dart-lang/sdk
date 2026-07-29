@@ -1107,6 +1107,33 @@ class C {
     _assertSource(code, node);
   }
 
+  void test_visitConstructorInvocation_const() {
+    var code = 'const A()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
+  void test_visitConstructorInvocation_named() {
+    var code = 'new A.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
+  void test_visitConstructorInvocation_unnamed() {
+    var code = 'new A()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
   void test_visitConstructorName_named_prefix() {
     var code = 'prefix.A.foo';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -2570,33 +2597,6 @@ import 'a.dart' $code;
 final x = $code;
 ''');
     var node = parseResult.findNode.singleIndexExpression;
-    _assertSource(code, node);
-  }
-
-  void test_visitInstanceCreationExpression_const() {
-    var code = 'const A()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singleConstructorInvocation;
-    _assertSource(code, node);
-  }
-
-  void test_visitInstanceCreationExpression_named() {
-    var code = 'new A.foo()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singleConstructorInvocation;
-    _assertSource(code, node);
-  }
-
-  void test_visitInstanceCreationExpression_unnamed() {
-    var code = 'new A()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singleConstructorInvocation;
     _assertSource(code, node);
   }
 
