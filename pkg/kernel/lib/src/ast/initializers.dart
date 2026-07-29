@@ -327,13 +327,9 @@ class RedirectingInitializer extends Initializer {
 class LocalInitializer extends Initializer {
   SyntheticVariable variable;
 
-  new(this.variable, [Expression? value]) {
+  new(this.variable, Expression value) {
     variable.parent = this;
-    if (value != null) {
-      variable.initializer = value..parent = variable;
-    } else {
-      assert(variable.initializer != null, "Missing value for $runtimeType.");
-    }
+    variable.initializer = value..parent = variable;
   }
 
   Expression get value => variable.initializer!;

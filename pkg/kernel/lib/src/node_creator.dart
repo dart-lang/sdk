@@ -948,9 +948,11 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case ExpressionKind.Let:
         return Let(
-          _createVariableFromKind(VariableKind.SyntheticVariable)
-              as SyntheticVariable,
-          _createExpression(),
+          variable: _createVariableFromKind(
+            VariableKind.SyntheticVariable,
+          ) as SyntheticVariable,
+          value: _createExpression(),
+          body: _createExpression(),
         )..fileOffset = _needFileOffset();
       case ExpressionKind.ListConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [

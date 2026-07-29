@@ -48,7 +48,11 @@ void main() {
     SyntheticVariable variable = test.makeVariable();
     test.addNode(
       LogicalExpression(
-        new Let(variable, new VariableGet(variable)),
+        new Let(
+          variable: variable,
+          value: new NullLiteral(),
+          body: new VariableGet(variable),
+        ),
         LogicalExpressionOperator.AND,
         new VariableGet(variable),
       ),

@@ -630,21 +630,21 @@ class _Transform extends RecursiveVisitor {
       return exp is VariableGet && unusedParams.contains(exp.variable);
     }
 
-    Map<Expression, Variable> hoisted = {};
+    Map<Expression, CachedExpression> hoisted = {};
     if (hoistingNeeded) {
       if (call is Initializer) {
         final Constructor constructor = call.parent as Constructor;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            SyntheticVariable argVar = SyntheticVariable(
-              initializer: arg,
+            CachedExpression argCache = CachedExpression.fromValue(
+              value: arg,
               type: arg.getStaticType(typeContext),
               isFinal: true,
             );
             addedInitializers.add(
-              LocalInitializer(argVar)..parent = constructor,
+              argCache.createLocalInitializer()..parent = constructor,
             );
-            hoisted[arg] = argVar;
+            hoisted[arg] = argCache;
           }
         });
       } else {
@@ -652,25 +652,25 @@ class _Transform extends RecursiveVisitor {
         Expression current = call as Expression;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            SyntheticVariable argVar = SyntheticVariable(
-              initializer: arg,
+            CachedExpression argCache = CachedExpression.fromValue(
+              value: arg,
               type: arg.getStaticType(typeContext),
               isFinal: true,
             );
-            current = Let(argVar, current);
-            hoisted[arg] = argVar;
+            current = argCache.createLet(body: current);
+            hoisted[arg] = argCache;
           }
         });
         if (receiver != null && mayHaveOrSeeSideEffects(receiver)) {
           assert(!isUnusedParam(receiver));
           assert(receiver.parent == call);
-          final SyntheticVariable receiverVar = SyntheticVariable(
-            initializer: receiver,
+          final CachedExpression receiverCache = CachedExpression.fromValue(
+            value: receiver,
             type: receiver.getStaticType(typeContext),
             isFinal: true,
           );
-          current = Let(receiverVar, current);
-          call.replaceChild(receiver, VariableGet(receiverVar));
+          current = receiverCache.createLet(body: current);
+          call.replaceChild(receiver, receiverCache.createRead());
         }
 
         parent.replaceChild(call, current);
@@ -678,9 +678,9 @@ class _Transform extends RecursiveVisitor {
     }
 
     Expression getMaybeHoistedArg(Expression arg) {
-      final variable = hoisted[arg];
-      if (variable == null) return arg;
-      return VariableGet(variable);
+      final cache = hoisted[arg];
+      if (cache == null) return arg;
+      return cache.createRead();
     }
 
     final List<Expression> positional = [];

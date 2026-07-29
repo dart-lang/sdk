@@ -525,7 +525,11 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitLet(Let node) {
     SyntheticVariable newVariable = clone(node.variable);
-    return new Let(newVariable, clone(node.body));
+    return new Let(
+      variable: newVariable,
+      value: newVariable.initializer!,
+      body: clone(node.body),
+    );
   }
 
   @override
@@ -1126,7 +1130,8 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitLocalInitializer(LocalInitializer node) {
-    return new LocalInitializer(clone(node.variable));
+    SyntheticVariable variable = clone(node.variable);
+    return new LocalInitializer(variable, variable.initializer!);
   }
 
   @override

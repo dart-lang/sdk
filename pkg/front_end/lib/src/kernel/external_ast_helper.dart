@@ -894,8 +894,7 @@ Let createLet({
   required Expression body,
   int? fileOffset,
 }) {
-  cache.variable.initializer = cache.value..parent = cache.variable;
-  return new Let(cache.variable, body)
+  return new Let(variable: cache.variable, value: cache.value, body: body)
     ..fileOffset = fileOffset ?? cache.fileOffset;
 }
 

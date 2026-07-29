@@ -5143,9 +5143,10 @@ class Let extends Expression {
   SyntheticVariable variable; // Must have an initializer.
   Expression body;
 
-  new(this.variable, this.body) {
+  new({required this.variable, required Expression value, required this.body}) {
     variable.parent = this;
     body.parent = this;
+    variable.initializer = value..parent = variable;
   }
 
   Expression get value => variable.initializer!;
