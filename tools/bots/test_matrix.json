@@ -3191,10 +3191,7 @@
       "steps": [
         {
           "name": "validate pkg/ pubspec files",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "tools/package_deps/bin/package_deps.dart"
-          ]
+          "script": "tools/package_deps/bin/package_deps.dart"
         },
         {
           "name": "build dart",
@@ -3484,9 +3481,8 @@
         },
         {
           "name": "dartfuzz - generated programs",
-          "script": "tools/sdks/dart-sdk/bin/dart",
+          "script": "runtime/tools/dartfuzz/dartfuzz_test.dart",
           "arguments": [
-            "runtime/tools/dartfuzz/dartfuzz_test.dart",
             "--isolates",
             "8",
             "--no-show-stats",
@@ -3498,19 +3494,13 @@
         },
         {
           "name": "dartfuzz - dart2js",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart"
-          ],
+          "script": "runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart",
           "shards": 25,
           "fileset": "fuzzer"
         },
         {
           "name": "dartfuzz - dart2wasm",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart"
-          ],
+          "script": "runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart",
           "shards": 25,
           "fileset": "fuzzer"
         }
@@ -3552,16 +3542,12 @@
         },
         {
           "name": "Generate Isolate Stress Test",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "runtime/tools/generate_stress_test.dart"
-          ]
+          "script": "runtime/tools/generate_stress_test.dart"
         },
         {
           "name": "Generate Isolate Stress Test - JIT Dill",
-          "script": "tools/sdks/dart-sdk/bin/dart",
+          "script": "pkg/vm/bin/gen_kernel.dart",
           "arguments": [
-            "pkg/vm/bin/gen_kernel.dart",
             "--platform=${build_root}/vm_platform.dill",
             "--no-aot",
             "-Dtest_runner.configuration=vm-linux-release-${arch}",
@@ -3572,9 +3558,8 @@
         },
         {
           "name": "Generate Isolate Stress Test - AOT Dill",
-          "script": "tools/sdks/dart-sdk/bin/dart",
+          "script": "pkg/vm/bin/gen_kernel.dart",
           "arguments": [
-            "pkg/vm/bin/gen_kernel.dart",
             "--platform=${build_root}/vm_platform.dill",
             "--aot",
             "-Dtest_runner.configuration=vm-aot-linux-release-${arch}",
