@@ -738,12 +738,12 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
     Exceptions::PropagateError(Error::Handle(thread->sticky_error()));
   }
 
-  // Prefer the tag handler's idea of which library is represented by the URI.
-  if (result.IsLibrary()) {
-    return CreateLibraryMirror(thread, Library::Cast(result));
-  }
-
-  if (result.IsNull()) {
+  // Tag handler might return library with 'main' method instead of the one
+  // we just loaded. So look it up explicitly.
+  library = Library::LookupLibrary(thread, canonical_uri);
+  if (!library.IsNull()) {
+    return CreateLibraryMirror(thread, library);
+  } else {
     library = Library::LookupLibrary(thread, canonical_uri);
     if (!library.IsNull()) {
       return CreateLibraryMirror(thread, library);

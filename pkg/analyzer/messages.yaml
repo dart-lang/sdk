@@ -13608,6 +13608,10 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'."
     hasPublishedDocs: true
+    # In the documentation, the `invalid_modifier_on_constructor` diagnostic is
+    # being ignored because this diagnostic can't be produced without using the
+    # invalid modifier. If these two diagnostics are always produced together
+    # then we should remove one of them.
     documentation: |-
       #### Description
 
@@ -14757,6 +14761,9 @@ CompileTimeErrorCode:
     problemMessage: "The included part '#uriStr' must have a part-of directive."
     correctionMessage: "Try adding a part-of directive to '#uriStr'."
     hasPublishedDocs: true
+    # In the documentation, the `unused_import` diagnostic is being ignored
+    # because the only way to supress it would involve adding code that is
+    # extraneous to the diagnostic being documented.
     documentation: |-
       #### Description
 
@@ -15264,6 +15271,9 @@ CompileTimeErrorCode:
     problemMessage: "The name '#name' is already used as an import prefix and can't be used to name a top-level element."
     correctionMessage: Try renaming either the top-level element or the prefix.
     hasPublishedDocs: true
+    # In the documentation, the `undefined_method` and `unused_import`
+    # diagnostics are being ignored because the invalid code is necesary in
+    # order to motivate the fixes.
     documentation: |-
       #### Description
 
@@ -16294,6 +16304,12 @@ CompileTimeErrorCode:
     problemMessage: "Local variable '#name' can't be referenced before it is declared."
     correctionMessage: "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope."
     hasPublishedDocs: true
+    # In the documentation, the
+    # `not_assigned_potentially_non_nullable_local_variable` diagnostics is
+    # being ignored because it shouldn't be reported here. If a variable is
+    # referenced before it is declared, then it's a given that it hasn't been
+    # assigned a value, and reporting that doesn't help the user solve the real
+    # problem.
     documentation: |-
       #### Description
 
@@ -19086,6 +19102,9 @@ CompileTimeErrorCode:
     problemMessage: "Undefined name 'await' in function body not marked with 'async'."
     correctionMessage: "Try correcting the name to one that is defined, defining the name, or adding 'async' to the enclosing function body."
     hasPublishedDocs: true
+    # In the documentation, the `unused_local_variable` diagnostics is being
+    # ignored because the only way to supress it would involve adding code that
+    # is extraneous to the diagnostic being documented.
     documentation: |-
       #### Description
 
@@ -20163,6 +20182,11 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     # In the documentation, formatting is being ignored because adding the space
     # between `yield` and `*` would obscure the intent of the code.
+    #
+    # The `illegal_async_return_type` diagnostic is being ignored because there
+    # isn't any way to produce only the diagnostic being documented when the
+    # modifier is wrong without also generating another diagnostic. Having two
+    # diagnostics isn't helpful, but it isn't clear which should be suppressed.
     documentation: |-
       #### Description
 
@@ -24914,6 +24938,10 @@ StaticWarningCode:
     problemMessage: "The left operand can't be null, so the right operand is never executed."
     correctionMessage: Try removing the operator and the right operand.
     hasPublishedDocs: true
+    # In the documentation, the `dead_code` diagnostics is being ignored because
+    # it's redundant. Both diagnostics report the same problem, so we should
+    # only produce one. This one is more specific, so it's probably the better
+    # choice.
     documentation: |-
       #### Description
 
@@ -28973,6 +29001,9 @@ WarningCode:
     problemMessage: "Argument '#name' must be a constant."
     correctionMessage: Try replacing the argument with a constant.
     hasPublishedDocs: true
+    # In the documentation, the `experimental_member_use` diagnostics is being
+    # ignored because the fact that the annotation is experimental isn't
+    # relevant to the example.
     documentation: |-
       #### Description
 
@@ -30768,6 +30799,8 @@ WarningCode:
     problemMessage: "The operand can't be 'null', so the condition is always 'false'."
     correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
     hasPublishedDocs: true
+    # In the documentation, the `dead_code` diagnostics is being ignored because
+    # it isn't relevant to the example, but can't (easily) be suppressed.
     documentation: |-
       #### Description
 
