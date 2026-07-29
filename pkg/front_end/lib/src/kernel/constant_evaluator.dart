@@ -4907,7 +4907,7 @@ class ConstantEvaluator
 
   @override
   Constant visitLet(Let node) {
-    Constant value = _evaluateSubexpression(node.variable.initializer!);
+    Constant value = _evaluateSubexpression(node.value);
     if (value is AbortConstant) return value;
     env.addVariableValue(node.variable, value);
     return _evaluateSubexpression(node.body);

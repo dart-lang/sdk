@@ -3464,7 +3464,7 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    node.variable.initializer!.accept(this);
+    node.value.accept(this);
   }
 
   @override

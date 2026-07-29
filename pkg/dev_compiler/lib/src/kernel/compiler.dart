@@ -8071,7 +8071,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitLet(Let node) {
     var v = node.variable;
-    var init = _visitExpression(v.initializer!);
+    var init = _visitExpression(node.value);
     var body = _visitExpression(node.body);
     var temp = _tempVariables.remove(v);
     // TODO(eernst): Remove the following `if` if anonymous-methods is rejected.

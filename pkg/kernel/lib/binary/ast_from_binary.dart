@@ -2150,6 +2150,7 @@ class BinaryBuilder {
   Initializer _readLocalInitializer() {
     int offset = readOffset();
     SyntheticVariable variable = readAndPushVariable() as SyntheticVariable;
+    // ignore: deprecated_member_use_from_same_package
     return new LocalInitializer(variable, variable.initializer!)
       ..fileOffset = offset;
   }
@@ -3241,6 +3242,7 @@ class BinaryBuilder {
     pushVariableDeclaration(variable);
     Expression body = readExpression();
     variableStack.length = stackHeight;
+    // ignore: deprecated_member_use_from_same_package
     return new Let(variable: variable, value: variable.initializer!, body: body)
       ..fileOffset = offset;
   }

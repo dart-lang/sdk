@@ -1273,8 +1273,7 @@ class _ExpressionTransformer extends Transformer {
       statements.add(VariableStatement(VariableDeclaration(variable)));
       var index = nameIndex;
       seenAwait = false;
-      variable.initializer = transform(variable.initializer!)
-        ..parent = variable;
+      expr.value = transform(expr.value)..parent = variable;
       // Temporaries used in the initializer or the body are not live but the
       // temporary used for the body is.
       if (index + 1 > nameIndex) {
@@ -1288,8 +1287,7 @@ class _ExpressionTransformer extends Transformer {
       return transformTreeNode(expr, () {
         // The body has already been translated.
         expr.body = body..parent = expr;
-        variable.initializer = transform(variable.initializer!)
-          ..parent = variable;
+        expr.value = transform(expr.value)..parent = variable;
       });
     }
   }

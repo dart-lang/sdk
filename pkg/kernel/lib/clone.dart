@@ -527,6 +527,7 @@ class CloneVisitorNotMembers
     SyntheticVariable newVariable = clone(node.variable);
     return new Let(
       variable: newVariable,
+      // ignore: deprecated_member_use_from_same_package
       value: newVariable.initializer!,
       body: clone(node.body),
     );
@@ -1131,6 +1132,7 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitLocalInitializer(LocalInitializer node) {
     SyntheticVariable variable = clone(node.variable);
+    // ignore: deprecated_member_use_from_same_package
     return new LocalInitializer(variable, variable.initializer!);
   }
 

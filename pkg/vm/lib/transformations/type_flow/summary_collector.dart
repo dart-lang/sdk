@@ -1958,7 +1958,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitLet(Let node) {
-    _declareVariable(node.variable, _visit(node.variable.initializer!));
+    _declareVariable(node.variable, _visit(node.value));
     return _visit(node.body);
   }
 
