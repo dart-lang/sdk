@@ -256,7 +256,7 @@ def _monorepo_mac_builder(name, short_name, console):
     _monorepo_builder(name, short_name, console, dimensions = [mac, arm64])
 
 def _monorepo_win_builder(name, short_name, console):
-    _monorepo_builder(name, short_name, console, dimensions = [windows])
+    _monorepo_builder(name, short_name, console, dimensions = [windows], execution_timeout = 40 * time.minute)
 
 _monorepo_builder(
     "flutter-linux-android_debug",
@@ -321,9 +321,9 @@ _monorepo_builder("flutter-linux-host_release", "release", "flutter-linux")
 _monorepo_mac_builder("flutter-mac-ios_debug", "ios-debug", "flutter-mac")
 _monorepo_mac_builder("flutter-mac-ios_profile", "ios-profile", "flutter-mac")
 _monorepo_mac_builder("flutter-mac-ios_release", "ios-release", "flutter-mac")
-_monorepo_win_builder("flutter-win-win_host_debug", "host-debug", "flutter-win")
-_monorepo_win_builder("flutter-win-win_host_profile", "host-profile", "flutter-win")
-_monorepo_win_builder("flutter-win-win_host_release", "host-release", "flutter-win")
+_monorepo_win_builder("flutter-win-host_debug", "host-debug", "flutter-win")
+_monorepo_win_builder("flutter-win-host_profile", "host-profile", "flutter-win")
+_monorepo_win_builder("flutter-win-host_release", "host-release", "flutter-win")
 _monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
 _monorepo_builder("flutter-linux-web_tests-artifacts", "web-tests", None)
 _monorepo_builder(
