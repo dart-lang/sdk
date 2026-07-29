@@ -1301,7 +1301,10 @@ class BodyBuilderImpl extends StackListenerImpl
           }
           break;
         case NominalParameterBuilder():
-          _registerSingleTargetAnnotations(variable.parameter, annotations);
+          _registerSingleTargetAnnotations(
+            new DelegatingAnnotatable(variable.parameter),
+            annotations,
+          );
           break;
       }
     }
@@ -3934,10 +3937,7 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     }
     if (annotations != null) {
-      _registerSingleTargetAnnotations(
-        functionParameter.astVariable,
-        annotations,
-      );
+      _registerSingleTargetAnnotations(functionParameter, annotations);
     }
 
     push(parameterBuilder);
@@ -6037,10 +6037,7 @@ class BodyBuilderImpl extends StackListenerImpl
       InternalVariableDeclaration declaration =
           node as InternalVariableDeclaration;
       if (annotations != null) {
-        _registerSingleTargetAnnotations(
-          declaration.variable.astVariable,
-          annotations,
-        );
+        _registerSingleTargetAnnotations(declaration.variable, annotations);
       }
       // TODO(johnniwinther): Should [VariableStatement] use offset from
       //  [endToken]?
@@ -6063,7 +6060,7 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       if (annotations != null) {
         _registerMultiTargetAnnotations(
-          variables.map((v) => v.variable.astVariable).toList(),
+          variables.map((v) => v.variable).toList(),
           annotations,
         );
       }
@@ -9641,9 +9638,9 @@ class BodyBuilderImpl extends StackListenerImpl
     );
 
     if (declaration is InternalFunctionDeclaration) {
-      InternalVariable variable = declaration.variable;
+      InternalLocalFunctionVariable variable = declaration.variable;
       if (annotations != null) {
-        _registerSingleTargetAnnotations(variable.astVariable, annotations);
+        _registerSingleTargetAnnotations(variable, annotations);
       }
       declaration.hasImplicitReturnType = hasImplicitReturnType;
       if (!hasImplicitReturnType) {
@@ -11384,7 +11381,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   void _registerMultiTargetAnnotations(
-    List<Annotatable> targets,
+    List<InternalAnnotatable> targets,
     List<InternalExpression> annotations,
   ) {
     (_multiTargetAnnotations ??= []).add(
@@ -11393,7 +11390,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   void _registerSingleTargetAnnotations(
-    Annotatable target,
+    InternalAnnotatable target,
     List<InternalExpression> annotations,
   ) {
     (_singleTargetAnnotations ??= []).add(

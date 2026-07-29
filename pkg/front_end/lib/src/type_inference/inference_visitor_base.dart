@@ -2478,18 +2478,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// inferred. Otherwise all annotations are inferred.
   List<Expression> inferMetadata(
     InferenceVisitor visitor,
-    Annotatable annotatable,
     List<InternalExpression> annotations,
   ) {
     List<Expression> result = [];
     for (int index = 0; index < annotations.length; index++) {
       Expression inferredAnnotation = _inferMetadataAt(
         visitor,
-        annotatable,
         annotations,
         index,
       );
-      annotatable.addAnnotation(inferredAnnotation);
       result.add(inferredAnnotation);
     }
     return result;
@@ -2497,7 +2494,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   Expression _inferMetadataAt(
     InferenceVisitor visitor,
-    Annotatable annotatable,
     List<InternalExpression> annotations,
     int index,
   ) {

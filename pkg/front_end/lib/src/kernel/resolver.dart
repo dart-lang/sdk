@@ -132,7 +132,7 @@ class Resolver {
     }
     List<Expression> inferredAnnotations = context.inferSingleTargetAnnotation(
       singleTarget: new SingleTargetAnnotations(
-        annotatable,
+        new DelegatingAnnotatable(annotatable),
         annotationsToBeInferred,
       ),
     );
@@ -602,7 +602,7 @@ class Resolver {
 
     List<Expression> expressions = context.inferSingleTargetAnnotation(
       singleTarget: new SingleTargetAnnotations(
-        annotatable,
+        new DelegatingAnnotatable(annotatable),
         result.expressions,
       ),
     );

@@ -1230,7 +1230,8 @@ class InternalConstVariable extends InternalDeclaredVariable {
   }
 }
 
-sealed class InternalFunctionParameter extends InternalVariable {
+sealed class InternalFunctionParameter extends InternalVariable
+    implements InternalAnnotatable {
   InternalExpression? _defaultValue;
 
   new({required this._defaultValue, required super.fileOffset});
@@ -1268,6 +1269,13 @@ sealed class InternalFunctionParameter extends InternalVariable {
 
   void setInferredDefaultValue(Expression? value) {
     _astVariable.defaultValue = value?..parent = _astVariable;
+  }
+
+  @override
+  void registerAnnotations(List<Expression> annotations) {
+    for (Expression annotation in annotations) {
+      astVariable.addAnnotation(annotation);
+    }
   }
 }
 
@@ -1624,7 +1632,8 @@ sealed class InternalVariable({required super.fileOffset})
 }
 
 sealed class InternalDeclaredVariable({required super.fileOffset})
-    extends InternalVariable {
+    extends InternalVariable
+    implements InternalAnnotatable {
   @override
   DeclaredVariable get astVariable;
 
@@ -1667,6 +1676,13 @@ sealed class InternalDeclaredVariable({required super.fileOffset})
     if (initializer != null) {
       printer.write(' = ');
       initializer.toTextInternal(printer);
+    }
+  }
+
+  @override
+  void registerAnnotations(List<Expression> annotations) {
+    for (Expression annotation in annotations) {
+      astVariable.addAnnotation(annotation);
     }
   }
 }
@@ -8509,5 +8525,19 @@ class MultiVariableDeclaration extends InternalStatement {
       );
     }
     printer.write(';');
+  }
+}
+
+sealed class InternalAnnotatable {
+  void registerAnnotations(List<Expression> annotations);
+}
+
+class DelegatingAnnotatable(final Annotatable annotatable)
+    implements InternalAnnotatable {
+  @override
+  void registerAnnotations(List<Expression> annotations) {
+    for (Expression annotation in annotations) {
+      annotatable.addAnnotation(annotation);
+    }
   }
 }
