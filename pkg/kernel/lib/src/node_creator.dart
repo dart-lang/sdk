@@ -2232,7 +2232,7 @@ class NodeCreator {
             _createStatement(),
             isDefault: true,
             hasLabel: false,
-            jointVariables: [],
+            jointVariableDeclarations: [],
             jointVariableFirstUseOffsets: null,
           ),
           () => new PatternSwitchCase(
@@ -2241,7 +2241,7 @@ class NodeCreator {
             _createStatement(),
             isDefault: false,
             hasLabel: true,
-            jointVariables: [],
+            jointVariableDeclarations: [],
             jointVariableFirstUseOffsets: null,
           ),
         ]);

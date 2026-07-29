@@ -3144,7 +3144,7 @@ class BinaryPrinter
 
   @override
   void visitPatternSwitchCase(PatternSwitchCase node) {
-    writeVariableList(node.jointVariables);
+    writeVariableDeclarationList(node.jointVariableDeclarations);
     int length = node.patternGuards.length;
     writeUInt30(length);
     for (int i = 0; i < length; ++i) {

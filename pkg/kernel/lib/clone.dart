@@ -1442,8 +1442,8 @@ class CloneVisitorNotMembers
       clone(node.body),
       isDefault: node.isDefault,
       hasLabel: node.hasLabel,
-      jointVariables: node.jointVariables
-          .map((e) => getVariableClone(e) as DeclaredVariable)
+      jointVariableDeclarations: node.jointVariableDeclarations
+          .map(clone)
           .toList(),
       jointVariableFirstUseOffsets: node.jointVariableFirstUseOffsets == null
           ? null

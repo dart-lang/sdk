@@ -10351,7 +10351,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             variable.cosmeticName!: variable.type,
         };
         if (headIndex == 0) {
-          for (Variable jointVariable in switchCase.jointVariables) {
+          for (VariableDeclaration jointVariableDeclaration
+              in switchCase.jointVariableDeclarations) {
+            Variable jointVariable = jointVariableDeclaration.variable;
             DartType? inferredType =
                 inferredVariableTypes[jointVariable.cosmeticName!];
             if (inferredType != null) {
@@ -10362,8 +10364,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             }
           }
         } else {
-          for (int i = 0; i < switchCase.jointVariables.length; ++i) {
-            Variable jointVariable = switchCase.jointVariables[i];
+          for (
+            int i = 0;
+            i < switchCase.jointVariableDeclarations.length;
+            ++i
+          ) {
+            VariableDeclaration jointVariableDeclaration =
+                switchCase.jointVariableDeclarations[i];
+            Variable jointVariable = jointVariableDeclaration.variable;
             // The error on joint variables not present in all case heads is
             // reported in BodyBuilder.
             DartType? inferredType =
@@ -11620,9 +11628,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           body: body,
           isDefault: case_.isDefault,
           hasLabel: case_.hasLabel,
-          jointVariables: [
+          jointVariableDeclarations: [
             for (InternalDeclaredVariable variable in case_.jointVariables)
-              variable.astVariable,
+              extern.createVariableDeclaration(variable.astVariable),
           ],
           jointVariableFirstUseOffsets: case_.jointVariableFirstUseOffsets,
           fileOffset: case_.fileOffset,

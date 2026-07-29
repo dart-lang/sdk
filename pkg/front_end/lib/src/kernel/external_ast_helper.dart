@@ -1255,7 +1255,7 @@ PatternSwitchCase createPatternSwitchCase({
   required Statement body,
   required bool isDefault,
   required bool hasLabel,
-  required List<DeclaredVariable> jointVariables,
+  required List<VariableDeclaration> jointVariableDeclarations,
   required List<int>? jointVariableFirstUseOffsets,
   required int fileOffset,
 }) {
@@ -1265,7 +1265,7 @@ PatternSwitchCase createPatternSwitchCase({
     body,
     isDefault: isDefault,
     hasLabel: hasLabel,
-    jointVariables: jointVariables,
+    jointVariableDeclarations: jointVariableDeclarations,
     jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
   )..fileOffset = fileOffset;
 }

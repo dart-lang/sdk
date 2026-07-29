@@ -3753,7 +3753,7 @@ class BinaryBuilder {
           dummyStatement,
           isDefault: false,
           hasLabel: false,
-          jointVariables: [],
+          jointVariableDeclarations: [],
           jointVariableFirstUseOffsets: null,
         ),
         growable: useGrowableLists,
@@ -3772,7 +3772,9 @@ class BinaryBuilder {
   void _readPatternSwitchCaseInto(PatternSwitchCase caseNode) {
     int variableCount = readUInt30();
     for (int i = 0; i < variableCount; ++i) {
-      caseNode.jointVariables.add(readDeclaredVariable()..parent = caseNode);
+      caseNode.jointVariableDeclarations.add(
+        readVariableDeclaration()..parent = caseNode,
+      );
     }
     int caseCount = readUInt30();
     for (int i = 0; i < caseCount; ++i) {
