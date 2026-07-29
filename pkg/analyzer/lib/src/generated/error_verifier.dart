@@ -1115,6 +1115,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             errorToken: variable.name,
             fragment: declaredFragment,
           );
+          _checkForAugmentationVariableDifferentGetterSetterTypes(
+            errorToken: variable.name,
+            fragment: declaredFragment,
+          );
           if (declaredFragment.inducedGetter case var inducedGetter?) {
             _checkForAugmentationReturnTypeMismatch(
               fragment: inducedGetter,
@@ -2108,6 +2112,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             declaredFragment,
           );
           _checkForAugmentationInducedAccessorsAlreadyComplete(
+            errorToken: variable.name,
+            fragment: declaredFragment,
+          );
+          _checkForAugmentationVariableDifferentGetterSetterTypes(
             errorToken: variable.name,
             fragment: declaredFragment,
           );
@@ -3289,6 +3297,39 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
       }
     }
+  }
+
+  void _checkForAugmentationVariableDifferentGetterSetterTypes({
+    required Token errorToken,
+    required PropertyInducingFragmentImpl fragment,
+  }) {
+    if (!(fragment.isAbstract && fragment.hasImplicitType)) {
+      return;
+    }
+
+    var getter = fragment.inducedGetter;
+    var setter = fragment.inducedSetter;
+    if (getter == null ||
+        getter.previousFragment == null ||
+        setter == null ||
+        setter.previousFragment == null) {
+      return;
+    }
+
+    var getterType = getter.element.returnType;
+    var setterType = setter.element.valueFormalParameter.type;
+    if (getterType is InvalidType || setterType is InvalidType) {
+      return;
+    }
+    if (getterType == setterType) {
+      return;
+    }
+
+    diagnosticReporter.report(
+      diag.augmentationVariableDifferentGetterSetterTypes
+          .withArguments(getterType: getterType, setterType: setterType)
+          .at(errorToken),
+    );
   }
 
   void _checkForAwaitInLateLocalVariableInitializer(AwaitExpression node) {

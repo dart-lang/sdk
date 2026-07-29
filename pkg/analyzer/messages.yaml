@@ -1947,6 +1947,15 @@ CompileTimeErrorCode:
     problemMessage: The augmentation type parameter must have the same name as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
+  augmentationVariableDifferentGetterSetterTypes:
+    type: compileTimeError
+    parameters:
+      Type getterType: the return type of the getter being augmented
+      Type setterType: the parameter type of the setter being augmented
+    experiment: augmentations
+    problemMessage: "The getter and setter augmented by this variable have different types: '#getterType' and '#setterType'."
+    correctionMessage: Try changing the getter and setter to have the same type.
+    hasPublishedDocs: false
   augmentationWithoutDeclaration:
     type: compileTimeError
     parameters: none

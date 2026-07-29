@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  86 "needsEvaluation"
+# -  87 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -287,6 +287,8 @@ augmentation_type_parameter_name:
   status: needsFix
   notes: |-
     We could rename the type parameter, this is purely local operation.
+augmentation_variable_different_getter_setter_types:
+  status: needsEvaluation
 augmentation_without_declaration:
   status: noFix
 augmentation_without_getter_declaration:
