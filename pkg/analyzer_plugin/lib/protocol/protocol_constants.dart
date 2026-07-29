@@ -39,6 +39,9 @@ const String ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS_EVENTS = 'events';
 const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
 const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED = 'excluded';
 const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED = 'included';
+const String ANALYSIS_REQUEST_SET_CONFIGURATIONS = 'analysis.setConfigurations';
+const String ANALYSIS_REQUEST_SET_CONFIGURATIONS_CONFIGURATIONS =
+    'configurations';
 const String ANALYSIS_REQUEST_SET_CONTEXT_ROOTS = 'analysis.setContextRoots';
 const String ANALYSIS_REQUEST_SET_CONTEXT_ROOTS_ROOTS = 'roots';
 const String ANALYSIS_REQUEST_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';

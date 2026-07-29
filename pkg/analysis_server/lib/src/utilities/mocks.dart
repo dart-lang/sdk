@@ -222,6 +222,33 @@ class ServerError implements Exception {
   }
 }
 
+class TestPluginIsolate implements PluginIsolate {
+  @override
+  final String pluginId;
+
+  final List<plugin.RequestParams> requests = [];
+
+  new(this.pluginId);
+
+  @override
+  bool get isLegacy => false;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is unimplemented');
+
+  @override
+  Future<plugin.PluginDetailsResult?> requestDetails() async => null;
+
+  @override
+  void sendRequest(plugin.RequestParams params) {
+    requests.add(params);
+  }
+
+  @override
+  Future<void> stop() async {}
+}
+
 /// A plugin manager that simulates broadcasting requests to plugins by
 /// hard-coding the responses.
 class TestPluginManager(final ResourceProvider resourceProvider)
@@ -270,6 +297,9 @@ class TestPluginManager(final ResourceProvider resourceProvider)
     required bool isLegacyPlugin,
   }) async {
     contextRootPlugins.putIfAbsent(contextRoot, () => []).add(path);
+    if (!isLegacyPlugin) {
+      pluginIsolates.add(TestPluginIsolate(path));
+    }
   }
 
   @override

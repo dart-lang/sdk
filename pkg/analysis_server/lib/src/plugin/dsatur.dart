@@ -180,6 +180,16 @@ bool hasConflict(PluginSpecVertex v1, PluginSpecVertex v2) {
     }
   }
 
+  // Check if they specify different dependency overrides for the same package.
+  if (v1.dependencyOverrides != null && v2.dependencyOverrides != null) {
+    for (var entry in v1.dependencyOverrides!.entries) {
+      var otherOverride = v2.dependencyOverrides![entry.key];
+      if (otherOverride != null && otherOverride != entry.value) {
+        return true;
+      }
+    }
+  }
+
   // Check subset/superset relationship. If one set of plugins (e.g.
   // {plugin1, plugin2}) is not a subset or superset of another set of plugins
   // (e.g. {plugin3}), then they are in conflict; we may not get a pub version
@@ -199,6 +209,7 @@ bool hasConflict(PluginSpecVertex v1, PluginSpecVertex v2) {
 class PluginSpecVertex {
   final String optionsFilePath;
   final List<PluginConfiguration> configurations;
+  final Map<String, PluginSource>? dependencyOverrides;
 
-  new(this.optionsFilePath, this.configurations);
+  new(this.optionsFilePath, this.configurations, this.dependencyOverrides);
 }
