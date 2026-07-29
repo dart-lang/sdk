@@ -3272,12 +3272,14 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     }
   }
 
+  @pragma("vm:prefer-inline")
   void _checkV1View() {
     if (_astNodeApi == AstNodeApi.v2) {
       throw StateError('$runtimeType is not in the V1 AST view.');
     }
   }
 
+  @pragma("vm:prefer-inline")
   void _checkV2View() {
     if (_astNodeApi == AstNodeApi.v1) {
       throw StateError('$runtimeType is not in the V2 AST view.');

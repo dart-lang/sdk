@@ -329,6 +329,7 @@ ConstVariable createConstVariable({
   required int fileOffset,
   bool hasDeclaredInitializer = false,
   int fileEqualsOffset = TreeNode.noOffset,
+  Expression? value,
 }) {
   return new ConstVariable(
       name: name,
@@ -336,6 +337,7 @@ ConstVariable createConstVariable({
       isFinal: isFinal,
       isWildcard: isWildcard,
       hasDeclaredInitializer: hasDeclaredInitializer,
+      value: value,
     )
     ..fileOffset = fileOffset
     ..fileEqualsOffset = fileEqualsOffset;
@@ -592,6 +594,24 @@ FunctionNode createFunctionNode(
     ..fileEndOffset = fileEndOffset ?? fileOffset;
 }
 
+CachedExpression createCachedExpression({
+  required Expression expression,
+  required DartType type,
+  String? cosmeticName,
+  bool isFinal = true,
+  int? fileOffset,
+}) {
+  return new CachedExpression(
+    variable: createUninitializedVariable(
+      type: type,
+      name: cosmeticName,
+      isFinal: isFinal,
+      fileOffset: fileOffset ?? expression.fileOffset,
+    ),
+    value: expression,
+  );
+}
+
 IfCaseStatement createIfCaseStatement({
   required Expression expression,
   required PatternGuard patternGuard,
@@ -821,13 +841,13 @@ InvalidInitializer createInvalidInitializerFromMessage(
 
 InvalidPattern createInvalidPattern({
   required Expression error,
-  required List<InternalDeclaredVariable> declaredVariables,
+  required List<InternalPatternVariable> patternVariables,
   int? fileOffset,
 }) {
   return new InvalidPattern(
     error,
-    declaredVariables: declaredVariables
-        .map((InternalDeclaredVariable variable) => variable.astVariable)
+    declaredVariables: patternVariables
+        .map((InternalPatternVariable variable) => variable.astVariable)
         .toList(),
   )..fileOffset = fileOffset ?? error.fileOffset;
 }
@@ -872,24 +892,26 @@ LateVariable createLateVariable({
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
 Let createLet({
-  required SyntheticVariable variable,
-  Expression? value,
+  required CachedExpression cache,
   required Expression body,
   int? fileOffset,
 }) {
-  if (value != null) {
-    variable.initializer = value..parent = variable;
-  }
-  return new Let(variable, body)
-    ..fileOffset = fileOffset ?? variable.fileOffset;
+  return new Let(variable: cache.variable, value: cache.value, body: body)
+    ..fileOffset = fileOffset ?? cache.fileOffset;
 }
 
 /// Creates a [Let] with the [effect] as the variable initializer and the
 /// [result] as the body of the [Let] expression and using
 /// `effect.fileOffset` as the file offset for the let.
 Let createLetEffect({required Expression effect, required Expression result}) {
-  return new Let(createVariableCache(effect, const DynamicType()), result)
-    ..fileOffset = effect.fileOffset;
+  return createLet(
+    cache: createCachedExpression(
+      expression: effect,
+      type: const DynamicType(),
+    ),
+    body: result,
+    fileOffset: effect.fileOffset,
+  );
 }
 
 ListPattern createListPattern({
@@ -972,11 +994,9 @@ LocalFunctionVariable createLocalFunctionVariable({
     ..fileEqualsOffset = fileEqualsOffset;
 }
 
-LocalInitializer createLocalInitializer({
-  required SyntheticVariable variable,
-  required int fileOffset,
-}) {
-  return new LocalInitializer(variable)..fileOffset = fileOffset;
+LocalInitializer createLocalInitializer(CachedExpression cache) {
+  return new LocalInitializer(cache.variable, cache.value)
+    ..fileOffset = cache.fileOffset;
 }
 
 LocalVariable createLocalVariable({
@@ -1237,7 +1257,7 @@ PatternSwitchCase createPatternSwitchCase({
   required Statement body,
   required bool isDefault,
   required bool hasLabel,
-  required List<DeclaredVariable> jointVariables,
+  required List<VariableDeclaration> jointVariableDeclarations,
   required List<int>? jointVariableFirstUseOffsets,
   required int fileOffset,
 }) {
@@ -1247,7 +1267,7 @@ PatternSwitchCase createPatternSwitchCase({
     body,
     isDefault: isDefault,
     hasLabel: hasLabel,
-    jointVariables: jointVariables,
+    jointVariableDeclarations: jointVariableDeclarations,
     jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
   )..fileOffset = fileOffset;
 }

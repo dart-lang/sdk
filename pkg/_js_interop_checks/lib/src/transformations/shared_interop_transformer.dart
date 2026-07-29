@@ -607,20 +607,22 @@ class SharedInteropTransformer extends Transformer {
         receiverInteropTypeDeclaration is ExtensionTypeDeclaration
         ? _extensionIndex.isJSType(receiverInteropTypeDeclaration)
         : false;
-    final SyntheticVariable? letVariable;
+    final CachedExpression? receiverCache;
     final Variable receiverVar;
     if (receiver is VariableGet) {
       receiverVar = receiver.variable;
-      letVariable = null;
+      receiverCache = null;
     } else {
       // Synthesize declaration to avoid re-evaluating expressions.
-      receiverVar = letVariable = SyntheticVariable(
-        initializer: receiver,
+      receiverCache = CachedExpression.fromValue(
+        value: receiver,
         type: receiverIsJSType
             ? ExtensionType(_jsAny, Nullability.nullable)
             : receiverStaticType,
+        fileOffset: invocation.fileOffset,
         isFinal: true,
-      )..fileOffset = invocation.fileOffset;
+      );
+      receiverVar = receiverCache.variable;
     }
     final receiverVarAsJSAny =
         receiverIsJSType
@@ -832,9 +834,12 @@ class SharedInteropTransformer extends Transformer {
       check = BoolLiteral(true);
     }
 
-    return letVariable == null ? check : Let(letVariable, check)
-      ..fileOffset = invocation.fileOffset
-      ..parent = invocation.parent;
+    return receiverCache == null
+        ? check
+        : (receiverCache.createLet(
+            body: check,
+            fileOffset: invocation.fileOffset,
+          )..parent = invocation.parent);
   }
 
   // Various shared helpers to make calls to `dart:js_interop`/

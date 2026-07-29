@@ -2149,7 +2149,9 @@ class BinaryBuilder {
 
   Initializer _readLocalInitializer() {
     int offset = readOffset();
-    return new LocalInitializer(readAndPushVariable() as SyntheticVariable)
+    SyntheticVariable variable = readAndPushVariable() as SyntheticVariable;
+    // ignore: deprecated_member_use_from_same_package
+    return new LocalInitializer(variable, variable.initializer!)
       ..fileOffset = offset;
   }
 
@@ -3240,7 +3242,9 @@ class BinaryBuilder {
     pushVariableDeclaration(variable);
     Expression body = readExpression();
     variableStack.length = stackHeight;
-    return new Let(variable, body)..fileOffset = offset;
+    // ignore: deprecated_member_use_from_same_package
+    return new Let(variable: variable, value: variable.initializer!, body: body)
+      ..fileOffset = offset;
   }
 
   Expression _readBlockExpression() {
@@ -3749,7 +3753,7 @@ class BinaryBuilder {
           dummyStatement,
           isDefault: false,
           hasLabel: false,
-          jointVariables: [],
+          jointVariableDeclarations: [],
           jointVariableFirstUseOffsets: null,
         ),
         growable: useGrowableLists,
@@ -3768,7 +3772,9 @@ class BinaryBuilder {
   void _readPatternSwitchCaseInto(PatternSwitchCase caseNode) {
     int variableCount = readUInt30();
     for (int i = 0; i < variableCount; ++i) {
-      caseNode.jointVariables.add(readDeclaredVariable()..parent = caseNode);
+      caseNode.jointVariableDeclarations.add(
+        readVariableDeclaration()..parent = caseNode,
+      );
     }
     int caseCount = readUInt30();
     for (int i = 0; i < caseCount; ++i) {

@@ -8951,7 +8951,7 @@ class _ErroneousInitializerVisitor extends ir.VisitorDefault<bool>
 
   @override
   bool visitLocalInitializer(ir.LocalInitializer node) {
-    return node.variable.initializer?.accept(this) ?? false;
+    return node.value.accept(this);
   }
 
   // Expressions: Does the expression always throw?

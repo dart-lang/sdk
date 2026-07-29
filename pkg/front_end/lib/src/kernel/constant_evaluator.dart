@@ -1109,8 +1109,9 @@ class ConstantsTransformer extends RemovingTransformer {
         // TODO(cstefantsova): Make sure an error is reported if the variables
         // declared in the heads aren't compatible to each other.
         Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
-          for (Variable variable in switchCase.jointVariables)
-            variable.cosmeticName!: extern
+          for (VariableDeclaration variableDeclaration
+              in switchCase.jointVariableDeclarations)
+            variableDeclaration.variable.cosmeticName!: extern
                 .createUninitializedVariableDeclaration(
                   type: const DynamicType(),
                   // Avoid step debugging on the declaration of intermediate
@@ -1242,7 +1243,9 @@ class ConstantsTransformer extends RemovingTransformer {
           caseDeclaredVariableHelpersByName.values,
         );
 
-        for (Variable jointVariable in switchCase.jointVariables) {
+        for (VariableDeclaration jointVariableDeclaration
+            in switchCase.jointVariableDeclarations) {
+          Variable jointVariable = jointVariableDeclaration.variable;
           // In case of [InvalidExpression], there's an error associated with
           // the variable, and it shouldn't be initialized.
           if (jointVariable.initializer is! InvalidExpression) {
@@ -1293,10 +1296,9 @@ class ConstantsTransformer extends RemovingTransformer {
             ],
             expressionOffsets: [node.fileOffset],
             body: extern.createBlock([
-              for (DeclaredVariable jointVariable in switchCase.jointVariables)
-                extern.createVariableStatement(
-                  extern.createVariableDeclaration(jointVariable),
-                ),
+              for (VariableDeclaration jointVariableDeclaration
+                  in switchCase.jointVariableDeclarations)
+                extern.createVariableStatement(jointVariableDeclaration),
               if (body is! Block || body.statements.isNotEmpty) body,
             ], fileOffset: node.fileOffset),
             isDefault: switchCase.isDefault,
@@ -1318,10 +1320,9 @@ class ConstantsTransformer extends RemovingTransformer {
           replacementCases.add(replacementCase);
         } else {
           caseBlock = extern.createBlock([
-            for (DeclaredVariable jointVariable in switchCase.jointVariables)
-              extern.createVariableStatement(
-                extern.createVariableDeclaration(jointVariable),
-              ),
+            for (VariableDeclaration jointVariableDeclaration
+                in switchCase.jointVariableDeclarations)
+              extern.createVariableStatement(jointVariableDeclaration),
             if (body is! Block || body.statements.isNotEmpty) body,
           ], fileOffset: switchCase.fileOffset);
         }
@@ -4907,7 +4908,7 @@ class ConstantEvaluator
 
   @override
   Constant visitLet(Let node) {
-    Constant value = _evaluateSubexpression(node.variable.initializer!);
+    Constant value = _evaluateSubexpression(node.value);
     if (value is AbortConstant) return value;
     env.addVariableValue(node.variable, value);
     return _evaluateSubexpression(node.body);

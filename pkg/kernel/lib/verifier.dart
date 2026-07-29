@@ -2369,7 +2369,7 @@ void checkInitializers(Constructor constructor) {
 }
 
 bool _isCompileTimeErrorEncoding(TreeNode? node) {
-  return node is Let && node.variable.initializer is InvalidExpression;
+  return node is Let && node.value is InvalidExpression;
 }
 
 class AllowedTypes implements DartTypeVisitor<bool> {

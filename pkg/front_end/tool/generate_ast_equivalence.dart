@@ -404,6 +404,8 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
     sb.writeln('''
 $preamble
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'union_find.dart';

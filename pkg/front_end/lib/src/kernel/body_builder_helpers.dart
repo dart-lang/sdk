@@ -446,7 +446,7 @@ class PendingAnnotations(
 
 /// A single target holding annotations to be inferred.
 class SingleTargetAnnotations(
-  final Annotatable target,
+  final InternalAnnotatable target,
   final List<InternalExpression> annotations,
 );
 
@@ -455,7 +455,7 @@ class SingleTargetAnnotations(
 /// The annotations are on the first target and needs to be cloned to the
 /// subsequent targets after inference.
 class MultiTargetAnnotations(
-  final List<Annotatable> targets,
+  final List<InternalAnnotatable> targets,
   final List<InternalExpression> annotations,
 );
 

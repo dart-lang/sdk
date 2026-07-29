@@ -626,20 +626,18 @@ for (void e in null) {}''',
           patterns: [
             new InternalVariablePattern(
               type: const VoidType(),
-              variable: new InternalLocalVariable(
+              variable: new InternalPatternVariable(
                 name: 'a',
                 type: null,
                 fileOffset: TreeNode.noOffset,
-                isImplicitlyTyped: true,
               ),
               fileOffset: TreeNode.noOffset,
             ),
             new InternalVariablePattern(
               type: null,
-              variable: new InternalLocalVariable(
+              variable: new InternalPatternVariable(
                 name: 'b',
                 type: null,
-                isImplicitlyTyped: true,
                 fileOffset: TreeNode.noOffset,
               ),
               fileOffset: TreeNode.noOffset,

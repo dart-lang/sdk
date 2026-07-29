@@ -327,13 +327,17 @@ class RedirectingInitializer extends Initializer {
 class LocalInitializer extends Initializer {
   SyntheticVariable variable;
 
-  new(this.variable) {
+  new(this.variable, Expression value) {
     variable.parent = this;
+    // ignore: deprecated_member_use_from_same_package
+    variable.initializer = value..parent = variable;
   }
 
+  // ignore: deprecated_member_use_from_same_package
   Expression get value => variable.initializer!;
 
   void set value(Expression value) {
+    // ignore: deprecated_member_use_from_same_package
     variable.initializer = value;
   }
 

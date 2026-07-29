@@ -1756,7 +1756,7 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
 
   bool hasLabel;
 
-  final List<DeclaredVariable> jointVariables;
+  final List<VariableDeclaration> jointVariableDeclarations;
 
   // TODO(johnniwinther): Serialize this field.
   final List<int>? jointVariableFirstUseOffsets;
@@ -1767,11 +1767,11 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
     this.body, {
     required this.isDefault,
     required this.hasLabel,
-    required this.jointVariables,
+    required this.jointVariableDeclarations,
     required this.jointVariableFirstUseOffsets,
   }) {
     setParents(patternGuards, this);
-    setParents(jointVariables, this);
+    setParents(jointVariableDeclarations, this);
     body.parent = this;
   }
 
@@ -2296,7 +2296,7 @@ final PatternSwitchCase dummyPatternSwitchCase = new PatternSwitchCase(
   dummyStatement,
   isDefault: true,
   hasLabel: false,
-  jointVariables: [],
+  jointVariableDeclarations: [],
   jointVariableFirstUseOffsets: null,
 );
 

@@ -91,7 +91,6 @@ abstract class TypeInferrer {
   /// inferred. Otherwise all annotations are inferred.
   List<Expression> inferMetadata({
     required Uri fileUri,
-    required Annotatable annotatable,
     required List<InternalExpression> annotations,
   });
 
@@ -459,7 +458,6 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   List<Expression> inferMetadata({
     required Uri fileUri,
-    required Annotatable annotatable,
     required List<InternalExpression> annotations,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
@@ -467,11 +465,7 @@ class TypeInferrerImpl implements TypeInferrer {
       contextAllocationStrategy:
           InferenceVisitorBase.createContextAllocationStrategy(),
     );
-    List<Expression> result = visitor.inferMetadata(
-      visitor,
-      annotatable,
-      annotations,
-    );
+    List<Expression> result = visitor.inferMetadata(visitor, annotations);
     visitor.checkCleanState();
     return result;
   }
@@ -634,13 +628,11 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   @override
   List<Expression> inferMetadata({
     required Uri fileUri,
-    required Annotatable annotatable,
     required List<InternalExpression> annotations,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
     List<Expression> result = impl.inferMetadata(
       fileUri: fileUri,
-      annotatable: annotatable,
       annotations: annotations,
     );
     benchmarker.endSubdivide();

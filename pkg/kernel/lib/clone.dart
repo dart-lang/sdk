@@ -525,7 +525,12 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitLet(Let node) {
     SyntheticVariable newVariable = clone(node.variable);
-    return new Let(newVariable, clone(node.body));
+    return new Let(
+      variable: newVariable,
+      // ignore: deprecated_member_use_from_same_package
+      value: newVariable.initializer!,
+      body: clone(node.body),
+    );
   }
 
   @override
@@ -1126,7 +1131,9 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitLocalInitializer(LocalInitializer node) {
-    return new LocalInitializer(clone(node.variable));
+    SyntheticVariable variable = clone(node.variable);
+    // ignore: deprecated_member_use_from_same_package
+    return new LocalInitializer(variable, variable.initializer!);
   }
 
   @override
@@ -1435,8 +1442,8 @@ class CloneVisitorNotMembers
       clone(node.body),
       isDefault: node.isDefault,
       hasLabel: node.hasLabel,
-      jointVariables: node.jointVariables
-          .map((e) => getVariableClone(e) as DeclaredVariable)
+      jointVariableDeclarations: node.jointVariableDeclarations
+          .map(clone)
           .toList(),
       jointVariableFirstUseOffsets: node.jointVariableFirstUseOffsets == null
           ? null

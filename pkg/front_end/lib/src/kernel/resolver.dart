@@ -132,7 +132,7 @@ class Resolver {
     }
     List<Expression> inferredAnnotations = context.inferSingleTargetAnnotation(
       singleTarget: new SingleTargetAnnotations(
-        annotatable,
+        new DelegatingAnnotatable(annotatable),
         annotationsToBeInferred,
       ),
     );
@@ -602,7 +602,7 @@ class Resolver {
 
     List<Expression> expressions = context.inferSingleTargetAnnotation(
       singleTarget: new SingleTargetAnnotations(
-        annotatable,
+        new DelegatingAnnotatable(annotatable),
         result.expressions,
       ),
     );
@@ -1281,7 +1281,7 @@ class Resolver {
     required InternalVariable variable,
     required int fileOffset,
   }) {
-    if (!variable.isLocalFunction && !variable.isWildcard) {
+    if (variable is! InternalLocalFunctionVariable && !variable.isWildcard) {
       assignedVariables.read(variable);
     }
     return intern.createVariableGet(variable, fileOffset: fileOffset);

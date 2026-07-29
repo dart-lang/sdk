@@ -2118,6 +2118,7 @@ class SyntheticVariable extends DeclaredVariable {
   late VariableContext context;
 
   @override
+  @deprecated
   // TODO(johnniwinther): Remove this.
   Expression? initializer;
 
@@ -2133,6 +2134,7 @@ class SyntheticVariable extends DeclaredVariable {
     bool hasDeclaredInitializer = false,
     bool isWildcard = false,
   }) : type = type ?? const DynamicType() {
+    // ignore: deprecated_member_use_from_same_package
     this.initializer?.parent = this;
     this.isFinal = isFinal;
     this.isLowered = isLowered;
@@ -2287,8 +2289,11 @@ class SyntheticVariable extends DeclaredVariable {
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     type = v.visitDartType(type);
+    // ignore: deprecated_member_use_from_same_package
     if (initializer != null) {
+      // ignore: deprecated_member_use_from_same_package
       initializer = v.transform(initializer!);
+      // ignore: deprecated_member_use_from_same_package
       initializer?.parent = this;
     }
   }
@@ -2297,8 +2302,11 @@ class SyntheticVariable extends DeclaredVariable {
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     type = v.visitDartType(type, cannotRemoveSentinel);
+    // ignore: deprecated_member_use_from_same_package
     if (initializer != null) {
+      // ignore: deprecated_member_use_from_same_package
       initializer = v.transformOrRemoveExpression(initializer!);
+      // ignore: deprecated_member_use_from_same_package
       initializer?.parent = this;
     }
   }
@@ -2307,6 +2315,7 @@ class SyntheticVariable extends DeclaredVariable {
   void visitChildren(Visitor v) {
     visitList(annotations, v);
     type.accept(v);
+    // ignore: deprecated_member_use_from_same_package
     initializer?.accept(v);
   }
 

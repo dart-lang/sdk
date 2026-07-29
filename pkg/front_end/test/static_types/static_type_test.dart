@@ -149,7 +149,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
 
   bool isReachabilityErrorLet(object) {
     return object is Let &&
-        (isThrowReachabilityError(object.variable.initializer) ||
+        (isThrowReachabilityError(object.value) ||
             isThrowReachabilityError(object.body));
   }
 

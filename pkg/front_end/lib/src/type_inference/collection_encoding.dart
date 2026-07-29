@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/type_inference/type_inference_engine.dart';
+import 'type_inference_engine.dart';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../kernel/external_ast_helper.dart' as extern;
-import '../kernel/external_ast_helper.dart';
 import '../kernel/inferred_collections.dart';
 import '../source/source_library_builder.dart';
 import 'type_schema_environment.dart';
@@ -199,9 +199,9 @@ abstract class _ConstListOrSetLiteralBuilder(
           }
           Expression spreadExpression = element.expression;
           if (element.isNullAware) {
-            SyntheticVariable temp = _createVariable(
-              spreadExpression,
-              _typeSchemaEnvironment.iterableType(
+            CachedExpression expressionCache = extern.createCachedExpression(
+              expression: spreadExpression,
+              type: _typeSchemaEnvironment.iterableType(
                 _elementType,
                 Nullability.nullable,
               ),
@@ -209,7 +209,7 @@ abstract class _ConstListOrSetLiteralBuilder(
             parts.add(
               _createNullAwareGuard(
                 element.fileOffset,
-                temp,
+                expressionCache,
                 _createLiteral(expressions: [], fileOffset: element.fileOffset),
                 iterableType,
               ),
@@ -222,18 +222,20 @@ abstract class _ConstListOrSetLiteralBuilder(
             parts.add(translate(elements: currentPart, fileOffset: fileOffset));
             currentPart = null;
           }
-          SyntheticVariable temp = _createVariable(
-            element.expression,
-            _elementType.withDeclaredNullability(Nullability.nullable),
+          CachedExpression expressionCache = extern.createCachedExpression(
+            expression: element.expression,
+            type: _elementType.withDeclaredNullability(Nullability.nullable),
           );
           parts.add(
             _createNullAwareGuard(
               element.fileOffset,
-              temp,
+              expressionCache,
               _createLiteral(expressions: [], fileOffset: element.fileOffset),
               iterableType,
               nullCheckedValue: _createLiteral(
-                expressions: [_createNullCheckedVariableGet(temp)],
+                expressions: [
+                  _createNullCheckedVariableGet(expressionCache.variable),
+                ],
                 fileOffset: element.fileOffset,
               ),
             ),
@@ -358,14 +360,16 @@ class _ConstMapLiteralBuilder(
           }
           Expression spreadExpression = entry.expression;
           if (entry.isNullAware) {
-            SyntheticVariable temp = _createVariable(
-              spreadExpression,
-              collectionType.withDeclaredNullability(Nullability.nullable),
+            CachedExpression expressionCache = extern.createCachedExpression(
+              expression: spreadExpression,
+              type: collectionType.withDeclaredNullability(
+                Nullability.nullable,
+              ),
             );
             parts.add(
               _createNullAwareGuard(
                 entry.fileOffset,
-                temp,
+                expressionCache,
                 makeLiteral(entry.fileOffset, []),
                 collectionType,
               ),
@@ -387,18 +391,20 @@ class _ConstMapLiteralBuilder(
           );
 
           if (entry.isKeyNullAware && entry.isValueNullAware) {
-            SyntheticVariable keyTemp = _createVariable(
-              entry.key,
-              _keyType.withDeclaredNullability(Nullability.nullable),
+            CachedExpression keyCache = extern.createCachedExpression(
+              expression: entry.key,
+              type: _keyType.withDeclaredNullability(Nullability.nullable),
             );
-            Expression keyExpression = _createNullCheckedVariableGet(keyTemp);
+            Expression keyExpression = _createNullCheckedVariableGet(
+              keyCache.variable,
+            );
 
-            SyntheticVariable valueTemp = _createVariable(
-              entry.value,
-              _valueType.withDeclaredNullability(Nullability.nullable),
+            CachedExpression valueCache = extern.createCachedExpression(
+              expression: entry.value,
+              type: _valueType.withDeclaredNullability(Nullability.nullable),
             );
             Expression valueExpression = _createNullCheckedVariableGet(
-              valueTemp,
+              valueCache.variable,
             );
 
             InferredMapEntryElement addedMapLiteralEntry =
@@ -413,25 +419,25 @@ class _ConstMapLiteralBuilder(
             );
             desugaredExpression = _createNullAwareGuard(
               entry.fileOffset,
-              valueTemp,
+              valueCache,
               makeLiteral(entry.fileOffset, []),
               collectionType,
               nullCheckedValue: nullCheckedKeyValue,
             );
             desugaredExpression = _createNullAwareGuard(
               entry.fileOffset,
-              keyTemp,
+              keyCache,
               makeLiteral(entry.fileOffset, []),
               collectionType,
               nullCheckedValue: desugaredExpression,
             );
           } else if (entry.isValueNullAware) {
-            SyntheticVariable valueTemp = _createVariable(
-              entry.value,
-              _valueType.withDeclaredNullability(Nullability.nullable),
+            CachedExpression valueCache = extern.createCachedExpression(
+              expression: entry.value,
+              type: _valueType.withDeclaredNullability(Nullability.nullable),
             );
             Expression valueExpression = _createNullCheckedVariableGet(
-              valueTemp,
+              valueCache.variable,
             );
             Expression defaultValue = makeLiteral(entry.fileOffset, []);
             InferredMapEntryElement addedMapLiteralEntry =
@@ -445,18 +451,20 @@ class _ConstMapLiteralBuilder(
             ]);
             desugaredExpression = _createNullAwareGuard(
               entry.fileOffset,
-              valueTemp,
+              valueCache,
               defaultValue,
               collectionType,
               nullCheckedValue: nullCheckedValue,
             );
           } else {
             assert(entry.isKeyNullAware);
-            SyntheticVariable keyTemp = _createVariable(
-              entry.key,
-              _keyType.withDeclaredNullability(Nullability.nullable),
+            CachedExpression keyCache = extern.createCachedExpression(
+              expression: entry.key,
+              type: _keyType.withDeclaredNullability(Nullability.nullable),
             );
-            Expression keyExpression = _createNullCheckedVariableGet(keyTemp);
+            Expression keyExpression = _createNullCheckedVariableGet(
+              keyCache.variable,
+            );
             Expression defaultValue = makeLiteral(entry.fileOffset, []);
 
             InferredMapEntryElement addedMapLiteralEntry =
@@ -471,7 +479,7 @@ class _ConstMapLiteralBuilder(
 
             desugaredExpression = _createNullAwareGuard(
               entry.fileOffset,
-              keyTemp,
+              keyCache,
               defaultValue,
               collectionType,
               nullCheckedValue: nullCheckedKey,
@@ -723,18 +731,19 @@ abstract class _LiteralBuilder(
 
   Let _createNullAwareGuard(
     int fileOffset,
-    SyntheticVariable variable,
+    CachedExpression cachedExpression,
     Expression defaultValue,
     DartType type, {
     Expression? nullCheckedValue,
   }) {
     return extern.createLet(
-      variable: variable,
+      cache: cachedExpression,
       body: _createConditionalExpression(
         fileOffset,
-        _createEqualsNull(_createVariableGet(variable)),
+        _createEqualsNull(_createVariableGet(cachedExpression.variable)),
         defaultValue,
-        nullCheckedValue ?? _createNullCheckedVariableGet(variable),
+        nullCheckedValue ??
+            _createNullCheckedVariableGet(cachedExpression.variable),
         type,
       ),
       fileOffset: fileOffset,
@@ -1083,8 +1092,8 @@ abstract class _NonConstListOrSetLiteralBuilder(
 
     InvalidExpression? preLoopError = element.encoding.preLoopError;
     if (preLoopError != null) {
-      loop = createBlock([
-        createExpressionStatement(preLoopError),
+      loop = extern.createBlock([
+        extern.createExpressionStatement(preLoopError),
         loop,
       ], fileOffset: element.fileOffset);
     }
@@ -1618,8 +1627,8 @@ class _NonConstMapLiteralBuilder(
 
     InvalidExpression? preLoopError = entry.encoding.preLoopError;
     if (preLoopError != null) {
-      loop = createBlock([
-        createExpressionStatement(preLoopError),
+      loop = extern.createBlock([
+        extern.createExpressionStatement(preLoopError),
         loop,
       ], fileOffset: entry.fileOffset);
     }
@@ -1782,7 +1791,7 @@ class _NonConstMapLiteralBuilder(
 
       IfStatement ifValueNotNullStatement = _createIf(
         valueTemp.fileOffset,
-        _createEqualsNull(createVariableGet(valueTemp), notEquals: true),
+        _createEqualsNull(extern.createVariableGet(valueTemp), notEquals: true),
         desugaredStatement,
       );
       addedEntryStatementParent ??= ifValueNotNullStatement;
@@ -1807,7 +1816,7 @@ class _NonConstMapLiteralBuilder(
 
       IfStatement ifKeyNotNullStatement = _createIf(
         keyTemp.fileOffset,
-        _createEqualsNull(createVariableGet(keyTemp), notEquals: true),
+        _createEqualsNull(extern.createVariableGet(keyTemp), notEquals: true),
         desugaredStatement,
       );
       addedEntryStatementParent ??= ifKeyNotNullStatement;
