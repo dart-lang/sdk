@@ -511,6 +511,7 @@ void syncTests() {
   if (isJSBackend) {
     Expect.equals(dartArrayOfNullableDoubles, listOfNullableDoubles);
     Expect.equals(dartArrayOfNullableDoubles.toJS, listOfNullableDoubles);
+    Expect.throws(() => CustomList(<double?>[1.0]).toJS);
   } else {
     Expect.notEquals(dartArrayOfNullableDoubles, listOfNullableDoubles);
     Expect.notEquals(dartArrayOfNullableDoubles.toJS, listOfNullableDoubles);
@@ -523,8 +524,6 @@ void syncTests() {
   Expect.equals(dartArrayOfNullableDoubles.length, 2);
   Expect.equals(dartArrayOfNullableDoubles[0], 1.0);
   Expect.equals(dartArrayOfNullableDoubles[1], null);
-
-  Expect.throws(() => CustomList(<double?>[1.0]).toJS);
 
   // [JSArray<JSNumber?>] <-> [List<int?>]
   final listOfNullableInts = <int?>[1, null];
@@ -540,12 +539,11 @@ void syncTests() {
   if (isJSBackend) {
     Expect.equals(dartArrayOfNullableInts, listOfNullableInts);
     Expect.equals(dartArrayOfNullableInts.toJS, listOfNullableInts);
+    Expect.throws(() => CustomList(<int?>[1]).toJS);
   } else {
     Expect.notEquals(dartArrayOfNullableInts, listOfNullableInts);
     Expect.notEquals(dartArrayOfNullableInts.toJS, listOfNullableInts);
   }
-
-  Expect.throws(() => CustomList(<int?>[1]).toJS);
 
   // Copy the list to elicit an error even on platforms where this only throws
   // lazily.
@@ -594,6 +592,7 @@ void syncTests() {
   if (isJSBackend) {
     Expect.equals(dartArrayOfNullableStrings, listOfNullableStrings);
     Expect.equals(dartArrayOfNullableStrings.toJS, listOfNullableStrings);
+    Expect.throws(() => CustomList(<String?>["a"]).toJS);
   } else {
     Expect.notEquals(dartArrayOfNullableStrings, listOfNullableStrings);
     Expect.notEquals(dartArrayOfNullableStrings.toJS, listOfNullableStrings);
@@ -606,8 +605,6 @@ void syncTests() {
   Expect.equals(dartArrayOfNullableStrings.length, 2);
   Expect.equals(dartArrayOfNullableStrings[0], "a");
   Expect.equals(dartArrayOfNullableStrings[1], null);
-
-  Expect.throws(() => CustomList(<String?>["a"]).toJS);
 
   // [JSArray<JSBoolean>] <-> [List<bool>]
   final listOfBools = [true, false];
@@ -649,6 +646,7 @@ void syncTests() {
   if (isJSBackend) {
     Expect.equals(dartArrayOfNullableBooleans, listOfNullableBools);
     Expect.equals(dartArrayOfNullableBooleans.toJS, listOfNullableBools);
+    Expect.throws(() => CustomList(<bool?>[true]).toJS);
   } else {
     Expect.notEquals(dartArrayOfNullableBooleans, listOfNullableBools);
     Expect.notEquals(dartArrayOfNullableBooleans.toJS, listOfNullableBools);
@@ -661,8 +659,6 @@ void syncTests() {
   Expect.equals(dartArrayOfNullableBooleans.length, 2);
   Expect.equals(dartArrayOfNullableBooleans[0], true);
   Expect.equals(dartArrayOfNullableBooleans[1], null);
-
-  Expect.throws(() => CustomList(<bool?>[true]).toJS);
 
   // [ArrayBuffer] <-> [ByteBuffer]
   buf = Uint8List.fromList([0, 255, 0, 255]).buffer.toJS;
