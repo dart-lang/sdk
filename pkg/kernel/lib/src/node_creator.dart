@@ -1963,6 +1963,7 @@ class NodeCreator {
         return LocalInitializer(
           _createVariableFromKind(VariableKind.SyntheticVariable)
               as SyntheticVariable,
+          _createExpression(),
         )..fileOffset = _needFileOffset();
       case InitializerKind.RedirectingInitializer:
         return RedirectingInitializer(_needConstructor(), _createArguments())

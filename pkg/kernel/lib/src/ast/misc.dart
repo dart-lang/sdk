@@ -236,3 +236,16 @@ class Version extends Object {
     return "Version(major=$major, minor=$minor)";
   }
 }
+
+/// Helper class for creating [Let] and [LocalInitializer] objects.
+class CachedExpression({
+  required final SyntheticVariable variable,
+  required final Expression value,
+}) {
+  DartType get type => variable.type;
+
+  int get fileOffset => variable.fileOffset;
+
+  @override
+  String toString() => '$runtimeType(variable=$variable,value=$value)';
+}

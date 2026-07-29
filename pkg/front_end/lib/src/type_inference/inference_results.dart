@@ -192,14 +192,12 @@ abstract class InvocationInferenceResult {
 
   static Expression _insertHoistedExpressions(
     Expression expression,
-    List<SyntheticVariable> hoistedExpressions,
+    List<CachedExpression> hoistedExpressions,
   ) {
     if (hoistedExpressions.isNotEmpty) {
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = extern.createLet(
-          variable: hoistedExpressions[index],
-          body: expression,
-        );
+        CachedExpression cache = hoistedExpressions[index];
+        expression = extern.createLet(cache: cache, body: expression);
       }
     }
     return expression;
@@ -220,7 +218,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   @override
   final List<DartType> typeArguments;
 
-  final List<SyntheticVariable>? hoistedArguments;
+  final List<CachedExpression>? hoistedArguments;
 
   @override
   final List<Expression> positional;
@@ -249,7 +247,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     Expression expression, {
     DartType? extensionReceiverType,
   }) {
-    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
+    List<CachedExpression>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else if (expression is RedirectingFactoryInvocation) {
@@ -281,14 +279,14 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         return expression;
       } else if (expression is InstanceInvocation) {
         if (!extern.isPureExpression(expression.receiver)) {
-          SyntheticVariable receiver = extern.createVariable(
-            expression.receiver,
-            inferredReceiverType ?? const DynamicType(),
+          CachedExpression receiverCache = extern.createCachedExpression(
+            expression: expression.receiver,
+            type: inferredReceiverType ?? const DynamicType(),
           );
-          expression.receiver = extern.createVariableGet(receiver)
+          expression.receiver = extern.createVariableGet(receiverCache.variable)
             ..parent = expression;
           return extern.createLet(
-            variable: receiver,
+            cache: receiverCache,
             body: InvocationInferenceResult._insertHoistedExpressions(
               expression,
               hoistedArguments,
@@ -309,15 +307,15 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         if (extensionReceiverType != null) {
           Expression receiver = expression.arguments.positional.first;
           if (!extern.isPureExpression(receiver)) {
-            SyntheticVariable receiverVariable = extern.createVariable(
-              receiver,
-              extensionReceiverType,
+            CachedExpression receiverCache = extern.createCachedExpression(
+              expression: receiver,
+              type: extensionReceiverType,
             );
             expression.arguments.positional.first = extern.createVariableGet(
-              receiverVariable,
+              receiverCache.variable,
             )..parent = expression;
             return extern.createLet(
-              variable: receiverVariable,
+              cache: receiverCache,
               body: InvocationInferenceResult._insertHoistedExpressions(
                 expression,
                 hoistedArguments,
@@ -368,7 +366,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final bool isInapplicable;
 
-  final List<SyntheticVariable>? hoistedArguments;
+  final List<CachedExpression>? hoistedArguments;
 
   @override
   final List<Expression> positional;
@@ -411,7 +409,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
       ),
       expression: expression,
     );
-    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
+    List<CachedExpression>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else {
@@ -464,7 +462,7 @@ class SuccessfulInitializerInvocationInferenceResult
   @override
   final Initializer initializer;
 
-  final List<SyntheticVariable>? hoistedArguments;
+  final List<CachedExpression>? hoistedArguments;
 
   new({required this.initializer, required this.hoistedArguments});
 
@@ -478,15 +476,10 @@ class SuccessfulInitializerInvocationInferenceResult
 
   @override
   void addHoistedArguments(List<Initializer> initializers) {
-    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
+    List<CachedExpression>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
-      for (SyntheticVariable hoistedArgument in hoistedArguments) {
-        initializers.add(
-          extern.createLocalInitializer(
-            variable: hoistedArgument,
-            fileOffset: hoistedArgument.fileOffset,
-          ),
-        );
+      for (CachedExpression cache in hoistedArguments) {
+        initializers.add(extern.createLocalInitializer(cache));
       }
     }
   }
@@ -567,18 +560,12 @@ class ElementInferenceResult({
 /// A guard used for creating null-shorting null-aware actions.
 class NullAwareGuard {
   /// The variable used to guard the null-aware action.
-  final SyntheticVariable _nullAwareVariable;
-
-  final Expression? _nullableExpression;
+  final CachedExpression _nullAwareCache;
 
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;
 
-  new(
-    this._nullAwareVariable,
-    this._nullAwareFileOffset, {
-    this._nullableExpression,
-  });
+  new(this._nullAwareCache, this._nullAwareFileOffset);
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].
@@ -593,7 +580,7 @@ class NullAwareGuard {
     Expression nullAwareAction,
   ) {
     Expression equalsNull = extern.createEqualsNull(
-      extern.createVariableGet(_nullAwareVariable),
+      extern.createVariableGet(_nullAwareCache.variable),
       fileOffset: _nullAwareFileOffset,
     );
 
@@ -633,7 +620,7 @@ class NullAwareGuard {
     Expression typeSafeIfNullBranch =
         inferredType.nullability == Nullability.nullable
         ? extern.createNullLiteral(fileOffset: TreeNode.noOffset)
-        : extern.createVariableGet(_nullAwareVariable);
+        : extern.createVariableGet(_nullAwareCache.variable);
     typeSafeIfNullBranch.fileOffset = _nullAwareFileOffset;
 
     ConditionalExpression condition = extern.createConditionalExpression(
@@ -644,14 +631,12 @@ class NullAwareGuard {
       fileOffset: _nullAwareFileOffset,
     );
     return extern.createLet(
-      variable: _nullAwareVariable,
-      value: _nullableExpression,
+      cache: _nullAwareCache,
       body: condition,
       fileOffset: _nullAwareFileOffset,
     );
   }
 
   @override
-  String toString() =>
-      'NullAwareGuard($_nullAwareVariable,$_nullAwareFileOffset)';
+  String toString() => 'NullAwareGuard($_nullAwareCache,$_nullAwareFileOffset)';
 }

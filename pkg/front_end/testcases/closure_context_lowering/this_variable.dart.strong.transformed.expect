@@ -268,7 +268,7 @@ class A extends core::Object {
       this-variable final;
     ]),
   ] */ {
-    return () /* #ctx38 */ → Null => let final self::A #t3 = this-variable.{self::A::a}{self::A} in let final core::int #t4 = 0 in let final has-declared-initializer Null #t5 = null in let final void #t6 = #t3.{self::A::[]=}(#t4, #t5){(core::int, core::Object?) → void} in #t5;
+    return () /* #ctx38 */ → Null => let final self::A #t3 = this-variable.{self::A::a}{self::A} in let final core::int #t4 = 0 in let final Null #t5 = null in let final void #t6 = #t3.{self::A::[]=}(#t4, #t5){(core::int, core::Object?) → void} in #t5;
   }
   method capturedPropertyIfNullAssignment() → dynamic/* scope=[
     #ctx39: direct-captured VariableContext([
@@ -515,7 +515,7 @@ class B extends self::A {
       this-variable final;
     ]),
   ] */ {
-    return () /* #ctx68 */ → Null => let final self::A #t10 = super{this-variable}.{self::A::a} in let final core::int #t11 = 0 in let final has-declared-initializer Null #t12 = null in let final void #t13 = #t10.{self::A::[]=}(#t11, #t12){(core::int, core::Object?) → void} in #t12;
+    return () /* #ctx68 */ → Null => let final self::A #t10 = super{this-variable}.{self::A::a} in let final core::int #t11 = 0 in let final Null #t12 = null in let final void #t13 = #t10.{self::A::[]=}(#t11, #t12){(core::int, core::Object?) → void} in #t12;
   }
   @#C1
   method capturedPropertyIfNullAssignment() → dynamic/* scope=[
