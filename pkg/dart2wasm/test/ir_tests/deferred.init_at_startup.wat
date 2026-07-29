@@ -57,7 +57,7 @@
     array.set $Array<WasmArray<WasmI8>?>
   )
   (func $ArgumentError (param $var0 (ref null $#Top)) (param $var1 (ref null $JSExternWrapper)) (result (ref $ArgumentError)) <...>)
-  (func $BoxedInt.toRadixString (param $var0 i64) (param $var1 i64) (result (ref $JSExternWrapper)) <...>)
+  (func $BoxedInt.toRadixString (param $var0 i64) (result (ref $JSExternWrapper)) <...>)
   (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
   (func $IntegerDivisionByZeroException (result (ref $Object)) <...>)
   (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSExternWrapper)) <...>)
