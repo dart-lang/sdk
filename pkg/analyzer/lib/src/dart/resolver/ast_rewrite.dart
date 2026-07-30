@@ -142,7 +142,7 @@ class AstRewriter {
     var operator = node.operator;
     if (target == null) {
       // Possible cases: C() or C<>()
-      if (node.realTarget != null) {
+      if (node.realTarget2 != null) {
         // This isn't a constructor invocation because it's in a cascade.
         return node;
       }

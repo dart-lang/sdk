@@ -664,6 +664,9 @@ abstract class AstVisitor2<R> {
 
   R? visitNativeFunctionBody(NativeFunctionBody node);
 
+  @experimental
+  R? visitNullAssertionExpression(NullAssertionExpression node);
+
   R? visitNullAssertPattern(NullAssertPattern node);
 
   R? visitNullAwareElement(NullAwareElement node);

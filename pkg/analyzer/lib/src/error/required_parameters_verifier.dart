@@ -89,7 +89,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.methodName.name == MethodElement.CALL_METHOD_NAME) {
-      var targetType = node.realTarget?.staticType;
+      var targetType = node.realTarget2?.staticType;
       if (targetType is FunctionType) {
         _check(
           parameters: targetType.formalParameters,

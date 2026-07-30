@@ -11,6 +11,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InferenceUpdate4Test);
+    defineReflectiveTests(NullAssertionExpressionResolutionTest);
     defineReflectiveTests(PostfixExpressionResolutionTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -35,6 +36,408 @@ SimpleIdentifier
   staticType: num
 ''');
     assertType(node, 'num');
+  }
+}
+
+@reflectiveTest
+class NullAssertionExpressionResolutionTest extends PubPackageResolutionTest {
+  test_nullCheck() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int? x) {
+  x!;
+}
+''');
+
+    var node = result.findNode.nullAssertion('x!');
+    assertResolvedNodeText(node, r'''
+NullAssertionExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  operator: !
+  staticType: int
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  operator: !
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_nullCheck_functionExpressionInvocation_rewrite() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Function f2) {
+  f2(42)!;
+}
+''');
+  }
+
+  test_nullCheck_indexExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(Map<String, int> a) {
+  int v = a['foo']!;
+  v;
+}
+''');
+
+    var node1 = result.findNode.index('a[');
+    assertResolvedNodeText(node1, r'''
+IndexExpression
+  target2: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Map<String, int>
+  leftBracket: [
+  index2: SimpleStringLiteral
+    literal: 'foo'
+  rightBracket: ]
+  element: SubstitutedMethodElementImpl
+    baseElement: dart:core::@class::Map::@method::[]
+    substitution: {K: String, V: int}
+  staticType: int?
+''');
+
+    var node2 = result.findNode.nullAssertion(']!');
+    assertResolvedNodeText(node2, r'''
+NullAssertionExpression
+  operand: IndexExpression
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Map<String, int>
+    leftBracket: [
+    index2: SimpleStringLiteral
+      literal: 'foo'
+    rightBracket: ]
+    element: SubstitutedMethodElementImpl
+      baseElement: dart:core::@class::Map::@method::[]
+      substitution: {K: String, V: int}
+    staticType: int?
+  operator: !
+  staticType: int
+PostfixExpression
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Map<String, int>
+    leftBracket: [
+    index: SimpleStringLiteral
+      literal: 'foo'
+    rightBracket: ]
+    element: SubstitutedMethodElementImpl
+      baseElement: dart:core::@class::Map::@method::[]
+      substitution: {K: String, V: int}
+    staticType: int?
+  operator: !
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_nullCheck_interfaceType_viaAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = String;
+
+void f(A? x) {
+  x!;
+}
+''');
+
+    var node = result.findNode.nullAssertion('x!');
+    assertResolvedNodeText(node, r'''
+NullAssertionExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: String?
+      alias: <testLibrary>::@typeAlias::A
+        nullabilitySuffix: NullabilitySuffix.question
+  operator: !
+  staticType: String
+    alias: <testLibrary>::@typeAlias::A
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: String?
+      alias: <testLibrary>::@typeAlias::A
+        nullabilitySuffix: NullabilitySuffix.question
+  operator: !
+  element: <null>
+  staticType: String
+    alias: <testLibrary>::@typeAlias::A
+''');
+  }
+
+  test_nullCheck_null() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f(Null x) {
+  x!;
+//^^
+// [diag.nullCheckAlwaysFails] This null-check will always throw an exception because the expression will always evaluate to 'null'.
+}
+''');
+
+    assertType(result.findNode.nullAssertion('x!'), 'Never');
+  }
+
+  test_nullCheck_nullableContext() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+T f<T>(T t) => t;
+
+int g() => f(null)!;
+''');
+
+    var node = result.findNode.nullAssertion('f(null)!');
+    assertResolvedNodeText(node, r'''
+NullAssertionExpression
+  operand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T Function<T>(T)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        NullLiteral
+          literal: null
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::t
+            substitution: {T: int?}
+          staticType: Null
+      rightParenthesis: )
+    staticInvokeType: int? Function(int?)
+    staticType: int?
+    typeArgumentTypes
+      int?
+  operator: !
+  staticType: int
+PostfixExpression
+  operand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T Function<T>(T)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        NullLiteral
+          literal: null
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::t
+            substitution: {T: int?}
+          staticType: Null
+      rightParenthesis: )
+    staticInvokeType: int? Function(int?)
+    staticType: int?
+    typeArgumentTypes
+      int?
+  operator: !
+  element: <null>
+  staticType: int
+''');
+  }
+
+  /// See https://github.com/dart-lang/language/issues/1163
+  test_nullCheck_participatesNullShorting() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  int zero;
+  int? zeroOrNull;
+
+  A(this.zero, [this.zeroOrNull]);
+}
+
+void test1(A? a) => a?.zero!;
+//                         ^
+// [diag.unnecessaryNonNullAssertion] The '!' will have no effect because the receiver can't be null.
+void test2(A? a) => a?.zeroOrNull!;
+void test3(A? a) => a?.zero!.isEven;
+//                         ^
+// [diag.unnecessaryNonNullAssertion] The '!' will have no effect because the receiver can't be null.
+void test4(A? a) => a?.zeroOrNull!.isEven;
+
+class Foo {
+  Bar? bar;
+
+  Foo(this.bar);
+
+  Bar? operator [](int? index) => null;
+}
+
+class Bar {
+  int baz;
+
+  Bar(this.baz);
+
+  int operator [](int index) => index;
+}
+
+void test5(Foo? foo) => foo?.bar!;
+void test6(Foo? foo) => foo?.bar!.baz;
+void test7(Foo? foo, int a) => foo?.bar![a];
+void test8(Foo? foo, int? a) => foo?[a]!;
+void test9(Foo? foo, int? a) => foo?[a]!.baz;
+void test10(Foo? foo, int? a, int b) => foo?[a]![b];
+''');
+
+    void assertTestType(int index, String expected) {
+      var function = result.findNode.functionDeclaration('test$index(');
+      var body = function.functionExpression.body as ExpressionFunctionBody;
+      assertType(body.expression2, expected);
+    }
+
+    assertTestType(1, 'int?');
+    assertTestType(2, 'int?');
+    assertTestType(3, 'bool?');
+    assertTestType(4, 'bool?');
+
+    assertTestType(5, 'Bar?');
+    assertTestType(6, 'int?');
+    assertTestType(7, 'int?');
+    assertTestType(8, 'Bar?');
+    assertTestType(9, 'int?');
+    assertTestType(10, 'int?');
+  }
+
+  test_nullCheck_recordType_viaAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = (int,);
+
+void f(A? x) {
+  x!;
+}
+''');
+
+    var node = result.findNode.nullAssertion('x!');
+    assertResolvedNodeText(node, r'''
+NullAssertionExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: (int,)?
+      alias: <testLibrary>::@typeAlias::A
+        nullabilitySuffix: NullabilitySuffix.question
+  operator: !
+  staticType: (int,)
+    alias: <testLibrary>::@typeAlias::A
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: (int,)?
+      alias: <testLibrary>::@typeAlias::A
+        nullabilitySuffix: NullabilitySuffix.question
+  operator: !
+  element: <null>
+  staticType: (int,)
+    alias: <testLibrary>::@typeAlias::A
+''');
+  }
+
+  test_nullCheck_superExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  void bar() {
+    super!.foo();
+//  ^^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+  }
+}
+''');
+
+    var node = result.findNode.methodInvocation('foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: NullAssertionExpression
+    operand: SuperExpression
+      superKeyword: super
+      staticType: dynamic
+    operator: !
+    staticType: dynamic
+  target(v1): PostfixExpression
+    operand: SuperExpression
+      superKeyword: super
+      staticType: dynamic
+    operator: !
+    element: <null>
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_nullCheck_typeParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f<T>(T? x) {
+  x!;
+}
+''');
+
+    var node = result.findNode.nullAssertion('x!');
+    assertResolvedNodeText(node, r'''
+NullAssertionExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: T?
+  operator: !
+  staticType: T & Object
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: T?
+  operator: !
+  element: <null>
+  staticType: T & Object
+''');
+  }
+
+  test_nullCheck_typeParameter_already_promoted() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f<T>(T? x) {
+  if (x is num?) {
+    x!;
+  }
+}
+''');
+
+    var node = result.findNode.nullAssertion('x!');
+    assertResolvedNodeText(node, r'''
+NullAssertionExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: (T & num?)?
+  operator: !
+  staticType: T & num
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: (T & num?)?
+  operator: !
+  element: <null>
+  staticType: T & num
+''');
   }
 }
 
@@ -941,320 +1344,6 @@ PostfixExpression
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
-''');
-  }
-
-  test_nullCheck() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-void f(int? x) {
-  x!;
-}
-''');
-
-    var node = result.findNode.postfix('x!');
-    assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: int?
-  operator: !
-  element: <null>
-  staticType: int
-''');
-  }
-
-  test_nullCheck_functionExpressionInvocation_rewrite() async {
-    await resolveTestCodeWithDiagnostics(r'''
-void f(Function f2) {
-  f2(42)!;
-}
-''');
-  }
-
-  test_nullCheck_indexExpression() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-void f(Map<String, int> a) {
-  int v = a['foo']!;
-  v;
-}
-''');
-
-    var node1 = result.findNode.index('a[');
-    assertResolvedNodeText(node1, r'''
-IndexExpression
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
-    staticType: Map<String, int>
-  leftBracket: [
-  index2: SimpleStringLiteral
-    literal: 'foo'
-  rightBracket: ]
-  element: SubstitutedMethodElementImpl
-    baseElement: dart:core::@class::Map::@method::[]
-    substitution: {K: String, V: int}
-  staticType: int?
-''');
-
-    var node2 = result.findNode.postfix(']!');
-    assertResolvedNodeText(node2, r'''
-PostfixExpression
-  operand2: IndexExpression
-    target2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
-      staticType: Map<String, int>
-    leftBracket: [
-    index2: SimpleStringLiteral
-      literal: 'foo'
-    rightBracket: ]
-    element: SubstitutedMethodElementImpl
-      baseElement: dart:core::@class::Map::@method::[]
-      substitution: {K: String, V: int}
-    staticType: int?
-  operator: !
-  element: <null>
-  staticType: int
-''');
-  }
-
-  test_nullCheck_interfaceType_viaAlias() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-typedef A = String;
-
-void f(A? x) {
-  x!;
-}
-''');
-
-    var node = result.findNode.postfix('x!');
-    assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: String?
-      alias: <testLibrary>::@typeAlias::A
-        nullabilitySuffix: NullabilitySuffix.question
-  operator: !
-  element: <null>
-  staticType: String
-    alias: <testLibrary>::@typeAlias::A
-''');
-  }
-
-  test_nullCheck_null() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-void f(Null x) {
-  x!;
-//^^
-// [diag.nullCheckAlwaysFails] This null-check will always throw an exception because the expression will always evaluate to 'null'.
-}
-''');
-
-    assertType(result.findNode.postfix('x!'), 'Never');
-  }
-
-  test_nullCheck_nullableContext() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-T f<T>(T t) => t;
-
-int g() => f(null)!;
-''');
-
-    var node = result.findNode.postfix('f(null)!');
-    assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand2: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T Function<T>(T)
-    argumentList: ArgumentList
-      leftParenthesis: (
-      arguments2
-        NullLiteral
-          literal: null
-          correspondingParameter: SubstitutedFormalParameterElementImpl
-            baseElement: <testLibrary>::@function::f::@formalParameter::t
-            substitution: {T: int?}
-          staticType: Null
-      rightParenthesis: )
-    staticInvokeType: int? Function(int?)
-    staticType: int?
-    typeArgumentTypes
-      int?
-  operator: !
-  element: <null>
-  staticType: int
-''');
-  }
-
-  /// See https://github.com/dart-lang/language/issues/1163
-  test_nullCheck_participatesNullShorting() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A {
-  int zero;
-  int? zeroOrNull;
-
-  A(this.zero, [this.zeroOrNull]);
-}
-
-void test1(A? a) => a?.zero!;
-//                         ^
-// [diag.unnecessaryNonNullAssertion] The '!' will have no effect because the receiver can't be null.
-void test2(A? a) => a?.zeroOrNull!;
-void test3(A? a) => a?.zero!.isEven;
-//                         ^
-// [diag.unnecessaryNonNullAssertion] The '!' will have no effect because the receiver can't be null.
-void test4(A? a) => a?.zeroOrNull!.isEven;
-
-class Foo {
-  Bar? bar;
-
-  Foo(this.bar);
-
-  Bar? operator [](int? index) => null;
-}
-
-class Bar {
-  int baz;
-
-  Bar(this.baz);
-
-  int operator [](int index) => index;
-}
-
-void test5(Foo? foo) => foo?.bar!;
-void test6(Foo? foo) => foo?.bar!.baz;
-void test7(Foo? foo, int a) => foo?.bar![a];
-void test8(Foo? foo, int? a) => foo?[a]!;
-void test9(Foo? foo, int? a) => foo?[a]!.baz;
-void test10(Foo? foo, int? a, int b) => foo?[a]![b];
-''');
-
-    void assertTestType(int index, String expected) {
-      var function = result.findNode.functionDeclaration('test$index(');
-      var body = function.functionExpression.body as ExpressionFunctionBody;
-      assertType(body.expression2, expected);
-    }
-
-    assertTestType(1, 'int?');
-    assertTestType(2, 'int?');
-    assertTestType(3, 'bool?');
-    assertTestType(4, 'bool?');
-
-    assertTestType(5, 'Bar?');
-    assertTestType(6, 'int?');
-    assertTestType(7, 'int?');
-    assertTestType(8, 'Bar?');
-    assertTestType(9, 'int?');
-    assertTestType(10, 'int?');
-  }
-
-  test_nullCheck_recordType_viaAlias() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-typedef A = (int,);
-
-void f(A? x) {
-  x!;
-}
-''');
-
-    var node = result.findNode.postfix('x!');
-    assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: (int,)?
-      alias: <testLibrary>::@typeAlias::A
-        nullabilitySuffix: NullabilitySuffix.question
-  operator: !
-  element: <null>
-  staticType: (int,)
-    alias: <testLibrary>::@typeAlias::A
-''');
-  }
-
-  test_nullCheck_superExpression() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  int foo() => 0;
-}
-
-class B extends A {
-  void bar() {
-    super!.foo();
-//  ^^^^^^
-// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
-  }
-}
-''');
-
-    var node = result.findNode.methodInvocation('foo();');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: PostfixExpression
-    operand2: SuperExpression
-      superKeyword: super
-      staticType: dynamic
-    operator: !
-    element: <null>
-    staticType: dynamic
-  operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    element: <null>
-    staticType: dynamic
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
-''');
-  }
-
-  test_nullCheck_typeParameter() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-void f<T>(T? x) {
-  x!;
-}
-''');
-
-    var node = result.findNode.postfix('x!');
-    assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: T?
-  operator: !
-  element: <null>
-  staticType: T & Object
-''');
-  }
-
-  test_nullCheck_typeParameter_already_promoted() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-void f<T>(T? x) {
-  if (x is num?) {
-    x!;
-  }
-}
-''');
-
-    var node = result.findNode.postfix('x!');
-    assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: (T & num?)?
-  operator: !
-  element: <null>
-  staticType: T & num
 ''');
   }
 }

@@ -567,7 +567,7 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
         parent.methodName == node &&
         parent.methodName.name == MethodElement.CALL_METHOD_NAME) {
       // Handle .call() invocations on functions.
-      var method = parent.realTarget;
+      var method = parent.realTarget2;
       if (method is Identifier && method.staticType is FunctionType) {
         return method.element;
       }

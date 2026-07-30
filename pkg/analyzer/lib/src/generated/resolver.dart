@@ -53,6 +53,7 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
+import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
@@ -230,6 +231,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   functionExpressionInvocationResolver;
   late final FunctionExpressionResolver _functionExpressionResolver;
   late final ForResolver _forResolver;
+  late final NullAssertionExpressionResolver _nullAssertionExpressionResolver;
   late final PostfixExpressionResolver _postfixExpressionResolver;
   late final PrefixedIdentifierResolver _prefixedIdentifierResolver;
   late final PrefixExpressionResolver _prefixExpressionResolver;
@@ -374,6 +376,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(resolver: this);
+    _nullAssertionExpressionResolver = NullAssertionExpressionResolver(this);
     _postfixExpressionResolver = PostfixExpressionResolver(resolver: this);
     _prefixedIdentifierResolver = PrefixedIdentifierResolver(this);
     _prefixExpressionResolver = PrefixExpressionResolver(resolver: this);
@@ -3685,6 +3688,31 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitNullAssertionExpression(
+    covariant NullAssertionExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    _nullAssertionExpressionResolver.resolve(node, contextType: contextType);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitNullAwareElement(
     covariant NullAwareElementImpl node, {
     CollectionLiteralContext? context,
@@ -4482,7 +4510,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (invocation is! MethodInvocation) {
       return;
     }
-    var targetType = invocation.realTarget?.staticType;
+    var targetType = invocation.realTarget2?.staticType;
     if (invocation.methodName.name == 'catchError' &&
         targetType is InterfaceTypeImpl) {
       var instanceOfFuture = targetType.asInstanceOf(

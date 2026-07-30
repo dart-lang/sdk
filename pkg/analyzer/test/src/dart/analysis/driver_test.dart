@@ -76931,6 +76931,68 @@ const b = 0;
     );
   }
 
+  test_manifest_constInitializer_nullAssertionExpression() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0!;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      a: #M0
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0!
+          tokenLengthList: [1, 1]
+    exportMapId: #M2
+    exportMap
+      a: #M0
+''',
+      updatedCode: r'''
+const a = 0!;
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredGetters
+      a: #M0
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+      b: #M3
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0!
+          tokenLengthList: [1, 1]
+      b: #M4
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+    exportMapId: #M5
+    exportMap
+      a: #M0
+      b: #M3
+''',
+    );
+  }
+
   test_manifest_constInitializer_postfixExpression_increment() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -77009,66 +77071,6 @@ const c = 0;
       a: #M0
       b: #M1
       c: #M5
-''',
-    );
-  }
-
-  test_manifest_constInitializer_postfixExpression_nullAssert() async {
-    configuration.withElementManifests = true;
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-const a = 0!;
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H0
-    declaredGetters
-      a: #M0
-        flags: isOriginVariable isSimplyBounded isStatic
-        returnType: int @ dart:core
-    declaredVariables
-      a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
-        type: int @ dart:core
-        constInitializer
-          isValid: false
-    exportMapId: #M2
-    exportMap
-      a: #M0
-''',
-      updatedCode: r'''
-const a = 0!;
-const b = 0;
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H1
-    declaredGetters
-      a: #M0
-        flags: isOriginVariable isSimplyBounded isStatic
-        returnType: int @ dart:core
-      b: #M3
-        flags: isOriginVariable isSimplyBounded isStatic
-        returnType: int @ dart:core
-    declaredVariables
-      a: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
-        type: int @ dart:core
-        constInitializer
-          isValid: false
-      b: #M5
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
-        type: int @ dart:core
-        constInitializer
-          tokenBuffer: 0
-          tokenLengthList: [1]
-    exportMapId: #M6
-    exportMap
-      a: #M0
-      b: #M3
 ''',
     );
   }

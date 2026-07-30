@@ -963,6 +963,8 @@ class AstBinaryReader {
         return _readNamedArgument();
       case Tag.NullAwareElement:
         return _readNullAwareElement();
+      case Tag.NullAssertionExpression:
+        return _readNullAssertionExpression();
       case Tag.NullLiteral:
         return _readNullLiteral();
       case Tag.ConstructorInvocation:
@@ -1035,6 +1037,16 @@ class AstBinaryReader {
   List<T> _readNodeList<T>() {
     var length = _reader.readUint30();
     return List.generate(length, (_) => _readNode() as T);
+  }
+
+  NullAssertionExpression _readNullAssertionExpression() {
+    var operand = _readNode() as ExpressionImpl;
+    var node = NullAssertionExpressionImpl(
+      operand: operand,
+      operator: Tokens.bang(),
+    );
+    _readExpressionResolution(node);
+    return node;
   }
 
   NullAwareElement _readNullAwareElement() {

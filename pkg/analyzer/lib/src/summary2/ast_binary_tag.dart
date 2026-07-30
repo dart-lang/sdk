@@ -94,6 +94,7 @@ class Tag {
   static const int NamedArgument = 60;
   static const int NamedType = 39;
   static const int NullAwareElement = 44;
+  static const int NullAssertionExpression = 123;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PostfixExpression = 94;

@@ -77,7 +77,7 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       rightBracket: expression.rightBracket,
     );
   } else if (expression is MethodInvocationImpl) {
-    var expressionTarget = expression.realTarget!;
+    var expressionTarget = expression.realTarget2!;
     return MethodInvocationImpl(
       target2: insertCascadeTargetIntoExpression(
         expression: expressionTarget,

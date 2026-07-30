@@ -1183,6 +1183,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    _sink.writeln('NullAssertionExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitNullAssertPattern(NullAssertPattern node) {
     _sink.writeln('NullAssertPattern');
     _sink.withIndent(() {

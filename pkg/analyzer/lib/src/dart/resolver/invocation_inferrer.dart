@@ -758,7 +758,7 @@ class MethodInvocationInferrer
   @override
   TypeImpl _computeContextForArgument(TypeImpl parameterType) {
     var argumentContextType = super._computeContextForArgument(parameterType);
-    var targetType = node.realTarget?.staticType;
+    var targetType = node.realTarget2?.staticType;
     if (targetType != null) {
       argumentContextType = resolver.typeSystem.refineNumericInvocationContext(
         targetType,
@@ -772,7 +772,7 @@ class MethodInvocationInferrer
 
   @override
   TypeImpl _refineReturnType(TypeImpl returnType) {
-    var targetType = node.realTarget?.staticType;
+    var targetType = node.realTarget2?.staticType;
     if (targetType != null) {
       returnType = resolver.typeSystem
           .refineNumericInvocationType(targetType, node.methodName.element, [

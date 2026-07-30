@@ -28758,9 +28758,18 @@ abstract final class MethodInvocation implements InvocationExpression {
   /// The expression used to compute the receiver of the invocation.
   ///
   /// If this invocation isn't part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
+  @ToBeDeprecated('Use realTarget2 instead.')
+  Expression? get realTarget;
+
+  /// The expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation isn't part of a cascade expression, then this is the
   /// same as [target2]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
-  Expression? get realTarget;
+  @experimental
+  Expression? get realTarget2;
 
   /// The expression producing the object on which the method is defined, or
   /// `null` if there's no target (that is, the target is implicitly `this`) or
@@ -28888,6 +28897,15 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   ExpressionImpl? get realTarget {
+    return switch (realTarget2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    };
+  }
+
+  @experimental
+  @override
+  ExpressionImpl? get realTarget2 {
     if (isCascaded) {
       return _ancestorCascade.target2;
     }
@@ -31007,6 +31025,185 @@ final class NodeListImpl<E extends AstNodeImpl>
     _owner = owner;
     _toV1 = toV1;
     _initializeElements(elements);
+  }
+}
+
+/// A postfix null assertion expression.
+///
+///    nullAssertionExpression ::=
+///        [Expression] '!'
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class NullAssertionExpression implements Expression {
+  /// The expression whose value is asserted to be non-null.
+  Expression get operand;
+
+  /// The `!` operator.
+  Token get operator;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operator'),
+  ],
+)
+final class NullAssertionExpressionImpl extends ExpressionImpl
+    with DotShorthandMixin
+    implements NullAssertionExpression {
+  @generated
+  ExpressionImpl _operand;
+
+  @generated
+  @override
+  final Token operator;
+
+  PostfixExpressionV1Impl? _postfixExpression;
+
+  @generated
+  NullAssertionExpressionImpl({
+    required ExpressionImpl operand,
+    required this.operator,
+  }) : _operand = operand {
+    _becomeParentOf2(operand);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return operand.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return operator;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get operand => _operand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set operand(ExpressionImpl operand) {
+    _operand = _becomeParentOf2(operand);
+    _postfixExpression?._attachV1Children();
+  }
+
+  /// The cached V1 compatibility projection for this expression.
+  PostfixExpressionV1Impl get postfixExpression =>
+      _postfixExpression ??= PostfixExpressionV1Impl._(this);
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('NullAssertionExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('operand', operand)
+    ..addToken('operator', operator);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('NullAssertionExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitNullAssertionExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitNullAssertionExpression(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('NullAssertionExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('NullAssertionExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
   }
 }
 
@@ -33901,6 +34098,126 @@ final class PostfixExpressionImpl extends ExpressionImpl
       return operand2;
     }
     return null;
+  }
+}
+
+/// The V1 compatibility projection of a [NullAssertionExpression].
+final class PostfixExpressionV1Impl extends ExpressionImpl
+    with CompoundAssignmentExpressionImpl
+    implements PostfixExpression {
+  final NullAssertionExpressionImpl _origin;
+
+  PostfixExpressionV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @override
+  MethodElement? get element => null;
+
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  ExpressionImpl get operand => V1Projection.toV1Expression(_origin.operand);
+
+  @experimental
+  @override
+  ExpressionImpl get operand2 => _origin.operand;
+
+  @override
+  Token get operator => _origin.operator;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('operand', operand)
+    ..addToken('operator', operator);
+
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('PostfixExpression is not in the V2 AST view.');
+  }
+
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
+
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('PostfixExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @override
+  bool isInValueExpressionSlot(AstNode child) => true;
+
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('PostfixExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    operand.accept(visitor);
+  }
+
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('PostfixExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(operand);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('PostfixExpression is not in the V2 AST view.');
   }
 }
 
@@ -38640,7 +38957,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       return identical(parent.name, this);
     } else if (parent case MethodInvocationImpl invocation) {
       return identical(invocation.methodName, this) &&
-          invocation.realTarget != null;
+          invocation.realTarget2 != null;
     }
     return false;
   }
@@ -43547,6 +43864,9 @@ enum V1Projection {
     }
     if (node is ConstructorTearOffImpl) {
       return node.constructorReference;
+    }
+    if (node is NullAssertionExpressionImpl) {
+      return node.postfixExpression;
     }
     return node;
   }

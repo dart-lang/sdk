@@ -5089,7 +5089,10 @@ class AstBuilder extends StackListener {
     debugEvent('NonNullAssertExpression');
 
     push(
-      PostfixExpressionImpl(operand2: pop() as ExpressionImpl, operator: bang),
+      NullAssertionExpressionImpl(
+        operand: pop() as ExpressionImpl,
+        operator: bang,
+      ),
     );
   }
 

@@ -1594,7 +1594,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    var target = node.realTarget;
+    var target = node.realTarget2;
     SimpleIdentifier methodName = node.methodName;
     if (target != null) {
       var typeReference = getTypeReference(target);
@@ -1709,6 +1709,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitNullAssertionExpression(
+    covariant NullAssertionExpressionImpl node,
+  ) {
+    checkForUseOfVoidResult(node);
+    _checkForUnnecessaryNullAware(
+      node.operand,
+      node.operator,
+      kind: _NullAwareKind.nullCheck,
+    );
+    super.visitNullAssertionExpression(node);
+  }
+
+  @override
   void visitNullAwareElement(NullAwareElement node) {
     _checkForUnnecessaryNullAware(
       node.value2,
@@ -1731,18 +1744,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitPostfixExpression(covariant PostfixExpressionImpl node) {
     var operand = node.operand2;
-    if (node.operator.type == TokenType.BANG) {
-      checkForUseOfVoidResult(node);
-      _checkForUnnecessaryNullAware(
-        operand,
-        node.operator,
-        kind: _NullAwareKind.nullCheck,
-      );
-    } else {
-      _checkForAssignmentToFinal(operand);
-      _checkForAssignmentToPrimaryConstructorParameter(operand);
-      _checkForIntNotAssignable(operand);
-    }
+    _checkForAssignmentToFinal(operand);
+    _checkForAssignmentToPrimaryConstructorParameter(operand);
+    _checkForIntNotAssignable(operand);
     super.visitPostfixExpression(node);
   }
 
@@ -5804,7 +5808,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     var parent = identifier.parent2;
     if (parent is MethodInvocation) {
       if (identical(parent.methodName, identifier) &&
-          parent.realTarget != null) {
+          parent.realTarget2 != null) {
         return;
       }
     }
@@ -7473,7 +7477,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         var operator = target.operator;
         var type = operator?.type;
         if (type == TokenType.QUESTION_PERIOD) {
-          var realTarget = target.realTarget;
+          var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? operator;
         }
       }

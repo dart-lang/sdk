@@ -655,6 +655,19 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
     _assertTrue("(throw 42).b(c);");
   }
 
+  test_nullAssertion_v1() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(Object? x) { // ref
+  x!;
+}
+''');
+    var block = parseResult.findNode.block('{ // ref');
+    var statement = block.statements.single as ExpressionStatement;
+
+    expect(statement.expression, isA<PostfixExpression>());
+    expect(ExitDetector.exits(statement.expression), isFalse);
+  }
+
   test_parenthesizedExpression() async {
     _assertFalse('(a);');
   }

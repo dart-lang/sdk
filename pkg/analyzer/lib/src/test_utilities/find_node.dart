@@ -50,12 +50,18 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorTearOff get singleConstructorTearOff => _single();
 
+  NullAssertionExpression get singleNullAssertionExpression => _single();
+
   ConstructorInvocation constructorInvocation(String search) {
     return _node(search, (node) => node is ConstructorInvocation);
   }
 
   ConstructorTearOff constructorTearOff(String search) {
     return _node(search, (node) => node is ConstructorTearOff);
+  }
+
+  NullAssertionExpression nullAssertion(String search) {
+    return _node(search, (node) => node is NullAssertionExpression);
   }
 
   @override
