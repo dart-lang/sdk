@@ -789,38 +789,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _genericInterfacesInfo,
       );
 
-      // Handle forwarding stubs. We need to check types against the types of
-      // the forwarding stub's target, [member.concreteForwardingStubTarget].
-      FunctionNode useTypesFrom = function;
-      if (member is Procedure &&
-          member.isForwardingStub &&
-          localFunction == null) {
-        final target = member.concreteForwardingStubTarget;
-        if (target != null) {
-          if (target is Field) {
-            useTypesFrom = FunctionNode(
-              null,
-              positionalParameters: [
-                PositionalParameter(
-                  cosmeticName: "value",
-                  type: target.type,
-                  isSynthesized: true,
-                ),
-              ],
-            );
-          } else {
-            useTypesFrom = target.function!;
-          }
-        }
-      }
-
       for (int i = 0; i < function.positionalParameters.length; ++i) {
         final decl = function.positionalParameters[i];
         _declareParameter(
           decl.cosmeticName!,
-          _useTypeCheckForParameter(decl)
-              ? null
-              : useTypesFrom.positionalParameters[i].type,
+          _useTypeCheckForParameter(decl) ? null : decl.type,
           decl.defaultValue,
         );
       }
@@ -828,9 +801,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         final decl = function.namedParameters[i];
         _declareParameter(
           decl.parameterName,
-          _useTypeCheckForParameter(decl)
-              ? null
-              : useTypesFrom.namedParameters[i].type,
+          _useTypeCheckForParameter(decl) ? null : decl.type,
           decl.defaultValue,
         );
       }
@@ -851,19 +822,17 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       int count = firstParamIndex;
       for (int i = 0; i < function.positionalParameters.length; ++i) {
         final decl = function.positionalParameters[i];
-        final type = useTypesFrom.positionalParameters[i].type;
         TypeExpr param = _summary.statements[count++];
         if (_useTypeCheckForParameter(decl)) {
-          param = _typeCheck(param, type, decl);
+          param = _typeCheck(param, decl.type, decl);
         }
         _declareVariable(decl, param);
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
         final decl = function.namedParameters[i];
-        final type = useTypesFrom.namedParameters[i].type;
         TypeExpr param = _summary.statements[count++];
         if (_useTypeCheckForParameter(decl)) {
-          param = _typeCheck(param, type, decl);
+          param = _typeCheck(param, decl.type, decl);
         }
         _declareVariable(decl, param);
       }
