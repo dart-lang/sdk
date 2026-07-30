@@ -3663,6 +3663,12 @@ class Parser {
         );
       }
     } else {
+      if (augmentToken != null) {
+        reportRecoverableError(
+          augmentToken,
+          diag.extensionAugmentationWithoutName,
+        );
+      }
       name = null;
     }
     token = computeTypeParamOrArg(

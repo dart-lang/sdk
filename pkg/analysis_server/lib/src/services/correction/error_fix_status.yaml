@@ -2950,6 +2950,8 @@ export_directive_after_part_directive:
     Move the directive to a valid place.
 extension_augmentation_has_on_clause:
   status: hasFix
+extension_augmentation_without_name:
+  status: needsEvaluation
 extension_declares_abstract_member:
   status: needsFix
   notes: |-

@@ -1031,6 +1031,14 @@ const MessageCode extensionAugmentationHasOnClause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode extensionAugmentationWithoutName = const MessageCode(
+  "ExtensionAugmentationWithoutName",
+  sharedCode: SharedCode.extensionAugmentationWithoutName,
+  problemMessage: """An extension augmentation must have a name.""",
+  correctionMessage: """Try adding the name of the extension to augment.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionDeclaresAbstractMember = const MessageCode(
   "ExtensionDeclaresAbstractMember",
   sharedCode: SharedCode.extensionDeclaresAbstractMember,
@@ -3182,6 +3190,7 @@ enum SharedCode {
   experimentNotEnabledOffByDefault,
   exportDirectiveAfterPartDirective,
   extensionAugmentationHasOnClause,
+  extensionAugmentationWithoutName,
   extensionDeclaresAbstractMember,
   extensionDeclaresConstructor,
   extensionPrimaryConstructor,

@@ -5510,6 +5510,19 @@ const DiagnosticWithoutArguments extensionAugmentationHasOnClause =
       expectedTypes: [],
     );
 
+/// No parameters.
+///
+/// No parameters.
+const DiagnosticWithoutArguments extensionAugmentationWithoutName =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'extension_augmentation_without_name',
+      problemMessage: "An extension augmentation must have a name.",
+      correctionMessage: "Try adding the name of the extension to augment.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'extension_augmentation_without_name',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String name: the name of the conflicting static member
 const DiagnosticWithArguments<

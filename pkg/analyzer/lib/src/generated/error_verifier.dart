@@ -972,7 +972,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var declaredFragment = node.declaredFragment!;
 
-    _checkAugmentationWithoutDeclaration(node.augmentKeyword, declaredFragment);
+    // A missing extension augmentation name is already reported by the
+    // parser. Avoid reporting a missing augmentation target as well.
+    if (node.name != null) {
+      _checkAugmentationWithoutDeclaration(
+        node.augmentKeyword,
+        declaredFragment,
+      );
+    }
 
     var declaredElement = declaredFragment.element;
     var firstFragment = declaredElement.firstFragment;

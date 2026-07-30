@@ -79,6 +79,23 @@ ExtensionDeclaration
 ''');
   }
 
+  test_augment_unnamed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension {}
+// [diag.extensionAugmentationWithoutName][column 1][length 7] An extension augmentation must have a name.
+''');
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_body_getter() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on int {

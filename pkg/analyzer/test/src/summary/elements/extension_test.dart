@@ -1474,6 +1474,46 @@ library
 ''');
   }
 
+  test_extension_unnamed_augmentation() async {
+    var library = await buildLibrary(r'''
+extension on int {}
+
+augment extension {}
+
+augment extension {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@extension::#0
+        #F2 isAugmentation extension <null-name> (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+          element: <testLibrary>::@extension::#1
+        #F3 isAugmentation extension <null-name> (nameOffset:<null>) (firstTokenOffset:43) (offset:43)
+          element: <testLibrary>::@extension::#2
+  extensions
+    extension <null-name>
+      reference: <testLibrary>::@extension::#0
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+    extension <null-name>
+      reference: <testLibrary>::@extension::#1
+      firstFragment: #F2
+      extendedType: InvalidType
+      onDeclaration: <null>
+    extension <null-name>
+      reference: <testLibrary>::@extension::#2
+      firstFragment: #F3
+      extendedType: InvalidType
+      onDeclaration: <null>
+''');
+  }
+
   test_field_augmentation_add() async {
     var library = await buildLibrary(r'''
 extension A on int {
