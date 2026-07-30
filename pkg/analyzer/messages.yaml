@@ -1222,6 +1222,9 @@ CompileTimeErrorCode:
     problemMessage: "The literal can't be either a map or a set because it contains at least one literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these."
     correctionMessage: Try removing or changing some of the elements so that all of the elements are consistent.
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because if there is a return type then the type of the literal is
+    # inferred and the ambiguity doesn't exist.
     documentation: |-
       #### Description
 
@@ -1244,6 +1247,7 @@ CompileTimeErrorCode:
       The following code produces this diagnostic:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(Map<String, String> a, List<String> b, Map<String, String> c) => [!{
         ...a,
         ...b,
@@ -1262,6 +1266,7 @@ CompileTimeErrorCode:
       what to do about the now unused parameter:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(Map<String, String> a, List<String> b, Map<String, String> c) => {
         ...a,
         ...c,
@@ -1273,6 +1278,7 @@ CompileTimeErrorCode:
       of the list as keys that map to themselves:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(Map<String, String> a, List<String> b, Map<String, String> c) => {
         ...a,
         for (String s in b) s: s,
@@ -1285,6 +1291,11 @@ CompileTimeErrorCode:
     problemMessage: "This literal must be either a map or a set, but the elements don't have enough information for type inference to work."
     correctionMessage: Try adding type arguments to the literal (one for sets, two for maps).
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because (a) in the example we need to not have types on the
+    # parameters in order to generate this diagnostic, and (b) several of the
+    # fixes are about adding type information and adding type information
+    # everywhere would obscure the point of the fix.
     documentation: |-
       #### Description
 
@@ -1305,6 +1316,7 @@ CompileTimeErrorCode:
       The following code produces this diagnostic:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(a, b) => [!{...a, ...b}!];
       ```
 
@@ -1318,6 +1330,7 @@ CompileTimeErrorCode:
       map literal, you might write something like this:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(a, b) => <String, String>{...a, ...b};
       ```
 
@@ -1326,6 +1339,7 @@ CompileTimeErrorCode:
       or, in this case, add types to the declarations of the two parameters:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(List<int> a, List<int> b) => {...a, ...b};
       ```
 
@@ -1333,6 +1347,7 @@ CompileTimeErrorCode:
       adding a return type to the function:
 
       ```dart
+      %ignore=strict_top_level_inference
       Set<String> union(a, b) => {...a, ...b};
       ```
 
@@ -1340,6 +1355,7 @@ CompileTimeErrorCode:
       original code looks like this:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(a, b) {
         var x = [!{...a, ...b}!];
         return x;
@@ -1349,6 +1365,7 @@ CompileTimeErrorCode:
       You might add a type annotation on `x`, like this:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(a, b) {
         Map<String, String> x = {...a, ...b};
         return x;
@@ -1544,7 +1561,7 @@ CompileTimeErrorCode:
         final v = 0;
       }
 
-      f(C c) {
+      void f(C c) {
         c.[!v!] = 1;
       }
       ```
@@ -1559,7 +1576,7 @@ CompileTimeErrorCode:
         int v = 0;
       }
 
-      f(C c) {
+      void f(C c) {
         c.v = 1;
       }
       ```
@@ -1795,7 +1812,7 @@ CompileTimeErrorCode:
       for-in loop:
 
       ```dart
-      void f(list) {
+      void f(Stream<int> list) {
         [!await!] for (var e in list) {
           print(e);
         }
@@ -1807,7 +1824,7 @@ CompileTimeErrorCode:
       If the function should return a `Future`, then mark the body with `async`:
 
       ```dart
-      Future<void> f(list) async {
+      Future<void> f(Stream<int> list) async {
         await for (var e in list) {
           print(e);
         }
@@ -1818,7 +1835,7 @@ CompileTimeErrorCode:
       `async*`:
 
       ```dart
-      Stream<void> f(list) async* {
+      Stream<void> f(Stream<int> list) async* {
         await for (var e in list) {
           print(e);
         }
@@ -1829,7 +1846,7 @@ CompileTimeErrorCode:
       loop:
 
       ```dart
-      void f(list) {
+      void f(List<int> list) {
         for (var e in list) {
           print(e);
         }
@@ -2401,6 +2418,9 @@ CompileTimeErrorCode:
     problemMessage: "The built-in identifier '#name' can't be used as an extension name."
     correctionMessage: Try choosing a different name for the extension.
     hasPublishedDocs: true
+    # In the documentation, the `camel_case_extensions` diagnostic is being
+    # ignored because the lint shouldn't be reported when there's already an
+    # error being reported.
     documentation: |-
       #### Description
 
@@ -2415,6 +2435,7 @@ CompileTimeErrorCode:
       identifier:
 
       ```dart
+      %ignore=camel_case_extensions
       extension [!mixin!] on int {}
       ```
 
@@ -2514,6 +2535,9 @@ CompileTimeErrorCode:
       Type type: the type of the switch case expression
     problemMessage: "The switch case expression type '#type' can't override the '==' operator."
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -2529,6 +2553,7 @@ CompileTimeErrorCode:
 
       ```dart
       %language=2.18
+      %ignore=hash_and_equals
       class C {
         final int value;
 
@@ -2554,6 +2579,7 @@ CompileTimeErrorCode:
       an if-else structure:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         final int value;
 
@@ -2596,6 +2622,7 @@ CompileTimeErrorCode:
       the switch:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         final int value;
 
@@ -3314,6 +3341,11 @@ CompileTimeErrorCode:
     problemMessage: "'#typeParameterName' can't be used to name both a type parameter and the class in which the type parameter is defined."
     correctionMessage: Try renaming either the type parameter or the class.
     hasPublishedDocs: true
+    # In the documentation, the `avoid_types_as_parameter_names` diagnostic is
+    # being ignored because the lint shouldn't be reported when there's already
+    # an error being reported.
+    #
+    # See https://github.com/dart-lang/sdk/issues/63722.
     documentation: |-
       #### Description
 
@@ -3327,6 +3359,7 @@ CompileTimeErrorCode:
       has the same name as the class `C` of which it's a part:
 
       ```dart
+      %ignore=avoid_types_as_parameter_names
       class C<[!C!]> {}
       ```
 
@@ -4027,6 +4060,9 @@ CompileTimeErrorCode:
     problemMessage: "The type of a key in a constant map can't override the '==' operator, or 'hashCode', but the class '#keyType' does."
     correctionMessage: "Try using a different value for the key, or removing the keyword 'const' from the map."
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -4044,6 +4080,7 @@ CompileTimeErrorCode:
       implementation of `==`:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
@@ -4059,6 +4096,7 @@ CompileTimeErrorCode:
       implementation of `hashCode`:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
@@ -4086,6 +4124,7 @@ CompileTimeErrorCode:
       class, then make the map non-constant:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
@@ -4131,6 +4170,9 @@ CompileTimeErrorCode:
     correctionMessage: "Try using a different value for the element, or removing the keyword 'const' from the set."
     previousName: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -4148,6 +4190,7 @@ CompileTimeErrorCode:
       implementation of `==`:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
@@ -4163,6 +4206,7 @@ CompileTimeErrorCode:
       implementation of `hashCode`:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
@@ -4190,6 +4234,7 @@ CompileTimeErrorCode:
       class, then make the set non-constant:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
@@ -5772,6 +5817,9 @@ CompileTimeErrorCode:
     problemMessage: The name 'values' is not a valid name for an enum.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
+    # In the documentation, the `camel_case_extensions` diagnostic is being
+    # ignored because the lint shouldn't be reported when there's already
+    # an error being reported.
     documentation: |-
       #### Description
 
@@ -5785,6 +5833,7 @@ CompileTimeErrorCode:
       declaration that has the name `values`:
 
       ```dart
+      %ignore=camel_case_types
       enum [!values!] { c }
       ```
 
@@ -6593,7 +6642,7 @@ CompileTimeErrorCode:
         void m() {}
       }
 
-      f() {
+      void f() {
         [!E!](3)..m();
       }
       ```
@@ -6607,7 +6656,7 @@ CompileTimeErrorCode:
         void m() {}
       }
 
-      f() {
+      void f() {
         E(3).m();
       }
       ```
@@ -7723,6 +7772,9 @@ CompileTimeErrorCode:
     problemMessage: "The final variable '#name' must be initialized."
     correctionMessage: Try initializing the variable.
     hasPublishedDocs: true
+    # In the documentation, the `prefer_typing_uninitialized_variables`
+    # diagnostic is being ignored because the lint shouldn't be reported when
+    # there's already an error being reported.
     documentation: |-
       #### Description
 
@@ -7735,7 +7787,7 @@ CompileTimeErrorCode:
       initializer:
 
       ```dart
-      final [!x!];
+      final int [!x!];
       ```
 
       #### Common fixes
@@ -7743,7 +7795,7 @@ CompileTimeErrorCode:
       For variables and static fields, you can add an initializer:
 
       ```dart
-      final x = 0;
+      final int x = 0;
       ```
 
       For instance fields, you can add an initializer as shown in the previous
@@ -7753,6 +7805,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         final int x;
+
         C(this.x);
       }
       ```
@@ -7763,6 +7816,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         final int x;
+
         C(int y) : x = y * 2;
       }
       ```
@@ -8290,6 +8344,8 @@ CompileTimeErrorCode:
     problemMessage: A concrete instance member named '#name' can't be declared in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining an `==` operator would only complicate the example unnecessarily.
     documentation: |-
       #### Description
 
@@ -8316,6 +8372,7 @@ CompileTimeErrorCode:
       implements `Enum`, declares an instance field named `hashCode`:
 
       ```dart
+      %ignore=hash_and_equals
       abstract class C implements Enum {
         @override
         int [!hashCode!] = 0;
@@ -8327,6 +8384,7 @@ CompileTimeErrorCode:
       getter named `hashCode`:
 
       ```dart
+      %ignore=hash_and_equals
       abstract class A implements Enum {}
 
       abstract class C implements A {
@@ -13944,8 +14002,8 @@ CompileTimeErrorCode:
       The following code produces this diagnostic because `f` is a function:
 
       ```dart
-      f() {}
-      g([!f!] v) {}
+      void f() {}
+      void g([!f!] v) {}
       ```
 
       #### Common fixes
@@ -15555,6 +15613,9 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "A private named parameter must be a public identifier after removing the leading underscore."
     hasPublishedDocs: true
+    # In the documentation, the `non_constant_identifier_names` diagnostic is
+    # being ignored because the lint shouldn't be reported when there's already
+    # an error being reported.
     documentation: |-
       #### Description
 
@@ -15569,6 +15630,7 @@ CompileTimeErrorCode:
       identifier:
 
       ```dart
+      %ignore=non_constant_identifier_names
       class C {
         final int? _2legit;
         C({this.[!_2legit!] = 0});
@@ -19114,6 +19176,10 @@ CompileTimeErrorCode:
     # In the documentation, the `unused_local_variable` diagnostics is being
     # ignored because the only way to supress it would involve adding code that
     # is extraneous to the diagnostic being documented.
+    #
+    # Arguably, we shouldn't produce the diagnostic at all because the variable
+    # is used by virtue of being awaited, but we might not be able to detect
+    # that given that `await` is being parsed as a variable reference.
     documentation: |-
       #### Description
 
@@ -19130,7 +19196,7 @@ CompileTimeErrorCode:
 
       ```dart
       %ignore=unused_local_variable
-      void f(p) {
+      void f(Future<void> p) {
         [!await!] p;
       }
       ```
@@ -19140,7 +19206,7 @@ CompileTimeErrorCode:
       Add the keyword `async` to the function body:
 
       ```dart
-      void f(p) async {
+      void f(Future<void> p) async {
         await p;
       }
       ```
@@ -19207,7 +19273,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        m({int? b}) {}
+        void m({int? b}) {}
       }
 
       void f(C c) {
@@ -19222,7 +19288,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        m({int? b}) {}
+        void m({int? b}) {}
       }
 
       void f(C c) {
@@ -19235,12 +19301,12 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        m({int? b}) {}
+        void m({int? b}) {}
       }
 
       class D extends C {
         @override
-        m({int? a, int? b}) {}
+        void m({int? a, int? b}) {}
       }
 
       void f(C c) {
@@ -19252,7 +19318,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        m({int? a, int? b}) {}
+        void m({int? a, int? b}) {}
       }
 
       void f(C c) {
@@ -19856,7 +19922,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        int operator [!+!](a, b) => 0;
+        int operator [!+!](int a, int b) => 0;
       }
       ```
 
@@ -19866,7 +19932,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        int operator +(a) => 0;
+        int operator +(int a) => 0;
       }
       ```
       TODO(brianwilkerson): It would be good to add a link to the spec or some
@@ -22045,6 +22111,11 @@ FfiCode:
     problemMessage: "Fields in struct classes must have an explicitly declared type of 'int', 'double' or 'Pointer'."
     correctionMessage: "Try using 'int', 'double' or 'Pointer'."
     hasPublishedDocs: true
+    # In the documentation, the `prefer_typing_uninitialized_variables`
+    # diagnostic is being ignored because the lint shouldn't be reported when
+    # there's already an error being reported. The `strict_top_level_inference`
+    # diagnostic is being ignored because it's redundant, and shouldn't be
+    # produced when there's already an error.
     documentation: |-
       #### Description
 
@@ -22061,6 +22132,7 @@ FfiCode:
       doesn't have a type annotation:
 
       ```dart
+      %ignore=prefer_typing_uninitialized_variables,strict_top_level_inference
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -25982,6 +26054,9 @@ WarningCode:
     problemMessage: Methods named 'factory' will become constructors when the primary_constructors feature is enabled.
     correctionMessage: Try adding a return type or modifier before the method's name, or change the name of the method.
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostics is
+    # being ignored because if a return type were provided then the method
+    # wouldn't be interpreted as a constructor.
     documentation: |-
       #### Description
 
@@ -26000,6 +26075,7 @@ WarningCode:
       named `factory` has no return type or modifiers:
 
       ```dart
+      %ignore=strict_top_level_inference
       // @dart=3.10
       class C {
         [!factory!]() => C();
@@ -26013,7 +26089,7 @@ WarningCode:
       ```dart
       // @dart=3.10
       class C {
-        make() => C();
+        C make() => C();
       }
       ```
 
@@ -28958,6 +29034,9 @@ WarningCode:
       String className: the name of the class declaring the overridden method
     problemMessage: "This method overrides a method annotated as '@mustCallSuper' in '#className', but doesn't invoke the overridden method."
     hasPublishedDocs: true
+    # In the documentation, the `unnecessary_overrides` diagnostic is being
+    # ignored because adding more code to the overriding member would confuse
+    # the nature of the fix.
     documentation: |-
       #### Description
 
@@ -28975,12 +29054,12 @@ WarningCode:
 
       class A {
         @mustCallSuper
-        m() {}
+        void m() {}
       }
 
       class B extends A {
         @override
-        [!m!]() {}
+        void [!m!]() {}
       }
       ```
 
@@ -28989,6 +29068,7 @@ WarningCode:
       Add an invocation of the overridden method in the overriding method:
 
       ```dart
+      %ignore=unnecessary_overrides
       import 'package:meta/meta.dart';
 
       class A {
@@ -29122,6 +29202,9 @@ WarningCode:
     problemMessage: "The parameter type of '==' operators should be non-nullable."
     correctionMessage: Try using a non-nullable type.
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -29136,6 +29219,7 @@ WarningCode:
       the operator `==` in `C` :
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         @override
         bool operator [!==!](Object? other) => false;
@@ -29147,6 +29231,7 @@ WarningCode:
       Make the parameter type be non-nullable:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         @override
         bool operator ==(Object other) => false;

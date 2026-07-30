@@ -2337,7 +2337,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label slow_path, done;
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     if (compiler->is_optimizing() && num_elements()->BindsToConstant() &&
         num_elements()->BoundConstant().IsSmi()) {
       const intptr_t length =
@@ -2411,7 +2411,7 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   compiler->AddSlowPathCode(slow_path);
   intptr_t instance_size = Context::InstanceSize(num_context_variables());
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
                         compiler::Assembler::kFarJump,
                         result,  // instance

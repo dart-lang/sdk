@@ -6416,7 +6416,7 @@ void BoxAllocationSlowPath::Allocate(FlowGraphCompiler* compiler,
     auto slow_path = new BoxAllocationSlowPath(instruction, cls, result);
     compiler->AddSlowPathCode(slow_path);
 
-    if (FLAG_inline_alloc && !FLAG_use_slow_path) {
+    if (UseInlineAllocation()) {
       __ TryAllocate(cls, slow_path->entry_label(),
                      compiler::Assembler::kFarJump, result, temp);
     } else {

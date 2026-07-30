@@ -1492,6 +1492,12 @@ static void TryAllocateString(Assembler* assembler,
                               Label* ok,
                               Label* failure) {
   ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
+
+  if (!UseInlineAllocation()) {
+    __ b(failure);
+    return;
+  }
+
   const Register length_reg = R2;
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);

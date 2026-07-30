@@ -885,7 +885,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
 // Clobbered:
 //   EBX, EDI
 void StubCodeCompiler::GenerateAllocateArrayStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
@@ -1377,7 +1377,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Clobbered:
 // EBX, EDX
 void StubCodeCompiler::GenerateAllocateContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
@@ -1443,7 +1443,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 // Clobbered:
 //   EBX, ECX, EDX
 void StubCodeCompiler::GenerateCloneContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     // Load num. variable in the existing context.
@@ -1745,7 +1745,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
   //                                       (if is_cls_parameterized).
-  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
     Label slow_case;
@@ -3318,7 +3318,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == EAX);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == EAX);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     // Save length argument for possible runtime call, as
     // EAX is clobbered.
     Label call_runtime;

@@ -141,7 +141,7 @@ plugins:
         isolate1.requests.first as protocol.AnalysisSetConfigurationsParams;
     var config1 = setConfigurations1.configurations;
 
-    var rootPath = testPackageRootPath;
+    var rootPath = convertPath(testPackageRootPath);
     var innerPath = innerFolder.path;
 
     expect(config0[rootPath], isEmpty);
@@ -225,6 +225,81 @@ plugins:
       if (pubspecContent2.contains('/override2')) 2,
     ];
     expect(paths, unorderedEquals([1, 2]));
+  }
+
+  Future<void>
+  test_addedDriver_multiple_plugins_conflictingOverridesOmission() async {
+    newPubspecYamlFile('/foo', 'name: foo');
+    newFile('/foo/tools/analyzer_plugin/bin/plugin.dart', '');
+
+    newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    var innerFolderPath = join(testPackageRootPath, 'inner');
+    newFile(join(innerFolderPath, 'analysis_options.yaml'), '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: getFolder('/foo')),
+    );
+
+    var driver = driverFor(testFile);
+
+    // Root options file has no overrides.
+    var rootFolder = getFolder(testPackageRootPath);
+    var rootBuilder = AnalysisOptionsBuilder(
+      file: rootFolder.getFile('analysis_options.yaml'),
+    );
+    rootBuilder.pluginsOptions = PluginsOptions(
+      configurations: [
+        PluginConfiguration(
+          name: 'foo',
+          source: VersionedPluginSource(constraint: '^1.0.0'),
+        ),
+      ],
+      dependencyOverrides: null,
+    );
+    driver.analysisOptionsMap[rootFolder] = rootBuilder.build();
+
+    // Inner optinos file has override for 'dep' to path '/override'.
+    var innerFolder = getFolder(innerFolderPath);
+    var innerBuilder = AnalysisOptionsBuilder(
+      file: innerFolder.getFile('analysis_options.yaml'),
+    );
+    innerBuilder.pluginsOptions = PluginsOptions(
+      configurations: [
+        PluginConfiguration(
+          name: 'foo',
+          source: VersionedPluginSource(constraint: '^1.0.0'),
+        ),
+      ],
+      dependencyOverrides: {'dep': PathPluginSource(path: '/override')},
+    );
+    driver.analysisOptionsMap[innerFolder] = innerBuilder.build();
+
+    watcher.addedDriver(driver);
+
+    await _waitForEvents();
+    expect(manager.contextRootPlugins.values.first, hasLength(2));
+
+    var pluginFolder1 = getFolder(manager.contextRootPlugins.values.first[0]);
+    var pubspecFile1 = pluginFolder1.getFile('pubspec.yaml');
+    var pubspecContent1 = pubspecFile1.readAsStringSync();
+
+    var pluginFolder2 = getFolder(manager.contextRootPlugins.values.first[1]);
+    var pubspecFile2 = pluginFolder2.getFile('pubspec.yaml');
+    var pubspecContent2 = pubspecFile2.readAsStringSync();
+
+    // One must have the override, and the other must not have
+    // 'dependency_overrides'.
+    expect(pubspecContent1, contains('dependency_overrides:'));
+    expect(pubspecContent1, contains('/override'));
+    expect(pubspecContent2, isNot(contains('dependency_overrides:')));
   }
 
   Future<void> test_addedDriver_multiple_plugins_grouped() async {
@@ -381,7 +456,7 @@ plugins:
         isolate.requests.first as protocol.AnalysisSetConfigurationsParams;
     var config = setConfigurations.configurations;
 
-    var rootPath = testPackageRootPath;
+    var rootPath = convertPath(testPackageRootPath);
     var innerPath = innerFolder.path;
 
     expect(config[rootPath]!['foo']!.enabled, isTrue);

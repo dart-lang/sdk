@@ -1542,7 +1542,7 @@ fieldInitializerOutsideConstructor:
     class A {
       int x = 0;
 
-      m([[!this!].x = 0]) {}
+      void m([[!this!].x = 0]) {}
     }
     ```
 
@@ -1555,7 +1555,7 @@ fieldInitializerOutsideConstructor:
     class A {
       int x = 0;
 
-      m([int x = 0]) {
+      void m([int x = 0]) {
         this.x = x;
       }
     }

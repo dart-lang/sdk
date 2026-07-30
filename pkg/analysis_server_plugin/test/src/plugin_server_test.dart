@@ -144,6 +144,8 @@ bool b = false;'''),
     newFile(filePath, 'bool b = false;');
     newFile(testFilePath, 'bool b = false;');
 
+    await _setRoots();
+
     await channel.sendRequest(
       protocol.AnalysisSetConfigurationsParams({
         packagePath: {'no_literals': protocol.PluginConfiguration(true, {})},
@@ -152,8 +154,6 @@ bool b = false;'''),
         },
       }),
     );
-
-    await _setRoots();
 
     var paramsQueue = _analysisErrorsParams;
     var params1 = await paramsQueue.next;
@@ -175,6 +175,8 @@ bool b = false;'''),
     newFile(filePath, 'bool b = false;');
     newFile(testFilePath, 'bool b = false;');
 
+    await _setRoots();
+
     await channel.sendRequest(
       protocol.AnalysisSetConfigurationsParams({
         join(packagePath, 'lib'): {
@@ -189,8 +191,6 @@ bool b = false;'''),
         },
       }),
     );
-
-    await _setRoots();
 
     var paramsQueue = _analysisErrorsParams;
     var params1 = await paramsQueue.next;

@@ -2056,7 +2056,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
   ASSERT(temp_reg != kNoRegister);
   ASSERT(Utils::IsAligned(instance_size,
                           target::ObjectAlignment::kObjectAlignment));
-  if (FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
@@ -2098,7 +2098,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register end_address,
                                  Register temp1,
                                  Register temp2) {
-  if (FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the

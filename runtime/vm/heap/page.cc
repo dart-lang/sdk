@@ -87,19 +87,16 @@ Page* Page::Allocate(Cage* cage, intptr_t size, uword flags) {
     return nullptr;  // Out of memory.
   }
 
-  if ((flags & kNew) != 0) {
-    // Initialized by generated code.
-    MSAN_UNPOISON(memory->address(), size);
-
 #if defined(DEBUG)
+  if ((flags & kNew) != 0) {
     // Allocation stubs check that the TLAB hasn't been corrupted.
     uword* cursor = reinterpret_cast<uword*>(memory->address());
     uword* end = reinterpret_cast<uword*>(memory->end());
     while (cursor < end) {
       *cursor++ = kAllocationCanary;
     }
-#endif
   }
+#endif
 
   Page* result = reinterpret_cast<Page*>(memory->address());
   ASSERT(result != nullptr);
