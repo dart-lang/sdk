@@ -70,7 +70,13 @@ void main() {
       expect(File('').name, '');
       expect(File('foo.dart').name, 'foo.dart');
       expect(File('${path.separator}foo.dart').name, 'foo.dart');
-      expect(File('bar.bart').name, 'bar.bart');
+    });
+
+    test('basenameWithoutExtension', () {
+      expect(File('foo.dart').basenameWithoutExtension, equals('foo'));
+      expect(File('foo.bar.dart').basenameWithoutExtension, equals('foo.bar'));
+      expect(File('foo').basenameWithoutExtension, equals('foo'));
+      expect(File('').basenameWithoutExtension, equals(''));
     });
   });
 
@@ -211,6 +217,115 @@ void main() {
 | four   |   4.0 | bar bar bar bar  |
 '''),
       );
+    });
+  });
+
+  group('isValidPackageName', () {
+    test('valid names', () {
+      expect(isValidPackageName('foo'), isTrue);
+      expect(isValidPackageName('foo_bar'), isTrue);
+      expect(isValidPackageName('f_o_o'), isTrue);
+      expect(isValidPackageName('_foo'), isTrue);
+    });
+
+    test('invalid names containing capitals', () {
+      expect(isValidPackageName('Foo'), isFalse);
+      expect(isValidPackageName('fooBar'), isFalse);
+      expect(isValidPackageName('FOO'), isFalse);
+    });
+
+    test('invalid names starting with digits', () {
+      expect(isValidPackageName('1foo'), isFalse);
+      expect(isValidPackageName('1_foo'), isFalse);
+    });
+
+    test('invalid names containing special characters', () {
+      expect(isValidPackageName('foo-bar'), isFalse);
+      expect(isValidPackageName('foo.bar'), isFalse);
+      expect(isValidPackageName('foo\$bar'), isFalse);
+    });
+
+    test('invalid names that are Dart keywords', () {
+      expect(isValidPackageName('class'), isFalse);
+      expect(isValidPackageName('void'), isFalse);
+      expect(isValidPackageName('import'), isFalse);
+      expect(isValidPackageName('abstract'), isFalse);
+      expect(isValidPackageName('var'), isFalse);
+      expect(isValidPackageName('null'), isFalse);
+      expect(isValidPackageName('true'), isFalse);
+      expect(isValidPackageName('false'), isFalse);
+    });
+  });
+
+  group('projectNameToLowerCase', () {
+    test('lowercase name stays same', () {
+      expect(projectNameToLowerCase('foo'), equals('foo'));
+      expect(projectNameToLowerCase('foo_bar'), equals('foo_bar'));
+    });
+
+    test('uppercase converted to lowercase', () {
+      expect(projectNameToLowerCase('FOO'), equals('foo'));
+    });
+
+    test('camelCase and PascalCase converted to snake_case', () {
+      expect(projectNameToLowerCase('fooBar'), equals('foo_bar'));
+      expect(projectNameToLowerCase('FooBar'), equals('foo_bar'));
+      expect(
+        projectNameToLowerCase('MyAwesomeProject'),
+        equals('my_awesome_project'),
+      );
+    });
+
+    test('already snake_case mixed case converted to lowercase', () {
+      expect(projectNameToLowerCase('foo_Bar'), equals('foo_bar'));
+      expect(projectNameToLowerCase('Foo_Bar'), equals('foo_bar'));
+    });
+
+    test('single capital letters converted correctly', () {
+      expect(projectNameToLowerCase('A'), equals('a'));
+      expect(projectNameToLowerCase('fooA'), equals('foo_a'));
+    });
+  });
+
+  group('normalizeProjectName', () {
+    test('replaces dashes and spaces with underscores', () {
+      expect(normalizeProjectName('foo-bar'), equals('foo_bar'));
+      expect(normalizeProjectName('foo bar'), equals('foo_bar'));
+      expect(normalizeProjectName('Foo-Bar'), equals('foo__bar'));
+    });
+
+    test('replaces consecutive dashes and spaces', () {
+      expect(normalizeProjectName('foo--bar  baz'), equals('foo__bar__baz'));
+    });
+
+    test('strips file extensions', () {
+      expect(normalizeProjectName('foo.dart'), equals('foo'));
+      expect(normalizeProjectName('foo-bar.dart'), equals('foo_bar'));
+      expect(normalizeProjectName('foo.bar'), equals('foo'));
+    });
+  });
+
+  group('globalDartdevOptionsParser', () {
+    test('defines expected flags', () {
+      final parser = globalDartdevOptionsParser();
+      expect(parser.options.containsKey('verbose'), isTrue);
+      expect(parser.options['verbose']!.abbr, equals('v'));
+      expect(parser.options['verbose']!.negatable, isFalse);
+
+      expect(parser.options.containsKey('version'), isTrue);
+      expect(parser.options.containsKey('enable-analytics'), isTrue);
+      expect(parser.options.containsKey('disable-analytics'), isTrue);
+      expect(parser.options.containsKey('suppress-analytics'), isTrue);
+    });
+
+    test('hides diagnostics when verbose is false', () {
+      final parser = globalDartdevOptionsParser(verbose: false);
+      expect(parser.options['diagnostics']!.hide, isTrue);
+    });
+
+    test('shows diagnostics when verbose is true', () {
+      final parser = globalDartdevOptionsParser(verbose: true);
+      expect(parser.options['diagnostics']!.hide, isFalse);
     });
   });
 }
