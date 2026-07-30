@@ -1,3 +1,7 @@
+# 5.5.0-wip
+
+- Require devtools_shared ^14.0.0
+
 # 5.4.0
 
 - [DAP] Print truncated text from `dart:developer`'s `log()` if the full string has been collected.

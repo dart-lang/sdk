@@ -59,7 +59,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "f44b1b2ecaa94fc7f2d54b771ca9e11f19c8c452",
+  "co19_rev": "60c0eacc4701121cb5de4e4fb0567faf88352215",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "02b00ba22d77dc489e481c33b279edf5d008e0cd",
@@ -105,7 +105,7 @@ vars = {
   "boringssl_rev": "22a0079b189c391b95689813a41982ce11876f0a",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "12d595649f189f1896722623f72599077f476848",
+  "devtools_rev": "21f1838f3a9b138ac377efb953ca5a53c8832e75",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
   "flutter_rev": "ad80825c24d770a19e33f67800fc0338a3b89ec7",
   "icu_rev": "d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
