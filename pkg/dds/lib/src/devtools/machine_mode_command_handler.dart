@@ -359,11 +359,11 @@ class MachineModeCommandHandler {
   bool backupAndCreateDevToolsStore() {
     assert(_devToolsBackup == null);
     final devToolsStore = File(
-      LocalFileSystem.devToolsStoreLocation(),
+      FileSystemExtension.devToolsStoreLocation,
     );
     if (devToolsStore.existsSync()) {
       _devToolsBackup = devToolsStore
-          .copySync('${LocalFileSystem.devToolsDir()}/.devtools_backup_test');
+          .copySync('${FileSystemExtension.devToolsDir}/.devtools_backup_test');
       devToolsStore.deleteSync();
     }
     return true;
@@ -372,9 +372,9 @@ class MachineModeCommandHandler {
   String? restoreDevToolsStore() {
     if (_devToolsBackup != null) {
       // Read the current ~/.devtools file
-      LocalFileSystem.maybeMoveLegacyDevToolsStore();
+      fileSystem.maybeMoveLegacyDevToolsStore();
 
-      final devToolsStore = File(LocalFileSystem.devToolsStoreLocation());
+      final devToolsStore = File(FileSystemExtension.devToolsStoreLocation);
       final content = devToolsStore.readAsStringSync();
 
       // Delete the temporary ~/.devtools file
@@ -382,7 +382,7 @@ class MachineModeCommandHandler {
       if (_devToolsBackup!.existsSync()) {
         // Restore the backup ~/.devtools file we created in
         // backupAndCreateDevToolsStore.
-        _devToolsBackup!.copySync(LocalFileSystem.devToolsStoreLocation());
+        _devToolsBackup!.copySync(FileSystemExtension.devToolsStoreLocation);
         _devToolsBackup!.deleteSync();
         _devToolsBackup = null;
       }
