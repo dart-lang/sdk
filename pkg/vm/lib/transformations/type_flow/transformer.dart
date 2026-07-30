@@ -1070,26 +1070,12 @@ class TreeShaker {
         m.type.accept(typeVisitor);
       } else if (m is Procedure) {
         func = m.function;
-        if (m.concreteForwardingStubTarget != null) {
+        if (m.stubTarget != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.concreteForwardingStubTarget,
+            m.stubTarget,
             isSetter: m.isSetter,
           );
-          addUsedMember(m.concreteForwardingStubTarget!);
-        }
-        if (m.abstractForwardingStubTarget != null) {
-          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.abstractForwardingStubTarget,
-            isSetter: m.isSetter,
-          );
-          addUsedMember(m.abstractForwardingStubTarget!);
-        }
-        if (m.memberSignatureOrigin != null) {
-          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.memberSignatureOrigin,
-            isSetter: m.isSetter,
-          );
-          addUsedMember(m.memberSignatureOrigin!);
+          addUsedMember(m.stubTarget!);
         }
       } else if (m is Constructor) {
         func = m.function;
