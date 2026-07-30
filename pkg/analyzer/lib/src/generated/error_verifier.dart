@@ -53,7 +53,6 @@ import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -2502,9 +2501,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     ) {
       var mixinName = withClause.mixinTypes[mixinNameIndex];
       DartType mixinType = mixinName.typeOrThrow;
-      if (mixinType is InterfaceType) {
+      if (mixinType is InterfaceTypeImpl) {
         int? currentMixinIndex;
-        if (isInterfaceTypeInterface(mixinType)) {
+        if (mixinType.isValidSuperinterface) {
           currentMixinIndex = mixinIndex++;
         }
 

@@ -21,7 +21,6 @@ import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
@@ -358,8 +357,7 @@ class _ClassVerifier {
       var mixinType = mixinNode.type;
       // When building the element model, we skip incorrect types.
       // So, here we skip corresponding nodes to keep the index in sync.
-      if (mixinType is InterfaceTypeImpl &&
-          isInterfaceTypeInterface(mixinType)) {
+      if (mixinType is InterfaceTypeImpl && mixinType.isValidSuperinterface) {
         _checkDeclaredMembers(mixinNode, mixinType, mixinIndex: mixinIndex++);
         directSuperInterfaces.add(mixinType);
       }
