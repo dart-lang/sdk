@@ -610,6 +610,8 @@ deferred_import_of_extension:
     Remove the `deferred` keyword from the import.
 definitely_unassigned_late_local_variable:
   status: noFix
+different_inherited_getter_and_setter_types:
+  status: needsEvaluation
 disallowed_type_instantiation_expression:
   status: needsFix
   since: 2.15

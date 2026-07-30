@@ -1703,6 +1703,17 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.withIndent(() {
           _sink.writelnWithIndent('arguments: $cycle');
         });
+      case TopLevelInferenceErrorDifferentGetterAndSetterTypes(
+        :var getterType,
+        :var setterType,
+      ):
+        _sink.writelnWithIndent(
+          'typeInferenceError: differentGetterAndSetterTypes',
+        );
+        _sink.withIndent(() {
+          _sink.writelnWithIndent('getterType: $getterType');
+          _sink.writelnWithIndent('setterType: $setterType');
+        });
       case TopLevelInferenceErrorNoCombinedSuperSignature():
         _sink.writelnWithIndent(
           'typeInferenceError: overrideNoCombinedSuperSignature',

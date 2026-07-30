@@ -146,19 +146,16 @@ class InstanceMemberInferrer {
     );
     overriddenSetters ??= const [];
 
-    TypeImpl combinedGetterType() {
+    TypeImpl? combinedGetterType() {
       var combinedGetterType = inheritance.combineSignatureTypes(
         typeSystem: typeSystem,
         candidates: overriddenGetters!,
         name: getterName,
       );
-      if (combinedGetterType != null) {
-        return combinedGetterType.returnType;
-      }
-      return DynamicTypeImpl.instance;
+      return combinedGetterType?.returnType;
     }
 
-    TypeImpl combinedSetterType() {
+    TypeImpl? combinedSetterType() {
       var combinedSetterType = inheritance.combineSignatureTypes(
         typeSystem: typeSystem,
         candidates: overriddenSetters!,
@@ -170,7 +167,7 @@ class InstanceMemberInferrer {
           return parameters[0].type;
         }
       }
-      return DynamicTypeImpl.instance;
+      return null;
     }
 
     if (getter != null) {
@@ -187,7 +184,7 @@ class InstanceMemberInferrer {
       // and a getter is inferred to be the return type of the combined member
       // signature of said getter in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty) {
-        var returnType = combinedGetterType();
+        var returnType = combinedGetterType() ?? DynamicTypeImpl.instance;
         getter.returnType = returnType;
         var fieldElement = getter.variable as FieldElementImpl;
         fieldElement.type = returnType;
@@ -199,7 +196,7 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        var returnType = combinedSetterType();
+        var returnType = combinedSetterType() ?? DynamicTypeImpl.instance;
         getter.returnType = returnType;
         var fieldElement = getter.variable as FieldElementImpl;
         fieldElement.type = returnType;
@@ -233,7 +230,7 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        var valueType = combinedGetterType();
+        var valueType = combinedGetterType() ?? DynamicTypeImpl.instance;
         setSetterValueType(valueType);
         return;
       }
@@ -247,7 +244,7 @@ class InstanceMemberInferrer {
       // setter and a getter is inferred to be the parameter type of the
       // combined member signature of said setter in the direct superinterfaces.
       if (overriddenSetters.isNotEmpty) {
-        var valueType = combinedSetterType();
+        var valueType = combinedSetterType() ?? DynamicTypeImpl.instance;
         setSetterValueType(valueType);
         return;
       }
@@ -272,7 +269,7 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        field.type = combinedGetterType();
+        field.type = combinedGetterType() ?? DynamicTypeImpl.instance;
         return;
       }
 
@@ -281,7 +278,7 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        field.type = combinedSetterType();
+        field.type = combinedSetterType() ?? DynamicTypeImpl.instance;
         return;
       }
 
@@ -290,7 +287,7 @@ class InstanceMemberInferrer {
         // and a getter is inferred to be the return type of the combined
         // member signature of said getter in the direct superinterfaces.
         if (field.isFinal) {
-          field.type = combinedGetterType();
+          field.type = combinedGetterType() ?? DynamicTypeImpl.instance;
           return;
         }
 
@@ -304,8 +301,14 @@ class InstanceMemberInferrer {
           var getterType = combinedGetterType();
           var setterType = combinedSetterType();
 
-          if (getterType == setterType) {
+          if (getterType != null && getterType == setterType) {
             field.type = getterType;
+          } else if (getterType != null && setterType != null) {
+            field.typeInferenceError =
+                TopLevelInferenceErrorDifferentGetterAndSetterTypes(
+                  getterType: getterType.getDisplayString(),
+                  setterType: setterType.getDisplayString(),
+                );
           }
           return;
         }
