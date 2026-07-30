@@ -10,7 +10,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeLiteralResolutionTest);
-    defineReflectiveTests(TypeLiteralResolutionTest_WithoutConstructorTearoffs);
+    defineReflectiveTests(TypeLiteralResolutionTest_BeforeConstructorTearoffs);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -8020,9 +8020,9 @@ TypeLiteral
 }
 
 @reflectiveTest
-class TypeLiteralResolutionTest_WithoutConstructorTearoffs
+class TypeLiteralResolutionTest_BeforeConstructorTearoffs
     extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
+    with BeforeConstructorTearoffsMixin {
   test_class() async {
     await resolveTestCodeWithDiagnostics('''
 class C<T> {}

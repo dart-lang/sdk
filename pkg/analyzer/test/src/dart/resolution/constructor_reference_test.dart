@@ -12,7 +12,7 @@ main() {
     defineReflectiveTests(ConstructorTearOffResolutionTest);
     defineReflectiveTests(ConstructorTearOffResolutionTest_TypeArgs);
     defineReflectiveTests(
-      ConstructorTearOffResolutionTest_WithoutConstructorTearoffs,
+      ConstructorTearOffResolutionTest_BeforeConstructorTearoffs,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -832,6 +832,109 @@ ConstructorReference
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
+''');
+  }
+}
+
+@reflectiveTest
+class ConstructorTearOffResolutionTest_BeforeConstructorTearoffs
+    extends PubPackageResolutionTest
+    with BeforeConstructorTearoffsMixin {
+  test_class_generic_nonConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<T> {
+  static int i = 1;
+}
+
+void bar() {
+  A<int>.i;
+// ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+}
+''');
+
+    var node = result.findNode.constructorTearOff('A<int>.i;');
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: i
+  element: <null>
+  staticType: InvalidType
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::A
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: i
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_constructorTearoff() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  A.foo();
+}
+
+void bar() {
+  A.foo;
+//^^^^^
+// [diag.sdkVersionConstructorTearoffs] Tearing off a constructor requires the 'constructor-tearoffs' language feature.
+}
+''');
+
+    var node = result.findNode.constructorTearOff('A.foo;');
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <testLibrary>::@class::A::@constructor::foo
+  staticType: A Function()
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@constructor::foo
+      staticType: null
+    element: <testLibrary>::@class::A::@constructor::foo
+  staticType: A Function()
 ''');
   }
 }
@@ -2244,109 +2347,6 @@ ConstructorReference
       baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
-''');
-  }
-}
-
-@reflectiveTest
-class ConstructorTearOffResolutionTest_WithoutConstructorTearoffs
-    extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
-  test_class_generic_nonConstructor() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A<T> {
-  static int i = 1;
-}
-
-void bar() {
-  A<int>.i;
-// ^^^^^
-// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
-}
-''');
-
-    var node = result.findNode.constructorTearOff('A<int>.i;');
-    assertResolvedNodeText(node, r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    name: A
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    element: <testLibrary>::@class::A
-    type: A<int>
-  selector: ConstructorSelector
-    period: .
-    name2: i
-  element: <null>
-  staticType: InvalidType
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
-      element: <testLibrary>::@class::A
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: i
-      element: <null>
-      staticType: null
-    element: <null>
-  staticType: InvalidType
-''');
-  }
-
-  test_constructorTearoff() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A {
-  A.foo();
-}
-
-void bar() {
-  A.foo;
-//^^^^^
-// [diag.sdkVersionConstructorTearoffs] Tearing off a constructor requires the 'constructor-tearoffs' language feature.
-}
-''');
-
-    var node = result.findNode.constructorTearOff('A.foo;');
-    assertResolvedNodeText(node, r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    name: A
-    element: <testLibrary>::@class::A
-    type: A
-  selector: ConstructorSelector
-    period: .
-    name2: foo
-  element: <testLibrary>::@class::A::@constructor::foo
-  staticType: A Function()
-ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: A
-      element: <testLibrary>::@class::A
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@class::A::@constructor::foo
-      staticType: null
-    element: <testLibrary>::@class::A::@constructor::foo
-  staticType: A Function()
 ''');
   }
 }

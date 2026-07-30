@@ -788,10 +788,9 @@ void main() {
 ''');
   }
 
-  test_method_result_assigned_wildcard_unused_preWildcards() async {
+  test_method_result_assigned_wildcard_unused_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 import 'package:meta/meta.dart';
 
@@ -1225,9 +1224,9 @@ void f(A a) {
 ''');
   }
 
-  test_method_result_switchCondition_language219() async {
+  test_method_result_switchCondition_beforePatterns() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 import 'package:meta/meta.dart';
 
 class A {

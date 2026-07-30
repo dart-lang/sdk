@@ -34,6 +34,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../util/diff.dart';
+import '../../../util/language_feature_directive_lowering.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
@@ -44,6 +45,36 @@ export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
 
 export 'resolution.dart'
     show ResolvedUnitResultExtension, TestResolvedUnitResult;
+
+String _beforeLanguageFeature(String featureName) {
+  var version = LanguageFeatureDirectiveLowering.languageVersionBefore(
+    featureName,
+  );
+  return '${version.major}.${version.minor}';
+}
+
+mixin BeforeConstructorTearoffsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion =>
+      _beforeLanguageFeature('constructor-tearoffs');
+}
+
+mixin BeforeEnhancedEnumsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion =>
+      _beforeLanguageFeature('enhanced-enums');
+}
+
+mixin BeforePatternsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => _beforeLanguageFeature('patterns');
+}
+
+mixin BeforePrivateNamedParametersMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion =>
+      _beforeLanguageFeature('private-named-parameters');
+}
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
@@ -439,26 +470,6 @@ class _VisibleOutsideTemplate {
   void writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
   }
-}
-
-mixin WithLanguage219Mixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '2.19';
-}
-
-mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '2.14';
-}
-
-mixin WithoutEnhancedEnumsMixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '2.16';
-}
-
-mixin WithoutPrivateNamedParametersMixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '3.9';
 }
 
 mixin WithStrictCastsMixin on PubPackageResolutionTest {

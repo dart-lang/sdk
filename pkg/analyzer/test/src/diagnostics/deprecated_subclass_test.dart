@@ -78,20 +78,21 @@ class Bar extends Foo {}
 ''');
   }
 
-  test_language212_mixedIn() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-// @dart = 2.12
+  test_mixedIn_beforeClassModifiers() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/foo.dart'): r'''
+// %before-language-feature: class-modifiers
 @Deprecated.subclass()
 class Foo {}
-''');
-
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.12
+''',
+      testFile: r'''
+// %before-language-feature: class-modifiers
 import 'foo.dart';
 class Bar extends Object with Foo {}
 //                            ^^^
 // [diag.deprecatedSubclass] Subclassing 'Foo' is deprecated.
-''');
+''',
+    });
   }
 
   test_mixinImplementsClass() async {

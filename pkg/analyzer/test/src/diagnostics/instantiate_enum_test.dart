@@ -14,7 +14,7 @@ main() {
 
 @reflectiveTest
 class InstantiateEnumTest extends PubPackageResolutionTest
-    with WithoutEnhancedEnumsMixin {
+    with BeforeEnhancedEnumsMixin {
   test_const() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E { ONE }

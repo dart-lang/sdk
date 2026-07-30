@@ -2467,10 +2467,9 @@ m() {
 ''');
   }
 
-  test_localFunction_inFunction_wildcard_preWildCards() async {
+  test_localFunction_inFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 main() {
   _(){}
@@ -2504,10 +2503,9 @@ class C {
 ''');
   }
 
-  test_localFunction_inMethod_wildcard_preWildCards() async {
+  test_localFunction_inMethod_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class C {
   m() {

@@ -299,10 +299,9 @@ class A {
 ''');
   }
 
-  test_notUsed_noReference_wildcard_preWildcards() async {
+  test_notUsed_noReference_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   int _ = 0;

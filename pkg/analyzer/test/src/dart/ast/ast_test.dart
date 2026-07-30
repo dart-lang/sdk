@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/language_feature_directive_lowering.dart';
 import '../../diagnostics/parser_diagnostics.dart';
 import '../resolution/context_collection_resolution.dart';
 
@@ -464,7 +465,7 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
   }
 
   parse(String source) {
-    testSource = source;
+    testSource = LanguageFeatureDirectiveLowering(source).loweredCode;
     testUnit = parseTestCodeWithDiagnostics(source).unit as CompilationUnitImpl;
   }
 
@@ -685,11 +686,11 @@ class C {
     assertInContext("C()", true);
   }
 
-  test_inConstantContext_constructorInvocation_switch_true_language219() {
+  test_inConstantContext_constructorInvocation_switch_true_beforePatterns() {
     // Expected: true
     //   Actual: <false>
     parse('''
-// @dart = 2.19
+// %before-language-feature: patterns
 f(v) {
   switch (v) {
   case C():
@@ -871,12 +872,12 @@ f(v) {
     assertInContext("[]", true);
   }
 
-  test_inConstantContext_listLiteral_switch_true_language219() {
+  test_inConstantContext_listLiteral_switch_true_beforePatterns() {
     // Expected: <Instance of 'ExpressionImpl'>
     //   Actual: ListPatternImpl:<[]>
     //    Which: is not an instance of 'ExpressionImpl'
     parse('''
-// @dart = 2.19
+// %before-language-feature: patterns
 f(v) {
   switch (v) {
   case []:
@@ -997,12 +998,12 @@ f(v) {
     assertInContext("{}", true);
   }
 
-  test_inConstantContext_mapLiteral_switch_true_language219() {
+  test_inConstantContext_mapLiteral_switch_true_beforePatterns() {
     // Expected: <Instance of 'ExpressionImpl'>
     //   Actual: MapPatternImpl:<{}>
     //    Which: is not an instance of 'ExpressionImpl'
     parse('''
-// @dart = 2.19
+// %before-language-feature: patterns
 f(v) {
   switch (v) {
   case {}:

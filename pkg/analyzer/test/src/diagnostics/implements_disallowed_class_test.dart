@@ -30,18 +30,18 @@ abstract class A implements Enum {}
 ''');
   }
 
-  test_class_dartCoreEnum_language216_abstract() async {
+  test_class_dartCoreEnum_beforeEnhancedEnums_abstract() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.16
+// %before-language-feature: enhanced-enums
 abstract class A implements Enum {}
 //                          ^^^^
 // [diag.implementsDisallowedClass] Classes and mixins can't implement 'Enum'.
 ''');
   }
 
-  test_class_dartCoreEnum_language216_concrete() async {
+  test_class_dartCoreEnum_beforeEnhancedEnums_concrete() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.16
+// %before-language-feature: enhanced-enums
 class A implements Enum {}
 //                 ^^^^
 // [diag.implementsDisallowedClass] Classes and mixins can't implement 'Enum'.
@@ -168,9 +168,9 @@ abstract class A = Object with M implements Enum;
 ''');
   }
 
-  test_classTypeAlias_dartCoreEnum_language216_abstract() async {
+  test_classTypeAlias_dartCoreEnum_beforeEnhancedEnums_abstract() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.16
+// %before-language-feature: enhanced-enums
 mixin M {}
 abstract class A = Object with M implements Enum;
 //                                          ^^^^
@@ -178,9 +178,9 @@ abstract class A = Object with M implements Enum;
 ''');
   }
 
-  test_classTypeAlias_dartCoreEnum_language216_concrete() async {
+  test_classTypeAlias_dartCoreEnum_beforeEnhancedEnums_concrete() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.16
+// %before-language-feature: enhanced-enums
 mixin M {}
 class A = Object with M implements Enum;
 //                                 ^^^^
@@ -277,9 +277,9 @@ mixin M implements Enum {}
 ''');
   }
 
-  test_mixin_dartCoreEnum_language216() async {
+  test_mixin_dartCoreEnum_beforeEnhancedEnums() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.16
+// %before-language-feature: enhanced-enums
 mixin M implements Enum {}
 //                 ^^^^
 // [diag.implementsDisallowedClass] Classes and mixins can't implement 'Enum'.

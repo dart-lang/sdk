@@ -103,7 +103,7 @@ void f() {}
 ''');
   }
 
-  test_genericMetadata_missingTypeArg_withoutGenericMetadata() async {
+  test_genericMetadata_missingTypeArg_beforeGenericMetadata() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
     await resolveTestCodeWithDiagnostics(r'''
 class C<T> {

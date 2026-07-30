@@ -15,7 +15,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExitDetectorParsedStatementTest);
     defineReflectiveTests(ExitDetectorResolvedStatementTest);
-    defineReflectiveTests(ExitDetectorResolvedStatementTest_Language219);
+    defineReflectiveTests(ExitDetectorResolvedStatementTest_BeforePatterns);
     defineReflectiveTests(ExitDetectorForCodeAsUiTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -957,9 +957,9 @@ class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
     with ExitDetectorResolvedStatementTestCases {}
 
 @reflectiveTest
-class ExitDetectorResolvedStatementTest_Language219
+class ExitDetectorResolvedStatementTest_BeforePatterns
     extends PubPackageResolutionTest
-    with WithLanguage219Mixin, ExitDetectorResolvedStatementTestCases {}
+    with BeforePatternsMixin, ExitDetectorResolvedStatementTestCases {}
 
 /// Tests for the [ExitDetector] that require that the AST be resolved.
 ///

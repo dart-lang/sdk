@@ -3974,9 +3974,9 @@ library
 ''');
   }
 
-  test_mixin_emptyBody_language310() async {
+  test_mixin_emptyBody_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 mixin M;
 ''');
     checkElementText(library, r'''

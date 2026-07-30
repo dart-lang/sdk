@@ -12,9 +12,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GenericTypeAliasResolutionTest);
-    defineReflectiveTests(
-      GenericTypeAliasResolutionTest_WithoutGenericMetadata,
-    );
+    defineReflectiveTests(GenericTypeAliasResolutionTest_BeforeGenericMetadata);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -22,6 +20,20 @@ main() {
 @reflectiveTest
 class GenericTypeAliasResolutionTest extends PubPackageResolutionTest
     with GenericTypeAliasResolutionTestCases {
+  test_genericFunctionTypeCannotBeTypeArgument_beforeGenericMetadata() async {
+    newFile('$testPackageLibPath/a.dart', '''
+typedef G = Function<S>();
+''');
+    await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: generic-metadata
+import 'a.dart';
+class C<T> {}
+C<G>? x;
+//^
+// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
+''');
+  }
+
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
@@ -79,29 +91,15 @@ typedef T F<T>(T t);
 F<Function<S>()>? x;
 ''');
   }
-
-  test_genericFunctionTypeCannotBeTypeArgument_optOutOfGenericMetadata() async {
-    newFile('$testPackageLibPath/a.dart', '''
-typedef G = Function<S>();
-''');
-    await resolveTestCodeWithDiagnostics('''
-// @dart=2.12
-import 'a.dart';
-class C<T> {}
-C<G>? x;
-//^
-// [diag.genericFunctionTypeCannotBeTypeArgument] A generic function type can't be a type argument.
-''');
-  }
 }
 
 @reflectiveTest
-class GenericTypeAliasResolutionTest_WithoutGenericMetadata
+class GenericTypeAliasResolutionTest_BeforeGenericMetadata
     extends PubPackageResolutionTest
     with GenericTypeAliasResolutionTestCases {
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: generic-metadata
 class C<T> {}
 
 typedef G = Function<S>();
@@ -114,7 +112,7 @@ C<G>? x;
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_class() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: generic-metadata
 class C<T> {}
 
 C<Function<S>()>? x;
@@ -125,7 +123,7 @@ C<Function<S>()>? x;
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_function() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: generic-metadata
 void f<T>(T) {}
 
 main() {
@@ -138,7 +136,7 @@ main() {
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_functionType() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: generic-metadata
 late T Function<T>(T?) f;
 
 main() {
@@ -151,7 +149,7 @@ main() {
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_method() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: generic-metadata
 class C {
   void f<T>(T) {}
 }
@@ -166,7 +164,7 @@ main() {
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_typedef() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: generic-metadata
 typedef T F<T>(T t);
 
 F<Function<S>()>? x;

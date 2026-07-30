@@ -237,9 +237,9 @@ library
 ''');
   }
 
-  test_extension_emptyBody_language310() async {
+  test_extension_emptyBody_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension E on int;
 ''');
     checkElementText(library, r'''

@@ -188,7 +188,7 @@ f() {
 ''');
   }
 
-  test_wildcardResolution_preWildcards() async {
+  test_wildcardResolution_beforeWildcardVariables() async {
     newFile('$testPackageLibPath/a.dart', r'''
 extension ExtendedString on String {
   bool get stringExt => true;
@@ -204,8 +204,7 @@ extension ExtendedString on String {
 ''');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 import 'a.dart' as _;
 import 'b.dart' as _;

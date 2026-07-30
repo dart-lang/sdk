@@ -67,7 +67,7 @@ f() {
 
   test_parameter() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 f(final x) {
   x = 1;
 //^

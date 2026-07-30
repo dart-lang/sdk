@@ -1174,9 +1174,9 @@ Block
 ''');
   }
 
-  void test_late_as_identifier_optOut() {
+  void test_late_asIdentifier_beforeNonNullable() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.2
+// %before-language-feature: non-nullable
 class C {
   int late;
 }

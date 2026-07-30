@@ -131,17 +131,17 @@ PartDirective
 ''');
   }
 
-  test_inLibrary_withPart_partOfName() async {
+  test_inLibrary_withPart_partOfName_beforeEnhancedParts() async {
     var a = getFile('$testPackageLibPath/a.dart');
     var b = getFile('$testPackageLibPath/b.dart');
     var results = await resolveFilesWithDiagnostics({
       a: r'''
-// @dart = 3.4
+// %before-language-feature: enhanced-parts
 library my.lib;
 part 'b.dart';
 ''',
       b: r'''
-// @dart = 3.4
+// %before-language-feature: enhanced-parts
 part of my.lib;
 ''',
     });
@@ -160,48 +160,19 @@ PartDirective
 ''');
   }
 
-  test_inLibrary_withPart_partOfName_preEnhancedParts() async {
+  test_inLibrary_withPart_partOfName_beforeEnhancedParts_different() async {
     var a = getFile('$testPackageLibPath/a.dart');
     var b = getFile('$testPackageLibPath/b.dart');
     var results = await resolveFilesWithDiagnostics({
       a: r'''
-// @dart = 3.4
-library my.lib;
-part 'b.dart';
-''',
-      b: r'''
-// @dart = 3.4
-part of my.lib;
-''',
-    });
-    var result = results[a]!;
-
-    var node = result.findNode.singlePartDirective;
-    assertResolvedNodeText(node, r'''
-PartDirective
-  partKeyword: part
-  uri: SimpleStringLiteral
-    literal: 'b.dart'
-  semicolon: ;
-  partInclude: PartInclude
-    uri: DirectiveUriWithUnit
-      uri: package:test/b.dart
-''');
-  }
-
-  test_inLibrary_withPart_partOfName_preEnhancedParts_different() async {
-    var a = getFile('$testPackageLibPath/a.dart');
-    var b = getFile('$testPackageLibPath/b.dart');
-    var results = await resolveFilesWithDiagnostics({
-      a: r'''
-// @dart = 3.4
+// %before-language-feature: enhanced-parts
 library foo;
 part 'b.dart';
 //   ^^^^^^^^
 // [diag.partOfDifferentLibrary] Expected this library to be part of 'foo', not 'bar'.
 ''',
       b: r'''
-// @dart = 3.4
+// %before-language-feature: enhanced-parts
 part of bar;
 ''',
     });

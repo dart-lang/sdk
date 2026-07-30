@@ -270,9 +270,9 @@ MixinDeclaration
 ''');
   }
 
-  test_emptyBody_language310() {
+  test_emptyBody_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 mixin M;
 //     ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
@@ -712,9 +712,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_formalParameters_language310() {
+  test_primaryConstructor_const_typeName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin const A() {}
 //    ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -749,9 +749,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+  test_primaryConstructor_const_typeName_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin const A {}
 //    ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -786,9 +786,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_periodName_formalParameters_language310() {
+  test_primaryConstructor_const_typeName_periodName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin const A.name() {}
 //    ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -823,9 +823,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_typeName_formalParameters_language310() {
+  test_primaryConstructor_typeName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin A() {}
 //     ^
 // [diag.unexpectedToken] Unexpected text '('.
@@ -860,9 +860,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_typeName_periodName_formalParameters_language310() {
+  test_primaryConstructor_typeName_periodName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin A.name() {}
 //     ^
 // [diag.unexpectedToken] Unexpected text '.'.

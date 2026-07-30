@@ -288,6 +288,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  File newFileWithLanguageFeatureDirective(String path, String content) {
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(content);
+    return newFile(path, featureDirectiveLowering.loweredCode);
+  }
+
   Future<ResolvedUnitResultImpl> resolveFile(File file);
 
   /// Resolve [file] and return a test view of it.

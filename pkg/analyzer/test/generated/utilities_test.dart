@@ -1745,9 +1745,9 @@ class B extends A {
     );
   }
 
-  void test_switchCase_language219() {
+  void test_switchCase_beforePatterns() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     foo: bar:
@@ -1776,9 +1776,9 @@ void f() {
     _assertSwitchMember(parseResult.findNode.switchDefault('default: 0'));
   }
 
-  void test_switchStatement_language219() {
+  void test_switchStatement_beforePatterns() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (0) {
     case 0: break;

@@ -51,10 +51,10 @@ class B extends A {}
 ''');
   }
 
-  test_class_extends_outside_viaLanguage219AndCore() async {
+  test_class_extends_outside_viaBeforeClassModifiersAndCore() async {
     var a = getFile('$testPackageLibPath/a.dart');
     await resolveFileWithDiagnostics(a, r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:core';
 class A implements MapEntry<int, int> {
   int get key => 0;
@@ -97,13 +97,13 @@ class B implements A {}
 ''');
   }
 
-  test_class_implements_outside_viaLanguage219AndCore() async {
+  test_class_implements_outside_viaBeforeClassModifiersAndCore() async {
     // No [SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED] reported outside of
     // library to avoid over-reporting when we have a
     // [FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY] error.
     var a = getFile('$testPackageLibPath/a.dart');
     await resolveFileWithDiagnostics(a, r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:core';
 class A implements MapEntry<int, int> {
   int get key => 0;

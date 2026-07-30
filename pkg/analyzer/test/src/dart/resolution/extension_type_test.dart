@@ -1084,9 +1084,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_fieldFormalParameter_language310() async {
+  test_primaryConstructor_formalParameters_fieldFormalParameter_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(this.it) {}
 //               ^^^^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -1189,9 +1189,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_functionTypedFormalParameter_language310() async {
+  test_primaryConstructor_formalParameters_functionTypedFormalParameter_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it()) {}
 //               ^^^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -1302,9 +1302,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_const_language310() async {
+  test_primaryConstructor_formalParameters_keyword_const_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(const int it) {}
 //               ^^^^^
 // [diag.extraneousModifier] Can't have modifier 'const' here.
@@ -1409,9 +1409,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_covariant_language310() async {
+  test_primaryConstructor_formalParameters_keyword_covariant_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(covariant int it) {}
 //               ^^^^^^^^^
 // [diag.extraneousModifierInPrimaryConstructor] Can't have modifier 'covariant' in a primary constructor.
@@ -1514,9 +1514,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_final_hasType_language310() async {
+  test_primaryConstructor_formalParameters_keyword_final_hasType_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(final int it) {}
 //               ^^^^^
 // [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
@@ -1611,9 +1611,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_final_noType_language310() async {
+  test_primaryConstructor_formalParameters_keyword_final_noType_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(final it) {}
 //               ^^^^^
 // [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
@@ -1808,9 +1808,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_var_language310() async {
+  test_primaryConstructor_formalParameters_keyword_var_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(var it) {}
 //               ^^^
 // [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
@@ -1912,9 +1912,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalNamed_language310() async {
+  test_primaryConstructor_formalParameters_kind_optionalNamed_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({int? it}) {}
 //               ^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -2049,9 +2049,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_language310() async {
+  test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({int? a, int? b}) {}
 //                      ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -2262,9 +2262,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_optionalPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A([int? it]) {}
 //               ^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -2399,9 +2399,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A([int? a, int? b]) {}
 //                      ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -2534,9 +2534,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredNamed_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredNamed_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({required int it}) {}
 //               ^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -2798,9 +2798,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it) {}
 ''');
 
@@ -2925,9 +2925,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, {int? b}) {}
 //                    ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -3080,9 +3080,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, {int? b}) {}
 //                    ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -3227,9 +3227,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, int b) {}
 //                    ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -3348,9 +3348,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_memberWithClassName_language310() async {
+  test_primaryConstructor_formalParameters_memberWithClassName_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int A) {}
 //                   ^
 // [diag.memberWithClassName] A class member can't have the same name as the enclosing class.
@@ -3492,9 +3492,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_noFormalParameters_language310() async {
+  test_primaryConstructor_formalParameters_noFormalParameters_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A() {}
 //               ^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -3561,9 +3561,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_noTypeAnnotation_language310() async {
+  test_primaryConstructor_formalParameters_noTypeAnnotation_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(it) {}
 //               ^^
 // [diag.expectedRepresentationType] Expected a representation type.
@@ -3662,9 +3662,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_noTypeAnnotation_withMetadata_language310() async {
+  test_primaryConstructor_formalParameters_noTypeAnnotation_withMetadata_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(@deprecated it) {}
 //                           ^^
 // [diag.expectedRepresentationType] Expected a representation type.
@@ -3793,9 +3793,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_scope_language310() async {
+  test_primaryConstructor_formalParameters_scope_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it) {
   static const String int = 'not a type';
 }
@@ -3908,9 +3908,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_superFormalParameter_language310() async {
+  test_primaryConstructor_formalParameters_superFormalParameter_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(super.it) {}
 //               ^^^^^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -4003,9 +4003,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_trailingComma_language310() async {
+  test_primaryConstructor_formalParameters_trailingComma_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it,) {}
 //                     ^
 // [diag.representationFieldTrailingComma] The representation field can't have a trailing comma.

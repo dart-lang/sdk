@@ -86,9 +86,9 @@ MixinDeclaration
 ''');
   }
 
-  test_emptyBody_language310() async {
+  test_emptyBody_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 mixin M;
 //     ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.

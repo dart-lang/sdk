@@ -743,6 +743,23 @@ const v = A() == 0;
 ''');
   }
 
+  test_equalEqual_userClass_hasPrimitiveEquality_beforePatterns() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: patterns
+class A {
+  const A();
+}
+
+const v = A() == 0;
+//        ^^^^^^^^
+// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
+''');
+    var result = _topLevelVar(unitResult, 'v');
+    assertDartObjectText(result, r'''
+<null>
+''');
+  }
+
   test_equalEqual_userClass_hasPrimitiveEquality_false() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -756,23 +773,6 @@ const v = A(0) == 0;
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
-''');
-  }
-
-  test_equalEqual_userClass_hasPrimitiveEquality_language219() async {
-    var unitResult = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
-class A {
-  const A();
-}
-
-const v = A() == 0;
-//        ^^^^^^^^
-// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
-''');
-    var result = _topLevelVar(unitResult, 'v');
-    assertDartObjectText(result, r'''
-<null>
 ''');
   }
 
@@ -824,9 +824,9 @@ class A {
     _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
-  test_hasPrimitiveEquality_class_hasEqEq_language219() async {
+  test_hasPrimitiveEquality_class_hasEqEq_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 const v = const A();
 
 class A {
@@ -849,9 +849,9 @@ class A {
     _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
-  test_hasPrimitiveEquality_class_hasHashCode_language219() async {
+  test_hasPrimitiveEquality_class_hasHashCode_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 const v = const A();
 
 class A {
@@ -7523,6 +7523,26 @@ A<int>
 ''');
   }
 
+  test_fieldInitializer_typeParameter_beforeConstructorTearoffs() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: constructor-tearoffs
+class A<T> {
+  final Object f;
+  const A(): f = T;
+//               ^
+// [context 1] The error is in the field initializer of 'A', and occurs here.
+// [diag.invalidConstant] Invalid constant value.
+}
+const a = const A<int>();
+//        ^^^^^^^^^^^^^^
+// [diag.constTypeParameter][context 1] Type parameters can't be used in a constant expression.
+''');
+    var result = _topLevelVar(unitResult, 'a');
+    assertDartObjectText(result, r'''
+<null>
+''');
+  }
+
   test_fieldInitializer_typeParameter_implicitTypeArgs() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class A<T> {
@@ -7568,26 +7588,6 @@ A<int, String>
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int, U: String}
   variable: <testLibrary>::@topLevelVariable::a
-''');
-  }
-
-  test_fieldInitializer_typeParameter_withoutConstructorTearoffs() async {
-    var unitResult = await resolveTestCodeWithDiagnostics('''
-// @dart=2.12
-class A<T> {
-  final Object f;
-  const A(): f = T;
-//               ^
-// [context 1] The error is in the field initializer of 'A', and occurs here.
-// [diag.invalidConstant] Invalid constant value.
-}
-const a = const A<int>();
-//        ^^^^^^^^^^^^^^
-// [diag.constTypeParameter][context 1] Type parameters can't be used in a constant expression.
-''');
-    var result = _topLevelVar(unitResult, 'a');
-    assertDartObjectText(result, r'''
-<null>
 ''');
   }
 

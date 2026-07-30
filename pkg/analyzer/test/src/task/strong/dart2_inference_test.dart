@@ -446,9 +446,9 @@ void test(C<int> x) {
     assertType(node, 'C<int>');
   }
 
-  test_switchExpression_asContext_forCases_language219() async {
+  test_switchExpression_asContext_forCases_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 class C<T> {
   const C();
 }

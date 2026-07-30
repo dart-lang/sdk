@@ -256,9 +256,9 @@ BinaryExpression
 ''');
   }
 
-  test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
+  test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext_beforeInferenceUpdate3() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart=3.3
+// %before-language-feature: inference-update-3
 class A {}
 class B1 extends A {}
 class B2 extends A {}
