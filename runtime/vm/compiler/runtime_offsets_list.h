@@ -88,6 +88,24 @@
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(Context, kMaxElements)                                              \
+  CONSTANT(Function, kKindBitsPos)                                             \
+  CONSTANT(Function, kKindBitsSize)                                            \
+  CONSTANT(Function, kRecognizedBitsPos)                                       \
+  CONSTANT(Function, kRecognizedBitsSize)                                      \
+  CONSTANT(Function, kModifierBitsPos)                                         \
+  CONSTANT(Function, kModifierBitsSize)                                        \
+  CONSTANT(Function, kStaticBitPos)                                            \
+  CONSTANT(Function, kConstBitPos)                                             \
+  CONSTANT(Function, kAbstractBitPos)                                          \
+  CONSTANT(Function, kReflectableBitPos)                                       \
+  CONSTANT(Function, kVisibleBitPos)                                           \
+  CONSTANT(Function, kDebuggableBitPos)                                        \
+  CONSTANT(Function, kNativeBitPos)                                            \
+  CONSTANT(Function, kExternalBitPos)                                          \
+  CONSTANT(Function, kHasPragmaBitPos)                                         \
+  CONSTANT(Function, kIsSyntheticBitPos)                                       \
+  CONSTANT(Function, kIsExtensionMemberBitPos)                                 \
+  CONSTANT(Function, kIsExtensionTypeMemberBitPos)                             \
   CONSTANT(Heap, kNewAllocatableSize)                                          \
   CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
@@ -538,11 +556,12 @@
   PAYLOAD_SIZEOF(PcDescriptors, InstanceSize, HeaderSize)                      \
   PAYLOAD_SIZEOF(SuspendState, InstanceSize, HeaderSize)                       \
   PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)                          \
-  ENUM(StubCode, StubCode::StubNames)                                          \
-  ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
-  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)                  \
   ENUM(ClassId, kClassIdNames)                                                 \
-  ENUM(PcDescriptorKind, UntaggedPcDescriptors::kKindNames)
+  ENUM(FunctionKind, UntaggedFunction::kKindNames)                             \
+  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)                  \
+  ENUM(PcDescriptorKind, UntaggedPcDescriptors::kKindNames)                    \
+  ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
+  ENUM(StubCode, StubCode::StubNames)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
                          RANGE, CONSTANT, ENUM)                                \

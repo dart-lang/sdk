@@ -48,12 +48,14 @@ class StackFrame;
 
 namespace module_snapshot {
 class CatchEntryMovesDeserializationCluster;
+class ClosureDataDeserializationCluster;
 class CodeDeserializationCluster;
 class CodeSourceMapDeserializationCluster;
 class CompressedStackMapsDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class ExceptionHandlersDeserializationCluster;
+class FunctionDeserializationCluster;
 class FunctionTypeDeserializationCluster;
 class ICDataDeserializationCluster;
 class IntDeserializationCluster;
@@ -1437,6 +1439,12 @@ class UntaggedFunction : public UntaggedObject {
   };
   static constexpr int kKindBitSize = Utils::BitLength(kRecordFieldGetter);
 
+  static constexpr const char* kKindNames[] = {
+#define NAME_DEF(name) #name,
+      FOR_EACH_RAW_FUNCTION_KIND(NAME_DEF)
+#undef NAME_DEF
+  };
+
   static const char* KindToCString(Kind k) {
     switch (k) {
 #define KIND_CASE(Name)                                                        \
@@ -1541,11 +1549,6 @@ class UntaggedFunction : public UntaggedObject {
   };
 
  private:
-  friend class Class;
-  friend class Interpreter;
-  friend class InterpreterHelpers;
-  friend class UnitDeserializationRoots;
-
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
   uword entry_point_;            // Accessed from generated code.
@@ -1616,6 +1619,12 @@ class UntaggedFunction : public UntaggedObject {
 
   std::atomic<bool> is_optimizable_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  friend class Class;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
+  friend class UnitDeserializationRoots;
+  friend class module_snapshot::FunctionDeserializationCluster;
 };
 
 enum class InstantiationMode : uint8_t {
@@ -1668,6 +1677,7 @@ class UntaggedClosureData : public UntaggedObject {
                                             PackedAwaiterLinkIndex::kNextBit>;
   friend class Function;
   friend class UnitDeserializationRoots;
+  friend class module_snapshot::ClosureDataDeserializationCluster;
 };
 
 class UntaggedFfiTrampolineData : public UntaggedObject {

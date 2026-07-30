@@ -33,6 +33,7 @@ class CompilationSet {
       config.targetCPU,
       functionRegistry,
       config.objectLayout,
+      compilePlatform: config.compilePlatform,
     );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
   }

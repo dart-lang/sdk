@@ -4294,14 +4294,22 @@ class Function : public Object {
                             UntaggedFunction::Kind,
                             0,
                             UntaggedFunction::kKindBitSize>;
+  static constexpr intptr_t kKindBitsPos = KindBits::shift();
+  static constexpr intptr_t kKindBitsSize = KindBits::bitsize();
+
   using RecognizedBits = BitField<decltype(UntaggedFunction::kind_tag_),
                                   MethodRecognizer::Kind,
                                   KindBits::kNextBit,
                                   MethodRecognizer::kKindBitSize>;
+  static constexpr intptr_t kRecognizedBitsPos = RecognizedBits::shift();
+  static constexpr intptr_t kRecognizedBitsSize = RecognizedBits::bitsize();
+
   using ModifierBits = BitField<decltype(UntaggedFunction::kind_tag_),
                                 UntaggedFunction::AsyncModifier,
                                 RecognizedBits::kNextBit,
                                 UntaggedFunction::kAsyncModifierBitSize>;
+  static constexpr intptr_t kModifierBitsPos = ModifierBits::shift();
+  static constexpr intptr_t kModifierBitsSize = ModifierBits::bitsize();
 
   enum KindTagBits {
 // Single bit sized fields start here.
@@ -4313,7 +4321,8 @@ class Function : public Object {
 
 #define DEFINE_BIT(name, _)                                                    \
   using name##Bit = BitField<decltype(UntaggedFunction::kind_tag_), bool,      \
-                             ModifierBits::kNextBit + k##name##Bit>;
+                             ModifierBits::kNextBit + k##name##Bit>;           \
+  static constexpr intptr_t k##name##BitPos = name##Bit::shift();
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT

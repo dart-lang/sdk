@@ -88,6 +88,11 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     allowed: ImageFormat.allowedNames,
     defaultsTo: ImageFormat.defaultName,
   )
+  ..addFlag(
+    'compile-platform',
+    help: 'Compile core libraries.',
+    defaultsTo: false,
+  )
   ..addMultiOption(
     'define',
     abbr: 'D',
@@ -211,6 +216,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
 
   final TargetCPU targetCPU = TargetCPU.fromName(options['target-arch']);
   final ImageFormat imageFormat = ImageFormat.fromName(options['image-format']);
+  final bool compilePlatform = options['compile-platform'];
 
   final String? printFlowGraph = options['print-flow-graph'];
   final bool printFlowGraphAfterEveryPass =
@@ -285,9 +291,11 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     return compileTimeErrorExitCode;
   }
 
-  final libraries = component.libraries
-      .where((lib) => !results.loadedLibraries.contains(lib))
-      .toList();
+  final libraries = compilePlatform
+      ? component.libraries
+      : component.libraries
+            .where((lib) => !results.loadedLibraries.contains(lib))
+            .toList();
   final typeEnvironment = TypeEnvironment(
     results.coreTypes!,
     results.classHierarchy!,
@@ -296,6 +304,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     targetCPU,
     imageFormat,
     enableAsserts: enableAsserts,
+    compilePlatform: compilePlatform,
     useAstScopes: useAstScopes,
     outputLibraryName: path.basename(outputFileName),
     printFlowGraph: printFlowGraph,
