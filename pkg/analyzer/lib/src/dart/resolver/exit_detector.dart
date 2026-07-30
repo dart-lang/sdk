@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 /// is guaranteed to terminate by executing a `return` statement, `throw`
 /// expression, `rethrow` expression, or simple infinite loop such as
 /// `while(true)`.
-class ExitDetector extends GeneralizingAstVisitor2<bool> {
+class ExitDetector extends GeneralizingAstVisitor<bool> {
   /// Set to `true` when a `break` is encountered, and reset to `false` when a
   /// `do`, `while`, `for` or `switch` block is entered.
   bool _enclosingBlockContainsBreak = false;
@@ -25,10 +25,10 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
   final Set<AstNode?> _enclosingBlockBreaksLabel = <AstNode?>{};
 
   @override
-  bool visitArgumentList(ArgumentList node) => _visitNodes(node.arguments2);
+  bool visitArgumentList(ArgumentList node) => _visitNodes(node.arguments);
 
   @override
-  bool visitAsExpression(AsExpression node) => _nodeExits(node.expression2);
+  bool visitAsExpression(AsExpression node) => _nodeExits(node.expression);
 
   @override
   bool visitAssertInitializer(AssertInitializer node) => false;
@@ -38,7 +38,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitAssignmentExpression(AssignmentExpression node) {
-    Expression leftHandSide = node.leftHandSide2;
+    Expression leftHandSide = node.leftHandSide;
     if (_nodeExits(leftHandSide)) {
       return true;
     }
@@ -51,17 +51,17 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
     if (leftHandSide is PropertyAccess && leftHandSide.isNullAware) {
       return false;
     }
-    return _nodeExits(node.rightHandSide2);
+    return _nodeExits(node.rightHandSide);
   }
 
   @override
   bool visitAwaitExpression(AwaitExpression node) =>
-      _nodeExits(node.expression2);
+      _nodeExits(node.expression);
 
   @override
   bool visitBinaryExpression(BinaryExpression node) {
-    Expression lhsExpression = node.leftOperand2;
-    Expression rhsExpression = node.rightOperand2;
+    Expression lhsExpression = node.leftOperand;
+    Expression rhsExpression = node.rightOperand;
     TokenType operatorType = node.operator.type;
     // If the operator is ||, then only consider the RHS of the binary
     // expression if the left hand side is the false literal.
@@ -111,28 +111,24 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitCascadeExpression(CascadeExpression node) =>
-      _nodeExits(node.target2) || _visitNodes(node.cascadeSections2);
+      _nodeExits(node.target) || _visitNodes(node.cascadeSections);
 
   @override
   bool visitConditionalExpression(ConditionalExpression node) {
-    var conditionExpression = node.condition2;
-    var thenExpression = node.thenExpression2;
-    var elseExpression = node.elseExpression2;
+    var conditionExpression = node.condition;
+    var thenExpression = node.thenExpression;
+    var elseExpression = node.elseExpression;
     // TODO(jwren): Do we want to take constant expressions into account,
     // evaluate if(false) {} differently than if(<condition>), when <condition>
     // evaluates to a constant false value?
     if (_nodeExits(conditionExpression)) {
       return true;
     }
-    return thenExpression.accept2(this)! && elseExpression.accept2(this)!;
+    return thenExpression.accept(this)! && elseExpression.accept(this)!;
   }
 
   @override
-  bool visitConstructorInvocation(ConstructorInvocation node) =>
-      _nodeExits(node.argumentList);
-
-  @override
-  bool visitConstructorTearOff(ConstructorTearOff node) => false;
+  bool visitConstructorReference(ConstructorReference node) => false;
 
   @override
   bool visitContinueStatement(ContinueStatement node) {
@@ -155,7 +151,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
       if (bodyExits && !containsBreakOrContinue) {
         return true;
       }
-      Expression conditionExpression = node.condition2;
+      Expression conditionExpression = node.condition;
       if (_nodeExits(conditionExpression)) {
         return true;
       }
@@ -199,7 +195,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitExpressionStatement(ExpressionStatement node) =>
-      _nodeExits(node.expression2);
+      _nodeExits(node.expression);
 
   @override
   bool visitExtensionOverride(ExtensionOverride node) => false;
@@ -216,7 +212,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
             return true;
           }
         } else if (forLoopParts is ForPartsWithExpression) {
-          var initialization = forLoopParts.initialization2;
+          var initialization = forLoopParts.initialization;
           if (initialization != null && _nodeExits(initialization)) {
             return true;
           }
@@ -225,10 +221,10 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
         if (conditionExpression != null && _nodeExits(conditionExpression)) {
           return true;
         }
-        if (_visitNodes(forLoopParts.updaters2)) {
+        if (_visitNodes(forLoopParts.updaters)) {
           return true;
         }
-        bool blockReturns = _nodeExits(node.body2);
+        bool blockReturns = _nodeExits(node.body);
         // TODO(jwren): Do we want to take all constant expressions into account?
         // If for(; true; ) (or for(;;)), and the body doesn't return or the body
         // doesn't have a break, then return true.
@@ -243,12 +239,12 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
         }
         return false;
       } else if (forLoopParts is ForEachParts) {
-        bool iterableExits = _nodeExits(forLoopParts.iterable2);
+        bool iterableExits = _nodeExits(forLoopParts.iterable);
         // Discard whether the for-each body exits; since the for-each iterable
         // may be empty, execution may never enter the body, so it doesn't matter
         // if it exits or not.  We still must visit the body, to accurately
         // manage `_enclosingBlockBreaksLabel`.
-        _nodeExits(node.body2);
+        _nodeExits(node.body);
         return iterableExits;
       }
     } finally {
@@ -264,7 +260,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
     ForLoopParts parts = node.forLoopParts;
     try {
       if (parts is ForEachParts) {
-        bool iterableExits = _nodeExits(parts.iterable2);
+        bool iterableExits = _nodeExits(parts.iterable);
         // Discard whether the for-each body exits; since the for-each iterable
         // may be empty, execution may never enter the body, so it doesn't matter
         // if it exits or not.  We still must visit the body, to accurately
@@ -279,11 +275,11 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
       if (parts is ForPartsWithDeclarations) {
         variables = parts.variables;
         condition = parts.condition;
-        updaters = parts.updaters2;
+        updaters = parts.updaters;
       } else if (parts is ForPartsWithExpression) {
-        initialization = parts.initialization2;
+        initialization = parts.initialization;
         condition = parts.condition;
-        updaters = parts.updaters2;
+        updaters = parts.updaters;
       } else {
         throw UnimplementedError();
       }
@@ -326,17 +322,17 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    if (_nodeExits(node.function2)) {
+    if (_nodeExits(node.function)) {
       return true;
     }
-    return node.argumentList.accept2(this)!;
+    return node.argumentList.accept(this)!;
   }
 
   @override
   bool visitFunctionReference(FunctionReference node) {
     // Note: `node.function` could be a reference to a method
     // (`Target.methodName`) so we need to visit it in case the target exits.
-    return node.function2.accept2(this)!;
+    return node.function.accept(this)!;
   }
 
   @override
@@ -347,9 +343,9 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitIfElement(IfElement node) {
-    var conditionExpression = node.expression2;
-    var thenElement = node.thenElement2;
-    var elseElement = node.elseElement2;
+    var conditionExpression = node.expression;
+    var thenElement = node.thenElement;
+    var elseElement = node.elseElement;
     if (_nodeExits(conditionExpression)) {
       return true;
     }
@@ -371,7 +367,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitIfStatement(IfStatement node) {
-    var conditionExpression = node.expression2;
+    var conditionExpression = node.expression;
     var thenStatement = node.thenStatement;
     var elseStatement = node.elseStatement;
     if (_nodeExits(conditionExpression)) {
@@ -395,7 +391,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitImplicitCallReference(ImplicitCallReference node) {
-    return _nodeExits(node.expression2);
+    return _nodeExits(node.expression);
   }
 
   @override
@@ -404,14 +400,18 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
     if (_nodeExits(target)) {
       return true;
     }
-    if (_nodeExits(node.index2)) {
+    if (_nodeExits(node.index)) {
       return true;
     }
     return false;
   }
 
   @override
-  bool visitIsExpression(IsExpression node) => node.expression2.accept2(this)!;
+  bool visitInstanceCreationExpression(InstanceCreationExpression node) =>
+      _nodeExits(node.argumentList);
+
+  @override
+  bool visitIsExpression(IsExpression node) => node.expression.accept(this)!;
 
   @override
   bool visitLabel(Label node) => false;
@@ -431,7 +431,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitListLiteral(ListLiteral node) {
-    for (CollectionElement element in node.elements2) {
+    for (CollectionElement element in node.elements) {
       if (_nodeExits(element)) {
         return true;
       }
@@ -444,14 +444,14 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitMapLiteralEntry(MapLiteralEntry node) {
-    return _nodeExits(node.key2) || _nodeExits(node.value2);
+    return _nodeExits(node.key) || _nodeExits(node.value);
   }
 
   @override
   bool visitMethodInvocation(MethodInvocation node) {
-    var target = node.realTarget2;
+    var target = node.realTarget;
     if (target != null) {
-      if (target.accept2(this)!) {
+      if (target.accept(this)!) {
         return true;
       }
       if (node.isNullAware) {
@@ -467,7 +467,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitNamedArgument(NamedArgument node) =>
-      node.argumentExpression2.accept2(this)!;
+      node.argumentExpression.accept(this)!;
 
   @override
   bool visitNamedType(NamedType node) => false;
@@ -480,24 +480,21 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
   }
 
   @override
-  bool visitNullAssertionExpression(NullAssertionExpression node) => false;
-
-  @override
   bool? visitNullAwareElement(NullAwareElement node) {
-    return _nodeExits(node.value2);
+    return _nodeExits(node.value);
   }
 
   @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) =>
-      node.expression2.accept2(this)!;
+      node.expression.accept(this)!;
 
   @override
   bool visitPatternAssignment(PatternAssignment node) =>
-      _nodeExits(node.expression2);
+      _nodeExits(node.expression);
 
   @override
   bool visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
-      _nodeExits(node.expression2);
+      _nodeExits(node.expression);
 
   @override
   bool visitPatternVariableDeclarationStatement(
@@ -512,8 +509,8 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitPropertyAccess(PropertyAccess node) {
-    var target = node.realTarget;
-    return target.accept2(this)!;
+    var target = node.target;
+    return target?.accept(this) ?? false;
   }
 
   @override
@@ -524,7 +521,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitSetOrMapLiteral(SetOrMapLiteral node) {
-    for (CollectionElement element in node.elements2) {
+    for (CollectionElement element in node.elements) {
       if (_nodeExits(element)) {
         return true;
       }
@@ -534,7 +531,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitSpreadElement(SpreadElement node) {
-    return _nodeExits(node.expression2);
+    return _nodeExits(node.expression);
   }
 
   @override
@@ -550,7 +547,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
   @override
   bool visitSwitchExpression(SwitchExpression node) {
     for (var case_ in node.cases) {
-      if (!case_.accept2(this)!) {
+      if (!case_.accept(this)!) {
         return false;
       }
     }
@@ -559,8 +556,8 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitSwitchExpressionCase(SwitchExpressionCase node) {
-    return _nodeExits(node.guardedPattern.whenClause?.expression2) ||
-        _nodeExits(node.expression2);
+    return _nodeExits(node.guardedPattern.whenClause?.expression) ||
+        _nodeExits(node.expression);
   }
 
   @override
@@ -590,8 +587,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
         // For switch members with no statements, don't visit the children.
         // Otherwise, if the children statements don't exit, mark this as a
         // non-exiting case.
-        if (switchMember.statements.isNotEmpty &&
-            !switchMember.accept2(this)!) {
+        if (switchMember.statements.isNotEmpty && !switchMember.accept(this)!) {
           hasNonExitingCase = true;
         }
       }
@@ -632,9 +628,9 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitVariableDeclaration(VariableDeclaration node) {
-    var initializer = node.initializer2;
+    var initializer = node.initializer;
     if (initializer != null) {
-      return initializer.accept2(this)!;
+      return initializer.accept(this)!;
     }
     return false;
   }
@@ -647,7 +643,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     NodeList<VariableDeclaration> variables = node.variables.variables;
     for (int i = 0; i < variables.length; i++) {
-      if (variables[i].accept2(this)!) {
+      if (variables[i].accept(this)!) {
         return true;
       }
     }
@@ -659,11 +655,11 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     try {
-      Expression conditionExpression = node.condition2;
-      if (conditionExpression.accept2(this)!) {
+      Expression conditionExpression = node.condition;
+      if (conditionExpression.accept(this)!) {
         return true;
       }
-      node.body.accept2(this);
+      node.body.accept(this);
       // TODO(jwren): Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
         // If while(true), and the body doesn't have a break, then return true.
@@ -688,7 +684,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
   }
 
   @override
-  bool visitYieldStatement(YieldStatement node) => _nodeExits(node.expression2);
+  bool visitYieldStatement(YieldStatement node) => _nodeExits(node.expression);
 
   /// If the given [conditionExpression] has a known Boolean value, return the
   /// known value, otherwise return `null`.
@@ -705,12 +701,12 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
     if (node == null) {
       return false;
     }
-    return node.accept2(this)!;
+    return node.accept(this)!;
   }
 
   bool _visitNodes(NodeList<AstNode> nodes) {
     for (int i = nodes.length - 1; i >= 0; i--) {
-      if (nodes[i].accept2(this)!) {
+      if (nodes[i].accept(this)!) {
         return true;
       }
     }
@@ -719,7 +715,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   bool _visitStatements(NodeList<Statement> statements) {
     for (int i = 0; i < statements.length; i++) {
-      if (statements[i].accept2(this)!) {
+      if (statements[i].accept(this)!) {
         return true;
       }
     }
@@ -730,7 +726,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
     NodeList<VariableDeclaration> variableDeclarations,
   ) {
     for (int i = variableDeclarations.length - 1; i >= 0; i--) {
-      if (variableDeclarations[i].accept2(this)!) {
+      if (variableDeclarations[i].accept(this)!) {
         return true;
       }
     }
@@ -739,17 +735,6 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   /// Return `true` if the given [node] exits.
   static bool exits(AstNode node) {
-    if (node is InstanceCreationExpression) {
-      return exits2(node.argumentList);
-    }
-    if (node is PostfixExpression) {
-      return false;
-    }
-    return exits2(node);
-  }
-
-  /// Return `true` if the given [node] exits.
-  static bool exits2(AstNode node) {
     return ExitDetector()._nodeExits(node);
   }
 
