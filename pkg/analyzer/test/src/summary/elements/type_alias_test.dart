@@ -4279,7 +4279,7 @@ library
 
   test_typedef_nonFunction_using_interface_disabled() async {
     var library = await buildLibrary(r'''
-// @dart = 2.12
+// %before-language-feature: nonfunction-type-aliases
 typedef A = int;
 void f(A a) {}
 ''');

@@ -10,7 +10,7 @@ import '../dart/resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingEnumConstantInSwitchTest);
-    defineReflectiveTests(MissingEnumConstantInSwitchTest_Language219);
+    defineReflectiveTests(MissingEnumConstantInSwitchTest_BeforePatterns);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -149,9 +149,9 @@ void f(E? e) {
 }
 
 @reflectiveTest
-class MissingEnumConstantInSwitchTest_Language219
+class MissingEnumConstantInSwitchTest_BeforePatterns
     extends PubPackageResolutionTest
-    with WithLanguage219Mixin {
+    with BeforePatternsMixin {
   test_all_enhanced() async {
     await resolveTestCodeWithDiagnostics('''
 enum E {

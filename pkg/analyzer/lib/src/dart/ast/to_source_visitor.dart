@@ -1023,6 +1023,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    _writeOperand(node, node.operand);
+    sink.write(node.operator.lexeme);
+  }
+
+  @override
   void visitNullAssertPattern(NullAssertPattern node) {
     _visitNode(node.pattern);
     sink.write(node.operator.lexeme);

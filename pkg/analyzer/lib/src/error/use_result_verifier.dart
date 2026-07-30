@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -174,9 +173,9 @@ class UseResultVerifier {
       }
     }
 
-    if (parent is PostfixExpression) {
-      // Null-checking a result is not a "use." Other uses, like `++`, do count.
-      return parent.operator.type == TokenType.BANG && _isUsed(parent);
+    // Null-checking a result is not a "use".
+    if (parent is NullAssertionExpression) {
+      return _isUsed(parent);
     }
 
     if (parent is AsExpression ||

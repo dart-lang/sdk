@@ -2070,6 +2070,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    _tokenOrNull(node.operator);
+    super.visitNullAssertionExpression(node);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _tokenOrNull(node.literal);
   }

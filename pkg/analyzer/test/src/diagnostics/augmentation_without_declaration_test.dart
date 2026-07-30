@@ -1124,6 +1124,15 @@ augment extension A {
 ''');
   }
 
+  test_extension_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension on int {}
+
+augment extension {}
+// [diag.extensionAugmentationWithoutName][column 1][length 7] An extension augmentation must have a name.
+''');
+  }
+
   test_extensionType() async {
     await resolveTestCodeWithDiagnostics(r'''
 augment extension type A {}

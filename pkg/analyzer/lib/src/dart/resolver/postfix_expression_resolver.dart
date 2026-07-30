@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -34,11 +33,6 @@ class PostfixExpressionResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(PostfixExpressionImpl node, {required TypeImpl contextType}) {
-    if (node.operator.type == TokenType.BANG) {
-      _resolveNullCheck(node, contextType: contextType);
-      return;
-    }
-
     var operandResolution = _resolver.resolveForWrite(
       node: node.operand2,
       hasRead: true,
@@ -189,37 +183,5 @@ class PostfixExpressionResolver {
       }
       node.recordStaticType(receiverType, resolver: _resolver);
     }
-  }
-
-  void _resolveNullCheck(
-    PostfixExpressionImpl node, {
-    required TypeImpl contextType,
-  }) {
-    var operand = node.operand2;
-
-    if (operand is SuperExpression) {
-      _resolver.diagnosticReporter.report(
-        diag.missingAssignableSelector.at(node),
-      );
-      operand.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
-      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
-      return;
-    }
-
-    _resolver.analyzeExpression(
-      operand,
-      SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
-      continueNullShorting: true,
-    );
-    operand = _resolver.popRewrite()!;
-
-    var operandType = operand.typeOrThrow;
-
-    var type = _typeSystem.promoteToNonNull(operandType);
-    node.recordStaticType(type, resolver: _resolver);
-
-    _resolver.flowAnalysis.flow?.nonNullAssert_end(
-      _resolver.flowAnalysis.getExpressionInfo(operand),
-    );
   }
 }

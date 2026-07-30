@@ -10,7 +10,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SwitchStatementResolutionTest);
-    defineReflectiveTests(SwitchStatementResolutionTest_Language219);
+    defineReflectiveTests(SwitchStatementResolutionTest_BeforePatterns);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -1596,8 +1596,9 @@ SwitchStatement
 }
 
 @reflectiveTest
-class SwitchStatementResolutionTest_Language219 extends PubPackageResolutionTest
-    with WithLanguage219Mixin {
+class SwitchStatementResolutionTest_BeforePatterns
+    extends PubPackageResolutionTest
+    with BeforePatternsMixin {
   test_default() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {

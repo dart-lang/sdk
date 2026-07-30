@@ -1757,7 +1757,7 @@ class A {
   void test_visitFieldFormalParameter_keyword() {
     var code = 'var this.a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A($code);
 }
@@ -1769,7 +1769,7 @@ class A {
   void test_visitFieldFormalParameter_keywordAndType() {
     var code = 'final A this.a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A($code);
 }
@@ -3838,7 +3838,7 @@ void f($code) {}
   void test_visitSimpleFormalParameter_keyword() {
     var code = 'var a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f($code) {}
 ''');
     var node = parseResult.findNode.singleRegularFormalParameter;
@@ -3848,7 +3848,7 @@ void f($code) {}
   void test_visitSimpleFormalParameter_keyword_type() {
     var code = 'final int a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f($code) {}
 ''');
     var node = parseResult.findNode.singleRegularFormalParameter;
@@ -3990,7 +3990,7 @@ class A {
   void test_visitSuperFormalParameter_keyword() {
     var code = 'final super.foo';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A($code);
 }
@@ -4002,7 +4002,7 @@ class A {
   void test_visitSuperFormalParameter_keywordAndType() {
     var code = 'final int super.a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A($code);
 }
@@ -4036,7 +4036,7 @@ class A {
   void test_visitSwitchCase_multipleLabels() {
     var code = 'l1: l2: case a: {}';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     $code
@@ -4050,7 +4050,7 @@ void f() {
   void test_visitSwitchCase_multipleStatements() {
     var code = 'case a: foo(); bar();';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     $code
@@ -4064,7 +4064,7 @@ void f() {
   void test_visitSwitchCase_noLabels() {
     var code = 'case a: {}';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     $code
@@ -4078,7 +4078,7 @@ void f() {
   void test_visitSwitchCase_singleLabel() {
     var code = 'l1: case a: {}';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     $code

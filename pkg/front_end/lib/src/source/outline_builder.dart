@@ -1216,7 +1216,11 @@ class OutlineBuilder extends StackListenerImpl {
         declarationContext = DeclarationContext.ExtensionBody;
         assert(
           checkState(token, [
-            unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
+            unionOfKinds([
+              ValueKinds.ParserRecovery,
+              ValueKinds.TypeBuilder,
+              ValueKinds.NominalTypeParametersOrNull,
+            ]),
           ]),
         );
         _builderFactory.beginExtensionBody();
@@ -1646,7 +1650,8 @@ class OutlineBuilder extends StackListenerImpl {
   ) {
     assert(
       checkState(extensionKeyword, [
-        unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
+        if (onKeyword != null)
+          unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
         ValueKinds.NominalTypeParametersOrNull,
         ValueKinds.IdentifierOrNull,
         ValueKinds.MetadataListOrNull,
@@ -1654,14 +1659,23 @@ class OutlineBuilder extends StackListenerImpl {
     );
     debugEvent("endExtensionDeclaration");
 
-    Object? onType = pop();
-    if (onType is ParserRecovery) {
-      ParserRecovery parserRecovery = onType;
+    Object? onType;
+    if (onKeyword == null) {
       onType = new FixedTypeBuilderImpl(
         const InvalidType(),
         uri,
-        parserRecovery.charOffset,
+        extensionKeyword.charOffset,
       );
+    } else {
+      onType = pop();
+      if (onType is ParserRecovery) {
+        ParserRecovery parserRecovery = onType;
+        onType = new FixedTypeBuilderImpl(
+          const InvalidType(),
+          uri,
+          parserRecovery.charOffset,
+        );
+      }
     }
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;

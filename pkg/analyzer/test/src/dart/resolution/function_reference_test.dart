@@ -14,7 +14,7 @@ main() {
       FunctionReferenceResolutionTest_genericFunctionInstantiation,
     );
     defineReflectiveTests(
-      FunctionReferenceResolutionTest_WithoutConstructorTearoffs,
+      FunctionReferenceResolutionTest_BeforeConstructorTearoffs,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -4409,6 +4409,44 @@ FunctionReference
 }
 
 @reflectiveTest
+class FunctionReferenceResolutionTest_BeforeConstructorTearoffs
+    extends PubPackageResolutionTest
+    with BeforeConstructorTearoffsMixin {
+  test_localVariable() async {
+    // This code includes a disallowed type instantiation (local variable),
+    // but in the case that the experiment is not enabled, we suppress the
+    // associated error.
+    var result = await resolveTestCodeWithDiagnostics('''
+void bar(void Function<T>(T a) foo) {
+  foo<int>;
+//   ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+}
+''');
+
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function2: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::bar::@formalParameter::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+}
+
+@reflectiveTest
 class FunctionReferenceResolutionTest_genericFunctionInstantiation
     extends PubPackageResolutionTest {
   test_asExpression() async {
@@ -5044,44 +5082,6 @@ FunctionReference
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
-  staticType: void Function(int)
-  typeArgumentTypes
-    int
-''');
-  }
-}
-
-@reflectiveTest
-class FunctionReferenceResolutionTest_WithoutConstructorTearoffs
-    extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
-  test_localVariable() async {
-    // This code includes a disallowed type instantiation (local variable),
-    // but in the case that the experiment is not enabled, we suppress the
-    // associated error.
-    var result = await resolveTestCodeWithDiagnostics('''
-void bar(void Function<T>(T a) foo) {
-  foo<int>;
-//   ^^^^^
-// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
-}
-''');
-
-    var node = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@function::bar::@formalParameter::foo
-    staticType: void Function<T>(T)
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
   staticType: void Function(int)
   typeArgumentTypes
     int

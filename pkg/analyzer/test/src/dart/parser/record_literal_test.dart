@@ -59,7 +59,7 @@ RecordLiteral
 ''');
   }
 
-  void test_namedFieldRecovery_language219() {
+  void test_namedFieldRecovery_beforeRecords() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = (a: 0);
 //        ^

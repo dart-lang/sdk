@@ -15,8 +15,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show Target;
-import 'package:kernel/type_algebra.dart'
-    show Substitution, containsTypeParameter;
+import 'package:kernel/type_algebra.dart' show containsTypeParameter;
 import 'package:kernel/type_environment.dart'
     show StatefulStaticTypeContext, TypeEnvironment;
 
@@ -2431,151 +2430,8 @@ class BytecodeGenerator extends RecursiveVisitor {
   // type checks out of closure bodies.
   bool get canSkipTypeChecksForNonCovariantArguments => !isClosure;
 
-  Member? _getForwardingStubSuperTarget() {
-    if (!isClosure) {
-      final member = enclosingMember!;
-      if (member.isInstanceMember &&
-          member is Procedure &&
-          member.isForwardingStub) {
-        return member.stubTarget;
-      }
-    }
-    return null;
-  }
-
-  // Types in a target of a forwarding stub are encoded in terms of target type
-  // parameters. Substitute them with host type parameters to be able
-  // to use them (e.g. instantiate) in the context of host.
-  Substitution? _getForwardingSubstitution(
-    FunctionNode host,
-    Member? forwardingTarget,
-  ) {
-    if (forwardingTarget == null) {
-      return null;
-    }
-    final Class targetClass = forwardingTarget.enclosingClass!;
-    final Supertype? instantiatedTargetClass = hierarchy.getClassAsInstanceOf(
-      enclosingClass!,
-      targetClass,
-    );
-    if (instantiatedTargetClass == null) {
-      throw 'Class $targetClass is not found among implemented interfaces of'
-          ' $enclosingClass (for forwarding stub $enclosingMember)';
-    }
-    assert(instantiatedTargetClass.classNode == targetClass);
-    assert(
-      instantiatedTargetClass.typeArguments.length ==
-          targetClass.typeParameters.length,
-    );
-    final Map<TypeParameter, DartType> map =
-        new Map<TypeParameter, DartType>.fromIterables(
-          targetClass.typeParameters,
-          instantiatedTargetClass.typeArguments,
-        );
-    if (forwardingTarget.function != null) {
-      final targetTypeParameters = forwardingTarget.function!.typeParameters;
-      assert(host.typeParameters.length == targetTypeParameters.length);
-      for (int i = 0; i < targetTypeParameters.length; ++i) {
-        map[targetTypeParameters[i]] = new TypeParameterType(
-          host.typeParameters[i],
-          host.typeParameters[i].computeNullabilityFromBound(),
-        );
-      }
-    }
-    return Substitution.fromMap(map);
-  }
-
-  /// If member being compiled is a forwarding stub, then returns type
-  /// parameter bounds to check for the forwarding stub target.
-  Map<TypeParameter, DartType>? _getForwardingBounds(
-    FunctionNode function,
-    Member? forwardingTarget,
-    Substitution? forwardingSubstitution,
-  ) {
-    if (function.typeParameters.isEmpty || forwardingTarget == null) {
-      return null;
-    }
-    final forwardingBounds = <TypeParameter, DartType>{};
-    for (int i = 0; i < function.typeParameters.length; ++i) {
-      DartType bound = forwardingSubstitution!.substituteType(
-        forwardingTarget.function!.typeParameters[i].bound,
-      );
-      forwardingBounds[function.typeParameters[i]] = bound;
-    }
-    return forwardingBounds;
-  }
-
-  /// If member being compiled is a forwarding stub, then returns parameter
-  /// types to check for the forwarding stub target.
-  Map<FunctionParameter, DartType>? _getForwardingParameterTypes(
-    FunctionNode function,
-    Member? forwardingTarget,
-    Substitution? forwardingSubstitution,
-  ) {
-    if (forwardingTarget == null) {
-      return null;
-    }
-
-    if (forwardingTarget is Field) {
-      if ((enclosingMember as Procedure).isGetter) {
-        return const <FunctionParameter, DartType>{};
-      } else {
-        // Forwarding stub for a covariant field setter.
-        assert((enclosingMember as Procedure).isSetter);
-        assert(
-          function.typeParameters.isEmpty &&
-              function.positionalParameters.length == 1 &&
-              function.namedParameters.isEmpty,
-        );
-        return <FunctionParameter, DartType>{
-          function.positionalParameters.single: forwardingSubstitution!
-              .substituteType(forwardingTarget.type),
-        };
-      }
-    }
-
-    final forwardingParams = <FunctionParameter, DartType>{};
-    for (int i = 0; i < function.positionalParameters.length; ++i) {
-      DartType type = forwardingSubstitution!.substituteType(
-        forwardingTarget.function!.positionalParameters[i].type,
-      );
-      forwardingParams[function.positionalParameters[i]] = type;
-    }
-    for (var hostParam in function.namedParameters) {
-      NamedParameter targetParam = forwardingTarget.function!.namedParameters
-          .firstWhere((p) => p.parameterName == hostParam.parameterName);
-      forwardingParams[hostParam] = forwardingSubstitution!.substituteType(
-        targetParam.type,
-      );
-    }
-    return forwardingParams;
-  }
-
   void _checkArguments(FunctionNode function) {
-    // When checking arguments of a forwarding stub, we need to use parameter
-    // types (and bounds of type parameters) from stub's target.
-    // These more accurate type checks is the sole purpose of a forwarding stub.
-    final forwardingTarget = _getForwardingStubSuperTarget();
-    final forwardingSubstitution = _getForwardingSubstitution(
-      function,
-      forwardingTarget,
-    );
-    final forwardingBounds = _getForwardingBounds(
-      function,
-      forwardingTarget,
-      forwardingSubstitution,
-    );
-    final forwardingParamTypes = _getForwardingParameterTypes(
-      function,
-      forwardingTarget,
-      forwardingSubstitution,
-    );
-
-    if (_hasSkippableTypeChecks(
-      function,
-      forwardingBounds,
-      forwardingParamTypes,
-    )) {
+    if (_hasSkippableTypeChecks(function)) {
       final Label skipChecks = new Label();
       asm.emitJumpIfUnchecked(skipChecks);
 
@@ -2583,20 +2439,20 @@ class BytecodeGenerator extends RecursiveVisitor {
       // non-covariant parameters if function is called via unchecked call.
 
       for (var typeParam in function.typeParameters) {
-        if (_typeParameterNeedsBoundCheck(typeParam, forwardingBounds)) {
-          _genTypeParameterBoundCheck(typeParam, forwardingBounds);
+        if (_typeParameterNeedsBoundCheck(typeParam)) {
+          _genTypeParameterBoundCheck(typeParam);
         }
       }
       for (var param in function.positionalParameters) {
         if (!param.isCovariantByDeclaration &&
-            _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
-          _genArgumentTypeCheck(param, forwardingParamTypes);
+            _parameterNeedsTypeCheck(param)) {
+          _genArgumentTypeCheck(param);
         }
       }
       for (var param in locals.sortedNamedParameters) {
         if (!param.isCovariantByDeclaration &&
-            _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
-          _genArgumentTypeCheck(param, forwardingParamTypes);
+            _parameterNeedsTypeCheck(param)) {
+          _genArgumentTypeCheck(param);
         }
       }
 
@@ -2607,90 +2463,59 @@ class BytecodeGenerator extends RecursiveVisitor {
     // via unchecked call, so they are generated outside of JumpIfUnchecked.
 
     for (var param in function.positionalParameters) {
-      if (param.isCovariantByDeclaration &&
-          _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
-        _genArgumentTypeCheck(param, forwardingParamTypes);
+      if (param.isCovariantByDeclaration && _parameterNeedsTypeCheck(param)) {
+        _genArgumentTypeCheck(param);
       }
     }
     for (var param in locals.sortedNamedParameters) {
-      if (param.isCovariantByDeclaration &&
-          _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
-        _genArgumentTypeCheck(param, forwardingParamTypes);
+      if (param.isCovariantByDeclaration && _parameterNeedsTypeCheck(param)) {
+        _genArgumentTypeCheck(param);
       }
     }
   }
 
   /// Returns true if bound of [typeParam] should be checked.
-  bool _typeParameterNeedsBoundCheck(
-    TypeParameter typeParam,
-    Map<TypeParameter, DartType>? forwardingTypeParameterBounds,
-  ) {
+  bool _typeParameterNeedsBoundCheck(TypeParameter typeParam) {
     if (canSkipTypeChecksForNonCovariantArguments &&
         !typeParam.isCovariantByClass) {
       return false;
     }
-    final DartType bound = (forwardingTypeParameterBounds != null)
-        ? forwardingTypeParameterBounds[typeParam]!
-        : typeParam.bound;
-    if (_isTopType(bound)) {
-      return false;
-    }
-    return true;
+    return !_isTopType(typeParam.bound);
   }
 
   /// Returns true if type of [param] should be checked.
-  bool _parameterNeedsTypeCheck(
-    FunctionParameter param,
-    Map<FunctionParameter, DartType>? forwardingParameterTypes,
-  ) {
+  bool _parameterNeedsTypeCheck(FunctionParameter param) {
     if (canSkipTypeChecksForNonCovariantArguments &&
         !param.isCovariantByDeclaration &&
         !param.isCovariantByClass) {
       return false;
     }
-    final DartType type = (forwardingParameterTypes != null)
-        ? forwardingParameterTypes[param]!
-        : param.type;
-    if (_isTopType(type)) {
-      return false;
-    }
-    return true;
+    return !_isTopType(param.type);
   }
 
   /// Returns true if there are parameter type/bound checks which can
   /// be skipped on unchecked call.
-  bool _hasSkippableTypeChecks(
-    FunctionNode function,
-    Map<TypeParameter, DartType>? forwardingBounds,
-    Map<FunctionParameter, DartType>? forwardingParamTypes,
-  ) {
+  bool _hasSkippableTypeChecks(FunctionNode function) {
     for (var typeParam in function.typeParameters) {
-      if (_typeParameterNeedsBoundCheck(typeParam, forwardingBounds)) {
+      if (_typeParameterNeedsBoundCheck(typeParam)) {
         return true;
       }
     }
     for (var param in function.positionalParameters) {
-      if (!param.isCovariantByDeclaration &&
-          _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
+      if (!param.isCovariantByDeclaration && _parameterNeedsTypeCheck(param)) {
         return true;
       }
     }
     for (var param in locals.sortedNamedParameters) {
-      if (!param.isCovariantByDeclaration &&
-          _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
+      if (!param.isCovariantByDeclaration && _parameterNeedsTypeCheck(param)) {
         return true;
       }
     }
     return false;
   }
 
-  void _genTypeParameterBoundCheck(
-    TypeParameter typeParam,
-    Map<TypeParameter, DartType>? forwardingTypeParameterBounds,
-  ) {
-    final DartType bound = (forwardingTypeParameterBounds != null)
-        ? forwardingTypeParameterBounds[typeParam]!
-        : typeParam.bound;
+  void _genTypeParameterBoundCheck(TypeParameter typeParam) {
+    final DartType bound = typeParam.bound;
     final DartType type = new TypeParameterType(
       typeParam,
       typeParam.computeNullabilityFromBound(),
@@ -2713,13 +2538,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     _ => false,
   };
 
-  void _genArgumentTypeCheck(
-    Variable variable,
-    Map<Variable, DartType>? forwardingParameterTypes,
-  ) {
-    final DartType type = (forwardingParameterTypes != null)
-        ? forwardingParameterTypes[variable]!
-        : variable.type;
+  void _genArgumentTypeCheck(FunctionParameter variable) {
+    final DartType type = variable.type;
     asm.emitPush(locals.getParamIndexInFrame(variable));
     _genAssertAssignable(type, name: variable.cosmeticName);
     asm.emitDrop1();

@@ -1084,7 +1084,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     SimpleIdentifier name = node.methodName;
     var element = name.element;
     // unresolved name invocation
-    bool isQualified = node.realTarget != null;
+    bool isQualified = node.realTarget2 != null;
     if (element == null) {
       recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
     }

@@ -9,7 +9,9 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseExpressionTypeImplementsEqualsTest);
-    defineReflectiveTests(CaseExpressionTypeImplementsEqualsTest_Language219);
+    defineReflectiveTests(
+      CaseExpressionTypeImplementsEqualsTest_BeforePatterns,
+    );
   });
 }
 
@@ -21,9 +23,9 @@ class CaseExpressionTypeImplementsEqualsTest extends PubPackageResolutionTest
 }
 
 @reflectiveTest
-class CaseExpressionTypeImplementsEqualsTest_Language219
+class CaseExpressionTypeImplementsEqualsTest_BeforePatterns
     extends PubPackageResolutionTest
-    with WithLanguage219Mixin, CaseExpressionTypeImplementsEqualsTestCases {
+    with BeforePatternsMixin, CaseExpressionTypeImplementsEqualsTestCases {
   @override
   _Variants get _variant => _Variants.nullSafe;
 }

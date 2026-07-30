@@ -800,6 +800,25 @@ main() {
     _assertReturnType(result, '(E e) {', 'int');
   }
 
+  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_beforePatterns() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: patterns
+enum E { a, b }
+
+main() {
+  (E e) {
+    switch (e) {
+      case E.a:
+        return 0;
+      case E.b:
+        return 1;
+    }
+  };
+}
+''');
+    _assertReturnType(result, '(E e) {', 'int');
+  }
+
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum E { a, b }
@@ -822,14 +841,14 @@ main() {
     _assertReturnType(result, '(p.E e) {', 'int');
   }
 
-  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported_language219() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.19
+  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported_beforePatterns() async {
+    var results = await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/a.dart'): r'''
+// %before-language-feature: patterns
 enum E { a, b }
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+''',
+      testFile: '''
+// %before-language-feature: patterns
 import 'a.dart' as p;
 
 main() {
@@ -842,27 +861,9 @@ main() {
     }
   };
 }
-''');
-    _assertReturnType(result, '(p.E e) {', 'int');
-  }
-
-  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_language219() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
-enum E { a, b }
-
-main() {
-  (E e) {
-    switch (e) {
-      case E.a:
-        return 0;
-      case E.b:
-        return 1;
-    }
-  };
-}
-''');
-    _assertReturnType(result, '(E e) {', 'int');
+''',
+    });
+    _assertReturnType(results[testFile]!, '(p.E e) {', 'int');
   }
 
   test_noContext_returnType_sync_blockBody_null_hasReturn() async {
@@ -904,9 +905,9 @@ main() {
     _assertReturnType(result, '(int a) {', 'int?');
   }
 
-  test_noContext_returnType_sync_blockBody_nullable_switch_language219() async {
+  test_noContext_returnType_sync_blockBody_nullable_switch_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 main() {
   (int a) {
     switch (a) {

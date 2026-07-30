@@ -3081,10 +3081,9 @@ void f() {
 ''');
   }
 
-  test_block_localFunction_wildcard_preWildcards() async {
+  test_block_localFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f() {
   void _() {}
@@ -3128,10 +3127,9 @@ void f() {
 ''');
   }
 
-  test_block_localVariable_localVariable_wildcard_preWildcards() async {
+  test_block_localVariable_localVariable_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f() {
   var _ = 0;
@@ -3168,10 +3166,9 @@ void f() {
 ''');
   }
 
-  test_block_localVariable_patternVariable_wildcard_preWildcards() async {
+  test_block_localVariable_patternVariable_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f() {
   var _ = 0;
@@ -3231,10 +3228,9 @@ f() {
 }''');
   }
 
-  test_catch_wildcard_preWildCards() async {
+  test_catch_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 f() {
   try {} catch (_, _) {}
@@ -3280,10 +3276,9 @@ f() {
 ''');
   }
 
-  test_for_initializers_wildcard_preWildcards() async {
+  test_for_initializers_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 f() {
   for (int _ = 0, _ = 0; ;) {}
@@ -3325,10 +3320,9 @@ class A {
 ''');
   }
 
-  test_parameters_constructor_field_first_wildcard_preWildcards() async {
+  test_parameters_constructor_field_first_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   int? _;
@@ -3367,10 +3361,9 @@ class A {
 ''');
   }
 
-  test_parameters_constructor_field_second_wildcard_preWildcards() async {
+  test_parameters_constructor_field_second_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   int? _;
@@ -3401,10 +3394,9 @@ class B extends A {
 ''');
   }
 
-  test_parameters_constructor_super_first_wildcard_preWildcards() async {
+  test_parameters_constructor_super_first_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   int? _;
@@ -3456,10 +3448,9 @@ typedef void F(int _, double _);
 ''');
   }
 
-  test_parameters_functionTypeAlias_wildcard_preWildcards() async {
+  test_parameters_functionTypeAlias_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 typedef void F(int _, double _);
 //                 ^
@@ -3485,10 +3476,9 @@ typedef F = void Function(int _, double _);
 ''');
   }
 
-  test_parameters_genericFunction_wildcard_preWildcards() async {
+  test_parameters_genericFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 typedef F = void Function(int _, double _);
 //                            ^
@@ -3523,10 +3513,9 @@ f() {
 ''');
   }
 
-  test_parameters_localFunction_wildcard_preWildcards() async {
+  test_parameters_localFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 f() {
   g(int _, double _) {};
@@ -3562,10 +3551,9 @@ class A {
 ''');
   }
 
-  test_parameters_method_wildcard_preWildcards() async {
+  test_parameters_method_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   m(int _, double _) {
@@ -3690,10 +3678,9 @@ f(int _, double _) {}
 ''');
   }
 
-  test_parameters_topLevelFunction_wildcard_preWildcards() async {
+  test_parameters_topLevelFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 f(int _, double _) {}
 //    ^
@@ -3705,7 +3692,7 @@ f(int _, double _) {}
 
   test_switchCase_localVariable_localVariable() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (0) {
     case 0:
@@ -3740,10 +3727,9 @@ void f() {
 ''');
   }
 
-  test_switchDefault_localVariable_localVariable_preWildcards() async {
+  test_switchDefault_localVariable_localVariable_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f() {
   switch (0) {
@@ -3801,10 +3787,9 @@ void f() {
 ''');
   }
 
-  test_switchPatternCase_localVariable_localVariable_wildcard_preWildCards() async {
+  test_switchPatternCase_localVariable_localVariable_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f() {
   switch (0) {
@@ -3931,10 +3916,9 @@ class A<_, _> {}
 ''');
   }
 
-  test_typeParameters_class_wildcard_preWildcards() async {
+  test_typeParameters_class_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A<_, _> {}
 //      ^
@@ -3960,10 +3944,9 @@ typedef void F<_, _>();
 ''');
   }
 
-  test_typeParameters_functionTypeAlias_wildcard_preWildcards() async {
+  test_typeParameters_functionTypeAlias_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 typedef void F<_, _>();
 //             ^
@@ -3989,10 +3972,9 @@ typedef F = void Function<_, _>();
 ''');
   }
 
-  test_typeParameters_genericFunction_wildcard_preWildcards() async {
+  test_typeParameters_genericFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 typedef F = void Function<_, _>();
 //                        ^
@@ -4018,10 +4000,9 @@ typedef F<_, _> = void Function();
 ''');
   }
 
-  test_typeParameters_genericTypedef_functionType_wildcard_preWildcards() async {
+  test_typeParameters_genericTypedef_functionType_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 typedef F<_, _> = void Function();
 //        ^
@@ -4047,10 +4028,9 @@ typedef F<_, _> = Map;
 ''');
   }
 
-  test_typeParameters_genericTypedef_interfaceType_wildcard_preWildcards() async {
+  test_typeParameters_genericTypedef_interfaceType_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 typedef F<_, _> = Map;
 //        ^
@@ -4080,10 +4060,9 @@ class A {
 ''');
   }
 
-  test_typeParameters_method_wildcard_preWildcards() async {
+  test_typeParameters_method_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   void m<_, _>() {}
@@ -4111,10 +4090,9 @@ void f<_, _>() {}
 ''');
   }
 
-  test_typeParameters_topLevelFunction_wildcard_preWildcards() async {
+  test_typeParameters_topLevelFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f<_, _>() {}
 //     ^

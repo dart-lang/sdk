@@ -697,7 +697,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     node.visitChildrenWithHooks(
       this,
       visitMethodName: (methodName) {
-        if (node.realTarget == null) {
+        if (node.realTarget2 == null) {
           methodName.accept2(this);
         }
       },

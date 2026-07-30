@@ -16,6 +16,127 @@ main() {
 
 @reflectiveTest
 class RecordLiteralResolutionTest extends PubPackageResolutionTest {
+  test_beforeRecords_singleField_noComma() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = (0);
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
+  test_beforeRecords_singleField_noComma_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = const (0);
+//              ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+//                ^
+// [diag.recordLiteralOnePositionalNoTrailingComma] A record literal with exactly one positional field requires a trailing comma.
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
+  test_beforeRecords_singleField_withComma() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = (0,);
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
+  test_beforeRecords_twoFields() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = (0, 1);
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
+  test_beforeRecords_zeroFields() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = ();
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: <empty> <synthetic>
+      element: <null>
+      staticType: InvalidType
+    rightParenthesis: )
+    staticType: InvalidType
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
   test_field_rewrite_named() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
@@ -884,127 +1005,6 @@ RecordLiteral
       staticType: dynamic
   rightParenthesis: )
   staticType: (dynamic, dynamic)
-''');
-  }
-
-  test_language219_singleField_noComma() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = (0);
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer2: ParenthesizedExpression
-    leftParenthesis: (
-    expression2: IntegerLiteral
-      literal: 0
-      staticType: int
-    rightParenthesis: )
-    staticType: int
-  declaredFragment: <testLibraryFragment> x@22
-''');
-  }
-
-  test_language219_singleField_noComma_const() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = const (0);
-//              ^
-// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
-//                ^
-// [diag.recordLiteralOnePositionalNoTrailingComma] A record literal with exactly one positional field requires a trailing comma.
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer2: ParenthesizedExpression
-    leftParenthesis: (
-    expression2: IntegerLiteral
-      literal: 0
-      staticType: int
-    rightParenthesis: )
-    staticType: int
-  declaredFragment: <testLibraryFragment> x@22
-''');
-  }
-
-  test_language219_singleField_withComma() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = (0,);
-//        ^
-// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer2: ParenthesizedExpression
-    leftParenthesis: (
-    expression2: IntegerLiteral
-      literal: 0
-      staticType: int
-    rightParenthesis: )
-    staticType: int
-  declaredFragment: <testLibraryFragment> x@22
-''');
-  }
-
-  test_language219_twoFields() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = (0, 1);
-//        ^
-// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer2: ParenthesizedExpression
-    leftParenthesis: (
-    expression2: IntegerLiteral
-      literal: 0
-      staticType: int
-    rightParenthesis: )
-    staticType: int
-  declaredFragment: <testLibraryFragment> x@22
-''');
-  }
-
-  test_language219_zeroFields() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = ();
-//        ^
-// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer2: ParenthesizedExpression
-    leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: <empty> <synthetic>
-      element: <null>
-      staticType: InvalidType
-    rightParenthesis: )
-    staticType: InvalidType
-  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 

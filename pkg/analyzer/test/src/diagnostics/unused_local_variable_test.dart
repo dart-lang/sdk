@@ -144,10 +144,9 @@ f() {
 ''');
   }
 
-  test_inFor_underscores_preWildCards() async {
+  test_inFor_underscores_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 f() {
   for (var _ in [1,2,3]) {
     for (var __ in [4,5,6]) {

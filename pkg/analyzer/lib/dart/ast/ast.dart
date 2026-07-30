@@ -197,6 +197,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         NativeFunctionBody,
         NodeList,
         NullAssertPattern,
+        NullAssertionExpression,
         NullAwareElement,
         NullCheckPattern,
         NullLiteral,

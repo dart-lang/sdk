@@ -49,15 +49,7 @@ final class LanguageFeatureDirectiveLowering {
 
     var match = matches.single;
     var featureName = match.group(2)!;
-    var feature = ExperimentStatus.knownFeatures[featureName];
-    if (feature == null) {
-      throw ArgumentError(
-        "Unknown language feature '$featureName' in "
-        '%before-language-feature directive.',
-      );
-    }
-
-    var version = _languageVersionBefore(feature);
+    var version = languageVersionBefore(featureName);
     var directive = match.group(0)!;
     var override =
         '${match.group(1)}// @dart = '
@@ -86,6 +78,19 @@ final class LanguageFeatureDirectiveLowering {
       replacement.languageVersionOverride,
       replacement.beforeLanguageFeatureDirective,
     );
+  }
+
+  /// Returns the latest language version before [featureName] is enabled.
+  static Version languageVersionBefore(String featureName) {
+    var feature = ExperimentStatus.knownFeatures[featureName];
+    if (feature == null) {
+      throw ArgumentError(
+        "Unknown language feature '$featureName' in "
+        '%before-language-feature directive.',
+      );
+    }
+
+    return _languageVersionBefore(feature);
   }
 
   static Version _languageVersionBefore(ExperimentalFeature feature) {

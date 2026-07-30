@@ -810,6 +810,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addNativeFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addNullAssertionExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addNullAssertPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addNullAwareElement(AbstractAnalysisRule rule, AstVisitor2 visitor);

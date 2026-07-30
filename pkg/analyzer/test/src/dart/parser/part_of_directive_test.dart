@@ -37,9 +37,9 @@ PartOfDirective
 ''');
   }
 
-  test_name_preEnhancedParts() {
+  test_name_beforeEnhancedParts() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.4
+// %before-language-feature: enhanced-parts
 part of my.library;
 ''');
 

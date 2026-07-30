@@ -1620,10 +1620,10 @@ class A<T> {
 ''', (result) => result.findNode.typeLiteral('T;'));
   }
 
-  test_typeLiteral_typeParameter_class_214() async {
+  test_typeLiteral_typeParameter_class_beforeConstructorTearoffs() async {
     await _assertNotConst(
       r'''
-// @dart = 2.14
+// %before-language-feature: constructor-tearoffs
 class A<T> {
   final Object f;
   A() : f = T;

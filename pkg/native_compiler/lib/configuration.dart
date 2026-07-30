@@ -51,6 +51,7 @@ abstract base class Configuration(
   final TargetCPU targetCPU,
   final ImageFormat imageFormat, {
   required final bool enableAsserts,
+  required final bool compilePlatform,
   required final bool useAstScopes,
   required final String outputLibraryName,
   required final String? printFlowGraph,
@@ -105,6 +106,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     super.targetCPU,
     super.imageFormat, {
     required super.enableAsserts,
+    required super.compilePlatform,
     required super.useAstScopes,
     required super.outputLibraryName,
     required super.printFlowGraph,

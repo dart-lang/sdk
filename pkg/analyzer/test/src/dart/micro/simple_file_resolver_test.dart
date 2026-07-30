@@ -2633,9 +2633,9 @@ void f(MyEnum myEnum) {
 ''');
   }
 
-  test_switchCase_implementsEquals_enum_language219() async {
+  test_switchCase_implementsEquals_enum_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 enum MyEnum {a, b, c}
 
 void f(MyEnum myEnum) {

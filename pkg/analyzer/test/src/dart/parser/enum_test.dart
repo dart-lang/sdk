@@ -848,9 +848,9 @@ EnumDeclaration
 ''');
   }
 
-  test_emptyBody_language310() {
+  test_emptyBody_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E;
 //    ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
@@ -1434,9 +1434,9 @@ EnumDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+  test_primaryConstructor_const_typeName_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 enum const E {v}
 //   ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.

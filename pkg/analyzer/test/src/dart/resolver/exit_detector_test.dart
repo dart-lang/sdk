@@ -15,7 +15,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExitDetectorParsedStatementTest);
     defineReflectiveTests(ExitDetectorResolvedStatementTest);
-    defineReflectiveTests(ExitDetectorResolvedStatementTest_Language219);
+    defineReflectiveTests(ExitDetectorResolvedStatementTest_BeforePatterns);
     defineReflectiveTests(ExitDetectorForCodeAsUiTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -655,6 +655,19 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
     _assertTrue("(throw 42).b(c);");
   }
 
+  test_nullAssertion_v1() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(Object? x) { // ref
+  x!;
+}
+''');
+    var block = parseResult.findNode.block('{ // ref');
+    var statement = block.statements.single as ExpressionStatement;
+
+    expect(statement.expression, isA<PostfixExpression>());
+    expect(ExitDetector.exits(statement.expression), isFalse);
+  }
+
   test_parenthesizedExpression() async {
     _assertFalse('(a);');
   }
@@ -944,9 +957,9 @@ class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
     with ExitDetectorResolvedStatementTestCases {}
 
 @reflectiveTest
-class ExitDetectorResolvedStatementTest_Language219
+class ExitDetectorResolvedStatementTest_BeforePatterns
     extends PubPackageResolutionTest
-    with WithLanguage219Mixin, ExitDetectorResolvedStatementTestCases {}
+    with BeforePatternsMixin, ExitDetectorResolvedStatementTestCases {}
 
 /// Tests for the [ExitDetector] that require that the AST be resolved.
 ///

@@ -94,7 +94,9 @@ class TestProject {
     Map<String, dynamic>? pubspecExtras,
   }) {
     initGlobalState();
-    root = Directory.systemTemp.createTempSync('dartdev');
+    root = Directory.systemTemp
+        .createTempSync('dartdev')
+        .withUppercaseDriveLetter;
     file(
       'pubspec.yaml',
       JsonEncoder.withIndent('  ').convert({
@@ -374,4 +376,16 @@ Uri resolveDartDevUri(String path) {
     Uri.parse('package:dartdev/'),
   );
   return dartDevLibUri!.resolve('../$path');
+}
+
+extension on Directory {
+  /// Returns the directory with an uppercase drive letter on Windows.
+  ///
+  /// This avoids some mismatches on machines where the temp folder has a
+  /// lowercase drive letter and get back uppercase from the server.
+  Directory get withUppercaseDriveLetter {
+    return Platform.isWindows
+        ? Directory(this.path[0].toUpperCase() + this.path.substring(1))
+        : this;
+  }
 }

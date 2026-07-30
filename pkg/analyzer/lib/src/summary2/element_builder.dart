@@ -176,6 +176,13 @@ class ElementBuilder {
     for (var libraryFragmentEntry in topFragments.entries) {
       var libraryFragment = libraryFragmentEntry.key;
       for (var fragment in libraryFragmentEntry.value) {
+        if (fragment is ExtensionFragmentImpl &&
+            fragment.isAugmentation &&
+            fragment.name == null) {
+          _handleExtensionFragment(libraryFragment, null, fragment);
+          continue;
+        }
+
         var lastFragment = lastFragments[fragment.name];
         switch (fragment) {
           case ClassFragmentImpl():

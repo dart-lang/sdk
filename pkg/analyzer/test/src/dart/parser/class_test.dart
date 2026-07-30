@@ -839,9 +839,9 @@ ConstructorDeclaration
 ''');
   }
 
-  test_constructor_typeName_factory_named_withoutPrimaryConstructors() {
+  test_constructor_typeName_factory_named_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   factory A.named() {}
 }
@@ -878,6 +878,54 @@ ConstructorDeclaration
   factoryKeyword: factory
   typeName: SimpleIdentifier
     token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed_beforePrimaryConstructors() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// %before-language-feature: primary-constructors
+class A {
+  factory A() {}
+}
+''');
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed_beforePrimaryConstructors_notEnclosingClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// %before-language-feature: primary-constructors
+class A {
+  factory B() {}
+}
+''');
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: B
   parameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
@@ -930,54 +978,6 @@ ConstructorDeclaration
     rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
-''');
-  }
-
-  test_constructor_typeName_factory_unnamed_withoutPrimaryConstructors() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
-class A {
-  factory A() {}
-}
-''');
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-''');
-  }
-
-  test_constructor_typeName_factory_unnamed_withoutPrimaryConstructors_notEnclosingClass() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
-class A {
-  factory B() {}
-}
-''');
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: B
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
 ''');
   }
 
@@ -2598,9 +2598,9 @@ ClassDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+  test_primaryConstructor_const_typeName_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 class const A {}
 //    ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.

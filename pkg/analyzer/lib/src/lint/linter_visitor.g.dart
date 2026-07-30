@@ -1930,6 +1930,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    _runSubscriptions(node, _registry._forNullAssertionExpression);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitNullAssertPattern(NullAssertPattern node) {
     _runSubscriptions(node, _registry._forNullAssertPattern);
@@ -4419,6 +4426,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<NativeFunctionBody>> _forNativeFunctionBody = [];
 
+  final List<_Subscription2<NullAssertionExpression>>
+  _forNullAssertionExpression = [];
+
   final List<_Subscription2<NullAssertPattern>> _forNullAssertPattern = [];
 
   final List<_Subscription2<NullAwareElement>> _forNullAwareElement = [];
@@ -5447,6 +5457,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addNativeFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forNativeFunctionBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addNullAssertionExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forNullAssertionExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

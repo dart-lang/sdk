@@ -173,9 +173,9 @@ SimpleIdentifier
 ''');
   }
 
-  test_hideInSwitchCase_function_language219() async {
+  test_hideInSwitchCase_function_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 var v = 0;
 
 void f(int a) {
@@ -226,9 +226,9 @@ SimpleIdentifier
 ''');
   }
 
-  test_hideInSwitchCase_local_language219() async {
+  test_hideInSwitchCase_local_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 var v = 0;
 
 void f(int a) {
@@ -279,9 +279,9 @@ SimpleIdentifier
 ''');
   }
 
-  test_hideInSwitchDefault_function_language219() async {
+  test_hideInSwitchDefault_function_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 var v = 0;
 
 void f(int a) {
@@ -332,9 +332,9 @@ SimpleIdentifier
 ''');
   }
 
-  test_hideInSwitchDefault_local_language219() async {
+  test_hideInSwitchDefault_local_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 var v = 0;
 
 void f(int a) {

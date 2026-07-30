@@ -383,6 +383,11 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {}
 
   @override

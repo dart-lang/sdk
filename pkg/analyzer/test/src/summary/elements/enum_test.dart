@@ -9760,9 +9760,9 @@ library
 ''');
   }
 
-  test_constructor_secondary_typeName_named_language310() async {
+  test_constructor_secondary_typeName_named_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E {
   v.named();
 
@@ -9864,9 +9864,9 @@ library
 ''');
   }
 
-  test_constructor_secondary_typeName_unnamed_language310() async {
+  test_constructor_secondary_typeName_unnamed_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E {
   v;
 
@@ -11181,9 +11181,9 @@ library
 ''');
   }
 
-  test_enum_emptyBody_language310() async {
+  test_enum_emptyBody_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E;
 ''');
     checkElementText(library, r'''

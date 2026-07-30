@@ -44,10 +44,9 @@ class A {
 ''');
   }
 
-  test_constructor_optional_named_wildcard_preWildcards() async {
+  test_constructor_optional_named_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   int _;
@@ -105,10 +104,9 @@ class A {
 ''');
   }
 
-  test_constructor_optional_positional_final_wildcard_preWildcards() async {
+  test_constructor_optional_positional_final_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   final _;
@@ -138,10 +136,9 @@ class A {
 ''');
   }
 
-  test_constructor_optional_positional_wildcard_preWildcards() async {
+  test_constructor_optional_positional_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   int _;
@@ -186,10 +183,9 @@ class A {
 ''');
   }
 
-  test_constructor_required_named_wildcard_preWildcards() async {
+  test_constructor_required_named_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   int _;
@@ -215,6 +211,23 @@ class A {
 // [context 1] The first definition of this name.
 //               ^
 // [diag.duplicateFieldFormalParameter][context 1] The field 'a' can't be initialized by multiple parameters in the same constructor.
+}
+''');
+  }
+
+  test_constructor_required_positional_beforeWildcardVariables() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: wildcard-variables
+
+class A {
+  int? _;
+//     ^
+// [diag.unusedField] The value of the field '_' isn't used.
+  A(this._, this._);
+//       ^
+// [context 1] The first definition of this name.
+//               ^
+// [diag.duplicateFieldFormalParameter][context 1] The field '_' can't be initialized by multiple parameters in the same constructor.
 }
 ''');
   }
@@ -247,34 +260,15 @@ class A {
 ''');
   }
 
-  test_constructor_required_positional_final_wildcard_preWildcards() async {
+  test_constructor_required_positional_final_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   final _;
 //      ^
 // [diag.unusedField] The value of the field '_' isn't used.
   A(this._, this._) {}
-//       ^
-// [context 1] The first definition of this name.
-//               ^
-// [diag.duplicateFieldFormalParameter][context 1] The field '_' can't be initialized by multiple parameters in the same constructor.
-}
-''');
-  }
-
-  test_constructor_required_positional_preWildcards() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
-
-class A {
-  int? _;
-//     ^
-// [diag.unusedField] The value of the field '_' isn't used.
-  A(this._, this._);
 //       ^
 // [context 1] The first definition of this name.
 //               ^

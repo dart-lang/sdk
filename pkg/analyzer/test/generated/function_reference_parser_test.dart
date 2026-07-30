@@ -1158,12 +1158,21 @@ var x = x[0]!<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: PostfixExpression
-    operand2: IndexExpression
+  function2: NullAssertionExpression
+    operand: IndexExpression
       target2: SimpleIdentifier
         token: x
       leftBracket: [
       index2: IntegerLiteral
+        literal: 0
+      rightBracket: ]
+    operator: !
+  function(v1): PostfixExpression
+    operand: IndexExpression
+      target: SimpleIdentifier
+        token: x
+      leftBracket: [
+      index: IntegerLiteral
         literal: 0
       rightBracket: ]
     operator: !

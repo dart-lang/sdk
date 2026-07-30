@@ -14,10 +14,21 @@ main() {
 
 @reflectiveTest
 class InvalidFactoryNameNotAClassTest extends PubPackageResolutionTest {
-  test_notClassName_withoutPrimaryConstructors() async {
+  test_notClassName_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 int B = 0;
+class A {
+  factory B() => throw 0;
+//        ^
+// [diag.invalidFactoryNameNotAClass] The name of a factory constructor must be the same as the name of the immediately enclosing class.
+}
+''');
+  }
+
+  test_notEnclosingClassName_beforePrimaryConstructors() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: primary-constructors
 class A {
   factory B() => throw 0;
 //        ^
@@ -32,17 +43,6 @@ class A {
 class A {}
 
 augment class A {
-  factory B() => throw 0;
-//        ^
-// [diag.invalidFactoryNameNotAClass] The name of a factory constructor must be the same as the name of the immediately enclosing class.
-}
-''');
-  }
-
-  test_notEnclosingClassName_withoutPrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
-class A {
   factory B() => throw 0;
 //        ^
 // [diag.invalidFactoryNameNotAClass] The name of a factory constructor must be the same as the name of the immediately enclosing class.

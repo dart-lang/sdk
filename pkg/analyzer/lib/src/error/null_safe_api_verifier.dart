@@ -46,7 +46,7 @@ class NullSafeApiVerifier {
   /// Reports an error if `Completer<T>.complete` is invoked with a non-nullable
   /// `T` and an argument that is effectively `null`.
   void methodInvocation(MethodInvocationImpl node) {
-    var targetType = node.realTarget?.staticType;
+    var targetType = node.realTarget2?.staticType;
     if (targetType is! InterfaceTypeImpl) return;
 
     var targetClass = targetType.element;

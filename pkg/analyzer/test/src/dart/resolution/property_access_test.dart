@@ -1926,6 +1926,35 @@ PropertyAccess
 ''');
   }
 
+  test_ofRecordType_namedField_beforeRecords() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final r = (foo: 42);
+''');
+
+    var result = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: records
+import 'a.dart';
+void f() {
+  r.foo;
+}
+''');
+
+    var node = result.findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target2: SimpleIdentifier
+    token: r
+    element: package:test/a.dart::@getter::r
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_ofRecordType_namedField_hasExtension() async {
     var result = await resolveTestCodeWithDiagnostics('''
 extension E on ({int foo}) {
@@ -1943,35 +1972,6 @@ PropertyAccess
   target2: SimpleIdentifier
     token: r
     element: <testLibrary>::@function::f::@formalParameter::r
-    staticType: ({int foo})
-  operator: .
-  propertyName: SimpleIdentifier
-    token: foo
-    element: <null>
-    staticType: int
-  staticType: int
-''');
-  }
-
-  test_ofRecordType_namedField_language219() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-final r = (foo: 42);
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
-import 'a.dart';
-void f() {
-  r.foo;
-}
-''');
-
-    var node = result.findNode.propertyAccess('foo;');
-    assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SimpleIdentifier
-    token: r
-    element: package:test/a.dart::@getter::r
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -2176,6 +2176,35 @@ PropertyAccess
 ''');
   }
 
+  test_ofRecordType_positionalField_beforeRecords() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final r = (0, 'bar');
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+import 'a.dart';
+void f() {
+  r.$1;
+}
+''');
+
+    var node = result.findNode.propertyAccess(r'$1;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target2: SimpleIdentifier
+    token: r
+    element: package:test/a.dart::@getter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $1
+    element: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_ofRecordType_positionalField_dollarDigitLetter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
@@ -2223,35 +2252,6 @@ PropertyAccess
     element: <null>
     staticType: InvalidType
   staticType: InvalidType
-''');
-  }
-
-  test_ofRecordType_positionalField_language219() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-final r = (0, 'bar');
-''');
-
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-import 'a.dart';
-void f() {
-  r.$1;
-}
-''');
-
-    var node = result.findNode.propertyAccess(r'$1;');
-    assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SimpleIdentifier
-    token: r
-    element: package:test/a.dart::@getter::r
-    staticType: (int, String)
-  operator: .
-  propertyName: SimpleIdentifier
-    token: $1
-    element: <null>
-    staticType: int
-  staticType: int
 ''');
   }
 

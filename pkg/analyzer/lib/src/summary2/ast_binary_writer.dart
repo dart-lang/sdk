@@ -547,6 +547,13 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    _writeByte(Tag.NullAssertionExpression);
+    _writeNode(node.operand);
+    _storeExpression(node);
+  }
+
+  @override
   void visitNullAwareElement(NullAwareElement node) {
     _writeByte(Tag.NullAwareElement);
     _writeNode(node.value2);

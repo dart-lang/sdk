@@ -60,7 +60,7 @@ class ErrorHandlerVerifier {
        );
 
   void verifyMethodInvocation(MethodInvocation node) {
-    var target = node.realTarget;
+    var target = node.realTarget2;
     if (target == null) {
       return;
     }

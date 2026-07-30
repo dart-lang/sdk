@@ -174,22 +174,22 @@ void f(Record r) {}
 ''');
   }
 
-  test_Record_language219() async {
+  test_Record_beforeRecords() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: records
 void f(Record r) {}
 //     ^^^^^^
 // [diag.undefinedClass] Undefined class 'Record'.
 ''');
   }
 
-  test_Record_language219_exported() async {
+  test_Record_beforeRecords_exported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:core' show Record;
 ''');
 
     await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: records
 import 'a.dart';
 void f(Record r) {}
 ''');

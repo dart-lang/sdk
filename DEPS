@@ -128,24 +128,24 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "fe516ee1b38cc60e7a8c6e082c337037a043d782",
-  "dartdoc_rev": "c771ad2a1809bc43fafaf3518986d159290bf0a4",
-  "ecosystem_rev": "edfdb3b4063b9034b708144633a700204f865f43",
+  "core_rev": "25926e846003a123e5249df42c5a1ce30c246e3a",
+  "dartdoc_rev": "1d56f263955f329b6701d8f84f069eb0aef353a4",
+  "ecosystem_rev": "848b3bf3b757d2e9ae4d60030eeed5756c87783f",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
   "http_rev": "5d94ef52582867e077bf41c3fa20fb8b1d1d834e",
-  "i18n_rev": "e1b5a798f8922bb27bbc6d858748ece6f9a19f02",
+  "i18n_rev": "d0683bdea253d19a4350f5bc2be9017aba61837f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "046f63d1d89cd9954623bfa2df9c69d1a395375e", # rolled manually while record_use is experimental
   "protobuf_rev": "91efb90f437bb6a30e6726c3369a2fcb9bba06e7",
   "pub_rev": "ec276d10a7fa0f6c6ec005340fb9ad29f3b012d0", # rolled manually
-  "shelf_rev": "6918a7690946044b4098e9f6735439044c676e13",
+  "shelf_rev": "71248e727317930f244c4b4535e9733bcfc66677",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "5fcd6f405cc4a9c503f0eafa476d675f63a91bb8",
-  "tools_rev": "0fc3b0e7eb79cd6dd5605e9ed2aa01a6d46f332a",
+  "test_rev": "bd92e633e7f05edc3301865bdc00d1ae181cb1f1",
+  "tools_rev": "3f850c4fd27c3a19abd91889a8261e0bf2fd1663",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
-  "web_rev": "12a9ca2ebc08f5a6f2d69aebc7daa1f5a2e6a431",
+  "web_rev": "eb8c3fc61a1e35f48f865836c7c7342897d91bcc",
   "webdriver_rev": "3a711ebb36871eac997c5d5d2429f7414873dc63",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 

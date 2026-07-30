@@ -1724,6 +1724,18 @@ extensionAugmentationHasOnClause:
     augment extension E on int {}
   comment: No parameters.
 
+extensionAugmentationWithoutName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension augmentation must have a name."
+  correctionMessage: "Try adding the name of the extension to augment."
+  analyzerCode: extensionAugmentationWithoutName
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: |
+    augment extension {}
+  comment: No parameters.
+
 extensionTypeAugmentationSpecifiesRepresentationField:
   type: syntacticError
   parameters: none

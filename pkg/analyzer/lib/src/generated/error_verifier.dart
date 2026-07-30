@@ -53,7 +53,6 @@ import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -973,7 +972,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var declaredFragment = node.declaredFragment!;
 
-    _checkAugmentationWithoutDeclaration(node.augmentKeyword, declaredFragment);
+    // A missing extension augmentation name is already reported by the
+    // parser. Avoid reporting a missing augmentation target as well.
+    if (node.name != null) {
+      _checkAugmentationWithoutDeclaration(
+        node.augmentKeyword,
+        declaredFragment,
+      );
+    }
 
     var declaredElement = declaredFragment.element;
     var firstFragment = declaredElement.firstFragment;
@@ -1588,7 +1594,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    var target = node.realTarget;
+    var target = node.realTarget2;
     SimpleIdentifier methodName = node.methodName;
     if (target != null) {
       var typeReference = getTypeReference(target);
@@ -1703,6 +1709,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitNullAssertionExpression(
+    covariant NullAssertionExpressionImpl node,
+  ) {
+    checkForUseOfVoidResult(node);
+    _checkForUnnecessaryNullAware(
+      node.operand,
+      node.operator,
+      kind: _NullAwareKind.nullCheck,
+    );
+    super.visitNullAssertionExpression(node);
+  }
+
+  @override
   void visitNullAwareElement(NullAwareElement node) {
     _checkForUnnecessaryNullAware(
       node.value2,
@@ -1725,18 +1744,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitPostfixExpression(covariant PostfixExpressionImpl node) {
     var operand = node.operand2;
-    if (node.operator.type == TokenType.BANG) {
-      checkForUseOfVoidResult(node);
-      _checkForUnnecessaryNullAware(
-        operand,
-        node.operator,
-        kind: _NullAwareKind.nullCheck,
-      );
-    } else {
-      _checkForAssignmentToFinal(operand);
-      _checkForAssignmentToPrimaryConstructorParameter(operand);
-      _checkForIntNotAssignable(operand);
-    }
+    _checkForAssignmentToFinal(operand);
+    _checkForAssignmentToPrimaryConstructorParameter(operand);
+    _checkForIntNotAssignable(operand);
     super.visitPostfixExpression(node);
   }
 
@@ -2502,9 +2512,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     ) {
       var mixinName = withClause.mixinTypes[mixinNameIndex];
       DartType mixinType = mixinName.typeOrThrow;
-      if (mixinType is InterfaceType) {
+      if (mixinType is InterfaceTypeImpl) {
         int? currentMixinIndex;
-        if (isInterfaceTypeInterface(mixinType)) {
+        if (mixinType.isValidSuperinterface) {
           currentMixinIndex = mixinIndex++;
         }
 
@@ -5798,7 +5808,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     var parent = identifier.parent2;
     if (parent is MethodInvocation) {
       if (identical(parent.methodName, identifier) &&
-          parent.realTarget != null) {
+          parent.realTarget2 != null) {
         return;
       }
     }
@@ -7467,7 +7477,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         var operator = target.operator;
         var type = operator?.type;
         if (type == TokenType.QUESTION_PERIOD) {
-          var realTarget = target.realTarget;
+          var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? operator;
         }
       }

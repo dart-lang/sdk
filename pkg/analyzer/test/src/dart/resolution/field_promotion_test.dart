@@ -16,6 +16,40 @@ main() {
 
 @reflectiveTest
 class FieldPromotionTest extends PubPackageResolutionTest {
+  test_beforeInferenceUpdate2() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: inference-update-2
+class C {
+  final int? _foo;
+  C(this._foo);
+}
+
+void f(C c) {
+  if ((c)._foo != null) {
+    (c)._foo;
+  }
+}
+''');
+    var node = result.findNode.propertyAccess('._foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    rightParenthesis: )
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: _foo
+    element: <testLibrary>::@class::C::@getter::_foo
+    staticType: int?
+  staticType: int?
+''');
+  }
+
   test_cascaded_invocation() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -867,40 +901,6 @@ PrefixedIdentifier
     element: <testLibrary>::@class::C::@getter::_foo
     staticType: int?
   element: <testLibrary>::@class::C::@getter::_foo
-  staticType: int?
-''');
-  }
-
-  test_language219() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
-class C {
-  final int? _foo;
-  C(this._foo);
-}
-
-void f(C c) {
-  if ((c)._foo != null) {
-    (c)._foo;
-  }
-}
-''');
-    var node = result.findNode.propertyAccess('._foo;');
-    assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
-    leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
-      staticType: C
-    rightParenthesis: )
-    staticType: C
-  operator: .
-  propertyName: SimpleIdentifier
-    token: _foo
-    element: <testLibrary>::@class::C::@getter::_foo
-    staticType: int?
   staticType: int?
 ''');
   }

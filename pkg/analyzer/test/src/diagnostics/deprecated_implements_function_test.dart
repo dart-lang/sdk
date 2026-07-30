@@ -34,9 +34,9 @@ class A implements Function, Function {}
 ''');
   }
 
-  test_class_core2_language219() async {
+  test_class_core2_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A implements Function, Function {}
 //                 ^^^^^^^^
 // [diag.deprecatedImplementsFunction] Implementing 'Function' has no effect.
@@ -45,18 +45,18 @@ class A implements Function, Function {}
 ''');
   }
 
-  test_class_core_language219() async {
+  test_class_core_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A implements Function {}
 //                 ^^^^^^^^
 // [diag.deprecatedImplementsFunction] Implementing 'Function' has no effect.
 ''');
   }
 
-  test_class_core_language219_viaTypedef() async {
+  test_class_core_beforeClassModifiers_viaTypedef() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 typedef F = Function;
 class A implements F {}
 //                 ^
@@ -73,9 +73,9 @@ class A implements Function {}
 ''');
   }
 
-  test_classAlias_core_language219() async {
+  test_classAlias_core_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 mixin M {}
 class A = Object with M implements Function;
 //                                 ^^^^^^^^
@@ -83,9 +83,9 @@ class A = Object with M implements Function;
 ''');
   }
 
-  test_classAlias_core_language219_viaTypedef() async {
+  test_classAlias_core_beforeClassModifiers_viaTypedef() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 mixin M {}
 typedef F = Function;
 class A = Object with M implements F;

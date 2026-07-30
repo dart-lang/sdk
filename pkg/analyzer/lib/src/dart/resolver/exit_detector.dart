@@ -449,7 +449,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   @override
   bool visitMethodInvocation(MethodInvocation node) {
-    var target = node.realTarget;
+    var target = node.realTarget2;
     if (target != null) {
       if (target.accept2(this)!) {
         return true;
@@ -478,6 +478,9 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
       'Missing a visit method for a node of type ${node.runtimeType}',
     );
   }
+
+  @override
+  bool visitNullAssertionExpression(NullAssertionExpression node) => false;
 
   @override
   bool? visitNullAwareElement(NullAwareElement node) {
@@ -738,6 +741,9 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
   static bool exits(AstNode node) {
     if (node is InstanceCreationExpression) {
       return exits2(node.argumentList);
+    }
+    if (node is PostfixExpression) {
+      return false;
     }
     return exits2(node);
   }

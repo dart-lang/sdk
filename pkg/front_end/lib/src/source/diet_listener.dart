@@ -1124,7 +1124,7 @@ class DietListener extends StackListenerImpl {
           ? new SimpleIdentifier(nameToken)
           : NullValues.Identifier,
     );
-    push(extensionKeyword);
+    push(augmentToken ?? extensionKeyword);
   }
 
   @override

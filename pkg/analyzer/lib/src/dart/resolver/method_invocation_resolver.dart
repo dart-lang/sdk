@@ -91,7 +91,7 @@ class MethodInvocationResolver with ScopeHelpers {
     String name = nameNode.name;
     _currentName = Name(_definingLibraryUri, name);
 
-    var receiver = node.realTarget;
+    var receiver = node.realTarget2;
 
     if (receiver == null) {
       return _resolveReceiverNull(

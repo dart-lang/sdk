@@ -1235,6 +1235,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitNullAssertionExpression(NullAssertionExpression node) =>
+      visitExpression(node);
+
   @override
   R? visitNullAssertPattern(NullAssertPattern node) => visitDartPattern(node);
 
@@ -3351,6 +3356,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitNullAssertionExpression(NullAssertionExpression node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitNullAssertPattern(NullAssertPattern node) {
     node.visitChildren2(this);
@@ -4724,6 +4736,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitNativeFunctionBody(NativeFunctionBody node) => null;
 
+  @experimental
+  @override
+  R? visitNullAssertionExpression(NullAssertionExpression node) => null;
+
   @override
   R? visitNullAssertPattern(NullAssertPattern node) => null;
 
@@ -5928,6 +5944,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitNativeFunctionBody(NativeFunctionBody node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitNullAssertionExpression(NullAssertionExpression node) => _throw(node);
 
   @override
   R? visitNullAssertPattern(NullAssertPattern node) => _throw(node);
@@ -8621,6 +8641,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitNullAssertionExpression(NullAssertionExpression node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitNullAssertionExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitNullAssertPattern(NullAssertPattern node) {
     stopwatch.start();
@@ -10195,6 +10224,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
     node.visitChildren2(this);
     return null;
   }
+
+  @experimental
+  @override
+  R? visitNullAssertionExpression(NullAssertionExpression node) =>
+      visitNode(node);
 
   @override
   R? visitNullAssertPattern(NullAssertPattern node) => visitNode(node);

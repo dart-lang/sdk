@@ -11,10 +11,10 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstructorInvocationResolutionTest);
     defineReflectiveTests(
-      ConstructorInvocationResolutionTest_WithoutConstructorTearoffs,
+      ConstructorInvocationResolutionTest_beforeConstructorTearoffs,
     );
     defineReflectiveTests(
-      ConstructorInvocationResolutionTest_WithoutPrivateNamedParameters,
+      ConstructorInvocationResolutionTest_BeforePrivateNamedParameters,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -25,9 +25,9 @@ class ConstructorInvocationResolutionTest extends PubPackageResolutionTest
     with ConstructorInvocationTestCases {}
 
 @reflectiveTest
-class ConstructorInvocationResolutionTest_WithoutConstructorTearoffs
+class ConstructorInvocationResolutionTest_beforeConstructorTearoffs
     extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
+    with BeforeConstructorTearoffsMixin {
   test_unnamedViaNew() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -89,10 +89,10 @@ InstanceCreationExpression
 }
 
 @reflectiveTest
-class ConstructorInvocationResolutionTest_WithoutPrivateNamedParameters
+class ConstructorInvocationResolutionTest_BeforePrivateNamedParameters
     extends PubPackageResolutionTest
-    with WithoutPrivateNamedParametersMixin {
-  test_preFeature() async {
+    with BeforePrivateNamedParametersMixin {
+  test_beforePrivateNamedParameters() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
   int? _x;

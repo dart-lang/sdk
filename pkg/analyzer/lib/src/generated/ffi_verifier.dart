@@ -1316,7 +1316,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         return;
       }
     }
-    var target = node.realTarget!;
+    var target = node.realTarget2!;
     var targetType = target.staticType;
     if (targetType is InterfaceTypeImpl && targetType.isPointer) {
       var T = targetType.typeArguments[0];
@@ -1503,7 +1503,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   void _validateElementAt(MethodInvocation node) {
-    var targetType = node.realTarget?.staticType;
+    var targetType = node.realTarget2?.staticType;
     if (targetType is InterfaceTypeImpl && targetType.isPointer) {
       var T = targetType.typeArguments[0];
 
@@ -2109,7 +2109,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   /// `Pointer<T extends Struct>.refWithFinalizer` and
   /// `Pointer<T extends Union>.refWithFinalizer` extension methods.
   void _validateRefWithFinalizer(MethodInvocationImpl node) {
-    var targetType = node.realTarget?.typeOrThrow;
+    var targetType = node.realTarget2?.typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument

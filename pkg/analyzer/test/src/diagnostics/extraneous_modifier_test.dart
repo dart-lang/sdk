@@ -80,9 +80,9 @@ ConstructorDeclaration
 ''');
   }
 
-  test_class_constructor_formalParameter_requiredPositional_final_language310() {
+  test_class_constructor_formalParameter_requiredPositional_final_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A(final a);
 }
@@ -143,9 +143,9 @@ ConstructorDeclaration
 ''');
   }
 
-  test_class_constructor_formalParameter_requiredPositional_var_language310() {
+  test_class_constructor_formalParameter_requiredPositional_var_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A(var a);
 }

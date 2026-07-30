@@ -545,6 +545,18 @@ void f(void value) {
 ''');
   }
 
+  test_nullAssertionExpression_operand_error() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(void x) {
+  x!;
+//^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+
+    assertType(result.findNode.nullAssertion('x!'), 'void');
+  }
+
   test_nullAwareElement_list_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void value) {
@@ -563,18 +575,6 @@ void f(void value) {
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
-  }
-
-  test_postfixExpression_bang_operand_error() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-f(void x) {
-  x!;
-//^^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-
-    assertType(result.findNode.postfix('x!'), 'void');
   }
 
   test_prefixExpression_bang_operand_error() async {

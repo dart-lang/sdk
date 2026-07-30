@@ -648,9 +648,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_field_requiredPositional_language310() async {
+  test_constructor_primary_formalParameter_field_requiredPositional_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(this.it) {}
 ''');
 
@@ -778,9 +778,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_optionalNamed_language310() async {
+  test_constructor_primary_formalParameter_regular_optionalNamed_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({int? it}) {}
 ''');
 
@@ -1112,9 +1112,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_optionalPositional_language310() async {
+  test_constructor_primary_formalParameter_regular_optionalPositional_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A([int? it]) {}
 ''');
 
@@ -1501,9 +1501,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredNamed_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredNamed_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({required int it}) {}
 ''');
 
@@ -1694,6 +1694,72 @@ library
 ''');
   }
 
+  test_constructor_primary_formalParameter_regular_requiredPositional_beforePrimaryConstructors() async {
+    var library = await buildLibrary(r'''
+// %before-language-feature: primary-constructors
+extension type A(int it) {}
+''');
+
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:31) (firstTokenOffset:16) (offset:31)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@extensionType::A::@field::it
+              inducedGetter: #F3
+          constructors
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              codeOffset: 31
+              codeLength: 9
+              typeName: A
+              typeNameOffset: 31
+              formalParameters
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          getters
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@extensionType::A::@getter::it
+              inducingVariable: #F2
+  extensionTypes
+    isSimplyBounded extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+      constructors
+        isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional isDeclaring isFinal this.it
+              firstFragment: #F5
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
   test_constructor_primary_formalParameter_regular_requiredPositional_documented() async {
     var library = await buildLibrary(r'''
 extension type A(
@@ -1828,9 +1894,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_final_hasType_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_final_hasType_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(final int it) {}
 ''');
 
@@ -1959,9 +2025,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_final_implicitType_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_final_implicitType_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(final it) {}
 ''');
 
@@ -2090,9 +2156,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_functionTypedSuffix_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_functionTypedSuffix_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it()) {}
 ''');
 
@@ -2221,9 +2287,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_implicitType_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_implicitType_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(it) {}
 ''');
 
@@ -2376,9 +2442,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_implicitType_withMetadata_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_implicitType_withMetadata_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(@deprecated it) {}
 ''');
 
@@ -2531,9 +2597,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_invalidKeyword_const_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_invalidKeyword_const_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(const int it) {}
 ''');
 
@@ -2662,9 +2728,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_invalidKeyword_covariant_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_invalidKeyword_covariant_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(covariant int it) {}
 ''');
 
@@ -2858,72 +2924,6 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_language310() async {
-    var library = await buildLibrary(r'''
-// @dart = 3.10
-extension type A(int it) {}
-''');
-
-    configuration.withCodeRanges = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      extensionTypes
-        #F1 extension type A (nameOffset:31) (firstTokenOffset:16) (offset:31)
-          element: <testLibrary>::@extensionType::A
-          fields
-            #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
-              element: <testLibrary>::@extensionType::A::@field::it
-              inducedGetter: #F3
-          constructors
-            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
-              element: <testLibrary>::@extensionType::A::@constructor::new
-              codeOffset: 31
-              codeLength: 9
-              typeName: A
-              typeNameOffset: 31
-              formalParameters
-                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
-                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-          getters
-            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
-              element: <testLibrary>::@extensionType::A::@getter::it
-              inducingVariable: #F2
-  extensionTypes
-    isSimplyBounded extension type A
-      reference: <testLibrary>::@extensionType::A
-      firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
-      typeErasure: int
-      fields
-        isFinal isOriginDeclaringFormalParameter it
-          reference: <testLibrary>::@extensionType::A::@field::it
-          firstFragment: #F2
-          type: int
-          getter: <testLibrary>::@extensionType::A::@getter::it
-          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-      constructors
-        isExtensionTypeMember isOriginDeclaration isPrimary new
-          reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
-          formalParameters
-            #E0 requiredPositional isDeclaring isFinal this.it
-              firstFragment: #F5
-              type: int
-              field: <testLibrary>::@extensionType::A::@field::it
-      getters
-        isExtensionTypeMember isOriginVariable it
-          reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F3
-          returnType: int
-          variable: <testLibrary>::@extensionType::A::@field::it
-''');
-  }
-
   test_constructor_primary_formalParameter_regular_requiredPositional_metadata() async {
     var library = await buildLibrary(r'''
 extension type A(@deprecated int it) {}
@@ -3078,9 +3078,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_name_sameAsExtensionType_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_name_sameAsExtensionType_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int A) {}
 ''');
 
@@ -3209,9 +3209,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_regular_requiredPositional_var_language310() async {
+  test_constructor_primary_formalParameter_regular_requiredPositional_var_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(var it) {}
 ''');
 
@@ -3407,9 +3407,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameter_super_requiredPositional_language310() async {
+  test_constructor_primary_formalParameter_super_requiredPositional_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(super.it) {}
 ''');
 
@@ -3528,9 +3528,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameters_none_language310() async {
+  test_constructor_primary_formalParameters_none_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A() {}
 ''');
 
@@ -3655,9 +3655,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameters_regular_optionalNamed_optionalNamed_language310() async {
+  test_constructor_primary_formalParameters_regular_optionalNamed_optionalNamed_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({int? a, int? b}) {}
 ''');
 
@@ -3866,9 +3866,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameters_regular_optionalPositional_optionalPositional_language310() async {
+  test_constructor_primary_formalParameters_regular_optionalPositional_optionalPositional_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A([int? a, int? b]) {}
 ''');
 
@@ -4147,9 +4147,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameters_regular_requiredPositional_optionalNamed_language310() async {
+  test_constructor_primary_formalParameters_regular_requiredPositional_optionalNamed_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, {int? b}) {}
 ''');
 
@@ -4288,9 +4288,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameters_regular_requiredPositional_optionalPositional_language310() async {
+  test_constructor_primary_formalParameters_regular_requiredPositional_optionalPositional_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, [int? b]) {}
 ''');
 
@@ -4429,9 +4429,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameters_regular_requiredPositional_requiredPositional_language310() async {
+  test_constructor_primary_formalParameters_regular_requiredPositional_requiredPositional_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, int b) {}
 ''');
 
@@ -4565,9 +4565,9 @@ library
 ''');
   }
 
-  test_constructor_primary_formalParameters_trailingComma_language310() async {
+  test_constructor_primary_formalParameters_trailingComma_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it) {}
 ''');
 

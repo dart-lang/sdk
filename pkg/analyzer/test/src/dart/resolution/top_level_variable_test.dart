@@ -18,9 +18,9 @@ main() {
 @reflectiveTest
 class TopLevelVariableResolutionTest extends PubPackageResolutionTest {
   /// See https://github.com/dart-lang/sdk/issues/51137
-  test_initializer_contextType_dontUseInferredType() async {
+  test_initializer_contextType_dontUseInferredType_beforeInferenceUpdate1() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart=2.17
+// %before-language-feature: inference-update-1
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final x = f(g, (z) => z.length);
@@ -53,7 +53,7 @@ VariableDeclaration
             requiredPositionalFormalParameters
               RegularFormalParameter
                 name: z
-                declaredFragment: <testLibraryFragment> z@100
+                declaredFragment: <testLibraryFragment> z@102
                   element: hasImplicitType isPublic
                     type: Object?
             rightParenthesis: )
@@ -61,7 +61,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: z
-              declaredFragment: <testLibraryFragment> z@100
+              declaredFragment: <testLibraryFragment> z@102
                 element: hasImplicitType isPublic
                   type: Object?
             rightParenthesis: )
@@ -70,7 +70,7 @@ VariableDeclaration
             expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                element: z@100
+                element: z@102
                 staticType: Object?
               period: .
               identifier: SimpleIdentifier
@@ -91,14 +91,14 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredFragment: <testLibraryFragment> x@90
+  declaredFragment: <testLibraryFragment> x@92
 ''');
   }
 
   /// See https://github.com/dart-lang/sdk/issues/51137
-  test_initializer_contextType_typeAnnotation() async {
+  test_initializer_contextType_typeAnnotation_beforeInferenceUpdate1() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart=2.17
+// %before-language-feature: inference-update-1
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final String? x = f(g, (z) => z.length);
@@ -129,7 +129,7 @@ VariableDeclaration
             requiredPositionalFormalParameters
               RegularFormalParameter
                 name: z
-                declaredFragment: <testLibraryFragment> z@108
+                declaredFragment: <testLibraryFragment> z@110
                   element: hasImplicitType isPublic
                     type: String
             rightParenthesis: )
@@ -137,7 +137,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: z
-              declaredFragment: <testLibraryFragment> z@108
+              declaredFragment: <testLibraryFragment> z@110
                 element: hasImplicitType isPublic
                   type: String
             rightParenthesis: )
@@ -146,7 +146,7 @@ VariableDeclaration
             expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                element: z@108
+                element: z@110
                 staticType: String
               period: .
               identifier: SimpleIdentifier
@@ -167,7 +167,7 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredFragment: <testLibraryFragment> x@98
+  declaredFragment: <testLibraryFragment> x@100
 ''');
   }
 

@@ -66,6 +66,8 @@ enum PredefinedClusters {
   closureRefs,
   argumentsDescriptorRefs,
   recordShapeRefs,
+  closureDatas,
+  functions,
   ints,
   doubles,
   lists,
@@ -89,22 +91,6 @@ enum PredefinedClusters {
   compressedStackMaps,
   codeSourceMap,
   instances, // Separate cluster for every class.
-}
-
-/// Function kinds in the module snapshots.
-///
-/// This enum should match ModuleSnapshot::FunctionKind
-/// enum declared in runtime/vm/module_snapshot.cc.
-enum FunctionKind {
-  regular,
-  getter,
-  setter,
-  generativeConstructor,
-  factoryConstructor,
-  implicitGetter,
-  implicitSetter,
-  fieldInitializer,
-  methodExtractor,
 }
 
 /// Object pool entry kinds in the module snapshots.
@@ -149,6 +135,7 @@ class SnapshotSerializer {
   final TargetCPU targetCPU;
   final FunctionRegistry functionRegistry;
   final ObjectLayout objectLayout;
+  final bool compilePlatform;
   int numBaseObjects = 0;
   int numObjects = 0;
   final List<Object?> _objects = [];
@@ -161,7 +148,12 @@ class SnapshotSerializer {
   final Map<ast.Class, SerializationCluster> _instanceClusters = {};
   final SnapshotStreamWriter out = SnapshotStreamWriter();
 
-  SnapshotSerializer(this.targetCPU, this.functionRegistry, this.objectLayout) {
+  SnapshotSerializer(
+    this.targetCPU,
+    this.functionRegistry,
+    this.objectLayout, {
+    required this.compilePlatform,
+  }) {
     addBaseObject(null);
     addBaseObject(true);
     addBaseObject(false);
@@ -325,6 +317,9 @@ class SnapshotSerializer {
     ast.Library() => getPredefinedCluster(PredefinedClusters.libraryRefs),
     ast.Class() => getPredefinedCluster(PredefinedClusters.classRefs),
     ast.Field() => getPredefinedCluster(PredefinedClusters.fieldRefs),
+    LocalFunction() when compilePlatform => getPredefinedCluster(
+      PredefinedClusters.functions,
+    ),
     ClosureFunction() => getPredefinedCluster(
       PredefinedClusters.closureFunctionRefs,
     ),
@@ -334,6 +329,7 @@ class SnapshotSerializer {
       PredefinedClusters.argumentsDescriptorRefs,
     ),
     RecordShape() => getPredefinedCluster(PredefinedClusters.recordShapeRefs),
+    ClosureData() => getPredefinedCluster(PredefinedClusters.closureDatas),
     // Constants.
     String() => getPredefinedCluster(
       OneByteStringSerializationCluster.isOneByteString(obj)
@@ -412,9 +408,11 @@ class SnapshotSerializer {
         .argumentsDescriptorRefs =>
           ArgumentsDescriptorRefSerializationCluster(),
         .recordShapeRefs => RecordShapeRefSerializationCluster(),
+        .closureDatas => ClosureDataSerializationCluster(),
         .oneByteStrings => OneByteStringSerializationCluster(),
         .twoByteStrings => TwoByteStringSerializationCluster(),
         .privateNames => PrivateNameSerializationCluster(),
+        .functions => FunctionSerializationCluster(),
         .ints => IntSerializationCluster(),
         .doubles => DoubleSerializationCluster(),
         .lists => ListSerializationCluster(),
@@ -572,7 +570,6 @@ final class FunctionRefSerializationCluster extends SerializationCluster {
       case ClosureFunction():
         throw 'Unexpected ${function.runtimeType} in FunctionRefSerializationCluster';
     }
-    ;
   }
 
   @override
@@ -584,15 +581,18 @@ final class FunctionRefSerializationCluster extends SerializationCluster {
       final kind = switch (function) {
         RegularFunction() =>
           (function.member as ast.Procedure).isFactory
-              ? FunctionKind.factoryConstructor
-              : FunctionKind.regular,
-        GenerativeConstructor() => FunctionKind.generativeConstructor,
-        ImplicitFieldGetter() => FunctionKind.implicitGetter,
-        ImplicitFieldSetter() => FunctionKind.implicitSetter,
-        FieldInitializerFunction() => FunctionKind.fieldInitializer,
-        MethodExtractor() => FunctionKind.methodExtractor,
-        GetterFunction() => FunctionKind.getter,
-        SetterFunction() => FunctionKind.setter,
+              ? FunctionKind.Constructor
+              : FunctionKind.RegularFunction,
+        GenerativeConstructor() => FunctionKind.Constructor,
+        ImplicitFieldGetter() =>
+          function.member.isInstanceMember
+              ? FunctionKind.ImplicitGetter
+              : FunctionKind.ImplicitStaticGetter,
+        ImplicitFieldSetter() => FunctionKind.ImplicitSetter,
+        FieldInitializerFunction() => FunctionKind.FieldInitializer,
+        MethodExtractor() => FunctionKind.MethodExtractor,
+        GetterFunction() => FunctionKind.GetterFunction,
+        SetterFunction() => FunctionKind.SetterFunction,
         ClosureFunction() =>
           throw 'Unexpected ${function.runtimeType} in FunctionRefSerializationCluster',
       };
@@ -738,6 +738,147 @@ final class RecordShapeRefSerializationCluster extends SerializationCluster {
       for (final name in shape.named) {
         serializer.writeRefId(name);
       }
+    }
+  }
+}
+
+class ClosureData(final CFunction parentFunction);
+
+final class ClosureDataSerializationCluster extends SerializationCluster {
+  final List<ClosureData> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final closureData = object as ClosureData;
+    _objects.add(closureData);
+    serializer.push(closureData.parentFunction);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.closureDatas.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final closureData in _objects) {
+      serializer.assignRef(closureData);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final closureData in _objects) {
+      serializer.writeRefId(closureData.parentFunction);
+    }
+  }
+}
+
+final class FunctionSerializationCluster extends SerializationCluster {
+  static const String anonymousClosureName = '<anonymous closure>';
+
+  final List<CFunction> _objects = [];
+  final List<
+    ({
+      Object /*ast.Name|String*/ name,
+      ast.TreeNode /*ast.Class|ast.Library*/ owner,
+      ast.FunctionType signature,
+      Object? /*ClosureData|???*/ data,
+      ast.ListConstant positionalParameterNames,
+      int startFileOffset,
+      int endFileOffset,
+      int kindTags,
+      int localFunctionId,
+    })
+  >
+  _fields = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final function = object as CFunction;
+    _objects.add(function);
+
+    FunctionKind kind;
+    Object name;
+    ast.FunctionType signature;
+    Object? data;
+    ast.ListConstant positionalParameterNames;
+    int startFileOffset, endFileOffset;
+    var localFunctionId = 0;
+
+    switch (function) {
+      case LocalFunction():
+        kind = FunctionKind.ClosureFunction;
+        final localFunction = function.localFunction;
+        final functionNode = function.functionNode!;
+        name = (localFunction is ast.FunctionDeclaration)
+            ? localFunction.variable.name
+            : anonymousClosureName;
+        signature = functionNode.computeThisFunctionType(.nonNullable);
+        data = ClosureData(function.enclosingFunction);
+        positionalParameterNames = getListConstant([
+          '#closure', // Implicit closure parameter.
+          for (final p in functionNode.positionalParameters) p.cosmeticName!,
+        ]);
+        startFileOffset = functionNode.fileOffset;
+        endFileOffset = functionNode.fileEndOffset;
+        localFunctionId = localFunction.id.toInt();
+        assert(localFunctionId > 0);
+        break;
+      default:
+        throw 'Unimplemented FunctionSerializationCluster for ${function.runtimeType}';
+    }
+    final owner =
+        function.member.enclosingClass ?? function.member.enclosingLibrary;
+    // TODO: async modifier and flag bits
+    final vmOffsets = serializer.objectLayout.vmOffsets;
+    final kindTags = (kind.index << vmOffsets.Function_kKindBitsPos);
+
+    serializer.push(name);
+    serializer.push(owner);
+    serializer.push(signature);
+    serializer.push(data);
+    serializer.push(positionalParameterNames);
+    _fields.add((
+      name: name,
+      owner: owner,
+      signature: signature,
+      data: data,
+      positionalParameterNames: positionalParameterNames,
+      startFileOffset: startFileOffset,
+      endFileOffset: endFileOffset,
+      kindTags: kindTags,
+      localFunctionId: localFunctionId,
+    ));
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.functions.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final function in _objects) {
+      serializer.assignRef(function);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (var i = 0; i < _objects.length; i++) {
+      final fields = _fields[i];
+      serializer.writeRefId(fields.name);
+      serializer.writeRefId(fields.owner);
+      serializer.writeRefId(fields.signature);
+      serializer.writeRefId(fields.data);
+      serializer.writeRefId(fields.positionalParameterNames);
+      serializer.writeUint(fields.startFileOffset + 1);
+      serializer.writeUint(fields.endFileOffset + 1);
+      serializer.writeUint(fields.kindTags);
+      serializer.writeUint(fields.localFunctionId);
     }
   }
 }

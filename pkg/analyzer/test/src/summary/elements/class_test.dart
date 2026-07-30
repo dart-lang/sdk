@@ -32662,6 +32662,32 @@ library
 ''');
   }
 
+  test_field_isPromotable_beforeInferenceUpdate2() async {
+    var library = await buildLibrary(r'''
+// %before-language-feature: inference-update-2
+class A {
+  final int? _foo;
+  A(this._foo);
+}
+''');
+
+    configuration.forPromotableFields(classNames: {'A'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F0
+      fields
+        isFinal isOriginDeclaration _foo
+          reference: <testLibrary>::@class::A::@field::_foo
+          firstFragment: #F1
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::_foo
+''');
+  }
+
   test_field_isPromotable_hasGetter() async {
     var library = await buildLibrary(r'''
 class A {
@@ -32875,32 +32901,6 @@ library
       firstFragment: #F0
       fields
         isFinal isOriginDeclaration isPromotable _foo
-          reference: <testLibrary>::@class::A::@field::_foo
-          firstFragment: #F1
-          type: int?
-          getter: <testLibrary>::@class::A::@getter::_foo
-''');
-  }
-
-  test_field_isPromotable_language217() async {
-    var library = await buildLibrary(r'''
-// @dart = 2.19
-class A {
-  final int? _foo;
-  A(this._foo);
-}
-''');
-
-    configuration.forPromotableFields(classNames: {'A'});
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  classes
-    isSimplyBounded class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F0
-      fields
-        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?

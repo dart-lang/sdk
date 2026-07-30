@@ -746,6 +746,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    if (node.operand.typeOrThrow.isDartCoreNull) {
+      _diagnosticReporter.report(diag.nullCheckAlwaysFails.at(node));
+    }
+    super.visitNullAssertionExpression(node);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     _elementUsageFrontierDetector.patternField(node);
     _invalidAccessVerifier.verifyPatternField(node as PatternFieldImpl);
@@ -755,10 +763,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _elementUsageFrontierDetector.postfixExpression(node);
-    if (node.operator.type == TokenType.BANG &&
-        node.operand2.typeOrThrow.isDartCoreNull) {
-      _diagnosticReporter.report(diag.nullCheckAlwaysFails.at(node));
-    }
     super.visitPostfixExpression(node);
   }
 

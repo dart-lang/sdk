@@ -315,9 +315,9 @@ AssignmentExpression
 ''');
   }
 
-  test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
+  test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext_beforeInferenceUpdate3() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart=3.3
+// %before-language-feature: inference-update-3
 f(Object? o1, Object? o2, List<num> listNum) {
   if (o1 is Iterable<int>? && o2 is Iterable<num>) {
     o2 = (o1 ??= listNum);
@@ -1157,9 +1157,9 @@ PatternAssignment
 ''');
   }
 
-  test_notLValue_parenthesized_simple_language219() async {
+  test_notLValue_parenthesized_simple_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f(int a, double b) {
   (a + 0) = b;
 //^^^^^^^
@@ -4184,7 +4184,7 @@ AssignmentExpression
 
   test_simpleIdentifier_parameterFinal_simple() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f(final int x) {
   x = 2;
 //^

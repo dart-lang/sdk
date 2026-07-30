@@ -623,9 +623,9 @@ class A {
 ''');
   }
 
-  test_breakWithoutLabelInSwitch_language219() async {
+  test_breakWithoutLabelInSwitch_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 class A {
   void m(int i) {
     switch (i) {
@@ -2214,9 +2214,9 @@ f(E e) {
 ''');
   }
 
-  test_missingEnumConstantInSwitch_all_language219() async {
+  test_missingEnumConstantInSwitch_all_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 enum E { A, B, C }
 
 f(E e) {
@@ -2242,9 +2242,9 @@ f(E e) {
 ''');
   }
 
-  test_missingEnumConstantInSwitch_default_language219() async {
+  test_missingEnumConstantInSwitch_default_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 enum E { A, B, C }
 
 f(E e) {

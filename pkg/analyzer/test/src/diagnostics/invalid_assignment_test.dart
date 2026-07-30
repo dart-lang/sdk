@@ -59,9 +59,9 @@ void Function() f = C();
 ''');
   }
 
-  test_invalid_genericCall_nonGenericContext_withoutConstructorTearoffs() async {
+  test_invalid_genericCall_nonGenericContext_beforeConstructorTearoffs() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: constructor-tearoffs
 class C {
   T call<T>(T t) => t;
 }

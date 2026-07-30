@@ -422,10 +422,9 @@ class A extends C {
 ''');
   }
 
-  test_method_overriddenWithMethod_wildcardParams_preWildcards() async {
+  test_method_overriddenWithMethod_wildcardParams_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 import 'package:meta/meta.dart';
 
