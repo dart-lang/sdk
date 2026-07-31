@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -704,6 +706,18 @@ AssignmentExpression
   element: dart:core::@class::num::@method::+
   staticType: double?
 ''');
+  }
+
+  test_realTarget_views() async {
+    var result = await resolveTestCode(r'''
+void f(List<int>? x) {
+  x![0];
+}
+''');
+
+    var node = result.findNode.singleIndexExpression;
+    expect(node.realTarget, isA<PostfixExpression>());
+    expect(node.realTarget2, isA<NullAssertionExpression>());
   }
 
   test_rewrite_nullShorting() async {

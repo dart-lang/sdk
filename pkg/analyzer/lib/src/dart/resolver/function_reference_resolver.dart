@@ -484,7 +484,7 @@ class FunctionReferenceResolver {
       _resolveAsImplicitCallReference(node, callMethod);
       return;
     }
-    var target = function.realTarget;
+    var target = function.realTarget2;
 
     TypeImpl targetType;
     if (target is SuperExpressionImpl) {
@@ -546,7 +546,7 @@ class FunctionReferenceResolver {
 
     var propertyElement = _resolver.typePropertyResolver
         .resolve(
-          receiver: function.realTarget,
+          receiver: function.realTarget2,
           receiverType: targetType,
           name: function.propertyName.name,
           hasRead: true,

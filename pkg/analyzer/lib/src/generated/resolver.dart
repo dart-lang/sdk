@@ -1962,7 +1962,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node.body);
 
     var targetType =
-        node.realTarget.staticType ?? typeProvider.objectQuestionType;
+        node.realTarget2.staticType ?? typeProvider.objectQuestionType;
     var isNullAware = node.isNullAware;
     var parameterType = isNullAware
         ? typeSystem.promoteToNonNull(targetType)
@@ -3337,7 +3337,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       );
       popRewrite();
     }
-    var targetType = node.realTarget.staticType;
+    var targetType = node.realTarget2.staticType;
 
     if (node.isNullAware) {
       _startNullAwareAccess(node.target2);

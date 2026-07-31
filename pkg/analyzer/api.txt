@@ -798,6 +798,7 @@ package:analyzer/dart/ast/ast.dart:
     operator (getter: Token)
     parameters (getter: FormalParameterList?)
     realTarget (getter: Expression)
+    realTarget2 (getter: Expression, experimental)
     target (getter: Expression?)
     target2 (getter: Expression?, experimental)
   Argument (class extends Object implements AstNode, sealed (immediate subtypes: ArgumentImpl, Expression, NamedArgument)):
@@ -1533,6 +1534,7 @@ package:analyzer/dart/ast/ast.dart:
     precedence (getter: Precedence)
     staticType (getter: DartType?)
     unParenthesized (getter: Expression)
+    unParenthesized2 (getter: Expression, experimental)
     computeConstantValue (method: AttemptedConstantEvaluationResult? Function())
   ExpressionFunctionBody (class extends Object implements FunctionBody, abstract, final):
     expression (getter: Expression)
@@ -1780,6 +1782,7 @@ package:analyzer/dart/ast/ast.dart:
     period (getter: Token?)
     question (getter: Token?)
     realTarget (getter: Expression)
+    realTarget2 (getter: Expression, experimental)
     rightBracket (getter: Token)
     target (getter: Expression?)
     target2 (getter: Expression?, experimental)
@@ -2054,6 +2057,7 @@ package:analyzer/dart/ast/ast.dart:
     operator (getter: Token)
     propertyName (getter: SimpleIdentifier)
     realTarget (getter: Expression)
+    realTarget2 (getter: Expression, experimental)
     target (getter: Expression?)
     target2 (getter: Expression?, experimental)
   RecordLiteral (class extends Object implements Literal, abstract, final):

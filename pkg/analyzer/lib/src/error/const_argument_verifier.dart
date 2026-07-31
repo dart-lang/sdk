@@ -33,7 +33,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     }
 
     if (element.metadata.hasMustBeConst) {
-      var target = node.realTarget;
+      var target = node.realTarget2;
       if (!_isConst(target)) {
         _diagnosticReporter.report(
           diag.nonConstArgumentForConstParameter

@@ -1071,9 +1071,18 @@ abstract final class AnonymousMethodInvocation implements Expression {
   /// The expression used to compute the receiver of the invocation.
   ///
   /// If this invocation isn't part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
+  @ToBeDeprecated('Use realTarget2 instead.')
+  Expression get realTarget;
+
+  /// The expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation isn't part of a cascade expression, then this is the
   /// same as [target2]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
-  Expression get realTarget;
+  @experimental
+  Expression get realTarget2;
 
   /// The expression computing the object defining the property being accessed,
   /// or `null` if this property access is part of a cascade expression.
@@ -1200,6 +1209,12 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @override
   ExpressionImpl get realTarget {
+    return V1Projection.toV1Expression(realTarget2);
+  }
+
+  @experimental
+  @override
+  ExpressionImpl get realTarget2 {
     if (isCascaded) {
       return _ancestorCascade.target2;
     }
@@ -14503,7 +14518,14 @@ abstract final class Expression
   /// If this expression is a parenthesized expression, returns the result of
   /// unwrapping the expression inside the parentheses. Otherwise, returns this
   /// expression.
+  @ToBeDeprecated('Use unParenthesized2 instead.')
   Expression get unParenthesized;
+
+  /// If this expression is a parenthesized expression, returns the result of
+  /// unwrapping the expression inside the parentheses. Otherwise, returns this
+  /// expression.
+  @experimental
+  Expression get unParenthesized2;
 
   /// Computes the constant value of this expression, if it has one.
   ///
@@ -14821,7 +14843,17 @@ sealed class ExpressionImpl extends AstNodeImpl
   TypeImpl? get staticType => _staticType;
 
   @override
-  ExpressionImpl get unParenthesized => this;
+  ExpressionImpl get unParenthesized {
+    _checkV1View();
+    return this;
+  }
+
+  @experimental
+  @override
+  ExpressionImpl get unParenthesized2 {
+    _checkV2View();
+    return this;
+  }
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() {
@@ -24562,10 +24594,20 @@ abstract final class IndexExpression implements MethodReferenceExpression {
   /// The expression used to compute the object being indexed.
   ///
   /// If this index expression isn't part of a cascade expression, then this
+  /// is the same as [target]. If this index expression is part of a cascade
+  /// expression, then the target expression stored with the cascade expression
+  /// is returned.
+  @ToBeDeprecated('Use realTarget2 instead.')
+  Expression get realTarget;
+
+  /// The expression used to compute the object being indexed.
+  ///
+  /// If this index expression isn't part of a cascade expression, then this
   /// is the same as [target2]. If this index expression is part of a cascade
   /// expression, then the target expression stored with the cascade expression
   /// is returned.
-  Expression get realTarget;
+  @experimental
+  Expression get realTarget2;
 
   /// The right square bracket.
   Token get rightBracket;
@@ -24732,6 +24774,12 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   ExpressionImpl get realTarget {
+    return V1Projection.toV1Expression(realTarget2);
+  }
+
+  @experimental
+  @override
+  ExpressionImpl get realTarget2 {
     if (isCascaded) {
       return _ancestorCascade.target2;
     }
@@ -32380,6 +32428,20 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
 
   @override
   ExpressionImpl get unParenthesized {
+    _checkV1View();
+    // This is somewhat inefficient, but it avoids a stack overflow in the
+    // degenerate case.
+    var expression = this.expression;
+    while (expression is ParenthesizedExpressionImpl) {
+      expression = expression.expression;
+    }
+    return expression;
+  }
+
+  @experimental
+  @override
+  ExpressionImpl get unParenthesized2 {
+    _checkV2View();
     // This is somewhat inefficient, but it avoids a stack overflow in the
     // degenerate case.
     var expression = _expression2;
@@ -35711,9 +35773,18 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   /// The expression used to compute the receiver of the invocation.
   ///
   /// If this invocation isn't part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
+  @ToBeDeprecated('Use realTarget2 instead.')
+  Expression get realTarget;
+
+  /// The expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation isn't part of a cascade expression, then this is the
   /// same as [target2]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
-  Expression get realTarget;
+  @experimental
+  Expression get realTarget2;
 
   /// The expression computing the object defining the property being accessed,
   /// or `null` if this property access is part of a cascade expression.
@@ -35812,6 +35883,12 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @override
   ExpressionImpl get realTarget {
+    return V1Projection.toV1Expression(realTarget2);
+  }
+
+  @experimental
+  @override
+  ExpressionImpl get realTarget2 {
     if (isCascaded) {
       return _ancestorCascade.target2;
     }

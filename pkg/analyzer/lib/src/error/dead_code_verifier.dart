@@ -483,7 +483,7 @@ class NullSafetyDeadCodeVerifier {
       return;
     }
 
-    target = target?.unParenthesized;
+    target = target?.unParenthesized2;
     if (target is SimpleIdentifier) {
       var element = target.element;
       if (element is PromotableElementImpl &&
