@@ -2067,7 +2067,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   void _validateRefIndexed(IndexExpressionImpl node) {
-    var targetType = node.realTarget.typeOrThrow;
+    var targetType = node.realTarget2.typeOrThrow;
     if (!_isValidFfiNativeType(
       targetType,
       allowEmptyStruct: true,
@@ -2095,7 +2095,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   void _validateRefPropertyAccess(PropertyAccessImpl node) {
-    var targetType = node.realTarget.typeOrThrow;
+    var targetType = node.realTarget2.typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument

@@ -464,20 +464,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitBinaryExpression(covariant BinaryExpressionImpl node) {
-    Token operator = node.operator;
-    TokenType type = operator.type;
-    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
-      checkForUseOfVoidResult(node.rightOperand2);
-    } else {
-      // Assignability checking is done by the resolver.
-    }
-
-    if (type == TokenType.QUESTION_QUESTION) {
-      _checkForDeadNullCoalesce(
-        node.leftOperand2.staticType!,
-        node.rightOperand2,
-      );
-    }
 
     checkForUseOfVoidResult(node.leftOperand2);
     _constArgumentsVerifier.visitBinaryExpression(node);
@@ -1413,6 +1399,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitIfNull(covariant IfNullImpl node) {
+    _checkForDeadNullCoalesce(node.leftOperand.staticType!, node.rightOperand);
+    checkForUseOfVoidResult(node.leftOperand);
+    super.visitIfNull(node);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     var importElement = node.libraryImport;
     if (node.prefix != null) {
@@ -1450,7 +1443,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         node.period?.type == TokenType.QUESTION_PERIOD_PERIOD;
     if (isNullAware) {
       _checkForUnnecessaryNullAware(
-        node.realTarget,
+        node.realTarget2,
         node.question ?? node.period ?? node.leftBracket,
         kind: node.isCascaded
             ? _NullAwareKind.cascaded
@@ -1486,6 +1479,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _checkForListElementTypeNotAssignable(node);
 
     super.visitListLiteral(node);
+  }
+
+  @override
+  void visitLogicalAnd(LogicalAnd node) {
+    checkForUseOfVoidResult(node.leftOperand);
+    checkForUseOfVoidResult(node.rightOperand);
+    super.visitLogicalAnd(node);
+  }
+
+  @override
+  void visitLogicalOr(LogicalOr node) {
+    checkForUseOfVoidResult(node.leftOperand);
+    checkForUseOfVoidResult(node.rightOperand);
+    super.visitLogicalOr(node);
   }
 
   @override
@@ -1858,7 +1865,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _constArgumentsVerifier.visitPropertyAccess(node);
-    var target = node.realTarget;
+    var target = node.realTarget2;
     var typeReference = getTypeReference(target);
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
@@ -6053,7 +6060,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             }
           }
           if (caseConstant != null) {
-            var expression = caseConstant.unParenthesized;
+            var expression = caseConstant.unParenthesized2;
             if (expression is NullLiteral) {
               hasCaseNull = true;
             } else {
@@ -7462,12 +7469,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         var operator = target.operator;
         var type = operator.type;
         if (type == TokenType.QUESTION_PERIOD) {
-          var realTarget = target.realTarget;
+          var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? operator;
         }
       } else if (target is IndexExpression) {
         if (target.question != null) {
-          var realTarget = target.realTarget;
+          var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? target.question;
         }
       } else if (target is MethodInvocation) {

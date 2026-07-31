@@ -134,7 +134,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitConstantPattern(covariant ConstantPatternImpl node) {
-    var expression = node.expression2.unParenthesized;
+    var expression = node.expression2.unParenthesized2;
     if (expression.typeOrThrow is InvalidType) {
       return;
     }
@@ -1204,7 +1204,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         } else {
           var pattern = switchMember.guardedPattern.pattern;
           if (pattern is ConstantPattern) {
-            validateExpression(pattern.expression2.unParenthesized);
+            validateExpression(pattern.expression2.unParenthesized2);
           }
         }
       }

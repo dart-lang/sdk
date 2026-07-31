@@ -135,7 +135,7 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasRead,
     required bool hasWrite,
   }) {
-    var target = node.realTarget;
+    var target = node.realTarget2;
 
     if (target is ExtensionOverrideImpl) {
       var result = _extensionResolver.getOverrideMember(target, '[]');
@@ -275,7 +275,7 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasWrite,
     PrefixedIdentifierImpl? originalNode,
   }) {
-    var target = node.realTarget;
+    var target = node.realTarget2;
     var propertyName = node.propertyName;
 
     if (target is ExtensionOverrideImpl) {

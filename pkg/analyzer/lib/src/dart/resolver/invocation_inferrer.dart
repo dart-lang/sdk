@@ -662,7 +662,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         value = argument.argumentExpression2;
         parameterKey = unnamedArgumentIndex++;
       }
-      value = value.unParenthesized;
+      value = value.unParenthesized2;
       parameter = parameterMap[parameterKey];
       if (resolver.isInferenceUpdate1Enabled &&
           value is FunctionExpressionImpl) {

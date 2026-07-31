@@ -604,6 +604,9 @@ abstract class AstVisitor2<R> {
 
   R? visitIfElement(IfElement node);
 
+  @experimental
+  R? visitIfNull(IfNull node);
+
   R? visitIfStatement(IfStatement node);
 
   R? visitImplementsClause(ImplementsClause node);
@@ -636,10 +639,16 @@ abstract class AstVisitor2<R> {
 
   R? visitListPattern(ListPattern node);
 
+  @experimental
+  R? visitLogicalAnd(LogicalAnd node);
+
   R? visitLogicalAndPattern(LogicalAndPattern node);
 
   @experimental
   R? visitLogicalNot(LogicalNot node);
+
+  @experimental
+  R? visitLogicalOr(LogicalOr node);
 
   R? visitLogicalOrPattern(LogicalOrPattern node);
 

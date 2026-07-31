@@ -1956,13 +1956,24 @@ FunctionReference
   function2: PropertyAccess
     target2: ParenthesizedExpression
       leftParenthesis: (
-      expression2: BinaryExpression
-        leftOperand2: SimpleIdentifier
+      expression2: IfNull
+        leftOperand: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A?
         operator: ??
-        rightOperand2: SimpleIdentifier
+        rightOperand: SimpleIdentifier
+          token: b
+          element: <testLibrary>::@function::f::@formalParameter::b
+          staticType: A
+        staticType: A
+      expression(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A?
+        operator: ??
+        rightOperand: SimpleIdentifier
           token: b
           correspondingParameter: <null>
           element: <testLibrary>::@function::f::@formalParameter::b

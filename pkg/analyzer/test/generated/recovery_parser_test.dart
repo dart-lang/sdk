@@ -363,15 +363,15 @@ var v = == &&;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: BinaryExpression
+LogicalAnd
+  leftOperand: BinaryExpression
     leftOperand2: SimpleIdentifier
       token: <empty> <synthetic>
     operator: ==
     rightOperand2: SimpleIdentifier
       token: <empty> <synthetic>
   operator: &&
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -388,11 +388,11 @@ var v = && ==;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalAnd
+  leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &&
-  rightOperand2: BinaryExpression
+  rightOperand: BinaryExpression
     leftOperand2: SimpleIdentifier
       token: <empty> <synthetic>
     operator: ==
@@ -2835,11 +2835,11 @@ var v = && y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalAnd
+  leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &&
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: y
 ''');
   }
@@ -2854,11 +2854,11 @@ var v = &&;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalAnd
+  leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &&
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -2871,11 +2871,11 @@ var v = x &&;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalAnd
+  leftOperand: SimpleIdentifier
     token: x
   operator: &&
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -2892,15 +2892,15 @@ var v = | &&;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: BinaryExpression
+LogicalAnd
+  leftOperand: BinaryExpression
     leftOperand2: SimpleIdentifier
       token: <empty> <synthetic>
     operator: |
     rightOperand2: SimpleIdentifier
       token: <empty> <synthetic>
   operator: &&
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -2917,11 +2917,11 @@ var v = && |;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalAnd
+  leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &&
-  rightOperand2: BinaryExpression
+  rightOperand: BinaryExpression
     leftOperand2: SimpleIdentifier
       token: <empty> <synthetic>
     operator: |
@@ -2938,11 +2938,11 @@ var v = || y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalOr
+  leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ||
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: y
 ''');
   }
@@ -2957,11 +2957,11 @@ var v = ||;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalOr
+  leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ||
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -2974,11 +2974,11 @@ var v = x ||;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalOr
+  leftOperand: SimpleIdentifier
     token: x
   operator: ||
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -2995,15 +2995,15 @@ var v = && ||;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+LogicalOr
+  leftOperand: LogicalAnd
+    leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
     operator: &&
-    rightOperand2: SimpleIdentifier
+    rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
   operator: ||
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -3020,15 +3020,15 @@ var v = || &&;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalOr
+  leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ||
-  rightOperand2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  rightOperand: LogicalAnd
+    leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
     operator: &&
-    rightOperand2: SimpleIdentifier
+    rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
 ''');
   }

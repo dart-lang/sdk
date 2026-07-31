@@ -906,6 +906,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    _sink.writeln('IfNull');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     _sink.writeln('IfStatement');
     _sink.withIndent(() {
@@ -1066,6 +1076,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitLogicalAnd(LogicalAnd node) {
+    _sink.writeln('LogicalAnd');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitLogicalAndPattern(LogicalAndPattern node) {
     _sink.writeln('LogicalAndPattern');
     _sink.withIndent(() {
@@ -1077,6 +1097,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   @override
   void visitLogicalNot(LogicalNot node) {
     _sink.writeln('LogicalNot');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitLogicalOr(LogicalOr node) {
+    _sink.writeln('LogicalOr');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);

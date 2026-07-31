@@ -1080,13 +1080,30 @@ class AstBuilder extends StackListener {
     var right = pop() as ExpressionImpl;
     var left = pop() as ExpressionImpl;
     reportErrorIfSuper(right);
-    push(
-      BinaryExpressionImpl(
+    var expression = switch (operatorToken.type) {
+      TokenType.QUESTION_QUESTION => IfNullImpl(
+        leftOperand: left,
+        operator: operatorToken,
+        rightOperand: right,
+      ),
+
+      TokenType.AMPERSAND_AMPERSAND => LogicalAndImpl(
+        leftOperand: left,
+        operator: operatorToken,
+        rightOperand: right,
+      ),
+      TokenType.BAR_BAR => LogicalOrImpl(
+        leftOperand: left,
+        operator: operatorToken,
+        rightOperand: right,
+      ),
+      _ => BinaryExpressionImpl(
         leftOperand2: left,
         operator: operatorToken,
         rightOperand2: right,
       ),
-    );
+    };
+    push(expression);
     if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.triple_shift,

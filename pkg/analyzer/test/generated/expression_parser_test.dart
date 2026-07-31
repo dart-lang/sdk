@@ -1616,11 +1616,17 @@ var v = x ||= y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  leftHandSide2: LogicalOr
+    leftOperand: SimpleIdentifier
       token: x
     operator: ||
-    rightOperand2: SimpleIdentifier
+    rightOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+  leftHandSide(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ||
+    rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
   operator: =
   rightHandSide2: SimpleIdentifier
@@ -2625,11 +2631,11 @@ var v = x && y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalAnd
+  leftOperand: SimpleIdentifier
     token: x
   operator: &&
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: y
 ''');
   }
@@ -2640,11 +2646,11 @@ var v = x || y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalOr
+  leftOperand: SimpleIdentifier
     token: x
   operator: ||
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: y
 ''');
   }

@@ -772,6 +772,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    _writeOperand(node, node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _writeOperand(node, node.rightOperand);
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     sink.write('if (');
     _visitNode(node.expression2);
@@ -902,6 +911,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitLogicalAnd(LogicalAnd node) {
+    _writeOperand(node, node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _writeOperand(node, node.rightOperand);
+  }
+
+  @override
   void visitLogicalAndPattern(LogicalAndPattern node) {
     _visitNode(node.leftOperand);
     sink.write(' ');
@@ -914,6 +932,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitLogicalNot(LogicalNot node) {
     sink.write(node.operator.lexeme);
     _writeOperand(node, node.operand);
+  }
+
+  @override
+  void visitLogicalOr(LogicalOr node) {
+    _writeOperand(node, node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _writeOperand(node, node.rightOperand);
   }
 
   @override

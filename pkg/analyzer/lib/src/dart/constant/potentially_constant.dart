@@ -134,8 +134,26 @@ class _Collector {
       return;
     }
 
+    if (node is IfNull) {
+      collect(node.leftOperand);
+      collect(node.rightOperand);
+      return;
+    }
+
+    if (node is LogicalAnd) {
+      collect(node.leftOperand);
+      collect(node.rightOperand);
+      return;
+    }
+
     if (node is LogicalNot) {
       collect(node.operand);
+      return;
+    }
+
+    if (node is LogicalOr) {
+      collect(node.leftOperand);
+      collect(node.rightOperand);
       return;
     }
 

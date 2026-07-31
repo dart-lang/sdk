@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -37,5 +39,17 @@ ParenthesizedExpression
   rightParenthesis: )
   staticType: A
 ''');
+  }
+
+  test_unParenthesized_views() async {
+    var result = await resolveTestCode(r'''
+void f(int? x) {
+  ((x!));
+}
+''');
+
+    var node = result.findNode.parenthesized('((x!))');
+    expect(node.unParenthesized, isA<PostfixExpression>());
+    expect(node.unParenthesized2, isA<NullAssertionExpression>());
   }
 }

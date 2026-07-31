@@ -246,7 +246,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       if (node is PrefixedIdentifier) {
         targetType = node.prefix.staticType;
       } else if (node is PropertyAccess) {
-        targetType = node.realTarget.staticType;
+        targetType = node.realTarget2.staticType;
       }
       if (targetType != null) {
         var targetElement = targetType.element;

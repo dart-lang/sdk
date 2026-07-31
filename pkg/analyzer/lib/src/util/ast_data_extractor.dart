@@ -252,6 +252,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
       offset = node.question.offset;
     } else if (node is BinaryExpression) {
       offset = node.operator.offset;
+    } else if (node is IfNull) {
+      offset = node.operator.offset;
+    } else if (node is LogicalAnd) {
+      offset = node.operator.offset;
+    } else if (node is LogicalOr) {
+      offset = node.operator.offset;
     } else if (node is ConstructorInvocation) {
       offset = node.argumentList.leftParenthesis.offset;
     } else if (node is InvocationExpression) {

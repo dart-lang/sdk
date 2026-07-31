@@ -708,7 +708,6 @@ TypeLiteral
     name: C
     element: <testLibrary>::@class::C
     type: C
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -736,7 +735,6 @@ TypeLiteral
     name: C
     element: package:test/a.dart::@class::C
     type: C
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -5906,7 +5904,6 @@ TypeLiteral
     name: dynamic
     element: dynamic
     type: dynamic
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -6642,7 +6639,6 @@ TypeLiteral
     name: Never
     element: Never
     type: Never
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -7671,7 +7667,6 @@ TypeLiteral
     name: T
     element: #E0 T
     type: T
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }

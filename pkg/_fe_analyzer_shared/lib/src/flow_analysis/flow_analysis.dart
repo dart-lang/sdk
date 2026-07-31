@@ -281,21 +281,36 @@ abstract class FlowAnalysis<
 
   /// Call this method before visiting an anonymous block body.
   ///
+  /// [offset] is the last source offset that should be considered to precede
+  /// the anonymous block body. The offset of the `{` that opens the anonymous
+  /// block body is probably the best choice.
+  ///
   /// Call [anonymousBlockBody_end] after visiting the statement.
-  void anonymousBlockBody_begin();
+  void anonymousBlockBody_begin({int offset = 0});
 
   /// Call this method after visiting an anonymous block body.
-  void anonymousBlockBody_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be inside
+  /// the anonymous block body. The offset of the `}` that closes the anonymous
+  /// block body is probably the best choice.
+  void anonymousBlockBody_end({int offset = 0});
 
   /// Call this method after visiting an "as" expression.
   ///
   /// [subExpressionInfo] should be the expression info for the expression to
   /// which the "as" check was applied, and [subExpressionType] should be its
   /// static type. [castType] should be the type being cast to.
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the cast taking effect. Any value from the first character of the `as`
+  /// token to the last character of the type should work, since no expressions
+  /// can appear in this range, but the last character of the type is probably
+  /// the best choice.
   void asExpression_end(
     ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
+    int offset = 0,
   });
 
   /// Call this method after visiting the condition part of an assert statement
@@ -304,11 +319,21 @@ abstract class FlowAnalysis<
   /// [conditionInfo] should be the expression info for the assert statement's
   /// condition.
   ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the condition being checked. The best choice is probably the offset of
+  /// the `,` separating the condition and message, or the `)` if there is no
+  /// `,`.
+  ///
   /// See [assert_begin] for more information.
-  void assert_afterCondition(ExpressionInfo? conditionInfo);
+  void assert_afterCondition(ExpressionInfo? conditionInfo, {int offset = 0});
 
   /// Call this method before visiting the condition part of an assert statement
   /// (or assert initializer).
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the `assert`. The offset of any character in the `assert`
+  /// keyword should work, since no expressions can appear in this range, but
+  /// the first character of the keyword is probably the best choice.
   ///
   /// The order of visiting an assert statement with no "message" part should
   /// be:
@@ -323,13 +348,18 @@ abstract class FlowAnalysis<
   /// - Call [assert_afterCondition]
   /// - Visit the message
   /// - Call [assert_end]
-  void assert_begin();
+  void assert_begin({int offset = 0});
 
   /// Call this method after visiting an assert statement (or assert
   /// initializer).
   ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to exiting the `assert`. For an assert statement, the offset of the `;` is
+  /// probably the best choice. For an assert initializer, the offset of the `)`
+  /// is probably the best choice.
+  ///
   /// See [assert_begin] for more information.
-  void assert_end();
+  void assert_end({int offset = 0});
 
   /// Call this method after visiting a reference to a variable inside a pattern
   /// assignment.
@@ -337,11 +367,16 @@ abstract class FlowAnalysis<
   /// [node] is the pattern, [variable] is the referenced variable, and
   /// [writtenType] is the type that's written to that variable by the
   /// assignment.
+  ///
+  /// [offset] is the last source offset that should be considered prior to the
+  /// variable being considered to be "assigned". The offset of the identifier
+  /// that names the variable is probably the best choice.
   void assignedVariablePattern(
     Node node,
     Variable variable,
-    SharedTypeView writtenType,
-  );
+    SharedTypeView writtenType, {
+    int offset = 0,
+  });
 
   /// Call this method when the temporary variable holding the result of a
   /// pattern match is assigned to a user-accessible variable.
@@ -358,7 +393,15 @@ abstract class FlowAnalysis<
   /// This may be used in future calls to [assignMatchedPatternVariable] to
   /// handle nested logical-ors, or logical-ors nested within switch cases that
   /// share a body.
-  void assignMatchedPatternVariable(Variable variable, int promotionKey);
+  ///
+  /// [offset] is the last source offset that should be considered prior to the
+  /// variable being considered to be "assigned". The offset of the identifier
+  /// that names the variable is probably the best choice.
+  void assignMatchedPatternVariable(
+    Variable variable,
+    int promotionKey, {
+    int offset = 0,
+  });
 
   /// Call this method when visiting a boolean literal expression.
   ///
@@ -382,6 +425,10 @@ abstract class FlowAnalysis<
   /// the cascade sections (this is either the same as [targetType], or its
   /// non-nullable equivalent, if [isNullAware] is `true`).
   ///
+  /// [offset] is the last source offset that should be considered to precede
+  /// the cascade sections. The offset of the cascade's first `..` or `?..`
+  /// token is probably the best choice.
+  ///
   /// The order of visiting a cascade expression should be:
   /// - Visit the target
   /// - Call [cascadeExpression_afterTarget].
@@ -393,6 +440,7 @@ abstract class FlowAnalysis<
     SharedTypeView targetType, {
     required bool isNullAware,
     Variable? guardVariable,
+    int offset = 0,
   });
 
   /// Call this method just after visiting a cascade expression.
@@ -402,8 +450,23 @@ abstract class FlowAnalysis<
   /// Returns the expression info for the whole cascade expression.
   ExpressionInfo cascadeExpression_end();
 
+  /// Checks that the given [offset] is greater than or equal to any offset
+  /// previously passed to flow analysis, allowing exceptions for constructs
+  /// that are purposefully not visited in source order*.
+  ///
+  /// *For example, in C-style `for` loops, the "updater" part is visited after
+  /// the body. And in pattern assignments, the pattern is visited after the
+  /// expression.
+  ///
+  /// Has no effect if assertions are disabled.
+  void checkOffset(int offset);
+
   /// Call this method just before visiting a conditional expression ("?:").
-  void conditional_conditionBegin();
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the conditional expression. The offset of the first
+  /// character of the conditional expression is probably the best choice.
+  void conditional_conditionBegin({int offset = 0});
 
   /// Call this method upon reaching the ":" part of a conditional expression
   /// ("?:").
@@ -411,10 +474,15 @@ abstract class FlowAnalysis<
   /// [thenExpressionInfo] should be the expression info for the expression
   /// preceding the ":". [thenType] should be the static type of the expression
   /// preceding the ":".
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the "then" part of the conditional expression. The offset of the `:` token
+  /// is probably the best choice.
   void conditional_elseBegin(
     ExpressionInfo? thenExpressionInfo,
-    SharedTypeView thenType,
-  );
+    SharedTypeView thenType, {
+    int offset = 0,
+  });
 
   /// Call this method when finishing the visit of a conditional expression
   /// ("?:").
@@ -424,12 +492,17 @@ abstract class FlowAnalysis<
   /// following the ":", and [conditionalExpressionType] should be the static
   /// type of the whole conditional expression.
   ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the "else" part of the conditional expression. The end offset of the
+  /// conditional expression is probably the best choice.
+  ///
   /// Returns the expression info for the whole conditional expression.
   ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     ExpressionInfo? elseExpressionInfo,
-    SharedTypeView elseType,
-  );
+    SharedTypeView elseType, {
+    int offset = 0,
+  });
 
   /// Call this method upon reaching the "?" part of a conditional expression
   /// ("?:").
@@ -437,10 +510,15 @@ abstract class FlowAnalysis<
   /// [conditionInfo] should be the expression info for the expression preceding
   /// the "?". [conditionalExpression] should be the entire conditional
   /// expression.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the "condition" part of the conditional expression. The offset of the `?`
+  /// token is probably the best choice.
   void conditional_thenBegin(
     ExpressionInfo? conditionInfo,
-    Node conditionalExpression,
-  );
+    Node conditionalExpression, {
+    int offset = 0,
+  });
 
   /// Call this method after processing a constant pattern.
   ///
@@ -453,11 +531,16 @@ abstract class FlowAnalysis<
   /// ordinary constant pattern. If [patternsEnabled] is `false`, pattern
   /// support is disabled and this constant pattern is one of the cases of a
   /// legacy switch statement.
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the constant pattern being matched. The end offset of the constant
+  /// pattern is probably the best choice.
   void constantPattern_end(
     ExpressionInfo? expressionInfo,
     SharedTypeView type, {
     required bool patternsEnabled,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   });
 
   /// Copies promotion data associated with one promotion key to another.
@@ -467,7 +550,15 @@ abstract class FlowAnalysis<
   /// hand and right hand sides of the logical-or into a common promotion key,
   /// so that promotions will be properly unified when the control flow paths
   /// are joined.
-  void copyPromotionData({required int sourceKey, required int destinationKey});
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the copy. The end offset of the logical-or pattern is probably the best
+  /// choice.
+  void copyPromotionData({
+    required int sourceKey,
+    required int destinationKey,
+    int offset = 0,
+  });
 
   /// Registers a declaration of the [variable] in the current state.
   ///
@@ -481,10 +572,15 @@ abstract class FlowAnalysis<
   ///
   /// In debug builds, an assertion will normally verify that no variable gets
   /// declared more than once.
+  ///
+  /// [offset] is the last source offset that should be considered prior to the
+  /// variable being considered "assigned". The offset of the `;` that ends the
+  /// variable declaration is probably the best choice.
   void declare(
     Variable variable,
     SharedTypeView staticType, {
     required bool initialized,
+    int offset = 0,
   });
 
   /// Call this method after visiting a variable pattern in a non-assignment
@@ -503,28 +599,46 @@ abstract class FlowAnalysis<
   ///
   /// Returns the promotion key used by flow analysis to track the temporary
   /// variable that holds the matched value.
+  ///
+  /// [offset] is the last source offset that should be considered prior to the
+  /// variable being considered to be "assigned". The offset of the identifier
+  /// that names the variable is probably the best choice.
   int declaredVariablePattern({
     required SharedTypeView matchedType,
     required SharedTypeView staticType,
     bool isFinal = false,
     bool isLate = false,
     required bool isImplicitlyTyped,
+    int offset = 0,
   });
 
   /// Call this method before visiting the body of a "do-while" statement.
   ///
   /// [doStatement] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the do-while statement.
-  void doStatement_bodyBegin(Statement doStatement);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the loop. The offset of either character of the `do` keyword
+  /// should work, since no expressions can appear in this range, but the first
+  /// character of the keyword is probably the best choice.
+  void doStatement_bodyBegin(Statement doStatement, {int offset = 0});
 
   /// Call this method after visiting the body of a "do-while" statement, and
   /// before visiting its condition.
-  void doStatement_conditionBegin();
+  ///
+  /// [offset] is the last source offset that should be considered to be inside
+  /// the loop body. The offset of any character of the `while` keyword should
+  /// work, since no expressions can appear in this range, but the first
+  /// character of the keyword is probably the best choice.
+  void doStatement_conditionBegin({int offset = 0});
 
   /// Call this method after visiting the condition of a "do-while" statement.
   /// [conditionInfo] should be the expression info for the condition of the
   /// loop.
-  void doStatement_end(ExpressionInfo? conditionInfo);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to exiting the loop. The offset of the `;` is probably the best choice.
+  void doStatement_end(ExpressionInfo? conditionInfo, {int offset = 0});
 
   /// Call this method just after visiting the operands of a binary `==` or `!=`
   /// expression, or an invocation of `identical`.
@@ -550,11 +664,16 @@ abstract class FlowAnalysis<
   /// should be `true` iff the operator was `!=`.
   ///
   /// [matchedValueType] should be the type returned by [getMatchedValueType].
+  ///
+  /// [offset] is the last source offset that should be considered prior to the
+  /// equality check taking place. The end offset of the pattern is probably the
+  /// best choice.
   void equalityRelationalPattern_end(
     ExpressionInfo? operandInfo,
     SharedTypeView operandType, {
     bool notEqual = false,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   });
 
   /// Performs assertion checks at the conclusion of flow analysis.
@@ -576,7 +695,15 @@ abstract class FlowAnalysis<
   /// [conditionInfo] is the expression info for the loop condition. If the loop
   /// condition is empty, the caller should pass in the result of calling
   /// [booleanLiteral] and passing in a value of `true`.
-  void for_bodyBegin(Statement? node, ExpressionInfo? conditionInfo);
+  ///
+  /// [offset] is the last source offset that should be considered prior to
+  /// entry into the loop body. The offset of the `)` is probably the best
+  /// choice.
+  void for_bodyBegin(
+    Statement? node,
+    ExpressionInfo? conditionInfo, {
+    int offset = 0,
+  });
 
   /// Call this method just before visiting the condition of a conventional
   /// "for" statement or collection element.
@@ -598,19 +725,33 @@ abstract class FlowAnalysis<
   ///
   /// [node] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the for statement.
-  void for_conditionBegin(Node node);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the `for`. The offset of any character in the `for` keyword
+  /// (or `await` keyword, if present) should work, since no expressions can
+  /// appear in this range, but the first such character is probably the best
+  /// choice.
+  void for_conditionBegin(Node node, {int offset = 0});
 
   /// Call this method just after visiting the updaters of a conventional "for"
   /// statement or collection element.
   ///
   /// See [for_conditionBegin] for details.
-  void for_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be inside
+  /// the body of the `for`. The end offset of the body is probably the best
+  /// choice.
+  void for_end({int offset = 0});
 
   /// Call this method just before visiting the updaters of a conventional "for"
   /// statement or collection element.
   ///
   /// See [for_conditionBegin] for details.
-  void for_updaterBegin();
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the loop condition. The offset of the `;` separating the condition from
+  /// any updaters is probably the best choice.
+  void for_updaterBegin({int offset = 0});
 
   /// Call this method just before visiting the body of a "for-in" statement or
   /// collection element.
@@ -624,24 +765,42 @@ abstract class FlowAnalysis<
   ///
   /// [node] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the for statement.
-  void forEach_bodyBegin(Node node);
+  ///
+  /// [offset] is the last source offset that should be considered prior to
+  /// entry into the loop body. The offset of the `)` is probably the best
+  /// choice.
+  void forEach_bodyBegin(Node node, {int offset = 0});
 
   /// Call this method just before visiting the body of a "for-in" statement or
   /// collection element.
   ///
   /// See [forEach_bodyBegin] for details.
-  void forEach_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be inside
+  /// the body of the `for`. The end offset of the body is probably the best
+  /// choice.
+  void forEach_end({int offset = 0});
 
   /// Call this method just before visiting the body of a function expression or
   /// local function.
   ///
   /// [node] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the function expression.
-  void functionExpression_begin(Node node);
+  ///
+  /// [offset] is the last source offset that should be considered to be before
+  /// the body of the function expression. The offset of the `{` or `=>` that
+  /// begins the function expression is probably the best choice.
+  void functionExpression_begin(Node node, {int offset = 0});
 
   /// Call this method just after visiting the body of a function expression or
   /// local function.
-  void functionExpression_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be inside
+  /// the body of the function expression. For a block-bodied function
+  /// expression, the offset of the `}` is probably the best choice. For an
+  /// expression-bodied function expression, the end offset of the function
+  /// expression is probably the best choice.
+  void functionExpression_end({int offset = 0});
 
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
@@ -656,7 +815,11 @@ abstract class FlowAnalysis<
   /// To facilitate error recovery, [target] is allowed to be `null`; if this
   /// happens, the break statement is analyzed as though it's an unconditional
   /// branch to nowhere (i.e. similar to a `return` or `throw`).
-  void handleBreak(Statement? target);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the branch taking effect. The offset of the `;` is probably the best
+  /// choice.
+  void handleBreak(Statement? target, {int offset = 0});
 
   /// Call this method when visiting a continue statement.
   ///
@@ -665,26 +828,45 @@ abstract class FlowAnalysis<
   /// To facilitate error recovery, [target] is allowed to be `null`; if this
   /// happens, the continue statement is analyzed as though it's an
   /// unconditional branch to nowhere (i.e. similar to a `return` or `throw`).
-  void handleContinue(Statement? target);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the branch taking effect. The offset of the `;` is probably the best
+  /// choice.
+  void handleContinue(Statement? target, {int offset = 0});
 
   /// Register the fact that the current state definitely exits, e.g. returns
   /// from the body, throws an exception, etc.
   ///
   /// Should also be called if a subexpression's type is Never.
-  void handleExit();
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the branch taking effect. For a `throw` expression or an expression
+  /// whose type is `Never`, the end offset of the expression is probably the
+  /// best choice.
+  void handleExit({int offset = 0});
 
   /// Call this method when visiting a return statement.
-  void handleReturn();
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the branch taking effect. The offset of the `;` is probably the best
+  /// choice.
+  void handleReturn({int offset = 0});
 
   /// Call this method after visiting the scrutinee expression of an if-case
   /// statement.
   ///
   /// [scrutineeInfo] is the expression info for the scrutinee expression, and
   /// [scrutineeType] is its static type.
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry to the pattern. The offset of any character in the `case` keyword
+  /// should work, since no expressions can appear in this range, but the first
+  /// character of the keyword is probably the best choice.
   void ifCaseStatement_afterExpression(
     ExpressionInfo? scrutineeInfo,
-    SharedTypeView scrutineeType,
-  );
+    SharedTypeView scrutineeType, {
+    int offset = 0,
+  });
 
   /// Call this method before visiting an if-case statement.
   ///
@@ -709,7 +891,12 @@ abstract class FlowAnalysis<
   /// - Call [ifStatement_elseBegin]
   /// - Visit the "else" statement
   /// - Call [ifStatement_end], passing `true` for `hasElse`.
-  void ifCaseStatement_begin();
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the if-case statement. The offset of either character in the
+  /// `if` keyword should work, since no expressions can appear in this range,
+  /// but the first character of the keyword is probably the best choice.
+  void ifCaseStatement_begin({int offset = 0});
 
   /// Call this method after visiting pattern and guard parts of an if-case
   /// statement.
@@ -717,7 +904,11 @@ abstract class FlowAnalysis<
   /// [guardInfo] should be the expression info for the guard expression. If
   /// there is no guard expression, it should be the value returned by a call to
   /// [booleanLiteral], passing a value of `true`.
-  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo);
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the pattern part of the if-case statement. The offset of the `)` is
+  /// probably the best choice.
+  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo, {int offset = 0});
 
   /// Call this method after visiting the RHS of an if-null expression ("??")
   /// or if-null assignment ("??=").
@@ -725,14 +916,24 @@ abstract class FlowAnalysis<
   /// Note: for an if-null assignment, the call to [write] should occur before
   /// the call to [ifNullExpression_end] (since the write only occurs if the
   /// read resulted in a null value).
-  void ifNullExpression_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the RHS of the if-null expression. The end offset of the if-null
+  /// expression is probably the best choice.
+  void ifNullExpression_end({int offset = 0});
 
   /// Call this method after visiting the LHS of an if-null expression ("??")
   /// or if-null assignment ("??=").
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the LHS of the if-null expression. The offset of any character in the `??`
+  /// or `??=` token should work, since no expressions can appear in this range,
+  /// but the first character of the token is probably the best choice.
   void ifNullExpression_rightBegin(
     ExpressionInfo? leftHandSideInfo,
-    SharedTypeView leftHandSideType,
-  );
+    SharedTypeView leftHandSideType, {
+    int offset = 0,
+  });
 
   /// Call this method before visiting the condition part of an if statement.
   ///
@@ -751,21 +952,44 @@ abstract class FlowAnalysis<
   /// - Call [ifStatement_elseBegin]
   /// - Visit the "else" statement
   /// - Call [ifStatement_end], passing `true` for `hasElse`.
-  void ifStatement_conditionBegin();
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the if statement. The offset of either character in the `if`
+  /// keyword should work, since no expressions can appear in this range, but
+  /// the first character of the keyword is probably the best choice.
+  void ifStatement_conditionBegin({int offset = 0});
 
   /// Call this method after visiting the "then" part of an if statement, and
   /// before visiting the "else" part.
-  void ifStatement_elseBegin();
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the "then" part of the if statement. The offset any character in the
+  /// `else` keyword should work, since no expressions can appear in this range,
+  /// but the first character of the keyword is probably the best choice.
+  void ifStatement_elseBegin({int offset = 0});
 
   /// Call this method after visiting an if statement.
-  void ifStatement_end(bool hasElse);
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the "else" part of the if statement (or the "then" part, if no "else" part
+  /// is present). The end offset of the if statement is probably the best
+  /// choice.
+  void ifStatement_end(bool hasElse, {int offset = 0});
 
   /// Call this method after visiting the condition part of an if statement.
   ///
   /// [conditionInfo] should be the expression info for the if statement's
   /// condition. [ifNode] should be the entire `if` statement (or the collection
   /// literal entry).
-  void ifStatement_thenBegin(ExpressionInfo? conditionInfo, Node ifNode);
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the condition part of the if statement. The offset of the `)` is probably
+  /// the best choice.
+  void ifStatement_thenBegin(
+    ExpressionInfo? conditionInfo,
+    Node ifNode, {
+    int offset = 0,
+  });
 
   /// Call this method after visiting the initializer of a variable declaration,
   /// or a variable pattern that is being matched (and hence being initialized
@@ -774,6 +998,10 @@ abstract class FlowAnalysis<
   /// If the initialized value is not known (i.e. because this is a variable
   /// pattern that's being matched), pass `null` for
   /// [initializerExpressionInfo].
+  ///
+  /// [offset] is the last source offset that should be considered prior to the
+  /// variable being considered "assigned". The offset of the `;` that ends the
+  /// variable declaration is probably the best choice.
   void initialize(
     Variable variable,
     SharedTypeView matchedType,
@@ -782,6 +1010,7 @@ abstract class FlowAnalysis<
     required bool isLate,
     required bool isImplicitlyTyped,
     bool inheritPromotableProperties = false,
+    int offset = 0,
   });
 
   /// Whether the [variable] is definitely assigned in the current state.
@@ -809,20 +1038,41 @@ abstract class FlowAnalysis<
   /// Call this method before visiting a labeled statement.
   ///
   /// Call [labeledStatement_end] after visiting the statement.
-  void labeledStatement_begin(Statement node);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the labeled statement. The offset of any character in the
+  /// label should work, since no expressions can appear in this range, but the
+  /// first character of the label is probably the best choice.
+  void labeledStatement_begin(Statement node, {int offset = 0});
 
   /// Call this method after visiting a labeled statement.
-  void labeledStatement_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be within
+  /// the label's scope. The end offset of the labeled statement is probably the
+  /// best choice.
+  void labeledStatement_end({int offset = 0});
 
   /// Call this method just before visiting the initializer of a late variable.
-  void lateInitializer_begin(Node node);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the late initializer. The offset of the `=` character in
+  /// the declaration is probably the best choice.
+  void lateInitializer_begin(Node node, {int offset = 0});
 
   /// Call this method just after visiting the initializer of a late variable.
-  void lateInitializer_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be within
+  /// the late initializer. The end offset of the initializer expression is
+  /// probably the best choice.
+  void lateInitializer_end({int offset = 0});
 
   /// Call this method before visiting the LHS of a logical binary operation
   /// ("||" or "&&").
-  void logicalBinaryOp_begin();
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the logical binary operation. The start offset of the binary operation
+  /// expression is probably the best choice.
+  void logicalBinaryOp_begin({int offset = 0});
 
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
@@ -831,9 +1081,14 @@ abstract class FlowAnalysis<
   /// should indicate whether the logical operator is "&&" or "||".
   ///
   /// Returns the expression info for the whole logical binary expression.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the RHS of the logical binary operation. The end offset of the binary
+  /// operation expression is probably the best choice.
   ExpressionInfo logicalBinaryOp_end(
     ExpressionInfo? rightOperandInfo, {
     required bool isAnd,
+    int offset = 0,
   });
 
   /// Call this method after visiting the LHS of a logical binary operation
@@ -842,10 +1097,17 @@ abstract class FlowAnalysis<
   /// [leftOperandInfo] should be the expression info for the LHS. [isAnd]
   /// should indicate whether the logical operator is "&&" or "||".
   /// [wholeExpression] should be the whole logical binary expression.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the LHS of the logical binary operation. The offset of either character in
+  /// the `&&` or `||` token should work, since no expressions can appear in
+  /// this range, but the first character of the token is probably the best
+  /// choice.
   void logicalBinaryOp_rightBegin(
     ExpressionInfo? leftOperandInfo,
     Node wholeExpression, {
     required bool isAnd,
+    int offset = 0,
   });
 
   /// Call this method after visiting a logical not ("!") expression.
@@ -860,13 +1122,22 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the left hand side of a logical-or (`||`)
   /// pattern.
-  void logicalOrPattern_afterLhs();
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the LHS of the logical-or pattern. The offset of either character in the
+  /// `&&` or `||` token should work, since no expressions can appear in this
+  /// range, but the first character of the token is probably the best choice.
+  void logicalOrPattern_afterLhs({int offset = 0});
 
   /// Call this method before visiting a logical-or (`||`) pattern.
   void logicalOrPattern_begin();
 
   /// Call this method after visiting a logical-or (`||`) pattern.
-  void logicalOrPattern_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the RHS of the logical-or pattern. The end offset of the logical-or
+  /// pattern is probably the best choice.
+  void logicalOrPattern_end({int offset = 0});
 
   /// Call this method after processing a relational pattern that uses a
   /// non-equality operator (any operator other than `==` or `!=`).
@@ -874,16 +1145,28 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting a non-null assertion (`x!`)
   /// expression.
-  void nonNullAssert_end(ExpressionInfo? operandInfo);
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the operand. The offset of the `!` token is probably the best choice.
+  void nonNullAssert_end(ExpressionInfo? operandInfo, {int offset = 0});
 
   /// Call this method after visiting the value of a null-aware map entry.
-  void nullAwareMapEntry_end({required bool isKeyNullAware});
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the "value" subexpression. The end offset of the map entry is probably the
+  /// best choice.
+  void nullAwareMapEntry_end({required bool isKeyNullAware, int offset = 0});
 
   /// Call this method after visiting the key of a null-aware map entry.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the "key" subexpression. The offset of the `:` token is probably the best
+  /// choice.
   void nullAwareMapEntry_valueBegin(
     ExpressionInfo? keyInfo,
     SharedTypeView keyType, {
     required bool isKeyNullAware,
+    int offset = 0,
   });
 
   /// Call this method before visiting the subpattern of a null-check or a
@@ -893,9 +1176,14 @@ abstract class FlowAnalysis<
   /// pattern.
   ///
   /// [matchedValueType] should be the type returned by [getMatchedValueType].
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the pattern. The start offset of the pattern is probably the
+  /// best choice.
   bool nullCheckOrAssertPattern_begin({
     required bool isAssert,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   });
 
   /// Call this method after visiting the subpattern of a null-check or a
@@ -920,37 +1208,88 @@ abstract class FlowAnalysis<
   ///
   /// [rhsInfo] is the expression info for the right hand side expression, and
   /// [rhsType] is its static type.
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the pattern. The start offset of the pattern assignment is
+  /// probably the best choice.
   void patternAssignment_beforePattern(
     ExpressionInfo? rhsInfo,
-    SharedTypeView rhsType,
-  );
+    SharedTypeView rhsType, {
+    int offset = 0,
+  });
+
+  /// Call this method just before visiting the right hand side of a pattern
+  /// assignment expression.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the pattern. The offset of the `=` token is probably the best choice.
+  void patternAssignment_beforeRhs({int offset = 0});
 
   /// Call this method after visiting a pattern assignment expression.
-  void patternAssignment_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be part
+  /// of the RHS of the assignment. The end offset of the pattern assignment is
+  /// probably the best choice.
+  void patternAssignment_end({int offset = 0});
+
+  /// Call this method just before visiting the iterable expression in a for-in
+  /// loop.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the pattern. The offset of the `in` token is probably the best choice.
+  void patternForIn_beforeExpression({int offset = 0});
 
   /// Call this method just after visiting the expression (which usually
   /// implements `Iterable`, but can also be `dynamic`), and before visiting
   /// the pattern or body.
   ///
   /// [elementType] is the element type of the `Iterable`, or `dynamic`.
-  void patternForIn_beforePattern(SharedTypeView elementType);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the `for`. The offset of any character in the `for` keyword
+  /// (or `await` keyword, if present) should work, since no expressions can
+  /// appear in this range, but the first such character is probably the best
+  /// choice.
+  void patternForIn_beforePattern(SharedTypeView elementType, {int offset = 0});
 
   /// Call this method after visiting the body.
-  void patternForIn_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be inside
+  /// the body of the `for`. The end offset of the body is probably the best
+  /// choice.
+  void patternForIn_end({int offset = 0});
+
+  /// Call this method just before visiting the initializer of a pattern
+  /// variable declaration.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the pattern. The offset of the `=` token is probably the best choice.
+  void patternVariableDeclaration_beforeInitializer({int offset = 0});
 
   /// Call this method just after visiting the initializer of a pattern variable
   /// declaration, and before visiting the pattern.
   ///
   /// [initializerInfo] is the expression info for the declaration's initializer
   /// expression, and [initializerType] is its static type.
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the pattern. The offset of any character in the `var` or
+  /// `final` keyword should work, since no expressions can appear in this
+  /// range, but the first character of the keyword is probably the best choice.
   void patternVariableDeclaration_beforePattern(
     ExpressionInfo? initializerInfo,
-    SharedTypeView initializerType,
-  );
+    SharedTypeView initializerType, {
+    int offset = 0,
+  });
 
   /// Call this method after visiting the pattern of a pattern variable
   /// declaration.
-  void patternVariableDeclaration_end();
+  ///
+  /// [offset] is the last source offset that should be considered prior to the
+  /// variables in the pattern being considered "assigned". The offset of the
+  /// `;` that ends the pattern variable declaration is probably the best
+  /// choice.
+  void patternVariableDeclaration_end({int offset = 0});
 
   /// Call this method after visiting the subpattern of an object pattern, to
   /// restore the state that was saved by [pushPropertySubpattern].
@@ -965,7 +1304,18 @@ abstract class FlowAnalysis<
   ///
   /// There is no return value; it is not necessary for the caller to track any
   /// expression info for the post increment or decrement expression.
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType);
+  ///
+  /// [offset] is the last source offset that should be considered part of the
+  /// operand of the postfix increment or decrement operation. The offset of
+  /// either character in the `++` or `--` token should work, since no
+  /// expressions can appear in this range, but the first character of the token
+  /// is probably the best choice.
+  void postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType, {
+    int offset = 0,
+  });
 
   /// The type that a property named [propertyName] is promoted to, if
   /// the property is currently promoted.
@@ -1028,11 +1378,15 @@ abstract class FlowAnalysis<
   /// Returns `true` if [matchedType] is a subtype of [knownType] (and thus the
   /// user might need to be warned of an unnecessary cast or unnecessary
   /// wildcard pattern).
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the promotion taking place.
   bool promoteForPattern({
     required SharedTypeView matchedType,
     required SharedTypeView knownType,
     bool matchFailsIfWrongType = true,
     bool matchMayFailEvenIfCorrectType = false,
+    int offset = 0,
   });
 
   /// Call this method just after visiting a property get expression.
@@ -1107,11 +1461,16 @@ abstract class FlowAnalysis<
   ///
   /// If the property's type is currently promoted, the promoted type is
   /// returned. Otherwise `null` is returned.
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the subpattern. The start offset of the subpattern is
+  /// probably the best choice.
   SharedTypeView? pushPropertySubpattern(
     String propertyName,
     Object? propertyMember,
-    SharedTypeView unpromotedType,
-  );
+    SharedTypeView unpromotedType, {
+    int offset = 0,
+  });
 
   /// Call this method just before analyzing a subpattern of a pattern.
   ///
@@ -1120,7 +1479,11 @@ abstract class FlowAnalysis<
   ///
   /// Flow analysis makes no assumptions about the relation between the matched
   /// value for the outer pattern and the subpattern.
-  void pushSubpattern(SharedTypeView matchedType);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the subpattern. The start offset of the subpattern is
+  /// probably the best choice.
+  void pushSubpattern(SharedTypeView matchedType, {int offset = 0});
 
   /// Retrieves the SSA node associated with [variable].
   ///
@@ -1141,7 +1504,12 @@ abstract class FlowAnalysis<
   /// [Node] should be the AST node of the `await` expression or `yield`
   /// statement. This will be reported back via [DemoteViaSuspension.node] if
   /// any promotions are lost due to this suspension.
-  void suspension(Node node);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the suspension taking place. For an `await` expression, the end offset
+  /// of the expression is probably the best choice. For a `yield` statement,
+  /// the offset of the `;` is probably the best choice.
+  void suspension(Node node, {int offset = 0});
 
   /// Call this method just after visiting a `case` or `default` body in a
   /// switch statement, or one of the expressions in a branch of a switch
@@ -1151,14 +1519,27 @@ abstract class FlowAnalysis<
   ///
   /// This method returns a boolean indicating whether the end of the case body
   /// is "locally reachable" (i.e. reachable from its start).
-  bool switch_afterCase();
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the construct that was just visited. For a switch statement, the offset of
+  /// the next `case` keyword, `default` keyword, or label is probably the best
+  /// choice (or the `}` token, if there are no more branches). For a switch
+  /// expression, the offset of the `,` or `}` that terminates the branch is
+  /// probably the best choice.
+  bool switch_afterCase({int offset = 0});
 
   /// Call this method just before visiting a `case` or `default` clause in a
   /// switch statement, or one of the patterns in a branch of a switch
   /// expression.
   ///
   /// See [switch_scrutineeEnd] for details.
-  void switch_beginAlternative();
+  ///
+  /// [offset] is the last source offset that should be considered prior to
+  /// entry to the construct that's about to be visited. For a switch statement,
+  /// the offset of `case` keyword, `default` keyword, or label is probably the
+  /// best choice. For a switch expression, the start offset of the pattern is
+  /// probably the best choice.
+  void switch_beginAlternative({int offset = 0});
 
   /// Call this method just before visiting a sequence of one or more `case` or
   /// `default` clauses in a switch statement that share a body, or before
@@ -1178,7 +1559,11 @@ abstract class FlowAnalysis<
   /// Returns a boolean indicating whether flow analysis was able to prove the
   /// switch statement to be exhaustive (e.g. due to the presence of a `default`
   /// clause, or a pattern that is guaranteed to match the scrutinee type).
-  bool switch_end(bool isExhaustive);
+  ///
+  /// [offset] is the last source offset that should be considered part of the
+  /// switch statement or expression. The offset of the `}` token is probably
+  /// the best choice.
+  bool switch_end(bool isExhaustive, {int offset = 0});
 
   /// Call this method just after visiting a `case` or `default` clause in a
   /// switch statement, or one of the patterns (with optional guard) in a branch
@@ -1194,10 +1579,16 @@ abstract class FlowAnalysis<
   /// all variables defined by the clause's pattern; the key should be the
   /// variable name and the value should be the variable itself. If the clause
   /// is a `default` clause, [variables] should be an empty map.
+  ///
+  /// [offset] is the last source offset that should be considered part of the
+  /// construct that was just visited. For a switch statement, the offset of the
+  /// `:` token is probably the best choice. For a switch expression, the offset
+  /// of the `=>` token is probably the best choice.
   void switch_endAlternative(
     ExpressionInfo? guardInfo,
-    Map<String, Variable> variables,
-  );
+    Map<String, Variable> variables, {
+    int offset = 0,
+  });
 
   /// Call this method just after visiting a sequence of one or more `case` or
   /// `default` clauses in a switch statement that share a body, or one of the
@@ -1212,9 +1603,15 @@ abstract class FlowAnalysis<
   ///
   /// Returns a data structure describing the relationship among variables
   /// defined by patterns in the various alternatives.
+  ///
+  /// [offset] is the last source offset that should be considered part of the
+  /// construct that was just visited. For a switch statement, the offset of the
+  /// `:` token is probably the best choice. For a switch expression, the offset
+  /// of the `=>` token is probably the best choice.
   PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
+    int offset = 0,
   });
 
   /// Call this method just after visiting the expression part of a switch
@@ -1255,17 +1652,34 @@ abstract class FlowAnalysis<
   /// [scrutineeInfo] should be the expression info for the expression appearing
   /// in parentheses after the `switch` keyword, and [scrutineeType] should be
   /// its static type.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the scrutinee expression. The offset of the `)` is probably the best
+  /// choice.
   void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
-    SharedTypeView scrutineeType,
-  );
+    SharedTypeView scrutineeType, {
+    int offset = 0,
+  });
 
   /// Call this method just before changing the binding of `this`.
-  void thisBinding_begin(ExpressionInfo? targetInfo);
+  ///
+  /// [offset] is the last source offset that should be considered to precede
+  /// the change to the binding of `this`. For a block-bodied anonymous method,
+  /// the offset of the `{` that opens the anonymous block body is probably the
+  /// best choice. For an expression-bodied anonymous method, the offset of the
+  /// `=>` that opens the anonymous block body is probably the best choice.
+  void thisBinding_begin(ExpressionInfo? targetInfo, {int offset = 0});
 
   /// Call this method just after the end of a `this` binding.
-  void thisBinding_end();
+  ///
+  /// [offset] is the last source offset that should be considered to precede
+  /// restoring the old binding of `this`. For a block-bodied anonymous method,
+  /// the offset of the `}` that closes the anonymous block body is probably the
+  /// best choice. For an expression-bodied anonymous method, the end offset of
+  /// the anonymous method invocation is probably the best choice.
+  void thisBinding_end({int offset = 0});
 
   /// Call this method just after visiting the expression `this` (or the
   /// pseudo-expression `super`, in the case of the analyzer, which represents
@@ -1309,7 +1723,12 @@ abstract class FlowAnalysis<
   /// - Call [tryFinallyStatement_finallyBegin]
   /// - Visit the finally block
   /// - Call [tryFinallyStatement_end]
-  void tryCatchStatement_bodyBegin();
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the `try`. The offset of any character in the `try` keyword
+  /// should work, since no expressions can appear in this range, but the first
+  /// character of the keyword is probably the best choice.
+  void tryCatchStatement_bodyBegin({int offset = 0});
 
   /// Call this method just after visiting the body of a "try/catch" statement.
   ///
@@ -1327,10 +1746,15 @@ abstract class FlowAnalysis<
   /// [exceptionVariable] should be the exception variable declared by the catch
   /// clause, or `null` if there is no exception variable. Similar for
   /// [stackTraceVariable].
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the catch clause. The offset of the `{` token is probably
+  /// the best choice.
   void tryCatchStatement_catchBegin(
     Variable? exceptionVariable,
-    Variable? stackTraceVariable,
-  );
+    Variable? stackTraceVariable, {
+    int offset = 0,
+  });
 
   /// Call this method just after visiting a catch clause of a "try/catch"
   /// statement.
@@ -1341,7 +1765,11 @@ abstract class FlowAnalysis<
   /// Call this method just after visiting a "try/catch" statement.
   ///
   /// See [tryCatchStatement_bodyBegin] for details.
-  void tryCatchStatement_end();
+  ///
+  /// [offset] is the last source offset that should be considered part of the
+  /// last catch clause. The offset of the `}` token is probably the best
+  /// choice.
+  void tryCatchStatement_end({int offset = 0});
 
   /// Call this method just before visiting the body of a "try/finally"
   /// statement.
@@ -1360,7 +1788,10 @@ abstract class FlowAnalysis<
   /// Call this method just after visiting a "try/finally" statement.
   ///
   /// See [tryFinallyStatement_bodyBegin] for details.
-  void tryFinallyStatement_end();
+  ///
+  /// [offset] is the last source offset that should be considered part of the
+  /// `finally` clause. The offset of the `}` token is probably the best choice.
+  void tryFinallyStatement_end({int offset = 0});
 
   /// Call this method just before visiting the finally block of a "try/finally"
   /// statement.
@@ -1370,7 +1801,11 @@ abstract class FlowAnalysis<
   /// [body] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the "try" part of the try/finally
   /// statement.
-  void tryFinallyStatement_finallyBegin(Node body);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the `finally` clause. The offset of the `{` token is
+  /// probably the best choice.
+  void tryFinallyStatement_finallyBegin(Node body, {int offset = 0});
 
   /// The promotion chain associated with [variable].
   ///
@@ -1389,27 +1824,48 @@ abstract class FlowAnalysis<
   ///   pair is the promoted type. Otherwise it is `null`.
   /// - The second element of the pair is the expression info for the variable
   ///   read.
-  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to reading the variable. The offset of the identifier that names the
+  /// variable is probably the best choice.
+  (SharedTypeView?, ExpressionInfo) variableRead(
+    Variable variable, {
+    int offset = 0,
+  });
 
   /// Call this method after visiting the condition part of a "while" statement.
   ///
   /// [whileStatement] should be the full while statement. [conditionInfo]
   /// should be the expression info for the condition part of the while
   /// statement.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the condition part of the while statement. The offset of the `)` is
+  /// probably the best choice.
   void whileStatement_bodyBegin(
     Statement whileStatement,
-    ExpressionInfo? conditionInfo,
-  );
+    ExpressionInfo? conditionInfo, {
+    int offset = 0,
+  });
 
   /// Call this method before visiting the condition part of a "while"
   /// statement.
   ///
   /// [node] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the while statement.
-  void whileStatement_conditionBegin(Node node);
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to entry into the while statement. The offset of any character in the
+  /// `while` keyword should work, since no expressions can appear in this
+  /// range, but the first character of the keyword is probably the best choice.
+  void whileStatement_conditionBegin(Node node, {int offset = 0});
 
   /// Call this method after visiting a "while" statement.
-  void whileStatement_end();
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the body of the while statement. The end offset of the while statement is
+  /// probably the best choice.
+  void whileStatement_end({int offset = 0});
 
   /// Call this method when an error occurs that may be due to a lack of type
   /// promotion, to retrieve information about why an expression was not
@@ -1484,12 +1940,17 @@ abstract class FlowAnalysis<
   ///
   /// This method should not be used for the implicit write to a non-final
   /// variable in its initializer; in that case, use [initialize] instead.
+  ///
+  /// [offset] is the last source offset that should be considered prior to the
+  /// write taking place. For an assignment expression, the expression's end
+  /// offset is probably the best choice.
   ExpressionInfo? write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
-    ExpressionInfo? writtenExpressionInfo,
-  );
+    ExpressionInfo? writtenExpressionInfo, {
+    int offset = 0,
+  });
 
   /// Prints out a summary of the current state of flow analysis, intended for
   /// debugging use only.
@@ -1547,18 +2008,18 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void anonymousBlockBody_begin() {
+  void anonymousBlockBody_begin({int offset = 0}) {
     return _wrap(
-      'anonymousBlockBody_begin()',
-      () => _wrapped.anonymousBlockBody_begin(),
+      'anonymousBlockBody_begin(offset: $offset)',
+      () => _wrapped.anonymousBlockBody_begin(offset: offset),
     );
   }
 
   @override
-  void anonymousBlockBody_end() {
+  void anonymousBlockBody_end({int offset = 0}) {
     return _wrap(
-      'anonymousBlockBody_end()',
-      () => _wrapped.anonymousBlockBody_end(),
+      'anonymousBlockBody_end(offset: $offset)',
+      () => _wrapped.anonymousBlockBody_end(offset: offset),
     );
   }
 
@@ -1567,53 +2028,76 @@ class FlowAnalysisDebug<
     ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
+    int offset = 0,
   }) {
     _wrap(
       'asExpression_end($subExpressionInfo, subExpressionType: '
-      '$subExpressionType, castType: $castType)',
+      '$subExpressionType, castType: $castType, offset: $offset)',
       () => _wrapped.asExpression_end(
         subExpressionInfo,
         subExpressionType: subExpressionType,
         castType: castType,
+        offset: offset,
       ),
     );
   }
 
   @override
-  void assert_afterCondition(ExpressionInfo? conditionInfo) {
+  void assert_afterCondition(ExpressionInfo? conditionInfo, {int offset = 0}) {
     _wrap(
-      'assert_afterCondition($conditionInfo)',
-      () => _wrapped.assert_afterCondition(conditionInfo),
+      'assert_afterCondition($conditionInfo, offset: $offset)',
+      () => _wrapped.assert_afterCondition(conditionInfo, offset: offset),
     );
   }
 
   @override
-  void assert_begin() {
-    _wrap('assert_begin()', () => _wrapped.assert_begin());
+  void assert_begin({int offset = 0}) {
+    _wrap(
+      'assert_begin(offset: $offset)',
+      () => _wrapped.assert_begin(offset: offset),
+    );
   }
 
   @override
-  void assert_end() {
-    _wrap('assert_end()', () => _wrapped.assert_end());
+  void assert_end({int offset = 0}) {
+    _wrap(
+      'assert_end(offset: $offset)',
+      () => _wrapped.assert_end(offset: offset),
+    );
   }
 
   @override
   void assignedVariablePattern(
     Node node,
     Variable variable,
-    SharedTypeView writtenType,
-  ) {
+    SharedTypeView writtenType, {
+    int offset = 0,
+  }) {
     _wrap(
-      'assignedVariablePattern($node, $variable, $writtenType)',
-      () => _wrapped.assignedVariablePattern(node, variable, writtenType),
+      'assignedVariablePattern($node, $variable, $writtenType, '
+      'offset: $offset)',
+      () => _wrapped.assignedVariablePattern(
+        node,
+        variable,
+        writtenType,
+        offset: offset,
+      ),
     );
   }
 
   @override
-  void assignMatchedPatternVariable(Variable variable, int promotionKey) {
+  void assignMatchedPatternVariable(
+    Variable variable,
+    int promotionKey, {
+    int offset = 0,
+  }) {
     _wrap(
-      'assignMatchedPatternVariable($variable, $promotionKey)',
-      () => _wrapped.assignMatchedPatternVariable(variable, promotionKey),
+      'assignMatchedPatternVariable($variable, $promotionKey, offset: $offset)',
+      () => _wrapped.assignMatchedPatternVariable(
+        variable,
+        promotionKey,
+        offset: offset,
+      ),
     );
   }
 
@@ -1633,15 +2117,17 @@ class FlowAnalysisDebug<
     SharedTypeView targetType, {
     required bool isNullAware,
     Variable? guardVariable,
+    int offset = 0,
   }) {
     return _wrap(
       'cascadeExpression_afterTarget($targetInfo, $targetType, isNullAware: '
-      '$isNullAware, guardVariable: $guardVariable)',
+      '$isNullAware, guardVariable: $guardVariable, offset: $offset)',
       () => _wrapped.cascadeExpression_afterTarget(
         targetInfo,
         targetType,
         isNullAware: isNullAware,
         guardVariable: guardVariable,
+        offset: offset,
       ),
       isQuery: true,
       isPure: false,
@@ -1659,21 +2145,31 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void conditional_conditionBegin() {
+  void checkOffset(int offset) {
+    return _wrap('checkOffset($offset)', () => _wrapped.checkOffset(offset));
+  }
+
+  @override
+  void conditional_conditionBegin({int offset = 0}) {
     _wrap(
-      'conditional_conditionBegin()',
-      () => _wrapped.conditional_conditionBegin(),
+      'conditional_conditionBegin(offset: $offset)',
+      () => _wrapped.conditional_conditionBegin(offset: offset),
     );
   }
 
   @override
   void conditional_elseBegin(
     ExpressionInfo? thenExpressionInfo,
-    SharedTypeView thenType,
-  ) {
+    SharedTypeView thenType, {
+    int offset = 0,
+  }) {
     _wrap(
-      'conditional_elseBegin($thenExpressionInfo, $thenType)',
-      () => _wrapped.conditional_elseBegin(thenExpressionInfo, thenType),
+      'conditional_elseBegin($thenExpressionInfo, $thenType, offset: $offset)',
+      () => _wrapped.conditional_elseBegin(
+        thenExpressionInfo,
+        thenType,
+        offset: offset,
+      ),
     );
   }
 
@@ -1681,15 +2177,17 @@ class FlowAnalysisDebug<
   ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     ExpressionInfo? elseExpressionInfo,
-    SharedTypeView elseType,
-  ) {
+    SharedTypeView elseType, {
+    int offset = 0,
+  }) {
     return _wrap(
       'conditional_end($conditionalExpressionType, '
-      '$elseExpressionInfo, $elseType)',
+      '$elseExpressionInfo, $elseType, offset: $offset)',
       () => _wrapped.conditional_end(
         conditionalExpressionType,
         elseExpressionInfo,
         elseType,
+        offset: offset,
       ),
       isQuery: true,
       isPure: false,
@@ -1699,12 +2197,17 @@ class FlowAnalysisDebug<
   @override
   void conditional_thenBegin(
     ExpressionInfo? conditionInfo,
-    Node conditionalExpression,
-  ) {
+    Node conditionalExpression, {
+    int offset = 0,
+  }) {
     _wrap(
-      'conditional_thenBegin($conditionInfo, $conditionalExpression)',
-      () =>
-          _wrapped.conditional_thenBegin(conditionInfo, conditionalExpression),
+      'conditional_thenBegin($conditionInfo, $conditionalExpression, '
+      'offset: $offset)',
+      () => _wrapped.conditional_thenBegin(
+        conditionInfo,
+        conditionalExpression,
+        offset: offset,
+      ),
     );
   }
 
@@ -1714,16 +2217,18 @@ class FlowAnalysisDebug<
     SharedTypeView type, {
     required bool patternsEnabled,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   }) {
     _wrap(
       'constantPattern_end($expressionInfo, $type, '
       'patternsEnabled: $patternsEnabled, '
-      'matchedValueType: $matchedValueType)',
+      'matchedValueType: $matchedValueType, offset: $offset)',
       () => _wrapped.constantPattern_end(
         expressionInfo,
         type,
         patternsEnabled: patternsEnabled,
         matchedValueType: matchedValueType,
+        offset: offset,
       ),
     );
   }
@@ -1732,13 +2237,15 @@ class FlowAnalysisDebug<
   void copyPromotionData({
     required int sourceKey,
     required int destinationKey,
+    int offset = 0,
   }) {
     _wrap(
       'copyPromotionData(sourceKey: $sourceKey, '
-      'destinationKey: $destinationKey)',
+      'destinationKey: $destinationKey, offset: $offset)',
       () => _wrapped.copyPromotionData(
         sourceKey: sourceKey,
         destinationKey: destinationKey,
+        offset: offset,
       ),
     );
   }
@@ -1748,10 +2255,17 @@ class FlowAnalysisDebug<
     Variable variable,
     SharedTypeView staticType, {
     required bool initialized,
+    int offset = 0,
   }) {
     _wrap(
-      'declare($variable, $staticType, initialized: $initialized)',
-      () => _wrapped.declare(variable, staticType, initialized: initialized),
+      'declare($variable, $staticType, initialized: $initialized, '
+      'offset: $offset)',
+      () => _wrapped.declare(
+        variable,
+        staticType,
+        initialized: initialized,
+        offset: offset,
+      ),
     );
   }
 
@@ -1762,17 +2276,20 @@ class FlowAnalysisDebug<
     bool isFinal = false,
     bool isLate = false,
     required bool isImplicitlyTyped,
+    int offset = 0,
   }) {
     return _wrap(
       'declaredVariablePattern(matchedType: $matchedType, '
       'staticType: $staticType, isFinal: $isFinal, '
-      'isLate: $isLate, isImplicitlyTyped: $isImplicitlyTyped)',
+      'isLate: $isLate, isImplicitlyTyped: $isImplicitlyTyped, '
+      'offset: $offset)',
       () => _wrapped.declaredVariablePattern(
         matchedType: matchedType,
         staticType: staticType,
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: isImplicitlyTyped,
+        offset: offset,
       ),
       isQuery: true,
       isPure: false,
@@ -1780,26 +2297,26 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void doStatement_bodyBegin(Statement doStatement) {
+  void doStatement_bodyBegin(Statement doStatement, {int offset = 0}) {
     return _wrap(
-      'doStatement_bodyBegin($doStatement)',
-      () => _wrapped.doStatement_bodyBegin(doStatement),
+      'doStatement_bodyBegin($doStatement, offset: $offset)',
+      () => _wrapped.doStatement_bodyBegin(doStatement, offset: offset),
     );
   }
 
   @override
-  void doStatement_conditionBegin() {
+  void doStatement_conditionBegin({int offset = 0}) {
     return _wrap(
-      'doStatement_conditionBegin()',
-      () => _wrapped.doStatement_conditionBegin(),
+      'doStatement_conditionBegin(offset: $offset)',
+      () => _wrapped.doStatement_conditionBegin(offset: offset),
     );
   }
 
   @override
-  void doStatement_end(ExpressionInfo? conditionInfo) {
+  void doStatement_end(ExpressionInfo? conditionInfo, {int offset = 0}) {
     return _wrap(
-      'doStatement_end($conditionInfo)',
-      () => _wrapped.doStatement_end(conditionInfo),
+      'doStatement_end($conditionInfo, offset: $offset)',
+      () => _wrapped.doStatement_end(conditionInfo, offset: offset),
     );
   }
 
@@ -1833,15 +2350,18 @@ class FlowAnalysisDebug<
     SharedTypeView operandType, {
     bool notEqual = false,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   }) {
     _wrap(
       'equalityRelationalPattern_end($operandInfo, $operandType, '
-      'notEqual: $notEqual, matchedValueType: $matchedValueType)',
+      'notEqual: $notEqual, matchedValueType: $matchedValueType, '
+      'offset: $offset)',
       () => _wrapped.equalityRelationalPattern_end(
         operandInfo,
         operandType,
         notEqual: notEqual,
         matchedValueType: matchedValueType,
+        offset: offset,
       ),
     );
   }
@@ -1856,52 +2376,68 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void for_bodyBegin(Statement? node, ExpressionInfo? conditionInfo) {
+  void for_bodyBegin(
+    Statement? node,
+    ExpressionInfo? conditionInfo, {
+    int offset = 0,
+  }) {
     _wrap(
-      'for_bodyBegin($node, $conditionInfo)',
-      () => _wrapped.for_bodyBegin(node, conditionInfo),
+      'for_bodyBegin($node, $conditionInfo, offset: $offset)',
+      () => _wrapped.for_bodyBegin(node, conditionInfo, offset: offset),
     );
   }
 
   @override
-  void for_conditionBegin(Node node) {
-    _wrap('for_conditionBegin($node)', () => _wrapped.for_conditionBegin(node));
+  void for_conditionBegin(Node node, {int offset = 0}) {
+    _wrap(
+      'for_conditionBegin($node, offset: $offset)',
+      () => _wrapped.for_conditionBegin(node, offset: offset),
+    );
   }
 
   @override
-  void for_end() {
-    _wrap('for_end()', () => _wrapped.for_end());
+  void for_end({int offset = 0}) {
+    _wrap('for_end(offset: $offset)', () => _wrapped.for_end(offset: offset));
   }
 
   @override
-  void for_updaterBegin() {
-    _wrap('for_updaterBegin()', () => _wrapped.for_updaterBegin());
+  void for_updaterBegin({int offset = 0}) {
+    _wrap(
+      'for_updaterBegin(offset: $offset)',
+      () => _wrapped.for_updaterBegin(offset: offset),
+    );
   }
 
   @override
-  void forEach_bodyBegin(Node node) {
+  void forEach_bodyBegin(Node node, {int offset = 0}) {
     return _wrap(
-      'forEach_bodyBegin($node)',
-      () => _wrapped.forEach_bodyBegin(node),
+      'forEach_bodyBegin($node, offset: $offset)',
+      () => _wrapped.forEach_bodyBegin(node, offset: offset),
     );
   }
 
   @override
-  void forEach_end() {
-    return _wrap('forEach_end()', () => _wrapped.forEach_end());
+  void forEach_end({int offset = 0}) {
+    return _wrap(
+      'forEach_end(offset: $offset)',
+      () => _wrapped.forEach_end(offset: offset),
+    );
   }
 
   @override
-  void functionExpression_begin(Node node) {
+  void functionExpression_begin(Node node, {int offset = 0}) {
     _wrap(
-      'functionExpression_begin($node)',
-      () => _wrapped.functionExpression_begin(node),
+      'functionExpression_begin($node, offset: $offset)',
+      () => _wrapped.functionExpression_begin(node, offset: offset),
     );
   }
 
   @override
-  void functionExpression_end() {
-    _wrap('functionExpression_end()', () => _wrapped.functionExpression_end());
+  void functionExpression_end({int offset = 0}) {
+    _wrap(
+      'functionExpression_end(offset: $offset)',
+      () => _wrapped.functionExpression_end(offset: offset),
+    );
   }
 
   @override
@@ -1914,100 +2450,129 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void handleBreak(Statement? target) {
-    _wrap('handleBreak($target)', () => _wrapped.handleBreak(target));
+  void handleBreak(Statement? target, {int offset = 0}) {
+    _wrap(
+      'handleBreak($target, offset: $offset)',
+      () => _wrapped.handleBreak(target, offset: offset),
+    );
   }
 
   @override
-  void handleContinue(Statement? target) {
-    _wrap('handleContinue($target)', () => _wrapped.handleContinue(target));
+  void handleContinue(Statement? target, {int offset = 0}) {
+    _wrap(
+      'handleContinue($target, offset: $offset)',
+      () => _wrapped.handleContinue(target, offset: offset),
+    );
   }
 
   @override
-  void handleExit() {
-    _wrap('handleExit()', () => _wrapped.handleExit());
+  void handleExit({int offset = 0}) {
+    _wrap(
+      'handleExit(offset: $offset)',
+      () => _wrapped.handleExit(offset: offset),
+    );
   }
 
   @override
-  void handleReturn() {
-    _wrap('handleReturn()', () => _wrapped.handleReturn());
+  void handleReturn({int offset = 0}) {
+    _wrap(
+      'handleReturn(offset: $offset)',
+      () => _wrapped.handleReturn(offset: offset),
+    );
   }
 
   @override
   void ifCaseStatement_afterExpression(
     ExpressionInfo? scrutineeInfo,
-    SharedTypeView scrutineeType,
-  ) {
+    SharedTypeView scrutineeType, {
+    int offset = 0,
+  }) {
     _wrap(
-      'ifCaseStatement_afterExpression($scrutineeInfo, $scrutineeType)',
+      'ifCaseStatement_afterExpression($scrutineeInfo, $scrutineeType, '
+      'offset: $offset)',
       () => _wrapped.ifCaseStatement_afterExpression(
         scrutineeInfo,
         scrutineeType,
+        offset: offset,
       ),
     );
   }
 
   @override
-  void ifCaseStatement_begin() {
-    _wrap('ifCaseStatement_begin()', () => _wrapped.ifCaseStatement_begin());
-  }
-
-  @override
-  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo) {
+  void ifCaseStatement_begin({int offset = 0}) {
     _wrap(
-      'ifCaseStatement_thenBegin($guardInfo)',
-      () => _wrapped.ifCaseStatement_thenBegin(guardInfo),
+      'ifCaseStatement_begin(offset: $offset)',
+      () => _wrapped.ifCaseStatement_begin(offset: offset),
     );
   }
 
   @override
-  void ifNullExpression_end() {
+  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo, {int offset = 0}) {
+    _wrap(
+      'ifCaseStatement_thenBegin($guardInfo, offset: $offset)',
+      () => _wrapped.ifCaseStatement_thenBegin(guardInfo, offset: offset),
+    );
+  }
+
+  @override
+  void ifNullExpression_end({int offset = 0}) {
     return _wrap(
-      'ifNullExpression_end()',
-      () => _wrapped.ifNullExpression_end(),
+      'ifNullExpression_end(offset: $offset)',
+      () => _wrapped.ifNullExpression_end(offset: offset),
     );
   }
 
   @override
   void ifNullExpression_rightBegin(
     ExpressionInfo? leftHandSideInfo,
-    SharedTypeView leftHandSideType,
-  ) {
+    SharedTypeView leftHandSideType, {
+    int offset = 0,
+  }) {
     _wrap(
-      'ifNullExpression_rightBegin($leftHandSideInfo, $leftHandSideType)',
+      'ifNullExpression_rightBegin($leftHandSideInfo, $leftHandSideType, '
+      'offset: $offset)',
       () => _wrapped.ifNullExpression_rightBegin(
         leftHandSideInfo,
         leftHandSideType,
+        offset: offset,
       ),
     );
   }
 
   @override
-  void ifStatement_conditionBegin() {
+  void ifStatement_conditionBegin({int offset = 0}) {
     return _wrap(
-      'ifStatement_conditionBegin()',
-      () => _wrapped.ifStatement_conditionBegin(),
+      'ifStatement_conditionBegin(offset: $offset)',
+      () => _wrapped.ifStatement_conditionBegin(offset: offset),
     );
   }
 
   @override
-  void ifStatement_elseBegin() {
+  void ifStatement_elseBegin({int offset = 0}) {
     return _wrap(
-      'ifStatement_elseBegin()',
-      () => _wrapped.ifStatement_elseBegin(),
+      'ifStatement_elseBegin(offset: $offset)',
+      () => _wrapped.ifStatement_elseBegin(offset: offset),
     );
   }
 
   @override
-  void ifStatement_end(bool hasElse) {
-    _wrap('ifStatement_end($hasElse)', () => _wrapped.ifStatement_end(hasElse));
-  }
-
-  @override
-  void ifStatement_thenBegin(ExpressionInfo? conditionInfo, Node ifNode) {
+  void ifStatement_end(bool hasElse, {int offset = 0}) {
     _wrap(
-      'ifStatement_thenBegin($conditionInfo, $ifNode)',
-      () => _wrapped.ifStatement_thenBegin(conditionInfo, ifNode),
+      'ifStatement_end($hasElse, offset: $offset)',
+      () => _wrapped.ifStatement_end(hasElse, offset: offset),
+    );
+  }
+
+  @override
+  void ifStatement_thenBegin(
+    ExpressionInfo? conditionInfo,
+    Node ifNode, {
+    int offset = 0,
+  }) {
+    _wrap(
+      'ifStatement_thenBegin($conditionInfo, $ifNode, offset: $offset)',
+      () =>
+          _wrapped.ifStatement_thenBegin(conditionInfo, ifNode, offset: offset),
     );
   }
 
@@ -2020,12 +2585,14 @@ class FlowAnalysisDebug<
     required bool isLate,
     required bool isImplicitlyTyped,
     bool inheritPromotableProperties = false,
+    int offset = 0,
   }) {
     _wrap(
       'initialize($variable, $matchedType, $initializerExpressionInfo, '
       'isFinal: $isFinal, isLate: $isLate, '
       'isImplicitlyTyped: $isImplicitlyTyped, '
-      'inheritPromotableProperties: $inheritPromotableProperties)',
+      'inheritPromotableProperties: $inheritPromotableProperties, '
+      'offset: $offset)',
       () => _wrapped.initialize(
         variable,
         matchedType,
@@ -2034,6 +2601,7 @@ class FlowAnalysisDebug<
         isLate: isLate,
         isImplicitlyTyped: isImplicitlyTyped,
         inheritPromotableProperties: inheritPromotableProperties,
+        offset: offset,
       ),
     );
   }
@@ -2078,47 +2646,58 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void labeledStatement_begin(Statement node) {
+  void labeledStatement_begin(Statement node, {int offset = 0}) {
     return _wrap(
-      'labeledStatement_begin($node)',
-      () => _wrapped.labeledStatement_begin(node),
+      'labeledStatement_begin($node, offset: $offset)',
+      () => _wrapped.labeledStatement_begin(node, offset: offset),
     );
   }
 
   @override
-  void labeledStatement_end() {
+  void labeledStatement_end({int offset = 0}) {
     return _wrap(
-      'labeledStatement_end()',
-      () => _wrapped.labeledStatement_end(),
+      'labeledStatement_end(offset: $offset)',
+      () => _wrapped.labeledStatement_end(offset: offset),
     );
   }
 
   @override
-  void lateInitializer_begin(Node node) {
+  void lateInitializer_begin(Node node, {int offset = 0}) {
     _wrap(
-      'lateInitializer_begin($node)',
-      () => _wrapped.lateInitializer_begin(node),
+      'lateInitializer_begin($node, offset: $offset)',
+      () => _wrapped.lateInitializer_begin(node, offset: offset),
     );
   }
 
   @override
-  void lateInitializer_end() {
-    _wrap('lateInitializer_end()', () => _wrapped.lateInitializer_end());
+  void lateInitializer_end({int offset = 0}) {
+    _wrap(
+      'lateInitializer_end(offset: $offset)',
+      () => _wrapped.lateInitializer_end(offset: offset),
+    );
   }
 
   @override
-  void logicalBinaryOp_begin() {
-    _wrap('logicalBinaryOp_begin()', () => _wrapped.logicalBinaryOp_begin());
+  void logicalBinaryOp_begin({int offset = 0}) {
+    _wrap(
+      'logicalBinaryOp_begin(offset: $offset)',
+      () => _wrapped.logicalBinaryOp_begin(offset: offset),
+    );
   }
 
   @override
   ExpressionInfo logicalBinaryOp_end(
     ExpressionInfo? rightOperandInfo, {
     required bool isAnd,
+    int offset = 0,
   }) {
     return _wrap(
-      'logicalBinaryOp_end($rightOperandInfo, isAnd: $isAnd)',
-      () => _wrapped.logicalBinaryOp_end(rightOperandInfo, isAnd: isAnd),
+      'logicalBinaryOp_end($rightOperandInfo, isAnd: $isAnd, offset: $offset)',
+      () => _wrapped.logicalBinaryOp_end(
+        rightOperandInfo,
+        isAnd: isAnd,
+        offset: offset,
+      ),
       isQuery: true,
       isPure: false,
     );
@@ -2129,14 +2708,16 @@ class FlowAnalysisDebug<
     ExpressionInfo? leftOperandInfo,
     Node wholeExpression, {
     required bool isAnd,
+    int offset = 0,
   }) {
     _wrap(
       'logicalBinaryOp_rightBegin($leftOperandInfo, $wholeExpression, '
-      'isAnd: $isAnd)',
+      'isAnd: $isAnd, offset: $offset)',
       () => _wrapped.logicalBinaryOp_rightBegin(
         leftOperandInfo,
         wholeExpression,
         isAnd: isAnd,
+        offset: offset,
       ),
     );
   }
@@ -2151,10 +2732,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void logicalOrPattern_afterLhs() {
+  void logicalOrPattern_afterLhs({int offset = 0}) {
     _wrap(
-      'logicalOrPattern_afterLhs()',
-      () => _wrapped.logicalOrPattern_afterLhs(),
+      'logicalOrPattern_afterLhs(offset: $offset)',
+      () => _wrapped.logicalOrPattern_afterLhs(offset: offset),
     );
   }
 
@@ -2164,8 +2745,11 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void logicalOrPattern_end() {
-    _wrap('logicalOrPattern_end()', () => _wrapped.logicalOrPattern_end());
+  void logicalOrPattern_end({int offset = 0}) {
+    _wrap(
+      'logicalOrPattern_end(offset: $offset)',
+      () => _wrapped.logicalOrPattern_end(offset: offset),
+    );
   }
 
   @override
@@ -2177,16 +2761,19 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nonNullAssert_end(ExpressionInfo? operandInfo) {
+  void nonNullAssert_end(ExpressionInfo? operandInfo, {int offset = 0}) {
     return _wrap(
-      'nonNullAssert_end($operandInfo)',
-      () => _wrapped.nonNullAssert_end(operandInfo),
+      'nonNullAssert_end($operandInfo, offset: $offset)',
+      () => _wrapped.nonNullAssert_end(operandInfo, offset: offset),
     );
   }
 
   @override
-  void nullAwareAccess_end() {
-    _wrap('nullAwareAccess_end()', () => _wrapped.nullAwareAccess_end());
+  void nullAwareAccess_end({int offset = 0}) {
+    _wrap(
+      'nullAwareAccess_end(offset: $offset)',
+      () => _wrapped.nullAwareAccess_end(offset: offset),
+    );
   }
 
   @override
@@ -2194,14 +2781,16 @@ class FlowAnalysisDebug<
     ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     Variable? guardVariable,
+    int offset = 0,
   }) {
     return _wrap(
       'nullAwareAccess_rightBegin($targetInfo, $targetType, '
-      'guardVariable: $guardVariable)',
+      'guardVariable: $guardVariable, offset: $offset)',
       () => _wrapped.nullAwareAccess_rightBegin(
         targetInfo,
         targetType,
         guardVariable: guardVariable,
+        offset: offset,
       ),
       isQuery: true,
       isPure: false,
@@ -2209,10 +2798,13 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nullAwareMapEntry_end({required bool isKeyNullAware}) {
+  void nullAwareMapEntry_end({required bool isKeyNullAware, int offset = 0}) {
     return _wrap(
-      'nullAwareMapEntry_end(isKeyNullAware: $isKeyNullAware)',
-      () => _wrapped.nullAwareMapEntry_end(isKeyNullAware: isKeyNullAware),
+      'nullAwareMapEntry_end(isKeyNullAware: $isKeyNullAware, offset: $offset)',
+      () => _wrapped.nullAwareMapEntry_end(
+        isKeyNullAware: isKeyNullAware,
+        offset: offset,
+      ),
     );
   }
 
@@ -2221,14 +2813,16 @@ class FlowAnalysisDebug<
     ExpressionInfo? keyInfo,
     SharedTypeView keyType, {
     required bool isKeyNullAware,
+    int offset = 0,
   }) {
     _wrap(
       'nullAwareMapEntry_valueBegin($keyInfo, $keyType, '
-      'isKeyNullAware: $isKeyNullAware)',
+      'isKeyNullAware: $isKeyNullAware, offset: $offset)',
       () => _wrapped.nullAwareMapEntry_valueBegin(
         keyInfo,
         keyType,
         isKeyNullAware: isKeyNullAware,
+        offset: offset,
       ),
     );
   }
@@ -2237,13 +2831,15 @@ class FlowAnalysisDebug<
   bool nullCheckOrAssertPattern_begin({
     required bool isAssert,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   }) {
     return _wrap(
       'nullCheckOrAssertPattern_begin(isAssert: $isAssert, '
-      'matchedValueType: $matchedValueType)',
+      'matchedValueType: $matchedValueType, offset: $offset)',
       () => _wrapped.nullCheckOrAssertPattern_begin(
         isAssert: isAssert,
         matchedValueType: matchedValueType,
+        offset: offset,
       ),
       isQuery: true,
       isPure: false,
@@ -2281,52 +2877,93 @@ class FlowAnalysisDebug<
   @override
   void patternAssignment_beforePattern(
     ExpressionInfo? rhsInfo,
-    SharedTypeView rhsType,
-  ) {
+    SharedTypeView rhsType, {
+    int offset = 0,
+  }) {
     _wrap(
-      'patternAssignment_beforePattern($rhsInfo, $rhsType)',
-      () => _wrapped.patternAssignment_beforePattern(rhsInfo, rhsType),
-    );
-  }
-
-  @override
-  void patternAssignment_end() {
-    _wrap('patternAssignment_end()', () => _wrapped.patternAssignment_end());
-  }
-
-  @override
-  void patternForIn_beforePattern(SharedTypeView elementType) {
-    _wrap(
-      'patternForIn_beforePattern($elementType)',
-      () => _wrapped.patternForIn_beforePattern(elementType),
-    );
-  }
-
-  @override
-  void patternForIn_end() {
-    _wrap('patternForIn_end()', () => _wrapped.patternForIn_end());
-  }
-
-  @override
-  void patternVariableDeclaration_beforePattern(
-    ExpressionInfo? initializerInfo,
-    SharedTypeView initializerType,
-  ) {
-    _wrap(
-      'patternVariableDeclaration_beforePattern($initializerInfo, '
-      '$initializerType)',
-      () => _wrapped.patternVariableDeclaration_beforePattern(
-        initializerInfo,
-        initializerType,
+      'patternAssignment_beforePattern($rhsInfo, $rhsType, offset: $offset)',
+      () => _wrapped.patternAssignment_beforePattern(
+        rhsInfo,
+        rhsType,
+        offset: offset,
       ),
     );
   }
 
   @override
-  void patternVariableDeclaration_end() {
+  void patternAssignment_beforeRhs({int offset = 0}) {
     _wrap(
-      'patternVariableDeclaration_end()',
-      () => _wrapped.patternVariableDeclaration_end(),
+      'patternAssignment_beforeRhs(offset: $offset)',
+      () => _wrapped.patternAssignment_beforeRhs(offset: offset),
+    );
+  }
+
+  @override
+  void patternAssignment_end({int offset = 0}) {
+    _wrap(
+      'patternAssignment_end(offset: $offset)',
+      () => _wrapped.patternAssignment_end(offset: offset),
+    );
+  }
+
+  @override
+  void patternForIn_beforeExpression({int offset = 0}) {
+    _wrap(
+      'patternForIn_beforeExpression(offset: $offset)',
+      () => _wrapped.patternForIn_beforeExpression(offset: offset),
+    );
+  }
+
+  @override
+  void patternForIn_beforePattern(
+    SharedTypeView elementType, {
+    int offset = 0,
+  }) {
+    _wrap(
+      'patternForIn_beforePattern($elementType, offset: $offset)',
+      () => _wrapped.patternForIn_beforePattern(elementType, offset: offset),
+    );
+  }
+
+  @override
+  void patternForIn_end({int offset = 0}) {
+    _wrap(
+      'patternForIn_end(offset: $offset)',
+      () => _wrapped.patternForIn_end(offset: offset),
+    );
+  }
+
+  @override
+  void patternVariableDeclaration_beforeInitializer({int offset = 0}) {
+    _wrap(
+      'patternVariableDeclaration_beforeInitializer(offset: $offset)',
+      () =>
+          _wrapped.patternVariableDeclaration_beforeInitializer(offset: offset),
+    );
+  }
+
+  @override
+  void patternVariableDeclaration_beforePattern(
+    ExpressionInfo? initializerInfo,
+    SharedTypeView initializerType, {
+    int offset = 0,
+  }) {
+    _wrap(
+      'patternVariableDeclaration_beforePattern($initializerInfo, '
+      '$initializerType, offset: $offset)',
+      () => _wrapped.patternVariableDeclaration_beforePattern(
+        initializerInfo,
+        initializerType,
+        offset: offset,
+      ),
+    );
+  }
+
+  @override
+  void patternVariableDeclaration_end({int offset = 0}) {
+    _wrap(
+      'patternVariableDeclaration_end(offset: $offset)',
+      () => _wrapped.patternVariableDeclaration_end(offset: offset),
     );
   }
 
@@ -2341,10 +2978,15 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType) {
+  void postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType, {
+    int offset = 0,
+  }) {
     _wrap(
-      'postIncDec()',
-      () => _wrapped.postIncDec(node, variable, writtenType),
+      'postIncDec(offset: $offset)',
+      () => _wrapped.postIncDec(node, variable, writtenType, offset: offset),
     );
   }
 
@@ -2383,17 +3025,20 @@ class FlowAnalysisDebug<
     required SharedTypeView knownType,
     bool matchFailsIfWrongType = true,
     bool matchMayFailEvenIfCorrectType = false,
+    int offset = 0,
   }) {
     return _wrap(
       'patternRequiredType(matchedType: $matchedType, '
       'requiredType: $knownType, '
       'matchFailsIfWrongType: $matchFailsIfWrongType, '
-      'matchMayFailEvenIfCorrectType: $matchMayFailEvenIfCorrectType)',
+      'matchMayFailEvenIfCorrectType: $matchMayFailEvenIfCorrectType, '
+      'offset: $offset)',
       () => _wrapped.promoteForPattern(
         matchedType: matchedType,
         knownType: knownType,
         matchFailsIfWrongType: matchFailsIfWrongType,
         matchMayFailEvenIfCorrectType: matchMayFailEvenIfCorrectType,
+        offset: offset,
       ),
       isQuery: true,
       isPure: false,
@@ -2443,15 +3088,17 @@ class FlowAnalysisDebug<
   SharedTypeView? pushPropertySubpattern(
     String propertyName,
     Object? propertyMember,
-    SharedTypeView unpromotedType,
-  ) {
+    SharedTypeView unpromotedType, {
+    int offset = 0,
+  }) {
     return _wrap(
       'pushPropertySubpattern($propertyName, $propertyMember, '
-      '$unpromotedType)',
+      '$unpromotedType, offset: $offset)',
       () => _wrapped.pushPropertySubpattern(
         propertyName,
         propertyMember,
         unpromotedType,
+        offset: offset,
       ),
       isQuery: true,
       isPure: false,
@@ -2459,10 +3106,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void pushSubpattern(SharedTypeView matchedType) {
+  void pushSubpattern(SharedTypeView matchedType, {int offset = 0}) {
     _wrap(
-      'pushSubpattern($matchedType)',
-      () => _wrapped.pushSubpattern(matchedType),
+      'pushSubpattern($matchedType, offset: $offset)',
+      () => _wrapped.pushSubpattern(matchedType, offset: offset),
     );
   }
 
@@ -2476,25 +3123,28 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void suspension(Node node) {
-    _wrap('suspension($node)', () => _wrapped.suspension(node));
+  void suspension(Node node, {int offset = 0}) {
+    _wrap(
+      'suspension($node, offset: $offset)',
+      () => _wrapped.suspension(node, offset: offset),
+    );
   }
 
   @override
-  bool switch_afterCase() {
+  bool switch_afterCase({int offset = 0}) {
     return _wrap(
-      'switch_afterCase()',
-      () => _wrapped.switch_afterCase(),
+      'switch_afterCase(offset: $offset)',
+      () => _wrapped.switch_afterCase(offset: offset),
       isPure: false,
       isQuery: true,
     );
   }
 
   @override
-  void switch_beginAlternative() {
+  void switch_beginAlternative({int offset = 0}) {
     _wrap(
-      'switch_beginAlternative()',
-      () => _wrapped.switch_beginAlternative(),
+      'switch_beginAlternative(offset: $offset)',
+      () => _wrapped.switch_beginAlternative(offset: offset),
     );
   }
 
@@ -2507,10 +3157,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  bool switch_end(bool isExhaustive) {
+  bool switch_end(bool isExhaustive, {int offset = 0}) {
     return _wrap(
-      'switch_end($isExhaustive)',
-      () => _wrapped.switch_end(isExhaustive),
+      'switch_end($isExhaustive, offset: $offset)',
+      () => _wrapped.switch_end(isExhaustive, offset: offset),
       isQuery: true,
       isPure: false,
     );
@@ -2519,11 +3169,13 @@ class FlowAnalysisDebug<
   @override
   void switch_endAlternative(
     ExpressionInfo? guardInfo,
-    Map<String, Variable> variables,
-  ) {
+    Map<String, Variable> variables, {
+    int offset = 0,
+  }) {
     _wrap(
-      'switch_endAlternative($guardInfo, $variables)',
-      () => _wrapped.switch_endAlternative(guardInfo, variables),
+      'switch_endAlternative($guardInfo, $variables, offset: $offset)',
+      () =>
+          _wrapped.switch_endAlternative(guardInfo, variables, offset: offset),
     );
   }
 
@@ -2531,10 +3183,16 @@ class FlowAnalysisDebug<
   PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
+    int offset = 0,
   }) {
     return _wrap(
-      'switch_endAlternatives($node, hasLabels: $hasLabels)',
-      () => _wrapped.switch_endAlternatives(node, hasLabels: hasLabels),
+      'switch_endAlternatives($node, hasLabels: $hasLabels, '
+      'offset: $offset)',
+      () => _wrapped.switch_endAlternatives(
+        node,
+        hasLabels: hasLabels,
+        offset: offset,
+      ),
       isQuery: true,
       isPure: false,
     );
@@ -2544,30 +3202,35 @@ class FlowAnalysisDebug<
   void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
-    SharedTypeView scrutineeType,
-  ) {
+    SharedTypeView scrutineeType, {
+    int offset = 0,
+  }) {
     _wrap(
       'switch_scrutineeEnd($switchStatement, $scrutineeInfo, '
-      '$scrutineeType)',
+      '$scrutineeType, offset: $offset)',
       () => _wrapped.switch_scrutineeEnd(
         switchStatement,
         scrutineeInfo,
         scrutineeType,
+        offset: offset,
       ),
     );
   }
 
   @override
-  void thisBinding_begin(ExpressionInfo? targetInfo) {
+  void thisBinding_begin(ExpressionInfo? targetInfo, {int offset = 0}) {
     _wrap(
-      'thisBinding_begin($targetInfo)',
-      () => _wrapped.thisBinding_begin(targetInfo),
+      'thisBinding_begin($targetInfo, offset: $offset)',
+      () => _wrapped.thisBinding_begin(targetInfo, offset: offset),
     );
   }
 
   @override
-  void thisBinding_end() {
-    _wrap('thisBinding_end()', () => _wrapped.thisBinding_end());
+  void thisBinding_end({int offset = 0}) {
+    _wrap(
+      'thisBinding_end(offset: $offset)',
+      () => _wrapped.thisBinding_end(offset: offset),
+    );
   }
 
   @override
@@ -2584,10 +3247,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void tryCatchStatement_bodyBegin() {
+  void tryCatchStatement_bodyBegin({int offset = 0}) {
     return _wrap(
-      'tryCatchStatement_bodyBegin()',
-      () => _wrapped.tryCatchStatement_bodyBegin(),
+      'tryCatchStatement_bodyBegin(offset: $offset)',
+      () => _wrapped.tryCatchStatement_bodyBegin(offset: offset),
     );
   }
 
@@ -2602,13 +3265,16 @@ class FlowAnalysisDebug<
   @override
   void tryCatchStatement_catchBegin(
     Variable? exceptionVariable,
-    Variable? stackTraceVariable,
-  ) {
+    Variable? stackTraceVariable, {
+    int offset = 0,
+  }) {
     return _wrap(
-      'tryCatchStatement_catchBegin($exceptionVariable, $stackTraceVariable)',
+      'tryCatchStatement_catchBegin($exceptionVariable, $stackTraceVariable, '
+      'offset: $offset)',
       () => _wrapped.tryCatchStatement_catchBegin(
         exceptionVariable,
         stackTraceVariable,
+        offset: offset,
       ),
     );
   }
@@ -2622,10 +3288,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void tryCatchStatement_end() {
+  void tryCatchStatement_end({int offset = 0}) {
     return _wrap(
-      'tryCatchStatement_end()',
-      () => _wrapped.tryCatchStatement_end(),
+      'tryCatchStatement_end(offset: $offset)',
+      () => _wrapped.tryCatchStatement_end(offset: offset),
     );
   }
 
@@ -2638,18 +3304,18 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void tryFinallyStatement_end() {
+  void tryFinallyStatement_end({int offset = 0}) {
     return _wrap(
-      'tryFinallyStatement_end()',
-      () => _wrapped.tryFinallyStatement_end(),
+      'tryFinallyStatement_end(offset: $offset)',
+      () => _wrapped.tryFinallyStatement_end(offset: offset),
     );
   }
 
   @override
-  void tryFinallyStatement_finallyBegin(Node body) {
+  void tryFinallyStatement_finallyBegin(Node body, {int offset = 0}) {
     return _wrap(
-      'tryFinallyStatement_finallyBegin($body)',
-      () => _wrapped.tryFinallyStatement_finallyBegin(body),
+      'tryFinallyStatement_finallyBegin($body, offset: $offset)',
+      () => _wrapped.tryFinallyStatement_finallyBegin(body, offset: offset),
     );
   }
 
@@ -2663,10 +3329,13 @@ class FlowAnalysisDebug<
   }
 
   @override
-  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable) {
+  (SharedTypeView?, ExpressionInfo) variableRead(
+    Variable variable, {
+    int offset = 0,
+  }) {
     return _wrap(
-      'variableRead($variable)',
-      () => _wrapped.variableRead(variable),
+      'variableRead($variable, offset: $offset)',
+      () => _wrapped.variableRead(variable, offset: offset),
       isQuery: true,
       isPure: false,
     );
@@ -2675,25 +3344,34 @@ class FlowAnalysisDebug<
   @override
   void whileStatement_bodyBegin(
     Statement whileStatement,
-    ExpressionInfo? conditionInfo,
-  ) {
+    ExpressionInfo? conditionInfo, {
+    int offset = 0,
+  }) {
     return _wrap(
-      'whileStatement_bodyBegin($whileStatement, $conditionInfo)',
-      () => _wrapped.whileStatement_bodyBegin(whileStatement, conditionInfo),
+      'whileStatement_bodyBegin($whileStatement, $conditionInfo, '
+      'offset: $offset)',
+      () => _wrapped.whileStatement_bodyBegin(
+        whileStatement,
+        conditionInfo,
+        offset: offset,
+      ),
     );
   }
 
   @override
-  void whileStatement_conditionBegin(Node node) {
+  void whileStatement_conditionBegin(Node node, {int offset = 0}) {
     return _wrap(
-      'whileStatement_conditionBegin($node)',
-      () => _wrapped.whileStatement_conditionBegin(node),
+      'whileStatement_conditionBegin($node, offset: $offset)',
+      () => _wrapped.whileStatement_conditionBegin(node, offset: offset),
     );
   }
 
   @override
-  void whileStatement_end() {
-    return _wrap('whileStatement_end()', () => _wrapped.whileStatement_end());
+  void whileStatement_end({int offset = 0}) {
+    return _wrap(
+      'whileStatement_end(offset: $offset)',
+      () => _wrapped.whileStatement_end(offset: offset),
+    );
   }
 
   @override
@@ -2724,11 +3402,19 @@ class FlowAnalysisDebug<
     Node node,
     Variable variable,
     SharedTypeView writtenType,
-    ExpressionInfo? writtenExpressionInfo,
-  ) {
+    ExpressionInfo? writtenExpressionInfo, {
+    int offset = 0,
+  }) {
     return _wrap(
-      'write($node, $variable, $writtenType, $writtenExpressionInfo)',
-      () => _wrapped.write(node, variable, writtenType, writtenExpressionInfo),
+      'write($node, $variable, $writtenType, $writtenExpressionInfo, '
+      'offset: $offset)',
+      () => _wrapped.write(
+        node,
+        variable,
+        writtenType,
+        writtenExpressionInfo,
+        offset: offset,
+      ),
       isQuery: true,
       isPure: false,
     );
@@ -2796,7 +3482,7 @@ abstract interface class FlowAnalysisNullShortingInterface<
   Variable extends Object
 > {
   /// Call this method after visiting an expression using `?.`.
-  void nullAwareAccess_end();
+  void nullAwareAccess_end({int offset = 0});
 
   /// Call this method after visiting a null-aware operator such as `?.` or
   /// `?[`.
@@ -2826,10 +3512,16 @@ abstract interface class FlowAnalysisNullShortingInterface<
   ///
   /// Returns the expression info for the target of the null-aware access, when
   /// it is not null.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the target of the null-aware access. The offset of either character in the
+  /// `?.` token should work, since no expressions can appear in this range, but
+  /// the first character of the token is probably the best choice.
   ExpressionInfo? nullAwareAccess_rightBegin(
     ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     Variable? guardVariable,
+    int offset = 0,
   });
 }
 
@@ -3702,10 +4394,8 @@ class PatternVariableInfo<Variable> {
 /// variable is not in scope anymore.  This should not have any effect on
 /// analysis results for error-free code, because it is an error to refer to a
 /// variable that is no longer in scope.
-@visibleForTesting
 base class PromotionInfo extends FlowLink<PromotionInfo> {
   /// The [PromotionModel] associated with [key].
-  @visibleForTesting
   final PromotionModel model;
 
   PromotionInfo._(
@@ -5304,7 +5994,7 @@ class _FlowAnalysisImpl<
   SsaNode get _thisSsaNode => _thisSsaNodes.last;
 
   @override
-  void anonymousBlockBody_begin() {
+  void anonymousBlockBody_begin({int offset = 0}) {
     _current = _current.split();
     _AnonymousBlockContext context = new _AnonymousBlockContext(
       _current.reachable.parent!,
@@ -5315,7 +6005,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void anonymousBlockBody_end() {
+  void anonymousBlockBody_end({int offset = 0}) {
     _AnonymousBlockContext context =
         _stack.removeLast() as _AnonymousBlockContext;
     _current = _join(_current, context._returnModel).unsplit();
@@ -5327,6 +6017,7 @@ class _FlowAnalysisImpl<
     ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
+    int offset = 0,
   }) {
     // Depending on types, flow analysis may be able to prove that the `as`
     // expression is guaranteed to fail.
@@ -5343,7 +6034,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void assert_afterCondition(ExpressionInfo? conditionInfo) {
+  void assert_afterCondition(ExpressionInfo? conditionInfo, {int offset = 0}) {
     _AssertContext context = _stack.last as _AssertContext;
     conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     context._conditionTrue = conditionInfo.ifTrue;
@@ -5351,13 +6042,13 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void assert_begin() {
+  void assert_begin({int offset = 0}) {
     _current = _current.split();
     _stack.add(new _AssertContext(_current));
   }
 
   @override
-  void assert_end() {
+  void assert_end({int offset = 0}) {
     _AssertContext context = _stack.removeLast() as _AssertContext;
     _current = _join(context._previous, context._conditionTrue!).unsplit();
   }
@@ -5366,14 +6057,19 @@ class _FlowAnalysisImpl<
   void assignedVariablePattern(
     Node node,
     Variable variable,
-    SharedTypeView writtenType,
-  ) {
+    SharedTypeView writtenType, {
+    int offset = 0,
+  }) {
     _PatternContext context = _stack.last as _PatternContext;
     _write(node, variable, writtenType, context._matchedValueInfo);
   }
 
   @override
-  void assignMatchedPatternVariable(Variable variable, int promotionKey) {
+  void assignMatchedPatternVariable(
+    Variable variable,
+    int promotionKey, {
+    int offset = 0,
+  }) {
     int mergedKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel info =
         _current.promotionInfo?.get(this, promotionKey) ??
@@ -5412,6 +6108,7 @@ class _FlowAnalysisImpl<
     SharedTypeView targetType, {
     required bool isNullAware,
     Variable? guardVariable,
+    int offset = 0,
   }) {
     // If the cascade is null-aware, then during the cascade sections, the
     // effective type of the target is promoted to non-null.
@@ -5462,15 +6159,19 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void conditional_conditionBegin() {
+  void checkOffset(int offset) {}
+
+  @override
+  void conditional_conditionBegin({int offset = 0}) {
     _current = _current.split();
   }
 
   @override
   void conditional_elseBegin(
     ExpressionInfo? thenExpressionInfo,
-    SharedTypeView thenType,
-  ) {
+    SharedTypeView thenType, {
+    int offset = 0,
+  }) {
     _ConditionalContext context = _stack.last as _ConditionalContext;
     context._thenInfo =
         thenExpressionInfo ?? _makeTrivialExpressionInfo(thenType);
@@ -5482,8 +6183,9 @@ class _FlowAnalysisImpl<
   ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     ExpressionInfo? elseExpressionInfo,
-    SharedTypeView elseType,
-  ) {
+    SharedTypeView elseType, {
+    int offset = 0,
+  }) {
     _ConditionalContext context = _stack.removeLast() as _ConditionalContext;
     ExpressionInfo thenInfo = context._thenInfo!;
     FlowModel thenModel = context._thenModel!;
@@ -5500,8 +6202,9 @@ class _FlowAnalysisImpl<
   @override
   void conditional_thenBegin(
     ExpressionInfo? conditionInfo,
-    Node conditionalExpression,
-  ) {
+    Node conditionalExpression, {
+    int offset = 0,
+  }) {
     conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     _stack.add(new _ConditionalContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
@@ -5513,6 +6216,7 @@ class _FlowAnalysisImpl<
     SharedTypeView type, {
     required bool patternsEnabled,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   }) {
     assert(_stack.last is _PatternContext);
     if (patternsEnabled) {
@@ -5538,6 +6242,7 @@ class _FlowAnalysisImpl<
   void copyPromotionData({
     required int sourceKey,
     required int destinationKey,
+    int offset = 0,
   }) {
     _current = _current.updatePromotionInfo(
       this,
@@ -5552,6 +6257,7 @@ class _FlowAnalysisImpl<
     Variable variable,
     SharedTypeView staticType, {
     required bool initialized,
+    int offset = 0,
   }) {
     assert(staticType == operations.variableType(variable));
     assert(
@@ -5572,6 +6278,7 @@ class _FlowAnalysisImpl<
     bool isFinal = false,
     bool isLate = false,
     required bool isImplicitlyTyped,
+    int offset = 0,
   }) {
     _PatternContext context = _stack.last as _PatternContext;
     // Choose a fresh promotion key to represent the temporary variable that
@@ -5591,7 +6298,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void doStatement_bodyBegin(Statement doStatement) {
+  void doStatement_bodyBegin(Statement doStatement, {int offset = 0}) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(
       doStatement,
     );
@@ -5606,13 +6313,13 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void doStatement_conditionBegin() {
+  void doStatement_conditionBegin({int offset = 0}) {
     _BranchTargetContext context = _stack.last as _BranchTargetContext;
     _current = _join(_current, context._continueModel);
   }
 
   @override
-  void doStatement_end(ExpressionInfo? conditionInfo) {
+  void doStatement_end(ExpressionInfo? conditionInfo, {int offset = 0}) {
     _BranchTargetContext context = _stack.removeLast() as _BranchTargetContext;
     _current = _join(
       (conditionInfo ?? _makeTrivialExpressionInfo(boolType)).ifFalse,
@@ -5685,6 +6392,7 @@ class _FlowAnalysisImpl<
     SharedTypeView operandType, {
     bool notEqual = false,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   }) {
     _handleEqualityCheckPattern(
       operandInfo,
@@ -5704,7 +6412,11 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void for_bodyBegin(Statement? node, ExpressionInfo? conditionInfo) {
+  void for_bodyBegin(
+    Statement? node,
+    ExpressionInfo? conditionInfo, {
+    int offset = 0,
+  }) {
     conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
@@ -5718,7 +6430,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void for_conditionBegin(Node node) {
+  void for_conditionBegin(Node node, {int offset = 0}) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
     _current = _current.split().conservativeJoin(
       this,
@@ -5728,7 +6440,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void for_end() {
+  void for_end({int offset = 0}) {
     _WhileContext context = _stack.removeLast() as _WhileContext;
     // Tail of the stack: falseCondition, break
     FlowModel? breakState = context._breakModel;
@@ -5741,13 +6453,13 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void for_updaterBegin() {
+  void for_updaterBegin({int offset = 0}) {
     _WhileContext context = _stack.last as _WhileContext;
     _current = _join(_current, context._continueModel);
   }
 
   @override
-  void forEach_bodyBegin(Node node) {
+  void forEach_bodyBegin(Node node, {int offset = 0}) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
     _current = _current.split().conservativeJoin(
       this,
@@ -5762,19 +6474,19 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void forEach_end() {
+  void forEach_end({int offset = 0}) {
     _SimpleStatementContext context =
         _stack.removeLast() as _SimpleStatementContext;
     _current = _join(_current, context._previous).unsplit();
   }
 
   @override
-  void functionExpression_begin(Node node) {
+  void functionExpression_begin(Node node, {int offset = 0}) {
     _functionExpression_begin(node);
   }
 
   @override
-  void functionExpression_end() {
+  void functionExpression_end({int offset = 0}) {
     _functionExpression_end();
   }
 
@@ -5782,7 +6494,7 @@ class _FlowAnalysisImpl<
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
 
   @override
-  void handleBreak(Statement? target) {
+  void handleBreak(Statement? target, {int offset = 0}) {
     _BranchTargetContext? context = _statementToContext[target];
     if (context != null) {
       context._breakModel = _join(
@@ -5794,7 +6506,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void handleContinue(Statement? target) {
+  void handleContinue(Statement? target, {int offset = 0}) {
     _BranchTargetContext? context = _statementToContext[target];
     if (context != null) {
       context._continueModel = _join(
@@ -5806,12 +6518,12 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void handleExit() {
+  void handleExit({int offset = 0}) {
     _current = _current.setUnreachable();
   }
 
   @override
-  void handleReturn() {
+  void handleReturn({int offset = 0}) {
     if (_anonymousBlockContext case var anonymousMethodContext?) {
       // There is a control flow path from the current point to the
       // exit of the anonymous method.
@@ -5826,8 +6538,9 @@ class _FlowAnalysisImpl<
   @override
   void ifCaseStatement_afterExpression(
     ExpressionInfo? scrutineeInfo,
-    SharedTypeView scrutineeType,
-  ) {
+    SharedTypeView scrutineeType, {
+    int offset = 0,
+  }) {
     // If S0 is the statement `if (E0 case P when E1) S1 else S2`, then:
     // - before(P) = after(E0),
     // - before(E1) = matched(P).
@@ -5844,14 +6557,14 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void ifCaseStatement_begin() {
+  void ifCaseStatement_begin({int offset = 0}) {
     // If S0 is the statement `if (E0 case P when E1) S1 else S2`, then:
     // - before(E0) = split(before(S0)).
     _current = _current.split();
   }
 
   @override
-  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo) {
+  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo, {int offset = 0}) {
     // If S0 is the statement `if (E0 case P when E1) S1 else S2`, then:
     // - before(S1) = true(E1).
     FlowModel branchModel = _popPattern(guardInfo);
@@ -5860,7 +6573,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void ifNullExpression_end() {
+  void ifNullExpression_end({int offset = 0}) {
     _IfNullExpressionContext context =
         _stack.removeLast() as _IfNullExpressionContext;
     _current = _join(_current, context._shortcutState).unsplit();
@@ -5869,8 +6582,9 @@ class _FlowAnalysisImpl<
   @override
   void ifNullExpression_rightBegin(
     ExpressionInfo? leftHandSideInfo,
-    SharedTypeView leftHandSideType,
-  ) {
+    SharedTypeView leftHandSideType, {
+    int offset = 0,
+  }) {
     _Reference? lhsReference = _getExpressionReference(leftHandSideInfo);
     FlowModel shortcutState;
     _current = _current.split();
@@ -5897,19 +6611,19 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void ifStatement_conditionBegin() {
+  void ifStatement_conditionBegin({int offset = 0}) {
     _current = _current.split();
   }
 
   @override
-  void ifStatement_elseBegin() {
+  void ifStatement_elseBegin({int offset = 0}) {
     _IfContext context = _stack.last as _IfContext;
     context._afterThen = _current;
     _current = context._branchModel;
   }
 
   @override
-  void ifStatement_end(bool hasElse) {
+  void ifStatement_end(bool hasElse, {int offset = 0}) {
     _IfContext context = _stack.removeLast() as _IfContext;
     FlowModel afterThen;
     FlowModel afterElse;
@@ -5924,7 +6638,11 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void ifStatement_thenBegin(ExpressionInfo? conditionInfo, Node ifNode) {
+  void ifStatement_thenBegin(
+    ExpressionInfo? conditionInfo,
+    Node ifNode, {
+    int offset = 0,
+  }) {
     conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     _stack.add(new _IfContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
@@ -5939,6 +6657,7 @@ class _FlowAnalysisImpl<
     required bool isLate,
     required bool isImplicitlyTyped,
     bool inheritPromotableProperties = false,
+    int offset = 0,
   }) {
     SharedTypeView unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
@@ -6035,7 +6754,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void labeledStatement_begin(Statement node) {
+  void labeledStatement_begin(Statement node, {int offset = 0}) {
     _current = _current.split();
     _BranchTargetContext context = new _BranchTargetContext(
       _current.reachable.parent!,
@@ -6045,13 +6764,13 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void labeledStatement_end() {
+  void labeledStatement_end({int offset = 0}) {
     _BranchTargetContext context = _stack.removeLast() as _BranchTargetContext;
     _current = _join(_current, context._breakModel).unsplit();
   }
 
   @override
-  void lateInitializer_begin(Node node) {
+  void lateInitializer_begin(Node node, {int offset = 0}) {
     // Late initializers are treated the same as function expressions.
     // Essentially we act as though `late x = expr;` is syntactic sugar for
     // `late x = LAZY_MAGIC(() => expr);` (where `LAZY_MAGIC` creates a lazy
@@ -6061,7 +6780,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void lateInitializer_end() {
+  void lateInitializer_end({int offset = 0}) {
     // Late initializers are treated the same as function expressions.
     // Essentially we act as though `late x = expr;` is syntactic sugar for
     // `late x = LAZY_MAGIC(() => expr);` (where `LAZY_MAGIC` creates a lazy
@@ -6071,7 +6790,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void logicalBinaryOp_begin() {
+  void logicalBinaryOp_begin({int offset = 0}) {
     _current = _current.split();
   }
 
@@ -6079,6 +6798,7 @@ class _FlowAnalysisImpl<
   ExpressionInfo logicalBinaryOp_end(
     ExpressionInfo? rightOperandInfo, {
     required bool isAnd,
+    int offset = 0,
   }) {
     _BranchContext context = _stack.removeLast() as _BranchContext;
     rightOperandInfo ??= _makeTrivialExpressionInfo(boolType);
@@ -6105,6 +6825,7 @@ class _FlowAnalysisImpl<
     ExpressionInfo? leftOperandInfo,
     Node wholeExpression, {
     required bool isAnd,
+    int offset = 0,
   }) {
     leftOperandInfo ??= _makeTrivialExpressionInfo(boolType);
     ExpressionInfo conditionInfo = leftOperandInfo;
@@ -6120,7 +6841,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void logicalOrPattern_afterLhs() {
+  void logicalOrPattern_afterLhs({int offset = 0}) {
     _OrPatternContext context = _stack.last as _OrPatternContext;
     // The current flow state represents the state if the left hand side
     // matched.  Save this so that we can later join it with the state if the
@@ -6148,7 +6869,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void logicalOrPattern_end() {
+  void logicalOrPattern_end({int offset = 0}) {
     _OrPatternContext context = _stack.removeLast() as _OrPatternContext;
     // If either the left hand side or the right hand side matched, the
     // logical-or pattern is considered to have matched.
@@ -6164,7 +6885,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void nonNullAssert_end(ExpressionInfo? operandInfo) {
+  void nonNullAssert_end(ExpressionInfo? operandInfo, {int offset = 0}) {
     _Reference? operandReference = _getExpressionReference(operandInfo);
     if (operandReference != null) {
       _current = _current.tryMarkNonNullable(this, operandReference).ifTrue;
@@ -6172,7 +6893,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void nullAwareAccess_end() {
+  void nullAwareAccess_end({int offset = 0}) {
     _NullAwareAccessContext context =
         _stack.removeLast() as _NullAwareAccessContext;
     _current = _join(_current, context._previous).unsplit();
@@ -6183,6 +6904,7 @@ class _FlowAnalysisImpl<
     ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     Variable? guardVariable,
+    int offset = 0,
   }) {
     return _nullAwareAccess_rightBegin(
       targetInfo,
@@ -6192,7 +6914,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void nullAwareMapEntry_end({required bool isKeyNullAware}) {
+  void nullAwareMapEntry_end({required bool isKeyNullAware, int offset = 0}) {
     if (!isKeyNullAware) return;
     _NullAwareMapEntryContext context =
         _stack.removeLast() as _NullAwareMapEntryContext;
@@ -6204,6 +6926,7 @@ class _FlowAnalysisImpl<
     ExpressionInfo? keyInfo,
     SharedTypeView keyType, {
     required bool isKeyNullAware,
+    int offset = 0,
   }) {
     if (!isKeyNullAware) return;
     _Reference? keyReference = _getExpressionReference(keyInfo);
@@ -6242,6 +6965,7 @@ class _FlowAnalysisImpl<
   bool nullCheckOrAssertPattern_begin({
     required bool isAssert,
     required SharedTypeView matchedValueType,
+    int offset = 0,
   }) {
     if (!isAssert) {
       if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
@@ -6284,37 +7008,51 @@ class _FlowAnalysisImpl<
   @override
   void patternAssignment_beforePattern(
     ExpressionInfo? rhsInfo,
-    SharedTypeView rhsType,
-  ) {
+    SharedTypeView rhsType, {
+    int offset = 0,
+  }) {
     _pushPattern(
       _pushScrutinee(rhsInfo, rhsType, allowScrutineePromotion: false),
     );
   }
 
   @override
-  void patternAssignment_end() {
+  void patternAssignment_beforeRhs({int offset = 0}) {}
+
+  @override
+  void patternAssignment_end({int offset = 0}) {
     _popPattern(null);
     _popScrutinee();
   }
 
   @override
-  void patternForIn_beforePattern(SharedTypeView elementType) {
+  void patternForIn_beforeExpression({int offset = 0}) {}
+
+  @override
+  void patternForIn_beforePattern(
+    SharedTypeView elementType, {
+    int offset = 0,
+  }) {
     _pushPattern(
       _pushScrutinee(null, elementType, allowScrutineePromotion: false),
     );
   }
 
   @override
-  void patternForIn_end() {
+  void patternForIn_end({int offset = 0}) {
     _popPattern(null);
     _popScrutinee();
   }
 
   @override
+  void patternVariableDeclaration_beforeInitializer({int offset = 0}) {}
+
+  @override
   void patternVariableDeclaration_beforePattern(
     ExpressionInfo? initializerInfo,
-    SharedTypeView initializerType,
-  ) {
+    SharedTypeView initializerType, {
+    int offset = 0,
+  }) {
     _pushPattern(
       _pushScrutinee(
         initializerInfo,
@@ -6325,7 +7063,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void patternVariableDeclaration_end() {
+  void patternVariableDeclaration_end({int offset = 0}) {
     _popPattern(null);
     _popScrutinee();
   }
@@ -6344,7 +7082,12 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType) {
+  void postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType, {
+    int offset = 0,
+  }) {
     _write(node, variable, writtenType, null, isPostfixIncDec: true);
   }
 
@@ -6380,6 +7123,7 @@ class _FlowAnalysisImpl<
     required SharedTypeView knownType,
     bool matchFailsIfWrongType = true,
     bool matchMayFailEvenIfCorrectType = false,
+    int offset = 0,
   }) {
     if (knownType is SharedInvalidType) {
       _unmatched = _join(_unmatched!, _current);
@@ -6541,8 +7285,9 @@ class _FlowAnalysisImpl<
   SharedTypeView? pushPropertySubpattern(
     String propertyName,
     Object? propertyMember,
-    SharedTypeView unpromotedType,
-  ) {
+    SharedTypeView unpromotedType, {
+    int offset = 0,
+  }) {
     _PatternContext context = _stack.last as _PatternContext;
     assert(_unmatched != null);
     var (
@@ -6576,7 +7321,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void pushSubpattern(SharedTypeView matchedType) {
+  void pushSubpattern(SharedTypeView matchedType, {int offset = 0}) {
     assert(_stack.last is _PatternContext);
     assert(_unmatched != null);
     _stack.add(
@@ -6590,7 +7335,7 @@ class _FlowAnalysisImpl<
       ?.ssaNode;
 
   @override
-  void suspension(Node node) {
+  void suspension(Node node, {int offset = 0}) {
     // During an async suspension or yield, other code may execute. If the
     // current point in flow control is inside a local function, this means that
     // enclosing functions may resume executing.
@@ -6620,7 +7365,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  bool switch_afterCase() {
+  bool switch_afterCase({int offset = 0}) {
     _SwitchContext context = _stack.last as _SwitchContext;
     bool isLocallyReachable = _current.reachable.locallyReachable;
     _current = _current.unsplit();
@@ -6631,7 +7376,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void switch_beginAlternative() {
+  void switch_beginAlternative({int offset = 0}) {
     _SwitchAlternativesContext<Variable> context =
         _stack.last as _SwitchAlternativesContext<Variable>;
     _current = context._switchContext._unmatched;
@@ -6645,7 +7390,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  bool switch_end(bool isExhaustive) {
+  bool switch_end(bool isExhaustive, {int offset = 0}) {
     _SwitchContext context = _stack.removeLast() as _SwitchContext;
     bool isProvenExhaustive = !context._unmatched.reachable.locallyReachable;
     FlowModel? breakState = context._breakModel;
@@ -6672,8 +7417,9 @@ class _FlowAnalysisImpl<
   @override
   void switch_endAlternative(
     ExpressionInfo? guardInfo,
-    Map<String, Variable> variables,
-  ) {
+    Map<String, Variable> variables, {
+    int offset = 0,
+  }) {
     FlowModel unmatched = _popPattern(guardInfo);
     _SwitchAlternativesContext<Variable> context =
         _stack.last as _SwitchAlternativesContext<Variable>;
@@ -6718,6 +7464,7 @@ class _FlowAnalysisImpl<
   PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
+    int offset = 0,
   }) {
     _SwitchAlternativesContext<Variable> alternativesContext =
         _stack.removeLast() as _SwitchAlternativesContext<Variable>;
@@ -6743,8 +7490,9 @@ class _FlowAnalysisImpl<
   void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
-    SharedTypeView scrutineeType,
-  ) {
+    SharedTypeView scrutineeType, {
+    int offset = 0,
+  }) {
     _Reference matchedValueInfo = _pushScrutinee(
       scrutineeInfo,
       scrutineeType,
@@ -6763,7 +7511,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void thisBinding_begin(ExpressionInfo? targetInfo) {
+  void thisBinding_begin(ExpressionInfo? targetInfo, {int offset = 0}) {
     _Reference? expressionReference = _getExpressionReference(targetInfo);
     SsaNode ssaNode =
         expressionReference?.ssaNode ??
@@ -6777,7 +7525,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void thisBinding_end() {
+  void thisBinding_end({int offset = 0}) {
     _thisSsaNodes.removeLast();
     _thisPromotionKeys.removeLast();
   }
@@ -6791,7 +7539,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void tryCatchStatement_bodyBegin() {
+  void tryCatchStatement_bodyBegin({int offset = 0}) {
     _current = _current.split();
     _stack.add(new _TryContext(_current));
   }
@@ -6817,8 +7565,9 @@ class _FlowAnalysisImpl<
   @override
   void tryCatchStatement_catchBegin(
     Variable? exceptionVariable,
-    Variable? stackTraceVariable,
-  ) {
+    Variable? stackTraceVariable, {
+    int offset = 0,
+  }) {
     _TryContext context = _stack.last as _TryContext;
     _current = context._beforeCatch!;
     if (exceptionVariable != null) {
@@ -6845,7 +7594,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void tryCatchStatement_end() {
+  void tryCatchStatement_end({int offset = 0}) {
     _TryContext context = _stack.removeLast() as _TryContext;
     _current = context._afterBodyAndCatches!.unsplit();
   }
@@ -6856,7 +7605,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void tryFinallyStatement_end() {
+  void tryFinallyStatement_end({int offset = 0}) {
     // See the "try finally" bullet in
     // https://github.com/dart-lang/language/blob/main/resources/type-system/flow-analysis.md#statements.
 
@@ -6893,7 +7642,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void tryFinallyStatement_finallyBegin(Node body) {
+  void tryFinallyStatement_finallyBegin(Node body, {int offset = 0}) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(body);
     _TryFinallyContext context = _stack.last as _TryFinallyContext;
     context._afterTry = _current;
@@ -6912,7 +7661,10 @@ class _FlowAnalysisImpl<
       const [];
 
   @override
-  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable) {
+  (SharedTypeView?, ExpressionInfo) variableRead(
+    Variable variable, {
+    int offset = 0,
+  }) {
     SharedTypeView unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel? promotionModel = _current.promotionInfo?.get(
@@ -6939,8 +7691,9 @@ class _FlowAnalysisImpl<
   @override
   void whileStatement_bodyBegin(
     Statement whileStatement,
-    ExpressionInfo? conditionInfo,
-  ) {
+    ExpressionInfo? conditionInfo, {
+    int offset = 0,
+  }) {
     conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
@@ -6952,14 +7705,14 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void whileStatement_conditionBegin(Node node) {
+  void whileStatement_conditionBegin(Node node, {int offset = 0}) {
     _current = _current.split();
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
     _current = _current.conservativeJoin(this, info.written, info.captured);
   }
 
   @override
-  void whileStatement_end() {
+  void whileStatement_end({int offset = 0}) {
     _WhileContext context = _stack.removeLast() as _WhileContext;
     _current = _join(
       context._conditionFalse,
@@ -7007,8 +7760,9 @@ class _FlowAnalysisImpl<
     Node node,
     Variable variable,
     SharedTypeView writtenType,
-    ExpressionInfo? writtenExpressionInfo,
-  ) {
+    ExpressionInfo? writtenExpressionInfo, {
+    int offset = 0,
+  }) {
     return _write(node, variable, writtenType, writtenExpressionInfo);
   }
 

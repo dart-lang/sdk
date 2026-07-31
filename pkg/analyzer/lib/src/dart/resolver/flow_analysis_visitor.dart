@@ -12,7 +12,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -1081,18 +1080,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-      node.leftOperand2.accept2(this);
-      assignedVariables.beginNode();
-      node.rightOperand2.accept2(this);
-      assignedVariables.endNode(node);
-    } else {
-      super.visitBinaryExpression(node);
-    }
-  }
-
-  @override
   void visitCatchClause(covariant CatchClauseImpl node) {
     for (var identifier in [
       node.exceptionParameter,
@@ -1169,8 +1156,24 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    node.leftOperand.accept2(this);
+    assignedVariables.beginNode();
+    node.rightOperand.accept2(this);
+    assignedVariables.endNode(node);
+  }
+
+  @override
   void visitIfStatement(covariant IfStatementImpl node) {
     _visitIf(node);
+  }
+
+  @override
+  void visitLogicalAnd(LogicalAnd node) {
+    node.leftOperand.accept2(this);
+    assignedVariables.beginNode();
+    node.rightOperand.accept2(this);
+    assignedVariables.endNode(node);
   }
 
   @override

@@ -1962,7 +1962,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node.body);
 
     var targetType =
-        node.realTarget.staticType ?? typeProvider.objectQuestionType;
+        node.realTarget2.staticType ?? typeProvider.objectQuestionType;
     var isNullAware = node.isNullAware;
     var parameterType = isNullAware
         ? typeSystem.promoteToNonNull(targetType)
@@ -3257,6 +3257,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIfNull(
+    covariant IfNullImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _binaryExpressionResolver.resolveIfNull(node, contextType: contextType);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitIfStatement(covariant IfStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
@@ -3337,7 +3352,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       );
       popRewrite();
     }
-    var targetType = node.realTarget.staticType;
+    var targetType = node.realTarget2.staticType;
 
     if (node.isNullAware) {
       _startNullAwareAccess(node.target2);
@@ -3478,6 +3493,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitLogicalAnd(
+    covariant LogicalAndImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _binaryExpressionResolver.resolveLogicalAnd(node);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitLogicalNot(
     covariant LogicalNotImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -3485,6 +3515,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _logicalNotResolver.resolve(node);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitLogicalOr(
+    covariant LogicalOrImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _binaryExpressionResolver.resolveLogicalOr(node);
     _insertImplicitCallReference(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
@@ -4801,8 +4846,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       // conditional expression.
       return true;
     }
-    if (parent is BinaryExpression &&
-        parent.operator.type == TokenType.QUESTION_QUESTION) {
+    if (parent is IfNull) {
       // Do not perform an "implicit tear-off conversion" on the branches of a
       // `??` operator.
       return true;

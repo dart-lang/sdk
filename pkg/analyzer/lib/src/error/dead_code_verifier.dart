@@ -280,6 +280,8 @@ class NullSafetyDeadCodeVerifier {
         }
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
+      } else if (parent is IfNull) {
+        offset = parent.operator.offset;
       }
       if (parent is ConstructorInitializer) {
         _diagnosticReporter.report(
@@ -311,6 +313,15 @@ class NullSafetyDeadCodeVerifier {
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
         node = parent.rightOperand2;
+      } else if (parent is IfNull) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
+      } else if (parent is LogicalAnd) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
+      } else if (parent is LogicalOr) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
       } else if (parent is LogicalOrPattern &&
           firstDeadNode == parent.rightOperand) {
         offset = parent.operator.offset;
@@ -483,7 +494,7 @@ class NullSafetyDeadCodeVerifier {
       return;
     }
 
-    target = target?.unParenthesized;
+    target = target?.unParenthesized2;
     if (target is SimpleIdentifier) {
       var element = target.element;
       if (element is PromotableElementImpl &&

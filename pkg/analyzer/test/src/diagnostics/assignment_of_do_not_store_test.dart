@@ -265,7 +265,7 @@ class A {
 ''');
   }
 
-  test_topLevelGetter_binaryExpression() async {
+  test_topLevelGetter_ifNull() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
