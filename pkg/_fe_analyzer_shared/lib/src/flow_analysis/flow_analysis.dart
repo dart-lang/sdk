@@ -3702,10 +3702,8 @@ class PatternVariableInfo<Variable> {
 /// variable is not in scope anymore.  This should not have any effect on
 /// analysis results for error-free code, because it is an error to refer to a
 /// variable that is no longer in scope.
-@visibleForTesting
 base class PromotionInfo extends FlowLink<PromotionInfo> {
   /// The [PromotionModel] associated with [key].
-  @visibleForTesting
   final PromotionModel model;
 
   PromotionInfo._(
