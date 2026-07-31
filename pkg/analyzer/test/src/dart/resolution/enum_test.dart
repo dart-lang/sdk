@@ -2063,9 +2063,16 @@ EnumDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: PrefixExpression
+            condition2: LogicalNot
               operator: !
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
+                token: x
+                element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              staticType: bool
+            condition(v1): PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
                 token: x
                 element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
                 staticType: bool
@@ -2077,9 +2084,16 @@ EnumDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: PrefixExpression
+                expression2: LogicalNot
                   operator: !
-                  operand2: SimpleIdentifier
+                  operand: SimpleIdentifier
+                    token: y
+                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                    staticType: bool
+                  staticType: bool
+                expression(v1): PrefixExpression
+                  operator: !
+                  operand: SimpleIdentifier
                     token: y
                     element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
                     staticType: bool

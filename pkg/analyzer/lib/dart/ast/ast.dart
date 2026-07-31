@@ -179,6 +179,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ListPatternElement,
         Literal,
         LogicalAndPattern,
+        LogicalNot,
         LogicalOrPattern,
         MapLiteralEntry,
         MapPattern,

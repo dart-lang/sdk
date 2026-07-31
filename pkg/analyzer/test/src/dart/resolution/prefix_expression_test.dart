@@ -51,11 +51,18 @@ void f(bool x) {
 }
 ''');
 
-    var node = result.findNode.prefix('!x');
+    var node = result.findNode.logicalNot('!x');
     assertResolvedNodeText(node, r'''
+LogicalNot
+  operator: !
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: bool
+  staticType: bool
 PrefixExpression
   operator: !
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: bool
@@ -73,11 +80,18 @@ void f(int x) {
 }
 ''');
 
-    var node = result.findNode.prefix('!x');
+    var node = result.findNode.logicalNot('!x');
     assertResolvedNodeText(node, r'''
+LogicalNot
+  operator: !
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int
+  staticType: bool
 PrefixExpression
   operator: !
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
@@ -99,12 +113,26 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.prefix('!a');
+    var node = result.findNode.logicalNot('!a');
     assertResolvedNodeText(node, r'''
+LogicalNot
+  operator: !
+  operand: PropertyAccess
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: bool
+    staticType: bool?
+  staticType: bool
 PrefixExpression
   operator: !
-  operand2: PropertyAccess
-    target2: SimpleIdentifier
+  operand: PropertyAccess
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
@@ -131,11 +159,17 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singlePrefixExpression;
+    var node = result.findNode.singleLogicalNot;
     assertResolvedNodeText(node, r'''
+LogicalNot
+  operator: !
+  operand: SuperExpression
+    superKeyword: super
+    staticType: A
+  staticType: bool
 PrefixExpression
   operator: !
-  operand2: SuperExpression
+  operand: SuperExpression
     superKeyword: super
     staticType: A
   element: <null>

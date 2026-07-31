@@ -1186,7 +1186,7 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1217,7 +1217,7 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1248,7 +1248,7 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1284,7 +1284,7 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1324,7 +1324,7 @@ Block
             token: i
           operator: --
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1364,7 +1364,7 @@ Block
             token: i
           operator: --
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1550,7 +1550,7 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1589,7 +1589,7 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1628,7 +1628,7 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1672,7 +1672,7 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1722,7 +1722,7 @@ Block
               initializer2: SimpleIdentifier
                 token: count
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <
@@ -1776,7 +1776,7 @@ Block
               initializer2: SimpleIdentifier
                 token: count
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: i
           operator: <

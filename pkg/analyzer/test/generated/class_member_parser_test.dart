@@ -273,11 +273,21 @@ MethodDeclaration
           elseStatement: IfStatement
             ifKeyword: if
             leftParenthesis: (
-            expression2: PrefixExpression
+            expression2: LogicalNot
               operator: !
-              operand2: AwaitExpression
+              operand: AwaitExpression
                 awaitKeyword: await
                 expression2: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: returnsFuture
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+            expression(v1): PrefixExpression
+              operator: !
+              operand: AwaitExpression
+                awaitKeyword: await
+                expression: MethodInvocation
                   methodName: SimpleIdentifier
                     token: returnsFuture
                   argumentList: ArgumentList

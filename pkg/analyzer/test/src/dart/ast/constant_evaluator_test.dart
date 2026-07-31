@@ -26,8 +26,8 @@ class ConstantEvaluator2Test extends _ConstantEvaluatorTestBase {
   Object get notAConstant => ConstantEvaluator2.NOT_A_CONSTANT;
 
   @override
-  Object? evaluate(Expression expression) {
-    return expression.accept2(ConstantEvaluator2());
+  Object? evaluate(ParenthesizedExpression node) {
+    return node.expression2.accept2(ConstantEvaluator2());
   }
 }
 
@@ -37,15 +37,15 @@ class ConstantEvaluatorTest extends _ConstantEvaluatorTestBase {
   Object get notAConstant => ConstantEvaluator.NOT_A_CONSTANT;
 
   @override
-  Object? evaluate(Expression expression) {
-    return expression.accept(ConstantEvaluator());
+  Object? evaluate(ParenthesizedExpression node) {
+    return node.expression.accept(ConstantEvaluator());
   }
 }
 
 abstract class _ConstantEvaluatorTestBase extends ParserDiagnosticsTest {
   Object get notAConstant;
 
-  Object? evaluate(Expression expression);
+  Object? evaluate(ParenthesizedExpression node);
 
   void test_binary_bitAnd() {
     var value = _getConstantValue("74 & 42") as int;
@@ -374,9 +374,6 @@ void f() {
 }
 ''');
 
-    var findNode = parseResult.findNode;
-    var expression = findNode.parenthesized('); // ref').expression;
-
-    return evaluate(expression);
+    return evaluate(parseResult.findNode.parenthesized('); // ref'));
   }
 }

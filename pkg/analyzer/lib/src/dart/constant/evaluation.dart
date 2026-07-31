@@ -1134,6 +1134,15 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitLogicalNot(LogicalNot node) {
+    var operand = evaluateConstant(node.operand);
+    if (operand is! DartObjectImpl) {
+      return operand;
+    }
+    return _dartObjectComputer.logicalNot(node, operand);
+  }
+
+  @override
   Constant visitMethodInvocation(MethodInvocation node) {
     var element = node.methodName.element;
     if (element is TopLevelFunctionElementImpl) {
@@ -1265,9 +1274,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     if (operand is! DartObjectImpl) {
       return operand;
     }
-    if (node.operator.type == TokenType.BANG) {
-      return _dartObjectComputer.logicalNot(node, operand);
-    } else if (node.operator.type == TokenType.TILDE) {
+    if (node.operator.type == TokenType.TILDE) {
       return _dartObjectComputer.bitNot(node, operand);
     } else if (node.operator.type == TokenType.MINUS) {
       return _dartObjectComputer.negated(node, operand);

@@ -3786,9 +3786,13 @@ SwitchPatternCase
         token: foo
     whenClause: WhenClause
       whenKeyword: when
-      expression2: PrefixExpression
+      expression2: LogicalNot
         operator: !
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
+          token: flag
+      expression(v1): PrefixExpression
+        operator: !
+        operand: SimpleIdentifier
           token: flag
   colon: :
 ''');
@@ -8423,9 +8427,13 @@ SwitchPatternCase
           token: value
     whenClause: WhenClause
       whenKeyword: when
-      expression2: PrefixExpression
+      expression2: LogicalNot
         operator: !
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
+          token: flag
+      expression(v1): PrefixExpression
+        operator: !
+        operand: SimpleIdentifier
           token: flag
   colon: :
 ''');

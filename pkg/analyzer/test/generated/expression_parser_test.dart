@@ -4673,9 +4673,9 @@ var v = !x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixExpression
+LogicalNot
   operator: !
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
 ''');
   }
@@ -4688,9 +4688,9 @@ var v = !super;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixExpression
+LogicalNot
   operator: !
-  operand2: SuperExpression
+  operand: SuperExpression
     superKeyword: super
 ''');
   }

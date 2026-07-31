@@ -351,6 +351,11 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitLogicalNot(LogicalNot node) {
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     node.visitChildren2(this);
   }

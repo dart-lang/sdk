@@ -236,7 +236,7 @@ class ForResolver {
 
     _resolver.flowAnalysis.for_conditionBegin(node);
 
-    var condition = forParts.condition;
+    var condition = forParts.condition2;
     if (condition != null) {
       _resolver.analyzeExpression(
         condition,

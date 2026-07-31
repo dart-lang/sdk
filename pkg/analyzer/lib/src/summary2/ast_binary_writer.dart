@@ -478,6 +478,13 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitLogicalNot(LogicalNot node) {
+    _writeByte(Tag.LogicalNot);
+    _writeNode(node.operand);
+    _storeExpression(node);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _writeByte(Tag.MapLiteralEntry);
     _writeByte(
@@ -919,7 +926,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   void _storeForParts(ForParts node) {
-    _writeOptionalNode(node.condition);
+    _writeOptionalNode(node.condition2);
     _writeNodeList(node.updaters2);
     _storeForLoopParts(node);
   }

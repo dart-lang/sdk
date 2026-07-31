@@ -554,7 +554,7 @@ class AstBinaryReader {
     var updaters = _readNodeList<ExpressionImpl>();
     return ForPartsWithDeclarationsImpl(
       variables: variables,
-      condition: condition,
+      condition2: condition,
       leftSeparator: Tokens.semicolon(),
       rightSeparator: Tokens.semicolon(),
       updaters2: updaters,
@@ -566,7 +566,7 @@ class AstBinaryReader {
     var condition = _readOptionalNode() as ExpressionImpl?;
     var updaters = _readNodeList<ExpressionImpl>();
     return ForPartsWithExpressionImpl(
-      condition: condition,
+      condition2: condition,
       initialization2: initialization,
       leftSeparator: Tokens.semicolon(),
       rightSeparator: Tokens.semicolon(),
@@ -784,6 +784,13 @@ class AstBinaryReader {
     return node;
   }
 
+  LogicalNot _readLogicalNot() {
+    var operand = _readNode() as ExpressionImpl;
+    var node = LogicalNotImpl(operator: Tokens.bang(), operand: operand);
+    _readExpressionResolution(node);
+    return node;
+  }
+
   MapLiteralEntry _readMapLiteralEntry() {
     var keyFlags = _readByte();
     var key = _readNode() as ExpressionImpl;
@@ -959,6 +966,8 @@ class AstBinaryReader {
         return _readMapLiteralEntry();
       case Tag.MethodInvocation:
         return _readMethodInvocation();
+      case Tag.LogicalNot:
+        return _readLogicalNot();
       case Tag.NamedArgument:
         return _readNamedArgument();
       case Tag.NullAwareElement:

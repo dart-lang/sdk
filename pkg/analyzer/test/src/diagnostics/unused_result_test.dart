@@ -1510,7 +1510,7 @@ class C {
 ''');
   }
 
-  test_topLevelFunction_prefixExpression_bang() async {
+  test_topLevelFunction_logicalNot() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 

@@ -53,6 +53,7 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
+import 'package:analyzer/src/dart/resolver/logical_not_resolver.dart';
 import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
@@ -231,6 +232,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   functionExpressionInvocationResolver;
   late final FunctionExpressionResolver _functionExpressionResolver;
   late final ForResolver _forResolver;
+  late final LogicalNotResolver _logicalNotResolver;
   late final NullAssertionExpressionResolver _nullAssertionExpressionResolver;
   late final PostfixExpressionResolver _postfixExpressionResolver;
   late final PrefixedIdentifierResolver _prefixedIdentifierResolver;
@@ -376,6 +378,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(resolver: this);
+    _logicalNotResolver = LogicalNotResolver(this);
     _nullAssertionExpressionResolver = NullAssertionExpressionResolver(this);
     _postfixExpressionResolver = PostfixExpressionResolver(resolver: this);
     _prefixedIdentifierResolver = PrefixedIdentifierResolver(this);
@@ -3471,6 +3474,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _typedLiteralResolver.resolveListLiteral(node, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitLogicalNot(
+    covariant LogicalNotImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _logicalNotResolver.resolve(node);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 

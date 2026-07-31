@@ -1063,7 +1063,7 @@ ForElement
             element: hasImplicitType isPublic
               type: dynamic
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: i
         element: i@28
@@ -1125,7 +1125,7 @@ ForElement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: i2
         element: i2@28
@@ -1196,7 +1196,7 @@ ForElement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: j
         element: j@30
@@ -1351,7 +1351,7 @@ ForElement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@40
       staticType: bool
@@ -1420,7 +1420,7 @@ ForElement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@40
       staticType: bool
@@ -1488,7 +1488,7 @@ ForElement
         staticType: InvalidType
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@40
       staticType: InvalidType
@@ -1556,7 +1556,7 @@ ForElement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@41
       staticType: bool

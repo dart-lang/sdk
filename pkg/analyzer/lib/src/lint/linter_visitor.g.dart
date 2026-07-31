@@ -1852,6 +1852,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitLogicalNot(LogicalNot node) {
+    _runSubscriptions(node, _registry._forLogicalNot);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitLogicalOrPattern(LogicalOrPattern node) {
     _runSubscriptions(node, _registry._forLogicalOrPattern);
@@ -4399,6 +4406,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<LogicalAndPattern>> _forLogicalAndPattern = [];
 
+  final List<_Subscription2<LogicalNot>> _forLogicalNot = [];
+
   final List<_Subscription2<LogicalOrPattern>> _forLogicalOrPattern = [];
 
   final List<_Subscription2<MapLiteralEntry>> _forMapLiteralEntry = [];
@@ -5374,6 +5383,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addLogicalAndPattern(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forLogicalAndPattern.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addLogicalNot(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forLogicalNot.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

@@ -741,6 +741,14 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitLogicalNot(LogicalNot node) {
+    dispatchNode(node.operand);
+    // Stack: operand
+    ir.not();
+    // Stack: !operand
+  }
+
+  @override
   Null visitMethodInvocation(MethodInvocation node) {
     var previousNestingLevel = ir.nestingLevel;
     var argumentNames = <String?>[];
@@ -878,11 +886,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitPrefixExpression(PrefixExpression node) {
     switch (node.operator.type) {
-      case TokenType.BANG:
-        dispatchNode(node.operand2);
-        // Stack: operand
-        ir.not();
-      // Stack: !operand
       case TokenType.PLUS_PLUS:
       case TokenType.MINUS_MINUS:
         var lValueTemplates = dispatchLValue(node.operand2);

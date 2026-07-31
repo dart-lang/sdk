@@ -1407,9 +1407,16 @@ ClassDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: PrefixExpression
+            condition2: LogicalNot
               operator: !
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
+                token: x
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              staticType: bool
+            condition(v1): PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
                 token: x
                 element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                 staticType: bool
@@ -1421,9 +1428,16 @@ ClassDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: PrefixExpression
+                expression2: LogicalNot
                   operator: !
-                  operand2: SimpleIdentifier
+                  operand: SimpleIdentifier
+                    token: y
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                    staticType: bool
+                  staticType: bool
+                expression(v1): PrefixExpression
+                  operator: !
+                  operand: SimpleIdentifier
                     token: y
                     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
                     staticType: bool
