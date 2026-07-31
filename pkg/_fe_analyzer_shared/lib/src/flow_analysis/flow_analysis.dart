@@ -920,7 +920,7 @@ abstract class FlowAnalysis<
   ///
   /// [rhsInfo] is the expression info for the right hand side expression, and
   /// [rhsType] is its static type.
-  void patternAssignment_afterRhs(
+  void patternAssignment_beforePattern(
     ExpressionInfo? rhsInfo,
     SharedTypeView rhsType,
   );
@@ -933,7 +933,7 @@ abstract class FlowAnalysis<
   /// the pattern or body.
   ///
   /// [elementType] is the element type of the `Iterable`, or `dynamic`.
-  void patternForIn_afterExpression(SharedTypeView elementType);
+  void patternForIn_beforePattern(SharedTypeView elementType);
 
   /// Call this method after visiting the body.
   void patternForIn_end();
@@ -943,7 +943,7 @@ abstract class FlowAnalysis<
   ///
   /// [initializerInfo] is the expression info for the declaration's initializer
   /// expression, and [initializerType] is its static type.
-  void patternVariableDeclaration_afterInitializer(
+  void patternVariableDeclaration_beforePattern(
     ExpressionInfo? initializerInfo,
     SharedTypeView initializerType,
   );
@@ -2279,13 +2279,13 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void patternAssignment_afterRhs(
+  void patternAssignment_beforePattern(
     ExpressionInfo? rhsInfo,
     SharedTypeView rhsType,
   ) {
     _wrap(
-      'patternAssignment_afterRhs($rhsInfo, $rhsType)',
-      () => _wrapped.patternAssignment_afterRhs(rhsInfo, rhsType),
+      'patternAssignment_beforePattern($rhsInfo, $rhsType)',
+      () => _wrapped.patternAssignment_beforePattern(rhsInfo, rhsType),
     );
   }
 
@@ -2295,10 +2295,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void patternForIn_afterExpression(SharedTypeView elementType) {
+  void patternForIn_beforePattern(SharedTypeView elementType) {
     _wrap(
-      'patternForIn_afterExpression($elementType)',
-      () => _wrapped.patternForIn_afterExpression(elementType),
+      'patternForIn_beforePattern($elementType)',
+      () => _wrapped.patternForIn_beforePattern(elementType),
     );
   }
 
@@ -2308,14 +2308,14 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void patternVariableDeclaration_afterInitializer(
+  void patternVariableDeclaration_beforePattern(
     ExpressionInfo? initializerInfo,
     SharedTypeView initializerType,
   ) {
     _wrap(
-      'patternVariableDeclaration_afterInitializer($initializerInfo, '
+      'patternVariableDeclaration_beforePattern($initializerInfo, '
       '$initializerType)',
-      () => _wrapped.patternVariableDeclaration_afterInitializer(
+      () => _wrapped.patternVariableDeclaration_beforePattern(
         initializerInfo,
         initializerType,
       ),
@@ -6282,7 +6282,7 @@ class _FlowAnalysisImpl<
       expressionInfo;
 
   @override
-  void patternAssignment_afterRhs(
+  void patternAssignment_beforePattern(
     ExpressionInfo? rhsInfo,
     SharedTypeView rhsType,
   ) {
@@ -6298,7 +6298,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void patternForIn_afterExpression(SharedTypeView elementType) {
+  void patternForIn_beforePattern(SharedTypeView elementType) {
     _pushPattern(
       _pushScrutinee(null, elementType, allowScrutineePromotion: false),
     );
@@ -6311,7 +6311,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void patternVariableDeclaration_afterInitializer(
+  void patternVariableDeclaration_beforePattern(
     ExpressionInfo? initializerInfo,
     SharedTypeView initializerType,
   ) {

@@ -1635,7 +1635,7 @@ mixin TypeAnalyzer<
     );
     SharedTypeView rhsType = rhsAnalysisResult.type;
     // Stack: (Expression)
-    flow.patternAssignment_afterRhs(
+    flow.patternAssignment_beforePattern(
       rhsAnalysisResult.flowAnalysisInfo,
       rhsType,
     );
@@ -1716,7 +1716,7 @@ mixin TypeAnalyzer<
         elementType = operations.errorType;
       }
     }
-    flow.patternForIn_afterExpression(elementType);
+    flow.patternForIn_beforePattern(elementType);
 
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
@@ -1773,7 +1773,7 @@ mixin TypeAnalyzer<
     );
     SharedTypeView initializerType = initializerAnalysisResult.type;
     // Stack: (Expression)
-    flow.patternVariableDeclaration_afterInitializer(
+    flow.patternVariableDeclaration_beforePattern(
       initializerAnalysisResult.flowAnalysisInfo,
       initializerType,
     );

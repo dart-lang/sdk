@@ -128,10 +128,7 @@ void f() { // ref
 
     var block = findNode.block('{ // ref');
     var statement = block.statements.single as ExpressionStatement;
-    var expression = statement.expression2;
-
-    var actual = ExitDetector.exits2(expression);
-    expect(actual, expected);
+    expect(ExitDetector.exits(statement.expression), expected);
   }
 
   void _assertTrue(String expressionCode) {
@@ -664,8 +661,10 @@ void f(Object? x) { // ref
     var block = parseResult.findNode.block('{ // ref');
     var statement = block.statements.single as ExpressionStatement;
 
-    expect(statement.expression, isA<PostfixExpression>());
-    expect(ExitDetector.exits(statement.expression), isFalse);
+    var expression = statement.expression;
+
+    expect(expression, isA<PostfixExpression>());
+    expect(ExitDetector.exits(expression), isFalse);
   }
 
   test_parenthesizedExpression() async {
@@ -943,8 +942,7 @@ void f() { // ref
     var block = findNode.block('{ // ref');
     var statement = block.statements.single;
 
-    var actual = ExitDetector.exits2(statement);
-    expect(actual, expected);
+    expect(ExitDetector.exits(statement), expected);
   }
 
   void _assertTrue(String code) {
@@ -1235,7 +1233,7 @@ void f() sync* {
     var function = result.unit.declarations.last as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     Statement statement = body.block.statements[n];
-    expect(ExitDetector.exits2(statement), expected);
+    expect(ExitDetector.exits(statement), expected);
   }
 
   /// Assert that the [n]th statement in the last function declaration of

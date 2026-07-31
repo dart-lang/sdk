@@ -772,7 +772,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
 
 /// Keep in sync with [getExecutableForCommand].
 ///
-/// Returns `null` if root package should be used.
+/// Returns `null` if the root package should be used.
 // TODO(https://github.com/dart-lang/pub/issues/4067): Don't duplicate logic.
 String? getPackageForCommand(String descriptor) {
   final root = current;
@@ -780,34 +780,28 @@ String? getPackageForCommand(String descriptor) {
   try {
     asPath = Uri.parse(descriptor).toFilePath();
   } catch (_) {
-    /// Here to get the same logic as[getExecutableForCommand].
+    // Follow the same fallback logic as [getExecutableForCommand].
   }
   final asDirectFile = join(root, asPath);
   if (File(asDirectFile).existsSync()) {
-    return null; // root package.
+    return null; // Root package.
   }
   if (!File(join(root, 'pubspec.yaml')).existsSync()) {
     return null;
   }
-  String package;
+  final String package;
   if (descriptor.contains(':')) {
     final parts = descriptor.split(':');
     if (parts.length > 2) {
       return null;
     }
     package = parts[0];
-    if (package.isEmpty) {
-      return null; // root package.
-    }
   } else {
     package = descriptor;
-    if (package.isEmpty) {
-      return null; // root package.
-    }
   }
-  if (package == 'test') {
-    // `dart run test` is expected to behave as `dart test`.
-    return null; // root package.
+  if (package.isEmpty || package == 'test') {
+    // Empty package or `dart run test` is expected to behave as `dart test`.
+    return null; // Root package.
   }
   return package;
 }

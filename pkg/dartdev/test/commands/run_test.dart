@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartdev/src/commands/run.dart';
 import 'package:dartdev/src/resident_frontend_constants.dart';
 import 'package:dartdev/src/resident_frontend_utils.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
@@ -1729,5 +1730,25 @@ cmd() {
     expect(runResult2.stderr, isEmpty);
     expect(runResult2.stdout, contains('bye'));
     expect(runResult2.exitCode, 0);
+  });
+
+  group('getPackageForCommand', () {
+    test('returns null for empty string or test command', () {
+      expect(getPackageForCommand(''), isNull);
+      expect(getPackageForCommand('test'), isNull);
+    });
+
+    test('extracts package name from colon descriptor', () {
+      expect(getPackageForCommand('foo:bar'), equals('foo'));
+      expect(getPackageForCommand(':bar'), isNull);
+    });
+
+    test('returns null for descriptor with too many colons', () {
+      expect(getPackageForCommand('foo:bar:baz'), isNull);
+    });
+
+    test('returns descriptor as package name when no colon is present', () {
+      expect(getPackageForCommand('my_package'), equals('my_package'));
+    });
   });
 }
