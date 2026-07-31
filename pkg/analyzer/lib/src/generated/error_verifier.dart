@@ -464,13 +464,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitBinaryExpression(covariant BinaryExpressionImpl node) {
-    TokenType type = node.operator.type;
-    if (type == TokenType.QUESTION_QUESTION) {
-      _checkForDeadNullCoalesce(
-        node.leftOperand2.staticType!,
-        node.rightOperand2,
-      );
-    }
 
     checkForUseOfVoidResult(node.leftOperand2);
     _constArgumentsVerifier.visitBinaryExpression(node);
@@ -1403,6 +1396,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       node.pattern.accept2(this);
     });
     node.whenClause?.accept2(this);
+  }
+
+  @override
+  void visitIfNull(covariant IfNullImpl node) {
+    _checkForDeadNullCoalesce(node.leftOperand.staticType!, node.rightOperand);
+    checkForUseOfVoidResult(node.leftOperand);
+    super.visitIfNull(node);
   }
 
   @override

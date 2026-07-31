@@ -151,6 +151,8 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         if (leftOperand is bool && rightOperand is bool) {
           return leftOperand || rightOperand;
         }
+      } else if (node.operator.type == TokenType.QUESTION_QUESTION) {
+        return leftOperand ?? rightOperand;
       } else if (node.operator.type == TokenType.CARET) {
         // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
@@ -558,6 +560,19 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
 
   @override
   Object? visitDoubleLiteral(DoubleLiteral node) => node.value;
+
+  @override
+  Object? visitIfNull(IfNull node) {
+    var leftOperand = node.leftOperand.accept2(this);
+    if (identical(leftOperand, NOT_A_CONSTANT)) {
+      return leftOperand;
+    }
+    var rightOperand = node.rightOperand.accept2(this);
+    if (identical(rightOperand, NOT_A_CONSTANT)) {
+      return rightOperand;
+    }
+    return leftOperand ?? rightOperand;
+  }
 
   @override
   Object? visitIntegerLiteral(IntegerLiteral node) => node.value;

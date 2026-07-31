@@ -170,6 +170,9 @@ class Tokens {
   static Token questionPeriodPeriod() =>
       TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD_PERIOD);
 
+  static Token questionQuestion() =>
+      TokenFactory.tokenFromType(TokenType.QUESTION_QUESTION);
+
   static Token required_() => TokenFactory.tokenFromKeyword(Keyword.REQUIRED);
 
   static Token rethrow_() => TokenFactory.tokenFromKeyword(Keyword.RETHROW);

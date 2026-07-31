@@ -772,6 +772,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    _writeOperand(node, node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _writeOperand(node, node.rightOperand);
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     sink.write('if (');
     _visitNode(node.expression2);

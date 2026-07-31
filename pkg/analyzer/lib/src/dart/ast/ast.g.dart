@@ -604,6 +604,9 @@ abstract class AstVisitor2<R> {
 
   R? visitIfElement(IfElement node);
 
+  @experimental
+  R? visitIfNull(IfNull node);
+
   R? visitIfStatement(IfStatement node);
 
   R? visitImplementsClause(ImplementsClause node);

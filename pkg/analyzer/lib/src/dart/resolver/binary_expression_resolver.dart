@@ -46,11 +46,6 @@ class BinaryExpressionResolver {
       return;
     }
 
-    if (operator == TokenType.QUESTION_QUESTION) {
-      _resolveIfNull(node, contextType: contextType);
-      return;
-    }
-
     if (operator.isUserDefinableOperator && operator.isBinaryOperator) {
       _resolveUserDefinable(node, contextType: contextType);
       return;
@@ -66,6 +61,79 @@ class BinaryExpressionResolver {
     }
 
     _resolveUnsupportedOperator(node);
+  }
+
+  void resolveIfNull(IfNullImpl node, {required TypeImpl contextType}) {
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+    var flow = _resolver.flowAnalysis.flow;
+
+    // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
+    // analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K?`.
+    _resolver.analyzeExpression(
+      left,
+      SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
+    );
+    left = _resolver.popRewrite()!;
+    var t1 = left.typeOrThrow;
+
+    // - Let `T2` be the type of `e2` inferred with context type `J`, where:
+    //   - If `K` is `_`, `J = T1`.
+    TypeImpl j;
+    if (contextType is DynamicType ||
+        contextType is InvalidType ||
+        contextType is UnknownInferredType) {
+      j = t1;
+    } else
+    //   - Otherwise, `J = K`.
+    {
+      j = contextType;
+    }
+    flow?.ifNullExpression_rightBegin(
+      _resolver.flowAnalysis.getExpressionInfo(left),
+      SharedTypeView(t1),
+    );
+    _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
+    right = _resolver.popRewrite()!;
+    flow?.ifNullExpression_end();
+    var t2 = right.typeOrThrow;
+
+    // - Let `T` be `UP(NonNull(T1), T2)`.
+    var nonNullT1 = _typeSystem.promoteToNonNull(t1);
+    var t = _typeSystem.leastUpperBound(nonNullT1, t2);
+
+    // - Let `S` be the greatest closure of `K`.
+    var s = _resolver.operations
+        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
+
+    DartType staticType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!_resolver.definingLibrary.featureSet.isEnabled(
+      Feature.inference_update_3,
+    )) {
+      staticType = t;
+    } else
+    // - If `T <: S`, then the type of `E` is `T`.
+    if (_typeSystem.isSubtypeOf(t, s)) {
+      staticType = t;
+    } else
+    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
+    //   `S`.
+    if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
+        _typeSystem.isSubtypeOf(t2, s)) {
+      staticType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`.
+    {
+      staticType = t;
+    }
+
+    node.recordStaticType(staticType, resolver: _resolver);
+
+    _resolver.checkForArgumentTypeNotAssignableForArgument(right);
   }
 
   void resolveLogicalAnd(LogicalAndImpl node) {
@@ -181,82 +249,6 @@ class BinaryExpressionResolver {
         reportNullComparison(node.operator, right);
       }
     }
-  }
-
-  void _resolveIfNull(
-    BinaryExpressionImpl node, {
-    required TypeImpl contextType,
-  }) {
-    var left = node.leftOperand2;
-    var right = node.rightOperand2;
-    var flow = _resolver.flowAnalysis.flow;
-
-    // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
-    // analyzed as follows:
-    //
-    // - Let `T1` be the type of `e1` inferred with context type `K?`.
-    _resolver.analyzeExpression(
-      left,
-      SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
-    );
-    left = _resolver.popRewrite()!;
-    var t1 = left.typeOrThrow;
-
-    // - Let `T2` be the type of `e2` inferred with context type `J`, where:
-    //   - If `K` is `_`, `J = T1`.
-    TypeImpl j;
-    if (contextType is DynamicType ||
-        contextType is InvalidType ||
-        contextType is UnknownInferredType) {
-      j = t1;
-    } else
-    //   - Otherwise, `J = K`.
-    {
-      j = contextType;
-    }
-    flow?.ifNullExpression_rightBegin(
-      _resolver.flowAnalysis.getExpressionInfo(left),
-      SharedTypeView(t1),
-    );
-    _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
-    right = _resolver.popRewrite()!;
-    flow?.ifNullExpression_end();
-    var t2 = right.typeOrThrow;
-
-    // - Let `T` be `UP(NonNull(T1), T2)`.
-    var nonNullT1 = _typeSystem.promoteToNonNull(t1);
-    var t = _typeSystem.leastUpperBound(nonNullT1, t2);
-
-    // - Let `S` be the greatest closure of `K`.
-    var s = _resolver.operations
-        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
-        .unwrapTypeView<TypeImpl>();
-
-    DartType staticType;
-    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
-    if (!_resolver.definingLibrary.featureSet.isEnabled(
-      Feature.inference_update_3,
-    )) {
-      staticType = t;
-    } else
-    // - If `T <: S`, then the type of `E` is `T`.
-    if (_typeSystem.isSubtypeOf(t, s)) {
-      staticType = t;
-    } else
-    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
-    //   `S`.
-    if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
-        _typeSystem.isSubtypeOf(t2, s)) {
-      staticType = s;
-    } else
-    // - Otherwise, the type of `E` is `T`.
-    {
-      staticType = t;
-    }
-
-    node.recordStaticType(staticType, resolver: _resolver);
-
-    _resolver.checkForArgumentTypeNotAssignableForArgument(right);
   }
 
   void _resolveLogicalExpression(

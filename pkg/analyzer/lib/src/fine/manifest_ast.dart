@@ -325,6 +325,11 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _addElement(node.element);
   }

@@ -157,6 +157,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         HideCombinator,
         Identifier,
         IfElement,
+        IfNull,
         IfStatement,
         ImplementsClause,
         ImplicitCallReference,

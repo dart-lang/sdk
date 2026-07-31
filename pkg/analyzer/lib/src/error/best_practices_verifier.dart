@@ -1537,6 +1537,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
         expression.rightOperand2,
         addTo: expressions,
       );
+    } else if (expression is IfNull) {
+      _getSubExpressionsMarkedDoNotStore(
+        expression.leftOperand,
+        addTo: expressions,
+      );
+      _getSubExpressionsMarkedDoNotStore(
+        expression.rightOperand,
+        addTo: expressions,
+      );
     } else if (expression is FunctionExpression) {
       var body = expression.body;
       if (body is ExpressionFunctionBody) {

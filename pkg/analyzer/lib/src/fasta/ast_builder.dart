@@ -1081,6 +1081,12 @@ class AstBuilder extends StackListener {
     var left = pop() as ExpressionImpl;
     reportErrorIfSuper(right);
     var expression = switch (operatorToken.type) {
+      TokenType.QUESTION_QUESTION => IfNullImpl(
+        leftOperand: left,
+        operator: operatorToken,
+        rightOperand: right,
+      ),
+
       TokenType.AMPERSAND_AMPERSAND => LogicalAndImpl(
         leftOperand: left,
         operator: operatorToken,

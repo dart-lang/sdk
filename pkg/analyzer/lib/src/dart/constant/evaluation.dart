@@ -693,20 +693,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       return leftResult;
     }
 
-    if (operatorType == TokenType.QUESTION_QUESTION) {
-      if (!leftResult.isNull) {
-        var error = _reportNotPotentialConstants(node.rightOperand2);
-        if (error is InvalidConstant) {
-          return error;
-        }
-      }
-      return _dartObjectComputer.lazyQuestionQuestion(
-        node,
-        leftResult,
-        () => evaluateConstant(node.rightOperand2),
-      );
-    }
-
     // Evaluate eager operators.
     var rightResult = evaluateConstant(node.rightOperand2);
     if (rightResult is! DartObjectImpl) {
@@ -1030,6 +1016,25 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       typeSystem,
       _typeProvider.typeType,
       TypeState(node.type),
+    );
+  }
+
+  @override
+  Constant visitIfNull(IfNull node) {
+    var leftResult = evaluateConstant(node.leftOperand);
+    if (leftResult is! DartObjectImpl) {
+      return leftResult;
+    }
+    if (!leftResult.isNull) {
+      var error = _reportNotPotentialConstants(node.rightOperand);
+      if (error is InvalidConstant) {
+        return error;
+      }
+    }
+    return _dartObjectComputer.lazyQuestionQuestion(
+      node,
+      leftResult,
+      () => evaluateConstant(node.rightOperand),
     );
   }
 

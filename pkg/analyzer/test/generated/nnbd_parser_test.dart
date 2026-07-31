@@ -316,11 +316,17 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: BinaryExpression
-        leftOperand2: SimpleIdentifier
+      expression2: IfNull
+        leftOperand: SimpleIdentifier
           token: X
         operator: ??
-        rightOperand2: SimpleIdentifier
+        rightOperand: SimpleIdentifier
+          token: x2
+      expression(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: X
+        operator: ??
+        rightOperand: SimpleIdentifier
           token: x2
       semicolon: ;
   rightBracket: }

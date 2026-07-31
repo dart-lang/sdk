@@ -9144,16 +9144,14 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vIfNull (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::vIfNull
           initializer: expression_0
-            BinaryExpression
-              leftOperand2: IntegerLiteral
+            IfNull
+              leftOperand: IntegerLiteral
                 literal: 1 @16
                 staticType: int
               operator: ?? @18
-              rightOperand2: DoubleLiteral
+              rightOperand: DoubleLiteral
                 literal: 2.0 @21
                 staticType: double
-              element: <null>
-              staticInvokeType: null
               staticType: num
           inducedGetter: #F2
       getters

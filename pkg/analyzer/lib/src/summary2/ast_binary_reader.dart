@@ -647,6 +647,18 @@ class AstBinaryReader {
     );
   }
 
+  IfNull _readIfNull() {
+    var leftOperand = _readNode() as ExpressionImpl;
+    var rightOperand = _readNode() as ExpressionImpl;
+    var node = IfNullImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.questionQuestion(),
+      rightOperand: rightOperand,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   ImplicitCallReference _readImplicitCallReference() {
     var expression = _readNode() as ExpressionImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
@@ -984,6 +996,8 @@ class AstBinaryReader {
         return _readInterpolationString();
       case Tag.IsExpression:
         return _readIsExpression();
+      case Tag.IfNull:
+        return _readIfNull();
       case Tag.ListLiteral:
         return _readListLiteral();
       case Tag.LogicalAnd:

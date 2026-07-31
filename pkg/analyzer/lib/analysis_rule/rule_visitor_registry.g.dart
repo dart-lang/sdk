@@ -744,6 +744,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addIfElement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addIfNull(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addIfStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addImplementsClause(AbstractAnalysisRule rule, AstVisitor2 visitor);

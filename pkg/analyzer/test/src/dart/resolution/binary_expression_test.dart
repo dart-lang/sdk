@@ -223,10 +223,10 @@ T f<T>(T t) => t;
 int g() => f(null) ?? 0;
 ''');
 
-    var node = result.findNode.binary('?? 0');
+    var node = result.findNode.ifNull('?? 0');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: MethodInvocation
+IfNull
+  leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
@@ -246,7 +246,32 @@ BinaryExpression
     typeArgumentTypes
       int?
   operator: ??
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  staticType: int
+BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T Function<T>(T)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        NullLiteral
+          literal: null
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::t
+            substitution: {T: int?}
+          staticType: Null
+      rightParenthesis: )
+    staticInvokeType: int? Function(int?)
+    staticType: int?
+    typeArgumentTypes
+      int?
+  operator: ??
+  rightOperand: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -271,20 +296,31 @@ f(C1? c1, C2 c2, Object? o) {
 }
 ''');
 
-    var node = result.findNode.binary('c1 ?? c2');
+    var node = result.findNode.ifNull('c1 ?? c2');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: c2
+    element: <testLibrary>::@function::f::@formalParameter::c2
+    staticType: C2
+  correspondingParameter: <null>
+  staticType: A
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: c2
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
-  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: A
@@ -298,15 +334,26 @@ void f(int? x, int y) {
 }
 ''');
 
-    var node = result.findNode.binary('x ?? y');
+    var node = result.findNode.ifNull('x ?? y');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: y
+    element: <testLibrary>::@function::f::@formalParameter::y
+    staticType: int
+  staticType: int
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: y
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
@@ -324,15 +371,26 @@ void f(int? x, double? y) {
 }
 ''');
 
-    var node = result.findNode.binary('x ?? y');
+    var node = result.findNode.ifNull('x ?? y');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: y
+    element: <testLibrary>::@function::f::@formalParameter::y
+    staticType: double?
+  staticType: num?
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: y
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
@@ -350,15 +408,26 @@ void f(int? x) {
 }
 ''');
 
-    var node = result.findNode.binary('x ?? x');
+    var node = result.findNode.ifNull('x ?? x');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  staticType: int?
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: x
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -942,15 +1011,26 @@ f(int? a, double b) {
 }
 ''');
 
-    var node = result.findNode.binary('a ?? b');
+    var node = result.findNode.ifNull('a ?? b');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: double
+  staticType: num
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -2054,14 +2134,28 @@ f(C1<int>? c1, C2<double> c2) {
 }
 ''');
 
-    var node = result.findNode.binary('c1 ?? c2');
-    assertResolvedNodeText(node, r'''BinaryExpression
-  leftOperand2: SimpleIdentifier
+    var node = result.findNode.ifNull('c1 ?? c2');
+    assertResolvedNodeText(node, r'''IfNull
+  leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1<int>?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: c2
+    element: <testLibrary>::@function::f::@formalParameter::c2
+    staticType: C2<double>
+  correspondingParameter: SubstitutedFormalParameterElementImpl
+    baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
+    substitution: {T: Object?}
+  staticType: B1<Object?>
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1<int>?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: c2
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2
@@ -2089,19 +2183,30 @@ f(B2? b2, C1 c1, Object? o) {
 }
 ''');
 
-    var node = result.findNode.binary('b2 ?? c1');
-    assertResolvedNodeText(node, r'''BinaryExpression
-  leftOperand2: SimpleIdentifier
+    var node = result.findNode.ifNull('b2 ?? c1');
+    assertResolvedNodeText(node, r'''IfNull
+  leftOperand: SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1
+  correspondingParameter: <null>
+  staticType: B2
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: b2
+    element: <testLibrary>::@function::f::@formalParameter::b2
+    staticType: B2?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: c1
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
-  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: B2
@@ -2122,19 +2227,30 @@ f(C1? c1, B2 b2, Object? o) {
 }
 ''');
 
-    var node = result.findNode.binary('c1 ?? b2');
-    assertResolvedNodeText(node, r'''BinaryExpression
-  leftOperand2: SimpleIdentifier
+    var node = result.findNode.ifNull('c1 ?? b2');
+    assertResolvedNodeText(node, r'''IfNull
+  leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: b2
+    element: <testLibrary>::@function::f::@formalParameter::b2
+    staticType: B2
+  correspondingParameter: <null>
+  staticType: B2
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: b2
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
-  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: B2
@@ -2151,15 +2267,26 @@ class C2 implements B1, B2 {}
 B1 f(C1? c1, C2 c2) => c1 ?? c2;
 ''');
 
-    var node = result.findNode.binary('c1 ?? c2');
+    var node = result.findNode.ifNull('c1 ?? c2');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1?
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: c2
+    element: <testLibrary>::@function::f::@formalParameter::c2
+    staticType: C2
+  staticType: B1
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1?
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: c2
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2

@@ -50,6 +50,8 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorTearOff get singleConstructorTearOff => _single();
 
+  IfNull get singleIfNull => _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -64,6 +66,10 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorTearOff constructorTearOff(String search) {
     return _node(search, (node) => node is ConstructorTearOff);
+  }
+
+  IfNull ifNull(String search) {
+    return _node(search, (node) => node is IfNull);
   }
 
   LogicalAnd logicalAnd(String search) {

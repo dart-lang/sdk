@@ -2018,11 +2018,17 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: BinaryExpression
-            leftOperand2: SimpleIdentifier
+          expression2: IfNull
+            leftOperand: SimpleIdentifier
               token: x
             operator: ??
-            rightOperand2: SimpleIdentifier
+            rightOperand: SimpleIdentifier
+              token: throw
+          expression(v1): BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: x
+            operator: ??
+            rightOperand: SimpleIdentifier
               token: throw
           semicolon: ; <synthetic>
 ''');

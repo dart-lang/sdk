@@ -1156,6 +1156,14 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    node.leftOperand.accept2(this);
+    assignedVariables.beginNode();
+    node.rightOperand.accept2(this);
+    assignedVariables.endNode(node);
+  }
+
+  @override
   void visitIfStatement(covariant IfStatementImpl node) {
     _visitIf(node);
   }

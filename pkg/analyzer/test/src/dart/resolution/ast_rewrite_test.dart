@@ -192,15 +192,26 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
     // logic should not apply to it.
     // Therefore the type of `c ?? a` should be `A`.
-    var node = result.findNode.binary('c ?? a');
+    var node = result.findNode.ifNull('c ?? a');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  staticType: A
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: a
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -225,13 +236,24 @@ void Function(int) foo(C? c1, C c2) {
     var node = result.findNode.implicitCallReference('c1 ?? c2');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  expression2: IfNull
+    leftOperand: SimpleIdentifier
       token: c1
       element: <testLibrary>::@function::foo::@formalParameter::c1
       staticType: C?
     operator: ??
-    rightOperand2: SimpleIdentifier
+    rightOperand: SimpleIdentifier
+      token: c2
+      element: <testLibrary>::@function::foo::@formalParameter::c2
+      staticType: C
+    staticType: C
+  expression(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: c1
+      element: <testLibrary>::@function::foo::@formalParameter::c1
+      staticType: C?
+    operator: ??
+    rightOperand: SimpleIdentifier
       token: c2
       correspondingParameter: <null>
       element: <testLibrary>::@function::foo::@formalParameter::c2

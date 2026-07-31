@@ -1059,15 +1059,32 @@ MethodInvocation
         operator: <
         rightOperand2: SimpleIdentifier
           token: b
-      BinaryExpression
-        leftOperand2: BinaryExpression
+      IfNull
+        leftOperand: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: c
           operator: >
           rightOperand2: SimpleIdentifier
             token: <empty> <synthetic>
         operator: ??
-        rightOperand2: SimpleIdentifier
+        rightOperand: SimpleIdentifier
+          token: d
+    arguments(v1)
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: c
+          operator: >
+          rightOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+        operator: ??
+        rightOperand: SimpleIdentifier
           token: d
     rightParenthesis: )
 ''');

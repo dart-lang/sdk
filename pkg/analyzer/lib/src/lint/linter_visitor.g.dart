@@ -1750,6 +1750,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitIfNull(IfNull node) {
+    _runSubscriptions(node, _registry._forIfNull);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitIfStatement(IfStatement node) {
     _runSubscriptions(node, _registry._forIfStatement);
@@ -4383,6 +4390,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<IfElement>> _forIfElement = [];
 
+  final List<_Subscription2<IfNull>> _forIfNull = [];
+
   final List<_Subscription2<IfStatement>> _forIfStatement = [];
 
   final List<_Subscription2<ImplementsClause>> _forImplementsClause = [];
@@ -5284,6 +5293,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addIfElement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forIfElement.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addIfNull(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forIfNull.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

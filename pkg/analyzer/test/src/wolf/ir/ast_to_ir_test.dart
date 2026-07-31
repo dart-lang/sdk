@@ -700,7 +700,7 @@ external Object? hook(Object? x, String s);
 test(Object? x, Object? y) => hook(x, 'x') ?? hook(y, 'y');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.binary("hook(x, 'x') ?? hook(y, 'y')")]
+    check(astNodes)[result.findNode.ifNull("hook(x, 'x') ?? hook(y, 'y')")]
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(x, 'x')")]!,
       )

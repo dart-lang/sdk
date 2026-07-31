@@ -279,6 +279,26 @@ abstract class _ConstantEvaluatorTestBase extends ParserDiagnosticsTest {
     expect(value, null);
   }
 
+  void test_ifNull_leftNotConstant() {
+    var value = _getConstantValue("a ?? 1");
+    expect(value, notAConstant);
+  }
+
+  void test_ifNull_leftNotNull() {
+    var value = _getConstantValue("0 ?? 1");
+    expect(value, 0);
+  }
+
+  void test_ifNull_leftNull() {
+    var value = _getConstantValue("null ?? 1");
+    expect(value, 1);
+  }
+
+  void test_ifNull_rightNotConstant() {
+    var value = _getConstantValue("0 ?? a");
+    expect(value, notAConstant);
+  }
+
   void test_literal_boolean_false() {
     var value = _getConstantValue("false");
     expect(value, false);

@@ -1122,6 +1122,10 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitIfElement(IfElement node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitIfNull(IfNull node) => visitExpression(node);
+
   @override
   R? visitIfStatement(IfStatement node) => visitStatement(node);
 
@@ -3188,6 +3192,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitIfNull(IfNull node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitIfStatement(IfStatement node) {
     node.visitChildren2(this);
@@ -4679,6 +4690,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitIfElement(IfElement node) => null;
 
+  @experimental
+  @override
+  R? visitIfNull(IfNull node) => null;
+
   @override
   R? visitIfStatement(IfStatement node) => null;
 
@@ -5899,6 +5914,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitIfElement(IfElement node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitIfNull(IfNull node) => _throw(node);
 
   @override
   R? visitIfStatement(IfStatement node) => _throw(node);
@@ -8458,6 +8477,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitIfNull(IfNull node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitIfNull(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitIfStatement(IfStatement node) {
     stopwatch.start();
@@ -10211,6 +10239,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitIfElement(IfElement node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitIfNull(IfNull node) => visitNode(node);
 
   @override
   R? visitIfStatement(IfStatement node) => visitNode(node);

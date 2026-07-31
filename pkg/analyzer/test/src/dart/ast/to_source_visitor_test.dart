@@ -2435,6 +2435,14 @@ final v = [ $code ];
     _assertSource(code, node);
   }
 
+  void test_visitIfNull() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = a ?? (b ?? c);
+''');
+    var node = parseResult.findNode.ifNull('a ??');
+    _assertSource('a ?? (b ?? c)', node);
+  }
+
   void test_visitIfStatement_withElse() {
     var code = 'if (c) {} else {}';
     var parseResult = parseTestCodeWithDiagnostics('''

@@ -3257,6 +3257,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIfNull(
+    covariant IfNullImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _binaryExpressionResolver.resolveIfNull(node, contextType: contextType);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitIfStatement(covariant IfStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
@@ -4831,8 +4846,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       // conditional expression.
       return true;
     }
-    if (parent is BinaryExpression &&
-        parent.operator.type == TokenType.QUESTION_QUESTION) {
+    if (parent is IfNull) {
       // Do not perform an "implicit tear-off conversion" on the branches of a
       // `??` operator.
       return true;

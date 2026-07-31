@@ -1990,6 +1990,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    _tokenOrNull(node.operator);
+    super.visitIfNull(node);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.period);

@@ -759,11 +759,17 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  condition2: IfNull
+    leftOperand: SimpleIdentifier
       token: a
     operator: ??
-    rightOperand2: SimpleIdentifier
+    rightOperand: SimpleIdentifier
+      token: b
+  condition(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: a
+    operator: ??
+    rightOperand: SimpleIdentifier
       token: b
   question: ?
   thenExpression2: SimpleIdentifier
@@ -1422,15 +1428,15 @@ void f() {
 
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: IfNull
+    leftOperand: SimpleIdentifier
       token: x
     operator: ??
-    rightOperand2: SimpleIdentifier
+    rightOperand: SimpleIdentifier
       token: y
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: z
 ''');
   }
@@ -1444,21 +1450,15 @@ void f() {
 
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: LogicalOr
-    leftOperand: SimpleIdentifier
-      token: x
-    operator: ||
-    rightOperand: SimpleIdentifier
-      token: y
-  leftOperand(v1): BinaryExpression
+IfNull
+  leftOperand: LogicalOr
     leftOperand: SimpleIdentifier
       token: x
     operator: ||
     rightOperand: SimpleIdentifier
       token: y
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
     token: z
 ''');
   }
@@ -1472,17 +1472,11 @@ void f() {
 
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: x
   operator: ??
-  rightOperand2: LogicalOr
-    leftOperand: SimpleIdentifier
-      token: y
-    operator: ||
-    rightOperand: SimpleIdentifier
-      token: z
-  rightOperand(v1): BinaryExpression
+  rightOperand: LogicalOr
     leftOperand: SimpleIdentifier
       token: y
     operator: ||

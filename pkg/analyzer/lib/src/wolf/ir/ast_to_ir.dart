@@ -385,27 +385,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: (lhs == rhs)
         ir.not();
       // Stack: (lhs != rhs)
-      case TokenType.QUESTION_QUESTION:
-        ir.block(0, 1);
-        // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand2);
-        // Stack: BLOCK(1) lhs
-        ir.dup();
-        // Stack: BLOCK(1) lhs lhs
-        ir.literal(null_);
-        // Stack: BLOCK(1) lhs lhs null
-        ir.eq();
-        // Stack: BLOCK(1) lhs (lhs == null)
-        ir.not();
-        // Stack: BLOCK(1) lhs (lhs != null)
-        ir.brIf(0);
-        // Stack: BLOCK(1) lhs
-        ir.drop();
-        // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand2);
-        // Stack: BLOCK(1) rhs
-        ir.end();
-      // Stack: result
+
       case TokenType.AMPERSAND:
       case TokenType.BAR:
       case TokenType.CARET:
@@ -630,6 +610,30 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     ir.end();
     // Stack: (empty)
     functionNestingStack.removeLast();
+  }
+
+  @override
+  Null visitIfNull(IfNull node) {
+    ir.block(0, 1);
+    // Stack: BLOCK(1)
+    dispatchNode(node.leftOperand);
+    // Stack: BLOCK(1) lhs
+    ir.dup();
+    // Stack: BLOCK(1) lhs lhs
+    ir.literal(null_);
+    // Stack: BLOCK(1) lhs lhs null
+    ir.eq();
+    // Stack: BLOCK(1) lhs (lhs == null)
+    ir.not();
+    // Stack: BLOCK(1) lhs (lhs != null)
+    ir.brIf(0);
+    // Stack: BLOCK(1) lhs
+    ir.drop();
+    // Stack: BLOCK(1)
+    dispatchNode(node.rightOperand);
+    // Stack: BLOCK(1) rhs
+    ir.end();
+    // Stack: result
   }
 
   @override
