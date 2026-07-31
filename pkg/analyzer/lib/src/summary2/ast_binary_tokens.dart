@@ -8,6 +8,9 @@ import 'package:analyzer/src/summary2/tokens_context.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 
 class Tokens {
+  static Token ampersandAmpersand() =>
+      TokenFactory.tokenFromType(TokenType.AMPERSAND_AMPERSAND);
+
   static Token as_() => TokenFactory.tokenFromKeyword(Keyword.AS);
 
   static Token assert_() => TokenFactory.tokenFromKeyword(Keyword.ASSERT);
@@ -21,6 +24,8 @@ class Tokens {
   static Token await_() => TokenFactory.tokenFromKeyword(Keyword.AWAIT);
 
   static Token bang() => TokenFactory.tokenFromType(TokenType.BANG);
+
+  static Token barBar() => TokenFactory.tokenFromType(TokenType.BAR_BAR);
 
   static Token break_() => TokenFactory.tokenFromKeyword(Keyword.BREAK);
 

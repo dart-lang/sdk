@@ -968,15 +968,26 @@ f(bool a, bool b) {
 }
 ''');
 
-    var node = result.findNode.binary('a && b');
+    var node = result.findNode.logicalAnd('a && b');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalAnd
+  leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: bool
   operator: &&
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: bool
+  staticType: bool
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: bool
+  operator: &&
+  rightOperand: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -994,15 +1005,26 @@ f(bool a, bool b) {
 }
 ''');
 
-    var node = result.findNode.binary('a || b');
+    var node = result.findNode.logicalOr('a || b');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalOr
+  leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: bool
   operator: ||
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: bool
+  staticType: bool
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: bool
+  operator: ||
+  rightOperand: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b

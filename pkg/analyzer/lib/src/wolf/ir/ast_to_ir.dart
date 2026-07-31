@@ -385,38 +385,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: (lhs == rhs)
         ir.not();
       // Stack: (lhs != rhs)
-      case TokenType.AMPERSAND_AMPERSAND:
-        ir.block(0, 1);
-        // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand2);
-        // Stack: BLOCK(1) lhs
-        ir.dup();
-        // Stack: BLOCK(1) lhs lhs
-        ir.not();
-        // Stack: BLOCK(1) lhs !lhs
-        ir.brIf(0);
-        // Stack: BLOCK(1) lhs
-        ir.drop();
-        // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand2);
-        // Stack: BLOCK(1) rhs
-        ir.end();
-      // Stack: result
-      case TokenType.BAR_BAR:
-        ir.block(0, 1);
-        // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand2);
-        // Stack: BLOCK(1) lhs
-        ir.dup();
-        // Stack: BLOCK(1) lhs lhs
-        ir.brIf(0);
-        // Stack: BLOCK(1) lhs
-        ir.drop();
-        // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand2);
-        // Stack: BLOCK(1) rhs
-        ir.end();
-      // Stack: result
       case TokenType.QUESTION_QUESTION:
         ir.block(0, 1);
         // Stack: BLOCK(1)
@@ -741,11 +709,49 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitLogicalAnd(LogicalAnd node) {
+    ir.block(0, 1);
+    // Stack: BLOCK(1)
+    dispatchNode(node.leftOperand);
+    // Stack: BLOCK(1) lhs
+    ir.dup();
+    // Stack: BLOCK(1) lhs lhs
+    ir.not();
+    // Stack: BLOCK(1) lhs !lhs
+    ir.brIf(0);
+    // Stack: BLOCK(1) lhs
+    ir.drop();
+    // Stack: BLOCK(1)
+    dispatchNode(node.rightOperand);
+    // Stack: BLOCK(1) rhs
+    ir.end();
+    // Stack: result
+  }
+
+  @override
   Null visitLogicalNot(LogicalNot node) {
     dispatchNode(node.operand);
     // Stack: operand
     ir.not();
     // Stack: !operand
+  }
+
+  @override
+  Null visitLogicalOr(LogicalOr node) {
+    ir.block(0, 1);
+    // Stack: BLOCK(1)
+    dispatchNode(node.leftOperand);
+    // Stack: BLOCK(1) lhs
+    ir.dup();
+    // Stack: BLOCK(1) lhs lhs
+    ir.brIf(0);
+    // Stack: BLOCK(1) lhs
+    ir.drop();
+    // Stack: BLOCK(1)
+    dispatchNode(node.rightOperand);
+    // Stack: BLOCK(1) rhs
+    ir.end();
+    // Stack: result
   }
 
   @override

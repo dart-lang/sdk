@@ -2814,6 +2814,14 @@ void f(x) {
     _assertSource('<int>[]', node);
   }
 
+  void test_visitLogicalAnd() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = a && (b || c);
+''');
+    var node = parseResult.findNode.singleLogicalAnd;
+    _assertSource('a && (b || c)', node);
+  }
+
   void test_visitLogicalAndPattern() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f(x) {
@@ -2825,6 +2833,14 @@ void f(x) {
 ''');
     var node = parseResult.findNode.logicalAndPattern('Object?');
     _assertSource('int? _ && double? _ && Object? _', node);
+  }
+
+  void test_visitLogicalOr() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = a || b && c;
+''');
+    var node = parseResult.findNode.singleLogicalOr;
+    _assertSource('a || b && c', node);
   }
 
   void test_visitLogicalOrPattern() {

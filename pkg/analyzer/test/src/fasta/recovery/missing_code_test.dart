@@ -3292,19 +3292,38 @@ CompilationUnit
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
-                      BinaryExpression
-                        leftOperand2: BinaryExpression
+                      LogicalOr
+                        leftOperand: BinaryExpression
                           leftOperand2: SimpleIdentifier
                             token: v1
                           operator: ==
                           rightOperand2: SimpleIdentifier
                             token: v2
                         operator: ||
-                        rightOperand2: BinaryExpression
+                        rightOperand: BinaryExpression
                           leftOperand2: SimpleIdentifier
                             token: v1
                           operator: ==
                           rightOperand2: SimpleIdentifier
+                            token: v
+                      IntegerLiteral
+                        literal: 3
+                      BooleanLiteral
+                        literal: true
+                    arguments(v1)
+                      BinaryExpression
+                        leftOperand: BinaryExpression
+                          leftOperand: SimpleIdentifier
+                            token: v1
+                          operator: ==
+                          rightOperand: SimpleIdentifier
+                            token: v2
+                        operator: ||
+                        rightOperand: BinaryExpression
+                          leftOperand: SimpleIdentifier
+                            token: v1
+                          operator: ==
+                          rightOperand: SimpleIdentifier
                             token: v
                       IntegerLiteral
                         literal: 3

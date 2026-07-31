@@ -27,10 +27,10 @@ T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: MethodInvocation
+LogicalAnd
+  leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::a
@@ -43,8 +43,34 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand2: FunctionExpressionInvocation
+  rightOperand: FunctionExpressionInvocation
     function2: SimpleIdentifier
+      token: b
+      element: <testLibrary>::@function::f::@formalParameter::b
+      staticType: dynamic
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    element: <null>
+    staticInvokeType: dynamic
+    staticType: dynamic
+  staticType: bool
+BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::a
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: &&
+  rightOperand: FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
@@ -68,15 +94,26 @@ void f(bool a, bool b) {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalAnd
+  leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: bool
   operator: &&
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: bool
+  staticType: bool
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: bool
+  operator: &&
+  rightOperand: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -100,10 +137,10 @@ T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: MethodInvocation
+LogicalOr
+  leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::a
@@ -116,8 +153,34 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand2: FunctionExpressionInvocation
+  rightOperand: FunctionExpressionInvocation
     function2: SimpleIdentifier
+      token: b
+      element: <testLibrary>::@function::f::@formalParameter::b
+      staticType: dynamic
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    element: <null>
+    staticInvokeType: dynamic
+    staticType: dynamic
+  staticType: bool
+BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::a
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: ||
+  rightOperand: FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
@@ -141,15 +204,26 @@ void f(bool a, bool b) {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+LogicalOr
+  leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: bool
   operator: ||
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: bool
+  staticType: bool
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: bool
+  operator: ||
+  rightOperand: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b

@@ -644,7 +644,7 @@ external bool hook(bool b, String s);
 test(bool x, bool y) => hook(x, 'x') && hook(y, 'y');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.binary("hook(x, 'x') && hook(y, 'y')")]
+    check(astNodes)[result.findNode.logicalAnd("hook(x, 'x') && hook(y, 'y')")]
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(x, 'x')")]!,
       )
@@ -756,7 +756,7 @@ external bool hook(bool b, String s);
 test(bool x, bool y) => hook(x, 'x') || hook(y, 'y');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.binary("hook(x, 'x') || hook(y, 'y')")]
+    check(astNodes)[result.findNode.logicalOr("hook(x, 'x') || hook(y, 'y')")]
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(x, 'x')")]!,
       )

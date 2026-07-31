@@ -464,14 +464,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitBinaryExpression(covariant BinaryExpressionImpl node) {
-    Token operator = node.operator;
-    TokenType type = operator.type;
-    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
-      checkForUseOfVoidResult(node.rightOperand2);
-    } else {
-      // Assignability checking is done by the resolver.
-    }
-
+    TokenType type = node.operator.type;
     if (type == TokenType.QUESTION_QUESTION) {
       _checkForDeadNullCoalesce(
         node.leftOperand2.staticType!,
@@ -1486,6 +1479,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _checkForListElementTypeNotAssignable(node);
 
     super.visitListLiteral(node);
+  }
+
+  @override
+  void visitLogicalAnd(LogicalAnd node) {
+    checkForUseOfVoidResult(node.leftOperand);
+    checkForUseOfVoidResult(node.rightOperand);
+    super.visitLogicalAnd(node);
+  }
+
+  @override
+  void visitLogicalOr(LogicalOr node) {
+    checkForUseOfVoidResult(node.leftOperand);
+    checkForUseOfVoidResult(node.rightOperand);
+    super.visitLogicalOr(node);
   }
 
   @override

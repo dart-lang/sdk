@@ -693,35 +693,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       return leftResult;
     }
 
-    // Used for the [DartObjectComputer], which will handle any exceptions.
-    DartObjectImpl computeRightOperand() {
-      var constant = evaluateConstant(node.rightOperand2);
-      switch (constant) {
-        case DartObjectImpl():
-          return constant;
-        case InvalidConstant():
-          throw EvaluationException(constant.locatableDiagnostic);
-      }
-    }
-
-    // Evaluate lazy operators.
-    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      if (leftResult.toBoolValue() == false) {
-        var error = _reportNotPotentialConstants(node.rightOperand2);
-        if (error is InvalidConstant) {
-          return error;
-        }
-      }
-      return _dartObjectComputer.lazyAnd(node, leftResult, computeRightOperand);
-    } else if (operatorType == TokenType.BAR_BAR) {
-      if (leftResult.toBoolValue() == true) {
-        var error = _reportNotPotentialConstants(node.rightOperand2);
-        if (error is InvalidConstant) {
-          return error;
-        }
-      }
-      return _dartObjectComputer.lazyOr(node, leftResult, computeRightOperand);
-    } else if (operatorType == TokenType.QUESTION_QUESTION) {
+    if (operatorType == TokenType.QUESTION_QUESTION) {
       if (!leftResult.isNull) {
         var error = _reportNotPotentialConstants(node.rightOperand2);
         if (error is InvalidConstant) {
@@ -1134,12 +1106,32 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitLogicalAnd(LogicalAnd node) {
+    return _visitLogicalBinary(
+      node: node,
+      leftOperand: node.leftOperand,
+      rightOperand: node.rightOperand,
+      isAnd: true,
+    );
+  }
+
+  @override
   Constant visitLogicalNot(LogicalNot node) {
     var operand = evaluateConstant(node.operand);
     if (operand is! DartObjectImpl) {
       return operand;
     }
     return _dartObjectComputer.logicalNot(node, operand);
+  }
+
+  @override
+  Constant visitLogicalOr(LogicalOr node) {
+    return _visitLogicalBinary(
+      node: node,
+      leftOperand: node.leftOperand,
+      rightOperand: node.rightOperand,
+      isAnd: false,
+    );
   }
 
   @override
@@ -2280,6 +2272,44 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
         return expressionValue;
     }
   }
+
+  Constant _visitLogicalBinary({
+    required Expression node,
+    required Expression leftOperand,
+    required Expression rightOperand,
+    required bool isAnd,
+  }) {
+    var leftResult = evaluateConstant(leftOperand);
+    if (leftResult is! DartObjectImpl) {
+      return leftResult;
+    }
+
+    DartObjectImpl computeRightOperand() {
+      var constant = evaluateConstant(rightOperand);
+      switch (constant) {
+        case DartObjectImpl():
+          return constant;
+        case InvalidConstant():
+          throw EvaluationException(constant.locatableDiagnostic);
+      }
+    }
+
+    var skipsRightOperand = isAnd
+        ? leftResult.toBoolValue() == false
+        : leftResult.toBoolValue() == true;
+    if (skipsRightOperand) {
+      var error = _reportNotPotentialConstants(rightOperand);
+      if (error is InvalidConstant) {
+        return error;
+      }
+    }
+
+    if (isAnd) {
+      return _dartObjectComputer.lazyAnd(node, leftResult, computeRightOperand);
+    } else {
+      return _dartObjectComputer.lazyOr(node, leftResult, computeRightOperand);
+    }
+  }
 }
 
 /// A utility class that contains methods for manipulating instances of a Dart
@@ -2500,7 +2530,7 @@ class DartObjectComputer {
   }
 
   Constant lazyAnd(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl Function() rightOperandComputer,
   ) {
@@ -2515,7 +2545,7 @@ class DartObjectComputer {
   }
 
   Constant lazyOr(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl Function() rightOperandComputer,
   ) {

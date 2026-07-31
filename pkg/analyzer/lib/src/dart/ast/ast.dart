@@ -3834,6 +3834,157 @@ final class BinaryExpressionImpl extends ExpressionImpl
   }
 }
 
+/// The V1 compatibility projection of a [LogicalAnd] or [LogicalOr].
+final class BinaryExpressionV1Impl extends ExpressionImpl
+    implements BinaryExpression {
+  final ExpressionImpl _origin;
+
+  BinaryExpressionV1Impl._and(LogicalAndImpl origin) : _origin = origin {
+    _attachV1Children();
+  }
+
+  BinaryExpressionV1Impl._or(LogicalOrImpl origin) : _origin = origin {
+    _attachV1Children();
+  }
+
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @override
+  MethodElement? get element => null;
+
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  ExpressionImpl get leftOperand => V1Projection.toV1Expression(leftOperand2);
+
+  @experimental
+  @override
+  ExpressionImpl get leftOperand2 => switch (_origin) {
+    LogicalAndImpl(:var leftOperand) => leftOperand,
+    LogicalOrImpl(:var leftOperand) => leftOperand,
+    _ => throw StateError('Unexpected logical expression: $_origin'),
+  };
+
+  @override
+  Token get operator => switch (_origin) {
+    LogicalAndImpl(:var operator) => operator,
+    LogicalOrImpl(:var operator) => operator,
+    _ => throw StateError('Unexpected logical expression: $_origin'),
+  };
+
+  @override
+  Precedence get precedence => _origin.precedence;
+
+  @override
+  ExpressionImpl get rightOperand => V1Projection.toV1Expression(rightOperand2);
+
+  @experimental
+  @override
+  ExpressionImpl get rightOperand2 => switch (_origin) {
+    LogicalAndImpl(:var rightOperand) => rightOperand,
+    LogicalOrImpl(:var rightOperand) => rightOperand,
+    _ => throw StateError('Unexpected logical expression: $_origin'),
+  };
+
+  @override
+  FunctionTypeImpl? get staticInvokeType => null;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('BinaryExpression is not in the V2 AST view.');
+  }
+
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
+
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('BinaryExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @override
+  bool isInValueExpressionSlot(AstNode child) => true;
+
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('BinaryExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    leftOperand.accept(visitor);
+    rightOperand.accept(visitor);
+  }
+
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('BinaryExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(leftOperand);
+    _becomeParentOf1(rightOperand);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand;
+    }
+    if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand;
+    }
+    return null;
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('BinaryExpression is not in the V2 AST view.');
+  }
+}
+
 /// A sequence of statements.
 ///
 ///    block ::=
@@ -27152,6 +27303,220 @@ class LocalVariableInfo {
   final Set<VariableElement> potentiallyMutatedInScope = {};
 }
 
+/// A logical-and expression.
+///
+///    logicalAndExpression ::=
+///        [Expression] '&&' [Expression]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LogicalAnd implements Expression {
+  /// The expression used to compute the left operand.
+  Expression get leftOperand;
+
+  /// The `&&` operator.
+  Token get operator;
+
+  /// The expression used to compute the right operand.
+  Expression get rightOperand;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+  ],
+)
+final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
+  @generated
+  ExpressionImpl _leftOperand;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  ExpressionImpl _rightOperand;
+
+  BinaryExpressionV1Impl? _binaryExpression;
+
+  @generated
+  LogicalAndImpl({
+    required ExpressionImpl leftOperand,
+    required this.operator,
+    required ExpressionImpl rightOperand,
+  }) : _leftOperand = leftOperand,
+       _rightOperand = rightOperand {
+    _becomeParentOf2(leftOperand);
+    _becomeParentOf2(rightOperand);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftOperand.beginToken;
+  }
+
+  /// The cached V1 compatibility projection for this expression.
+  BinaryExpressionV1Impl get binaryExpression =>
+      _binaryExpression ??= BinaryExpressionV1Impl._and(this);
+
+  @generated
+  @override
+  Token get endToken {
+    return rightOperand.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get leftOperand => _leftOperand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set leftOperand(ExpressionImpl leftOperand) {
+    _leftOperand = _becomeParentOf2(leftOperand);
+    _binaryExpression?._attachV1Children();
+  }
+
+  @override
+  Precedence get precedence => Precedence.logicalAnd;
+
+  @generated
+  @override
+  ExpressionImpl get rightOperand => _rightOperand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set rightOperand(ExpressionImpl rightOperand) {
+    _rightOperand = _becomeParentOf2(rightOperand);
+    _binaryExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('LogicalAnd is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('LogicalAnd is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalAnd(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(leftOperand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'leftOperand'.");
+    }
+    if (identical(rightOperand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'rightOperand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(leftOperand, oldNode)) {
+      leftOperand = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(rightOperand, oldNode)) {
+      rightOperand = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitLogicalAnd(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('LogicalAnd is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    leftOperand.accept2(visitor);
+    rightOperand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitLeftOperand,
+    void Function(ExpressionImpl)? visitRightOperand,
+  }) {
+    if (visitLeftOperand != null) {
+      visitLeftOperand(leftOperand);
+    } else {
+      leftOperand.accept2(visitor);
+    }
+    if (visitRightOperand != null) {
+      visitRightOperand(rightOperand);
+    } else {
+      rightOperand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('LogicalAnd is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand;
+    }
+    if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand;
+    }
+    return null;
+  }
+}
+
 /// A logical-and pattern.
 ///
 ///    logicalAndPattern ::=
@@ -27545,6 +27910,220 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
       return operand;
+    }
+    return null;
+  }
+}
+
+/// A logical-or expression.
+///
+///    logicalOrExpression ::=
+///        [Expression] '||' [Expression]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LogicalOr implements Expression {
+  /// The expression used to compute the left operand.
+  Expression get leftOperand;
+
+  /// The `||` operator.
+  Token get operator;
+
+  /// The expression used to compute the right operand.
+  Expression get rightOperand;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+  ],
+)
+final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
+  @generated
+  ExpressionImpl _leftOperand;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  ExpressionImpl _rightOperand;
+
+  BinaryExpressionV1Impl? _binaryExpression;
+
+  @generated
+  LogicalOrImpl({
+    required ExpressionImpl leftOperand,
+    required this.operator,
+    required ExpressionImpl rightOperand,
+  }) : _leftOperand = leftOperand,
+       _rightOperand = rightOperand {
+    _becomeParentOf2(leftOperand);
+    _becomeParentOf2(rightOperand);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftOperand.beginToken;
+  }
+
+  /// The cached V1 compatibility projection for this expression.
+  BinaryExpressionV1Impl get binaryExpression =>
+      _binaryExpression ??= BinaryExpressionV1Impl._or(this);
+
+  @generated
+  @override
+  Token get endToken {
+    return rightOperand.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get leftOperand => _leftOperand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set leftOperand(ExpressionImpl leftOperand) {
+    _leftOperand = _becomeParentOf2(leftOperand);
+    _binaryExpression?._attachV1Children();
+  }
+
+  @override
+  Precedence get precedence => Precedence.logicalOr;
+
+  @generated
+  @override
+  ExpressionImpl get rightOperand => _rightOperand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set rightOperand(ExpressionImpl rightOperand) {
+    _rightOperand = _becomeParentOf2(rightOperand);
+    _binaryExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('LogicalOr is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('LogicalOr is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalOr(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(leftOperand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'leftOperand'.");
+    }
+    if (identical(rightOperand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'rightOperand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(leftOperand, oldNode)) {
+      leftOperand = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(rightOperand, oldNode)) {
+      rightOperand = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitLogicalOr(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('LogicalOr is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    leftOperand.accept2(visitor);
+    rightOperand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitLeftOperand,
+    void Function(ExpressionImpl)? visitRightOperand,
+  }) {
+    if (visitLeftOperand != null) {
+      visitLeftOperand(leftOperand);
+    } else {
+      leftOperand.accept2(visitor);
+    }
+    if (visitRightOperand != null) {
+      visitRightOperand(rightOperand);
+    } else {
+      rightOperand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('LogicalOr is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand;
+    }
+    if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand;
     }
     return null;
   }
@@ -44267,6 +44846,12 @@ enum V1Projection {
     }
     if (node is LogicalNotImpl) {
       return node.prefixExpression;
+    }
+    if (node is LogicalAndImpl) {
+      return node.binaryExpression;
+    }
+    if (node is LogicalOrImpl) {
+      return node.binaryExpression;
     }
     if (node is NullAssertionExpressionImpl) {
       return node.postfixExpression;

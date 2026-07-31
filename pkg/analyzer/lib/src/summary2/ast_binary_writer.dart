@@ -478,9 +478,25 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitLogicalAnd(LogicalAnd node) {
+    _writeByte(Tag.LogicalAnd);
+    _writeNode(node.leftOperand);
+    _writeNode(node.rightOperand);
+    _storeExpression(node);
+  }
+
+  @override
   void visitLogicalNot(LogicalNot node) {
     _writeByte(Tag.LogicalNot);
     _writeNode(node.operand);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitLogicalOr(LogicalOr node) {
+    _writeByte(Tag.LogicalOr);
+    _writeNode(node.leftOperand);
+    _writeNode(node.rightOperand);
     _storeExpression(node);
   }
 

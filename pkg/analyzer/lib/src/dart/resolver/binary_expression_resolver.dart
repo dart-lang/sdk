@@ -41,18 +41,8 @@ class BinaryExpressionResolver {
   void resolve(BinaryExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
 
-    if (operator == TokenType.AMPERSAND_AMPERSAND) {
-      _resolveLogicalAnd(node);
-      return;
-    }
-
     if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
       _resolveEqual(node, notEqual: operator == TokenType.BANG_EQ);
-      return;
-    }
-
-    if (operator == TokenType.BAR_BAR) {
-      _resolveLogicalOr(node);
       return;
     }
 
@@ -76,6 +66,24 @@ class BinaryExpressionResolver {
     }
 
     _resolveUnsupportedOperator(node);
+  }
+
+  void resolveLogicalAnd(LogicalAndImpl node) {
+    _resolveLogicalExpression(
+      node,
+      leftOperand: node.leftOperand,
+      rightOperand: node.rightOperand,
+      isAnd: true,
+    );
+  }
+
+  void resolveLogicalOr(LogicalOrImpl node) {
+    _resolveLogicalExpression(
+      node,
+      leftOperand: node.leftOperand,
+      rightOperand: node.rightOperand,
+      isAnd: false,
+    );
   }
 
   void _checkNonBoolOperand(
@@ -251,9 +259,14 @@ class BinaryExpressionResolver {
     _resolver.checkForArgumentTypeNotAssignableForArgument(right);
   }
 
-  void _resolveLogicalAnd(BinaryExpressionImpl node) {
-    var left = node.leftOperand2;
-    var right = node.rightOperand2;
+  void _resolveLogicalExpression(
+    ExpressionImpl node, {
+    required ExpressionImpl leftOperand,
+    required ExpressionImpl rightOperand,
+    required bool isAnd,
+  }) {
+    var left = leftOperand;
+    var right = rightOperand;
     var flow = _resolver.flowAnalysis.flow;
 
     flow?.logicalBinaryOp_begin();
@@ -269,7 +282,7 @@ class BinaryExpressionResolver {
     flow?.logicalBinaryOp_rightBegin(
       _resolver.flowAnalysis.getExpressionInfo(left),
       node,
-      isAnd: true,
+      isAnd: isAnd,
     );
     _resolver.checkUnreachableNode(right);
 
@@ -287,58 +300,13 @@ class BinaryExpressionResolver {
       node,
       flow?.logicalBinaryOp_end(
         _resolver.flowAnalysis.getExpressionInfo(right),
-        isAnd: true,
+        isAnd: isAnd,
       ),
     );
 
-    _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
-    _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);
-
-    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
-  }
-
-  void _resolveLogicalOr(BinaryExpressionImpl node) {
-    var left = node.leftOperand2;
-    var right = node.rightOperand2;
-    var flow = _resolver.flowAnalysis.flow;
-
-    flow?.logicalBinaryOp_begin();
-    _resolver.analyzeExpression(
-      left,
-      SharedTypeSchemaView(_typeProvider.boolType),
-    );
-    left = _resolver.popRewrite()!;
-    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(left),
-    );
-
-    flow?.logicalBinaryOp_rightBegin(
-      _resolver.flowAnalysis.getExpressionInfo(left),
-      node,
-      isAnd: false,
-    );
-    _resolver.checkUnreachableNode(right);
-
-    _resolver.analyzeExpression(
-      right,
-      SharedTypeSchemaView(_typeProvider.boolType),
-    );
-    right = _resolver.popRewrite()!;
-    var rightWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(right),
-    );
-
-    _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-    _resolver.flowAnalysis.storeExpressionInfo(
-      node,
-      flow?.logicalBinaryOp_end(
-        _resolver.flowAnalysis.getExpressionInfo(right),
-        isAnd: false,
-      ),
-    );
-
-    _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
-    _checkNonBoolOperand(right, '||', whyNotPromoted: rightWhyNotPromoted);
+    var operator = isAnd ? '&&' : '||';
+    _checkNonBoolOperand(left, operator, whyNotPromoted: leftWhyNotPromoted);
+    _checkNonBoolOperand(right, operator, whyNotPromoted: rightWhyNotPromoted);
 
     node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }

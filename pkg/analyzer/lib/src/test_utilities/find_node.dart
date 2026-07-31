@@ -50,7 +50,11 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorTearOff get singleConstructorTearOff => _single();
 
+  LogicalAnd get singleLogicalAnd => _single();
+
   LogicalNot get singleLogicalNot => _single();
+
+  LogicalOr get singleLogicalOr => _single();
 
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
@@ -62,8 +66,16 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is ConstructorTearOff);
   }
 
+  LogicalAnd logicalAnd(String search) {
+    return _node(search, (node) => node is LogicalAnd);
+  }
+
   LogicalNot logicalNot(String search) {
     return _node(search, (node) => node is LogicalNot);
+  }
+
+  LogicalOr logicalOr(String search) {
+    return _node(search, (node) => node is LogicalOr);
   }
 
   NullAssertionExpression nullAssertion(String search) {

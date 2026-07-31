@@ -1846,6 +1846,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitLogicalAnd(LogicalAnd node) {
+    _runSubscriptions(node, _registry._forLogicalAnd);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitLogicalAndPattern(LogicalAndPattern node) {
     _runSubscriptions(node, _registry._forLogicalAndPattern);
@@ -1856,6 +1863,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitLogicalNot(LogicalNot node) {
     _runSubscriptions(node, _registry._forLogicalNot);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitLogicalOr(LogicalOr node) {
+    _runSubscriptions(node, _registry._forLogicalOr);
     node.visitChildren2(this);
   }
 
@@ -4404,9 +4418,13 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ListPattern>> _forListPattern = [];
 
+  final List<_Subscription2<LogicalAnd>> _forLogicalAnd = [];
+
   final List<_Subscription2<LogicalAndPattern>> _forLogicalAndPattern = [];
 
   final List<_Subscription2<LogicalNot>> _forLogicalNot = [];
+
+  final List<_Subscription2<LogicalOr>> _forLogicalOr = [];
 
   final List<_Subscription2<LogicalOrPattern>> _forLogicalOrPattern = [];
 
@@ -5380,6 +5398,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addLogicalAnd(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forLogicalAnd.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addLogicalAndPattern(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forLogicalAndPattern.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5389,6 +5413,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addLogicalNot(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forLogicalNot.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addLogicalOr(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forLogicalOr.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

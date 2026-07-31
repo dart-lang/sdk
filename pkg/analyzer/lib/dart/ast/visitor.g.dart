@@ -1181,12 +1181,20 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
 
   R? visitLiteral(Literal node) => visitExpression(node);
 
+  @experimental
+  @override
+  R? visitLogicalAnd(LogicalAnd node) => visitExpression(node);
+
   @override
   R? visitLogicalAndPattern(LogicalAndPattern node) => visitDartPattern(node);
 
   @experimental
   @override
   R? visitLogicalNot(LogicalNot node) => visitExpression(node);
+
+  @experimental
+  @override
+  R? visitLogicalOr(LogicalOr node) => visitExpression(node);
 
   @override
   R? visitLogicalOrPattern(LogicalOrPattern node) => visitDartPattern(node);
@@ -3276,6 +3284,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitLogicalAnd(LogicalAnd node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitLogicalAndPattern(LogicalAndPattern node) {
     node.visitChildren2(this);
@@ -3285,6 +3300,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitLogicalNot(LogicalNot node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitLogicalOr(LogicalOr node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4705,12 +4727,20 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitListPattern(ListPattern node) => null;
 
+  @experimental
+  @override
+  R? visitLogicalAnd(LogicalAnd node) => null;
+
   @override
   R? visitLogicalAndPattern(LogicalAndPattern node) => null;
 
   @experimental
   @override
   R? visitLogicalNot(LogicalNot node) => null;
+
+  @experimental
+  @override
+  R? visitLogicalOr(LogicalOr node) => null;
 
   @override
   R? visitLogicalOrPattern(LogicalOrPattern node) => null;
@@ -5918,12 +5948,20 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitListPattern(ListPattern node) => _throw(node);
 
+  @experimental
+  @override
+  R? visitLogicalAnd(LogicalAnd node) => _throw(node);
+
   @override
   R? visitLogicalAndPattern(LogicalAndPattern node) => _throw(node);
 
   @experimental
   @override
   R? visitLogicalNot(LogicalNot node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitLogicalOr(LogicalOr node) => _throw(node);
 
   @override
   R? visitLogicalOrPattern(LogicalOrPattern node) => _throw(node);
@@ -8548,6 +8586,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitLogicalAnd(LogicalAnd node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLogicalAnd(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitLogicalAndPattern(LogicalAndPattern node) {
     stopwatch.start();
@@ -8561,6 +8608,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitLogicalNot(LogicalNot node) {
     stopwatch.start();
     T? result = _baseVisitor.visitLogicalNot(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitLogicalOr(LogicalOr node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLogicalOr(node);
     stopwatch.stop();
     return result;
   }
@@ -10205,12 +10261,20 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitListPattern(ListPattern node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitLogicalAnd(LogicalAnd node) => visitNode(node);
+
   @override
   R? visitLogicalAndPattern(LogicalAndPattern node) => visitNode(node);
 
   @experimental
   @override
   R? visitLogicalNot(LogicalNot node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitLogicalOr(LogicalOr node) => visitNode(node);
 
   @override
   R? visitLogicalOrPattern(LogicalOrPattern node) => visitNode(node);

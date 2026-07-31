@@ -784,9 +784,33 @@ class AstBinaryReader {
     return node;
   }
 
+  LogicalAnd _readLogicalAnd() {
+    var leftOperand = _readNode() as ExpressionImpl;
+    var rightOperand = _readNode() as ExpressionImpl;
+    var node = LogicalAndImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.ampersandAmpersand(),
+      rightOperand: rightOperand,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   LogicalNot _readLogicalNot() {
     var operand = _readNode() as ExpressionImpl;
     var node = LogicalNotImpl(operator: Tokens.bang(), operand: operand);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  LogicalOr _readLogicalOr() {
+    var leftOperand = _readNode() as ExpressionImpl;
+    var rightOperand = _readNode() as ExpressionImpl;
+    var node = LogicalOrImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.barBar(),
+      rightOperand: rightOperand,
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -962,12 +986,16 @@ class AstBinaryReader {
         return _readIsExpression();
       case Tag.ListLiteral:
         return _readListLiteral();
+      case Tag.LogicalAnd:
+        return _readLogicalAnd();
       case Tag.MapLiteralEntry:
         return _readMapLiteralEntry();
       case Tag.MethodInvocation:
         return _readMethodInvocation();
       case Tag.LogicalNot:
         return _readLogicalNot();
+      case Tag.LogicalOr:
+        return _readLogicalOr();
       case Tag.NamedArgument:
         return _readNamedArgument();
       case Tag.NullAwareElement:

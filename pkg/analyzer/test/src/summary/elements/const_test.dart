@@ -8464,31 +8464,27 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vAnd (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::vAnd
           initializer: expression_1
-            BinaryExpression
-              leftOperand2: BooleanLiteral
+            LogicalAnd
+              leftOperand: BooleanLiteral
                 literal: true @36
                 staticType: bool
               operator: && @41
-              rightOperand2: BooleanLiteral
+              rightOperand: BooleanLiteral
                 literal: false @44
                 staticType: bool
-              element: <null>
-              staticInvokeType: null
               staticType: bool
           inducedGetter: #F4
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vOr (nameOffset:57) (firstTokenOffset:57) (offset:57)
           element: <testLibrary>::@topLevelVariable::vOr
           initializer: expression_2
-            BinaryExpression
-              leftOperand2: BooleanLiteral
+            LogicalOr
+              leftOperand: BooleanLiteral
                 literal: false @63
                 staticType: bool
               operator: || @69
-              rightOperand2: BooleanLiteral
+              rightOperand: BooleanLiteral
                 literal: true @72
                 staticType: bool
-              element: <null>
-              staticInvokeType: null
               staticType: bool
           inducedGetter: #F6
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vBitXor (nameOffset:84) (firstTokenOffset:84) (offset:84)

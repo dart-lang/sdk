@@ -311,6 +311,12 @@ class NullSafetyDeadCodeVerifier {
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
         node = parent.rightOperand2;
+      } else if (parent is LogicalAnd) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
+      } else if (parent is LogicalOr) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
       } else if (parent is LogicalOrPattern &&
           firstDeadNode == parent.rightOperand) {
         offset = parent.operator.offset;
