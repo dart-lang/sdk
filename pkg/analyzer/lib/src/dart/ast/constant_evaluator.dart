@@ -604,6 +604,17 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
   }
 
   @override
+  Object? visitLogicalNot(LogicalNot node) {
+    var operand = node.operand.accept2(this);
+    if (identical(operand, true)) {
+      return false;
+    } else if (identical(operand, false)) {
+      return true;
+    }
+    return NOT_A_CONSTANT;
+  }
+
+  @override
   Object? visitMethodInvocation(MethodInvocation node) => visitNode(node);
 
   @override
@@ -627,13 +638,7 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
       return operand;
     }
     while (true) {
-      if (node.operator.type == TokenType.BANG) {
-        if (identical(operand, true)) {
-          return false;
-        } else if (identical(operand, false)) {
-          return true;
-        }
-      } else if (node.operator.type == TokenType.TILDE) {
+      if (node.operator.type == TokenType.TILDE) {
         if (operand is int) {
           return ~operand;
         }

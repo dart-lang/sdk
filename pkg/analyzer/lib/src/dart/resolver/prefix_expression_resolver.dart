@@ -40,11 +40,6 @@ class PrefixExpressionResolver {
   void resolve(PrefixExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
 
-    if (operator == TokenType.BANG) {
-      _resolveNegation(node);
-      return;
-    }
-
     var operand = node.operand2;
     if (operator.isIncrementOperator) {
       var operandResolution = _resolver.resolveForWrite(
@@ -255,33 +250,6 @@ class PrefixExpressionResolver {
         }
       }
       node.recordStaticType(staticType, resolver: _resolver);
-    }
-  }
-
-  void _resolveNegation(PrefixExpressionImpl node) {
-    var operand = node.operand2;
-
-    _resolver.analyzeExpression(
-      operand,
-      SharedTypeSchemaView(_typeProvider.boolType),
-    );
-    operand = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(operand),
-    );
-
-    _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(
-      operand,
-      whyNotPromoted: whyNotPromoted,
-    );
-
-    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
-
-    if (_resolver.flowAnalysis.flow case var flow?) {
-      _resolver.flowAnalysis.storeExpressionInfo(
-        node,
-        flow.logicalNot_end(_resolver.flowAnalysis.getExpressionInfo(operand)),
-      );
     }
   }
 }

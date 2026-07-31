@@ -4374,7 +4374,7 @@ class AstBuilder extends StackListener {
       forLoopParts = ForPartsWithDeclarationsImpl(
         variables: initializerPart.variables,
         leftSeparator: leftSeparator,
-        condition: condition,
+        condition2: condition,
         rightSeparator: rightSeparator,
         updaters2: updates,
       );
@@ -4382,7 +4382,7 @@ class AstBuilder extends StackListener {
       forLoopParts = ForPartsWithPatternImpl(
         variables: initializerPart,
         leftSeparator: leftSeparator,
-        condition: condition,
+        condition2: condition,
         rightSeparator: rightSeparator,
         updaters2: updates,
       );
@@ -4390,7 +4390,7 @@ class AstBuilder extends StackListener {
       forLoopParts = ForPartsWithExpressionImpl(
         initialization2: initializerPart as ExpressionImpl?,
         leftSeparator: leftSeparator,
-        condition: condition,
+        condition2: condition,
         rightSeparator: rightSeparator,
         updaters2: updates,
       );
@@ -5680,7 +5680,11 @@ class AstBuilder extends StackListener {
       reportErrorIfSuper(operand);
     }
 
-    push(PrefixExpressionImpl(operator: operator, operand2: operand));
+    if (operator.type == TokenType.BANG) {
+      push(LogicalNotImpl(operator: operator, operand: operand));
+    } else {
+      push(PrefixExpressionImpl(operator: operator, operand2: operand));
+    }
   }
 
   @override

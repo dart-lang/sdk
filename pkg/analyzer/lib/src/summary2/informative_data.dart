@@ -2040,6 +2040,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLogicalNot(LogicalNot node) {
+    _tokenOrNull(node.operator);
+    super.visitLogicalNot(node);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _tokenOrNull(node.separator);
     super.visitMapLiteralEntry(node);

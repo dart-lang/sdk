@@ -611,7 +611,7 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: x
           operator: <
@@ -664,7 +664,7 @@ Block
             rightHandSide2: IntegerLiteral
               literal: 8
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: y
           operator: <
@@ -710,7 +710,7 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: x
           operator: <

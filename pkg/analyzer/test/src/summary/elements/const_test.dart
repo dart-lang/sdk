@@ -9947,12 +9947,11 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vNot (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::vNot
           initializer: expression_1
-            PrefixExpression
+            LogicalNot
               operator: ! @39
-              operand2: BooleanLiteral
+              operand: BooleanLiteral
                 literal: true @40
                 staticType: bool
-              element: <null>
               staticType: bool
           inducedGetter: #F4
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vNegate (nameOffset:52) (firstTokenOffset:52) (offset:52)

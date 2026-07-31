@@ -134,11 +134,14 @@ class _Collector {
       return;
     }
 
+    if (node is LogicalNot) {
+      collect(node.operand);
+      return;
+    }
+
     if (node is PrefixExpression) {
       var operator = node.operator.type;
-      if (operator == TokenType.BANG ||
-          operator == TokenType.MINUS ||
-          operator == TokenType.TILDE) {
+      if (operator == TokenType.MINUS || operator == TokenType.TILDE) {
         collect(node.operand2);
         return;
       }

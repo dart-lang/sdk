@@ -183,6 +183,7 @@ class UseResultVerifier {
         parent is ConditionalExpression ||
         parent is ForElement ||
         parent is IfElement ||
+        parent is LogicalNot ||
         parent is ParenthesizedExpression ||
         parent is PrefixExpression ||
         parent is SpreadElement) {
@@ -192,7 +193,7 @@ class UseResultVerifier {
     if (parent is ForParts) {
       // If [node] is the condition of a for-loop, it is used; if it is one of
       // the updaters, it is not.
-      return parent.condition == node;
+      return parent.condition2 == node;
     }
 
     return parent is ArgumentList ||

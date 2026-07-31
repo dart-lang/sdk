@@ -4393,9 +4393,16 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: PrefixExpression
+            condition2: LogicalNot
               operator: !
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
+                token: it
+                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                staticType: bool
+              staticType: bool
+            condition(v1): PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
                 token: it
                 element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                 staticType: bool

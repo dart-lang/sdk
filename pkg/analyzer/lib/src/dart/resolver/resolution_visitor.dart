@@ -1375,16 +1375,16 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       case ForPartsWithDeclarationsImpl():
         scope.addAll(node.variables.declaredElements);
         node.variables.accept2(this);
-        node.condition?.accept2(this);
+        node.condition2?.accept2(this);
         node.updaters2.accept2(this);
       case ForPartsWithExpressionImpl():
         node.initialization2?.accept2(this);
-        node.condition?.accept2(this);
+        node.condition2?.accept2(this);
         node.updaters2.accept2(this);
       case ForPartsWithPatternImpl():
         _definePatternVariableDeclarationElements(scope, node.variables);
         node.variables.accept2(this);
-        node.condition?.accept2(this);
+        node.condition2?.accept2(this);
         node.updaters2.accept2(this);
     }
   }

@@ -638,6 +638,9 @@ abstract class AstVisitor2<R> {
 
   R? visitLogicalAndPattern(LogicalAndPattern node);
 
+  @experimental
+  R? visitLogicalNot(LogicalNot node);
+
   R? visitLogicalOrPattern(LogicalOrPattern node);
 
   R? visitMapLiteralEntry(MapLiteralEntry node);

@@ -118,7 +118,7 @@ ListLiteral
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: x
           operator: <
@@ -525,7 +525,7 @@ SetOrMapLiteral
           rightHandSide2: IntegerLiteral
             literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryExpression
           leftOperand2: SimpleIdentifier
             token: x
           operator: <

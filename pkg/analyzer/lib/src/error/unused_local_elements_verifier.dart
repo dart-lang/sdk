@@ -475,6 +475,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
     if (parent.parent2 is ExpressionStatement) {
       if (parent is NullAssertionExpression ||
+          parent is LogicalNot ||
           parent is PrefixExpression ||
           parent is PostfixExpression) {
         // v++;

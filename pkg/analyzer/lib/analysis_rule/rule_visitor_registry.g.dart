@@ -781,6 +781,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addLogicalAndPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addLogicalNot(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addLogicalOrPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addMapLiteralEntry(AbstractAnalysisRule rule, AstVisitor2 visitor);

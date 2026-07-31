@@ -18926,7 +18926,13 @@ final class FormalParameterListImpl extends AstNodeImpl
 sealed class ForParts implements ForLoopParts {
   /// The condition used to determine when to terminate the loop, or `null` if
   /// there's no condition.
+  @ToBeDeprecated('Use condition2 instead.')
   Expression? get condition;
+
+  /// The condition used to determine when to terminate the loop, or `null` if
+  /// there's no condition.
+  @experimental
+  Expression? get condition2;
 
   /// The semicolon separating the initializer and the condition.
   Token get leftSeparator;
@@ -18946,7 +18952,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   final Token leftSeparator;
 
-  ExpressionImpl? _condition;
+  ExpressionImpl? _condition2;
 
   @override
   final Token rightSeparator;
@@ -18966,11 +18972,15 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   /// loop doesn't have the corresponding attribute.
   ForPartsImpl({
     required this.leftSeparator,
-    required ExpressionImpl? condition,
+    required ExpressionImpl? condition2,
     required this.rightSeparator,
     required List<ExpressionImpl>? updaters2,
-  }) : _condition = condition {
-    _becomeParentOf12(_condition);
+  }) : _condition2 = condition2 {
+    _becomeParentOf2(condition2);
+    _becomeParentOf1(switch (condition2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
     _updaters2._initializeProjected(
       this,
       updaters2,
@@ -18982,10 +18992,21 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   Token get beginToken => leftSeparator;
 
   @override
-  ExpressionImpl? get condition => _condition;
+  ExpressionImpl? get condition => switch (condition2) {
+    var node? => V1Projection.toV1Expression(node),
+    _ => null,
+  };
 
-  set condition(ExpressionImpl? expression) {
-    _condition = _becomeParentOf12(expression);
+  @experimental
+  @override
+  ExpressionImpl? get condition2 => _condition2;
+
+  set condition2(ExpressionImpl? condition2) {
+    _condition2 = _becomeParentOf2(condition2);
+    _becomeParentOf1(switch (condition2) {
+      var node? => V1Projection.toV1Expression(node),
+      _ => null,
+    });
   }
 
   @override
@@ -19005,14 +19026,16 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _condition?.accept(visitor);
+    condition?.accept(visitor);
     updaters.accept(visitor);
   }
 
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (_condition?._containsOffset(rangeOffset, rangeEnd) ?? false) {
-      return _condition;
+    if (condition case var condition?) {
+      if (condition._containsOffset(rangeOffset, rangeEnd)) {
+        return condition;
+      }
     }
     return updaters._elementContainingRange(rangeOffset, rangeEnd);
   }
@@ -19034,7 +19057,9 @@ abstract final class ForPartsWithDeclarations implements ForParts {
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('leftSeparator', isSuper: true),
     GenerateNodeProperty(
-      'condition',
+      'condition2',
+      v1Name: 'condition',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -19057,7 +19082,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   ForPartsWithDeclarationsImpl({
     required VariableDeclarationListImpl variables,
     required super.leftSeparator,
-    required super.condition,
+    required super.condition2,
     required super.rightSeparator,
     required super.updaters2,
   }) : _variables = variables {
@@ -19102,7 +19127,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('variables', variables)
     ..addToken('leftSeparator', leftSeparator)
-    ..addNode('condition', condition)
+    ..addNode('condition2', condition2)
     ..addToken('rightSeparator', rightSeparator)
     ..addNodeList('updaters2', updaters2);
 
@@ -19131,8 +19156,8 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     if (identical(variables, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'variables'.");
     }
-    if (identical(condition, oldNode)) {
-      condition = null;
+    if (identical(condition2, oldNode)) {
+      condition2 = null;
       return;
     }
     if (updaters2.containsChild(oldNode)) {
@@ -19150,8 +19175,8 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
       variables = newNode as VariableDeclarationListImpl;
       return;
     }
-    if (identical(condition, oldNode)) {
-      condition = newNode as ExpressionImpl?;
+    if (identical(condition2, oldNode)) {
+      condition2 = newNode as ExpressionImpl?;
       return;
     }
     if (updaters2.replaceChild(oldNode, newNode)) {
@@ -19174,7 +19199,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     variables.accept2(visitor);
-    condition?.accept2(visitor);
+    condition2?.accept2(visitor);
     updaters2.accept2(visitor);
   }
 
@@ -19188,7 +19213,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(VariableDeclarationListImpl)? visitVariables,
-    void Function(ExpressionImpl)? visitCondition,
+    void Function(ExpressionImpl)? visitCondition2,
     void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters2,
   }) {
     if (visitVariables != null) {
@@ -19196,11 +19221,11 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     } else {
       variables.accept2(visitor);
     }
-    if (condition case var condition?) {
-      if (visitCondition != null) {
-        visitCondition(condition);
+    if (condition2 case var condition2?) {
+      if (visitCondition2 != null) {
+        visitCondition2(condition2);
       } else {
-        condition.accept2(visitor);
+        condition2.accept2(visitor);
       }
     }
     if (visitUpdaters2 != null) {
@@ -19234,9 +19259,9 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
       return variables;
     }
-    if (condition case var condition?) {
-      if (condition._containsOffset(rangeOffset, rangeEnd)) {
-        return condition;
+    if (condition2 case var condition2?) {
+      if (condition2._containsOffset(rangeOffset, rangeEnd)) {
+        return condition2;
       }
     }
     if (updaters2._elementContainingRange(rangeOffset, rangeEnd)
@@ -19276,7 +19301,9 @@ abstract final class ForPartsWithExpression implements ForParts {
     ),
     GenerateNodeProperty('leftSeparator', isSuper: true),
     GenerateNodeProperty(
-      'condition',
+      'condition2',
+      v1Name: 'condition',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -19299,7 +19326,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   ForPartsWithExpressionImpl({
     required ExpressionImpl? initialization2,
     required super.leftSeparator,
-    required super.condition,
+    required super.condition2,
     required super.rightSeparator,
     required super.updaters2,
   }) : _initialization2 = initialization2 {
@@ -19365,7 +19392,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('initialization2', initialization2)
     ..addToken('leftSeparator', leftSeparator)
-    ..addNode('condition', condition)
+    ..addNode('condition2', condition2)
     ..addToken('rightSeparator', rightSeparator)
     ..addNodeList('updaters2', updaters2);
 
@@ -19395,8 +19422,8 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
       initialization2 = null;
       return;
     }
-    if (identical(condition, oldNode)) {
-      condition = null;
+    if (identical(condition2, oldNode)) {
+      condition2 = null;
       return;
     }
     if (updaters2.containsChild(oldNode)) {
@@ -19414,8 +19441,8 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
       initialization2 = newNode as ExpressionImpl?;
       return;
     }
-    if (identical(condition, oldNode)) {
-      condition = newNode as ExpressionImpl?;
+    if (identical(condition2, oldNode)) {
+      condition2 = newNode as ExpressionImpl?;
       return;
     }
     if (updaters2.replaceChild(oldNode, newNode)) {
@@ -19438,7 +19465,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     initialization2?.accept2(visitor);
-    condition?.accept2(visitor);
+    condition2?.accept2(visitor);
     updaters2.accept2(visitor);
   }
 
@@ -19452,7 +19479,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ExpressionImpl)? visitInitialization2,
-    void Function(ExpressionImpl)? visitCondition,
+    void Function(ExpressionImpl)? visitCondition2,
     void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters2,
   }) {
     if (initialization2 case var initialization2?) {
@@ -19462,11 +19489,11 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
         initialization2.accept2(visitor);
       }
     }
-    if (condition case var condition?) {
-      if (visitCondition != null) {
-        visitCondition(condition);
+    if (condition2 case var condition2?) {
+      if (visitCondition2 != null) {
+        visitCondition2(condition2);
       } else {
-        condition.accept2(visitor);
+        condition2.accept2(visitor);
       }
     }
     if (visitUpdaters2 != null) {
@@ -19504,9 +19531,9 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
         return initialization2;
       }
     }
-    if (condition case var condition?) {
-      if (condition._containsOffset(rangeOffset, rangeEnd)) {
-        return condition;
+    if (condition2 case var condition2?) {
+      if (condition2._containsOffset(rangeOffset, rangeEnd)) {
+        return condition2;
       }
     }
     if (updaters2._elementContainingRange(rangeOffset, rangeEnd)
@@ -19533,7 +19560,9 @@ abstract final class ForPartsWithPattern implements ForParts {
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('leftSeparator', isSuper: true),
     GenerateNodeProperty(
-      'condition',
+      'condition2',
+      v1Name: 'condition',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -19556,7 +19585,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   ForPartsWithPatternImpl({
     required PatternVariableDeclarationImpl variables,
     required super.leftSeparator,
-    required super.condition,
+    required super.condition2,
     required super.rightSeparator,
     required super.updaters2,
   }) : _variables = variables {
@@ -19601,7 +19630,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('variables', variables)
     ..addToken('leftSeparator', leftSeparator)
-    ..addNode('condition', condition)
+    ..addNode('condition2', condition2)
     ..addToken('rightSeparator', rightSeparator)
     ..addNodeList('updaters2', updaters2);
 
@@ -19629,8 +19658,8 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
     if (identical(variables, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'variables'.");
     }
-    if (identical(condition, oldNode)) {
-      condition = null;
+    if (identical(condition2, oldNode)) {
+      condition2 = null;
       return;
     }
     if (updaters2.containsChild(oldNode)) {
@@ -19648,8 +19677,8 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
       variables = newNode as PatternVariableDeclarationImpl;
       return;
     }
-    if (identical(condition, oldNode)) {
-      condition = newNode as ExpressionImpl?;
+    if (identical(condition2, oldNode)) {
+      condition2 = newNode as ExpressionImpl?;
       return;
     }
     if (updaters2.replaceChild(oldNode, newNode)) {
@@ -19672,7 +19701,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     variables.accept2(visitor);
-    condition?.accept2(visitor);
+    condition2?.accept2(visitor);
     updaters2.accept2(visitor);
   }
 
@@ -19686,7 +19715,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(PatternVariableDeclarationImpl)? visitVariables,
-    void Function(ExpressionImpl)? visitCondition,
+    void Function(ExpressionImpl)? visitCondition2,
     void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters2,
   }) {
     if (visitVariables != null) {
@@ -19694,11 +19723,11 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
     } else {
       variables.accept2(visitor);
     }
-    if (condition case var condition?) {
-      if (visitCondition != null) {
-        visitCondition(condition);
+    if (condition2 case var condition2?) {
+      if (visitCondition2 != null) {
+        visitCondition2(condition2);
       } else {
-        condition.accept2(visitor);
+        condition2.accept2(visitor);
       }
     }
     if (visitUpdaters2 != null) {
@@ -19732,9 +19761,9 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
       return variables;
     }
-    if (condition case var condition?) {
-      if (condition._containsOffset(rangeOffset, rangeEnd)) {
-        return condition;
+    if (condition2 case var condition2?) {
+      if (condition2._containsOffset(rangeOffset, rangeEnd)) {
+        return condition2;
       }
     }
     if (updaters2._elementContainingRange(rangeOffset, rangeEnd)
@@ -27299,6 +27328,180 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 }
 
+/// A logical not expression.
+///
+///    logicalNotExpression ::=
+///        '!' [Expression]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LogicalNot implements Expression {
+  /// The expression whose boolean value is negated.
+  Expression get operand;
+
+  /// The `!` operator.
+  Token get operator;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+  ],
+)
+final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  ExpressionImpl _operand;
+
+  PrefixExpressionV1Impl? _prefixExpression;
+
+  @generated
+  LogicalNotImpl({required this.operator, required ExpressionImpl operand})
+    : _operand = operand {
+    _becomeParentOf2(operand);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return operator;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return operand.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get operand => _operand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set operand(ExpressionImpl operand) {
+    _operand = _becomeParentOf2(operand);
+    _prefixExpression?._attachV1Children();
+  }
+
+  @override
+  Precedence get precedence => Precedence.prefix;
+
+  /// The cached V1 compatibility projection for this expression.
+  PrefixExpressionV1Impl get prefixExpression =>
+      _prefixExpression ??= PrefixExpressionV1Impl._(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('LogicalNot is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('LogicalNot is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalNot(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitLogicalNot(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('LogicalNot is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('LogicalNot is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+}
+
 /// A logical-or pattern.
 ///
 ///    logicalOrPattern ::=
@@ -34667,6 +34870,126 @@ final class PrefixExpressionImpl extends ExpressionImpl
       return operand2;
     }
     return null;
+  }
+}
+
+/// The V1 compatibility projection of a [LogicalNot].
+final class PrefixExpressionV1Impl extends ExpressionImpl
+    with CompoundAssignmentExpressionImpl
+    implements PrefixExpression {
+  final LogicalNotImpl _origin;
+
+  PrefixExpressionV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @override
+  MethodElement? get element => null;
+
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  ExpressionImpl get operand => V1Projection.toV1Expression(_origin.operand);
+
+  @experimental
+  @override
+  ExpressionImpl get operand2 => _origin.operand;
+
+  @override
+  Token get operator => _origin.operator;
+
+  @override
+  Precedence get precedence => Precedence.prefix;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
+
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
+
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @override
+  bool isInValueExpressionSlot(AstNode child) => true;
+
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('PrefixExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    operand.accept(visitor);
+  }
+
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(operand);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
   }
 }
 
@@ -43864,6 +44187,9 @@ enum V1Projection {
     }
     if (node is ConstructorTearOffImpl) {
       return node.constructorReference;
+    }
+    if (node is LogicalNotImpl) {
+      return node.prefixExpression;
     }
     if (node is NullAssertionExpressionImpl) {
       return node.postfixExpression;

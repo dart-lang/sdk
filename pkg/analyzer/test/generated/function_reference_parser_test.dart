@@ -417,11 +417,19 @@ MethodInvocation
         leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand2: PrefixExpression
+        rightOperand2: LogicalNot
           operator: !
-          operand2: ListLiteral
+          operand: ListLiteral
             leftBracket: [
             elements2
+              SimpleIdentifier
+                token: d
+            rightBracket: ]
+        rightOperand(v1): PrefixExpression
+          operator: !
+          operand: ListLiteral
+            leftBracket: [
+            elements
               SimpleIdentifier
                 token: d
             rightBracket: ]
@@ -451,11 +459,18 @@ MethodInvocation
         leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand2: PrefixExpression
+        rightOperand2: LogicalNot
           operator: !
-          operand2: ParenthesizedExpression
+          operand: ParenthesizedExpression
             leftParenthesis: (
             expression2: SimpleIdentifier
+              token: d
+            rightParenthesis: )
+        rightOperand(v1): PrefixExpression
+          operator: !
+          operand: ParenthesizedExpression
+            leftParenthesis: (
+            expression: SimpleIdentifier
               token: d
             rightParenthesis: )
     rightParenthesis: )

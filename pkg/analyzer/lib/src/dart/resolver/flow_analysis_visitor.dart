@@ -1331,7 +1331,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       }
 
       assignedVariables.beginNode();
-      forLoopParts.condition?.accept2(this);
+      forLoopParts.condition2?.accept2(this);
       body.accept2(this);
       forLoopParts.updaters2.accept2(this);
       assignedVariables.endNode(node);

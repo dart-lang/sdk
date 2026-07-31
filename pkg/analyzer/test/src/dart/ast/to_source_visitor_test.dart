@@ -3510,7 +3510,7 @@ int f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = !(a == b);
 ''');
-    var node = parseResult.findNode.singlePrefixExpression;
+    var node = parseResult.findNode.singleLogicalNot;
     _assertSource('!(a == b)', node);
   }
 

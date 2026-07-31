@@ -1764,16 +1764,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitPrefixExpression(covariant PrefixExpressionImpl node) {
-    var operatorType = node.operator.type;
     var operand = node.operand2;
-    if (operatorType != TokenType.BANG) {
-      if (operatorType.isIncrementOperator) {
-        _checkForAssignmentToFinal(operand);
-        _checkForAssignmentToPrimaryConstructorParameter(operand);
-      }
-      checkForUseOfVoidResult(operand);
-      _checkForIntNotAssignable(operand);
+    if (node.operator.type.isIncrementOperator) {
+      _checkForAssignmentToFinal(operand);
+      _checkForAssignmentToPrimaryConstructorParameter(operand);
     }
+    checkForUseOfVoidResult(operand);
+    _checkForIntNotAssignable(operand);
     super.visitPrefixExpression(node);
   }
 

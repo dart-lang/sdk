@@ -1628,7 +1628,7 @@ test(int i) => ++i;
 test(bool b) => !b;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('!b')].containsSubrange(
+    check(astNodes)[result.findNode.logicalNot('!b')].containsSubrange(
       astNodes[result.findNode.simple('b;')]!,
     );
     check(runInterpreter(result, [true])).equals(false);

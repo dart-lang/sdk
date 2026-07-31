@@ -50,6 +50,8 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorTearOff get singleConstructorTearOff => _single();
 
+  LogicalNot get singleLogicalNot => _single();
+
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
   ConstructorInvocation constructorInvocation(String search) {
@@ -58,6 +60,10 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorTearOff constructorTearOff(String search) {
     return _node(search, (node) => node is ConstructorTearOff);
+  }
+
+  LogicalNot logicalNot(String search) {
+    return _node(search, (node) => node is LogicalNot);
   }
 
   NullAssertionExpression nullAssertion(String search) {

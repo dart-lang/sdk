@@ -633,7 +633,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     _visitNode(node.variables);
     sink.write(';');
-    _visitNode(node.condition, prefix: ' ');
+    _visitNode(node.condition2, prefix: ' ');
     sink.write(';');
     _visitNodeList(node.updaters2, prefix: ' ', separator: ', ');
   }
@@ -642,7 +642,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitForPartsWithExpression(ForPartsWithExpression node) {
     _visitNode(node.initialization2);
     sink.write(';');
-    _visitNode(node.condition, prefix: ' ');
+    _visitNode(node.condition2, prefix: ' ');
     sink.write(';');
     _visitNodeList(node.updaters2, prefix: ' ', separator: ', ');
   }
@@ -651,7 +651,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitForPartsWithPattern(ForPartsWithPattern node) {
     _visitNode(node.variables);
     sink.write('; ');
-    _visitNode(node.condition);
+    _visitNode(node.condition2);
     sink.write('; ');
     _visitNodeList(node.updaters2, separator: ', ');
   }
@@ -908,6 +908,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write(node.operator.lexeme);
     sink.write(' ');
     _visitNode(node.rightOperand);
+  }
+
+  @override
+  void visitLogicalNot(LogicalNot node) {
+    sink.write(node.operator.lexeme);
+    _writeOperand(node, node.operand);
   }
 
   @override

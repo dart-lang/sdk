@@ -1075,6 +1075,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitLogicalNot(LogicalNot node) {
+    _sink.writeln('LogicalNot');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitLogicalOrPattern(LogicalOrPattern node) {
     _sink.writeln('LogicalOrPattern');
     _sink.withIndent(() {

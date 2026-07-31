@@ -2314,7 +2314,7 @@ BlockFunctionBody
                   element: hasImplicitType isPublic
                     type: int
           leftSeparator: ;
-          condition: BinaryExpression
+          condition2: BinaryExpression
             leftOperand2: SimpleIdentifier
               token: i
               element: i@27
@@ -2384,7 +2384,7 @@ ForStatement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: i
         element: i@33
@@ -2466,7 +2466,7 @@ ForStatement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: i
         element: i@22
@@ -2538,7 +2538,7 @@ ForStatement
             element: hasImplicitType isPublic
               type: dynamic
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: i
         element: i@27
@@ -2599,7 +2599,7 @@ ForStatement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: i2
         element: i2@27
@@ -2669,7 +2669,7 @@ ForStatement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: j
         element: j@29
@@ -2721,7 +2721,7 @@ ForStatement
   leftParenthesis: (
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
-    condition: FunctionExpressionInvocation
+    condition2: FunctionExpressionInvocation
       function2: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::f::@formalParameter::b
@@ -2805,7 +2805,7 @@ ForStatement
   leftParenthesis: (
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: i
         element: i@17
@@ -2938,7 +2938,7 @@ ForStatement
         staticType: int
       patternTypeSchema: _
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: a
         element: a@35
@@ -3027,7 +3027,7 @@ ForStatement
         staticType: int
       patternTypeSchema: _
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: a
         element: a@40
@@ -3116,7 +3116,7 @@ BlockFunctionBody
               staticType: (int, bool)
             patternTypeSchema: (_, _)
           leftSeparator: ;
-          condition: SimpleIdentifier
+          condition2: SimpleIdentifier
             token: b
             element: b@46
             staticType: bool
@@ -3194,7 +3194,7 @@ ForStatement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@39
       staticType: bool
@@ -3284,7 +3284,7 @@ ForStatement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@39
       staticType: bool
@@ -3362,7 +3362,7 @@ ForStatement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@39
       staticType: bool
@@ -3444,7 +3444,7 @@ ForStatement
         staticType: InvalidType
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@39
       staticType: InvalidType
@@ -3505,7 +3505,7 @@ ForStatement
         staticType: int
       patternTypeSchema: _
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryExpression
       leftOperand2: SimpleIdentifier
         token: a
         element: a@23

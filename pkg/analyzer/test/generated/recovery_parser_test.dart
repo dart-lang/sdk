@@ -2103,7 +2103,7 @@ ForStatement
         VariableDeclaration
           name: item
     leftSeparator: ; <synthetic>
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: i
     rightSeparator: ; <synthetic>
   rightParenthesis: )
@@ -2136,7 +2136,7 @@ ForStatement
         VariableDeclaration
           name: item
     leftSeparator: ; <synthetic>
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: i
     rightSeparator: ; <synthetic>
   rightParenthesis: )
