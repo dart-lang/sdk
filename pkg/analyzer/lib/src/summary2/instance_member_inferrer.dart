@@ -301,14 +301,20 @@ class InstanceMemberInferrer {
           var getterType = combinedGetterType();
           var setterType = combinedSetterType();
 
-          if (getterType != null && getterType == setterType) {
-            field.type = getterType;
-          } else if (getterType != null && setterType != null) {
-            field.typeInferenceError =
-                TopLevelInferenceErrorDifferentGetterAndSetterTypes(
-                  getterType: getterType.getDisplayString(),
-                  setterType: setterType.getDisplayString(),
-                );
+          if (getterType != null && setterType != null) {
+            // The two have to be the *same type*, the notion that normalizes
+            // `FutureOr`, so a getter typed `Object` and a setter typed
+            // `FutureOr<Object>` agree. `dynamic` and `Object?` still do not.
+            if (typeSystem.normalize(getterType) ==
+                typeSystem.normalize(setterType)) {
+              field.type = getterType;
+            } else {
+              field.typeInferenceError =
+                  TopLevelInferenceErrorDifferentGetterAndSetterTypes(
+                    getterType: getterType.getDisplayString(),
+                    setterType: setterType.getDisplayString(),
+                  );
+            }
           }
           return;
         }
