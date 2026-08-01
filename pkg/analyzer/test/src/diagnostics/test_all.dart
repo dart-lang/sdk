@@ -335,6 +335,7 @@ import 'extraneous_modifier_test.dart' as extraneous_modifier;
 import 'ffi_address_of_cast_test.dart' as ffi_addresss_of_cast;
 import 'ffi_array_test.dart' as ffi_array;
 import 'ffi_async_callback_test.dart' as ffi_async_callback;
+import 'ffi_from_function_test.dart' as ffi_from_function;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native;
@@ -1183,6 +1184,7 @@ main() {
     ffi_addresss_of_cast.main();
     ffi_array.main();
     ffi_async_callback.main();
+    ffi_from_function.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native.main();
     field_initializer_factory_constructor.main();
