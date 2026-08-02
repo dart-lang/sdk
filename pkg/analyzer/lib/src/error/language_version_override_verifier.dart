@@ -220,12 +220,17 @@ class LanguageVersionOverrideVerifier {
     if (dartVersionSeparatorLength != 1 ||
         comment.codeUnitAt(dartVersionSeparatorStartIndex) != 0x3D) {
       // The separator between "@dart" and the version number is either not
-      // present, or is not a single "=" character.
+      // present, or is not a single "=" character. A separator which starts
+      // with "=" has the character it needs, so what follows it is what is not
+      // a version number: `// @dart="2.0"` reads as a quote where a digit
+      // belongs, not as a missing "=".
+      var startsWithEquals =
+          comment.codeUnitAt(dartVersionSeparatorStartIndex) == 0x3D;
       _diagnosticReporter.report(
-        diag.invalidLanguageVersionOverrideEquals.atOffset(
-          offset: offset,
-          length: length,
-        ),
+        (startsWithEquals
+                ? diag.invalidLanguageVersionOverrideNumber
+                : diag.invalidLanguageVersionOverrideEquals)
+            .atOffset(offset: offset, length: length),
       );
       return false;
     }
