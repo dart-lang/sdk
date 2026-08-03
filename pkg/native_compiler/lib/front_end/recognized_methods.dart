@@ -65,6 +65,12 @@ void buildInstanceSetter(FlowGraphBuilder builder, CField field) {
   builder.addReturn();
 }
 
+/// Build IR for int.hashCode getters.
+void buildIntHashCode(FlowGraphBuilder builder) {
+  builder.addUnaryIntOp(.hash);
+  builder.addReturn();
+}
+
 /// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
 void buildUnimplementedRecognizedMethod(
   FlowGraphBuilder builder,
@@ -113,6 +119,8 @@ final class VmRecognizedMethods(
 
   late final _recognizedMembers = <ast.Member, BuildIR>{
     // dart:core
+    index.getProcedure('dart:core', '_Smi', 'get:hashCode'): buildIntHashCode,
+    index.getProcedure('dart:core', '_Mint', 'get:hashCode'): buildIntHashCode,
     index.getProcedure(
       'dart:core',
       '_Array',

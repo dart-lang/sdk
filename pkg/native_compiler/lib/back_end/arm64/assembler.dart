@@ -1114,6 +1114,17 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     madd(rd, rn, rm, ZR, sz);
   }
 
+  void umulh(Register rd, Register rn, Register rm) {
+    _emitMul(
+      B22 | B23 | B24 | B25 | B27 | B28,
+      rd,
+      rn,
+      rm,
+      ZR,
+      OperandSize.s64,
+    );
+  }
+
   void _emitMul(
     int opcode,
     Register rd,

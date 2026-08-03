@@ -1980,6 +1980,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
         break;
       case .toDouble:
         _asm.scvtf(outputFPReg(instr), operandReg);
+      case .hash:
+        final scratch = temporaryReg(instr, 0);
+        final resultReg = outputReg(instr);
+        _asm.loadImmediate(scratch, 0x2d51);
+        _asm.mul(tempReg, operandReg, scratch);
+        _asm.umulh(resultReg, operandReg, scratch);
+        _asm.eor(resultReg, resultReg, tempReg);
+        _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
+        _asm.ubfm(resultReg, resultReg, 63, 29);
       default:
         _asm.unimplemented(
           'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
