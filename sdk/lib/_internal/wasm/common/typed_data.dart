@@ -9,6 +9,7 @@ import 'dart:_internal'
     show
         doubleToIntBits,
         ExpandIterable,
+        FixedLengthListMixin,
         floatToIntBits,
         FollowedByIterable,
         intBitsToDouble,
@@ -29,7 +30,7 @@ import 'dart:_internal'
 import 'dart:_simd';
 import 'dart:_wasm';
 
-import 'dart:collection' show ListBase;
+import 'dart:collection' show ListBase, ListMixin;
 import 'dart:math' show Random;
 import 'dart:typed_data';
 
@@ -954,6 +955,261 @@ class _F64ByteData extends ByteDataBase {
   }
 }
 
+class _V128ByteData extends ByteDataBase {
+  static const int bytesPerElement = 16;
+
+  final WasmArray<WasmV128> _data;
+
+  _V128ByteData._(this._data, int offsetInBytes, int lengthInBytes)
+    : super(offsetInBytes, lengthInBytes);
+
+  factory _V128ByteData._withMutability(
+    WasmArray<WasmV128> data,
+    int offsetInBytes,
+    int lengthInBytes,
+    bool mutable,
+  ) => mutable
+      ? _V128ByteData._(data, offsetInBytes, lengthInBytes)
+      : _UnmodifiableV128ByteData._(data, offsetInBytes, lengthInBytes);
+
+  @override
+  _UnmodifiableV128ByteData asUnmodifiableView() =>
+      _UnmodifiableV128ByteData._(_data, offsetInBytes, lengthInBytes);
+
+  @override
+  @pragma('wasm:prefer-inline')
+  _V128ByteBuffer get buffer => _V128ByteBuffer(_data);
+
+  @override
+  int _getUint8Unchecked(int byteOffset) {
+    final totalByteOffset = offsetInBytes + byteOffset;
+    final elementOffset = totalByteOffset ~/ bytesPerElement;
+    final v = WasmI8x16(_data[elementOffset]);
+    switch (totalByteOffset % bytesPerElement) {
+      case 0:
+        return v.extractLaneUnsigned(0).toIntUnsigned();
+      case 1:
+        return v.extractLaneUnsigned(1).toIntUnsigned();
+      case 2:
+        return v.extractLaneUnsigned(2).toIntUnsigned();
+      case 3:
+        return v.extractLaneUnsigned(3).toIntUnsigned();
+      case 4:
+        return v.extractLaneUnsigned(4).toIntUnsigned();
+      case 5:
+        return v.extractLaneUnsigned(5).toIntUnsigned();
+      case 6:
+        return v.extractLaneUnsigned(6).toIntUnsigned();
+      case 7:
+        return v.extractLaneUnsigned(7).toIntUnsigned();
+      case 8:
+        return v.extractLaneUnsigned(8).toIntUnsigned();
+      case 9:
+        return v.extractLaneUnsigned(9).toIntUnsigned();
+      case 10:
+        return v.extractLaneUnsigned(10).toIntUnsigned();
+      case 11:
+        return v.extractLaneUnsigned(11).toIntUnsigned();
+      case 12:
+        return v.extractLaneUnsigned(12).toIntUnsigned();
+      case 13:
+        return v.extractLaneUnsigned(13).toIntUnsigned();
+      case 14:
+        return v.extractLaneUnsigned(14).toIntUnsigned();
+      default:
+        return v.extractLaneUnsigned(15).toIntUnsigned();
+    }
+  }
+
+  @override
+  void _setUint8Unchecked(int byteOffset, int value) {
+    final totalByteOffset = offsetInBytes + byteOffset;
+    final elementOffset = totalByteOffset ~/ bytesPerElement;
+    final v = WasmI8x16(_data[elementOffset]);
+    final x = WasmI32.fromInt(value);
+    switch (totalByteOffset % bytesPerElement) {
+      case 0:
+        _data[elementOffset] = v.replaceLane(0, x).value;
+      case 1:
+        _data[elementOffset] = v.replaceLane(1, x).value;
+      case 2:
+        _data[elementOffset] = v.replaceLane(2, x).value;
+      case 3:
+        _data[elementOffset] = v.replaceLane(3, x).value;
+      case 4:
+        _data[elementOffset] = v.replaceLane(4, x).value;
+      case 5:
+        _data[elementOffset] = v.replaceLane(5, x).value;
+      case 6:
+        _data[elementOffset] = v.replaceLane(6, x).value;
+      case 7:
+        _data[elementOffset] = v.replaceLane(7, x).value;
+      case 8:
+        _data[elementOffset] = v.replaceLane(8, x).value;
+      case 9:
+        _data[elementOffset] = v.replaceLane(9, x).value;
+      case 10:
+        _data[elementOffset] = v.replaceLane(10, x).value;
+      case 11:
+        _data[elementOffset] = v.replaceLane(11, x).value;
+      case 12:
+        _data[elementOffset] = v.replaceLane(12, x).value;
+      case 13:
+        _data[elementOffset] = v.replaceLane(13, x).value;
+      case 14:
+        _data[elementOffset] = v.replaceLane(14, x).value;
+      default:
+        _data[elementOffset] = v.replaceLane(15, x).value;
+    }
+  }
+
+  @override
+  int _getUint16Unchecked(int byteOffset, [Endian endian = Endian.big]) {
+    final totalByteOffset = offsetInBytes + byteOffset;
+    if (totalByteOffset & 1 != 0 || endian != Endian.little) {
+      return super._getUint16Unchecked(byteOffset, endian);
+    }
+    final elementOffset = totalByteOffset ~/ bytesPerElement;
+    final v = WasmI16x8(_data[elementOffset]);
+    switch ((totalByteOffset % bytesPerElement) ~/ 2) {
+      case 0:
+        return v.extractLaneUnsigned(0).toIntUnsigned();
+      case 1:
+        return v.extractLaneUnsigned(1).toIntUnsigned();
+      case 2:
+        return v.extractLaneUnsigned(2).toIntUnsigned();
+      case 3:
+        return v.extractLaneUnsigned(3).toIntUnsigned();
+      case 4:
+        return v.extractLaneUnsigned(4).toIntUnsigned();
+      case 5:
+        return v.extractLaneUnsigned(5).toIntUnsigned();
+      case 6:
+        return v.extractLaneUnsigned(6).toIntUnsigned();
+      default:
+        return v.extractLaneUnsigned(7).toIntUnsigned();
+    }
+  }
+
+  @override
+  void _setUint16Unchecked(
+    int byteOffset,
+    int value, [
+    Endian endian = Endian.big,
+  ]) {
+    final totalByteOffset = offsetInBytes + byteOffset;
+    if (totalByteOffset & 1 != 0 || endian != Endian.little) {
+      super._setUint16Unchecked(byteOffset, value, endian);
+      return;
+    }
+    final elementOffset = totalByteOffset ~/ bytesPerElement;
+    final v = WasmI16x8(_data[elementOffset]);
+    final x = WasmI32.fromInt(value);
+    switch ((totalByteOffset % bytesPerElement) ~/ 2) {
+      case 0:
+        _data[elementOffset] = v.replaceLane(0, x).value;
+      case 1:
+        _data[elementOffset] = v.replaceLane(1, x).value;
+      case 2:
+        _data[elementOffset] = v.replaceLane(2, x).value;
+      case 3:
+        _data[elementOffset] = v.replaceLane(3, x).value;
+      case 4:
+        _data[elementOffset] = v.replaceLane(4, x).value;
+      case 5:
+        _data[elementOffset] = v.replaceLane(5, x).value;
+      case 6:
+        _data[elementOffset] = v.replaceLane(6, x).value;
+      default:
+        _data[elementOffset] = v.replaceLane(7, x).value;
+    }
+  }
+
+  @override
+  int _getUint32Unchecked(int byteOffset, [Endian endian = Endian.big]) {
+    final totalByteOffset = offsetInBytes + byteOffset;
+    if (totalByteOffset & 3 != 0 || endian != Endian.little) {
+      return super._getUint32Unchecked(byteOffset, endian);
+    }
+    final elementOffset = totalByteOffset ~/ bytesPerElement;
+    final v = WasmI32x4(_data[elementOffset]);
+    switch ((totalByteOffset % bytesPerElement) ~/ 4) {
+      case 0:
+        return v.extractLane(0).toIntUnsigned();
+      case 1:
+        return v.extractLane(1).toIntUnsigned();
+      case 2:
+        return v.extractLane(2).toIntUnsigned();
+      default:
+        return v.extractLane(3).toIntUnsigned();
+    }
+  }
+
+  @override
+  void _setUint32Unchecked(
+    int byteOffset,
+    int value, [
+    Endian endian = Endian.big,
+  ]) {
+    final totalByteOffset = offsetInBytes + byteOffset;
+    if (totalByteOffset & 3 != 0 || endian != Endian.little) {
+      super._setUint32Unchecked(byteOffset, value, endian);
+      return;
+    }
+    final elementOffset = totalByteOffset ~/ bytesPerElement;
+    final v = WasmI32x4(_data[elementOffset]);
+    final x = WasmI32.fromInt(value);
+    switch ((totalByteOffset % bytesPerElement) ~/ 4) {
+      case 0:
+        _data[elementOffset] = v.replaceLane(0, x).value;
+      case 1:
+        _data[elementOffset] = v.replaceLane(1, x).value;
+      case 2:
+        _data[elementOffset] = v.replaceLane(2, x).value;
+      default:
+        _data[elementOffset] = v.replaceLane(3, x).value;
+    }
+  }
+
+  @override
+  int _getUint64Unchecked(int byteOffset, [Endian endian = Endian.big]) {
+    final totalByteOffset = offsetInBytes + byteOffset;
+    if (totalByteOffset & 7 != 0 || endian != Endian.little) {
+      return super._getUint64Unchecked(byteOffset, endian);
+    }
+    final elementOffset = totalByteOffset ~/ bytesPerElement;
+    final v = WasmI64x2(_data[elementOffset]);
+    switch ((totalByteOffset % bytesPerElement) ~/ 8) {
+      case 0:
+        return v.extractLane(0).toInt();
+      default:
+        return v.extractLane(1).toInt();
+    }
+  }
+
+  @override
+  void _setUint64Unchecked(
+    int byteOffset,
+    int value, [
+    Endian endian = Endian.big,
+  ]) {
+    final totalByteOffset = offsetInBytes + byteOffset;
+    if (totalByteOffset & 7 != 0 || endian != Endian.little) {
+      super._setUint64Unchecked(byteOffset, value, endian);
+      return;
+    }
+    final elementOffset = totalByteOffset ~/ bytesPerElement;
+    final v = WasmI64x2(_data[elementOffset]);
+    final x = WasmI64.fromInt(value);
+    switch ((totalByteOffset % bytesPerElement) ~/ 8) {
+      case 0:
+        _data[elementOffset] = v.replaceLane(0, x).value;
+      default:
+        _data[elementOffset] = v.replaceLane(1, x).value;
+    }
+  }
+}
+
 class _UnmodifiableI8ByteData extends I8ByteData
     with _UnmodifiableByteDataMixin {
   _UnmodifiableI8ByteData._(
@@ -1030,6 +1286,19 @@ class _UnmodifiableF64ByteData extends _F64ByteData
   @override
   @pragma('wasm:prefer-inline')
   _F64ByteBuffer get buffer => _F64ByteBuffer._(_data, false);
+}
+
+class _UnmodifiableV128ByteData extends _V128ByteData
+    with _UnmodifiableByteDataMixin {
+  _UnmodifiableV128ByteData._(
+    WasmArray<WasmV128> data,
+    int offsetInBytes,
+    int lengthInBytes,
+  ) : super._(data, offsetInBytes, lengthInBytes);
+
+  @override
+  @pragma('wasm:prefer-inline')
+  _V128ByteBuffer get buffer => _V128ByteBuffer._(_data, false);
 }
 
 //
@@ -1531,6 +1800,53 @@ class _F64ByteBuffer extends ByteBufferBase {
   }
 }
 
+class _V128ByteBuffer extends ByteBufferBase {
+  final WasmArray<WasmV128> _data;
+
+  @pragma("wasm:prefer-inline")
+  _V128ByteBuffer(this._data) : super(_data.length * 16, true);
+
+  @pragma("wasm:prefer-inline")
+  _V128ByteBuffer._(this._data, bool mutable)
+    : super(_data.length * 16, mutable);
+
+  @override
+  _V128ByteBuffer _immutable() => _V128ByteBuffer._(_data, false);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _V128ByteBuffer && identical(_data, other._data);
+
+  @override
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
+    length ??= (lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
+    _rangeCheck(
+      lengthInBytes,
+      offsetInBytes,
+      length * Int32x4List.bytesPerElement,
+    );
+    _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
+    return I32x4List._withMutability(
+      _data,
+      offsetInBytes ~/ Int32x4List.bytesPerElement,
+      length,
+      _mutable,
+    );
+  }
+
+  @override
+  _V128ByteData asByteData([int offsetInBytes = 0, int? length]) {
+    length ??= lengthInBytes - offsetInBytes;
+    _rangeCheck(lengthInBytes, offsetInBytes, length);
+    return _V128ByteData._withMutability(
+      _data,
+      offsetInBytes,
+      length,
+      _mutable,
+    );
+  }
+}
+
 class UnmodifiableByteBuffer extends WasmTypedDataBase implements ByteBuffer {
   final ByteBufferBase _buffer;
 
@@ -1733,7 +2049,7 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
   }
 }
 
-mixin _FixedLengthListMixin<E extends num> implements TypedDataList<E> {
+mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
   Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   Iterable<E> followedBy(Iterable<E> other) =>
@@ -1927,7 +2243,11 @@ mixin _FixedLengthListMixin<E extends num> implements TypedDataList<E> {
   }
 
   void sort([int compare(E a, E b)?]) {
-    Sort.sort(this, compare ?? Comparable.compare);
+    Sort.sort(this, compare ?? _compareAny);
+  }
+
+  static int _compareAny(dynamic a, dynamic b) {
+    return Comparable.compare(a as Comparable, b as Comparable);
   }
 
   int indexOf(E element, [int start = 0]) {
@@ -2431,6 +2751,27 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
     }
     return false;
   }
+}
+
+abstract class WasmV128ArrayBase extends WasmTypedDataBase {
+  static const _elementSizeInBytes = 16;
+
+  final WasmArray<WasmV128> _data;
+  final int _offsetInElements;
+  final int length;
+
+  WasmV128ArrayBase(this.length)
+    : _data = WasmArray(_newArrayLengthCheck(length)),
+      _offsetInElements = 0;
+
+  WasmV128ArrayBase._(this._data, this._offsetInElements, this.length);
+
+  int get elementSizeInBytes => _elementSizeInBytes;
+
+  int get offsetInBytes => _offsetInElements * _elementSizeInBytes;
+
+  @pragma('wasm:prefer-inline')
+  _V128ByteBuffer get buffer => _V128ByteBuffer(_data);
 }
 
 extension WasmI8ArrayBaseExt on WasmI8ArrayBase {
@@ -2967,6 +3308,95 @@ class F64List extends _WasmF64ArrayBase
 // Unmodifiable fast lists
 //
 
+final class I32x4List extends WasmV128ArrayBase
+    with _FixedLengthListMixin<Int32x4>, _TypedListCommonOperationsMixin
+    implements Int32x4List {
+  I32x4List(int length) : super(length);
+
+  I32x4List._(WasmArray<WasmV128> data, int offsetInElements, int length)
+    : super._(data, offsetInElements, length);
+
+  factory I32x4List._withMutability(
+    WasmArray<WasmV128> data,
+    int offsetInElements,
+    int length,
+    bool mutable,
+  ) => mutable
+      ? I32x4List._(data, offsetInElements, length)
+      : UnmodifiableI32x4List._(data, offsetInElements, length);
+
+  @override
+  @pragma('wasm:prefer-inline')
+  Int32x4 operator [](int index) {
+    IndexErrorUtils.checkIndex(index, length, '[]');
+    return I32x4.fromV128(_data[_offsetInElements + index]);
+  }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  void operator []=(int index, Int32x4 value) {
+    IndexErrorUtils.checkIndex(index, length, '[]=');
+    _data[_offsetInElements + index] = (value as I32x4).bits;
+  }
+
+  @override
+  Int32x4List asUnmodifiableView() =>
+      UnmodifiableI32x4List._(_data, _offsetInElements, length);
+
+  @override
+  Int32x4List sublist(int start, [int? end]) {
+    end = RangeErrorUtils.checkValidRange(start, end, length);
+    final count = end - start;
+    final copy = WasmArray<WasmV128>(count);
+    copy.copy(0, _data, _offsetInElements + start, count);
+    return I32x4List._(copy, 0, count);
+  }
+
+  @override
+  void setRange(
+    int start,
+    int end,
+    Iterable<Int32x4> from, [
+    int skipCount = 0,
+  ]) {
+    // Check ranges.
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (count == 0) return;
+
+    if (this is _UnmodifiableTypedData) {
+      throw UnsupportedError("Cannot modify an unmodifiable list");
+    }
+
+    if (from is I32x4List) {
+      _data.copy(
+        _offsetInElements + start,
+        from._data,
+        from._offsetInElements + skipCount,
+        count,
+      );
+      return;
+    }
+
+    final List<Int32x4> otherList;
+    final int otherStart;
+    if (from is List<Int32x4>) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    Lists.copy(otherList, otherStart, this, start, count);
+  }
+}
+
 class UnmodifiableI8List extends I8List with _UnmodifiableListMixin<int> {
   UnmodifiableI8List(I8List list)
     : super._(list._data, list._offsetInElements, list.length);
@@ -3125,6 +3555,19 @@ class UnmodifiableF64List extends F64List with _UnmodifiableListMixin<double> {
   @override
   @pragma('wasm:prefer-inline')
   _F64ByteBuffer get buffer => _F64ByteBuffer._(_data, false);
+}
+
+class UnmodifiableI32x4List extends I32x4List
+    with _UnmodifiableListMixin<Int32x4> {
+  UnmodifiableI32x4List._(
+    WasmArray<WasmV128> data,
+    int offsetInElements,
+    int length,
+  ) : super._(data, offsetInElements, length);
+
+  @override
+  @pragma('wasm:prefer-inline')
+  _V128ByteBuffer get buffer => _V128ByteBuffer._(_data, false);
 }
 
 //

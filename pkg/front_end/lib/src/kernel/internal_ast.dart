@@ -7236,7 +7236,7 @@ class InternalPatternSwitchCase extends InternalSwitchCase {
   @override
   final List<Label>? labels;
 
-  final List<InternalDeclaredVariable> jointVariables;
+  final List<JointVariable> jointVariables;
 
   final List<int>? jointVariableFirstUseOffsets;
 
@@ -9015,5 +9015,70 @@ class DelegatingAnnotatable(final Annotatable annotatable)
     for (Expression annotation in annotations) {
       annotatable.addAnnotation(annotation);
     }
+  }
+}
+
+class JointVariable extends InternalDeclaredVariable {
+  final SyntheticVariable _astVariable;
+
+  final String name;
+
+  new({required this.name, required bool isFinal, required super.fileOffset})
+    : _astVariable = new SyntheticVariable(
+        cosmeticName: name,
+        isFinal: isFinal,
+        isLowered: false,
+        isSynthesized: false,
+      )..fileOffset = fileOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isImplicitlyTyped => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isStaticLate => false;
+
+  @override
+  SyntheticVariable get astVariable => _astVariable;
+
+  @override
+  @Deprecated('Use JointVariable.name instead.')
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => false;
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  bool get isAssignable {
+    if (isFinal) return false;
+    return true;
   }
 }
