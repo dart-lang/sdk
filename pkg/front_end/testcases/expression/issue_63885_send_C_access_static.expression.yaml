@@ -1,0 +1,35 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/dart-lang/sdk/issues/63885#issuecomment-5110784521
+
+sources: |
+  mixin A<V> {
+    void foo() {
+      List<V> thelist_ = [];
+      print(thelist_); // <--- BREAKPOINT HERE
+      staticFoo++;
+    }
+
+    static int staticFoo = 0;
+  }
+
+  class C = Object with A<Object>;
+
+  main() {
+    C().foo();
+  }
+
+definitions: ["thelist_"]
+definition_types: ["dart:core", "_GrowableList", "1", "1", "dart:core", "Object", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+position: "main.dart#C"
+method: "foo"
+static: false
+offset: 59 # on 'print'
+scriptUri: main.dart
+expression: |
+  staticFoo

@@ -1891,19 +1891,37 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     assert(_dillLoadedData != null && lastGoodKernelTarget != null);
 
     return await context.runInContext((_) async {
-      CompilationUnit? compilationUnit =
-          lastGoodKernelTarget!.loader.lookupCompilationUnit(libraryUri) ??
-          lastGoodKernelTarget.loader.lookupCompilationUnitByFileUri(
-            libraryUri,
-          );
-      if (compilationUnit == null) {
-        // TODO(johnniwinther): Report an error?
-        return null;
+      LibraryBuilder libraryBuilder;
+      {
+        CompilationUnit? compilationUnit =
+            lastGoodKernelTarget!.loader.lookupCompilationUnit(libraryUri) ??
+            lastGoodKernelTarget.loader.lookupCompilationUnitByFileUri(
+              libraryUri,
+            );
+        if (compilationUnit == null) {
+          // TODO(johnniwinther): Report an error?
+          return null;
+        }
+        libraryBuilder = compilationUnit.libraryBuilder;
       }
-      LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
+
+      Library library = libraryBuilder.library;
+      Class? cls;
+      if (className != null) {
+        for (Class c in library.classes) {
+          if (c.name == className) {
+            cls = c;
+            break;
+          }
+        }
+      }
+
+      // TODO(jensj): If the found class is an eliminated mixin (and we thus do
+      // some rewriting below) possibly we need to provide the alternative
+      // library too to be able to figure out uris properly.
       _ExpressionCompilationScopeData scopeData =
           _computeExpressionCompilationScopeData(
-            className: className,
+            cls: cls,
             methodName: methodName,
             scriptUri: scriptUri,
             offset: offset,
@@ -1914,6 +1932,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             inputDefinitions: inputDefinitions,
           );
 
+      if (cls != null && cls.isEliminatedMixin) {
+        // For an eliminated mixin we found the right types above, but need to
+        // be in the origin class/library for the actual compilation for proper
+        // lookup of static and private stuff, language version, imports etc.
+        Class origin = cls.implementedTypes.last.classNode;
+        Library originLibrary = origin.enclosingLibrary;
+
+        CompilationUnit? compilationUnit = lastGoodKernelTarget.loader
+            .lookupCompilationUnit(originLibrary.importUri);
+        if (compilationUnit == null) {
+          // TODO(johnniwinther): Report an error?
+          // This should _not_ happen.
+          return null;
+        }
+        libraryBuilder = compilationUnit.libraryBuilder;
+        library = libraryBuilder.library;
+        assert(originLibrary == library);
+        cls = origin;
+        className = cls.name;
+        libraryUri = originLibrary.importUri;
+      }
+
       _ticker.logMs("Loaded library $libraryUri");
 
       _ExpressionCompilationExtensionData extensionData =
@@ -1923,15 +1963,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             typeDefinitions: typeDefinitions,
           );
 
-      int? offsetToUse = extensionData.foundBuilder?.fileOffset;
-      Class? cls;
+      int? offsetToUse =
+          extensionData.foundBuilder?.fileOffset ?? cls?.fileOffset;
       if (className != null) {
         Builder? scopeMember = libraryBuilder.libraryNameSpace
-            .lookup(className)
+            .lookup(className!)
             ?.getable;
         if (scopeMember is ClassBuilder) {
-          cls = scopeMember.cls;
-          offsetToUse ??= cls.fileOffset;
+          assert(cls == scopeMember.cls, "$cls != ${scopeMember.cls}");
         } else {
           return null;
         }
@@ -2309,7 +2348,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   // Coverage-ignore(suite): Not run.
   static _ExpressionCompilationScopeData
   _computeExpressionCompilationScopeData({
-    required String? className,
+    required Class? cls,
     required String? methodName,
     required String? scriptUri,
     required int offset,
@@ -2328,16 +2367,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (scriptUri == null || offset == TreeNode.noOffset) return result;
     Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
     if (scriptUriAsUri == null) return result;
-
-    Class? cls;
-    if (className != null) {
-      for (Class c in library.classes) {
-        if (c.name == className) {
-          cls = c;
-          break;
-        }
-      }
-    }
 
     scriptUriAsUri = _processScriptUri(
       scriptUriAsUri,
