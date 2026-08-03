@@ -182,6 +182,63 @@ class A {
   }
 
   Future<void>
+  test_checkFinalConditions_shadows_classMemberOK_dotShorthandConstructorInvocation() async {
+    await indexTestUnit('''
+class A {
+  A.newName();
+}
+void g(A a) {}
+void f() {
+  var test = 0;
+  print(test);
+  g(.newName());
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringConditionsOK();
+  }
+
+  Future<void>
+  test_checkFinalConditions_shadows_classMemberOK_dotShorthandInvocation() async {
+    await indexTestUnit('''
+class A {
+  static A newName() => A();
+}
+void g(A a) {}
+void f() {
+  var test = 0;
+  print(test);
+  g(.newName());
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringConditionsOK();
+  }
+
+  Future<void>
+  test_checkFinalConditions_shadows_classMemberOK_dotShorthandPropertyAccess() async {
+    await indexTestUnit('''
+class A {
+  static A get newName => A();
+}
+void g(A a) {}
+void f() {
+  var test = 0;
+  print(test);
+  g(.newName);
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringConditionsOK();
+  }
+
+  Future<void>
   test_checkFinalConditions_shadows_classMemberOK_qualifiedReference() async {
     await indexTestUnit('''
 class A {

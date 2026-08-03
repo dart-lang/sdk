@@ -1416,6 +1416,47 @@ void f() {
 ''');
   }
 
+  /// The local `test` does not "shadow" the dot shorthand `.test`, so the
+  /// reference in the other library must be renamed too.
+  Future<void>
+  test_createChange_MethodElement_dotShorthand_otherFile_localWithSameName() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+import 'test.dart';
+
+void f() {
+  var test = 0;
+  print(test);
+  g(.test());
+}
+''');
+
+    await indexTestUnit('''
+class A {
+  static A te^st() => A();
+}
+void g(A a) {}
+''');
+
+    createRenameRefactoring();
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring2(r'''
+>>>>>>>>>> /home/test/lib/test.dart
+class A {
+  static A newName() => A();
+}
+void g(A a) {}
+>>>>>>>>>> /home/test/lib/lib.dart
+import 'test.dart';
+
+void f() {
+  var test = 0;
+  print(test);
+  g(.newName());
+}
+''');
+  }
+
   Future<void> test_createChange_MethodElement_potential() async {
     await indexTestUnit('''
 class A {

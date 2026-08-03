@@ -1398,6 +1398,36 @@ final x = List<String>.foo();
     expect(name.isQualified, isTrue);
   }
 
+  void test_isQualified_inDotShorthandConstructorInvocation() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  g(const .foo());
+}
+''');
+    var identifier = parseResult.findNode.simple('foo');
+    expect(identifier.isQualified, isTrue);
+  }
+
+  void test_isQualified_inDotShorthandInvocation() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  g(.foo());
+}
+''');
+    var identifier = parseResult.findNode.simple('foo');
+    expect(identifier.isQualified, isTrue);
+  }
+
+  void test_isQualified_inDotShorthandPropertyAccess() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  g(.foo);
+}
+''');
+    var identifier = parseResult.findNode.simple('foo');
+    expect(identifier.isQualified, isTrue);
+  }
+
   void test_isQualified_inMethodInvocation_noTarget() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
