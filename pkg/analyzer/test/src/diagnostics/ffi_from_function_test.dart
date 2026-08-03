@@ -12,9 +12,10 @@ main() {
   });
 }
 
-/// Exercises `_validateFromFunction` on invalid and unresolved code at each
-/// argument position, so that resolution failures keep producing diagnostics
-/// instead of crashing the verifier.
+/// Exercises `_validateFromFunction` with broken input at each argument
+/// position, pinning the diagnostics reported there. The failure these tests
+/// guard against is a crash, including on code another diagnostic already
+/// flags.
 ///
 /// https://github.com/dart-lang/sdk/issues/44773
 @reflectiveTest
