@@ -2535,7 +2535,7 @@ class InvokeAnonymousMethod extends Expression {
       );
     }
     // Analyze the block, and generate its IR.
-    body.visit(h);
+    h.typeAnalyzer.dispatchStatement(body);
     h.flow.anonymousBlockBody_end();
     if (isParameterless) {
       h._thisType = previousThisType;
