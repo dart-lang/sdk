@@ -278,6 +278,20 @@ Lint details and generation configuration live in the [`messages.yaml`][] file.
 [`test/rules`]: ../test/rules
 [`messages.yaml`]: ../messages.yaml
 
+### Using an agent
+
+Either ensure that the skills in the `analysis_server` package are available to the agent, or explicitly include in the prompt directions to first read the `new_lint_rule` skill.
+
+Then use a prompt similar to the following:
+
+```md
+Using the skill in `pkg/analysis_server/.agents/skills/implement-a-lint/SKILL.md`, add a new lint rule, named `[rule name]`. The lint should produce a diagnostic if all the following conditions are met:
+
+ - [add one or more conditions here]
+```
+
+If the lint should have different messages for different contexts, then include directions in the prompt to create multiple codes and explain the contexts for which they should be generated.
+
 ### Adding a lint
 
 To add a lint, roughly follow these steps:

@@ -463,7 +463,12 @@ class _Workspace {
         entrypoint,
         content: bootstrapCodeTemplate.replaceAll(
           '{{entrypoint}}',
-          originalEntrypoint,
+          // Convert to a `file:` URI so the Common Front End (CFE) treats the
+          // import as an absolute file URI. Otherwise, entrypoints inside
+          // `lib/` match the package root prefix in `package_config.json` and
+          // resolve relatively, causing duplicated path segments and build
+          // failure.
+          _rp.pathContext.toUri(originalEntrypoint).toString(),
         ),
         modificationStamp: 0,
       );

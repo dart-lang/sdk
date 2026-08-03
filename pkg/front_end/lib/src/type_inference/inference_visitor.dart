@@ -14340,6 +14340,36 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void endFieldInference(ScopeProviderInfo scopeProviderInfo) {
     _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
   }
+
+  @override
+  int expressionEndOffset(InternalExpression expression) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
+  int expressionStartOffset(InternalExpression expression) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
+  int patternEndOffset(InternalPattern pattern) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
+  int patternStartOffset(InternalPattern pattern) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
+  int statementEndOffset(InternalStatement statement) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
 }
 
 class _RedirectionTarget {

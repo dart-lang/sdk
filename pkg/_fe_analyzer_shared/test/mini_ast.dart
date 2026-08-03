@@ -1600,6 +1600,7 @@ class ExpressionCase extends Node {
     );
     guardedPattern.variables = variableBinder.casePatternFinish();
     variableBinder.finish();
+    guardedPattern.guard?.preVisit(visitor);
     expression.preVisit(visitor);
   }
 }
@@ -2534,7 +2535,7 @@ class InvokeAnonymousMethod extends Expression {
       );
     }
     // Analyze the block, and generate its IR.
-    body.visit(h);
+    h.typeAnalyzer.dispatchStatement(body);
     h.flow.anonymousBlockBody_end();
     if (isParameterless) {
       h._thisType = previousThisType;
@@ -3147,6 +3148,7 @@ class MapPatternEntry extends Node implements MapPatternElement {
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
   }) {
+    key.preVisit(visitor);
     value.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
@@ -7451,6 +7453,18 @@ class _MiniAstTypeAnalyzer
     }
   }
 
+  @override
+  int expressionEndOffset(Expression expression) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
+  int expressionStartOffset(Expression expression) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
   void finish() {
     flow.finish();
   }
@@ -7800,6 +7814,18 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  int patternEndOffset(Pattern pattern) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
+  int patternStartOffset(Pattern pattern) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
   (_PropertyElement?, SharedTypeView) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
     required SharedTypeView receiverType,
@@ -7831,6 +7857,12 @@ class _MiniAstTypeAnalyzer
   @override
   void setVariableType(Var variable, SharedTypeView type) {
     variable.type = type.unwrapTypeView();
+  }
+
+  @override
+  int statementEndOffset(Statement statement) {
+    // TODO(paulberry): implement.
+    return 0;
   }
 
   @override

@@ -900,6 +900,18 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  int expressionEndOffset(ExpressionImpl expression) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
+  int expressionStartOffset(ExpressionImpl expression) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
   void finishExpressionCase(
     covariant SwitchExpressionImpl node,
     int caseIndex,
@@ -1309,6 +1321,18 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     bool setExpressionType,
   ) {
     // TODO(brianwilkerson): Remove this method.
+  }
+
+  @override
+  int patternEndOffset(DartPatternImpl pattern) {
+    // TODO(paulberry): implement.
+    return 0;
+  }
+
+  @override
+  int patternStartOffset(DartPatternImpl pattern) {
+    // TODO(paulberry): implement.
+    return 0;
   }
 
   /// Examines the top entry of [_rewriteStack] but does not pop it.
@@ -1832,6 +1856,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       parent.writeElement = element;
       parent.writeType = writeType;
     }
+  }
+
+  @override
+  int statementEndOffset(StatementImpl statement) {
+    // TODO(paulberry): implement.
+    return 0;
   }
 
   /// Returns the result of an implicit `this.` lookup for the identifier [node]
