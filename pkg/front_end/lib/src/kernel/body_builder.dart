@@ -1042,10 +1042,9 @@ class BodyBuilderImpl extends StackListenerImpl
     push(containsPatterns);
     push(labels ?? NullValues.Labels);
 
-    List<InternalDeclaredVariable>? jointPatternVariables;
-    List<InternalDeclaredVariable>?
-    jointPatternVariablesWithMismatchingFinality;
-    List<InternalDeclaredVariable>? jointPatternVariablesNotInAll;
+    List<JointVariable>? jointPatternVariables;
+    List<JointVariable>? jointPatternVariablesWithMismatchingFinality;
+    List<JointVariable>? jointPatternVariablesNotInAll;
     enterLocalScope(switchCaseScope);
     if (expressionCount > 1) {
       for (int i = 0; i < expressionOrPatterns.length; i++) {
@@ -1057,11 +1056,10 @@ class BodyBuilderImpl extends StackListenerImpl
           if (jointPatternVariables == null) {
             jointPatternVariables = [
               for (InternalPatternVariable variable in pattern.patternVariables)
-                intern.createSyntheticVariable(
+                intern.createJointVariable(
                   name: variable.name,
                   isFinal: variable.isFinal,
                   fileOffset: variable.fileOffset,
-                  isSynthesized: false,
                 ),
             ];
             if (i != 0) {
@@ -1072,13 +1070,12 @@ class BodyBuilderImpl extends StackListenerImpl
               );
             }
           } else {
-            Map<String, InternalDeclaredVariable> patternVariablesByName = {
+            Map<String, InternalPatternVariable> patternVariablesByName = {
               for (InternalPatternVariable variable in pattern.patternVariables)
                 variable.name: variable,
             };
-            for (InternalDeclaredVariable jointVariable
-                in jointPatternVariables) {
-              String jointVariableName = jointVariable.cosmeticName!;
+            for (JointVariable jointVariable in jointPatternVariables) {
+              String jointVariableName = jointVariable.name;
               InternalDeclaredVariable? patternVariable = patternVariablesByName
                   .remove(jointVariableName);
               if (patternVariable != null) {
@@ -1092,15 +1089,13 @@ class BodyBuilderImpl extends StackListenerImpl
               }
             }
             if (patternVariablesByName.isNotEmpty) {
-              for (InternalDeclaredVariable variable
+              for (InternalPatternVariable variable
                   in patternVariablesByName.values) {
-                InternalDeclaredVariable jointVariable = intern
-                    .createSyntheticVariable(
-                      name: variable.cosmeticName!,
-                      isFinal: variable.isFinal,
-                      fileOffset: variable.fileOffset,
-                      isSynthesized: false,
-                    );
+                JointVariable jointVariable = intern.createJointVariable(
+                  name: variable.name,
+                  isFinal: variable.isFinal,
+                  fileOffset: variable.fileOffset,
+                );
                 (jointPatternVariablesNotInAll ??= []).add(jointVariable);
                 jointPatternVariables.add(jointVariable);
               }
@@ -1149,9 +1144,9 @@ class BodyBuilderImpl extends StackListenerImpl
 
     assert(
       checkState(beginToken, [
-        ValueKinds.InternalDeclaredVariableListOrNull,
-        ValueKinds.InternalDeclaredVariableListOrNull,
-        ValueKinds.InternalDeclaredVariableListOrNull,
+        ValueKinds.JointVariableListOrNull,
+        ValueKinds.JointVariableListOrNull,
+        ValueKinds.JointVariableListOrNull,
         ValueKinds.LabelListOrNull,
         ValueKinds.Bool,
         ValueKinds.ExpressionOrPatternGuardCaseList,
@@ -5444,9 +5439,9 @@ class BodyBuilderImpl extends StackListenerImpl
     assert(
       checkState(beginToken, [
         ...repeatedKind(ValueKinds.Statement, statementCount),
-        ValueKinds.InternalDeclaredVariableListOrNull,
-        ValueKinds.InternalDeclaredVariableListOrNull,
-        ValueKinds.InternalDeclaredVariableListOrNull,
+        ValueKinds.JointVariableListOrNull,
+        ValueKinds.JointVariableListOrNull,
+        ValueKinds.JointVariableListOrNull,
         ValueKinds.LabelListOrNull,
         ValueKinds.Bool,
         ValueKinds.ExpressionOrPatternGuardCaseList,
@@ -5458,13 +5453,11 @@ class BodyBuilderImpl extends StackListenerImpl
     // check this switch case to see if it falls through to the next case.
     InternalStatement block = popBlock(statementCount, beginToken, null);
     exitLocalScope(expectedScopeKinds: const [LocalScopeKind.switchCaseBody]);
-    List<InternalDeclaredVariable>? jointPatternVariables =
-        pop() as List<InternalDeclaredVariable>?;
-    List<InternalDeclaredVariable>?
-    jointPatternVariablesWithMismatchingFinality =
-        pop() as List<InternalDeclaredVariable>?;
-    List<InternalDeclaredVariable>? jointPatternVariablesNotInAll =
-        pop() as List<InternalDeclaredVariable>?;
+    List<JointVariable>? jointPatternVariables = pop() as List<JointVariable>?;
+    List<JointVariable>? jointPatternVariablesWithMismatchingFinality =
+        pop() as List<JointVariable>?;
+    List<JointVariable>? jointPatternVariablesNotInAll =
+        pop() as List<JointVariable>?;
 
     // The current scope should be the scope of the body of the switch case
     // because we want to lookup the first use of the pattern variables
@@ -5480,13 +5473,13 @@ class BodyBuilderImpl extends StackListenerImpl
 
     bool hasDefaultOrLabels = defaultKeyword != null || labelCount > 0;
 
-    List<InternalDeclaredVariable>? usedJointPatternVariables;
+    List<JointVariable>? usedJointPatternVariables;
     List<int>? jointVariableFirstUseOffsets;
     if (jointPatternVariables != null) {
       usedJointPatternVariables = [];
       Map<InternalVariable, int> firstUseOffsets = {};
-      for (InternalDeclaredVariable variable in jointPatternVariables) {
-        if (usedNamesOffsets?[variable.cosmeticName!] case [int offset, ...]) {
+      for (JointVariable variable in jointPatternVariables) {
+        if (usedNamesOffsets?[variable.name] case [int offset, ...]) {
           usedJointPatternVariables.add(variable);
           firstUseOffsets[variable] = offset;
         }
@@ -5494,12 +5487,12 @@ class BodyBuilderImpl extends StackListenerImpl
       if (jointPatternVariablesWithMismatchingFinality != null ||
           jointPatternVariablesNotInAll != null ||
           hasDefaultOrLabels) {
-        for (InternalVariable jointVariable in usedJointPatternVariables) {
+        for (JointVariable jointVariable in usedJointPatternVariables) {
           if (jointPatternVariablesWithMismatchingFinality?.contains(
                 jointVariable,
               ) ??
               false) {
-            String jointVariableName = jointVariable.cosmeticName!;
+            String jointVariableName = jointVariable.name;
             addProblem(
               diag.jointPatternVariablesMismatch.withArguments(
                 variableName: jointVariableName,
@@ -5509,7 +5502,7 @@ class BodyBuilderImpl extends StackListenerImpl
             );
           }
           if (jointPatternVariablesNotInAll?.contains(jointVariable) ?? false) {
-            String jointVariableName = jointVariable.cosmeticName!;
+            String jointVariableName = jointVariable.name;
             addProblem(
               diag.jointPatternVariableNotInAll.withArguments(
                 variableName: jointVariableName,
@@ -5519,7 +5512,7 @@ class BodyBuilderImpl extends StackListenerImpl
             );
           }
           if (hasDefaultOrLabels) {
-            String jointVariableName = jointVariable.cosmeticName!;
+            String jointVariableName = jointVariable.name;
             addProblem(
               diag.jointPatternVariableWithLabelDefault.withArguments(
                 variableName: jointVariableName,
@@ -5531,7 +5524,7 @@ class BodyBuilderImpl extends StackListenerImpl
         }
       }
       jointVariableFirstUseOffsets = [
-        for (InternalVariable variable in usedJointPatternVariables)
+        for (JointVariable variable in usedJointPatternVariables)
           firstUseOffsets[variable]!,
       ];
     }

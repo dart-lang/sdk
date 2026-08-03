@@ -1391,7 +1391,7 @@ InternalPatternSwitchCase createPatternSwitchCase(
   InternalStatement body, {
   required bool isDefault,
   required List<Label>? labels,
-  required List<InternalDeclaredVariable>? jointVariables,
+  required List<JointVariable>? jointVariables,
   required List<int>? jointVariableFirstUseOffsets,
 }) {
   return new InternalPatternSwitchCase(
@@ -1901,6 +1901,18 @@ InternalSyntheticVariable createSyntheticVariable({
     isLowered: isLowered,
     isSynthesized: isSynthesized,
     isImplicitlyTyped: type == null,
+    fileOffset: fileOffset,
+  );
+}
+
+JointVariable createJointVariable({
+  required String name,
+  required bool isFinal,
+  required int fileOffset,
+}) {
+  return new JointVariable(
+    name: name,
+    isFinal: isFinal,
     fileOffset: fileOffset,
   );
 }
