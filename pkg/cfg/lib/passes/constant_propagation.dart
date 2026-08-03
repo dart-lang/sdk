@@ -310,6 +310,11 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitExternalCall(ExternalCall instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitParameter(Parameter instr) {
     _setNonConstant(instr);
   }

@@ -165,6 +165,10 @@ final class Arm64Constraints extends Constraints {
       callConstraints(instr);
 
   @override
+  InstructionConstraints? visitExternalCall(ExternalCall instr) =>
+      callConstraints(instr);
+
+  @override
   InstructionConstraints? visitParameter(Parameter instr) {
     Constraint result;
     if (instr.isFunctionParameter) {

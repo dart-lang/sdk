@@ -105,6 +105,7 @@ enum ObjectPoolEntryKind {
   dynamicCall,
   unboxedInt,
   unboxedDouble,
+  nativeFunction,
 }
 
 abstract base class SerializationCluster {
@@ -185,6 +186,7 @@ class SnapshotSerializer {
     addBaseObject(StubCode.ReturnAsync);
     addBaseObject(StubCode.ReturnAsyncNotFuture);
     addBaseObject(StubCode.ReturnAsyncStar);
+    addBaseObject(StubCode.CallBootstrapNative);
     numObjects = numBaseObjects;
   }
 
@@ -1802,6 +1804,7 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
           case SubtypeTestCacheWithName():
             serializer.push(entry.stc);
             serializer.push(entry.name);
+          case NativeFunction():
           case ReservedEntry():
             break;
         }
@@ -1849,6 +1852,8 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
               serializer.writeRefId(entry.stc);
               serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
               serializer.writeRefId(entry.name);
+            case NativeFunction():
+              serializer.writeUint(ObjectPoolEntryKind.nativeFunction.index);
             case ReservedEntry():
           }
         } else if (entry is UnboxedIntConstant) {

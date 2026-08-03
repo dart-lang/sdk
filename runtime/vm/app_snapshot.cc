@@ -3058,6 +3058,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
                                      : Array::null();
       code->untag()->compile_timestamp_ = 0;
 #endif
+
+      code->untag()->instructions_length_ = 0;
     }
   }
 

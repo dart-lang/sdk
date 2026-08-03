@@ -2097,11 +2097,11 @@ class UntaggedCode : public UntaggedObject {
   // offsets.
   // Alive: If true, the embedded object pointers will be visited during GC.
   int32_t state_bits_;
+  // Stores the instructions length when not using RawInstructions objects.
+  uint32_t instructions_length_;
   // Caches the unchecked entry point offset for instructions_, in case we need
   // to reset the active_instructions_ to instructions_.
   NOT_IN_PRECOMPILED(uint32_t unchecked_offset_);
-  // Stores the instructions length when not using RawInstructions objects.
-  ONLY_IN_PRECOMPILED(uint32_t instructions_length_);
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }

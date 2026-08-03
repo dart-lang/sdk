@@ -7088,8 +7088,7 @@ class Code : public Object {
 #else
     auto instr = InstructionsOf(code);
     if (instr == Instructions::null()) {
-      // TODO(alexmarkov): keep size in the Code objects.
-      return 0;
+      return code->untag()->instructions_length_;
     }
     return Instructions::Size(instr);
 #endif

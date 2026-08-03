@@ -41,6 +41,9 @@ base class VMOffsets {
   int get Instructions_kPolymorphicEntryOffsetAOT => throw 'Unknown';
   int get Instructions_kBarePayloadAlignment => throw 'Unknown';
   int get Instructions_kNonBarePayloadAlignment => throw 'Unknown';
+  int get NativeArguments_kArgcBitsPos => throw 'Unknown';
+  int get NativeArguments_kArgcBitsSize => throw 'Unknown';
+  int get NativeArguments_kGenericFunctionBitPos => throw 'Unknown';
   int get NativeEntry_kNumCallWrapperArguments => throw 'Unknown';
   int get Page_kBytesPerCardLog2 => throw 'Unknown';
   int get Page_kPageMask => throw 'Unknown';
@@ -590,7 +593,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Closure_elementSize => 0x8;
   @override
-  int get Code_elementsStartOffset => 0xb0;
+  int get Code_elementsStartOffset => 0xb8;
   @override
   int get Code_elementSize => 0x4;
   @override
@@ -689,6 +692,12 @@ final class Arm64VMOffsets extends VMOffsets {
   int get Instructions_kBarePayloadAlignment => 0x4;
   @override
   int get Instructions_kNonBarePayloadAlignment => 0x8;
+  @override
+  int get NativeArguments_kArgcBitsPos => 0x0;
+  @override
+  int get NativeArguments_kArgcBitsSize => 0x18;
+  @override
+  int get NativeArguments_kGenericFunctionBitPos => 0x18;
   @override
   int get NativeEntry_kNumCallWrapperArguments => 0x2;
   @override
@@ -1605,7 +1614,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Closure_elementSize => 0x8;
   @override
-  int get Code_elementsStartOffset => 0x90;
+  int get Code_elementsStartOffset => 0x98;
   @override
   int get Code_elementSize => 0x4;
   @override
@@ -1704,6 +1713,12 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get Instructions_kBarePayloadAlignment => 0x4;
   @override
   int get Instructions_kNonBarePayloadAlignment => 0x8;
+  @override
+  int get NativeArguments_kArgcBitsPos => 0x0;
+  @override
+  int get NativeArguments_kArgcBitsSize => 0x18;
+  @override
+  int get NativeArguments_kGenericFunctionBitPos => 0x18;
   @override
   int get NativeEntry_kNumCallWrapperArguments => 0x2;
   @override

@@ -33,7 +33,7 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 0x1;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x10;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x60;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x68;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0xc;
@@ -108,6 +108,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -837,7 +843,7 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 0x1;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x20;
 static constexpr dart::compiler::target::word Closure_element_size = 0x8;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb0;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb8;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x18;
@@ -914,6 +920,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
@@ -1651,7 +1663,7 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 0x1;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x10;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x60;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x68;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0xc;
@@ -1726,6 +1738,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -2454,7 +2472,7 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 0x1;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x20;
 static constexpr dart::compiler::target::word Closure_element_size = 0x8;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb0;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb8;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x18;
@@ -2531,6 +2549,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
@@ -3271,7 +3295,7 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 0x1;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x18;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb0;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb8;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x10;
@@ -3346,6 +3370,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -4082,7 +4112,7 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 0x1;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x18;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb0;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb8;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x10;
@@ -4157,6 +4187,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -4894,7 +4930,7 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 0x1;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x10;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x60;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x68;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0xc;
@@ -4969,6 +5005,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -5699,7 +5741,7 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 0x1;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x20;
 static constexpr dart::compiler::target::word Closure_element_size = 0x8;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb0;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0xb8;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x18;
@@ -5776,6 +5818,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
@@ -6511,7 +6559,7 @@ static constexpr dart::compiler::target::word Array_element_size = 0x4;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x10;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x4c;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x50;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0xc;
@@ -6586,6 +6634,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -7307,7 +7361,7 @@ static constexpr dart::compiler::target::word Array_element_size = 0x8;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x20;
 static constexpr dart::compiler::target::word Closure_element_size = 0x8;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x90;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x98;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x18;
@@ -7384,6 +7438,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
@@ -8113,7 +8173,7 @@ static constexpr dart::compiler::target::word Array_element_size = 0x4;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x10;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x4c;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x50;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0xc;
@@ -8188,6 +8248,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -8908,7 +8974,7 @@ static constexpr dart::compiler::target::word Array_element_size = 0x8;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x20;
 static constexpr dart::compiler::target::word Closure_element_size = 0x8;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x90;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x98;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x18;
@@ -8985,6 +9051,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
@@ -9717,7 +9789,7 @@ static constexpr dart::compiler::target::word Array_element_size = 0x4;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x18;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x90;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x98;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x10;
@@ -9792,6 +9864,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -10520,7 +10598,7 @@ static constexpr dart::compiler::target::word Array_element_size = 0x4;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x18;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x90;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x98;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x10;
@@ -10595,6 +10673,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -11324,7 +11408,7 @@ static constexpr dart::compiler::target::word Array_element_size = 0x4;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x10;
 static constexpr dart::compiler::target::word Closure_element_size = 0x4;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x4c;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x50;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0xc;
@@ -11399,6 +11483,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
@@ -12121,7 +12211,7 @@ static constexpr dart::compiler::target::word Array_element_size = 0x8;
 static constexpr dart::compiler::target::word Closure_elements_start_offset =
     0x20;
 static constexpr dart::compiler::target::word Closure_element_size = 0x8;
-static constexpr dart::compiler::target::word Code_elements_start_offset = 0x90;
+static constexpr dart::compiler::target::word Code_elements_start_offset = 0x98;
 static constexpr dart::compiler::target::word Code_element_size = 0x4;
 static constexpr dart::compiler::target::word Context_elements_start_offset =
     0x18;
@@ -12198,6 +12288,12 @@ static constexpr dart::compiler::target::word
     Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word NativeArguments_kArgcBitsSize =
+    0x18;
+static constexpr dart::compiler::target::word
+    NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
@@ -13016,6 +13112,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
@@ -13912,6 +14014,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
@@ -14819,6 +14927,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
@@ -15722,6 +15836,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
@@ -16625,6 +16745,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
@@ -17530,6 +17656,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
@@ -18427,6 +18559,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
@@ -19326,6 +19464,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
@@ -20213,6 +20357,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
@@ -21111,6 +21261,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
@@ -22005,6 +22161,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
@@ -22899,6 +23061,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
@@ -23795,6 +23963,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x4;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
@@ -24683,6 +24857,12 @@ static constexpr dart::compiler::target::word
     AOT_Instructions_kBarePayloadAlignment = 0x4;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kNonBarePayloadAlignment = 0x8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_kArgcBitsPos =
+    0x0;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kArgcBitsSize = 0x18;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
