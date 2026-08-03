@@ -26,6 +26,7 @@ class CompilationSet {
   final ImageWriter _imageWriter;
   late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
     functionRegistry,
+    config.objectLayout,
   );
   late final SnapshotSerializer _snapshot;
   late final StubFactory _stubFactory;

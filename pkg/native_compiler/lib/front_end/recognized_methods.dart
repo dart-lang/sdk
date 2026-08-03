@@ -3,50 +3,206 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/front_end/recognized_methods.dart';
+import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/flow_graph_builder.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
+import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/external_name.dart' show getExternalName;
+import 'package:native_compiler/runtime/constant_objects.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
-class BuildNativeMethodIR(
-  final FunctionRegistry functionRegistry,
-  final CFunction function,
+/// Build IR for native methods.
+void buildNativeMethod(
+  FlowGraphBuilder builder,
+  FunctionRegistry functionRegistry,
+  CFunction function,
 ) {
-  void buildIR(FlowGraphBuilder builder) {
-    // Reserve extra argument slot for return value.
-    builder.addNullConstant();
+  // Reserve extra argument slot for return value.
+  builder.addNullConstant();
 
-    final functionNode = function.functionNode!;
-    final argsShape = functionRegistry.getArgumentsShape(
-      (function.hasReceiverParameter ? 1 : 0) +
-          functionNode.positionalParameters.length +
-          1,
-      types: function.numberOfFunctionTypeParameters,
-      named: functionNode.namedParameters.map((p) => p.parameterName).toList(),
-    );
-    builder.addExternalCall(
-      function,
-      function.numberOfParameters + 1,
-      argsShape,
-      function.returnType,
-    );
-    builder.addReturn();
+  final functionNode = function.functionNode!;
+  final argsShape = functionRegistry.getArgumentsShape(
+    (function.hasReceiverParameter ? 1 : 0) +
+        functionNode.positionalParameters.length +
+        1,
+    types: function.numberOfFunctionTypeParameters,
+    named: functionNode.namedParameters.map((p) => p.parameterName).toList(),
+  );
+  builder.addExternalCall(
+    function,
+    function.numberOfParameters + 1,
+    argsShape,
+    function.returnType,
+  );
+  builder.addReturn();
+}
+
+/// Build IR for static getters returning runtime constants.
+void buildRuntimeConstantGetter(
+  FlowGraphBuilder builder,
+  RuntimeConstantObjectKind kind,
+) {
+  builder.addConstant(ConstantValue(RuntimeConstantObject(kind)));
+  builder.addReturn();
+}
+
+/// Build IR for instance field getters.
+void buildInstanceGetter(FlowGraphBuilder builder, CField field) {
+  builder.addLoadInstanceField(field, checkInitialized: field.isLate);
+  builder.addReturn();
+}
+
+/// Build IR for instance field setters.
+void buildInstanceSetter(FlowGraphBuilder builder, CField field) {
+  builder.addStoreInstanceField(
+    field,
+    checkNotInitialized: field.isLate && field.isFinal,
+  );
+  builder.addNullConstant();
+  builder.addReturn();
+}
+
+/// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
+void buildUnimplementedRecognizedMethod(
+  FlowGraphBuilder builder,
+  CFunction function,
+) {
+  // Drop parameters.
+  for (var i = 0, n = function.numberOfParameters; i < n; ++i) {
+    builder.pop();
   }
+  builder.addConstant(
+    ConstantValue.fromString('Unimplemented recognized method: $function'),
+  );
+  builder.addThrow(.exception, 1);
 }
 
 /// VM-specific recognized methods.
-final class VmRecognizedMethods(final FunctionRegistry functionRegistry)
-    extends CommonRecognizedMethods {
+final class VmRecognizedMethods(
+  final FunctionRegistry functionRegistry,
+  final ObjectLayout objectLayout,
+) extends CommonRecognizedMethods {
   final coreTypes = GlobalContext.instance.coreTypes;
 
   @override
   BuildIR? getRecognizedFunctionBody(CFunction function) {
     final member = function.member;
+    if (member.isRecognized(coreTypes)) {
+      final builder = _recognizedMembers[member];
+      if (builder != null) {
+        return builder;
+      }
+      if (member.isExternal) {
+        return (FlowGraphBuilder builder) {
+          buildUnimplementedRecognizedMethod(builder, function);
+        };
+      }
+    }
     if (member.isExternal) {
       if (getExternalName(coreTypes, member) != null) {
-        return BuildNativeMethodIR(functionRegistry, function).buildIR;
+        return (FlowGraphBuilder builder) {
+          buildNativeMethod(builder, functionRegistry, function);
+        };
       }
     }
     return super.getRecognizedFunctionBody(function);
   }
+
+  late final _recognizedMembers = <ast.Member, BuildIR>{
+    // dart:core
+    index.getProcedure(
+      'dart:core',
+      '_Array',
+      'get:length',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.Array_length);
+    },
+
+    // dart:_compact_hash
+    index.getTopLevelProcedure(
+      'dart:_compact_hash',
+      'get:_uninitializedIndex',
+    ): (FlowGraphBuilder builder) {
+      buildRuntimeConstantGetter(builder, .uninitializedIndex);
+    },
+    index.getTopLevelProcedure(
+      'dart:_compact_hash',
+      'get:_uninitializedData',
+    ): (FlowGraphBuilder builder) {
+      buildRuntimeConstantGetter(builder, .uninitializedData);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'get:_index',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashBase_index);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'set:_index',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.LinkedHashBase_index);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'get:_hashMask',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashBase_hashMask);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'set:_hashMask',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.LinkedHashBase_hashMask);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'get:_data',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashBase_data);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'set:_data',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.LinkedHashBase_data);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'get:_usedData',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashBase_usedData);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'set:_usedData',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.LinkedHashBase_usedData);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'get:_deletedKeys',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashBase_deletedKeys);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashBase',
+      'set:_deletedKeys',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.LinkedHashBase_deletedKeys);
+    },
+  };
 }

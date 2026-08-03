@@ -107,8 +107,15 @@ Future<Component> compileTestCaseToKernelProgram(
 class CompileAndDumpIr extends RecursiveVisitor {
   final buffer = StringBuffer();
   final FunctionRegistry functionRegistry = FunctionRegistry();
+  final VMOffsets vmOffsets = Arm64VMOffsets();
+  late final ObjectLayout objectLayout = ObjectLayout(
+    vmOffsets,
+    wordSize: 8,
+    compressedWordSize: 8,
+  );
   late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
     functionRegistry,
+    objectLayout,
   );
 
   @override
@@ -166,12 +173,6 @@ class CompileAndDumpIr extends RecursiveVisitor {
     final backEndState = BackEndState();
     final stackFrame = Arm64StackFrame(function);
     final constraints = Arm64Constraints(stackFrame);
-    final vmOffsets = Arm64VMOffsets();
-    final objectLayout = ObjectLayout(
-      vmOffsets,
-      wordSize: 8,
-      compressedWordSize: 8,
-    );
     backEndState.stackFrame = stackFrame;
     backEndState.unboxing = Unboxing();
     final pipeline = Pipeline([

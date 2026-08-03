@@ -1570,7 +1570,9 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           continue;
         }
         obj = pool.ObjectAt(i);
-        if (obj.IsInstance() && !obj.IsSmi()) {
+        if (obj.IsInstance() && !obj.IsSmi() &&
+            (obj.ptr() != Object::uninitialized_index().ptr()) &&
+            (obj.ptr() != Object::uninitialized_data().ptr())) {
           obj = Instance::Cast(obj).Canonicalize(d->thread());
           pool.SetObjectAt(i, obj);
         }
@@ -1937,6 +1939,8 @@ void Deserializer::Deserialize() {
   AddBaseObject(Object::empty_exception_handlers());
   AddBaseObject(Object::empty_async_exception_handlers());
   AddBaseObject(Object::empty_descriptors());
+  AddBaseObject(Object::uninitialized_index());
+  AddBaseObject(Object::uninitialized_data());
   AddBaseObject(StubCode::Subtype1TestCache());
   AddBaseObject(StubCode::Subtype2TestCache());
   AddBaseObject(StubCode::Subtype3TestCache());
