@@ -97,6 +97,7 @@ class ModuleSnapshot : public AllStatic {
     kDynamicCall,
     kUnboxedInt,
     kUnboxedDouble,
+    kNativeFunction,
   };
 };
 
@@ -1365,10 +1366,11 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->untag()->compile_timestamp_ = 0;
 #endif
 
+      const uword instr_size = d->ReadUnsigned();
       code->untag()->state_bits_ = Code::OptimizedBit::update(true, 0);
+      code->untag()->instructions_length_ = instr_size;
       code->untag()->unchecked_offset_ = 0;
 
-      const uword instr_size = d->ReadUnsigned();
       instructions += instr_size;
     }
   }
@@ -1545,6 +1547,12 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             entry.raw_value_ = bit_cast<int64_t>(d.Read<double>());
             break;
           }
+          case ModuleSnapshot::kNativeFunction: {
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = NativeEntry::LinkNativeCallEntry();
+            break;
+          }
         }
       }
     }
@@ -1562,7 +1570,9 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           continue;
         }
         obj = pool.ObjectAt(i);
-        if (obj.IsInstance() && !obj.IsSmi()) {
+        if (obj.IsInstance() && !obj.IsSmi() &&
+            (obj.ptr() != Object::uninitialized_index().ptr()) &&
+            (obj.ptr() != Object::uninitialized_data().ptr())) {
           obj = Instance::Cast(obj).Canonicalize(d->thread());
           pool.SetObjectAt(i, obj);
         }
@@ -1929,6 +1939,8 @@ void Deserializer::Deserialize() {
   AddBaseObject(Object::empty_exception_handlers());
   AddBaseObject(Object::empty_async_exception_handlers());
   AddBaseObject(Object::empty_descriptors());
+  AddBaseObject(Object::uninitialized_index());
+  AddBaseObject(Object::uninitialized_data());
   AddBaseObject(StubCode::Subtype1TestCache());
   AddBaseObject(StubCode::Subtype2TestCache());
   AddBaseObject(StubCode::Subtype3TestCache());
@@ -1946,6 +1958,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(StubCode::ReturnAsync());
   AddBaseObject(StubCode::ReturnAsyncNotFuture());
   AddBaseObject(StubCode::ReturnAsyncStar());
+  AddBaseObject(StubCode::CallBootstrapNative());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
     FATAL("Snapshot expects %" Pd

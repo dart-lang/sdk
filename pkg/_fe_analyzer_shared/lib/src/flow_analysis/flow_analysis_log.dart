@@ -222,12 +222,11 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
   /// code). Therefore, this method should be called after visiting the body and
   /// before visiting the updaters, to avoid a spurious assertion from
   /// [checkOffset] during analysis of the updaters.
-  bool allowOutOfOrderOffsets() {
+  void allowOutOfOrderOffsets() {
     assert(() {
       _minValidOffset = 0;
       return true;
     }());
-    return true;
   }
 
   /// Sanity checks the given [offset], making sure that offsets are always in

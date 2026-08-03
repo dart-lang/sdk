@@ -200,6 +200,12 @@ final class SuspendStub {
   static const Register typeArgsReg = R1;
 }
 
+final class CallBootstrapNativeStub {
+  static const Register argcTagReg = R1;
+  static const Register firstArgPointerReg = R2;
+  static const Register nativeFunctionReg = R5;
+}
+
 final class Arm64StubFactory extends StubFactory {
   final VMOffsets vmOffsets;
   final ObjectLayout objectLayout;

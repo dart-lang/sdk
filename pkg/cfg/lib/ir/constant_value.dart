@@ -167,6 +167,8 @@ class const ConstantFolding() {
         return ConstantValue.fromInt(x.abs());
       case UnaryIntOpcode.sign:
         return ConstantValue.fromInt(x.sign);
+      case UnaryIntOpcode.hash:
+        return null;
     }
   }
 

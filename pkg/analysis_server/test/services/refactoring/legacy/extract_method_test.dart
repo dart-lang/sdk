@@ -1149,6 +1149,37 @@ void f() {
     expect(refactoring.lengths, unorderedEquals([5, 6]));
   }
 
+  Future<void> test_parameterName_notInUse_dotShorthand() async {
+    // The parameter `foo` cannot shadow the dot shorthand `.foo`, which is
+    // resolved against the context type, so there is no conflict.
+    await _createRefactoring('''
+class A {
+  static A get foo => A();
+}
+void g(A a) {}
+void f() {
+  int foo = 1;
+  [!g(.foo);
+  print(foo);!]
+}
+''');
+    return _assertSuccessfulRefactoring('''
+class A {
+  static A get foo => A();
+}
+void g(A a) {}
+void f() {
+  int foo = 1;
+  res(foo);
+}
+
+void res(int foo) {
+  g(.foo);
+  print(foo);
+}
+''');
+  }
+
   Future<void> test_parameterType_nullableTypeWithTypeArguments() async {
     await _createRefactoring('''
 abstract class C {

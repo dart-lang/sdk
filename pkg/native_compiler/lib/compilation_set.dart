@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart' as ast;
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/configuration.dart';
+import 'package:native_compiler/front_end/recognized_methods.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
 import 'package:native_compiler/snapshot/snapshot.dart';
@@ -21,9 +22,12 @@ class CompilationSet {
   final List<ast.Library> libraries;
   final Configuration config;
   final FunctionRegistry functionRegistry = FunctionRegistry();
-  final RecognizedMethods recognizedMethods = CommonRecognizedMethods();
   final List<CFunction> _pendingFunctions = [];
   final ImageWriter _imageWriter;
+  late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
+    functionRegistry,
+    config.objectLayout,
+  );
   late final SnapshotSerializer _snapshot;
   late final StubFactory _stubFactory;
 

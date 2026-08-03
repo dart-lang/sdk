@@ -1555,6 +1555,10 @@ class Heap : public AllStatic {
 
 class NativeArguments {
  public:
+  static const word kArgcBitsPos;
+  static const word kArgcBitsSize;
+  static const word kGenericFunctionBitPos;
+
   static word thread_offset();
   static word argc_tag_offset();
   static word argv_offset();

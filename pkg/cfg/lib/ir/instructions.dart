@@ -1585,7 +1585,8 @@ enum UnaryIntOpcode(final String token) {
   bitNot('~'),
   toDouble('toDouble'),
   abs('abs'),
-  sign('sign')
+  sign('sign'),
+  hash('hash')
 }
 
 /// Unary operation on the int operand.
@@ -1754,6 +1755,26 @@ final class CompareAndBranch extends Instruction
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitCompareAndBranch(this);
+}
+
+/// Call implementation of the external function.
+final class ExternalCall extends CallInstruction with BackendInstruction {
+  final CFunction target;
+
+  @override
+  final CType type;
+
+  ExternalCall(
+    super.graph,
+    super.sourcePosition,
+    this.target,
+    this.type, {
+    required super.inputCount,
+    required super.argumentsShape,
+  }) : assert(target.member.isExternal);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitExternalCall(this);
 }
 
 /// Allocate a fixed-size List of given length.

@@ -324,6 +324,10 @@ extension MemberPragmaHelpers on Member {
   /// Returns true if this member is annotated with 'vm:ffi:native' pragma.
   bool isFfiNative(CoreTypes coreTypes) => hasPragma(vmFfiNative, coreTypes);
 
+  /// Returns true if this member is annotated with 'vm:recognized' pragma.
+  bool isRecognized(CoreTypes coreTypes) =>
+      hasPragma(vmRecognizedPragmaName, coreTypes);
+
   /// Returns true if this member is annotated with 'vm:invisible' pragma.
   bool isInvisible(CoreTypes coreTypes) =>
       hasPragma(vmInvisiblePragmaName, coreTypes);

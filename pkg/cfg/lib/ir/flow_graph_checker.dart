@@ -320,6 +320,11 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitExternalCall(ExternalCall instr) {
+    verifyCall(instr);
+  }
+
+  @override
   void visitParameter(Parameter instr) {
     assert(parametersAllowed);
     final block = instr.block!;

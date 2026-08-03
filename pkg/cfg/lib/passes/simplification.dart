@@ -175,6 +175,9 @@ final class Simplification extends Pass
   Instruction visitDynamicCall(DynamicCall instr) => instr;
 
   @override
+  Instruction visitExternalCall(ExternalCall instr) => instr;
+
+  @override
   Instruction visitParameter(Parameter instr) => instr;
 
   @override

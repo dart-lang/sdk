@@ -165,6 +165,10 @@ final class Arm64Constraints extends Constraints {
       callConstraints(instr);
 
   @override
+  InstructionConstraints? visitExternalCall(ExternalCall instr) =>
+      callConstraints(instr);
+
+  @override
   InstructionConstraints? visitParameter(Parameter instr) {
     Constraint result;
     if (instr.isFunctionParameter) {
@@ -458,8 +462,12 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitUnaryIntOp(UnaryIntOp instr) =>
       switch (instr.op) {
-        UnaryIntOpcode.toDouble => const InstructionConstraints(
-          anyFpuRegister,
+        .toDouble => const InstructionConstraints(anyFpuRegister, [
+          anyCpuRegister,
+        ]),
+        .hash => const InstructionConstraints(
+          anyCpuRegister,
+          [anyCpuRegister],
           [anyCpuRegister],
         ),
         _ => const InstructionConstraints(anyCpuRegister, [anyCpuRegister]),

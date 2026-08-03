@@ -295,6 +295,27 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [ExternalCall] to the graph.
+  ExternalCall addExternalCall(
+    CFunction target,
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
+    final instr = ExternalCall(
+      graph,
+      currentSourcePosition,
+      target,
+      type,
+      inputCount: inputCount,
+      argumentsShape: argumentsShape,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Add [LocalVariable] to the graph.
   LocalVariable declareLocalVariable(
     String name,

@@ -40156,6 +40156,12 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     } else if (parent case MethodInvocationImpl invocation) {
       return identical(invocation.methodName, this) &&
           invocation.realTarget2 != null;
+    } else if (parent is DotShorthandPropertyAccessImpl) {
+      return identical(parent.propertyName, this);
+    } else if (parent is DotShorthandInvocationImpl) {
+      return identical(parent.memberName, this);
+    } else if (parent is DotShorthandConstructorInvocationImpl) {
+      return identical(parent.constructorName, this);
     }
     return false;
   }

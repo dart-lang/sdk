@@ -711,6 +711,24 @@ void main() {
       });
     });
 
+    test('umulh', () {
+      asm.umulh(R1, R2, R3);
+      asm.umulh(R0, R0, R0);
+      expectDisassembly(
+        'umulh r1, r2, r3\n'
+        'umulh r0, r0, r0\n',
+      );
+      expectThrows(() {
+        asm.umulh(SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.umulh(R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.umulh(R1, R2, SP);
+      });
+    });
+
     test('csel', () {
       asm.csel(R0, R1, R2, .greater);
       asm.csel(R1, ZR, R0, .unsignedLessOrEqual);

@@ -695,6 +695,32 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitExternalCall(ExternalCall instr) {
+    _passArguments(instr);
+    // ExternalCall instruction takes an extra `null` input to reserve
+    // slot for the return value in the stack frame.
+    final numArgs = instr.inputCount - 1;
+    assert(numArgs < (1 << vmOffsets.NativeArguments_kArgcBitsSize));
+    final argcTag =
+        (numArgs << vmOffsets.NativeArguments_kArgcBitsPos) |
+        (instr.target.hasFunctionTypeParameters
+            ? (1 << vmOffsets.NativeArguments_kGenericFunctionBitPos)
+            : 0);
+    _asm.addImmediate(
+      CallBootstrapNativeStub.firstArgPointerReg,
+      stackPointerReg,
+      (1 /* slot for result */ + numArgs - 1) * wordSize,
+    );
+    _asm.loadImmediate(CallBootstrapNativeStub.argcTagReg, argcTag);
+    _asm.loadFromPool(
+      CallBootstrapNativeStub.nativeFunctionReg,
+      NativeFunction(instr.target),
+    );
+    _asm.callVmStub(StubCode.CallBootstrapNative);
+    _asm.ldr(returnReg, _asm.address(stackPointerReg, 0));
+  }
+
+  @override
   void visitClosureCall(ClosureCall instr) {
     _passArguments(instr);
     _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
@@ -1954,6 +1980,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
         break;
       case .toDouble:
         _asm.scvtf(outputFPReg(instr), operandReg);
+      case .hash:
+        final scratch = temporaryReg(instr, 0);
+        final resultReg = outputReg(instr);
+        _asm.loadImmediate(scratch, 0x2d51);
+        _asm.mul(tempReg, operandReg, scratch);
+        _asm.umulh(resultReg, operandReg, scratch);
+        _asm.eor(resultReg, resultReg, tempReg);
+        _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
+        _asm.ubfm(resultReg, resultReg, 63, 29);
       default:
         _asm.unimplemented(
           'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
