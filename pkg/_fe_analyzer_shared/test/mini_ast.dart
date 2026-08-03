@@ -1600,6 +1600,7 @@ class ExpressionCase extends Node {
     );
     guardedPattern.variables = variableBinder.casePatternFinish();
     variableBinder.finish();
+    guardedPattern.guard?.preVisit(visitor);
     expression.preVisit(visitor);
   }
 }
@@ -3147,6 +3148,7 @@ class MapPatternEntry extends Node implements MapPatternElement {
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
   }) {
+    key.preVisit(visitor);
     value.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
