@@ -33,6 +33,7 @@ abstract class AbstractMigrateTest extends AbstractLspAnalysisServerTest {
   Future<void> _assertMigrationResult({
     List<Uri>? uris,
     List<MigrationStep> steps = const [MigrationStep.All],
+    String? targetSdk,
     Object? expectedSummary,
     String? expectedEdit,
     bool apply = false,
@@ -44,6 +45,7 @@ abstract class AbstractMigrateTest extends AbstractLspAnalysisServerTest {
         uris: uris ?? [projectFolderUri],
         apply: apply,
         steps: steps,
+        targetSdk: targetSdk,
       ),
     );
     var response = await sendRequestToServer(request);
@@ -381,6 +383,132 @@ class MigratePackageValidationTest extends AbstractMigrateTest {
       isResponseError(
         ErrorCodes.InvalidParams,
         message: contains("doesn't exist"),
+      ),
+    );
+  }
+
+  Future<void> test_error_targetSdk_greaterThanServerSdk() async {
+    newFile(pubspecFilePath, 'name: test_project');
+    await initialize();
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [projectFolderUri],
+        apply: false,
+        targetSdk: '99.0.0',
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: allOf(
+          contains(
+            "Can't migrate to Dart version 99.0.0. In order to migrate, "
+            'the running SDK version must be the same as or greater than '
+            'the version being migrated to.',
+          ),
+          contains(
+            'Please either update your Dart SDK first or migrate to a '
+            'version that is less than the running version.',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> test_error_targetSdk_invalidSemver() async {
+    newFile(pubspecFilePath, 'name: test_project');
+    await initialize();
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [projectFolderUri],
+        apply: false,
+        targetSdk: 'not-a-version',
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: 'The target SDK version "not-a-version" is not a valid semantic version.',
+      ),
+    );
+  }
+
+  Future<void> test_error_targetSdk_notMinorRelease_patch() async {
+    newFile(pubspecFilePath, 'name: test_project');
+    await initialize();
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [projectFolderUri],
+        apply: false,
+        targetSdk: '3.12.5',
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: 'The target SDK version "3.12.5" must be a minor release (e.g., "3.12.0").',
+      ),
+    );
+  }
+
+  Future<void> test_error_targetSdk_notMinorRelease_preRelease() async {
+    newFile(pubspecFilePath, 'name: test_project');
+    await initialize();
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [projectFolderUri],
+        apply: false,
+        targetSdk: '3.12.0-dev.1',
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: 'The target SDK version "3.12.0-dev.1" must be a minor release (e.g., "3.12.0").',
+      ),
+    );
+  }
+
+  Future<void> test_error_targetSdk_singleStep() async {
+    newFile(pubspecFilePath, 'name: test_project');
+    await initialize();
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [projectFolderUri],
+        apply: false,
+        targetSdk: '3.10.0',
+        steps: [MigrationStep.Bump],
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message:
+            'Multi-version migration requires running all steps (--step=all).',
       ),
     );
   }

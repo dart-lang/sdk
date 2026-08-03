@@ -1704,18 +1704,23 @@ class DartMigrateParams implements ToJsonable {
   /// The specific migration steps to run.
   final List<MigrationStep>? steps;
 
+  /// The target Dart SDK version to migrate to (e.g., "3.12.0").
+  final String? targetSdk;
+
   /// The URIs of the directories (packages or workspaces) to migrate.
   /// Individual file URIs are not supported.
   final List<DocumentUri> uris;
   DartMigrateParams({
     this.apply,
     this.steps,
+    this.targetSdk,
     required this.uris,
   });
   @override
   int get hashCode => Object.hash(
         apply,
         lspHashCode(steps),
+        targetSdk,
         lspHashCode(uris),
       );
 
@@ -1725,6 +1730,7 @@ class DartMigrateParams implements ToJsonable {
         other.runtimeType == DartMigrateParams &&
         apply == other.apply &&
         const DeepCollectionEquality().equals(steps, other.steps) &&
+        targetSdk == other.targetSdk &&
         const DeepCollectionEquality().equals(uris, other.uris);
   }
 
@@ -1736,6 +1742,9 @@ class DartMigrateParams implements ToJsonable {
     }
     if (steps != null) {
       result['steps'] = steps?.map((item) => item.toJson()).toList();
+    }
+    if (targetSdk != null) {
+      result['targetSdk'] = targetSdk;
     }
     result['uris'] = uris.map((uri) => uri.toString()).toList();
     return result;
@@ -1754,6 +1763,10 @@ class DartMigrateParams implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
+      if (!_canParseString(obj, reporter, 'targetSdk',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
       return _canParseListUri(obj, reporter, 'uris',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -1769,6 +1782,8 @@ class DartMigrateParams implements ToJsonable {
     final steps = (stepsJson as List<Object?>?)
         ?.map((item) => MigrationStep.fromJson(item as String))
         .toList();
+    final targetSdkJson = json['targetSdk'];
+    final targetSdk = targetSdkJson as String?;
     final urisJson = json['uris'];
     final uris = (urisJson as List<Object?>)
         .map((item) => Uri.parse(item as String))
@@ -1776,6 +1791,7 @@ class DartMigrateParams implements ToJsonable {
     return DartMigrateParams(
       apply: apply,
       steps: steps,
+      targetSdk: targetSdk,
       uris: uris,
     );
   }
