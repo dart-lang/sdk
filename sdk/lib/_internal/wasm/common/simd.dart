@@ -726,12 +726,12 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   static final Int32List _list = Int32List(4);
 
   @pragma("wasm:entry-point")
-  I32x4._wrap(this._bits);
+  I32x4.fromV128(this._bits);
 
   factory I32x4(int x, int y, int z, int w) =>
-      I32x4._wrap(WasmI32x4.fromInts(x, y, z, w).value);
+      I32x4.fromV128(WasmI32x4.fromInts(x, y, z, w).value);
 
-  factory I32x4.bool(bool x, bool y, bool z, bool w) => I32x4._wrap(
+  factory I32x4.bool(bool x, bool y, bool z, bool w) => I32x4.fromV128(
     WasmI32x4.fromInts(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0).value,
   );
 
@@ -746,7 +746,7 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   }
 
   factory I32x4._truncated(int x, int y, int z, int w) =>
-      I32x4._wrap(WasmI32x4.fromInts(x, y, z, w).value);
+      I32x4.fromV128(WasmI32x4.fromInts(x, y, z, w).value);
 
   int get x => WasmI32x4(_bits).extractLane(0).toIntSigned();
   int get y => WasmI32x4(_bits).extractLane(1).toIntSigned();
@@ -758,16 +758,18 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
       '${_int32ToHex(z)}, ${_int32ToHex(w)}]';
 
   Int32x4 operator |(Int32x4 other) =>
-      I32x4._wrap(_bits | (other as I32x4)._bits);
+      I32x4.fromV128(_bits | (other as I32x4)._bits);
   Int32x4 operator &(Int32x4 other) =>
-      I32x4._wrap(_bits & (other as I32x4)._bits);
+      I32x4.fromV128(_bits & (other as I32x4)._bits);
   Int32x4 operator ^(Int32x4 other) =>
-      I32x4._wrap(_bits ^ (other as I32x4)._bits);
-  Int32x4 operator +(Int32x4 other) =>
-      I32x4._wrap((WasmI32x4(_bits) + WasmI32x4((other as I32x4)._bits)).value);
-  Int32x4 operator -(Int32x4 other) =>
-      I32x4._wrap((WasmI32x4(_bits) - WasmI32x4((other as I32x4)._bits)).value);
-  Int32x4 operator -() => I32x4._wrap((-WasmI32x4(_bits)).value);
+      I32x4.fromV128(_bits ^ (other as I32x4)._bits);
+  Int32x4 operator +(Int32x4 other) => I32x4.fromV128(
+    (WasmI32x4(_bits) + WasmI32x4((other as I32x4)._bits)).value,
+  );
+  Int32x4 operator -(Int32x4 other) => I32x4.fromV128(
+    (WasmI32x4(_bits) - WasmI32x4((other as I32x4)._bits)).value,
+  );
+  Int32x4 operator -() => I32x4.fromV128((-WasmI32x4(_bits)).value);
 
   int get signMask => WasmI32x4(_bits).bitmask.toIntUnsigned();
 
@@ -805,35 +807,35 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   }
 
   Int32x4 withX(int x) =>
-      I32x4._wrap(WasmI32x4(_bits).replaceLane(0, WasmI32.fromInt(x)));
+      I32x4.fromV128(WasmI32x4(_bits).replaceLane(0, WasmI32.fromInt(x)));
 
   Int32x4 withY(int y) =>
-      I32x4._wrap(WasmI32x4(_bits).replaceLane(1, WasmI32.fromInt(y)));
+      I32x4.fromV128(WasmI32x4(_bits).replaceLane(1, WasmI32.fromInt(y)));
 
   Int32x4 withZ(int z) =>
-      I32x4._wrap(WasmI32x4(_bits).replaceLane(2, WasmI32.fromInt(z)));
+      I32x4.fromV128(WasmI32x4(_bits).replaceLane(2, WasmI32.fromInt(z)));
 
   Int32x4 withW(int w) =>
-      I32x4._wrap(WasmI32x4(_bits).replaceLane(3, WasmI32.fromInt(w)));
+      I32x4.fromV128(WasmI32x4(_bits).replaceLane(3, WasmI32.fromInt(w)));
 
   bool get flagX => x != 0;
   bool get flagY => y != 0;
   bool get flagZ => z != 0;
   bool get flagW => w != 0;
 
-  Int32x4 withFlagX(bool flagX) => I32x4._wrap(
+  Int32x4 withFlagX(bool flagX) => I32x4.fromV128(
     WasmI32x4(_bits).replaceLane(0, WasmI32.fromInt(flagX ? -1 : 0)),
   );
 
-  Int32x4 withFlagY(bool flagY) => I32x4._wrap(
+  Int32x4 withFlagY(bool flagY) => I32x4.fromV128(
     WasmI32x4(_bits).replaceLane(1, WasmI32.fromInt(flagY ? -1 : 0)),
   );
 
-  Int32x4 withFlagZ(bool flagZ) => I32x4._wrap(
+  Int32x4 withFlagZ(bool flagZ) => I32x4.fromV128(
     WasmI32x4(_bits).replaceLane(2, WasmI32.fromInt(flagZ ? -1 : 0)),
   );
 
-  Int32x4 withFlagW(bool flagW) => I32x4._wrap(
+  Int32x4 withFlagW(bool flagW) => I32x4.fromV128(
     WasmI32x4(_bits).replaceLane(3, WasmI32.fromInt(flagW ? -1 : 0)),
   );
 
@@ -873,6 +875,13 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
       floatList[3],
     );
   }
+}
+
+/// Exposes the raw [WasmV128] backing an [I32x4] to the SIMD-backed
+/// `Int32x4List`, which lives in a different library than [I32x4].
+extension I32x4Ext on I32x4 {
+  @pragma("wasm:prefer-inline")
+  WasmV128 get bits => _bits;
 }
 
 String _int32ToHex(int i) => i.toRadixString(16).padLeft(8, '0');

@@ -126,11 +126,11 @@ class Float64List {
 @patch
 class Int32x4List {
   @patch
-  factory Int32x4List(int length) = NaiveInt32x4List;
+  factory Int32x4List(int length) = I32x4List;
 
   @patch
-  factory Int32x4List.fromList(List<Int32x4> elements) =
-      NaiveInt32x4List.fromList;
+  factory Int32x4List.fromList(List<Int32x4> elements) =>
+      I32x4List(elements.length)..setRange(0, elements.length, elements);
 }
 
 @patch
