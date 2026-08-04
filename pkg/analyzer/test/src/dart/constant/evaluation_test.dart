@@ -1953,7 +1953,7 @@ const x = C<int>.();
 ''');
   }
 
-  test_visitConstructorReference_generic_named() async {
+  test_visitConstructorTearOff_generic_named() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.foo();
@@ -1970,7 +1970,7 @@ C<int> Function()
 ''');
   }
 
-  test_visitConstructorReference_generic_unnamed() async {
+  test_visitConstructorTearOff_generic_unnamed() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
@@ -1987,7 +1987,7 @@ C<int> Function()
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotGeneric() async {
+  test_visitConstructorTearOff_identical_aliasIsNotGeneric() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC = C<int>;
@@ -2000,7 +2000,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_differentBound() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_differentBound() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
@@ -2013,7 +2013,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_differentCount() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_differentCount() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T> = C<T, int>;
@@ -2026,7 +2026,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_differentCount2() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_differentCount2() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T> = C;
@@ -2039,7 +2039,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_differentOrder() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_differentOrder() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T, U> = C<U, T>;
@@ -2052,7 +2052,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_instantiated() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_instantiated() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
@@ -2065,7 +2065,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_mixedInstantiations() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_mixedInstantiations() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
@@ -2078,7 +2078,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_instantiated() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_instantiated() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
@@ -2091,7 +2091,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_mixedInstantiations() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_mixedInstantiations() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
@@ -2104,7 +2104,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_mutualSubtypes_dynamic() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_mutualSubtypes_dynamic() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends Object?> = C<T>;
@@ -2117,7 +2117,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_mutualSubtypes_futureOr() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_mutualSubtypes_futureOr() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class C<T extends FutureOr<num>> {}
@@ -2131,7 +2131,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_uninstantiated() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_uninstantiated() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
@@ -2144,7 +2144,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_explicitTypeArgs_differentClasses() async {
+  test_visitConstructorTearOff_identical_explicitTypeArgs_differentClasses() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
@@ -2157,7 +2157,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_explicitTypeArgs_differentConstructors() async {
+  test_visitConstructorTearOff_identical_explicitTypeArgs_differentConstructors() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
@@ -2172,7 +2172,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_explicitTypeArgs_differentTypeArgs() async {
+  test_visitConstructorTearOff_identical_explicitTypeArgs_differentTypeArgs() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C<String>.new);
@@ -2184,7 +2184,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_explicitTypeArgs_sameElement() async {
+  test_visitConstructorTearOff_identical_explicitTypeArgs_sameElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C<int>.new);
@@ -2196,7 +2196,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_inferredTypeArgs_sameElement() async {
+  test_visitConstructorTearOff_identical_inferredTypeArgs_sameElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const C<int> Function() c1 = C.new;
@@ -2210,7 +2210,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_notInstantiated_differentClasses() async {
+  test_visitConstructorTearOff_identical_notInstantiated_differentClasses() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
@@ -2223,7 +2223,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_notInstantiated_differentConstructors() async {
+  test_visitConstructorTearOff_identical_notInstantiated_differentConstructors() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
@@ -2238,7 +2238,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_notInstantiated_sameElement() async {
+  test_visitConstructorTearOff_identical_notInstantiated_sameElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C.new, C.new);
@@ -2250,7 +2250,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_onlyOneHasTypeArgs() async {
+  test_visitConstructorTearOff_identical_onlyOneHasTypeArgs() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C.new);
@@ -2262,7 +2262,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_nonGeneric_named() async {
+  test_visitConstructorTearOff_nonGeneric_named() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C.foo();
@@ -2279,7 +2279,7 @@ C<int> Function()
 ''');
   }
 
-  test_visitConstructorReference_nonGeneric_unnamed() async {
+  test_visitConstructorTearOff_nonGeneric_unnamed() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C();

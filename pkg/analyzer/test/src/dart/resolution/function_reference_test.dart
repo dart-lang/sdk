@@ -140,7 +140,7 @@ FunctionReference
 ''');
   }
 
-  test_constructorReference() async {
+  test_constructorTearOff() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo() {}
@@ -195,7 +195,7 @@ FunctionReference
 ''');
   }
 
-  test_constructorReference_prefixed() async {
+  test_constructorTearOff_prefixed() async {
     var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async' as a;
 var x = a.Future.delayed<int>;
@@ -4690,7 +4690,7 @@ FunctionReference
 ''');
   }
 
-  test_constructorReference() async {
+  test_constructorTearOff() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C(T a);
@@ -4700,7 +4700,7 @@ C<int> Function(int) foo() {
 }
 ''');
 
-    // TODO(srawlins): Leave the constructor reference uninstantiated, then
+    // TODO(srawlins): Leave the constructor tear-off uninstantiated, then
     // perform generic function instantiation as a wrapping node.
     var node = result.findNode.constructorTearOff('C.new');
     assertResolvedNodeText(node, r'''

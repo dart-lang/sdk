@@ -22,7 +22,7 @@ import 'constant_test.dart' as constant;
 import 'constructor_field_initializer_test.dart'
     as constructor_field_initializer;
 import 'constructor_invocation_test.dart' as constructor_invocation;
-import 'constructor_reference_test.dart' as constructor_reference;
+import 'constructor_tear_off_test.dart' as constructor_tear_off;
 import 'constructor_test.dart' as constructor;
 import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
 import 'dot_shorthand_constructor_invocation_test.dart'
@@ -139,7 +139,7 @@ main() {
     comment.main();
     constant.main();
     constructor_field_initializer.main();
-    constructor_reference.main();
+    constructor_tear_off.main();
     constructor.main();
     declared_variable_pattern.main();
     dot_shorthand_constructor_invocation.main();

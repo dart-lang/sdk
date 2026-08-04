@@ -357,6 +357,9 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitStoreStaticField(StoreStaticField instr) {}
 
   @override
+  void visitLoadArrayElement(LoadArrayElement instr) {}
+
+  @override
   void visitThrow(Throw instr) {
     assert(instr.next == null);
     assert(instr.block!.successors.isEmpty);
@@ -365,6 +368,12 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitNullCheck(NullCheck instr) {}
+
+  @override
+  void visitIndexCheck(IndexCheck instr) {
+    assert(instr.index.type is IntType);
+    assert(instr.length.type is IntType);
+  }
 
   @override
   void visitTypeParameters(TypeParameters instr) {

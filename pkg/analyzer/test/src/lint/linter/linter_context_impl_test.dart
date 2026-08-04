@@ -126,7 +126,7 @@ B f() => B(A());
     assertCanBeConst(result, "B(A(", false);
   }
 
-  void test_false_constructorReference_typeParameter() async {
+  void test_false_constructorTearOff_typeParameter() async {
     var result = await resolve('''
 class A<T> {
   const A();

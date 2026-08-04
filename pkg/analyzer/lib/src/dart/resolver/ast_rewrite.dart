@@ -284,7 +284,7 @@ class AstRewriter {
     }
     var identifier = node.identifier;
     if (identifier.isSynthetic) {
-      // This isn't a constructor reference.
+      // This isn't a constructor tear-off.
       return node;
     }
     var prefix = node.prefix;
@@ -318,7 +318,7 @@ class AstRewriter {
       // Example:
       //     class C { C.named(); }
       //     C.named
-      return _toConstructorReference_prefixed(
+      return _toConstructorTearOff_prefixed(
         node: node,
         classElement: prefixElement,
       );
@@ -329,7 +329,7 @@ class AstRewriter {
         //     class C { C.named(); }
         //     typedef X = C;
         //     X.named
-        return _toConstructorReference_prefixed(
+        return _toConstructorTearOff_prefixed(
           node: node,
           classElement: aliasedType.element,
         );
@@ -376,7 +376,7 @@ class AstRewriter {
       typeArguments = receiver.typeArguments;
     } else {
       // If the receiver is not (initially) a prefixed identifier or a function
-      // reference, then [node] is not a constructor reference.
+      // reference, then [node] is not a constructor tear-off.
       return node;
     }
 
@@ -404,7 +404,7 @@ class AstRewriter {
       // Example:
       //     class C<T> { C.named(); }
       //     C<int>.named
-      return _toConstructorReference_propertyAccess(
+      return _toConstructorTearOff_propertyAccess(
         node: node,
         receiver: receiverIdentifier,
         typeArguments: typeArguments,
@@ -417,7 +417,7 @@ class AstRewriter {
         //     class C<T> { C.named(); }
         //     typedef X<T> = C<T>;
         //     X<int>.named
-        return _toConstructorReference_propertyAccess(
+        return _toConstructorTearOff_propertyAccess(
           node: node,
           receiver: receiverIdentifier,
           typeArguments: typeArguments,
@@ -623,7 +623,7 @@ class AstRewriter {
     return constructorInvocation;
   }
 
-  AstNode _toConstructorReference_prefixed({
+  AstNode _toConstructorTearOff_prefixed({
     required PrefixedIdentifierImpl node,
     required InterfaceElement classElement,
   }) {
@@ -648,7 +648,7 @@ class AstRewriter {
     return constructorTearOff;
   }
 
-  AstNode _toConstructorReference_propertyAccess({
+  AstNode _toConstructorTearOff_propertyAccess({
     required PropertyAccessImpl node,
     required IdentifierImpl receiver,
     required TypeArgumentListImpl? typeArguments,

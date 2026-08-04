@@ -230,6 +230,13 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
+  InstructionConstraints? visitLoadArrayElement(LoadArrayElement instr) =>
+      InstructionConstraints(anyCpuRegister, [
+        anyCpuRegister,
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      ]);
+
+  @override
   InstructionConstraints? visitThrow(Throw instr) {
     final inputs = allocatableRegisters.take(instr.inputCount).toList();
     return InstructionConstraints(
@@ -243,6 +250,15 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitNullCheck(NullCheck instr) =>
       InstructionConstraints(anyCpuRegister, [anyCpuRegister], [], Safepoint());
+
+  @override
+  InstructionConstraints? visitIndexCheck(IndexCheck instr) =>
+      InstructionConstraints(
+        anyCpuRegister,
+        [anyCpuRegister, anyCpuRegister],
+        [],
+        Safepoint(),
+      );
 
   @override
   InstructionConstraints? visitTypeCast(TypeCast instr) {

@@ -288,7 +288,7 @@ class FunctionReferenceResolver {
   }
 
   void _resolveConstructorTearOff(FunctionReferenceImpl node) {
-    // TODO(srawlins): Rewrite and resolve [node] as a constructor reference.
+    // TODO(srawlins): Rewrite and resolve [node] as a constructor tear-off.
     node.function2.accept2(_resolver);
     node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
   }

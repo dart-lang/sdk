@@ -9,6 +9,7 @@ import 'package:cfg/ir/flow_graph_builder.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:native_compiler/runtime/constant_objects.dart';
@@ -70,6 +71,24 @@ void buildUnaryIntOp(FlowGraphBuilder builder, UnaryIntOpcode op) {
   builder.addReturn();
 }
 
+/// Build IR for indexed load of an array element.
+void buildArrayElementGetter(
+  FlowGraphBuilder builder,
+  ArrayKind kind,
+  CField lengthField,
+  CType elemType,
+) {
+  final index = builder.pop();
+  final array = builder.pop();
+  builder.push(array);
+  builder.push(index);
+  builder.push(array);
+  builder.addLoadInstanceField(lengthField);
+  builder.addIndexCheck();
+  builder.addLoadArrayElement(kind, elemType);
+  builder.addReturn();
+}
+
 /// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
 void buildUnimplementedRecognizedMethod(
   FlowGraphBuilder builder,
@@ -83,6 +102,20 @@ void buildUnimplementedRecognizedMethod(
     ConstantValue.fromString('Unimplemented recognized method: $function'),
   );
   builder.addThrow(.exception, 1);
+}
+
+extension on ArrayKind {
+  String get className => switch (this) {
+    .int8List => '_Int8List',
+    .uint8List => '_Uint8List',
+    .uint8ClampedList => '_Uint8ClampedList',
+    .int16List => '_Int16List',
+    .uint16List => '_Uint16List',
+    .int32List => '_Int32List',
+    .uint32List => '_Uint32List',
+    .int64List => '_Int64List',
+    .uint64List => '_Uint64List',
+  };
 }
 
 /// VM-specific recognized methods.
@@ -254,5 +287,38 @@ final class VmRecognizedMethods(
       final has63BitSmis = totalSmiBits >= 63;
       buildConstantGetter(builder, ConstantValue.fromBool(has63BitSmis));
     },
+
+    // dart:typed_data
+    index.getProcedure(
+      'dart:typed_data',
+      '_TypedListBase',
+      'get:length',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.TypedListBase_length);
+    },
+
+    for (ArrayKind arrayKind in [
+      .int8List,
+      .uint8List,
+      .uint8ClampedList,
+      .int16List,
+      .uint16List,
+      .int32List,
+      .uint32List,
+      .int64List,
+      .uint64List,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        arrayKind.className,
+        '[]',
+      ): (FlowGraphBuilder builder) {
+        buildArrayElementGetter(
+          builder,
+          arrayKind,
+          objectLayout.TypedListBase_length,
+          const IntType(),
+        );
+      },
   };
 }

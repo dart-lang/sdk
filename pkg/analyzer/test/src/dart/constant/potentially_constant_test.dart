@@ -465,7 +465,7 @@ var x = a ? b : c;
     );
   }
 
-  test_constructorReference_explicitTypeArguments() async {
+  test_constructorTearOff_explicitTypeArguments() async {
     await _assertConst('''
 class A {
   final B Function() x;
@@ -476,7 +476,7 @@ class B<T> {}
 ''', (result) => result.findNode.constructorTearOff('B<int>.new'));
   }
 
-  test_constructorReference_explicitTypeArguments_nonConst() async {
+  test_constructorTearOff_explicitTypeArguments_nonConst() async {
     await _assertNotConst(
       '''
 import '' deferred as self;
@@ -492,7 +492,7 @@ class B<T> {}
     );
   }
 
-  test_constructorReference_noTypeArguments() async {
+  test_constructorTearOff_noTypeArguments() async {
     await _assertConst('''
 class A {
   final B Function() x;

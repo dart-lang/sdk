@@ -533,7 +533,7 @@ library
     _assertTypeStr(yType, 'C<int>');
   }
 
-  test_const_constructorReference() async {
+  test_const_constructorTearOff() async {
     var library = await buildLibrary(r'''
 class A {
   A.named();

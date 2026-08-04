@@ -1911,7 +1911,7 @@ InstanceCreationExpression
 
 @reflectiveTest
 class AstRewritePrefixedIdentifierTest extends PubPackageResolutionTest {
-  test_constructorReference_inAssignment_onLeftSide() async {
+  test_constructorTearOff_inAssignment_onLeftSide() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 
@@ -1931,7 +1931,7 @@ void f() {
     expect(identifier.element, isNull);
   }
 
-  test_constructorReference_inAssignment_onRightSide() async {
+  test_constructorTearOff_inAssignment_onRightSide() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 

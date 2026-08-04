@@ -1094,6 +1094,54 @@ final class StoreStaticField extends StoreField {
   R accept<R>(InstructionVisitor<R> v) => v.visitStoreStaticField(this);
 }
 
+/// Array is a sequence of elements of known size and type, such as typed data, String or a built-in List.
+enum ArrayKind {
+  // Typed data lists holding their elements.
+  int8List,
+  uint8List,
+  uint8ClampedList,
+  int16List,
+  uint16List,
+  int32List,
+  uint32List,
+  int64List,
+  uint64List,
+  // TODO: add FP typed data lists
+  // float32List,
+  // float64List,
+  // TODO: add SIMD typed data lists
+  // float32x4List,
+  // int32x4List,
+  // float64x2List,
+  // TODO: add external typed data lists, typed data views, Strings, built-in Lists.
+}
+
+/// Load value from an array element.
+final class LoadArrayElement extends Definition with NoThrow, Pure {
+  final ArrayKind kind;
+
+  @override
+  final CType type;
+
+  LoadArrayElement(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    this.type,
+    Definition array,
+    Definition index,
+  ) : super(inputCount: 2) {
+    setInputAt(0, array);
+    setInputAt(1, index);
+  }
+
+  Definition get array => inputDefAt(0);
+  Definition get index => inputDefAt(1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadArrayElement(this);
+}
+
 /// Kinds of exceptions thrown via [Throw].
 enum ThrowKind {
   // Throw given exception object.
@@ -1156,6 +1204,31 @@ final class NullCheck extends Definition with CanThrow, Pure, Idempotent {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitNullCheck(this);
+}
+
+/// Checks that 0 <= index < length. Throws RangeError if index is out of bounds.
+final class IndexCheck extends Definition with CanThrow, Pure, Idempotent {
+  IndexCheck(
+    super.graph,
+    super.sourcePosition,
+    Definition index,
+    Definition length,
+  ) : super(inputCount: 2) {
+    setInputAt(0, index);
+    setInputAt(1, length);
+  }
+
+  Definition get index => inputDefAt(0);
+  Definition get length => inputDefAt(1);
+
+  @override
+  CType get type => const IntType();
+
+  @override
+  bool attributesEqual(covariant IndexCheck other) => true;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitIndexCheck(this);
 }
 
 enum TypeParametersKind {

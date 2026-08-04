@@ -158,11 +158,16 @@ class ObjectLayout {
     'dart:_compact_hash',
     '_LinkedHashBase',
   );
+  late final ast.Class _typedListBaseClass = _libraryIndex.getClass(
+    'dart:typed_data',
+    '_TypedListBase',
+  );
   late final ast.Class _uint32ListClass = _libraryIndex.getClass(
     'dart:typed_data',
     'Uint32List',
   );
 
+  // dart:core
   late final CField Array_length = _createBuiltInField(
     _arrayClass,
     'length',
@@ -170,6 +175,8 @@ class ObjectLayout {
     vmOffsets.Array_length_offset,
     isFinal: true,
   );
+
+  // dart:_compact_hash
   late final CField LinkedHashBase_index = _createBuiltInField(
     _linkedHashBaseClass,
     'index',
@@ -199,6 +206,15 @@ class ObjectLayout {
     'deletedKeys',
     _coreTypes.intNonNullableRawType,
     vmOffsets.LinkedHashBase_deleted_keys_offset,
+  );
+
+  // dart:typed_data
+  late final CField TypedListBase_length = _createBuiltInField(
+    _typedListBaseClass,
+    'length',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.TypedDataBase_length_offset,
+    isFinal: true,
   );
 
   // Layout of built-in instances is specified either as
