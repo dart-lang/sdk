@@ -470,7 +470,10 @@ class EnumElementDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  void cacheFieldInitializer(Expression? initializer) {
+  void cacheFieldInitializer(
+    Expression? initializer,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     // Initializer is created through [_buildElement].
   }
 }
