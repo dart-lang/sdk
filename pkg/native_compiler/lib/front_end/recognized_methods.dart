@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:native_compiler/runtime/constant_objects.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:vm/modular/transformations/pragma.dart';
 
 /// Build IR for native methods.
@@ -41,12 +42,9 @@ void buildNativeMethod(
   builder.addReturn();
 }
 
-/// Build IR for static getters returning runtime constants.
-void buildRuntimeConstantGetter(
-  FlowGraphBuilder builder,
-  RuntimeConstantObjectKind kind,
-) {
-  builder.addConstant(ConstantValue(RuntimeConstantObject(kind)));
+/// Build IR for static getters returning constants.
+void buildConstantGetter(FlowGraphBuilder builder, ConstantValue value) {
+  builder.addConstant(value);
   builder.addReturn();
 }
 
@@ -161,13 +159,19 @@ final class VmRecognizedMethods(
       'dart:_compact_hash',
       'get:_uninitializedIndex',
     ): (FlowGraphBuilder builder) {
-      buildRuntimeConstantGetter(builder, .uninitializedIndex);
+      buildConstantGetter(
+        builder,
+        ConstantValue(RuntimeConstantObject(.uninitializedIndex)),
+      );
     },
     index.getTopLevelProcedure(
       'dart:_compact_hash',
       'get:_uninitializedData',
     ): (FlowGraphBuilder builder) {
-      buildRuntimeConstantGetter(builder, .uninitializedData);
+      buildConstantGetter(
+        builder,
+        ConstantValue(RuntimeConstantObject(.uninitializedData)),
+      );
     },
     index.getProcedure(
       'dart:_compact_hash',
@@ -238,6 +242,17 @@ final class VmRecognizedMethods(
       'set:_deletedKeys',
     ): (FlowGraphBuilder builder) {
       buildInstanceSetter(builder, objectLayout.LinkedHashBase_deletedKeys);
+    },
+
+    // dart:_internal
+    index.getTopLevelProcedure(
+      'dart:_internal',
+      'get:has63BitSmis',
+    ): (FlowGraphBuilder builder) {
+      final totalSmiBits =
+          smiBits(objectLayout.compressedWordSize) + 1; // Including sign bit.
+      final has63BitSmis = totalSmiBits >= 63;
+      buildConstantGetter(builder, ConstantValue.fromBool(has63BitSmis));
     },
   };
 }
