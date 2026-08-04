@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' as io;
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
@@ -15,6 +17,7 @@ import 'package:analysis_server/src/utilities/source_change_merger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 class MigrateHandler
@@ -53,11 +56,18 @@ class MigrateHandler
       );
     }
 
+    var targetSdkResult = _validateTargetSdk(params.targetSdk, steps);
+    if (targetSdkResult.isError) {
+      return failure(targetSdkResult);
+    }
+
     var summaryBuilder = MigrationSummaryBuilder(
       apply: apply,
       pathContext: server.resourceProvider.pathContext,
       steps: steps,
     );
+    // TODO(kallentu): Pass targetSdk to MigrationRunner when multi-version
+    // migration is implemented.
     var migrationRunner = MigrationRunner(
       server: server,
       pubspecTargets: targets,
@@ -157,5 +167,48 @@ class MigrateHandler
       }
     }
     return success(targets);
+  }
+
+  ErrorOr<Version?> _validateTargetSdk(
+    String? sdkString,
+    List<MigrationStep> steps,
+  ) {
+    if (sdkString == null) {
+      return success(null);
+    }
+    Version targetSdk;
+    try {
+      targetSdk = Version.parse(sdkString);
+    } catch (_) {
+      return error(
+        ErrorCodes.InvalidParams,
+        'The target SDK version "$sdkString" is not a valid semantic version.',
+      );
+    }
+    if (targetSdk.patch != 0 || targetSdk.preRelease.isNotEmpty) {
+      return error(
+        ErrorCodes.InvalidParams,
+        'The target SDK version "$targetSdk" must be a minor release '
+        '(e.g., "3.12.0").',
+      );
+    }
+    var currentServerSdk = Version.parse(io.Platform.version.split(' ').first);
+    if (targetSdk > currentServerSdk) {
+      return error(
+        ErrorCodes.InvalidParams,
+        "Can't migrate to Dart version $targetSdk. In order to migrate, the "
+        'running SDK version must be the same as or greater than the version '
+        "being migrated to. It's currently $currentServerSdk. Please either "
+        'update your Dart SDK first or migrate to a version that is less than '
+        'the running version.',
+      );
+    }
+    if (!steps.runAll) {
+      return error(
+        ErrorCodes.InvalidParams,
+        'Multi-version migration requires running all steps (--step=all).',
+      );
+    }
+    return success(targetSdk);
   }
 }

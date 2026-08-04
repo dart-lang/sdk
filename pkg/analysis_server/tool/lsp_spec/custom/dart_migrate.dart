@@ -29,6 +29,12 @@ final dartMigrateClasses = <LspEntity>[
       canBeUndefined: true,
       comment: 'The specific migration steps to run.',
     ),
+    field(
+      'targetSdk',
+      type: 'String',
+      canBeUndefined: true,
+      comment: 'The target Dart SDK version to migrate to (e.g., "3.12.0").',
+    ),
   ]),
   LspEnum(
     name: 'MigrationStep',
