@@ -358,6 +358,9 @@ class CommonRecognizedMethods implements RecognizedMethods {
     index.getProcedure('dart:core', 'int', 'get:sign'): const UnaryIntOp(
       UnaryIntOpcode.sign,
     ),
+    index.getProcedure('dart:core', 'int', 'get:bitLength'): const UnaryIntOp(
+      UnaryIntOpcode.bitLength,
+    ),
     index.getProcedure('dart:core', 'double', 'get:sign'): const UnaryDoubleOp(
       UnaryDoubleOpcode.sign,
     ),

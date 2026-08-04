@@ -1454,6 +1454,26 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
+  void clz(Register rd, Register rn, [OperandSize sz = OperandSize.s64]) {
+    _emitDataProcessing1(B12, rd, rn, sz);
+  }
+
+  void _emitDataProcessing1(
+    int opcode,
+    Register rd,
+    Register rn,
+    OperandSize sz,
+  ) {
+    assert(sz.is32or64);
+    emit(
+      (B22 | B23 | B25 | B27 | B28 | B30) |
+          opcode |
+          rd.encodingRd() |
+          rn.encodingRn() |
+          (sz.is64 ? B31 : 0),
+    );
+  }
+
   // Logical operations with immediate or shifted register.
   void and(
     Register rd,

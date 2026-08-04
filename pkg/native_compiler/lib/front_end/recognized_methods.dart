@@ -8,6 +8,7 @@ import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/flow_graph_builder.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
+import 'package:cfg/ir/instructions.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:native_compiler/runtime/constant_objects.dart';
@@ -65,9 +66,9 @@ void buildInstanceSetter(FlowGraphBuilder builder, CField field) {
   builder.addReturn();
 }
 
-/// Build IR for int.hashCode getters.
-void buildIntHashCode(FlowGraphBuilder builder) {
-  builder.addUnaryIntOp(.hash);
+/// Build IR for unary int operations
+void buildUnaryIntOp(FlowGraphBuilder builder, UnaryIntOpcode op) {
+  builder.addUnaryIntOp(op);
   builder.addReturn();
 }
 
@@ -119,8 +120,34 @@ final class VmRecognizedMethods(
 
   late final _recognizedMembers = <ast.Member, BuildIR>{
     // dart:core
-    index.getProcedure('dart:core', '_Smi', 'get:hashCode'): buildIntHashCode,
-    index.getProcedure('dart:core', '_Mint', 'get:hashCode'): buildIntHashCode,
+    index.getProcedure(
+      'dart:core',
+      '_Smi',
+      'get:hashCode',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .hash);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Smi',
+      'get:bitLength',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .bitLength);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Mint',
+      'get:hashCode',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .hash);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Mint',
+      'get:bitLength',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .bitLength);
+    },
     index.getProcedure(
       'dart:core',
       '_Array',

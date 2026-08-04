@@ -1586,7 +1586,8 @@ enum UnaryIntOpcode(final String token) {
   toDouble('toDouble'),
   abs('abs'),
   sign('sign'),
-  hash('hash')
+  hash('hash'),
+  bitLength('bitLength')
 }
 
 /// Unary operation on the int operand.
