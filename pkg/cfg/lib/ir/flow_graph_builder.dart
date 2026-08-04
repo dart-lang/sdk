@@ -426,6 +426,23 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [LoadArrayElement] to the graph.
+  LoadArrayElement addLoadArrayElement(ArrayKind kind, CType type) {
+    final index = pop();
+    final array = pop();
+    final instr = LoadArrayElement(
+      graph,
+      currentSourcePosition,
+      kind,
+      type,
+      array,
+      index,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [Throw] to the graph.
   /// Ends current block.
   void addThrow(ThrowKind kind, int inputCount) {
@@ -444,6 +461,16 @@ class FlowGraphBuilder {
   NullCheck addNullCheck() {
     final object = pop();
     final instr = NullCheck(graph, currentSourcePosition, object);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [IndexCheck] to the graph.
+  IndexCheck addIndexCheck() {
+    final length = pop();
+    final index = pop();
+    final instr = IndexCheck(graph, currentSourcePosition, index, length);
     push(instr);
     appendInstruction(instr);
     return instr;

@@ -1013,6 +1013,46 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitLoadArrayElement(LoadArrayElement instr) {
+    OperandSize sz = switch (instr.kind) {
+      .int8List => .s8,
+      .uint8List || .uint8ClampedList => .u8,
+      .int16List => .s16,
+      .uint16List => .u16,
+      .int32List => .s32,
+      .uint32List => .u32,
+      .int64List => .s64,
+      .uint64List => .u64,
+    };
+    int offset = switch (instr.kind) {
+      .int8List ||
+      .uint8List ||
+      .uint8ClampedList ||
+      .int16List ||
+      .uint16List ||
+      .int32List ||
+      .uint32List ||
+      .int64List ||
+      .uint64List => vmOffsets.TypedData_payload_offset,
+    };
+    Register baseReg = inputReg(instr, 0);
+    final index = instr.index;
+    if (index is Constant) {
+      offset += index.value.intValue << sz.log2sizeInBytes;
+    } else {
+      final indexReg = inputReg(instr, 1);
+      _asm.add(
+        tempReg,
+        baseReg,
+        ShiftedRegOperand(indexReg, .LSL, sz.log2sizeInBytes),
+      );
+      baseReg = tempReg;
+    }
+    final resultReg = outputReg(instr);
+    _asm.ldr(resultReg, _asm.address(baseReg, offset - heapObjectTag, sz), sz);
+  }
+
+  @override
   void visitThrow(Throw instr) {
     switch (instr.kind) {
       case .exception:
@@ -1059,6 +1099,28 @@ final class Arm64CodeGenerator extends CodeGenerator {
     });
     _asm.cmp(resultReg, nullReg);
     _asm.b(slowPath, .equal);
+  }
+
+  @override
+  void visitIndexCheck(IndexCheck instr) {
+    final indexReg = inputReg(instr, 0);
+    final lengthReg = inputReg(instr, 1);
+    final resultReg = outputReg(instr);
+    final Label slowPath = addSlowPath(() {
+      assert(stackFrame.maxArgumentsStackSlots >= 1);
+      _asm.stp(indexReg, lengthReg, RegOffsetAddress(stackPointerReg, 0));
+      _asm.str(
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 2 * wordSize),
+      );
+      _callRuntime(RuntimeEntry.RangeError, 2);
+      _asm.breakpoint();
+    });
+    _asm.cmp(indexReg, lengthReg);
+    _asm.b(slowPath, .unsignedGreaterOrEqual);
+    if (indexReg != resultReg) {
+      _asm.mov(resultReg, indexReg);
+    }
   }
 
   int _getNumberOfInputsForSubtypeTestCache(

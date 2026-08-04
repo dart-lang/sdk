@@ -108,6 +108,8 @@ final class Arm64StackFrame extends StackFrame {
         return 4; // Result + 3 argument for ReThrow runtime call.
       case NullCheck():
         return 1; // Result + 0 arguments for NullCastError runtime call.
+      case IndexCheck():
+        return 3; // Result + 2 arguments for RangeError runtime call.
       default:
         return 0;
     }

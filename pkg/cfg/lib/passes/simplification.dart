@@ -199,6 +199,9 @@ final class Simplification extends Pass
   Instruction visitStoreStaticField(StoreStaticField instr) => instr;
 
   @override
+  Instruction visitLoadArrayElement(LoadArrayElement instr) => instr;
+
+  @override
   Instruction visitThrow(Throw instr) => instr;
 
   @override
@@ -206,6 +209,20 @@ final class Simplification extends Pass
     final operand = instr.operand;
     if (!operand.canBeNull) {
       return operand;
+    }
+    return instr;
+  }
+
+  @override
+  Instruction visitIndexCheck(IndexCheck instr) {
+    final index = instr.index;
+    final length = instr.length;
+    if (index is Constant && length is Constant) {
+      final indexValue = index.value.intValue;
+      final lengthValue = length.value.intValue;
+      if (0 <= indexValue && indexValue < lengthValue) {
+        return index;
+      }
     }
     return instr;
   }
