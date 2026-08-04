@@ -192,6 +192,63 @@ suggestions
 ''');
   }
 
+  Future<void> test_initializer_last() async {
+    await computeSuggestions('''
+class A(var int f0) {
+  this : ^;
+
+  int f1;
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  f1
+    kind: field
+  super
+    kind: keyword
+  this
+    kind: keyword
+''');
+  }
+
+  Future<void> test_initializer_notLast() async {
+    await computeSuggestions('''
+class A(var int f0) {
+  this : ^, super();
+
+  int f1;
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  f1
+    kind: field
+''');
+  }
+
+  Future<void> test_initializerAssertExpression() async {
+    await computeSuggestions('''
+enum MyEnum(final String f0) {
+  first('123');
+
+  this : assert(f^, 'hello');
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  false
+    kind: keyword
+  f0
+    kind: field
+''');
+  }
+
   Future<void> test_noName() async {
     await computeSuggestions('''
 class ^

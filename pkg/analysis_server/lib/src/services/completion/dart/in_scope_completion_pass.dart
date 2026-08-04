@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/lsp_protocol/protocol.dart'
+    hide Declaration, Element;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/declaration_helper.dart';
@@ -488,10 +490,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
 
     collector.completionLocation = 'ConstructorDeclaration_initializer';
-    keywordHelper.addConstructorInitializerKeywords(
-      node.parent as ConstructorDeclaration,
-      node,
-    );
+    if (node.parent case ConstructorDeclaration parent) {
+      keywordHelper.addConstructorInitializerKeywords(
+        parent.initializers,
+        node,
+        isExtensionType: parent.parent is ExtensionTypeDeclaration,
+      );
+    } else if (node.parent case PrimaryConstructorBody parent) {
+      keywordHelper.addConstructorInitializerKeywords(
+        parent.initializers,
+        node,
+        isExtensionType: parent.parent is ExtensionTypeDeclaration,
+      );
+    }
   }
 
   @override
@@ -790,7 +801,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (type == TokenType.COLON) {
       if (offset >= separator.end && offset <= node.body.offset) {
         collector.completionLocation = 'ConstructorDeclaration_initializer';
-        _forConstructorInitializer(node, null);
+        _forConstructorInitializer(.t1(node), null);
       }
     } else if (type == TokenType.EQ) {
       var constructorElement = node.declaredFragment?.element;
@@ -811,7 +822,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     if (offset <= node.equals.offset) {
       collector.completionLocation = 'ConstructorDeclaration_initializer';
-      _forConstructorInitializer(constructor, node);
+      _forConstructorInitializer(.t1(constructor), node);
     } else {
       collector.completionLocation = 'ConstructorFieldInitializer_expression';
       if (node.fieldName.isSynthetic && node.equals.isSynthetic) {
@@ -822,7 +833,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             // The parser recovers from `this` by treating it as a property
             // access on the right side of a field initializer. The user appears
             // to be attempting to complete an initializer.
-            _forConstructorInitializer(constructor, node);
+            _forConstructorInitializer(.t1(constructor), node);
           } else {
             // The parser recovers from `this.` by treating it as a property
             // access on the right side of a field initializer. The user appears
@@ -1430,7 +1441,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         declarationHelper(mustBeType: true).addLexicalDeclarations(node);
       }
       if (node.period.end <= offset) {
-        declarationHelper().addFieldsForInitializers(constructor, field);
+        if (constructor.declaredFragment?.element case var element?) {
+          declarationHelper().addFieldsForInitializers(
+            element,
+            constructor.initializers,
+            constructor.parameters,
+            field,
+          );
+        }
       }
     }
   }
@@ -2517,6 +2535,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    if (node.declaration case var declaration?) {
+      _forConstructorInitializer(.t2((declaration, node.initializers)), null);
+    }
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     var formalParameters = node.formalParameters;
     var parameter = formalParameters.parameters.firstOrNull;
@@ -2801,7 +2826,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     collector.completionLocation = 'ConstructorDeclaration_initializer';
     if (offset <= node.thisKeyword.end && node.argumentList.isFullySynthetic) {
-      keywordHelper.addConstructorInitializerKeywords(constructor, node);
+      keywordHelper.addConstructorInitializerKeywords(
+        constructor.initializers,
+        node,
+        isExtensionType: constructor.parent is ExtensionTypeDeclaration,
+      );
       return;
     }
     var period = node.period;
@@ -2988,7 +3017,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     collector.completionLocation = 'ConstructorDeclaration_initializer';
     if (offset <= node.superKeyword.end && node.argumentList.isFullySynthetic) {
-      keywordHelper.addConstructorInitializerKeywords(constructor, node);
+      keywordHelper.addConstructorInitializerKeywords(
+        constructor.initializers,
+        node,
+        isExtensionType: constructor.parent is ExtensionTypeDeclaration,
+      );
       return;
     }
     var period = node.period;
@@ -3779,7 +3812,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a constructor's initializer.
   void _forConstructorInitializer(
-    ConstructorDeclaration constructor,
+    Either2<
+      ConstructorDeclaration,
+      (PrimaryConstructorDeclaration, NodeList<ConstructorInitializer>)
+    >
+    constructor,
     ConstructorFieldInitializer? initializer,
   ) {
     var element = initializer?.fieldName.element;
@@ -3787,8 +3824,39 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (element is FieldElement) {
       field = element;
     }
-    keywordHelper.addConstructorInitializerKeywords(constructor, initializer);
-    declarationHelper().addFieldsForInitializers(constructor, field);
+    constructor.map(
+      (declaration) {
+        keywordHelper.addConstructorInitializerKeywords(
+          declaration.initializers,
+          initializer,
+          isExtensionType: declaration.parent is ExtensionTypeDeclaration,
+        );
+        if (declaration.declaredFragment?.element case var element?) {
+          declarationHelper().addFieldsForInitializers(
+            element,
+            declaration.initializers,
+            declaration.parameters,
+            field,
+          );
+        }
+      },
+      (record) {
+        var (declaration, list) = record;
+        keywordHelper.addConstructorInitializerKeywords(
+          list,
+          initializer,
+          isExtensionType: declaration.parent is ExtensionTypeDeclaration,
+        );
+        if (declaration.declaredFragment?.element case var element?) {
+          declarationHelper().addFieldsForInitializers(
+            element,
+            list,
+            declaration.formalParameters,
+            field,
+          );
+        }
+      },
+    );
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the
@@ -4529,6 +4597,8 @@ extension on AstNode {
           case ConstructorDeclaration(:var factoryKeyword)
           when enclosingMember is FunctionBody) {
         return factoryKeyword != null;
+      } else if (enclosingMember.parent is PrimaryConstructorBody) {
+        return false;
       } else if (enclosingMember is VariableDeclarationList &&
           enclosingMember.parent is FieldDeclaration) {
         return !enclosingMember.isLate;
