@@ -30,7 +30,7 @@
   (@binaryen.inline 0)
   (func $useFooAsObject
     (local $var0 (ref $Foo))
-    i32.const 109
+    i32.const 110
     i32.const 0
     i64.const 0
     struct.new $Foo

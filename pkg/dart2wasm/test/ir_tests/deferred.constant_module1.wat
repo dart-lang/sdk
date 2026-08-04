@@ -38,7 +38,7 @@
     (ref.null none))
   (global $"\">(\"" (ref $JSExternWrapper) <...>)
   (global $"\"globalH1Bar<\"" (ref $JSExternWrapper)
-    (i32.const 67)
+    (i32.const 65)
     (i32.const 0)
     (global.get $.globalH1Bar<)
     (struct.new $JSExternWrapper))
@@ -58,7 +58,7 @@
     (local $var1 (ref $_FunctionType))
     (local $var2 (ref $#Closure-0-1))
     (local $var3 (ref $H1))
-    i32.const 109
+    i32.const 110
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"InstantiationConstant(globalH1Foo<int>)"

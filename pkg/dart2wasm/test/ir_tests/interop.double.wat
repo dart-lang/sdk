@@ -43,7 +43,7 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedDouble))
-        i32.const 95
+        i32.const 97
         call $"doubleValue implicit getter"
         struct.new $BoxedDouble
       else
