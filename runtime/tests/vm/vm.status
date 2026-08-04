@@ -153,6 +153,10 @@ dart/entrypoints/aot/*: SkipByDesign # These tests should only run on AOT.
 [ $compiler == fasta ]
 dart/data_uri_import_test/badencodeddate: CompileTimeError
 
+[ $compiler == modaot ]
+dart/gc/splay_ephemeron_test: Skip # Meta-flaky, dartbug.com/63956
+dart/isolates/many_isolates_blocked_at_monitor_test: Skip # Meta-flaky, dartbug.com/63956
+
 [ $mode == debug ]
 cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informative in debug mode.
 cc/SixtyThousandDartClasses: SkipSlow # Finalization of 64K classes is too slow in debug mode.
