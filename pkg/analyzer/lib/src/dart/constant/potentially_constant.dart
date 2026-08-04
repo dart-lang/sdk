@@ -157,6 +157,11 @@ class _Collector {
       return;
     }
 
+    if (node is UnaryOperatorInvocation) {
+      collect(node.operand as Expression);
+      return;
+    }
+
     if (node is PrefixExpression) {
       var operator = node.operator.type;
       if (operator == TokenType.MINUS || operator == TokenType.TILDE) {

@@ -385,7 +385,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: (lhs == rhs)
         ir.not();
       // Stack: (lhs != rhs)
-
       case TokenType.AMPERSAND:
       case TokenType.BAR:
       case TokenType.CARET:

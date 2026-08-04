@@ -649,9 +649,14 @@ MethodInvocation
         leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand2: PrefixExpression
+        rightOperand2: UnaryOperatorInvocation
           operator: -
-          operand2: SimpleIdentifier
+          operand: SimpleIdentifier
+            token: d
+          unaryOperator: negate
+        rightOperand(v1): PrefixExpression
+          operator: -
+          operand: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');

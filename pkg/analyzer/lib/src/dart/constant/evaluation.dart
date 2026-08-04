@@ -1474,6 +1474,35 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   @override
   Constant visitTypeLiteral(TypeLiteral node) => evaluateConstant(node.type);
 
+  @override
+  Constant visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    var operatorElement = node.element;
+    switch (operatorElement?.enclosingElement) {
+      case ExtensionElement():
+        return InvalidConstant.forEntity(
+          entity: node,
+          locatableDiagnostic: diag.constEvalExtensionMethod,
+        );
+      case ExtensionTypeElement():
+        return InvalidConstant.forEntity(
+          entity: node,
+          locatableDiagnostic: diag.constEvalExtensionTypeMethod,
+        );
+    }
+
+    var operand = evaluateConstant(node.operand as Expression);
+    if (operand is! DartObjectImpl) {
+      return operand;
+    }
+    return switch (node.unaryOperator) {
+      UnaryOperator.negate => _dartObjectComputer.negated(node, operand),
+      UnaryOperator.bitwiseComplement => _dartObjectComputer.bitNot(
+        node,
+        operand,
+      ),
+    };
+  }
+
   /// Builds a list constant by adding the evaluated entries of [elements] to
   /// the given [list].
   ///

@@ -1791,6 +1791,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    _sink.writeln('UnaryOperatorInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeRaw('unaryOperator', node.unaryOperator.name);
+      _writeElement('element', node.element);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _sink.writeln('VariableDeclaration');
     _sink.withIndent(() {

@@ -279,6 +279,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is PrefixExpression) {
       return node.element;
+    } else if (node is UnaryOperatorInvocation) {
+      return node.element;
     } else if (node is PropertyAccess) {
       return node.propertyName.element;
     } else if (node is NamedType) {

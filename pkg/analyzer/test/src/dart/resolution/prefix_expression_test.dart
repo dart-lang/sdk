@@ -386,11 +386,20 @@ void f(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixExpression;
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: dynamic
+  unaryOperator: negate
+  element: <null>
+  staticType: dynamic
 PrefixExpression
   operator: -
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
@@ -412,12 +421,28 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.prefix('-a');
+    var node = result.findNode.unaryOperatorInvocation('-a');
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: PropertyAccess
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: int
+    staticType: int?
+  unaryOperator: negate
+  element: dart:core::@class::int::@method::unary-
+  staticType: int
 PrefixExpression
   operator: -
-  operand2: PropertyAccess
-    target2: SimpleIdentifier
+  operand: PropertyAccess
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
@@ -439,11 +464,20 @@ void f(int x) {
 }
 ''');
 
-    var node = result.findNode.prefix('-x');
+    var node = result.findNode.unaryOperatorInvocation('-x');
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int
+  unaryOperator: negate
+  element: dart:core::@class::int::@method::unary-
+  staticType: int
 PrefixExpression
   operator: -
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
@@ -1153,12 +1187,28 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.prefix('~a');
+    var node = result.findNode.unaryOperatorInvocation('~a');
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: ~
+  operand: PropertyAccess
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: int
+    staticType: int?
+  unaryOperator: bitwiseComplement
+  element: dart:core::@class::int::@method::~
+  staticType: int
 PrefixExpression
   operator: ~
-  operand2: PropertyAccess
-    target2: SimpleIdentifier
+  operand: PropertyAccess
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
@@ -1180,11 +1230,20 @@ void f(int x) {
 }
 ''');
 
-    var node = result.findNode.prefix('~x');
+    var node = result.findNode.unaryOperatorInvocation('~x');
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: ~
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int
+  unaryOperator: bitwiseComplement
+  element: dart:core::@class::int::@method::~
+  staticType: int
 PrefixExpression
   operator: ~
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int

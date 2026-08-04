@@ -875,6 +875,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    _elementUsageFrontierDetector.unaryOperatorInvocation(node);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
   /// Checks for the passed [IsExpression] for the unnecessary type check
   /// warning codes as well as null checks expressed using an
   /// [IsExpression].

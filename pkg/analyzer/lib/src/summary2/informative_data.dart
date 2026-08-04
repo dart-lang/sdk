@@ -2259,6 +2259,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     super.visitTypeArgumentList(node);
   }
 
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    _tokenOrNull(node.operator);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
   void _tokenOrNull(Token? token) {
     if (token != null) {
       handleToken(token);

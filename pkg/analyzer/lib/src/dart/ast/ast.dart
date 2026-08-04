@@ -14614,7 +14614,11 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///      | [ThrowExpression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Expression
-    implements Argument, CollectionElement, RecordLiteralField {
+    implements
+        Argument,
+        CollectionElement,
+        InstanceReceiver,
+        RecordLiteralField {
   /// Whether it would be valid for this expression to have a `const` keyword.
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
@@ -14934,7 +14938,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-sealed class ExpressionImpl extends AstNodeImpl
+sealed class ExpressionImpl extends InstanceReceiverImpl
     with ArgumentImpl, CollectionElementImpl, RecordLiteralFieldImpl
     implements Expression {
   TypeImpl? _staticType;
@@ -25583,6 +25587,18 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 }
 
+/// An expression or non-value form that can receive an instance operation.
+///
+/// An ordinary expression supplies its value as the receiver. Non-value forms
+/// such as `super` and extension overrides can also fill this role. Supported
+/// operations include property access, method or `call` invocation, indexing,
+/// and overloadable operators.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InstanceReceiver implements AstNode {}
+
+sealed class InstanceReceiverImpl extends AstNodeImpl
+    implements InstanceReceiver {}
+
 /// An integer literal expression.
 ///
 ///    integerLiteral ::=
@@ -25635,15 +25651,16 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     return literal;
   }
 
-  /// Whether this literal's [parent2] is a [PrefixExpression] of unary negation.
+  /// Whether this literal's [parent2] is a unary negation.
   ///
   /// Note: this does *not* indicate that the value itself is negated, just that
   /// the literal is the child of a negation operation. The literal value itself
   /// is always positive.
   bool get immediatelyNegated {
-    var parent = parent2!;
-    return parent is PrefixExpressionImpl &&
-        parent.operator.type == TokenType.MINUS;
+    return switch (parent2) {
+      UnaryOperatorInvocationImpl(unaryOperator: UnaryOperator.negate) => true,
+      _ => false,
+    };
   }
 
   @generated
@@ -44923,6 +44940,337 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 }
 
+/// The semantic operation selected by a [UnaryOperatorInvocation].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+enum UnaryOperator {
+  /// Numeric negation using `unary-`.
+  negate,
+
+  /// Bitwise complementation using `~`.
+  bitwiseComplement,
+}
+
+/// An invocation of an overloadable unary operator.
+///
+///    unaryOperatorInvocation ::=
+///        ('-' | '~') [InstanceReceiver]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class UnaryOperatorInvocation implements Expression {
+  /// The method statically selected for this operator application, or `null`
+  /// if this node hasn't been resolved or no method was statically selected.
+  MethodElement? get element;
+
+  /// The operand on which the operator is invoked.
+  InstanceReceiver get operand;
+
+  /// The written `-` or `~` token.
+  Token get operator;
+
+  /// The semantic operator derived from [operator].
+  UnaryOperator get unaryOperator;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+  ],
+)
+final class UnaryOperatorInvocationImpl extends ExpressionImpl
+    implements UnaryOperatorInvocation {
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  InstanceReceiverImpl _operand;
+
+  @override
+  InternalMethodElement? element;
+
+  UnaryOperatorInvocationV1Impl? _prefixExpression;
+
+  @generated
+  UnaryOperatorInvocationImpl({
+    required this.operator,
+    required InstanceReceiverImpl operand,
+  }) : _operand = operand {
+    _becomeParentOf2(operand);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return operator;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return operand.endToken;
+  }
+
+  @generated
+  @override
+  InstanceReceiverImpl get operand => _operand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set operand(InstanceReceiverImpl operand) {
+    _operand = _becomeParentOf2(operand);
+    _prefixExpression?._attachV1Children();
+  }
+
+  @override
+  Precedence get precedence => Precedence.prefix;
+
+  /// The cached V1 compatibility projection for this expression.
+  UnaryOperatorInvocationV1Impl get prefixExpression =>
+      _prefixExpression ??= UnaryOperatorInvocationV1Impl._(this);
+
+  @override
+  UnaryOperator get unaryOperator {
+    return switch (operator.type) {
+      TokenType.MINUS => UnaryOperator.negate,
+      TokenType.TILDE => UnaryOperator.bitwiseComplement,
+      _ => throw StateError(
+        'Unexpected unary operator ${operator.type.lexeme}',
+      ),
+    };
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitUnaryOperatorInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as InstanceReceiverImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitUnaryOperatorInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(InstanceReceiverImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+}
+
+/// The V1 compatibility projection of a [UnaryOperatorInvocation].
+final class UnaryOperatorInvocationV1Impl extends ExpressionImpl
+    with CompoundAssignmentExpressionImpl
+    implements PrefixExpression {
+  final UnaryOperatorInvocationImpl _origin;
+
+  UnaryOperatorInvocationV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @override
+  MethodElement? get element => _origin.element;
+
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  ExpressionImpl get operand =>
+      V1Projection.toV1Expression(_origin.operand as ExpressionImpl);
+
+  @experimental
+  @override
+  ExpressionImpl get operand2 => _origin.operand as ExpressionImpl;
+
+  @override
+  Token get operator => _origin.operator;
+
+  @override
+  Precedence get precedence => Precedence.prefix;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
+
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
+
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @override
+  bool isInValueExpressionSlot(AstNode child) => true;
+
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('PrefixExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    operand.accept(visitor);
+  }
+
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(operand);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+}
+
 /// A directive that references a URI.
 ///
 ///    uriBasedDirective ::=
@@ -45083,6 +45431,9 @@ enum V1Projection {
     }
     if (node is NullAssertionExpressionImpl) {
       return node.postfixExpression;
+    }
+    if (node is UnaryOperatorInvocationImpl) {
+      return node.prefixExpression;
     }
     return node;
   }

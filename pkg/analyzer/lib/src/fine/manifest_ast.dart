@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
@@ -493,6 +492,12 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   @override
   void visitTypeParameterList(TypeParameterList node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    node.visitChildren2(this);
+    _addElement(node.element);
   }
 
   void _addElement(Element? element) {

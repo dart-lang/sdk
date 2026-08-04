@@ -1521,6 +1521,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    sink.write(node.operator.lexeme);
+    _writeOperand(node, node.operand as Expression);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.name);

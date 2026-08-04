@@ -4763,13 +4763,23 @@ var v = -a[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixExpression
+UnaryOperatorInvocation
   operator: -
-  operand2: IndexExpression
+  operand: IndexExpression
     target2: SimpleIdentifier
       token: a
     leftBracket: [
     index2: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  unaryOperator: negate
+PrefixExpression
+  operator: -
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
 ''');
@@ -4781,9 +4791,14 @@ var v = -x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: x
+  unaryOperator: negate
 PrefixExpression
   operator: -
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
 ''');
   }
@@ -4794,9 +4809,14 @@ var v = -super;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SuperExpression
+    superKeyword: super
+  unaryOperator: negate
 PrefixExpression
   operator: -
-  operand2: SuperExpression
+  operand: SuperExpression
     superKeyword: super
 ''');
   }
@@ -4843,9 +4863,14 @@ var v = ~x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: ~
+  operand: SimpleIdentifier
+    token: x
+  unaryOperator: bitwiseComplement
 PrefixExpression
   operator: ~
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
 ''');
   }
@@ -4856,9 +4881,14 @@ var v = ~super;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: ~
+  operand: SuperExpression
+    superKeyword: super
+  unaryOperator: bitwiseComplement
 PrefixExpression
   operator: ~
-  operand2: SuperExpression
+  operand: SuperExpression
     superKeyword: super
 ''');
   }
@@ -4869,13 +4899,23 @@ var v = ~a[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixExpression
+UnaryOperatorInvocation
   operator: ~
-  operand2: IndexExpression
+  operand: IndexExpression
     target2: SimpleIdentifier
       token: a
     leftBracket: [
     index2: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  unaryOperator: bitwiseComplement
+PrefixExpression
+  operator: ~
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
 ''');

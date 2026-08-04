@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
@@ -37,47 +36,29 @@ class PrefixExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PrefixExpressionImpl node, {required TypeImpl contextType}) {
-    var operator = node.operator.type;
-
+  void resolve(PrefixExpressionImpl node) {
+    assert(node.operator.type.isIncrementOperator);
     var operand = node.operand2;
-    if (operator.isIncrementOperator) {
-      var operandResolution = _resolver.resolveForWrite(
-        node: node.operand2,
-        hasRead: true,
-      );
+    var operandResolution = _resolver.resolveForWrite(
+      node: operand,
+      hasRead: true,
+    );
 
-      var readElement = operandResolution.readElement2;
-      var writeElement = operandResolution.writeElement2;
+    var readElement = operandResolution.readElement2;
+    var writeElement = operandResolution.writeElement2;
 
-      _resolver.setReadElement(
-        operand,
-        readElement,
-        atDynamicTarget: operandResolution.atDynamicTarget,
-      );
-      _resolver.setWriteElement(
-        operand,
-        writeElement,
-        atDynamicTarget: operandResolution.atDynamicTarget,
-      );
+    _resolver.setReadElement(
+      operand,
+      readElement,
+      atDynamicTarget: operandResolution.atDynamicTarget,
+    );
+    _resolver.setWriteElement(
+      operand,
+      writeElement,
+      atDynamicTarget: operandResolution.atDynamicTarget,
+    );
 
-      _assignmentShared.checkFinalAlreadyAssigned(node.operand2);
-    } else {
-      TypeImpl innerContextType;
-      if (operator == TokenType.MINUS && operand is IntegerLiteralImpl) {
-        // Negated integer literals should undergo int->double conversion in the
-        // same circumstances as non-negated integer literals, so pass the
-        // context type through.
-        innerContextType = contextType;
-      } else {
-        innerContextType = UnknownInferredType.instance;
-      }
-      _resolver.analyzeExpression(
-        operand,
-        SharedTypeSchemaView(innerContextType),
-      );
-      _resolver.popRewrite();
-    }
+    _assignmentShared.checkFinalAlreadyAssigned(operand);
 
     _resolve1(node);
     _resolve2(node);
@@ -138,80 +119,68 @@ class PrefixExpressionResolver {
       return TokenType.PLUS.lexeme;
     } else if (operatorType == TokenType.MINUS_MINUS) {
       return TokenType.MINUS.lexeme;
-    } else if (operatorType == TokenType.MINUS) {
-      return "unary-";
-    } else {
-      return operator.lexeme;
     }
+    assert(operatorType == TokenType.MINUS_MINUS);
+    return TokenType.MINUS.lexeme;
   }
 
   void _resolve1(PrefixExpressionImpl node) {
     Token operator = node.operator;
-    TokenType operatorType = operator.type;
-    if (operatorType.isUserDefinableOperator ||
-        operatorType.isIncrementOperator) {
-      ExpressionImpl operand = node.operand2;
-      String methodName = _getPrefixOperator(node);
-      if (operand is ExtensionOverrideImpl) {
-        var element = operand.element;
-        var member = element.getMethod(methodName);
-        if (member == null) {
-          // Extension overrides always refer to named extensions, so we can
-          // safely assume `element.name` is non-`null`.
-          _diagnosticReporter.report(
-            diag.undefinedExtensionOperator
-                .withArguments(
-                  operator: methodName,
-                  extensionName: element.name!,
-                )
-                .at(node.operator),
-          );
-        }
-        node.element = member;
-        return;
-      }
-
-      var readType = node.readType ?? operand.typeOrThrow;
-      if (readType is InvalidType) {
-        return;
-      }
-      if (identical(readType, NeverTypeImpl.instance)) {
-        _resolver.diagnosticReporter.report(
-          diag.receiverOfTypeNever.at(operand),
+    ExpressionImpl operand = node.operand2;
+    String methodName = _getPrefixOperator(node);
+    if (operand is ExtensionOverrideImpl) {
+      var element = operand.element;
+      var member = element.getMethod(methodName);
+      if (member == null) {
+        // Extension overrides always refer to named extensions, so we can
+        // safely assume `element.name` is non-`null`.
+        _diagnosticReporter.report(
+          diag.undefinedExtensionOperator
+              .withArguments(operator: methodName, extensionName: element.name!)
+              .at(node.operator),
         );
-        return;
       }
+      node.element = member;
+      return;
+    }
 
-      var result = _typePropertyResolver.resolve(
-        receiver: operand,
-        receiverType: readType,
-        name: methodName,
-        hasRead: true,
-        hasWrite: false,
-        propertyErrorEntity: node.operator,
-        nameErrorEntity: operand,
-      );
-      node.element = result.getter2 as MethodElement?;
-      if (result.needsGetterError) {
-        if (operand is SuperExpression) {
-          _diagnosticReporter.report(
-            diag.undefinedSuperOperator
-                .withArguments(operator: methodName, type: readType)
-                .at(operator),
-          );
-        } else {
-          _diagnosticReporter.report(
-            diag.undefinedOperator
-                .withArguments(operator: methodName, type: readType)
-                .at(operator),
-          );
-        }
+    var readType = node.readType ?? operand.typeOrThrow;
+    if (readType is InvalidType) {
+      return;
+    }
+    if (identical(readType, NeverTypeImpl.instance)) {
+      _resolver.diagnosticReporter.report(diag.receiverOfTypeNever.at(operand));
+      return;
+    }
+
+    var result = _typePropertyResolver.resolve(
+      receiver: operand,
+      receiverType: readType,
+      name: methodName,
+      hasRead: true,
+      hasWrite: false,
+      propertyErrorEntity: node.operator,
+      nameErrorEntity: operand,
+    );
+    node.element = result.getter2 as MethodElement?;
+    if (result.needsGetterError) {
+      if (operand is SuperExpression) {
+        _diagnosticReporter.report(
+          diag.undefinedSuperOperator
+              .withArguments(operator: methodName, type: readType)
+              .at(operator),
+        );
+      } else {
+        _diagnosticReporter.report(
+          diag.undefinedOperator
+              .withArguments(operator: methodName, type: readType)
+              .at(operator),
+        );
       }
     }
   }
 
   void _resolve2(PrefixExpressionImpl node) {
-    TokenType operator = node.operator.type;
     var readType = node.readType ?? node.operand2.staticType;
     if (identical(readType, NeverTypeImpl.instance)) {
       node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
@@ -229,7 +198,7 @@ class PrefixExpressionResolver {
       Expression operand = node.operand2;
       if (operand is ExtensionOverride) {
         // No special handling for incremental operators.
-      } else if (operator.isIncrementOperator) {
+      } else {
         if (readType!.isDartCoreInt) {
           staticType = _typeProvider.intType;
         }

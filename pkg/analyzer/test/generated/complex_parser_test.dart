@@ -1908,9 +1908,14 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 BinaryExpression
-  leftOperand2: PrefixExpression
+  leftOperand2: UnaryOperatorInvocation
     operator: -
-    operand2: SimpleIdentifier
+    operand: SimpleIdentifier
+      token: x
+    unaryOperator: negate
+  leftOperand(v1): PrefixExpression
+    operator: -
+    operand: SimpleIdentifier
       token: x
   operator: *
   rightOperand2: SimpleIdentifier
@@ -1931,9 +1936,14 @@ BinaryExpression
   leftOperand2: SimpleIdentifier
     token: x
   operator: *
-  rightOperand2: PrefixExpression
+  rightOperand2: UnaryOperatorInvocation
     operator: -
-    operand2: SimpleIdentifier
+    operand: SimpleIdentifier
+      token: y
+    unaryOperator: negate
+  rightOperand(v1): PrefixExpression
+    operator: -
+    operand: SimpleIdentifier
       token: y
 ''');
   }

@@ -718,6 +718,11 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    return node.element;
+  }
+
+  @override
   Element? visitVariableDeclaration(VariableDeclaration node) {
     return node.declaredFragment?.element ?? node.declaredFragment?.element;
   }

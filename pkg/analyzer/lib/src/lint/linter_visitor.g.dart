@@ -2329,6 +2329,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    _runSubscriptions(node, _registry._forUnaryOperatorInvocation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _runSubscriptions(node, _registry._forVariableDeclaration);
@@ -4601,6 +4608,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<TypeParameterList>> _forTypeParameterList = [];
 
+  final List<_Subscription2<UnaryOperatorInvocation>>
+  _forUnaryOperatorInvocation = [];
+
   final List<_Subscription2<VariableDeclaration>> _forVariableDeclaration = [];
 
   final List<_Subscription2<VariableDeclarationList>>
@@ -5960,6 +5970,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addTypeParameterList(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forTypeParameterList.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addUnaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forUnaryOperatorInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

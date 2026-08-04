@@ -3519,17 +3519,6 @@ int f() {
     _assertSource(code, node);
   }
 
-  void test_visitPrefixExpression() {
-    var code = '-foo';
-    var parseResult = parseTestCodeWithDiagnostics('''
-int f() {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singlePrefixExpression;
-    _assertSource(code, node);
-  }
-
   void test_visitPrefixExpression_precedence() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = !(a == b);
@@ -4486,6 +4475,17 @@ class A$code {}
 class A$code {}
 ''');
     var node = parseResult.findNode.singleTypeParameterList;
+    _assertSource(code, node);
+  }
+
+  void test_visitUnaryOperatorInvocation() {
+    var code = '-foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+int f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleUnaryOperatorInvocation;
     _assertSource(code, node);
   }
 

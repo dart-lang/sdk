@@ -5964,12 +5964,13 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @23
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
                 token: a @24
                 element: <testLibrary>::@getter::a
                 staticType: int
+              unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
               staticType: int
           inducedGetter: #F4
@@ -6035,12 +6036,13 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_0
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @28
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
                 token: a @29
                 element: package:test/a.dart::@getter::a
                 staticType: Object
+              unaryOperator: negate
               element: package:test/a.dart::@extension::E::@method::unary-
               staticType: int
           inducedGetter: #F2
@@ -9232,11 +9234,12 @@ library
         #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vIntNegative (nameOffset:100) (firstTokenOffset:100) (offset:100)
           element: <testLibrary>::@topLevelVariable::vIntNegative
           initializer: expression_4
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @115
-              operand2: IntegerLiteral
+              operand: IntegerLiteral
                 literal: 2 @116
                 staticType: int
+              unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
               staticType: int
           inducedGetter: #F10
@@ -9811,9 +9814,9 @@ library
         #F3 hasInitializer isConst isOriginDeclaration isStatic v2 (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::v2
           initializer: expression_1
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @43
-              operand2: ParenthesizedExpression
+              operand: ParenthesizedExpression
                 leftParenthesis: ( @44
                 expression2: BinaryExpression
                   leftOperand2: IntegerLiteral
@@ -9828,6 +9831,7 @@ library
                   staticType: int
                 rightParenthesis: ) @50
                 staticType: int
+              unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
               staticType: int
           inducedGetter: #F4
@@ -9951,22 +9955,24 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vNegate (nameOffset:52) (firstTokenOffset:52) (offset:52)
           element: <testLibrary>::@topLevelVariable::vNegate
           initializer: expression_2
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @62
-              operand2: IntegerLiteral
+              operand: IntegerLiteral
                 literal: 1 @63
                 staticType: int
+              unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
               staticType: int
           inducedGetter: #F6
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vComplement (nameOffset:72) (firstTokenOffset:72) (offset:72)
           element: <testLibrary>::@topLevelVariable::vComplement
           initializer: expression_3
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: ~ @86
-              operand2: IntegerLiteral
+              operand: IntegerLiteral
                 literal: 1 @87
                 staticType: int
+              unaryOperator: bitwiseComplement
               element: dart:core::@class::int::@method::~
               staticType: int
           inducedGetter: #F8

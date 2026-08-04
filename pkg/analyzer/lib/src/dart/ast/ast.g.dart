@@ -803,6 +803,9 @@ abstract class AstVisitor2<R> {
 
   R? visitTypeParameterList(TypeParameterList node);
 
+  @experimental
+  R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node);
+
   R? visitVariableDeclaration(VariableDeclaration node);
 
   R? visitVariableDeclarationList(VariableDeclarationList node);

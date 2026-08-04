@@ -1086,7 +1086,6 @@ class AstBuilder extends StackListener {
         operator: operatorToken,
         rightOperand: right,
       ),
-
       TokenType.AMPERSAND_AMPERSAND => LogicalAndImpl(
         leftOperand: left,
         operator: operatorToken,
@@ -5700,7 +5699,7 @@ class AstBuilder extends StackListener {
     if (operator.type == TokenType.BANG) {
       push(LogicalNotImpl(operator: operator, operand: operand));
     } else {
-      push(PrefixExpressionImpl(operator: operator, operand2: operand));
+      push(UnaryOperatorInvocationImpl(operator: operator, operand: operand));
     }
   }
 

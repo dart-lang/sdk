@@ -1076,6 +1076,8 @@ class AstBinaryReader {
         return _readTypeParameter();
       case Tag.TypeParameterList:
         return _readTypeParameterList();
+      case Tag.UnaryOperatorInvocation:
+        return _readUnaryOperatorInvocation();
       case Tag.VariableDeclaration:
         return _readVariableDeclaration();
       case Tag.VariableDeclarationList:
@@ -1582,6 +1584,18 @@ class AstBinaryReader {
 
   int _readUint32() {
     return _reader.readUint32();
+  }
+
+  UnaryOperatorInvocation _readUnaryOperatorInvocation() {
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operand = _readNode() as InstanceReceiverImpl;
+    var node = UnaryOperatorInvocationImpl(
+      operator: Tokens.fromType(operatorType),
+      operand: operand,
+    );
+    _readExpressionResolution(node);
+    node.element = _reader.readElement() as InternalMethodElement?;
+    return node;
   }
 
   VariableDeclaration _readVariableDeclaration() {

@@ -65,6 +65,7 @@ import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/unary_operator_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
@@ -237,6 +238,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   late final PostfixExpressionResolver _postfixExpressionResolver;
   late final PrefixedIdentifierResolver _prefixedIdentifierResolver;
   late final PrefixExpressionResolver _prefixExpressionResolver;
+  late final UnaryOperatorInvocationResolver _unaryOperatorInvocationResolver;
   late final VariableDeclarationResolver _variableDeclarationResolver;
   late final YieldStatementResolver _yieldStatementResolver;
   late final NullSafetyDeadCodeVerifier nullSafetyDeadCodeVerifier;
@@ -383,6 +385,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     _postfixExpressionResolver = PostfixExpressionResolver(resolver: this);
     _prefixedIdentifierResolver = PrefixedIdentifierResolver(this);
     _prefixExpressionResolver = PrefixExpressionResolver(resolver: this);
+    _unaryOperatorInvocationResolver = UnaryOperatorInvocationResolver(this);
     _variableDeclarationResolver = VariableDeclarationResolver(
       resolver: this,
       strictInference: analysisOptions.strictInference,
@@ -3994,10 +3997,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    _prefixExpressionResolver.resolve(
-      node as PrefixExpressionImpl,
-      contextType: contextType,
-    );
+    _prefixExpressionResolver.resolve(node as PrefixExpressionImpl);
     _insertImplicitCallReference(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
@@ -4500,6 +4500,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void visitTypeParameterList(TypeParameterList node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(
+    covariant UnaryOperatorInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _unaryOperatorInvocationResolver.resolve(node, contextType: contextType);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override

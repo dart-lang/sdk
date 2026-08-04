@@ -60,6 +60,8 @@ class FindNode2 extends _FindNodeBase {
 
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
+  UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
+
   ConstructorInvocation constructorInvocation(String search) {
     return _node(search, (node) => node is ConstructorInvocation);
   }
@@ -86,6 +88,10 @@ class FindNode2 extends _FindNodeBase {
 
   NullAssertionExpression nullAssertion(String search) {
     return _node(search, (node) => node is NullAssertionExpression);
+  }
+
+  UnaryOperatorInvocation unaryOperatorInvocation(String search) {
+    return _node(search, (node) => node is UnaryOperatorInvocation);
   }
 
   @override

@@ -3048,13 +3048,16 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: PrefixExpression
+      expression2: UnaryOperatorInvocation
         operator: -
-        operand2: NullAssertionExpression
+        operand: NullAssertionExpression
           operand: SimpleIdentifier
             token: x
           operator: !
-        operand(v1): PostfixExpression
+        unaryOperator: negate
+      expression(v1): PrefixExpression
+        operator: -
+        operand: PostfixExpression
           operand: SimpleIdentifier
             token: x
           operator: !

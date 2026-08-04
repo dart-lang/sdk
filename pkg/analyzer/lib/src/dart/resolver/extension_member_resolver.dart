@@ -524,6 +524,7 @@ class ExtensionMemberResolver {
         parent is IndexExpression && parent.target2 == node ||
         parent is MethodInvocation && parent.target2 == node ||
         parent is PrefixExpression ||
+        parent is UnaryOperatorInvocation && parent.operand == node ||
         parent is PropertyAccess && parent.target2 == node;
   }
 }

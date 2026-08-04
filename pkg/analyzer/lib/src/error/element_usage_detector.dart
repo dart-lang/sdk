@@ -362,6 +362,10 @@ class ElementUsageDetector<TagInfo extends Object> {
     }
   }
 
+  void unaryOperatorInvocation(UnaryOperatorInvocation node) {
+    checkUsage(node.element, node);
+  }
+
   void _invocationArguments(Element? element, ArgumentList arguments) {
     element = element?.baseElement;
     if (element is ExecutableElement) {
@@ -792,6 +796,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     if (element is SuperFormalParameterElement) {
       checkUsage(element.superConstructorParameter, node);
     }
+  }
+
+  void unaryOperatorInvocation(UnaryOperatorInvocation node) {
+    checkUsage(node.element, node);
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {

@@ -2369,11 +2369,20 @@ f(C c) {
   -c;
 }
 ''');
-    var node = result.findNode.prefix('-c');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  unaryOperator: negate
+  element: <testLibrary>::@class::C::@method::unary-
+  staticType: C
 PrefixExpression
   operator: -
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -2391,11 +2400,20 @@ g(int Function(int) f) {
   -f;
 }
 ''');
-    var node = result.findNode.prefix('-f');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  unaryOperator: negate
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: void
 PrefixExpression
   operator: -
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
@@ -2414,11 +2432,20 @@ f(C c) {
   -c;
 }
 ''');
-    var node = result.findNode.prefix('-c');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  unaryOperator: negate
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: C
 PrefixExpression
   operator: -
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -2439,11 +2466,20 @@ f(A? a) {
   -a;
 }
 ''');
-    var node = result.findNode.prefix('-a');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A?
+  unaryOperator: negate
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: A?
 PrefixExpression
   operator: -
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -4453,11 +4489,19 @@ extension E on C {
   void b() { -this; }
 }
 ''');
-    var node = result.findNode.prefix('-this');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  unaryOperator: negate
+  element: <testLibrary>::@class::C::@method::unary-
+  staticType: void
 PrefixExpression
   operator: -
-  operand2: ThisExpression
+  operand: ThisExpression
     thisKeyword: this
     staticType: C
   element: <testLibrary>::@class::C::@method::unary-
@@ -4473,11 +4517,19 @@ extension E on C {
   void b() { -this; }
 }
 ''');
-    var node = result.findNode.prefix('-this');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  unaryOperator: negate
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: void
 PrefixExpression
   operator: -
-  operand2: ThisExpression
+  operand: ThisExpression
     thisKeyword: this
     staticType: C
   element: <testLibrary>::@extension::E::@method::unary-

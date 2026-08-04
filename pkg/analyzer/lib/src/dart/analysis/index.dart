@@ -1357,6 +1357,12 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    recordOperatorReference(node.operator, node.element);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     for (NamedType namedType in node.mixinTypes) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);

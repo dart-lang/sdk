@@ -988,6 +988,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addTypeParameterList(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addUnaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addVariableDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addVariableDeclarationList(
