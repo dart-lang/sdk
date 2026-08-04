@@ -7,7 +7,9 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 
+import 'package:analyzer/source/line_info.dart';
 import 'package:args/args.dart';
+import 'package:language_server_protocol/protocol_generated.dart' as lsp;
 import 'package:path/path.dart' as p;
 
 import 'core.dart';
@@ -158,6 +160,18 @@ extension FileSystemEntityExtension on FileSystemEntity {
   String get basenameWithoutExtension => p.basenameWithoutExtension(path);
 
   bool get isDartFile => this is File && p.extension(path) == '.dart';
+}
+
+extension LineInfoPositionExtension on LineInfo {
+  /// Converts a 0-indexed LSP [position] into a flat character offset using
+  /// this [LineInfo].
+  int offsetOfPosition(lsp.Position position) {
+    if (position.line < 0) return 0;
+    if (position.line >= lineCount) {
+      return lineStarts.isNotEmpty ? lineStarts.last : 0;
+    }
+    return getOffsetOfLine(position.line) + position.character;
+  }
 }
 
 /// Wraps [text] to the given [width], if provided.

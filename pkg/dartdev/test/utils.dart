@@ -181,6 +181,13 @@ class TestProject {
     return run(['fix', '--suppress-analytics', ...arguments]);
   }
 
+  Future<ProcessResult> runMigrate(
+    List<String> arguments, {
+    String? workingDir,
+  }) async {
+    return run(['migrate', '--suppress-analytics', ...arguments]);
+  }
+
   Future<ProcessResult> run(
     List<String> arguments, {
     String? workingDir,
