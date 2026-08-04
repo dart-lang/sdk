@@ -97,6 +97,8 @@ class Flags {
 
   static int CompareFlagNames(const void* left, const void* right);
 
+  static char* CheckFlags();
+
   static void PrintFlags();
 
 #ifndef PRODUCT

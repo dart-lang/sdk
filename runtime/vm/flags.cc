@@ -520,6 +520,11 @@ char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
     PrintFlags();
   }
 
+  char* error = CheckFlags();
+  if (error != nullptr) {
+    return error;
+  }
+
   initialized_ = true;
   return nullptr;
 }
@@ -535,6 +540,26 @@ bool Flags::SetFlag(const char* name, const char* value, const char** error) {
     return false;
   }
   return true;
+}
+
+char* Flags::CheckFlags() {
+  if (((FLAG_target_address_sanitizer ? 1 : 0) +
+       (FLAG_target_memory_sanitizer ? 1 : 0) +
+       (FLAG_target_thread_sanitizer ? 1 : 0)) > 1) {
+    return Utils::StrDup("Can only target one sanitizer at a time");
+  }
+
+  if (FLAG_scavenger_tasks < -1) {
+    return Utils::StrDup("Invalid scavenger_tasks");
+  }
+  if (FLAG_marker_tasks < 0) {
+    return Utils::StrDup("Invalid marker_tasks");
+  }
+  if (FLAG_compactor_tasks < 0) {
+    return Utils::StrDup("Invalid compactor_tasks");
+  }
+
+  return nullptr;
 }
 
 void Flags::PrintFlags() {
