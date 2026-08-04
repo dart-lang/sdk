@@ -4577,7 +4577,7 @@ importChainContext:
     The unavailable library '#uri' is imported through these packages:
 
     #importChain
-    Detailed import paths for (some of) the these imports:
+    Detailed import paths for (some of) these imports:
 
     #verboseImportChain
   severity: CONTEXT

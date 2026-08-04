@@ -73,7 +73,7 @@ library;
 //     main_lib.dart => dart:ui
 //     main_lib3.dart => dart:ui
 //
-// Detailed import paths for (some of) the these imports:
+// Detailed import paths for (some of) these imports:
 //
 //     main.no_link.dart => main_lib.dart => package:flutter_package/export_flutter_lib.dart => dart:ui
 //     main.no_link.dart => main_lib.dart => package:flutter_package/import_flutter_lib.dart => dart:ui
@@ -97,7 +97,7 @@ library;
 //     main_lib.dart => dart:html
 //     main_lib3.dart => dart:html
 //
-// Detailed import paths for (some of) the these imports:
+// Detailed import paths for (some of) these imports:
 //
 //     main.no_link.dart => main_lib.dart => package:web_package/export_web_lib.dart => dart:html
 //     main.no_link.dart => main_lib.dart => package:web_package/import_web_lib.dart => dart:html
@@ -121,7 +121,7 @@ library;
 //     main_lib.dart => dart:js
 //     main_lib3.dart => dart:js
 //
-// Detailed import paths for (some of) the these imports:
+// Detailed import paths for (some of) these imports:
 //
 //     main.no_link.dart => main_lib.dart => package:web_package/export_web_lib.dart => dart:js
 //     main.no_link.dart => main_lib.dart => package:web_package/import_web_lib.dart => dart:js
