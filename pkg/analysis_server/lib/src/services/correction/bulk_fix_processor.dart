@@ -411,7 +411,7 @@ class BulkFixProcessor {
         // Get the list of imports used in the files.
         var libraryResult = context.currentSession.getParsedLibrary(path);
         if (libraryResult is! ParsedLibraryResult) {
-          return (edits: fixes, details: details);
+          continue;
         }
 
         for (var unitResult in libraryResult.units) {
