@@ -234,6 +234,24 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: f
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: a
+          NamedType
+            name: b
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 

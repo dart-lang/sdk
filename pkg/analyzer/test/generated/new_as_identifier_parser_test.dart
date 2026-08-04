@@ -102,6 +102,17 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: C
+        period: .
+      name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 
@@ -128,6 +139,23 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 
@@ -148,6 +176,20 @@ ConstructorInvocation
     selector: ConstructorSelector
       period: .
       name2: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+    period: .
+    name: SimpleIdentifier
+      token: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -180,6 +222,26 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 
@@ -193,6 +255,17 @@ ConstructorInvocation
   keyword: new
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: C
+        period: .
+      name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
       importPrefix: ImportPrefixReference
         name: C
         period: .
@@ -226,6 +299,23 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 
@@ -246,6 +336,20 @@ ConstructorInvocation
     selector: ConstructorSelector
       period: .
       name2: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+    period: .
+    name: SimpleIdentifier
+      token: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -275,6 +379,26 @@ ConstructorInvocation
     selector: ConstructorSelector
       period: .
       name2: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -318,6 +442,22 @@ ConstructorInvocation
     selector: ConstructorSelector
       period: .
       name2: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -368,6 +508,25 @@ ConstructorInvocation
     selector: ConstructorSelector
       period: .
       name2: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

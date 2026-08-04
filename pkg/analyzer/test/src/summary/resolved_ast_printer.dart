@@ -1875,6 +1875,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     }
   }
 
+  /// Writes [node] and its V1 compatibility view when the V2 root has a
+  /// distinct expression projection.
+  void writeNodeWithV1Projection(AstNode node) {
+    writeNode(node);
+    if (node case ExpressionImpl expression) {
+      var v1 = V1Projection.toV1Expression(expression);
+      if (!identical(v1, expression)) {
+        writeNode(v1);
+      }
+    }
+  }
+
   void _acceptInView(AstNode node) {
     switch (_view) {
       case _AstView.v1:

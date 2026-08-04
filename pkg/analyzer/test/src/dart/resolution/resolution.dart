@@ -133,7 +133,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       elementPrinter: elementPrinter,
       configuration: ResolvedNodeTextConfiguration(),
       withResolution: false,
-    ).writeNode(node);
+    ).writeNodeWithV1Projection(node);
 
     var actual = buffer.toString();
     if (actual != expected) {
@@ -404,21 +404,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withRedirectedConstructors
         ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
     );
-    var printer = ResolvedAstPrinter(
+    ResolvedAstPrinter(
       sink: sink,
       elementPrinter: elementPrinter,
       configuration: nodeTextConfiguration,
-    );
-    printer.writeNode(node);
-
-    // Keep the V1 compatibility view visible when the requested V2 root has a
-    // distinct projection. Printing it as another root preserves its text.
-    if (node case ExpressionImpl expression) {
-      var v1 = V1Projection.toV1Expression(expression);
-      if (!identical(v1, expression)) {
-        printer.writeNode(v1);
-      }
-    }
+    ).writeNodeWithV1Projection(node);
 
     var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
         ? node.thisOrAncestorOfType<CompilationUnitImpl>()

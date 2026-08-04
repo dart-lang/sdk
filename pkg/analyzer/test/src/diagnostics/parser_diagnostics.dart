@@ -117,7 +117,7 @@ class ParserDiagnosticsTest {
         ..withTokenPreviousNext = withTokenPreviousNext,
       withResolution: false,
       withOffsets: withOffsets,
-    ).writeNode(node);
+    ).writeNodeWithV1Projection(node);
     return buffer.toString();
   }
 }
