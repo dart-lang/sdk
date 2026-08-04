@@ -299,6 +299,34 @@ or higher:
   (and `dart_api_dl.h`), allowing custom embedders to bind and query isolate
   thread ownership.
 
+## 3.12.2
+
+**Released on:** 2026-06-09
+
+This is a patch release that:
+
+- Fixes a crash bug in `dart format` if an `analysis_options.yaml` file has an
+  include that points to a non-existent file (issue [#1840][dart_style #1840]).
+
+[dart_style #1840]: https://github.com/dart-lang/dart_style/issues/1840
+
+## 3.12.1
+
+**Released on:** 2026-05-26
+
+This is a patch release that:
+
+- Fixes a bug `ThreadLocal` which manifests as some static fields in `dart:*`
+  libraries being reset across suspension points, e.g. `print()` bypasses
+  an override specified by the current `Zone` after suspension.
+  (issue [#63408])
+- Fixes sporadic `dart analyze` crash on Windows ARM64, where analysis server
+  crashes on shutdown trying to delete perf_witness control socket.
+  (issue [#63343])
+
+[#63408]: https://github.com/dart-lang/sdk/issues/63408
+[#63343]: https://github.com/dart-lang/sdk/issues/63343
+
 ## 3.12.0
 
 **Released on:** 2026-05-20

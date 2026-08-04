@@ -1042,6 +1042,24 @@ void main() {
       });
     });
 
+    test('clz', () {
+      asm.clz(R0, R0);
+      asm.clz(R1, R2, .s32);
+      expectDisassembly(
+        'clz r0, r0\n'
+        'clzw r1, r2\n',
+      );
+      expectThrows(() {
+        asm.clz(SP, R0);
+      });
+      expectThrows(() {
+        asm.clz(R0, SP);
+      });
+      expectThrows(() {
+        asm.clz(R0, R0, .s8);
+      });
+    });
+
     test('and', () {
       asm.and(R0, R1, R2);
       asm.and(R0, R0, Immediate(-512));

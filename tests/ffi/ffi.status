@@ -48,6 +48,9 @@ vmspecific_leaf_call_test: Skip # https://dartbug.com/46125: Snapshot fails to g
 abi_specific_int_incomplete_aot_test: SkipByDesign # Self-spawns gen_kernel/gen_snapshot, which are only built on AOT (dartkp) bots.
 vmspecific_enable_ffi_test: SkipByDesign # Self-spawns the JIT dart executable, so the harness compiler is irrelevant; runs once on the dartkp bots.
 
+[ $compiler == modaot ]
+vmspecific_function_test: Skip # Meta-flaky, dartbug.com/63956
+
 [ $mode == debug ]
 function_callbacks_structs_by_value_generated_test: Pass, Slow
 

@@ -1433,6 +1433,14 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 
@@ -2233,6 +2241,14 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: $token
+  argumentList: ArgumentList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
 ''');
   }
 
@@ -2248,6 +2264,14 @@ ConstructorInvocation
   keyword: new
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: $token
+  argumentList: ArgumentList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2272,6 +2296,14 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: $token
+  argumentList: ArgumentList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
 ''');
   }
 
@@ -2287,6 +2319,14 @@ ConstructorInvocation
   keyword: new
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: $token
+  argumentList: ArgumentList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2310,6 +2350,14 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: $token
+  argumentList: ArgumentList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
 ''');
   }
 
@@ -2329,6 +2377,14 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: $token
+  argumentList: ArgumentList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
 ''');
   }
 
@@ -2344,6 +2400,14 @@ ConstructorInvocation
   keyword: new
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: $token
+  argumentList: ArgumentList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2379,6 +2443,26 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+      name: b
+    period: .
+    name: SimpleIdentifier
+      token: c
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: C
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 
@@ -2394,6 +2478,14 @@ ConstructorInvocation
   keyword: new
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: $token
+  argumentList: ArgumentList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2637,6 +2729,12 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: y
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: y
 ''');
   }
 
@@ -2647,6 +2745,12 @@ var v = x || y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalOr
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: y
+BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ||
@@ -2868,6 +2972,14 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 
@@ -3045,6 +3157,14 @@ ConstructorInvocation
   keyword: const
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: A
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
       name: A
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3309,6 +3429,14 @@ ConstructorInvocation
   keyword: new
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: A
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
       name: A
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4683,6 +4811,10 @@ LogicalNot
   operator: !
   operand: SimpleIdentifier
     token: x
+PrefixExpression
+  operator: !
+  operand: SimpleIdentifier
+    token: x
 ''');
   }
 
@@ -4695,6 +4827,10 @@ var v = !super;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalNot
+  operator: !
+  operand: SuperExpression
+    superKeyword: super
+PrefixExpression
   operator: !
   operand: SuperExpression
     superKeyword: super

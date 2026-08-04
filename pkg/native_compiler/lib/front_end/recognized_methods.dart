@@ -8,10 +8,12 @@ import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/flow_graph_builder.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
+import 'package:cfg/ir/instructions.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:native_compiler/runtime/constant_objects.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:vm/modular/transformations/pragma.dart';
 
 /// Build IR for native methods.
@@ -40,12 +42,9 @@ void buildNativeMethod(
   builder.addReturn();
 }
 
-/// Build IR for static getters returning runtime constants.
-void buildRuntimeConstantGetter(
-  FlowGraphBuilder builder,
-  RuntimeConstantObjectKind kind,
-) {
-  builder.addConstant(ConstantValue(RuntimeConstantObject(kind)));
+/// Build IR for static getters returning constants.
+void buildConstantGetter(FlowGraphBuilder builder, ConstantValue value) {
+  builder.addConstant(value);
   builder.addReturn();
 }
 
@@ -65,9 +64,9 @@ void buildInstanceSetter(FlowGraphBuilder builder, CField field) {
   builder.addReturn();
 }
 
-/// Build IR for int.hashCode getters.
-void buildIntHashCode(FlowGraphBuilder builder) {
-  builder.addUnaryIntOp(.hash);
+/// Build IR for unary int operations
+void buildUnaryIntOp(FlowGraphBuilder builder, UnaryIntOpcode op) {
+  builder.addUnaryIntOp(op);
   builder.addReturn();
 }
 
@@ -119,8 +118,34 @@ final class VmRecognizedMethods(
 
   late final _recognizedMembers = <ast.Member, BuildIR>{
     // dart:core
-    index.getProcedure('dart:core', '_Smi', 'get:hashCode'): buildIntHashCode,
-    index.getProcedure('dart:core', '_Mint', 'get:hashCode'): buildIntHashCode,
+    index.getProcedure(
+      'dart:core',
+      '_Smi',
+      'get:hashCode',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .hash);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Smi',
+      'get:bitLength',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .bitLength);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Mint',
+      'get:hashCode',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .hash);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Mint',
+      'get:bitLength',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .bitLength);
+    },
     index.getProcedure(
       'dart:core',
       '_Array',
@@ -134,13 +159,19 @@ final class VmRecognizedMethods(
       'dart:_compact_hash',
       'get:_uninitializedIndex',
     ): (FlowGraphBuilder builder) {
-      buildRuntimeConstantGetter(builder, .uninitializedIndex);
+      buildConstantGetter(
+        builder,
+        ConstantValue(RuntimeConstantObject(.uninitializedIndex)),
+      );
     },
     index.getTopLevelProcedure(
       'dart:_compact_hash',
       'get:_uninitializedData',
     ): (FlowGraphBuilder builder) {
-      buildRuntimeConstantGetter(builder, .uninitializedData);
+      buildConstantGetter(
+        builder,
+        ConstantValue(RuntimeConstantObject(.uninitializedData)),
+      );
     },
     index.getProcedure(
       'dart:_compact_hash',
@@ -211,6 +242,17 @@ final class VmRecognizedMethods(
       'set:_deletedKeys',
     ): (FlowGraphBuilder builder) {
       buildInstanceSetter(builder, objectLayout.LinkedHashBase_deletedKeys);
+    },
+
+    // dart:_internal
+    index.getTopLevelProcedure(
+      'dart:_internal',
+      'get:has63BitSmis',
+    ): (FlowGraphBuilder builder) {
+      final totalSmiBits =
+          smiBits(objectLayout.compressedWordSize) + 1; // Including sign bit.
+      final has63BitSmis = totalSmiBits >= 63;
+      buildConstantGetter(builder, ConstantValue.fromBool(has63BitSmis));
     },
   };
 }

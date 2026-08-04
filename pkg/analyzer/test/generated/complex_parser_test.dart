@@ -470,6 +470,16 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: z
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ==
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: z
 ''');
   }
 
@@ -491,6 +501,16 @@ LogicalAnd
       token: y
     operator: ==
     rightOperand2: SimpleIdentifier
+      token: z
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: &&
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: ==
+    rightOperand: SimpleIdentifier
       token: z
 ''');
   }
@@ -1438,6 +1458,16 @@ IfNull
   operator: ??
   rightOperand: SimpleIdentifier
     token: z
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ??
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: z
 ''');
   }
 
@@ -1452,6 +1482,16 @@ void f() {
     assertParsedNodeText(node, r'''
 IfNull
   leftOperand: LogicalOr
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: z
+BinaryExpression
+  leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
     operator: ||
@@ -1482,6 +1522,16 @@ IfNull
     operator: ||
     rightOperand: SimpleIdentifier
       token: z
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ??
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: z
 ''');
   }
 
@@ -1496,6 +1546,16 @@ void f() {
     assertParsedNodeText(node, r'''
 LogicalAnd
   leftOperand: LogicalAnd
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: z
+BinaryExpression
+  leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
     operator: &&
@@ -1575,6 +1635,20 @@ LogicalAnd
     operator: >
     rightOperand2: SimpleIdentifier
       token: U
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: C
+    operator: <
+    rightOperand: SimpleIdentifier
+      token: T
+  operator: &&
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: T
+    operator: >
+    rightOperand: SimpleIdentifier
+      token: U
 ''');
   }
 
@@ -1589,6 +1663,16 @@ void f() {
     assertParsedNodeText(node, r'''
 LogicalOr
   leftOperand: LogicalOr
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: z
+BinaryExpression
+  leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
     operator: ||
@@ -1619,6 +1703,16 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: z
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: z
 ''');
   }
 
@@ -1636,6 +1730,16 @@ LogicalOr
     token: x
   operator: ||
   rightOperand: LogicalAnd
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: z
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ||
+  rightOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: y
     operator: &&

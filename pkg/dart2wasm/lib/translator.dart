@@ -3926,6 +3926,9 @@ void instantiateDummyValue(
     case w.NumType.f64:
       b.f64_const(0);
       break;
+    case w.NumType.v128:
+      b.v128_const_i32x4(0, 0, 0, 0);
+      break;
     default:
       if (type is w.RefType) {
         w.HeapType heapType = type.heapType;

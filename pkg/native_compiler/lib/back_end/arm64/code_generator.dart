@@ -1980,6 +1980,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         break;
       case .toDouble:
         _asm.scvtf(outputFPReg(instr), operandReg);
+        break;
       case .hash:
         final scratch = temporaryReg(instr, 0);
         final resultReg = outputReg(instr);
@@ -1989,6 +1990,19 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.eor(resultReg, resultReg, tempReg);
         _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
         _asm.ubfm(resultReg, resultReg, 63, 29);
+        break;
+      case .bitLength:
+        final resultReg = outputReg(instr);
+        // XOR with sign bit to complement bits if value is negative.
+        _asm.eor(
+          resultReg,
+          operandReg,
+          ShiftedRegOperand(operandReg, .ASR, 63),
+        );
+        _asm.clz(resultReg, resultReg);
+        _asm.loadImmediate(tempReg, 64);
+        _asm.sub(resultReg, tempReg, resultReg);
+        break;
       default:
         _asm.unimplemented(
           'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',

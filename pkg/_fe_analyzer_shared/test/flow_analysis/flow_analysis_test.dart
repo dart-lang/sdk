@@ -608,8 +608,8 @@ main() {
         AssignedVariables<Node, Var>(),
         typeAnalyzerOptions: h.computeTypeAnalyzerOptions(),
       );
-      flow.ifStatement_conditionBegin();
-      flow.ifStatement_thenBegin(null, s);
+      flow.ifStatement_conditionBegin(offset: 1);
+      flow.ifStatement_thenBegin(null, s, offset: 2);
       expect(() => flow.finish(), _asserts);
     });
 

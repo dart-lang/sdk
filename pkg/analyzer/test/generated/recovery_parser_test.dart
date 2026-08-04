@@ -373,6 +373,16 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+    operator: ==
+    rightOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
 ''');
   }
 
@@ -397,6 +407,16 @@ LogicalAnd
       token: <empty> <synthetic>
     operator: ==
     rightOperand2: SimpleIdentifier
+      token: <empty> <synthetic>
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: &&
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+    operator: ==
+    rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
 ''');
   }
@@ -2841,6 +2861,12 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: y
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: y
 ''');
   }
 
@@ -2860,6 +2886,12 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
 ''');
   }
 
@@ -2872,6 +2904,12 @@ var v = x &&;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalAnd
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: &&
@@ -2902,6 +2940,16 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
 ''');
   }
 
@@ -2927,6 +2975,16 @@ LogicalAnd
     operator: |
     rightOperand2: SimpleIdentifier
       token: <empty> <synthetic>
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: &&
+  rightOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: <empty> <synthetic>
 ''');
   }
 
@@ -2939,6 +2997,12 @@ var v = || y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalOr
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: y
+BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ||
@@ -2963,6 +3027,12 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
 ''');
   }
 
@@ -2975,6 +3045,12 @@ var v = x ||;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalOr
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ||
@@ -3005,6 +3081,16 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
 ''');
   }
 
@@ -3025,6 +3111,16 @@ LogicalOr
     token: <empty> <synthetic>
   operator: ||
   rightOperand: LogicalAnd
+    leftOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: <empty> <synthetic>
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: ||
+  rightOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
     operator: &&
