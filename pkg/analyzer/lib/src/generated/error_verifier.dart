@@ -469,11 +469,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitBinaryExpression(covariant BinaryExpressionImpl node) {
-    checkForUseOfVoidResult(node.leftOperand2);
-    _constArgumentsVerifier.visitBinaryExpression(node);
+  void visitBinaryOperatorInvocation(
+    covariant BinaryOperatorInvocationImpl node,
+  ) {
+    checkForUseOfVoidResult(node.leftOperand as Expression);
+    _constArgumentsVerifier.visitBinaryOperatorInvocation(node);
 
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override

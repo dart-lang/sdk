@@ -50,8 +50,8 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _check(arguments: [node.rightOperand2], errorNode: node.operator);
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    _check(arguments: [node.rightOperand], errorNode: node.operator);
   }
 
   @override

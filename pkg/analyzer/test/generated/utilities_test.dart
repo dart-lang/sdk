@@ -256,13 +256,10 @@ void f() {
   1 + 2;
 }
 ''');
-    _assertReplacementForChildren<BinaryExpression>(
-      destination: parseResult.findNode.binary('0 + 1'),
-      source: parseResult.findNode.binary('1 + 2'),
-      childAccessors: [
-        (node) => node.leftOperand2,
-        (node) => node.rightOperand2,
-      ],
+    _assertReplacementForChildren<BinaryOperatorInvocation>(
+      destination: parseResult.findNode.binaryOperatorInvocation('0 + 1'),
+      source: parseResult.findNode.binaryOperatorInvocation('1 + 2'),
+      childAccessors: [(node) => node.leftOperand, (node) => node.rightOperand],
     );
   }
 
@@ -881,7 +878,7 @@ void f() {
     _assertReplacementForChildren<ForPartsWithDeclarations>(
       destination: for_i,
       source: parseResult.findNode.forPartsWithDeclarations('j = 0'),
-      childAccessors: [(node) => node.variables, (node) => node.condition!],
+      childAccessors: [(node) => node.variables, (node) => node.condition2!],
     );
   }
 
@@ -903,7 +900,7 @@ void f() {
       source: parseResult.findNode.forPartsWithExpression('j = 0'),
       childAccessors: [
         (node) => node.initialization2!,
-        (node) => node.condition!,
+        (node) => node.condition2!,
       ],
     );
   }

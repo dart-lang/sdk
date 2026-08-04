@@ -1096,10 +1096,10 @@ class AstBuilder extends StackListener {
         operator: operatorToken,
         rightOperand: right,
       ),
-      _ => BinaryExpressionImpl(
-        leftOperand2: left,
+      _ => BinaryOperatorInvocationImpl(
+        leftOperand: left,
         operator: operatorToken,
-        rightOperand2: right,
+        rightOperand: right,
       ),
     };
     push(expression);

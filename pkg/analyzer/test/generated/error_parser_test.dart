@@ -3809,13 +3809,20 @@ void main() {
     var result = parseTestCodeWithDiagnostics(r'''var v = +x;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.''');
-    var binaryExpression = result.findNode.singleBinaryExpression;
+    var binaryExpression = result.findNode.singleBinaryOperatorInvocation;
     assertParsedNodeText(binaryExpression, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: x
+  binaryOperator: add
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: +
+  rightOperand: SimpleIdentifier
     token: x
 ''');
   }

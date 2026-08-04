@@ -61,6 +61,10 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void binaryOperatorInvocation(BinaryOperatorInvocation node) {
+    checkUsage(node.element, node);
+  }
+
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {
@@ -498,6 +502,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void binaryExpression(BinaryExpression node) {
+    checkUsage(node.element, node);
+  }
+
+  void binaryOperatorInvocation(BinaryOperatorInvocation node) {
     checkUsage(node.element, node);
   }
 

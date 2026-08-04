@@ -604,12 +604,26 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      BinaryExpression
-        leftOperand2: IntegerLiteral
+      BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
           literal: 1
           staticType: int
         operator: +
-        rightOperand2: IntegerLiteral
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        correspondingParameter: <null>
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        staticType: int
+    arguments(v1)
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
           literal: 2
           correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int
@@ -653,12 +667,26 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      BinaryExpression
-        leftOperand2: IntegerLiteral
+      BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
           literal: 1
           staticType: int
         operator: +
-        rightOperand2: IntegerLiteral
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        correspondingParameter: <null>
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        staticType: int
+    arguments(v1)
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
           literal: 2
           correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int

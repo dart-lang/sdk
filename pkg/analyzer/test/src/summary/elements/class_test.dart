@@ -10119,13 +10119,25 @@ library
             AssertInitializer
               assertKeyword: assert @38
               leftParenthesis: ( @44
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: x @45
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: > @47
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 0 @49
+                  staticType: int
+                binaryOperator: greaterThan
+                element: dart:core::@class::num::@method::>
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: x @45
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  staticType: int
+                operator: > @47
+                rightOperand: IntegerLiteral
                   literal: 0 @49
                   staticType: int
                 element: dart:core::@class::num::@method::>
@@ -24098,13 +24110,25 @@ library
             AssertInitializer
               assertKeyword: assert @29
               leftParenthesis: ( @35
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: x @36
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: >= @38
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 42 @41
+                  staticType: int
+                binaryOperator: greaterThanOrEqual
+                element: dart:core::@class::num::@method::>=
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: x @36
+                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                  staticType: int
+                operator: >= @38
+                rightOperand: IntegerLiteral
                   literal: 42 @41
                   staticType: int
                 element: dart:core::@class::num::@method::>=
@@ -24153,13 +24177,25 @@ library
             AssertInitializer
               assertKeyword: assert @29
               leftParenthesis: ( @35
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: x @36
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: >= @38
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 42 @41
+                  staticType: int
+                binaryOperator: greaterThanOrEqual
+                element: dart:core::@class::num::@method::>=
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: x @36
+                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                  staticType: int
+                operator: >= @38
+                rightOperand: IntegerLiteral
                   literal: 42 @41
                   staticType: int
                 element: dart:core::@class::num::@method::>=
@@ -24679,12 +24715,24 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @42
-              expression2: BinaryExpression
-                leftOperand2: IntegerLiteral
+              expression2: BinaryOperatorInvocation
+                leftOperand: IntegerLiteral
                   literal: 1 @44
                   staticType: int
                 operator: + @46
-                rightOperand2: SimpleIdentifier
+                rightOperand: SimpleIdentifier
+                  token: p @48
+                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
+                  staticType: int
+                binaryOperator: add
+                element: dart:core::@class::num::@method::+
+                staticType: int
+              expression(v1): BinaryExpression
+                leftOperand: IntegerLiteral
+                  literal: 1 @44
+                  staticType: int
+                operator: + @46
+                rightOperand: SimpleIdentifier
                   token: p @48
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
                   staticType: int
@@ -29601,17 +29649,17 @@ library
             #F5 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:85) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
-                BinaryExpression
-                  leftOperand2: SimpleIdentifier
+                BinaryOperatorInvocation
+                  leftOperand: SimpleIdentifier
                     token: augmented @91
                     element: <null>
                     staticType: InvalidType
                   operator: + @101
-                  rightOperand2: IntegerLiteral
+                  rightOperand: IntegerLiteral
                     literal: 1 @103
                     staticType: int
+                  binaryOperator: add
                   element: <null>
-                  staticInvokeType: null
                   staticType: InvalidType
               inducedGetter: #F7
               previousFragment: #F3

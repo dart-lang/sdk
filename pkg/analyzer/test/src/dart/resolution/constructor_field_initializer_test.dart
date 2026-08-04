@@ -98,13 +98,26 @@ ConstructorFieldInitializer
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: BinaryExpression
-                  leftOperand2: SimpleIdentifier
+                expression2: BinaryOperatorInvocation
+                  leftOperand: SimpleIdentifier
                     token: a
                     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
                     staticType: int
                   operator: +
-                  rightOperand2: IntegerLiteral
+                  rightOperand: IntegerLiteral
+                    literal: 1
+                    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+                    staticType: int
+                  binaryOperator: add
+                  element: dart:core::@class::num::@method::+
+                  staticType: int
+                expression(v1): BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: a
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                    staticType: int
+                  operator: +
+                  rightOperand: IntegerLiteral
                     literal: 1
                     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
                     staticType: int
@@ -153,13 +166,26 @@ ConstructorFieldInitializer
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: BinaryExpression
-            leftOperand2: SimpleIdentifier
+          expression2: BinaryOperatorInvocation
+            leftOperand: SimpleIdentifier
               token: a
               element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
               staticType: int
             operator: +
-            rightOperand2: IntegerLiteral
+            rightOperand: IntegerLiteral
+              literal: 1
+              correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+              staticType: int
+            binaryOperator: add
+            element: dart:core::@class::num::@method::+
+            staticType: int
+          expression(v1): BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+              staticType: int
+            operator: +
+            rightOperand: IntegerLiteral
               literal: 1
               correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
               staticType: int

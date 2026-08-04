@@ -4651,13 +4651,26 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('c + 1');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  function2: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
       staticType: C
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 1
+      correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
+      staticType: int
+    binaryOperator: add
+    element: <testLibrary>::@class::C::@method::+
+    staticType: void Function<T>(T)
+  function(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    operator: +
+    rightOperand: IntegerLiteral
       literal: 1
       correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
       staticType: int

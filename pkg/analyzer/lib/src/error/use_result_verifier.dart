@@ -204,6 +204,7 @@ class UseResultVerifier {
         // assignment.
         parent is AssignmentExpression ||
         parent is BinaryExpression ||
+        parent is BinaryOperatorInvocation ||
         parent is IfNull ||
         parent is ConstructorFieldInitializer ||
         parent is DoStatement ||

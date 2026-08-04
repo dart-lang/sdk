@@ -58,7 +58,7 @@ dart:core::@class::num::@method::+
     var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 3 + 4;
 ''');
-    var node = result.findNode.binary('+');
+    var node = FindNode(result.content, result.unit).binary('+');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -913,7 +913,7 @@ dart:core::@class::num::@method::+
     var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 3 + 4;
 ''');
-    var node = result.findNode.binary('+');
+    var node = result.findNode.binaryOperatorInvocation('+');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+

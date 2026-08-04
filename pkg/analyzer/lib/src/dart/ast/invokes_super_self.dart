@@ -29,15 +29,14 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (_usage == _Usage.reading) {
-      if (node.leftOperand2 is SuperExpression &&
-          node.operator.lexeme == name) {
+      if (node.leftOperand is SuperExpression && node.operator.lexeme == name) {
         hasSuperInvocation = true;
         return;
       }
     }
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override

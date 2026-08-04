@@ -178,8 +178,8 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
 /// For example, if an instance of this class is created with two delegates V1
 /// and V2, and that instance is used to visit the expression 'x + 1', then the
 /// following visit methods will be invoked:
-/// 1. V1.visitBinaryExpression
-/// 2. V2.visitBinaryExpression
+/// 1. V1.visitBinaryOperatorInvocation
+/// 2. V2.visitBinaryOperatorInvocation
 /// 3. V1.visitSimpleIdentifier
 /// 4. V2.visitSimpleIdentifier
 /// 5. V1.visitIntegerLiteral

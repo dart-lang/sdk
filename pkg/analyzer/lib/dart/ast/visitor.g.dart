@@ -815,8 +815,10 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitAwaitExpression(AwaitExpression node) => visitExpression(node);
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) => visitExpression(node);
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) =>
+      visitExpression(node);
 
   @override
   R? visitBlock(Block node) => visitStatement(node);
@@ -2736,8 +2738,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) {
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4466,8 +4469,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitAwaitExpression(AwaitExpression node) => null;
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) => null;
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) => null;
 
   @override
   R? visitBlock(Block node) => null;
@@ -5687,8 +5691,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitAwaitExpression(AwaitExpression node) => _throw(node);
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) => _throw(node);
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) =>
+      _throw(node);
 
   @override
   R? visitBlock(Block node) => _throw(node);
@@ -7884,10 +7890,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitBinaryExpression(BinaryExpression node) {
+  T? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitBinaryExpression(node);
+    T? result = _baseVisitor.visitBinaryOperatorInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -10018,8 +10025,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitAwaitExpression(AwaitExpression node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) => visitNode(node);
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) =>
+      visitNode(node);
 
   @override
   R? visitBlock(Block node) => visitNode(node);

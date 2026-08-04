@@ -4401,13 +4401,25 @@ library
             AssertInitializer
               assertKeyword: assert @34
               leftParenthesis: ( @40
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: x @41
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: > @43
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 0 @45
+                  staticType: int
+                binaryOperator: greaterThan
+                element: dart:core::@class::num::@method::>
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: x @41
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
+                  staticType: int
+                operator: > @43
+                rightOperand: IntegerLiteral
                   literal: 0 @45
                   staticType: int
                 element: dart:core::@class::num::@method::>
@@ -8118,16 +8130,16 @@ library
                 #F9 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:46) (firstTokenOffset:41) (offset:46)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   initializer: expression_2
-                    BinaryExpression
-                      leftOperand2: IntegerLiteral
+                    BinaryOperatorInvocation
+                      leftOperand: IntegerLiteral
                         literal: 1 @50
                         staticType: int
                       operator: + @52
-                      rightOperand2: IntegerLiteral
+                      rightOperand: IntegerLiteral
                         literal: 2 @54
                         staticType: int
+                      binaryOperator: add
                       element: dart:core::@class::num::@method::+
-                      staticInvokeType: num Function(num)
                       staticType: int
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -21414,13 +21426,25 @@ library
               element: <testLibrary>::@enum::E::@field::bar
               initializer: expression_2
                 ConditionalExpression
-                  condition2: BinaryExpression
-                    leftOperand2: SimpleIdentifier
+                  condition2: BinaryOperatorInvocation
+                    leftOperand: SimpleIdentifier
                       token: foo @42
                       element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                       staticType: int?
                     operator: != @46
-                    rightOperand2: NullLiteral
+                    rightOperand: NullLiteral
+                      literal: null @49
+                      staticType: Null
+                    binaryOperator: notEqual
+                    element: dart:core::@class::num::@method::==
+                    staticType: bool
+                  condition(v1): BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: foo @42
+                      element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                      staticType: int?
+                    operator: != @46
+                    rightOperand: NullLiteral
                       literal: null @49
                       staticType: Null
                     element: dart:core::@class::num::@method::==

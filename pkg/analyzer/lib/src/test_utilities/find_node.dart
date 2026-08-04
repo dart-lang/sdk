@@ -10,9 +10,17 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 class FindNode extends _FindNodeBase {
   FindNode(super.content, super.unit);
 
+  BinaryExpression get firstBinaryExpression => _first();
+
+  BinaryExpression get singleBinaryExpression => _single();
+
   ConstructorName get singleConstructorName => _single();
 
   InstanceCreationExpression get singleInstanceCreationExpression => _single();
+
+  BinaryExpression binary(String search) {
+    return _node(search, (node) => node is BinaryExpression);
+  }
 
   ConstructorName constructorName(String search) {
     return _node(search, (n) => n is ConstructorName);
@@ -46,6 +54,10 @@ class FindNode extends _FindNodeBase {
 class FindNode2 extends _FindNodeBase {
   FindNode2(super.content, super.unit);
 
+  BinaryOperatorInvocation get firstBinaryOperatorInvocation => _first();
+
+  BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
+
   ConstructorInvocation get singleConstructorInvocation => _single();
 
   ConstructorTearOff get singleConstructorTearOff => _single();
@@ -61,6 +73,10 @@ class FindNode2 extends _FindNodeBase {
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
+
+  BinaryOperatorInvocation binaryOperatorInvocation(String search) {
+    return _node(search, (node) => node is BinaryOperatorInvocation);
+  }
 
   ConstructorInvocation constructorInvocation(String search) {
     return _node(search, (node) => node is ConstructorInvocation);
@@ -121,8 +137,6 @@ abstract class _FindNodeBase {
 
   _FindNodeBase(this.content, this.unit);
 
-  BinaryExpression get firstBinaryExpression => _first();
-
   Block get firstBlock => _first();
 
   FormalParameter get firstFormalParameter => _first();
@@ -150,8 +164,6 @@ abstract class _FindNodeBase {
   AssignmentExpression get singleAssignmentExpression => _single();
 
   AwaitExpression get singleAwaitExpression => _single();
-
-  BinaryExpression get singleBinaryExpression => _single();
 
   Block get singleBlock => _single();
 
@@ -482,10 +494,6 @@ abstract class _FindNodeBase {
 
   AwaitExpression awaitExpression(String search) {
     return _node(search, (n) => n is AwaitExpression);
-  }
-
-  BinaryExpression binary(String search) {
-    return _node(search, (n) => n is BinaryExpression);
   }
 
   BindPatternVariableElement bindPatternVariableElement(String search) {

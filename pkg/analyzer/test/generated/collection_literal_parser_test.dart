@@ -118,11 +118,18 @@ ListLiteral
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: x
           operator: <
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 10
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: <
+          rightOperand: IntegerLiteral
             literal: 10
         rightSeparator: ;
         updaters2
@@ -525,11 +532,18 @@ SetOrMapLiteral
           rightHandSide2: IntegerLiteral
             literal: 0
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: x
           operator: <
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 10
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: <
+          rightOperand: IntegerLiteral
             literal: 10
         rightSeparator: ;
         updaters2

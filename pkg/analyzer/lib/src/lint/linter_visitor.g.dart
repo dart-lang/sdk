@@ -1285,9 +1285,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _runSubscriptions(node, _registry._forBinaryExpression);
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    _runSubscriptions(node, _registry._forBinaryOperatorInvocation);
     node.visitChildren2(this);
   }
 
@@ -4218,7 +4219,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<AwaitExpression>> _forAwaitExpression = [];
 
-  final List<_Subscription2<BinaryExpression>> _forBinaryExpression = [];
+  final List<_Subscription2<BinaryOperatorInvocation>>
+  _forBinaryOperatorInvocation = [];
 
   final List<_Subscription2<BlockClassBody>> _forBlockClassBody = [];
 
@@ -4724,9 +4726,14 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addBinaryExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addBinaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
     _hasNodeProcessors = true;
-    _forBinaryExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forBinaryOperatorInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

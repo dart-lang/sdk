@@ -75,11 +75,46 @@ CompilationUnit
                               literal: r""
                         rightBracket: }
                         isMap: false
-                      BinaryExpression
-                        leftOperand2: IntegerLiteral
+                      BinaryOperatorInvocation
+                        leftOperand: IntegerLiteral
                           literal: 0xFF
                         operator: +
-                        rightOperand2: IntegerLiteral
+                        rightOperand: IntegerLiteral
+                          literal: 2
+                        binaryOperator: add
+                      DoubleLiteral
+                        literal: .3
+                      DoubleLiteral
+                        literal: 4.5
+                    arguments(v1)
+                      ListLiteral
+                        constKeyword: const
+                        leftBracket: [
+                        rightBracket: ]
+                      ListLiteral
+                        constKeyword: const
+                        leftBracket: [
+                        elements
+                          IntegerLiteral
+                            literal: 1
+                        rightBracket: ]
+                      SetOrMapLiteral
+                        constKeyword: const
+                        leftBracket: {
+                        elements
+                          MapLiteralEntry
+                            key: SimpleStringLiteral
+                              literal: ""
+                            separator: :
+                            value: SimpleStringLiteral
+                              literal: r""
+                        rightBracket: }
+                        isMap: false
+                      BinaryExpression
+                        leftOperand: IntegerLiteral
+                          literal: 0xFF
+                        operator: +
+                        rightOperand: IntegerLiteral
                           literal: 2
                       DoubleLiteral
                         literal: .3
@@ -547,14 +582,15 @@ var v = m(a < b, p.q.c > (d));
 ArgumentList
   leftParenthesis: (
   arguments2
-    BinaryExpression
-      leftOperand2: SimpleIdentifier
+    BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: a
       operator: <
-      rightOperand2: SimpleIdentifier
+      rightOperand: SimpleIdentifier
         token: b
-    BinaryExpression
-      leftOperand2: PropertyAccess
+      binaryOperator: lessThan
+    BinaryOperatorInvocation
+      leftOperand: PropertyAccess
         target2: PrefixedIdentifier
           prefix: SimpleIdentifier
             token: p
@@ -565,9 +601,34 @@ ArgumentList
         propertyName: SimpleIdentifier
           token: c
       operator: >
-      rightOperand2: ParenthesizedExpression
+      rightOperand: ParenthesizedExpression
         leftParenthesis: (
         expression2: SimpleIdentifier
+          token: d
+        rightParenthesis: )
+      binaryOperator: greaterThan
+  arguments(v1)
+    BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+      operator: <
+      rightOperand: SimpleIdentifier
+        token: b
+    BinaryExpression
+      leftOperand: PropertyAccess
+        target: PrefixedIdentifier
+          prefix: SimpleIdentifier
+            token: p
+          period: .
+          identifier: SimpleIdentifier
+            token: q
+        operator: .
+        propertyName: SimpleIdentifier
+          token: c
+      operator: >
+      rightOperand: ParenthesizedExpression
+        leftParenthesis: (
+        expression: SimpleIdentifier
           token: d
         rightParenthesis: )
   rightParenthesis: )

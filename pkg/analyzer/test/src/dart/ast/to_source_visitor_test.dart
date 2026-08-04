@@ -263,7 +263,7 @@ void f() async => await e;
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a + b;
 ''');
-    var node = parseResult.findNode.singleBinaryExpression;
+    var node = parseResult.findNode.singleBinaryOperatorInvocation;
     _assertSource('a + b', node);
   }
 
@@ -271,7 +271,7 @@ var v = a + b;
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a * (b + c);
 ''');
-    var node = parseResult.findNode.binary('a *');
+    var node = parseResult.findNode.binaryOperatorInvocation('a *');
     _assertSource('a * (b + c)', node);
   }
 

@@ -58,6 +58,8 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         AstVisitor2,
         AwaitExpression,
         BinaryExpression,
+        BinaryOperator,
+        BinaryOperatorInvocation,
         Block,
         BlockEnumBody,
         BlockClassBody,

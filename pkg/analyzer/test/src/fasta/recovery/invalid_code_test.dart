@@ -41,17 +41,37 @@ CompilationUnit
           VariableDeclaration
             name: fruits
             equals: =
-            initializer2: BinaryExpression
-              leftOperand2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+            initializer2: BinaryOperatorInvocation
+              leftOperand: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: cont
                 operator: <
-                rightOperand2: SimpleIdentifier
+                rightOperand: SimpleIdentifier
                   token: String
+                binaryOperator: lessThan
               operator: >
-              rightOperand2: ListLiteral
+              rightOperand: ListLiteral
                 leftBracket: [
                 elements2
+                  SimpleStringLiteral
+                    literal: 'apples'
+                  SimpleStringLiteral
+                    literal: 'bananas'
+                  SimpleStringLiteral
+                    literal: 'pears'
+                rightBracket: ]
+              binaryOperator: greaterThan
+            initializer(v1): BinaryExpression
+              leftOperand: BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: cont
+                operator: <
+                rightOperand: SimpleIdentifier
+                  token: String
+              operator: >
+              rightOperand: ListLiteral
+                leftBracket: [
+                elements
                   SimpleStringLiteral
                     literal: 'apples'
                   SimpleStringLiteral

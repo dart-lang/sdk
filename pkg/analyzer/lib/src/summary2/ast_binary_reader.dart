@@ -144,17 +144,16 @@ class AstBinaryReader {
     );
   }
 
-  BinaryExpression _readBinaryExpression() {
-    var leftOperand = _readNode() as ExpressionImpl;
+  BinaryOperatorInvocation _readBinaryOperatorInvocation() {
+    var leftOperand = _readNode() as InstanceReceiverImpl;
     var rightOperand = _readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
-    var node = BinaryExpressionImpl(
-      leftOperand2: leftOperand,
+    var node = BinaryOperatorInvocationImpl(
+      leftOperand: leftOperand,
       operator: Tokens.fromType(operatorType),
-      rightOperand2: rightOperand,
+      rightOperand: rightOperand,
     );
-    node.element = _reader.readElement() as MethodElement?;
-    node.staticInvokeType = _reader.readOptionalFunctionType();
+    node.element = _reader.readElement() as InternalMethodElement?;
     _readExpressionResolution(node);
     return node;
   }
@@ -918,8 +917,8 @@ class AstBinaryReader {
         return _readAssignmentExpression();
       case Tag.AwaitExpression:
         return _readAwaitExpression();
-      case Tag.BinaryExpression:
-        return _readBinaryExpression();
+      case Tag.BinaryOperatorInvocation:
+        return _readBinaryOperatorInvocation();
       case Tag.BooleanLiteral:
         return _readBooleanLiteral();
       case Tag.CascadeExpression:

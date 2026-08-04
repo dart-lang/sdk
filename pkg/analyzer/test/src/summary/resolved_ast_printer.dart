@@ -151,6 +151,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    _sink.writeln('BinaryOperatorInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeRaw('binaryOperator', node.binaryOperator.name);
+      _writeElement('element', node.element);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitBlock(Block node) {
     _sink.writeln('Block');
     _sink.withIndent(() {
@@ -2276,6 +2288,7 @@ Expected parent: (${parent.runtimeType}) $parent
         var parent = _viewParent(node);
         if (parent is AssignmentExpression && parent.rightHandSide2 == node ||
             parent is BinaryExpression && parent.rightOperand2 == node ||
+            parent is BinaryOperatorInvocation && parent.rightOperand == node ||
             parent is IndexExpression && parent.index2 == node) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }

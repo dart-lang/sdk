@@ -98,18 +98,17 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _writeByte(Tag.BinaryExpression);
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    _writeByte(Tag.BinaryOperatorInvocation);
 
-    _writeNode(node.leftOperand2);
-    _writeNode(node.rightOperand2);
+    _writeNode(node.leftOperand);
+    _writeNode(node.rightOperand);
 
     var operatorToken = node.operator.type;
     var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
     _writeByte(binaryToken.index);
 
     _sink.writeElement(node.element);
-    _sink.writeType(node.staticInvokeType);
     _storeExpression(node);
   }
 

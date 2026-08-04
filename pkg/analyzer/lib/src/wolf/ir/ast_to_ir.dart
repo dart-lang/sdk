@@ -366,49 +366,31 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  Null visitBinaryExpression(BinaryExpression node) {
-    var tokenType = node.operator.type;
-    switch (tokenType) {
-      case TokenType.EQ_EQ:
-        dispatchNode(node.leftOperand2);
+  Null visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    switch (node.binaryOperator) {
+      case BinaryOperator.equal:
+        dispatchNode(node.leftOperand);
         // Stack: lhs
-        dispatchNode(node.rightOperand2);
+        dispatchNode(node.rightOperand);
         // Stack: lhs rhs
         ir.eq();
       // Stack: (lhs == rhs)
-      case TokenType.BANG_EQ:
-        dispatchNode(node.leftOperand2);
+      case BinaryOperator.notEqual:
+        dispatchNode(node.leftOperand);
         // Stack: lhs
-        dispatchNode(node.rightOperand2);
+        dispatchNode(node.rightOperand);
         // Stack: lhs rhs
         ir.eq();
         // Stack: (lhs == rhs)
         ir.not();
       // Stack: (lhs != rhs)
-      case TokenType.AMPERSAND:
-      case TokenType.BAR:
-      case TokenType.CARET:
-      case TokenType.GT:
-      case TokenType.GT_EQ:
-      case TokenType.GT_GT:
-      case TokenType.GT_GT_GT:
-      case TokenType.LT:
-      case TokenType.LT_EQ:
-      case TokenType.LT_LT:
-      case TokenType.MINUS:
-      case TokenType.PERCENT:
-      case TokenType.PLUS:
-      case TokenType.SLASH:
-      case TokenType.STAR:
-      case TokenType.TILDE_SLASH:
-        dispatchNode(node.leftOperand2);
-        // Stack: lhs
-        dispatchNode(node.rightOperand2);
-        // Stack: lhs rhs
-        instanceCall(node.element, tokenType.lexeme, [], twoArguments);
-      // Stack: result
       default:
-        throw UnimplementedError('TODO(paulberry): $node');
+        dispatchNode(node.leftOperand);
+        // Stack: lhs
+        dispatchNode(node.rightOperand);
+        // Stack: lhs rhs
+        instanceCall(node.element, node.operator.lexeme, [], twoArguments);
+      // Stack: result
     }
   }
 
@@ -525,7 +507,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitForStatement(ForStatement node) {
     switch (node.forLoopParts) {
-      case ForParts(:var condition, :var updaters2) && var forParts:
+      case ForParts(condition2: var condition, :var updaters2) && var forParts:
         switch (forParts) {
           case ForPartsWithDeclarations(:var variables):
             dispatchNode(variables);

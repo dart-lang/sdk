@@ -443,7 +443,8 @@ abstract class AstVisitor2<R> {
 
   R? visitAwaitExpression(AwaitExpression node);
 
-  R? visitBinaryExpression(BinaryExpression node);
+  @experimental
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node);
 
   R? visitBlock(Block node);
 

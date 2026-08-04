@@ -434,7 +434,7 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
   }
 
   @override
-  Object? visitBinaryExpression(BinaryExpression node) {
+  Object? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var leftOperand = node.leftOperand.accept2(this);
     if (identical(leftOperand, NOT_A_CONSTANT)) {
       return leftOperand;

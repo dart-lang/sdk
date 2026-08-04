@@ -76,13 +76,25 @@ library
             AssertInitializer
               assertKeyword: assert @42
               leftParenthesis: ( @48
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: it @49
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
                   staticType: int
                 operator: > @52
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 0 @54
+                  staticType: int
+                binaryOperator: greaterThan
+                element: dart:core::@class::num::@method::>
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: it @49
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                  staticType: int
+                operator: > @52
+                rightOperand: IntegerLiteral
                   literal: 0 @54
                   staticType: int
                 element: dart:core::@class::num::@method::>
@@ -188,13 +200,25 @@ library
             AssertInitializer
               assertKeyword: assert @61
               leftParenthesis: ( @67
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: it @68
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
                   staticType: int
                 operator: >= @71
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 0 @74
+                  staticType: int
+                binaryOperator: greaterThanOrEqual
+                element: dart:core::@class::num::@method::>=
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: it @68
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                  staticType: int
+                operator: >= @71
+                rightOperand: IntegerLiteral
                   literal: 0 @74
                   staticType: int
                 element: dart:core::@class::num::@method::>=
@@ -351,13 +375,25 @@ library
             AssertInitializer
               assertKeyword: assert @48
               leftParenthesis: ( @54
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: it @55
                   element: <testLibrary>::@extensionType::E::@constructor::named::@formalParameter::it
                   staticType: int
                 operator: > @58
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 0 @60
+                  staticType: int
+                binaryOperator: greaterThan
+                element: dart:core::@class::num::@method::>
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: it @55
+                  element: <testLibrary>::@extensionType::E::@constructor::named::@formalParameter::it
+                  staticType: int
+                operator: > @58
+                rightOperand: IntegerLiteral
                   literal: 0 @60
                   staticType: int
                 element: dart:core::@class::num::@method::>
@@ -432,13 +468,25 @@ library
             AssertInitializer
               assertKeyword: assert @42
               leftParenthesis: ( @48
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: it @49
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
                   staticType: int
                 operator: > @52
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 0 @54
+                  staticType: int
+                binaryOperator: greaterThan
+                element: dart:core::@class::num::@method::>
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: it @49
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                  staticType: int
+                operator: > @52
+                rightOperand: IntegerLiteral
                   literal: 0 @54
                   staticType: int
                 element: dart:core::@class::num::@method::>

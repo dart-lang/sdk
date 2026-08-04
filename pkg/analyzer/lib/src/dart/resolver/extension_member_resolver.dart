@@ -520,6 +520,7 @@ class ExtensionMemberResolver {
   static bool _isValidContext(ExtensionOverride node) {
     var parent = node.parent2;
     return parent is BinaryExpression && parent.leftOperand2 == node ||
+        parent is BinaryOperatorInvocation && parent.leftOperand == node ||
         parent is FunctionExpressionInvocation && parent.function2 == node ||
         parent is IndexExpression && parent.target2 == node ||
         parent is MethodInvocation && parent.target2 == node ||

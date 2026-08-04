@@ -72,7 +72,7 @@ class C {
 test(C c, int other) => c $op other;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.binary('c $op other')]
+    check(astNodes)[result.findNode.binaryOperatorInvocation('c $op other')]
       ..containsSubrange(astNodes[result.findNode.simple('c $op')]!)
       ..containsSubrange(astNodes[result.findNode.simple('other;')]!);
     var c = Instance(result.findElement.class_('C').thisType);
@@ -680,7 +680,7 @@ test(bool x, bool y) => hook(x, 'x') && hook(y, 'y');
 test(Object? x, Object? y) => x == y;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.binary('x == y')]
+    check(astNodes)[result.findNode.binaryOperatorInvocation('x == y')]
       ..containsSubrange(astNodes[result.findNode.simple('x ==')]!)
       ..containsSubrange(astNodes[result.findNode.simple('y;')]!);
     check(runInterpreter(result, [null, null])).equals(true);
@@ -740,7 +740,7 @@ test(Object? x, Object? y) => hook(x, 'x') ?? hook(y, 'y');
 test(Object? x, Object? y) => x != y;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.binary('x != y')]
+    check(astNodes)[result.findNode.binaryOperatorInvocation('x != y')]
       ..containsSubrange(astNodes[result.findNode.simple('x !=')]!)
       ..containsSubrange(astNodes[result.findNode.simple('y;')]!);
     check(runInterpreter(result, [null, null])).equals(false);
@@ -951,7 +951,9 @@ test(int count, List<int> result) {
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.doStatement('do')]
       ..containsSubrange(astNodes[result.findNode.block('result.add')]!)
-      ..containsSubrange(astNodes[result.findNode.binary('count > 0')]!);
+      ..containsSubrange(
+        astNodes[result.findNode.binaryOperatorInvocation('count > 0')]!,
+      );
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
     check(values).deepEquals([5, 4, 3, 2, 1]);
@@ -1005,7 +1007,9 @@ test(int count, List<int> result) {
       ..containsSubrange(
         astNodes[result.findNode.variableDeclarationList('var i = 0')]!,
       )
-      ..containsSubrange(astNodes[result.findNode.binary('i < count')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.binaryOperatorInvocation('i < count')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.postfix('i++')]!)
       ..containsSubrange(astNodes[result.findNode.block('result.add')]!);
     var values = <int>[];
@@ -1915,7 +1919,9 @@ test(int count, List<int> result) {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.whileStatement('while')]
-      ..containsSubrange(astNodes[result.findNode.binary('count-- > 0')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.binaryOperatorInvocation('count-- > 0')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.block('result.add')]!);
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);

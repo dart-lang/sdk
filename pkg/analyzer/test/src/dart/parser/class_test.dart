@@ -4045,11 +4045,18 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: BinaryExpression
-        leftOperand2: SimpleIdentifier
+      condition2: BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
           token: x
         operator: >
-        rightOperand2: IntegerLiteral
+        rightOperand: IntegerLiteral
+          literal: 0
+        binaryOperator: greaterThan
+      condition(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: x
+        operator: >
+        rightOperand: IntegerLiteral
           literal: 0
       rightParenthesis: )
   body: EmptyFunctionBody

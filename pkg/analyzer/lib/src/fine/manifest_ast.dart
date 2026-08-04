@@ -251,7 +251,7 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     node.visitChildren2(this);
     _addElement(node.element);
   }

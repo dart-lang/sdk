@@ -180,15 +180,26 @@ MethodDeclaration
       statements
         ReturnStatement
           returnKeyword: return
-          expression2: BinaryExpression
-            leftOperand2: AwaitExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: AwaitExpression
               awaitKeyword: await
               expression2: SimpleIdentifier
                 token: x
             operator: +
-            rightOperand2: AwaitExpression
+            rightOperand: AwaitExpression
               awaitKeyword: await
               expression2: SimpleIdentifier
+                token: y
+            binaryOperator: add
+          expression(v1): BinaryExpression
+            leftOperand: AwaitExpression
+              awaitKeyword: await
+              expression: SimpleIdentifier
+                token: x
+            operator: +
+            rightOperand: AwaitExpression
+              awaitKeyword: await
+              expression: SimpleIdentifier
                 token: y
           semicolon: ;
       rightBracket: }
@@ -429,8 +440,8 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: BinaryExpression
-            leftOperand2: AwaitExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: AwaitExpression
               awaitKeyword: await
               expression2: MethodInvocation
                 methodName: SimpleIdentifier
@@ -439,9 +450,28 @@ MethodDeclaration
                   leftParenthesis: (
                   rightParenthesis: )
             operator: ^
-            rightOperand2: AwaitExpression
+            rightOperand: AwaitExpression
               awaitKeyword: await
               expression2: MethodInvocation
+                methodName: SimpleIdentifier
+                  token: returnsFuture
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            binaryOperator: bitwiseXor
+          expression(v1): BinaryExpression
+            leftOperand: AwaitExpression
+              awaitKeyword: await
+              expression: MethodInvocation
+                methodName: SimpleIdentifier
+                  token: returnsFuture
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            operator: ^
+            rightOperand: AwaitExpression
+              awaitKeyword: await
+              expression: MethodInvocation
                 methodName: SimpleIdentifier
                   token: returnsFuture
                 argumentList: ArgumentList
@@ -482,8 +512,8 @@ MethodDeclaration
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
-                BinaryExpression
-                  leftOperand2: AwaitExpression
+                BinaryOperatorInvocation
+                  leftOperand: AwaitExpression
                     awaitKeyword: await
                     expression2: MethodInvocation
                       methodName: SimpleIdentifier
@@ -492,9 +522,29 @@ MethodDeclaration
                         leftParenthesis: (
                         rightParenthesis: )
                   operator: ^
-                  rightOperand2: AwaitExpression
+                  rightOperand: AwaitExpression
                     awaitKeyword: await
                     expression2: MethodInvocation
+                      methodName: SimpleIdentifier
+                        token: returnsFuture
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  binaryOperator: bitwiseXor
+              arguments(v1)
+                BinaryExpression
+                  leftOperand: AwaitExpression
+                    awaitKeyword: await
+                    expression: MethodInvocation
+                      methodName: SimpleIdentifier
+                        token: returnsFuture
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  operator: ^
+                  rightOperand: AwaitExpression
+                    awaitKeyword: await
+                    expression: MethodInvocation
                       methodName: SimpleIdentifier
                         token: returnsFuture
                       argumentList: ArgumentList
@@ -1195,11 +1245,18 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: _a
       equals: =
-      expression2: BinaryExpression
-        leftOperand2: SimpleIdentifier
+      expression2: BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
           token: _
         operator: +
-        rightOperand2: SimpleIdentifier
+        rightOperand: SimpleIdentifier
+          token: _$
+        binaryOperator: add
+      expression(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: _
+        operator: +
+        rightOperand: SimpleIdentifier
           token: _$
   body: BlockFunctionBody
     block: Block
@@ -2858,11 +2915,18 @@ ConstructorDeclaration
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: BinaryExpression
-        leftOperand2: SimpleIdentifier
+      condition2: BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
           token: x
         operator: <
-        rightOperand2: SimpleIdentifier
+        rightOperand: SimpleIdentifier
+          token: y
+        binaryOperator: lessThan
+      condition(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: x
+        operator: <
+        rightOperand: SimpleIdentifier
           token: y
       rightParenthesis: )
     ConstructorFieldInitializer

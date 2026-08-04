@@ -398,7 +398,7 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitBinaryExpression(BinaryExpression node) {
+  Element? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     return node.element;
   }
 

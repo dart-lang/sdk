@@ -132,7 +132,9 @@ class TypePropertyResolver {
         if (parentNode is CascadeExpression) {
           parentNode = parentNode.cascadeSections2.first;
         }
-        if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
+        if (parentNode is BinaryExpression ||
+            parentNode is BinaryOperatorInvocation ||
+            parentNode is RelationalPattern) {
           locatableDiagnostic = diag.uncheckedOperatorInvocationOfNullableValue
               .withArguments(operator: name);
         } else if (parentNode is MethodInvocation ||

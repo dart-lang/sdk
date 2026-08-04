@@ -2241,14 +2241,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitBinaryExpression(
-    BinaryExpression node, {
+  void visitBinaryOperatorInvocation(
+    covariant BinaryOperatorInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    _binaryExpressionResolver.resolve(
-      node as BinaryExpressionImpl,
+    _binaryExpressionResolver.resolveBinaryOperatorInvocation(
+      node,
       contextType: contextType,
     );
     _insertImplicitCallReference(
