@@ -803,6 +803,22 @@ abstract class FlowAnalysis<
   /// expression is probably the best choice.
   void functionExpression_end({int offset = 0});
 
+  /// Queries the [PromotionInfo] object from the current internal state of flow
+  /// analysis.
+  ///
+  /// This is used in tests to validate that the information stored in the flow
+  /// analysis log is an accurate recording of flow analysis state changes.
+  @visibleForTesting
+  PromotionInfo? getCurrentPromotionInfo();
+
+  /// Queries the promotion key that represents `this` in the current internal
+  /// state of flow analysis.
+  ///
+  /// This is used in tests to validate that the information stored in the flow
+  /// analysis log is an accurate recording of flow analysis state changes.
+  @visibleForTesting
+  int getCurrentThisBinding();
+
   /// Retrieves the [FlowAnalysisLog].
   ///
   /// No further calls to this [FlowAnalysis] object should be made after this
@@ -2444,6 +2460,24 @@ class FlowAnalysisDebug<
     _wrap(
       'functionExpression_end(offset: $offset)',
       () => _wrapped.functionExpression_end(offset: offset),
+    );
+  }
+
+  @override
+  PromotionInfo? getCurrentPromotionInfo() {
+    return _wrap(
+      'getCurrentPromotionInfo()',
+      () => _wrapped.getCurrentPromotionInfo(),
+      isQuery: true,
+    );
+  }
+
+  @override
+  int getCurrentThisBinding() {
+    return _wrap(
+      'getCurrentThisBinding()',
+      () => _wrapped.getCurrentThisBinding(),
+      isQuery: true,
     );
   }
 
@@ -6551,6 +6585,12 @@ class _FlowAnalysisImpl<
   void functionExpression_end({int offset = 0}) {
     _functionExpression_end(offset: offset);
   }
+
+  @override
+  PromotionInfo? getCurrentPromotionInfo() => _current.promotionInfo;
+
+  @override
+  int getCurrentThisBinding() => _thisPromotionKeys.last;
 
   @override
   FlowAnalysisLog getLog() => _logBuilder.finish();
