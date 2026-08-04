@@ -1948,7 +1948,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
         : element;
 
     // TODO(srawlins): Remove this check when [FunctionReference]s are inserted
-    // for generic function instantiation for pre-constructor-references code.
+    // for generic function instantiation for pre-constructor-tear-offs code.
     if (expression is SimpleIdentifier &&
         (expression.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
             false)) {

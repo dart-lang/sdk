@@ -2820,19 +2820,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var fragment = node.declaredFragment!;
     var initializer = fragment.constantInitializer2;
     if (initializer is ConstructorInvocationImpl) {
-      var constructorName = initializer.constructorReference;
-      var constructorElement = constructorName.element;
+      var constructorReference = initializer.constructorReference;
+      var constructorElement = constructorReference.element;
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
         if (constructorElement.isFactory) {
-          var constructorName = node.arguments?.constructorSelector?.name2;
-          var errorTarget = constructorName ?? node.name;
+          var constructorNameToken = node.arguments?.constructorSelector?.name2;
+          var errorTarget = constructorNameToken ?? node.name;
           diagnosticReporter.report(
             diag.enumConstantInvokesFactoryConstructor.at(errorTarget),
           );
         }
       } else {
-        if (constructorName.typeReference.element is EnumElementImpl) {
+        if (constructorReference.typeReference.element is EnumElementImpl) {
           var nameToken = node.arguments?.constructorSelector?.name2;
           if (nameToken != null) {
             diagnosticReporter.report(

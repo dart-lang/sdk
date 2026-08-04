@@ -69,7 +69,7 @@ class TypeArgumentsVerifier {
     }
     var constructorType = node.staticType;
     if (constructorType is DynamicType) {
-      // An erroneous constructor reference.
+      // An erroneous constructor tear-off.
       return;
     }
     if (constructorType is! FunctionType) {
