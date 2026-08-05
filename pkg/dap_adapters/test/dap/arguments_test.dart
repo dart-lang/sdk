@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:dap_adapters/dap.dart';
+import 'package:dap_adapters/dap_adapters.dart';
 import 'package:test/test.dart';
 
 main() {

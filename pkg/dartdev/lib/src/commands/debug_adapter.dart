@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dap_adapters/dap.dart';
+import 'package:dap_adapters/dap_adapters.dart';
 
 import '../core.dart';
 

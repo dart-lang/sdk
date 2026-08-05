@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:dap/dap.dart' as dap;
-import 'package:dap_adapters/dap.dart' hide Response;
+import 'package:dap_adapters/dap_adapters.dart' hide Response;
 import 'package:dds/dds_launcher.dart';
 import 'package:dap_adapters/src/adapters/dart_cli_adapter.dart';
 import 'package:dap_adapters/src/adapters/dart_test_adapter.dart';
