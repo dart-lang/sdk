@@ -137,6 +137,7 @@ class TypeInferrerImpl implements TypeInferrer {
     operations,
     assignedVariables,
     typeAnalyzerOptions: typeAnalyzerOptions,
+    enableLog: false,
   );
 
   @override

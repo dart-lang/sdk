@@ -46,6 +46,7 @@ class AstResolver {
       strictCasts: analysisOptions.strictCasts,
     ),
     typeAnalyzerOptions: _typeAnalyzerOptions,
+    enableLog: false,
   );
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,

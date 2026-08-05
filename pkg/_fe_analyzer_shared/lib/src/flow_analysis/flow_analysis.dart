@@ -261,11 +261,13 @@ abstract class FlowAnalysis<
     FlowAnalysisOperations<Variable> operations,
     AssignedVariables<Node, Variable> assignedVariables, {
     required TypeAnalyzerOptions typeAnalyzerOptions,
+    required bool enableLog,
   }) {
     return new _FlowAnalysisImpl(
       operations,
       assignedVariables,
       typeAnalyzerOptions: typeAnalyzerOptions,
+      enableLog: enableLog,
     );
   }
 
@@ -821,9 +823,12 @@ abstract class FlowAnalysis<
 
   /// Retrieves the [FlowAnalysisLog].
   ///
+  /// Returns `null` if flow analysis logging is disabled (see the `enableLog`
+  /// parameter of the constructor).
+  ///
   /// No further calls to this [FlowAnalysis] object should be made after this
   /// call.
-  FlowAnalysisLog getLog();
+  FlowAnalysisLog? getLog();
 
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
@@ -2001,6 +2006,7 @@ class FlowAnalysisDebug<
     FlowAnalysisOperations<Variable> operations,
     AssignedVariables<Node, Variable> assignedVariables, {
     required TypeAnalyzerOptions typeAnalyzerOptions,
+    required bool enableLog,
   }) {
     print('FlowAnalysisDebug()');
     return new FlowAnalysisDebug._(
@@ -2008,6 +2014,7 @@ class FlowAnalysisDebug<
         operations,
         assignedVariables,
         typeAnalyzerOptions: typeAnalyzerOptions,
+        enableLog: enableLog,
       ),
     );
   }
@@ -2482,7 +2489,7 @@ class FlowAnalysisDebug<
   }
 
   @override
-  FlowAnalysisLog getLog() {
+  FlowAnalysisLog? getLog() {
     return _wrap(
       'getLog()',
       () => _wrapped.getLog(),
@@ -6017,13 +6024,15 @@ class _FlowAnalysisImpl<
   final List<AssignedVariablesNodeInfo> _enclosingFunctionExpressionInfoStack =
       [];
 
-  final FlowAnalysisLogBuilder _logBuilder = new FlowAnalysisLogBuilder();
+  final FlowAnalysisLogBuilder? _logBuilder;
 
   _FlowAnalysisImpl(
     this.operations,
     this._assignedVariables, {
     required this.typeAnalyzerOptions,
-  }) : promotionKeyStore = _assignedVariables.promotionKeyStore {
+    required bool enableLog,
+  }) : promotionKeyStore = _assignedVariables.promotionKeyStore,
+       _logBuilder = enableLog ? new FlowAnalysisLogBuilder() : null {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
@@ -6240,7 +6249,7 @@ class _FlowAnalysisImpl<
 
   @override
   void checkOffset(int offset) {
-    _logBuilder.checkOffset(offset);
+    _logBuilder?.checkOffset(offset);
   }
 
   @override
@@ -6550,7 +6559,7 @@ class _FlowAnalysisImpl<
     // before the loop body, but it's visited by flow analysis after. So we need
     // to make an exception to the usual requirement that offsets are strictly
     // increasing.
-    _logBuilder.allowOutOfOrderOffsets();
+    _logBuilder?.allowOutOfOrderOffsets();
     _WhileContext context = _stack.last as _WhileContext;
     _setCurrent(_join(_current, context._continueModel), offset: offset);
   }
@@ -6593,7 +6602,7 @@ class _FlowAnalysisImpl<
   int getCurrentThisBinding() => _thisPromotionKeys.last;
 
   @override
-  FlowAnalysisLog getLog() => _logBuilder.finish();
+  FlowAnalysisLog? getLog() => _logBuilder?.finish();
 
   @override
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
@@ -7136,7 +7145,7 @@ class _FlowAnalysisImpl<
     // comes before the expression being assigned, but it's visited by flow
     // analysis after. So we need to make an exception to the usual requirement
     // that offsets are strictly increasing.
-    _logBuilder.allowOutOfOrderOffsets();
+    _logBuilder?.allowOutOfOrderOffsets();
     _pushPattern(
       _pushScrutinee(
         rhsInfo,
@@ -7156,7 +7165,7 @@ class _FlowAnalysisImpl<
     // analysis state, then once the log is sorted by offset, the node that gets
     // recorded now will ensure that the promotion info stored in the log after
     // `offset` correctly matches the current promotion info state.
-    _logBuilder.promotionInfoChanged(_current.promotionInfo, offset: offset);
+    _logBuilder?.promotionInfoChanged(_current.promotionInfo, offset: offset);
   }
 
   @override
@@ -7174,7 +7183,7 @@ class _FlowAnalysisImpl<
     // by offset, the node that gets recorded now will ensure that the promotion
     // info stored in the log after `offset` correctly matches the current
     // promotion info state.
-    _logBuilder.promotionInfoChanged(_current.promotionInfo, offset: offset);
+    _logBuilder?.promotionInfoChanged(_current.promotionInfo, offset: offset);
   }
 
   @override
@@ -7186,7 +7195,7 @@ class _FlowAnalysisImpl<
     // statement (or element) comes before the iterable expression, but it's
     // visited by flow analysis after. So we need to make an exception to the
     // usual requirement that offsets are strictly increasing.
-    _logBuilder.allowOutOfOrderOffsets();
+    _logBuilder?.allowOutOfOrderOffsets();
     _pushPattern(
       _pushScrutinee(
         null,
@@ -7213,7 +7222,7 @@ class _FlowAnalysisImpl<
     // by offset, the node that gets recorded now will ensure that the promotion
     // info stored in the log after `offset` correctly matches the current
     // promotion info state.
-    _logBuilder.promotionInfoChanged(_current.promotionInfo, offset: offset);
+    _logBuilder?.promotionInfoChanged(_current.promotionInfo, offset: offset);
   }
 
   @override
@@ -7226,7 +7235,7 @@ class _FlowAnalysisImpl<
     // declaration comes before the initializer expression, but it's visited by
     // flow analysis after. So we need to make an exception to the usual
     // requirement that offsets are strictly increasing.
-    _logBuilder.allowOutOfOrderOffsets();
+    _logBuilder?.allowOutOfOrderOffsets();
     _pushPattern(
       _pushScrutinee(
         initializerInfo,
@@ -7721,14 +7730,14 @@ class _FlowAnalysisImpl<
     _thisSsaNodes.add(ssaNode);
     int thisPromotionKey = promotionKeyStore.makeTemporaryKey();
     _thisPromotionKeys.add(thisPromotionKey);
-    _logBuilder.thisBindingChanged(thisPromotionKey, offset: offset);
+    _logBuilder?.thisBindingChanged(thisPromotionKey, offset: offset);
   }
 
   @override
   void thisBinding_end({int offset = 0}) {
     _thisSsaNodes.removeLast();
     _thisPromotionKeys.removeLast();
-    _logBuilder.thisBindingChanged(_thisPromotionKeys.last, offset: offset);
+    _logBuilder?.thisBindingChanged(_thisPromotionKeys.last, offset: offset);
   }
 
   @override
@@ -8650,7 +8659,7 @@ class _FlowAnalysisImpl<
 
     // Record the initial `this` promotion key at offset 0, so that it takes
     // effect starting at the beginning of the code being analyzed.
-    _logBuilder.recordInitialThisBinding(key);
+    _logBuilder?.recordInitialThisBinding(key);
 
     return key;
   }
@@ -8869,7 +8878,7 @@ class _FlowAnalysisImpl<
 
   void _setCurrent(FlowModel value, {required int offset}) {
     _currentInternal = value;
-    _logBuilder.promotionInfoChanged(value.promotionInfo, offset: offset);
+    _logBuilder?.promotionInfoChanged(value.promotionInfo, offset: offset);
   }
 
   _Reference _thisOrSuperReference(

@@ -98,20 +98,36 @@ class FlowAnalysisHelper {
   /// The mapping from expressions to their [ExpressionInfo]s.
   final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
 
+  /// Whether flow analysis should be configured with logging enabled.
+  ///
+  /// Flow analysis logging should be enabled during normal analysis of a source
+  /// file; this allows the flow analysis state to later be queried based on
+  /// source code offset; this will allow the analysis server to query the type
+  /// of `this` when doing code completions.
+  ///
+  /// Flow analysis logging should be disabled during summary linking; this
+  /// avoids unnecessary work, and also avoids triggering assertions that would
+  /// otherwise fire based on the fact that summaries don't contain useful
+  /// source code offsets.
+  final bool enableLog;
+
   FlowAnalysisHelper(
     bool retainDataForTesting, {
     required TypeSystemOperations typeSystemOperations,
     required TypeAnalyzerOptions typeAnalyzerOptions,
+    required bool enableLog,
   }) : this._(
          typeSystemOperations,
          retainDataForTesting ? FlowAnalysisDataForTesting() : null,
          typeAnalyzerOptions: typeAnalyzerOptions,
+         enableLog: enableLog,
        );
 
   FlowAnalysisHelper._(
     this.typeOperations,
     this.dataForTesting, {
     required this.typeAnalyzerOptions,
+    required this.enableLog,
   });
 
   /// Whether flow analysis is currently available.
@@ -178,6 +194,7 @@ class FlowAnalysisHelper {
           typeOperations,
           assignedVariables!,
           typeAnalyzerOptions: typeAnalyzerOptions,
+          enableLog: enableLog,
         );
   }
 

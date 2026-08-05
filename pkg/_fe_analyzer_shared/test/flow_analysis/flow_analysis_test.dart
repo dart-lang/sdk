@@ -607,6 +607,7 @@ main() {
         h.typeOperations,
         AssignedVariables<Node, Var>(),
         typeAnalyzerOptions: h.computeTypeAnalyzerOptions(),
+        enableLog: true,
       );
       flow.ifStatement_conditionBegin(offset: 1);
       flow.ifStatement_thenBegin(null, s, offset: 2);
