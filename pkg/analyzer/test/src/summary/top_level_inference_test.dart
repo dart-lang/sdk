@@ -11681,6 +11681,157 @@ library
 ''');
   }
 
+  test_instanceField_fromGetterSetter_same_field_futureOr() async {
+    var library = await _encodeDecodeLibrary(r'''
+import 'dart:async';
+
+abstract class A {
+  Object get x;
+}
+abstract class B {
+  void set x(FutureOr<Object> _);
+}
+class C implements A, B {
+  var x;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:async
+      classes
+        #F1 isAbstract class A (nameOffset:37) (firstTokenOffset:22) (offset:37)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+              element: <testLibrary>::@class::A::@field::x
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isAbstract isOriginDeclaration x (nameOffset:54) (firstTokenOffset:43) (offset:54)
+              element: <testLibrary>::@class::A::@getter::x
+        #F5 isAbstract class B (nameOffset:74) (firstTokenOffset:59) (offset:74)
+          element: <testLibrary>::@class::B
+          fields
+            #F6 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+              element: <testLibrary>::@class::B::@field::x
+          constructors
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+          setters
+            #F8 isAbstract isOriginDeclaration x (nameOffset:89) (firstTokenOffset:80) (offset:89)
+              element: <testLibrary>::@class::B::@setter::x
+              formalParameters
+                #F9 requiredPositional isOriginDeclaration _ (nameOffset:108) (firstTokenOffset:91) (offset:108)
+                  element: <testLibrary>::@class::B::@setter::x::@formalParameter::_
+        #F10 class C (nameOffset:120) (firstTokenOffset:114) (offset:120)
+          element: <testLibrary>::@class::C
+          fields
+            #F11 hasImplicitType isOriginDeclaration x (nameOffset:146) (firstTokenOffset:146) (offset:146)
+              element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F12
+              inducedSetter: #F13
+          constructors
+            #F14 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:120)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+          getters
+            #F12 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:146)
+              element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F11
+          setters
+            #F13 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:146)
+              element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F11
+              formalParameters
+                #F15 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:146)
+                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
+  classes
+    isAbstract isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isOriginGetterSetter x
+          reference: <testLibrary>::@class::A::@field::x
+          firstFragment: #F2
+          type: Object
+          getter: <testLibrary>::@class::A::@getter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginDeclaration x
+          reference: <testLibrary>::@class::A::@getter::x
+          firstFragment: #F4
+          returnType: Object
+          variable: <testLibrary>::@class::A::@field::x
+    isAbstract isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      fields
+        isOriginGetterSetter x
+          reference: <testLibrary>::@class::B::@field::x
+          firstFragment: #F6
+          type: FutureOr<Object>
+          setter: <testLibrary>::@class::B::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F7
+      setters
+        isOriginDeclaration x
+          reference: <testLibrary>::@class::B::@setter::x
+          firstFragment: #F8
+          formalParameters
+            #E0 requiredPositional _
+              firstFragment: #F9
+              type: FutureOr<Object>
+          returnType: void
+          variable: <testLibrary>::@class::B::@field::x
+    hasNonFinalField isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F10
+      interfaces
+        A
+        B
+      fields
+        hasImplicitType isOriginDeclaration x
+          reference: <testLibrary>::@class::C::@field::x
+          firstFragment: #F11
+          type: FutureOr<Object>
+          getter: <testLibrary>::@class::C::@getter::x
+          setter: <testLibrary>::@class::C::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F14
+      getters
+        isOriginVariable x
+          reference: <testLibrary>::@class::C::@getter::x
+          firstFragment: #F12
+          returnType: FutureOr<Object>
+          variable: <testLibrary>::@class::C::@field::x
+      setters
+        isOriginVariable x
+          reference: <testLibrary>::@class::C::@setter::x
+          firstFragment: #F13
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F15
+              type: FutureOr<Object>
+          returnType: void
+          variable: <testLibrary>::@class::C::@field::x
+''');
+  }
+
   test_instanceField_fromGetterSetter_same_getter() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {

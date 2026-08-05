@@ -137,6 +137,18 @@ class TypeSystemImpl implements TypeSystem {
     return t is FunctionType || t.isDartCoreFunction;
   }
 
+  /// Whether the normal forms of [T1] and [T2] are structurally equal.
+  ///
+  /// Normalization rewrites `FutureOr<Object>` to `Object`, so a getter typed
+  /// `Object` and a setter typed `FutureOr<Object>` compare equal here.
+  /// `dynamic` and `Object?` normalize to themselves.
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/normalization.md`
+  bool areStructurallyEqualAfterNormalization(TypeImpl T1, TypeImpl T2) {
+    return normalize(T1) == normalize(T2);
+  }
+
   /// Checks if an instance of [left] could possibly also be an instance of
   /// [right]. For example, an instance of `num` could be `int`, so
   /// canBeSubtypeOf(`num`, `int`) would return `true`, even though `num` is
