@@ -12583,7 +12583,12 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'Projects the canonical V2 target')
   @override
-  ExpressionImpl get leftHandSide => _unqualifiedTarget.simpleIdentifier;
+  ExpressionImpl get leftHandSide => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
+    InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
+      target.expression,
+    ),
+  };
 
   @experimental
   @override
@@ -12615,10 +12620,18 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
   TypeImpl? get staticType => _origin.staticType;
 
   @override
-  Element? get writeElement => _unqualifiedTarget._legacyWriteElement;
+  Element? get writeElement => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
 
   @override
-  TypeImpl? get writeType => _unqualifiedTarget.write?.acceptedType;
+  TypeImpl? get writeType => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+  };
 
   @generated
   @override
@@ -12636,9 +12649,6 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('AssignmentExpression is not in the V2 AST view.');
   }
-
-  UnqualifiedNameAssignmentTargetImpl get _unqualifiedTarget =>
-      _origin.target as UnqualifiedNameAssignmentTargetImpl;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -23344,6 +23354,34 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 }
 
+/// A read that invokes a getter.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class GetterInvocationResolution
+    implements ValidNamedReadResolution {
+  @override
+  GetterElement get element;
+
+  FunctionType get invokeType;
+}
+
+final class GetterInvocationResolutionImpl extends ValidNamedReadResolutionImpl
+    implements GetterInvocationResolution {
+  @override
+  final InternalGetterElement element;
+
+  @override
+  final TypeImpl type;
+
+  const GetterInvocationResolutionImpl({
+    required this.element,
+    required this.type,
+  });
+
+  @override
+  FunctionTypeImpl get invokeType => element.type;
+}
+
 /// The pattern with an optional [WhenClause].
 ///
 ///    guardedPattern ::=
@@ -24204,6 +24242,395 @@ abstract final class IfNull implements Expression {
 
   /// The expression evaluated if the left operand evaluates to `null`.
   Expression get rightOperand;
+}
+
+/// An if-null assignment using `??=`.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class IfNullAssignment implements AssignmentExpression2 {}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('target', isSuper: true),
+    GenerateNodeProperty('operator', isSuper: true),
+    GenerateNodeProperty('value', isSuper: true, isInValueExpressionSlot: true),
+  ],
+)
+final class IfNullAssignmentImpl extends AssignmentExpression2Impl
+    implements IfNullAssignment {
+  IfNullAssignmentV1Impl? _assignmentExpression;
+
+  @generated
+  IfNullAssignmentImpl({
+    required super.target,
+    required super.operator,
+    required super.value,
+  });
+
+  /// The cached V1 compatibility projection for this expression.
+  IfNullAssignmentV1Impl get assignmentExpression =>
+      _assignmentExpression ??= IfNullAssignmentV1Impl._(this);
+
+  @generated
+  @override
+  Token get beginToken {
+    return target.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return value.endToken;
+  }
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @override
+  set target(AssignmentTargetImpl target) {
+    super.target = target;
+    _assignmentExpression?._attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @override
+  set value(ExpressionImpl value) {
+    super.value = value;
+    _assignmentExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('IfNullAssignment is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('operator', operator)
+    ..addNode('value', value);
+
+  @override
+  InternalFormalParameterElement? get _staticParameterElementForValue {
+    var target = this.target;
+    if (target is! UnqualifiedNameAssignmentTargetImpl) {
+      return null;
+    }
+    if (target.write case SetterInvocationResolutionImpl(:var element)) {
+      return element.formalParameters.single;
+    }
+    return null;
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('IfNullAssignment is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfNullAssignment(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return identical(value, child);
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(target, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target'.");
+    }
+    if (identical(value, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'value'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(target, oldNode)) {
+      target = newNode as AssignmentTargetImpl;
+      return;
+    }
+    if (identical(value, oldNode)) {
+      value = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitIfNullAssignment(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('IfNullAssignment is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    target.accept2(visitor);
+    value.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(AssignmentTargetImpl)? visitTarget,
+    void Function(ExpressionImpl)? visitValue,
+  }) {
+    if (visitTarget != null) {
+      visitTarget(target);
+    } else {
+      target.accept2(visitor);
+    }
+    if (visitValue != null) {
+      visitValue(value);
+    } else {
+      value.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('IfNullAssignment is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target._containsOffset(rangeOffset, rangeEnd)) {
+      return target;
+    }
+    if (value._containsOffset(rangeOffset, rangeEnd)) {
+      return value;
+    }
+    return null;
+  }
+}
+
+/// The V1 compatibility projection of an [IfNullAssignment].
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftHandSide'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('rightHandSide'),
+  ],
+)
+final class IfNullAssignmentV1Impl extends ExpressionImpl
+    with CompoundAssignmentExpressionImpl
+    implements AssignmentExpression {
+  final IfNullAssignmentImpl _origin;
+
+  IfNullAssignmentV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @override
+  MethodElement? get element => null;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 target')
+  @override
+  ExpressionImpl get leftHandSide => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
+    InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
+      target.expression,
+    ),
+  };
+
+  @experimental
+  @override
+  ExpressionImpl get leftHandSide2 => leftHandSide;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get operator => _origin.operator;
+
+  @override
+  Precedence get precedence => _origin.precedence;
+
+  @override
+  Element? get readElement => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
+
+  @override
+  TypeImpl? get readType => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
+    InvalidExpressionAssignmentTargetImpl target =>
+      target.expression.staticType,
+  };
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 value')
+  @override
+  ExpressionImpl get rightHandSide =>
+      V1Projection.toV1Expression(_origin.value);
+
+  @experimental
+  @override
+  ExpressionImpl get rightHandSide2 => _origin.value;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  Element? get writeElement => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
+
+  @override
+  TypeImpl? get writeType => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+  };
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('leftHandSide', leftHandSide)
+    ..addToken('operator', operator)
+    ..addNode('rightHandSide', rightHandSide);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('AssignmentExpression is not in the V2 AST view.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAssignmentExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('AssignmentExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @DoNotGenerate(reason: 'Only the value is a V1 value expression slot')
+  @override
+  bool isInValueExpressionSlot(AstNode child) =>
+      identical(rightHandSide, child);
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('AssignmentExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    leftHandSide.accept(visitor);
+    rightHandSide.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('AssignmentExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(leftHandSide);
+    _becomeParentOf1(rightHandSide);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (leftHandSide._containsOffset(rangeOffset, rangeEnd)) {
+      return leftHandSide;
+    }
+    if (rightHandSide._containsOffset(rangeOffset, rangeEnd)) {
+      return rightHandSide;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('AssignmentExpression is not in the V2 AST view.');
+  }
 }
 
 @GenerateNodeImpl(
@@ -26921,6 +27348,201 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
+}
+
+/// An assignment target whose source cannot denote a storage location.
+///
+/// Invalid targets have no read or write target resolution. Concrete variants
+/// retain the resolved source structure needed for diagnostics and recovery.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class InvalidAssignmentTarget implements AssignmentTarget {}
+
+/// An invalid assignment target whose source is an ordinary value expression.
+///
+/// The contained expression is fully resolved, but this target has no target
+/// resolution because the expression does not denote a storage location.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidExpressionAssignmentTarget
+    implements InvalidAssignmentTarget {
+  /// The fully resolved expression found in the assignment-target position.
+  Expression get expression;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+  ],
+)
+final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
+    implements InvalidExpressionAssignmentTarget {
+  @generated
+  ExpressionImpl _expression;
+
+  @generated
+  InvalidExpressionAssignmentTargetImpl({required ExpressionImpl expression})
+    : _expression = expression {
+    _becomeParentOf2(expression);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return expression.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return expression.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get expression => _expression;
+
+  @generated
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf2(expression);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'InvalidExpressionAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('expression', expression);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'InvalidExpressionAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitInvalidExpressionAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(expression, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(expression, oldNode)) {
+      expression = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'InvalidExpressionAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'InvalidExpressionAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
+  }
+}
+
+/// An unsuccessful named read resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidNamedReadResolution implements NamedReadResolution {
+  List<Element> get candidates;
+
+  ValidNamedReadResolution? get recovery;
+}
+
+final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
+    implements InvalidNamedReadResolution {
+  @override
+  final List<Element> candidates;
+
+  @override
+  final ValidNamedReadResolutionImpl? recovery;
+
+  @override
+  final TypeImpl type;
+
+  InvalidNamedReadResolutionImpl({
+    required List<Element> candidates,
+    required this.recovery,
+    required this.type,
+  }) : candidates = List.unmodifiable(candidates);
 }
 
 /// An unsuccessful named write resolution.
@@ -31775,6 +32397,9 @@ abstract final class NamedReadResolution {
 
 sealed class NamedReadResolutionImpl implements NamedReadResolution {
   const NamedReadResolutionImpl();
+
+  @override
+  TypeImpl get type;
 }
 
 /// A named type, which can optionally include type arguments.
@@ -46804,6 +47429,17 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
+  /// The read element exposed by the V1 compatibility projection.
+  @DoNotGenerate(reason: 'Implements the legacy invalid-read element policy')
+  Element? get _legacyReadElement {
+    return switch (read) {
+      null => null,
+      InvalidNamedReadResolutionImpl(:var candidates) =>
+        candidates.isEmpty ? null : candidates.first,
+      ValidNamedReadResolutionImpl(:var element) => element,
+    };
+  }
+
   /// The element exposed by the V1 compatibility projection.
   @DoNotGenerate(reason: 'Implements the legacy invalid-write element policy')
   Element? get _legacyWriteElement {
@@ -47033,6 +47669,9 @@ enum V1Projection {
     if (node is IfNullImpl) {
       return node.binaryExpression;
     }
+    if (node is IfNullAssignmentImpl) {
+      return node.assignmentExpression;
+    }
     if (node is LogicalNotImpl) {
       return node.prefixExpression;
     }
@@ -47071,6 +47710,23 @@ enum V1Projection {
     }
     return node;
   }
+}
+
+/// A successful resolution of a read performed on a named assignment target.
+///
+/// Instances are exposed through the read properties of assignment targets
+/// that require the target's current value. Concrete subtypes describe how the
+/// name is read, such as by directly reading a local variable or formal
+/// parameter, or by invoking a getter.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ValidNamedReadResolution implements NamedReadResolution {
+  Element get element;
+}
+
+sealed class ValidNamedReadResolutionImpl extends NamedReadResolutionImpl
+    implements ValidNamedReadResolution {
+  const ValidNamedReadResolutionImpl();
 }
 
 /// A successfully resolved named write.
@@ -47848,6 +48504,26 @@ sealed class VariablePatternImpl extends DartPatternImpl
 
   @override
   VariablePatternImpl? get variablePattern => this;
+}
+
+/// A direct read of a local variable or formal parameter.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class VariableReadResolution
+    implements ValidNamedReadResolution {
+  @override
+  VariableElement get element;
+}
+
+final class VariableReadResolutionImpl extends ValidNamedReadResolutionImpl
+    implements VariableReadResolution {
+  @override
+  final InternalVariableElement element;
+
+  @override
+  final TypeImpl type;
+
+  const VariableReadResolutionImpl({required this.element, required this.type});
 }
 
 /// A direct write to a variable.

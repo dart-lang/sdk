@@ -315,6 +315,57 @@ AssignmentExpression
 ''');
   }
 
+  test_ifNull_implicitCall_usesUnpromotedWriteType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void call() {}
+}
+
+void f(Object? x, C c) {
+  if (x is Function?) {
+    x ??= c;
+  }
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('x ??= c');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Function?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: Object?
+  operator: ??=
+  value: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  staticType: Object
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: null
+  operator: ??=
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  readElement: <testLibrary>::@function::f::@formalParameter::x
+  readType: Function?
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
+  writeType: Object?
+  element: <null>
+  staticType: Object
+''');
+  }
+
   test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext_beforeInferenceUpdate3() async {
     var result = await resolveTestCodeWithDiagnostics('''
 // %before-language-feature: inference-update-3
@@ -325,15 +376,31 @@ f(Object? o1, Object? o2, List<num> listNum) {
 }
 ''');
 
-    var node = result.findNode.assignment('o1 ??= listNum');
+    var node = result.findNode.ifNullAssignment('o1 ??= listNum');
     assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: o1
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::o1
+      type: Iterable<int>?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::o1
+      acceptedType: Object?
+  operator: ??=
+  value: SimpleIdentifier
+    token: listNum
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::listNum
+    staticType: List<num>
+  staticType: Object
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: o1
     element: <testLibrary>::@function::f::@formalParameter::o1
     staticType: null
   operator: ??=
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: listNum
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::listNum
@@ -344,6 +411,51 @@ AssignmentExpression
   writeType: Object?
   element: <null>
   staticType: Object
+''');
+  }
+
+  test_ifNull_readType_void() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  x ??= 0;
+//  ^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('x ??= 0');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: void
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: void
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: void
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <testLibrary>::@function::f::@formalParameter::x
+  readType: void
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
+  writeType: void
+  element: <null>
+  staticType: void
 ''');
   }
 
@@ -1017,14 +1129,25 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singleAssignmentExpression;
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: SuperExpression
+      superKeyword: super
+      staticType: A
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SuperExpression
+  leftHandSide: SuperExpression
     superKeyword: super
     staticType: A
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -1090,6 +1213,65 @@ AssignmentExpression
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
+''');
+  }
+
+  test_notLValue_binaryExpression_simple() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  1 + 2 = 3;
+//^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: BinaryOperatorInvocation
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      binaryOperator: add
+      element: dart:core::@class::num::@method::+
+      staticType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+AssignmentExpression
+  leftHandSide: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      staticType: int
+    element: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
 ''');
   }
 
@@ -1196,25 +1378,51 @@ void f(int a, double b) {
 }
 ''');
 
-    var node = result.findNode.assignment('= b');
+    var node = result.findNode.directAssignment('= b');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: ParenthesizedExpression
-    leftParenthesis: (
-    expression2: BinaryOperatorInvocation
-      leftOperand: SimpleIdentifier
-        token: a
-        element: <testLibrary>::@function::f::@formalParameter::a
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 0
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
         staticType: int
-      operator: +
-      rightOperand: IntegerLiteral
-        literal: 0
-        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      expression(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
+          literal: 0
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        element: dart:core::@class::num::@method::+
+        staticInvokeType: num Function(num)
         staticType: int
-      binaryOperator: add
-      element: dart:core::@class::num::@method::+
+      rightParenthesis: )
       staticType: int
-    expression(v1): BinaryExpression
+  operator: =
+  value: SimpleIdentifier
+    token: b
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: double
+  staticType: double
+AssignmentExpression
+  leftHandSide: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
@@ -1230,7 +1438,7 @@ AssignmentExpression
     rightParenthesis: )
     staticType: int
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -1303,19 +1511,28 @@ void f(num x, int y) {
 }
 ''');
 
-    var node = result.findNode.assignment('= y');
+    var node = result.findNode.ifNullAssignment('= y');
     assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: PostfixIncrement
+      operand: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: null
+      operator: ++
+      element: dart:core::@class::num::@method::+
+      operatorResultType: num
+      staticType: num
+  operator: ??=
+  value: SimpleIdentifier
+    token: y
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::y
+    staticType: int
+  staticType: num
 AssignmentExpression
-  leftHandSide2: PostfixIncrement
-    operand: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
-      staticType: null
-    operator: ++
-    element: dart:core::@class::num::@method::+
-    operatorResultType: num
-    staticType: num
-  leftHandSide(v1): PostfixExpression
+  leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -1328,17 +1545,17 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticType: num
   operator: ??=
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement: <null>
-  readType: InvalidType
+  readType: num
   writeElement: <null>
   writeType: InvalidType
   element: <null>
-  staticType: InvalidType
+  staticType: num
 ''');
   }
 
@@ -1352,19 +1569,28 @@ void f(num x, int y) {
 }
 ''');
 
-    var node = result.findNode.assignment('= y');
+    var node = result.findNode.directAssignment('= y');
     assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: PostfixIncrement
+      operand: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: null
+      operator: ++
+      element: dart:core::@class::num::@method::+
+      operatorResultType: num
+      staticType: num
+  operator: =
+  value: SimpleIdentifier
+    token: y
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::y
+    staticType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: PostfixIncrement
-    operand: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
-      staticType: null
-    operator: ++
-    element: dart:core::@class::num::@method::+
-    operatorResultType: num
-    staticType: num
-  leftHandSide(v1): PostfixExpression
+  leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -1377,7 +1603,7 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticType: num
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
@@ -1450,19 +1676,28 @@ void f(num x, int y) {
 }
 ''');
 
-    var node = result.findNode.assignment('= y');
+    var node = result.findNode.ifNullAssignment('= y');
     assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: PrefixIncrement
+      operator: ++
+      operand: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: null
+      element: dart:core::@class::num::@method::+
+      operatorResultType: num
+      staticType: num
+  operator: ??=
+  value: SimpleIdentifier
+    token: y
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::y
+    staticType: int
+  staticType: num
 AssignmentExpression
-  leftHandSide2: PrefixIncrement
-    operator: ++
-    operand: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
-      staticType: null
-    element: dart:core::@class::num::@method::+
-    operatorResultType: num
-    staticType: num
-  leftHandSide(v1): PrefixExpression
+  leftHandSide: PrefixExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
@@ -1475,17 +1710,17 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticType: num
   operator: ??=
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement: <null>
-  readType: InvalidType
+  readType: num
   writeElement: <null>
   writeType: InvalidType
   element: <null>
-  staticType: InvalidType
+  staticType: num
 ''');
   }
 
@@ -1499,19 +1734,28 @@ void f(num x, int y) {
 }
 ''');
 
-    var node = result.findNode.assignment('= y');
+    var node = result.findNode.directAssignment('= y');
     assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: PrefixIncrement
+      operator: ++
+      operand: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: null
+      element: dart:core::@class::num::@method::+
+      operatorResultType: num
+      staticType: num
+  operator: =
+  value: SimpleIdentifier
+    token: y
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::y
+    staticType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: PrefixIncrement
-    operator: ++
-    operand: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
-      staticType: null
-    element: dart:core::@class::num::@method::+
-    operatorResultType: num
-    staticType: num
-  leftHandSide(v1): PrefixExpression
+  leftHandSide: PrefixExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
@@ -1524,7 +1768,7 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticType: num
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
@@ -1646,15 +1890,39 @@ g(int? a) {
 }
 ''');
 
-    var node = result.findNode.assignment('??= f()');
+    var node = result.findNode.ifNullAssignment('??= f()');
     assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      type: int?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      acceptedType: int?
+  operator: ??=
+  value: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    correspondingParameter: <null>
+    staticInvokeType: int? Function()
+    staticType: int?
+    typeArgumentTypes
+      int?
+  staticType: int?
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::g::@formalParameter::a
     staticType: null
   operator: ??=
-  rightHandSide2: MethodInvocation
+  rightHandSide: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
@@ -4283,15 +4551,30 @@ void f(num? x) {
 }
 ''');
 
-    var node = result.findNode.assignment('x ??=');
+    var node = result.findNode.ifNullAssignment('x ??=');
     assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: num?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: num?
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: num
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ??=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -4317,15 +4600,19 @@ void f(B? x) {
 }
 ''');
 
-    var node = result.findNode.assignment('x ??=');
+    var node = result.findNode.ifNullAssignment('x ??=');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: null
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: B?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: B?
   operator: ??=
-  rightHandSide2: ConstructorInvocation
+  value: ConstructorInvocation
     constructorReference: ConstructorReference2
       typeReference: ConstructorTypeReference
         name: C
@@ -4337,7 +4624,14 @@ AssignmentExpression
       rightParenthesis: )
     correspondingParameter: <null>
     staticType: C
-  rightHandSide(v1): InstanceCreationExpression
+  staticType: A
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: null
+  operator: ??=
+  rightHandSide: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -4366,15 +4660,31 @@ void f(double? a, int b) {
 }
 ''');
 
-    var node = result.findNode.assignment('a ??=');
+    var node = result.findNode.ifNullAssignment('a ??=');
     assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: double?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      acceptedType: double?
+  operator: ??=
+  value: SimpleIdentifier
+    token: b
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  staticType: num
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
   operator: ??=
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -4654,6 +4964,62 @@ AssignmentExpression
 ''');
   }
 
+  test_simpleIdentifier_staticMethod_superSetter_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  set x(num _) {}
+}
+
+class B extends A {
+  static void x() {}
+//            ^
+// [diag.conflictingStaticAndInstance] Class 'B' can't define static member 'x' and have instance member 'A.x' with the same name.
+
+  void f() {
+    x ??= 2;
+//  ^
+// [diag.assignmentToMethod] Methods can't be assigned a value.
+//        ^^
+// [diag.deadCode] Dead code.
+//        ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  }
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('x ??= 2');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@class::B::@method::x
+      staticType: void Function()
+  operator: ??=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  staticType: Object
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@class::B::@method::x
+    staticType: void Function()
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <testLibrary>::@class::B::@method::x
+  readType: void Function()
+  writeElement: <testLibrary>::@class::B::@method::x
+  writeType: InvalidType
+  element: <null>
+  staticType: Object
+''');
+  }
+
   test_simpleIdentifier_staticMethod_superSetter_simple() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -4676,14 +5042,11 @@ class B extends A {
     var node = result.findNode.directAssignment('x = 2');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
-    read: <null>
-    write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::B::@method::x
-      recovery: <null>
+  target: InvalidExpressionAssignmentTarget
+    expression: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@class::B::@method::x
+      staticType: void Function()
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -4693,8 +5056,8 @@ DirectAssignment
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <null>
-    staticType: null
+    element: <testLibrary>::@class::B::@method::x
+    staticType: void Function()
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
@@ -4936,17 +5299,33 @@ class C {
 }
 ''');
 
-    var node = result.findNode.assignment('x ??= 2');
+    var node = result.findNode.ifNullAssignment('x ??= 2');
     assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::x
+      invokeType: int? Function()
+      type: int?
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::C::@setter::x
+      acceptedType: num?
+  operator: ??=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_
+    staticType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   operator: ??=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <null>
+    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_
     staticType: int
   readElement: <testLibrary>::@class::C::@getter::x
   readType: int?
@@ -5058,15 +5437,20 @@ B? get x => B();
 set x(B? _) {}
 ''');
 
-    var node = result.findNode.assignment('x ??=');
+    var node = result.findNode.ifNullAssignment('x ??=');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: SimpleIdentifier
-    token: x
-    element: <null>
-    staticType: null
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@getter::x
+      invokeType: B? Function()
+      type: B?
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::x
+      acceptedType: B?
   operator: ??=
-  rightHandSide2: ConstructorInvocation
+  value: ConstructorInvocation
     constructorReference: ConstructorReference2
       typeReference: ConstructorTypeReference
         name: C
@@ -5076,9 +5460,16 @@ AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    correspondingParameter: <null>
+    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_
     staticType: C
-  rightHandSide(v1): InstanceCreationExpression
+  staticType: A
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -5145,14 +5536,11 @@ void f() {
     var node = result.findNode.directAssignment('foo = 0');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: foo
-    read: <null>
-    write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@function::foo
-      recovery: <null>
+  target: InvalidExpressionAssignmentTarget
+    expression: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: void Function(int)
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -5162,8 +5550,8 @@ DirectAssignment
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
-    element: <null>
-    staticType: null
+    element: <testLibrary>::@function::foo
+    staticType: void Function(int)
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
@@ -5482,14 +5870,33 @@ f(Object? o, C2<double> c2) {
 }
 ''');
 
-    var node = result.findNode.assignment('o ??= c2');
-    assertResolvedNodeText(node, r'''AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+    var node = result.findNode.ifNullAssignment('o ??= c2');
+    assertResolvedNodeText(node, r'''IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: o
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::o
+      type: C1<int>?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::o
+      acceptedType: Object?
+  operator: ??=
+  value: SimpleIdentifier
+    token: c2
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c2
+    staticType: C2<double>
+  correspondingParameter: SubstitutedFormalParameterElementImpl
+    baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
+    substitution: {T: Object?}
+  staticType: B1<Object?>
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
     token: o
     element: <testLibrary>::@function::f::@formalParameter::o
     staticType: null
   operator: ??=
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: c2
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2
@@ -5515,14 +5922,30 @@ f(Object? o1, Object? o2, int? i) {
 }
 ''');
 
-    var node = result.findNode.assignment('o2 ??= i');
-    assertResolvedNodeText(node, r'''AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+    var node = result.findNode.ifNullAssignment('o2 ??= i');
+    assertResolvedNodeText(node, r'''IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: o2
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::o2
+      type: double?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::o2
+      acceptedType: Object?
+  operator: ??=
+  value: SimpleIdentifier
+    token: i
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::i
+    staticType: int?
+  staticType: num?
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
     token: o2
     element: <testLibrary>::@function::f::@formalParameter::o2
     staticType: null
   operator: ??=
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: i
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::i
@@ -5551,15 +5974,32 @@ f(Object? o, C2 c2) {
 }
 ''');
 
-    var node = result.findNode.assignment('o ??= c2');
+    var node = result.findNode.ifNullAssignment('o ??= c2');
     assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: o
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::o
+      type: C1?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::o
+      acceptedType: Object?
+  operator: ??=
+  value: SimpleIdentifier
+    token: c2
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c2
+    staticType: C2
+  correspondingParameter: <testLibrary>::@function::contextB1::@formalParameter::b1
+  staticType: B1
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: o
     element: <testLibrary>::@function::f::@formalParameter::o
     staticType: null
   operator: ??=
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: c2
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2

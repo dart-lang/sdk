@@ -81,6 +81,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _check(arguments: [node.index2], errorNode: node.leftBracket);
   }

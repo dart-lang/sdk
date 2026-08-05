@@ -922,21 +922,30 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
 
   @override
   void visitDirectAssignment(DirectAssignment node) {
-    var target = node.target as UnqualifiedNameAssignmentTarget;
-    var write = target.write;
-    if (write is! ValidNamedWriteResolution) {
-      assembler.addNameRelation(
-        target.name.lexeme,
-        IndexRelationKind.IS_WRITTEN_BY,
-        target.offset,
-        false,
-      );
-    } else {
-      var element = write.element;
-      if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-        assembler.addPrefixForElement(element);
-      }
-      recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, target, false);
+    switch (node.target as AssignmentTargetImpl) {
+      case InvalidExpressionAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        var write = target.write;
+        if (write is! ValidNamedWriteResolutionImpl) {
+          assembler.addNameRelation(
+            target.name.lexeme,
+            IndexRelationKind.IS_WRITTEN_BY,
+            target.offset,
+            false,
+          );
+        } else {
+          var element = write.element;
+          if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+            assembler.addPrefixForElement(element);
+          }
+          recordRelation(
+            element,
+            IndexRelationKind.IS_WRITTEN_BY,
+            target,
+            false,
+          );
+        }
     }
     super.visitDirectAssignment(node);
   }
@@ -1075,6 +1084,57 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     }
 
     return super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    switch (node.target as AssignmentTargetImpl) {
+      case InvalidExpressionAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        var read = target.read;
+        var write = target.write;
+        if (read is ValidNamedReadResolutionImpl &&
+            write is ValidNamedWriteResolutionImpl) {
+          var readElement = read.element;
+          var writeElement = write.element;
+          for (var element in {readElement, writeElement}) {
+            if (element.firstFragment.enclosingFragment
+                is LibraryFragmentImpl) {
+              assembler.addPrefixForElement(element);
+            }
+          }
+          if (identical(readElement, writeElement)) {
+            recordRelation(
+              readElement,
+              IndexRelationKind.IS_READ_WRITTEN_BY,
+              target,
+              false,
+            );
+          } else {
+            recordRelation(
+              readElement,
+              IndexRelationKind.IS_READ_BY,
+              target,
+              false,
+            );
+            recordRelation(
+              writeElement,
+              IndexRelationKind.IS_WRITTEN_BY,
+              target,
+              false,
+            );
+          }
+        } else {
+          assembler.addNameRelation(
+            target.name.lexeme,
+            IndexRelationKind.IS_READ_WRITTEN_BY,
+            target.offset,
+            false,
+          );
+        }
+    }
+    super.visitIfNullAssignment(node);
   }
 
   @override

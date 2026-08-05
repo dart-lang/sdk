@@ -748,6 +748,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
+  void ifNullAssignment(IfNullAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case ValidNamedReadResolution(:var element)) {
+        checkUsage(element, target);
+      }
+      if (target.write case ValidNamedWriteResolution(:var element)) {
+        checkUsage(element, target);
+      }
+    }
+  }
+
   void importDirective(ImportDirective node) {
     checkUsage(node.libraryImport?.importedLibrary, node);
   }

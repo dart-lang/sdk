@@ -2212,6 +2212,17 @@ print(x) {}
 ''');
   }
 
+  test_functionLocal_isUsed_invalidAssignment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+main() {
+  f(int value) {}
+  f = 0;
+//^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+}
+''');
+  }
+
   test_functionLocal_isUsed_invocation() async {
     await resolveTestCodeWithDiagnostics(r'''
 main() {
@@ -2228,19 +2239,6 @@ main() {
   print(f);
 }
 print(x) {}
-''');
-  }
-
-  test_functionLocal_notUsed_invalidAssignment() async {
-    await resolveTestCodeWithDiagnostics(r'''
-main() {
-  f(int value) {}
-//^
-// [diag.unusedElement] The declaration 'f' isn't referenced.
-  f = 0;
-//^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
-}
 ''');
   }
 

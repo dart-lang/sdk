@@ -382,6 +382,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _writeByte(Tag.IfNullAssignment);
+    _writeNode(node.target);
+    _writeNode(node.value);
+    _storeExpression(node);
+  }
+
+  @override
   void visitImplicitCallReference(ImplicitCallReference node) {
     _writeByte(Tag.ImplicitCallReference);
     _writeNode(node.expression2);
@@ -469,6 +477,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeByte(Tag.InterpolationString);
     _writeStringReference(node.contents.lexeme);
     _writeStringReference(node.value);
+  }
+
+  @override
+  void visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    _writeByte(Tag.InvalidExpressionAssignmentTarget);
+    _writeNode(node.expression);
   }
 
   @override
@@ -906,7 +922,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _writeByte(Tag.UnqualifiedNameAssignmentTarget);
     _writeStringReference(node.name.lexeme);
-    assert(node.read == null);
+    _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
     _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
   }
 
@@ -1044,6 +1060,26 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeType(nodeImpl.writeType);
     _sink.writeType(node.operatorResultType);
     _storeExpression(node);
+  }
+
+  void _writeNamedReadResolution(NamedReadResolutionImpl resolution) {
+    switch (resolution) {
+      case GetterInvocationResolutionImpl():
+        _writeByte(NamedReadResolutionTag.getterInvocation.index);
+        _sink.writeElement(resolution.element);
+        _sink.writeType(resolution.type);
+      case InvalidNamedReadResolutionImpl():
+        _writeByte(NamedReadResolutionTag.invalid.index);
+        _sink.writeType(resolution.type);
+        _sink.writeList(resolution.candidates, _sink.writeElement);
+        _sink.writeOptionalObject(resolution.recovery, (recovery) {
+          _writeNamedReadResolution(recovery);
+        });
+      case VariableReadResolutionImpl():
+        _writeByte(NamedReadResolutionTag.variableRead.index);
+        _sink.writeElement(resolution.element);
+        _sink.writeType(resolution.type);
+    }
   }
 
   void _writeNamedWriteResolution(NamedWriteResolutionImpl resolution) {

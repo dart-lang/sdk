@@ -78,6 +78,8 @@ class FindNode2 extends _FindNodeBase {
 
   IfNull get singleIfNull => _single();
 
+  IfNullAssignment get singleIfNullAssignment => _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -115,6 +117,10 @@ class FindNode2 extends _FindNodeBase {
 
   IfNull ifNull(String search) {
     return _node(search, (node) => node is IfNull);
+  }
+
+  IfNullAssignment ifNullAssignment(String search) {
+    return _node(search, (node) => node is IfNullAssignment);
   }
 
   LogicalAnd logicalAnd(String search) {

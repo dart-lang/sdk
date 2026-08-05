@@ -670,6 +670,18 @@ class AstBinaryReader {
     return node;
   }
 
+  IfNullAssignment _readIfNullAssignment() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var value = _readNode() as ExpressionImpl;
+    var node = IfNullAssignmentImpl(
+      target: target,
+      operator: Tokens.fromType(UnlinkedTokenType.QUESTION_QUESTION_EQ),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   ImplicitCallReference _readImplicitCallReference() {
     var expression = _readNode() as ExpressionImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
@@ -780,6 +792,12 @@ class AstBinaryReader {
     return InterpolationStringImpl(
       contents: TokenFactory.tokenFromString(lexeme),
       value: value,
+    );
+  }
+
+  InvalidExpressionAssignmentTarget _readInvalidExpressionAssignmentTarget() {
+    return InvalidExpressionAssignmentTargetImpl(
+      expression: _readNode() as ExpressionImpl,
     );
   }
 
@@ -907,6 +925,32 @@ class AstBinaryReader {
     );
   }
 
+  NamedReadResolutionImpl _readNamedReadResolution() {
+    switch (NamedReadResolutionTag.values[_readByte()]) {
+      case NamedReadResolutionTag.getterInvocation:
+        return GetterInvocationResolutionImpl(
+          element: _reader.readElement() as InternalGetterElement,
+          type: _reader.readRequiredType(),
+        );
+      case NamedReadResolutionTag.invalid:
+        var type = _reader.readRequiredType();
+        var candidates = _reader.readElementList<Element>();
+        var recovery = _reader.readOptionalObject(() {
+          return _readNamedReadResolution() as ValidNamedReadResolutionImpl;
+        });
+        return InvalidNamedReadResolutionImpl(
+          candidates: candidates,
+          recovery: recovery,
+          type: type,
+        );
+      case NamedReadResolutionTag.variableRead:
+        return VariableReadResolutionImpl(
+          element: _reader.readElement() as InternalVariableElement,
+          type: _reader.readRequiredType(),
+        );
+    }
+  }
+
   NamedType _readNamedType() {
     var flags = _readByte();
     var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
@@ -966,6 +1010,10 @@ class AstBinaryReader {
         return _readAssignmentExpression();
       case Tag.DirectAssignment:
         return _readDirectAssignment();
+      case Tag.IfNullAssignment:
+        return _readIfNullAssignment();
+      case Tag.InvalidExpressionAssignmentTarget:
+        return _readInvalidExpressionAssignmentTarget();
       case Tag.AwaitExpression:
         return _readAwaitExpression();
       case Tag.BinaryOperatorInvocation:
@@ -1663,6 +1711,7 @@ class AstBinaryReader {
     var node = UnqualifiedNameAssignmentTargetImpl(
       name: StringToken(TokenType.STRING, name, -1),
     );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
     node.write = _reader.readOptionalObject(_readNamedWriteResolution);
     return node;
   }

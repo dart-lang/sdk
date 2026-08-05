@@ -80,14 +80,24 @@ class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
+    Element? element;
+    var flowNode = node;
     if (node is SimpleIdentifier && node.inGetterContext()) {
-      var element = node.element;
-      if (element is LocalVariableElement ||
-          element is FormalParameterElement) {
-        if (_flowResult.notDefinitelyAssigned.contains(node)) {
-          return 'unassigned';
+      element = node.element;
+    } else if (node is IfNullAssignment) {
+      var target = node.target;
+      if (target is UnqualifiedNameAssignmentTarget) {
+        var readResolution = target.read;
+        if (readResolution is VariableReadResolution) {
+          element = readResolution.element;
+          flowNode = target;
         }
       }
+    }
+    if ((element is LocalVariableElement ||
+            element is FormalParameterElement) &&
+        _flowResult.notDefinitelyAssigned.contains(flowNode)) {
+      return 'unassigned';
     }
     return null;
   }

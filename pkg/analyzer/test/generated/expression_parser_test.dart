@@ -1727,21 +1727,26 @@ var v = x ||= y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: LogicalOr
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: ||
+      rightOperand: SimpleIdentifier
+        token: <empty> <synthetic>
+  operator: =
+  value: SimpleIdentifier
+    token: y
 AssignmentExpression
-  leftHandSide2: LogicalOr
-    leftOperand: SimpleIdentifier
-      token: x
-    operator: ||
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
-  leftHandSide(v1): BinaryExpression
+  leftHandSide: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
     operator: ||
     rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
 ''');
   }

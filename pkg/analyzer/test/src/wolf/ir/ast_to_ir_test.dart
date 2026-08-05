@@ -213,8 +213,10 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('j ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('j ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('j ??=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('j ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -233,8 +235,10 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('j ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('j ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('j ??=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('j ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -315,8 +319,10 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('i ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('i ??=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -332,8 +338,10 @@ external int? hook(int? x, String s);
 test(int? i) => i ??= hook(123, '123');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('i ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('i ??=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -585,8 +593,10 @@ class C {
 }
 ''');
     analyze(result, result.findNode.methodDeclaration('test'));
-    check(astNodes)[result.findNode.assignment("p ??= hook(123, '123')")]
-      ..containsSubrange(astNodes[result.findNode.simple('p ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment("p ??= hook(123, '123')")]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('p ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );

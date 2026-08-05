@@ -1157,6 +1157,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitIfNull(IfNull node) => visitExpression(node);
 
+  @experimental
+  @override
+  R? visitIfNullAssignment(IfNullAssignment node) =>
+      visitAssignmentExpression2(node);
+
   @override
   R? visitIfStatement(IfStatement node) => visitStatement(node);
 
@@ -1195,6 +1200,12 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitInterpolationString(InterpolationString node) =>
       visitInterpolationElement(node);
+
+  @experimental
+  @override
+  R? visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) => visitAssignmentTarget(node);
 
   R? visitInvocationExpression(InvocationExpression node) =>
       visitExpression(node);
@@ -3276,6 +3287,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitIfNullAssignment(IfNullAssignment node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitIfStatement(IfStatement node) {
     node.visitChildren2(this);
@@ -3326,6 +3344,15 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitInterpolationString(InterpolationString node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
     node.visitChildren2(this);
     return null;
   }
@@ -4812,6 +4839,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitIfNull(IfNull node) => null;
 
+  @experimental
+  @override
+  R? visitIfNullAssignment(IfNullAssignment node) => null;
+
   @override
   R? visitIfStatement(IfStatement node) => null;
 
@@ -4838,6 +4869,12 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitInterpolationString(InterpolationString node) => null;
+
+  @experimental
+  @override
+  R? visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) => null;
 
   @override
   R? visitIsExpression(IsExpression node) => null;
@@ -6067,6 +6104,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitIfNull(IfNull node) => _throw(node);
 
+  @experimental
+  @override
+  R? visitIfNullAssignment(IfNullAssignment node) => _throw(node);
+
   @override
   R? visitIfStatement(IfStatement node) => _throw(node);
 
@@ -6093,6 +6134,12 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitInterpolationString(InterpolationString node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) => _throw(node);
 
   @override
   R? visitIsExpression(IsExpression node) => _throw(node);
@@ -8673,6 +8720,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitIfNullAssignment(IfNullAssignment node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitIfNullAssignment(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitIfStatement(IfStatement node) {
     stopwatch.start();
@@ -8741,6 +8797,17 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitInterpolationString(InterpolationString node) {
     stopwatch.start();
     T? result = _baseVisitor.visitInterpolationString(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitInvalidExpressionAssignmentTarget(node);
     stopwatch.stop();
     return result;
   }
@@ -10481,6 +10548,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitIfNull(IfNull node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitIfNullAssignment(IfNullAssignment node) => visitNode(node);
+
   @override
   R? visitIfStatement(IfStatement node) => visitNode(node);
 
@@ -10508,6 +10579,12 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitInterpolationString(InterpolationString node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) => visitNode(node);
 
   @override
   R? visitIsExpression(IsExpression node) => visitNode(node);

@@ -614,6 +614,9 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitIfNull(IfNull node);
 
+  @experimental
+  R? visitIfNullAssignment(IfNullAssignment node);
+
   R? visitIfStatement(IfStatement node);
 
   R? visitImplementsClause(ImplementsClause node);
@@ -631,6 +634,11 @@ abstract class AstVisitor2<R> {
   R? visitInterpolationExpression(InterpolationExpression node);
 
   R? visitInterpolationString(InterpolationString node);
+
+  @experimental
+  R? visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  );
 
   R? visitIsExpression(IsExpression node);
 

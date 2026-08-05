@@ -948,6 +948,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _sink.writeln('IfNullAssignment');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     _sink.writeln('IfStatement');
     _sink.withIndent(() {
@@ -1037,6 +1047,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   @override
   void visitInterpolationString(InterpolationString node) {
     _sink.writeln('InterpolationString');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    _sink.writeln('InvalidExpressionAssignmentTarget');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -2344,6 +2364,31 @@ Expected parent: (${parent.runtimeType}) $parent
     switch (resolution) {
       case null:
         _sink.writelnWithIndent('$name: <null>');
+      case GetterInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: GetterInvocationResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
+      case InvalidNamedReadResolutionImpl():
+        _sink.writelnWithIndent('$name: InvalidNamedReadResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+          _sink.writelnWithIndent('candidates');
+          _sink.withIndent(() {
+            for (var candidate in resolution.candidates) {
+              _writeElement('candidate', candidate);
+            }
+          });
+          _writeNamedReadResolution('recovery', resolution.recovery);
+        });
+      case VariableReadResolutionImpl():
+        _sink.writelnWithIndent('$name: VariableReadResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('type', resolution.type);
+        });
     }
   }
 
@@ -2419,6 +2464,7 @@ Expected parent: (${parent.runtimeType}) $parent
         var parent = _viewParent(node);
         if (parent is AssignmentExpression && parent.rightHandSide2 == node ||
             parent is DirectAssignment && parent.value == node ||
+            parent is IfNullAssignment && parent.value == node ||
             parent is BinaryExpression && parent.rightOperand2 == node ||
             parent is BinaryOperatorInvocation && parent.rightOperand == node ||
             parent is IndexExpression && parent.index2 == node) {

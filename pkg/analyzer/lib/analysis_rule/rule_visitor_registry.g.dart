@@ -757,6 +757,9 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addIfNull(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addIfNullAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addIfStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addImplementsClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -777,6 +780,12 @@ abstract class RuleVisitorRegistry2 {
   );
 
   void addInterpolationString(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addInvalidExpressionAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addIsExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

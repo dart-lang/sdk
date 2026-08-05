@@ -589,6 +589,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _elementUsageFrontierDetector.ifNullAssignment(node);
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+    }
+    super.visitIfNullAssignment(node);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     _elementUsageFrontierDetector.importDirective(node);
     var import = node.libraryImport;
@@ -1881,13 +1891,21 @@ class _InvalidAccessVerifier {
   void verifyUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    var element = switch (node.write) {
+    var readElement = switch (node.read) {
+      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      ValidNamedReadResolution(:var element) => element,
+      _ => null,
+    };
+    var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
       ValidNamedWriteResolution(:var element) => element,
       _ => null,
     };
-    _verify(node: node, nameToken: node.name, element: element);
+    for (var element in {readElement, writeElement}) {
+      _verify(node: node, nameToken: node.name, element: element);
+    }
   }
 
   void _checkForInvalidInternalAccess({

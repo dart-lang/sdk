@@ -1867,13 +1867,23 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   void visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    var write = node.write;
-    if (write is ValidNamedWriteResolution) {
-      var element = write.element;
-      var variable = element.tryCast<PropertyAccessorElement>()?.variable;
-      if (elements.contains(element) || elements.contains(variable)) {
-        _addResult(node, SearchResultKind.WRITE);
-      }
+    var readMatches = switch (node.read) {
+      ValidNamedReadResolution(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      ValidNamedWriteResolution(:var element) => _matches(element),
+      _ => false,
+    };
+
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      _addResult(node, kind);
     }
   }
 
@@ -1906,6 +1916,10 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   void _addResultToken(Token token, SearchResultKind kind) {
     _addResultImpl(token, kind, isQualified: true);
   }
+
+  bool _matches(Element element) =>
+      elements.contains(element) ||
+      element is PropertyAccessorElement && elements.contains(element.variable);
 }
 
 /// The marker class that is thrown to stop adding declarations.

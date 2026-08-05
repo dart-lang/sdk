@@ -4723,6 +4723,7 @@ void f() {
 
     var element = result.findElement.topFunction('foo');
     assertElementIndexText(result, element, r'''
+28 4:3 |foo| IS_REFERENCED_BY
 ''');
   }
 

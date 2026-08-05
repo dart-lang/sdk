@@ -1772,6 +1772,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _runSubscriptions(node, _registry._forIfNullAssignment);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitIfStatement(IfStatement node) {
     _runSubscriptions(node, _registry._forIfStatement);
@@ -1823,6 +1830,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     _runSubscriptions(node, _registry._forInterpolationString);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forInvalidExpressionAssignmentTarget);
     node.visitChildren2(this);
   }
 
@@ -4442,6 +4458,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<IfElement>> _forIfElement = [];
 
+  final List<_Subscription2<IfNullAssignment>> _forIfNullAssignment = [];
+
   final List<_Subscription2<IfNull>> _forIfNull = [];
 
   final List<_Subscription2<IfStatement>> _forIfStatement = [];
@@ -4464,6 +4482,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   _forInterpolationExpression = [];
 
   final List<_Subscription2<InterpolationString>> _forInterpolationString = [];
+
+  final List<_Subscription2<InvalidExpressionAssignmentTarget>>
+  _forInvalidExpressionAssignmentTarget = [];
 
   final List<_Subscription2<IsExpression>> _forIsExpression = [];
 
@@ -5381,6 +5402,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addIfNullAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forIfNullAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addIfStatement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forIfStatement.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5447,6 +5474,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addInterpolationString(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forInterpolationString.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addInvalidExpressionAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forInvalidExpressionAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

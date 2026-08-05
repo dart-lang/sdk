@@ -131,14 +131,24 @@ class AssignmentExpressionResolver {
     DirectAssignmentImpl node, {
     required TypeImpl contextType,
   }) {
-    var target = node.target as UnqualifiedNameAssignmentTargetImpl;
+    var target = node.target;
+    if (target is InvalidExpressionAssignmentTargetImpl) {
+      _resolveInvalidDirect(node, target);
+      return;
+    }
+    target as UnqualifiedNameAssignmentTargetImpl;
     var writeResolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
       target,
     );
+    if (writeResolution == null) {
+      var invalidTarget = _invalidTargetForExecutable(target);
+      node.target = invalidTarget;
+      _resolveInvalidDirect(node, invalidTarget);
+      return;
+    }
     target.write = writeResolution;
 
     _assignmentShared.checkFinalTargetAlreadyAssigned(target);
-
     var rhsContext = writeResolution.acceptedType;
     if (writeResolution case VariableWriteResolutionImpl(:var element)) {
       rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
@@ -174,6 +184,83 @@ class AssignmentExpressionResolver {
         ),
       );
     }
+  }
+
+  void resolveIfNull(
+    IfNullAssignmentImpl node, {
+    required TypeImpl contextType,
+  }) {
+    var target = node.target;
+    if (target is InvalidExpressionAssignmentTargetImpl) {
+      _resolveInvalidIfNull(node, target, contextType: contextType);
+      return;
+    }
+    target as UnqualifiedNameAssignmentTargetImpl;
+    var targetResult = _resolver.resolveUnqualifiedNameIfNullAssignmentTarget(
+      target,
+    );
+    if (targetResult == null) {
+      var invalidTarget = _invalidTargetForExecutable(target);
+      node.target = invalidTarget;
+      _resolveInvalidIfNull(
+        node,
+        invalidTarget,
+        contextType: contextType,
+        isExecutableTearOff: true,
+      );
+      return;
+    }
+    target.read = targetResult.read;
+    target.write = targetResult.write;
+
+    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+
+    var readType = targetResult.read.type;
+    if (readType is VoidType) {
+      _diagnosticReporter.report(diag.useOfVoidResult.at(node.operator));
+    }
+    var writeResolution = targetResult.write;
+    var rhsContext = writeResolution.acceptedType;
+    if (writeResolution case VariableWriteResolutionImpl(:var element)) {
+      rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
+    }
+
+    var flow = _resolver.flowAnalysis.flow;
+    flow?.ifNullExpression_rightBegin(
+      targetResult.readExpressionInfo,
+      SharedTypeView(readType),
+    );
+
+    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
+    node.value = _resolver.popRewrite()!;
+    var valueType = node.value.typeOrThrow;
+    var whyNotPromoted = flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    );
+
+    var nodeType = _computeIfNullType(
+      readType: readType,
+      valueType: valueType,
+      contextType: contextType,
+    );
+    node.recordStaticType(nodeType, resolver: _resolver);
+    _checkForInvalidAssignment(
+      writeResolution.acceptedType,
+      node.value,
+      valueType,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    if (flow == null) return;
+    if (writeResolution case VariableWriteResolutionImpl(
+      element: PromotableElementImpl element,
+    )) {
+      _resolver.flowAnalysis.storeExpressionInfo(
+        node,
+        flow.write(node, element, SharedTypeView(node.typeOrThrow), null),
+      );
+    }
+    flow.ifNullExpression_end();
   }
 
   void _checkForInvalidAssignment(
@@ -249,6 +336,45 @@ class AssignmentExpressionResolver {
     return true;
   }
 
+  TypeImpl _computeIfNullType({
+    required TypeImpl readType,
+    required TypeImpl valueType,
+    required TypeImpl contextType,
+  }) {
+    // An if-null assignment `E` of the form `lvalue ??= e` with context type
+    // `K` is analyzed as follows:
+    //
+    // - Let `T1` be the read type of the lvalue.
+    var t1 = readType;
+    // - Let `T2` be the type of `e` inferred with context type `T1`.
+    var t2 = valueType;
+    // - Let `T` be `UP(NonNull(T1), T2)`.
+    var nonNullT1 = _typeSystem.promoteToNonNull(t1);
+    var t = _typeSystem.leastUpperBound(nonNullT1, t2);
+    // - Let `S` be the greatest closure of `K`.
+    var s = _resolver.operations
+        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!_resolver.definingLibrary.featureSet.isEnabled(
+      Feature.inference_update_3,
+    )) {
+      return t;
+    }
+    // - If `T <: S`, then the type of `E` is `T`.
+    if (_typeSystem.isSubtypeOf(t, s)) {
+      return t;
+    }
+    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E`
+    //   is `S`.
+    if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
+        _typeSystem.isSubtypeOf(t2, s)) {
+      return s;
+    }
+    // - Otherwise, the type of `E` is `T`.
+    return t;
+  }
+
   TypeImpl _computeRhsContext(
     AssignmentExpressionImpl node,
     TypeImpl leftType,
@@ -276,6 +402,78 @@ class AssignmentExpressionResolver {
           }
         }
         return UnknownInferredType.instance;
+    }
+  }
+
+  InvalidExpressionAssignmentTargetImpl _invalidTargetForExecutable(
+    UnqualifiedNameAssignmentTargetImpl target,
+  ) {
+    return InvalidExpressionAssignmentTargetImpl(
+      expression: SimpleIdentifierImpl(token: target.name)
+        ..scopeLookupResult = target.scopeLookupResult,
+    );
+  }
+
+  void _resolveInvalidDirect(
+    DirectAssignmentImpl node,
+    InvalidExpressionAssignmentTargetImpl target, {
+    bool expressionIsResolved = false,
+  }) {
+    if (!expressionIsResolved) {
+      _resolver.analyzeExpression(
+        target.expression,
+        SharedTypeSchemaView(UnknownInferredType.instance),
+      );
+      target.expression = _resolver.popRewrite()!;
+    }
+
+    _resolver.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(InvalidTypeImpl.instance),
+    );
+    node.value = _resolver.popRewrite()!;
+    node.recordStaticType(node.value.typeOrThrow, resolver: _resolver);
+  }
+
+  void _resolveInvalidIfNull(
+    IfNullAssignmentImpl node,
+    InvalidExpressionAssignmentTargetImpl target, {
+    required TypeImpl contextType,
+    bool expressionIsResolved = false,
+    bool isExecutableTearOff = false,
+  }) {
+    if (!expressionIsResolved) {
+      _resolver.analyzeExpression(
+        target.expression,
+        SharedTypeSchemaView(UnknownInferredType.instance),
+      );
+      target.expression = _resolver.popRewrite()!;
+    }
+
+    var readType = target.expression.typeOrThrow;
+    var flow = _resolver.flowAnalysis.flow;
+    if (isExecutableTearOff) {
+      flow?.ifNullExpression_rightBegin(
+        _resolver.flowAnalysis.getExpressionInfo(target.expression),
+        SharedTypeView(readType),
+      );
+    }
+
+    _resolver.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(InvalidTypeImpl.instance),
+    );
+    node.value = _resolver.popRewrite()!;
+    node.recordStaticType(
+      _computeIfNullType(
+        readType: readType,
+        valueType: node.value.typeOrThrow,
+        contextType: contextType,
+      ),
+      resolver: _resolver,
+    );
+    if (isExecutableTearOff) {
+      flow?.ifNullExpression_end();
     }
   }
 
@@ -374,33 +572,11 @@ class AssignmentExpressionResolver {
       var t1 = node.readType!;
       //   - Let `T2` be the type of `e` inferred with context type `T1`.
       var t2 = assignedType;
-      //   - Let `T` be `UP(NonNull(T1), T2)`.
-      var nonNullT1 = _typeSystem.promoteToNonNull(t1);
-      var t = _typeSystem.leastUpperBound(nonNullT1, t2);
-      //   - Let `S` be the greatest closure of `K`.
-      var s = _resolver.operations
-          .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
-          .unwrapTypeView<TypeImpl>();
-      // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
-      if (!_resolver.definingLibrary.featureSet.isEnabled(
-        Feature.inference_update_3,
-      )) {
-        nodeType = t;
-      } else
-      //   - If `T <: S`, then the type of `E` is `T`.
-      if (_typeSystem.isSubtypeOf(t, s)) {
-        nodeType = t;
-      } else
-      //   - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of
-      //     `E` is `S`.
-      if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
-          _typeSystem.isSubtypeOf(t2, s)) {
-        nodeType = s;
-      } else
-      //   - Otherwise, the type of `E` is `T`.
-      {
-        nodeType = t;
-      }
+      nodeType = _computeIfNullType(
+        readType: t1,
+        valueType: t2,
+        contextType: contextType,
+      );
     } else {
       nodeType = assignedType;
     }

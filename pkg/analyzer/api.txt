@@ -403,6 +403,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addHideCombinator (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addIfElement (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addIfNull (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
+    addIfNullAssignment (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addIfStatement (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addImplementsClause (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addImplicitCallReference (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
@@ -412,6 +413,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addIntegerLiteral (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addInterpolationExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addInterpolationString (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
+    addInvalidExpressionAssignmentTarget (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addIsExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addLabel (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addLabelReference (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
@@ -1153,6 +1155,7 @@ package:analyzer/dart/ast/ast.dart:
     visitHideCombinator (method: R? Function(HideCombinator))
     visitIfElement (method: R? Function(IfElement))
     visitIfNull (method: R? Function(IfNull), experimental)
+    visitIfNullAssignment (method: R? Function(IfNullAssignment), experimental)
     visitIfStatement (method: R? Function(IfStatement))
     visitImplementsClause (method: R? Function(ImplementsClause))
     visitImplicitCallReference (method: R? Function(ImplicitCallReference))
@@ -1162,6 +1165,7 @@ package:analyzer/dart/ast/ast.dart:
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
     visitInterpolationExpression (method: R? Function(InterpolationExpression))
     visitInterpolationString (method: R? Function(InterpolationString))
+    visitInvalidExpressionAssignmentTarget (method: R? Function(InvalidExpressionAssignmentTarget), experimental)
     visitIsExpression (method: R? Function(IsExpression))
     visitLabel (method: R? Function(Label))
     visitLabelReference (method: R? Function(LabelReference))
@@ -1779,6 +1783,9 @@ package:analyzer/dart/ast/ast.dart:
     functionType (getter: GenericFunctionType?)
     type (getter: TypeAnnotation)
     typeParameters (getter: TypeParameterList?)
+  GetterInvocationResolution (class extends Object implements ValidNamedReadResolution, abstract, final, experimental):
+    element (getter: GetterElement)
+    invokeType (getter: FunctionType)
   GuardedPattern (class extends Object implements AstNode, abstract, final):
     pattern (getter: DartPattern)
     whenClause (getter: WhenClause?)
@@ -1804,6 +1811,7 @@ package:analyzer/dart/ast/ast.dart:
     leftOperand (getter: Expression)
     operator (getter: Token)
     rightOperand (getter: Expression)
+  IfNullAssignment (class extends Object implements AssignmentExpression2, abstract, final, experimental)
   IfStatement (class extends Object implements Statement, abstract, final):
     caseClause (getter: CaseClause?)
     elseKeyword (getter: Token?)
@@ -1874,6 +1882,12 @@ package:analyzer/dart/ast/ast.dart:
     contentsEnd (getter: int)
     contentsOffset (getter: int)
     value (getter: String)
+  InvalidAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: InvalidExpressionAssignmentTarget), experimental)
+  InvalidExpressionAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
+    expression (getter: Expression)
+  InvalidNamedReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
+    candidates (getter: List<Element>)
+    recovery (getter: ValidNamedReadResolution?)
   InvalidNamedWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental):
     acceptedType (getter: DartType)
     candidates (getter: List<Element>)
@@ -2354,6 +2368,8 @@ package:analyzer/dart/ast/ast.dart:
     write (getter: NamedWriteResolution?)
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
+  ValidNamedReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
+    element (getter: Element)
   ValidNamedWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental):
     element (getter: Element)
   VariableDeclaration (class extends Object implements Declaration, abstract, final):
@@ -2378,6 +2394,8 @@ package:analyzer/dart/ast/ast.dart:
     variables (getter: VariableDeclarationList)
   VariablePattern (class extends Object implements DartPattern, sealed (immediate subtypes: AssignedVariablePattern, DeclaredVariablePattern, VariablePatternImpl)):
     name (getter: Token)
+  VariableReadResolution (class extends Object implements ValidNamedReadResolution, abstract, final, experimental):
+    element (getter: VariableElement)
   VariableWriteResolution (class extends Object implements ValidNamedWriteResolution, abstract, final, experimental):
     element (getter: VariableElement)
   WhenClause (class extends Object implements AstNode, abstract, final):
@@ -3136,6 +3154,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitIdentifier (method: R? Function(Identifier))
     visitIfElement (method: R? Function(IfElement))
     visitIfNull (method: R? Function(IfNull), experimental)
+    visitIfNullAssignment (method: R? Function(IfNullAssignment), experimental)
     visitIfStatement (method: R? Function(IfStatement))
     visitImplementsClause (method: R? Function(ImplementsClause))
     visitImplicitCallReference (method: R? Function(ImplicitCallReference))
@@ -3148,6 +3167,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitInterpolationElement (method: R? Function(InterpolationElement))
     visitInterpolationExpression (method: R? Function(InterpolationExpression))
     visitInterpolationString (method: R? Function(InterpolationString))
+    visitInvalidExpressionAssignmentTarget (method: R? Function(InvalidExpressionAssignmentTarget), experimental)
     visitInvocationExpression (method: R? Function(InvocationExpression))
     visitIsExpression (method: R? Function(IsExpression))
     visitLabel (method: R? Function(Label))
@@ -3536,6 +3556,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitHideCombinator (method: R? Function(HideCombinator))
     visitIfElement (method: R? Function(IfElement))
     visitIfNull (method: R? Function(IfNull), experimental)
+    visitIfNullAssignment (method: R? Function(IfNullAssignment), experimental)
     visitIfStatement (method: R? Function(IfStatement))
     visitImplementsClause (method: R? Function(ImplementsClause))
     visitImplicitCallReference (method: R? Function(ImplicitCallReference))
@@ -3545,6 +3566,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
     visitInterpolationExpression (method: R? Function(InterpolationExpression))
     visitInterpolationString (method: R? Function(InterpolationString))
+    visitInvalidExpressionAssignmentTarget (method: R? Function(InvalidExpressionAssignmentTarget), experimental)
     visitIsExpression (method: R? Function(IsExpression))
     visitLabel (method: R? Function(Label))
     visitLabelReference (method: R? Function(LabelReference))
@@ -3919,6 +3941,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitHideCombinator (method: R? Function(HideCombinator))
     visitIfElement (method: R? Function(IfElement))
     visitIfNull (method: R? Function(IfNull), experimental)
+    visitIfNullAssignment (method: R? Function(IfNullAssignment), experimental)
     visitIfStatement (method: R? Function(IfStatement))
     visitImplementsClause (method: R? Function(ImplementsClause))
     visitImplicitCallReference (method: R? Function(ImplicitCallReference))
@@ -3928,6 +3951,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
     visitInterpolationExpression (method: R? Function(InterpolationExpression))
     visitInterpolationString (method: R? Function(InterpolationString))
+    visitInvalidExpressionAssignmentTarget (method: R? Function(InvalidExpressionAssignmentTarget), experimental)
     visitIsExpression (method: R? Function(IsExpression))
     visitLabel (method: R? Function(Label))
     visitLabelReference (method: R? Function(LabelReference))
@@ -4302,6 +4326,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitHideCombinator (method: R? Function(HideCombinator))
     visitIfElement (method: R? Function(IfElement))
     visitIfNull (method: R? Function(IfNull), experimental)
+    visitIfNullAssignment (method: R? Function(IfNullAssignment), experimental)
     visitIfStatement (method: R? Function(IfStatement))
     visitImplementsClause (method: R? Function(ImplementsClause))
     visitImplicitCallReference (method: R? Function(ImplicitCallReference))
@@ -4311,6 +4336,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
     visitInterpolationExpression (method: R? Function(InterpolationExpression))
     visitInterpolationString (method: R? Function(InterpolationString))
+    visitInvalidExpressionAssignmentTarget (method: R? Function(InvalidExpressionAssignmentTarget), experimental)
     visitIsExpression (method: R? Function(IsExpression))
     visitLabel (method: R? Function(Label))
     visitLabelReference (method: R? Function(LabelReference))
@@ -4687,6 +4713,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitHideCombinator (method: T? Function(HideCombinator))
     visitIfElement (method: T? Function(IfElement))
     visitIfNull (method: T? Function(IfNull), experimental)
+    visitIfNullAssignment (method: T? Function(IfNullAssignment), experimental)
     visitIfStatement (method: T? Function(IfStatement))
     visitImplementsClause (method: T? Function(ImplementsClause))
     visitImplicitCallReference (method: T? Function(ImplicitCallReference))
@@ -4696,6 +4723,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitIntegerLiteral (method: T? Function(IntegerLiteral))
     visitInterpolationExpression (method: T? Function(InterpolationExpression))
     visitInterpolationString (method: T? Function(InterpolationString))
+    visitInvalidExpressionAssignmentTarget (method: T? Function(InvalidExpressionAssignmentTarget), experimental)
     visitIsExpression (method: T? Function(IsExpression))
     visitLabel (method: T? Function(Label))
     visitLabelReference (method: T? Function(LabelReference))
@@ -5071,6 +5099,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitHideCombinator (method: R? Function(HideCombinator))
     visitIfElement (method: R? Function(IfElement))
     visitIfNull (method: R? Function(IfNull), experimental)
+    visitIfNullAssignment (method: R? Function(IfNullAssignment), experimental)
     visitIfStatement (method: R? Function(IfStatement))
     visitImplementsClause (method: R? Function(ImplementsClause))
     visitImplicitCallReference (method: R? Function(ImplicitCallReference))
@@ -5080,6 +5109,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
     visitInterpolationExpression (method: R? Function(InterpolationExpression))
     visitInterpolationString (method: R? Function(InterpolationString))
+    visitInvalidExpressionAssignmentTarget (method: R? Function(InvalidExpressionAssignmentTarget), experimental)
     visitIsExpression (method: R? Function(IsExpression))
     visitLabel (method: R? Function(Label))
     visitLabelReference (method: R? Function(LabelReference))

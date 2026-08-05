@@ -1120,18 +1120,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     super.visitDirectAssignment(node);
-
-    var target = node.target;
-    if (target is UnqualifiedNameAssignmentTargetImpl) {
-      // Assigned-variable collection runs before expression resolution fills
-      // in the target's write resolution. The scope lookup, however, was
-      // recorded by [ResolutionVisitor], just as the V1 identifier's element
-      // was recorded before this prepass.
-      var element = target.scopeLookupResult?.getter;
-      if (element is PromotableElementImpl) {
-        assignedVariables.write(element);
-      }
-    }
+    _writeAssignmentTarget(node.target);
   }
 
   @override
@@ -1189,6 +1178,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     assignedVariables.beginNode();
     node.rightOperand.accept2(this);
     assignedVariables.endNode(node);
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _readAssignmentTarget(node.target);
+
+    super.visitIfNullAssignment(node);
+
+    _writeAssignmentTarget(node.target);
   }
 
   @override
@@ -1386,6 +1384,18 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
+  void _readAssignmentTarget(AssignmentTarget target) {
+    if (target is UnqualifiedNameAssignmentTargetImpl) {
+      // Assigned-variable collection runs before expression resolution fills
+      // in the target's read resolution. [ResolutionVisitor] has already
+      // recorded the scope lookup used by this prepass.
+      var element = target.scopeLookupResult?.getter;
+      if (element is PromotableElementImpl) {
+        assignedVariables.read(element);
+      }
+    }
+  }
+
   void _visitIf(IfElementOrStatementImpl node) {
     node.expression2.accept2(this);
 
@@ -1415,6 +1425,18 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     var operand = node.operand;
     if (operand is SimpleIdentifier) {
       var element = operand.element;
+      if (element is PromotableElementImpl) {
+        assignedVariables.write(element);
+      }
+    }
+  }
+
+  void _writeAssignmentTarget(AssignmentTarget target) {
+    if (target is UnqualifiedNameAssignmentTargetImpl) {
+      // Assigned-variable collection runs before expression resolution fills
+      // in the target's write resolution. [ResolutionVisitor] has already
+      // recorded the scope lookup used by this prepass.
+      var element = target.scopeLookupResult?.getter;
       if (element is PromotableElementImpl) {
         assignedVariables.write(element);
       }

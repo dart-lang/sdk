@@ -825,7 +825,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitDirectAssignment(covariant DirectAssignmentImpl node) {
-    var target = node.target as UnqualifiedNameAssignmentTargetImpl;
+    var target = node.target;
+    if (target is! UnqualifiedNameAssignmentTargetImpl) {
+      _constArgumentsVerifier.visitDirectAssignment(node);
+      super.visitDirectAssignment(node);
+      return;
+    }
     var write = target.write;
     if (write case ValidNamedWriteResolutionImpl(:var element)) {
       _checkForReferenceBeforeDeclaration(
@@ -1425,6 +1430,58 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _checkForDeadNullCoalesce(node.leftOperand.staticType!, node.rightOperand);
     checkForUseOfVoidResult(node.leftOperand);
     super.visitIfNull(node);
+  }
+
+  @override
+  void visitIfNullAssignment(covariant IfNullAssignmentImpl node) {
+    var target = node.target;
+    if (target is InvalidExpressionAssignmentTargetImpl) {
+      if (target.expression case SimpleIdentifierImpl(
+        element: ExecutableElement(),
+      )) {
+        _checkForDeadNullCoalesce(target.expression.typeOrThrow, node.value);
+        checkForUseOfVoidResult(target.expression);
+      }
+      _constArgumentsVerifier.visitIfNullAssignment(node);
+      super.visitIfNullAssignment(node);
+      return;
+    }
+    target as UnqualifiedNameAssignmentTargetImpl;
+    var readElement = switch (target.read) {
+      ValidNamedReadResolutionImpl(:var element) => element,
+      _ => null,
+    };
+    var writeElement = switch (target.write) {
+      ValidNamedWriteResolutionImpl(:var element) => element,
+      _ => null,
+    };
+    if (target.read case NamedReadResolutionImpl(:var type)) {
+      _checkForDeadNullCoalesce(type, node.value);
+    }
+    for (var element in {readElement, writeElement}) {
+      if (element == null) continue;
+      _checkForReferenceBeforeDeclaration(
+        nameToken: target.name,
+        element: element,
+      );
+      _checkForInvalidInstanceMemberAccess2(
+        entity: target,
+        name: target.name.lexeme,
+        element: element,
+      );
+      _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+        entity: target,
+        element: element,
+      );
+    }
+    if (writeElement != null) {
+      _checkForAssignmentToPrimaryConstructorParameter(
+        target,
+        element: writeElement,
+      );
+    }
+    _constArgumentsVerifier.visitIfNullAssignment(node);
+    super.visitIfNullAssignment(node);
   }
 
   @override

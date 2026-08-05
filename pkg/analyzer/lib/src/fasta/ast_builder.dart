@@ -3697,7 +3697,8 @@ class AstBuilder extends StackListener {
 
     var rhs = pop() as ExpressionImpl;
     var lhs = pop() as ExpressionImpl;
-    if (!lhs.isAssignable) {
+    var isAssignable = lhs.isAssignable;
+    if (!isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
       handleRecoverableError(
         fe_diag.missingAssignableSelector,
@@ -3706,14 +3707,48 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(rhs);
-    if (token.type == TokenType.EQ && lhs is SimpleIdentifierImpl) {
+    if (!isAssignable && token.type == TokenType.EQ) {
       push(
         DirectAssignmentImpl(
-          target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
+          target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
           operator: token,
           value: rhs,
         ),
       );
+    } else if (!isAssignable && token.type == TokenType.QUESTION_QUESTION_EQ) {
+      push(
+        IfNullAssignmentImpl(
+          target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
+          operator: token,
+          value: rhs,
+        ),
+      );
+    } else if (lhs is SimpleIdentifierImpl) {
+      if (token.type == TokenType.EQ) {
+        push(
+          DirectAssignmentImpl(
+            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
+            operator: token,
+            value: rhs,
+          ),
+        );
+      } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
+        push(
+          IfNullAssignmentImpl(
+            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
+            operator: token,
+            value: rhs,
+          ),
+        );
+      } else {
+        push(
+          AssignmentExpressionImpl(
+            leftHandSide2: lhs,
+            operator: token,
+            rightHandSide2: rhs,
+          ),
+        );
+      }
     } else {
       push(
         AssignmentExpressionImpl(
@@ -4275,15 +4310,27 @@ class AstBuilder extends StackListener {
         expression.endToken,
       );
     }
-    if (expression is AssignmentExpressionImpl) {
-      if (!expression.leftHandSide2.isAssignable) {
-        // This error is also reported by the body builder.
-        handleRecoverableError(
-          fe_diag.illegalAssignmentToNonAssignable,
-          expression.leftHandSide2.beginToken,
-          expression.leftHandSide2.endToken,
-        );
-      }
+    var invalidAssignmentLeft = switch (expression) {
+      AssignmentExpressionImpl(:var leftHandSide2)
+          when !leftHandSide2.isAssignable =>
+        leftHandSide2,
+      DirectAssignmentImpl(
+        target: InvalidExpressionAssignmentTargetImpl(:var expression),
+      ) =>
+        expression,
+      IfNullAssignmentImpl(
+        target: InvalidExpressionAssignmentTargetImpl(:var expression),
+      ) =>
+        expression,
+      _ => null,
+    };
+    if (invalidAssignmentLeft != null) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(
+        fe_diag.illegalAssignmentToNonAssignable,
+        invalidAssignmentLeft.beginToken,
+        invalidAssignmentLeft.endToken,
+      );
     }
     push(
       ExpressionStatementImpl(expression2: expression, semicolon: semicolon),

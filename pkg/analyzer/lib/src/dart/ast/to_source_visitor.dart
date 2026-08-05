@@ -795,6 +795,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _visitNode(node.target);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.value);
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     sink.write('if (');
     _visitNode(node.expression2);
@@ -869,6 +878,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     sink.write(node.contents.lexeme);
+  }
+
+  @override
+  void visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    _visitNode(node.expression);
   }
 
   @override

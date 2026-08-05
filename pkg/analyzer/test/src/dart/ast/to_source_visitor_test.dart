@@ -2443,6 +2443,17 @@ final x = a ?? (b ?? c);
     _assertSource('a ?? (b ?? c)', node);
   }
 
+  void test_visitIfNullAssignment() {
+    var code = 'a ??= b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleIfNullAssignment;
+    _assertSource(code, node);
+  }
+
   void test_visitIfStatement_withElse() {
     var code = 'if (c) {} else {}';
     var parseResult = parseTestCodeWithDiagnostics('''

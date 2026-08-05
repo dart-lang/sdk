@@ -10,7 +10,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show IncrementOrDecrementExpressionImpl;
+    show
+        AssignmentTargetImpl,
+        IncrementOrDecrementExpressionImpl,
+        InvalidExpressionAssignmentTargetImpl,
+        UnqualifiedNameAssignmentTargetImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
@@ -479,8 +483,14 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitDirectAssignment(DirectAssignment node) {
-    var target = node.target as UnqualifiedNameAssignmentTarget;
-    var lValueTemplates = _unqualifiedNameAssignmentTarget(target);
+    var target = node.target as AssignmentTargetImpl;
+    late _LValueTemplates lValueTemplates;
+    switch (target) {
+      case InvalidExpressionAssignmentTargetImpl():
+        throw UnimplementedError('Invalid expression assignment target');
+      case UnqualifiedNameAssignmentTargetImpl():
+        lValueTemplates = _unqualifiedNameAssignmentTarget(target);
+    }
     dispatchNode(node.value);
     // Stack: lValue rhs
     eventListener.onEnterNode(target);
@@ -648,6 +658,37 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     dispatchNode(node.rightOperand);
     // Stack: BLOCK(1) rhs
     ir.end();
+    // Stack: result
+  }
+
+  @override
+  Null visitIfNullAssignment(IfNullAssignment node) {
+    var previousNestingLevel = ir.nestingLevel;
+    var target = node.target as AssignmentTargetImpl;
+    late _LValueTemplates lValueTemplates;
+    switch (target) {
+      case InvalidExpressionAssignmentTargetImpl():
+        throw UnimplementedError('Invalid expression assignment target');
+      case UnqualifiedNameAssignmentTargetImpl():
+        lValueTemplates = _unqualifiedNameAssignmentTarget(target);
+    }
+    // Stack: lValue
+    lValueTemplates.readForCompoundAssignment(this);
+    // Stack: lValue oldValue
+    nullShortingCheck(
+      previousNestingLevel: previousNestingLevel,
+      nonNull: true,
+      additionalDiscardDepth: lValueTemplates.subexpressionCount,
+    );
+    // Stack: BLOCK(1)? lValue oldValue
+    ir.drop();
+    // Stack: BLOCK(1)? lValue
+    dispatchNode(node.value);
+    // Stack: lValue rhs
+    eventListener.onEnterNode(target);
+    lValueTemplates.write(this);
+    // Stack: rhs
+    eventListener.onExitNode();
     // Stack: result
   }
 
@@ -1076,6 +1117,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: this
         return _PropertyAccessTemplates.direct(
           name: node.name.lexeme,
+          readElement: switch (node.read) {
+            GetterInvocationResolution(:var element) => element,
+            _ => null,
+          },
           writeElement: element,
         );
       case dynamic(:var runtimeType):
@@ -1215,6 +1260,7 @@ sealed class _LValueTemplates {
 class _PropertyAccessTemplates extends _LValueTemplates {
   final String name;
   final SimpleIdentifier? property;
+  final PropertyAccessorElement? readElement;
   final PropertyAccessorElement? writeElement;
 
   /// Creates a property access template.
@@ -1224,19 +1270,29 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   _PropertyAccessTemplates(SimpleIdentifier property)
     : name = property.name,
       property = property,
+      readElement = null,
       writeElement = null,
       super(subexpressionCount: 1);
 
-  _PropertyAccessTemplates.direct({required this.name, this.writeElement})
-    : property = null,
-      super(subexpressionCount: 1);
+  _PropertyAccessTemplates.direct({
+    required this.name,
+    this.readElement,
+    this.writeElement,
+  }) : property = null,
+       super(subexpressionCount: 1);
 
   void read(_AstToIRVisitor visitor) {
     // Stack: target
-    var property = this.property!;
+    var property = this.property;
     visitor.instanceGet(
-      (property.element ?? visitor.assignmentTargeting(property)?.readElement)
-          as PropertyAccessorElement?,
+      readElement ??
+          switch (property) {
+            var property? =>
+              (property.element ??
+                      visitor.assignmentTargeting(property)?.readElement)
+                  as PropertyAccessorElement?,
+            _ => null,
+          },
       name,
     );
     // Stack: value

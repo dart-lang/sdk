@@ -6980,6 +6980,8 @@ void f() {
 ''');
     var element = result.findElement.topFunction('foo');
     await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@20
+  28 4:3 |foo| REFERENCE
 ''');
   }
 
