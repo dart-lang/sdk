@@ -516,7 +516,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
-  void visitAllocateList(AllocateList instr) {}
+  void visitAllocateArray(AllocateArray instr) {}
 
   @override
   void visitSetListElement(SetListElement instr) {}

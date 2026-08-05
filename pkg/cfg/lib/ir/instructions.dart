@@ -1096,6 +1096,8 @@ final class StoreStaticField extends StoreField {
 
 /// Array is a sequence of elements of known size and type, such as typed data, String or a built-in List.
 enum ArrayKind {
+  // Built-in fixed-length List.
+  fixedLengthList,
   // Typed data lists holding their elements.
   int8List,
   uint8List,
@@ -1851,21 +1853,28 @@ final class ExternalCall extends CallInstruction with BackendInstruction {
   R accept<R>(InstructionVisitor<R> v) => v.visitExternalCall(this);
 }
 
-/// Allocate a fixed-size List of given length.
-final class AllocateList extends Definition
+/// Allocate an array (built-in list or typed data list) of given length.
+final class AllocateArray extends Definition
     with CanThrow, Pure, BackendInstruction {
-  AllocateList(super.graph, super.sourcePosition, Definition length)
-    : super(inputCount: 1) {
+  final ArrayKind kind;
+
+  @override
+  final CType type;
+
+  AllocateArray(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    this.type,
+    Definition length,
+  ) : super(inputCount: 1) {
     setInputAt(0, length);
   }
 
   Definition get length => inputDefAt(0);
 
-  CType get type =>
-      StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType);
-
   @override
-  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateList(this);
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateArray(this);
 }
 
 /// Set value of [index]-th element of the given fixed-size List.

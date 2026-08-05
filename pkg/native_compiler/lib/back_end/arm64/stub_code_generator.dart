@@ -79,6 +79,7 @@ final class AllocationStub extends Arm64StubCodeGenerator {
   static const Register resultReg = R0;
   static const Register typeArgumentsReg = R1;
   static const Register tagsReg = R2;
+  static const Register lengthReg = R5;
 
   static const Register scratch1Reg = R3;
   static const Register scratch2Reg = R4;

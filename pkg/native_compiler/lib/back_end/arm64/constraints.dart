@@ -413,13 +413,15 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
-  InstructionConstraints? visitAllocateList(AllocateList instr) {
-    assert(instr.length is Constant);
+  InstructionConstraints? visitAllocateArray(AllocateArray instr) {
+    final inputs = [
+      registerOrImmediate(AllocationStub.lengthReg, instr.length),
+    ];
     return InstructionConstraints(
       AllocationStub.resultReg,
-      [null],
+      inputs,
       // TODO: save registers on slow path
-      allRegistersExcept(AllocationStub.resultReg, []),
+      allRegistersExcept(AllocationStub.resultReg, inputs),
       Safepoint(),
     );
   }

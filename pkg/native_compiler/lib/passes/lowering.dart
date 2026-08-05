@@ -275,9 +275,11 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     // List literals up to 8 elements are lowered in the front-end
     // (pkg/vm/lib/transformations/list_literals_lowering.dart)
     assert(instr.length > 8);
-    final argument = AllocateList(
+    final argument = AllocateArray(
       graph,
       instr.sourcePosition,
+      .fixedLengthList,
+      StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
       graph.getConstant(ConstantValue.fromInt(instr.length)),
     );
     argument.insertBefore(instr);
@@ -312,9 +314,11 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     if (instr.length == 0) {
       argument = graph.getConstant(_emptyList);
     } else {
-      argument = AllocateList(
+      argument = AllocateArray(
         graph,
         instr.sourcePosition,
+        .fixedLengthList,
+        StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
         graph.getConstant(ConstantValue.fromInt(instr.length << 1)),
       );
       argument.insertBefore(instr);
@@ -381,9 +385,11 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     if (isSingle) {
       argument = instr.inputDefAt(0);
     } else {
-      argument = AllocateList(
+      argument = AllocateArray(
         graph,
         instr.sourcePosition,
+        .fixedLengthList,
+        StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
         graph.getConstant(ConstantValue.fromInt(instr.inputCount)),
       );
       argument.insertBefore(instr);

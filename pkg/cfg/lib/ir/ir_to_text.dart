@@ -192,6 +192,7 @@ final class IrToText extends VoidInstructionVisitor {
     UnaryDoubleOp() => 'UnaryDoubleOp ${instr.op.token}',
     UnaryBoolOp() => 'UnaryBoolOp ${instr.op.token}',
     ParallelMove() => 'ParallelMove ${instr.stage.name}',
+    AllocateArray() => 'AllocateArray ${instr.kind.name}',
     AllocateRecord() => 'AllocateRecord ${instr.type}',
     _ => instr.runtimeType.toString(),
   };

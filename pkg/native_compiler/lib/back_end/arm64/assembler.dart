@@ -833,6 +833,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     int instanceSize,
     Label slowPath, {
     required bool initializeFields,
+    Register initValueReg = nullReg,
   }) {
     final endReg = scratch1Reg;
     final newTopReg = scratch2Reg;
@@ -853,10 +854,10 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       if (instanceSize <= maxUnrolledSize) {
         int offset = vmOffsets.Instance_first_field_offset;
         for (; offset + 2 * wordSize <= instanceSize; offset += 2 * wordSize) {
-          stp(nullReg, nullReg, pairAddress(resultReg, offset));
+          stp(initValueReg, initValueReg, pairAddress(resultReg, offset));
         }
         if (offset < instanceSize) {
-          str(nullReg, address(resultReg, offset));
+          str(initValueReg, address(resultReg, offset));
           offset += wordSize;
         }
         assert(offset == instanceSize);
@@ -871,8 +872,8 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
         final loop = Label();
         bind(loop);
         stp(
-          nullReg,
-          nullReg,
+          initValueReg,
+          initValueReg,
           WritebackRegOffsetAddress(
             fieldReg,
             2 * wordSize,
@@ -885,6 +886,63 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
         cmp(fieldReg, newTopReg);
         b(loop, Condition.unsignedLess);
       }
+    }
+
+    addImmediate(resultReg, resultReg, heapObjectTag);
+  }
+
+  /// Generate code for inline variable-length array allocation.
+  void inlineArrayAllocation(
+    Register resultReg,
+    Register tagsReg,
+    Register instanceSizeReg,
+    Register lengthReg,
+    Register scratch1Reg,
+    Register scratch2Reg,
+    Label slowPath, {
+    required bool initializeFields,
+    int? lengthFieldOffset,
+    int? dataFieldOffset,
+    int? headerSize,
+    Register initValueReg = nullReg,
+  }) {
+    final endReg = scratch1Reg;
+    final newTopReg = scratch2Reg;
+    // Load Thread.top_ and Thread.end_.
+    ldp(resultReg, endReg, pairAddress(threadReg, vmOffsets.Thread_top_offset));
+    // TODO: get rid of this overflow check
+    adds(newTopReg, resultReg, instanceSizeReg);
+    b(slowPath, .unsignedGreaterOrEqual);
+    cmp(endReg, newTopReg);
+    b(slowPath, .unsignedLessOrEqual);
+
+    // TLAB has enough space. Update top and initialize object.
+    str(newTopReg, address(threadReg, vmOffsets.Thread_top_offset));
+    str(tagsReg, address(resultReg, vmOffsets.Object_tags_offset));
+    // TODO: figure out if we need store-store barrier here.
+
+    if (initializeFields) {
+      // TODO: support compressed pointers.
+      final fieldReg = scratch1Reg;
+
+      str(lengthReg, address(resultReg, lengthFieldOffset!));
+      addImmediate(fieldReg, resultReg, headerSize!);
+      if (dataFieldOffset != null) {
+        str(fieldReg, address(resultReg, dataFieldOffset));
+      }
+
+      final loop = Label();
+      bind(loop);
+      stp(
+        initValueReg,
+        initValueReg,
+        WritebackRegOffsetAddress(fieldReg, 2 * wordSize, isPostIndexed: true),
+      );
+      // There is at least two word (kAllocationRedZoneSize) gap at the end of page
+      // which makes it possible to initialize objects by two words at once and
+      // write slightly beyond the end.
+      cmp(fieldReg, newTopReg);
+      b(loop, Condition.unsignedLess);
     }
 
     addImmediate(resultReg, resultReg, heapObjectTag);
