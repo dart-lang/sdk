@@ -4602,6 +4602,8 @@ extension on AstNode {
       } else if (enclosingMember is VariableDeclarationList &&
           enclosingMember.parent is FieldDeclaration) {
         return !enclosingMember.isLate;
+      } else if (enclosingMember is PrimaryConstructorBody) {
+        return false;
       }
       enclosingMember = enclosingMember.parent;
     }

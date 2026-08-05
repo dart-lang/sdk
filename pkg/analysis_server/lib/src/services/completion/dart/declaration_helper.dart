@@ -423,7 +423,7 @@ class DeclarationHelper {
       parent = parent.parent;
     }
     switch (parent) {
-      case BlockClassBody():
+      case BlockClassBody() when containingMember is! PrimaryConstructorBody:
       case BlockEnumBody():
         parent = parent?.parent;
     }
@@ -1255,12 +1255,24 @@ class DeclarationHelper {
           _visitCatchClause(currentNode);
         case CommentReference():
           return _visitCommentReference(currentNode);
-        case ConstructorDeclaration():
-          _visitParameterList(currentNode.parameters);
+        case ConstructorDeclaration(:var parameters) ||
+            PrimaryConstructorBody(
+              declaration: PrimaryConstructorDeclaration(
+                formalParameters: var parameters,
+              ),
+            ):
+          _visitParameterList(parameters);
           return currentNode;
         case DeclaredVariablePattern():
           _visitDeclaredVariablePattern(currentNode);
-        case FieldDeclaration():
+        case FieldDeclaration(:var parent):
+          if (parent case BlockClassBody(
+            parent: ClassDeclaration(
+              namePart: PrimaryConstructorDeclaration(:var formalParameters),
+            ),
+          )) {
+            _visitParameterList(formalParameters);
+          }
           return currentNode;
         case ForElement(forLoopParts: var parts):
           if (parts != previousNode) {
@@ -2700,7 +2712,11 @@ class DeclarationHelper {
       for (var param in parameterList.parameters) {
         var declaredElement = param.declaredFragment?.element;
         if (declaredElement != null) {
-          _suggestParameter(declaredElement);
+          if (declaredElement case FieldFormalParameterElement(:var field?)) {
+            _suggestField(field: field);
+          } else {
+            _suggestParameter(declaredElement);
+          }
         }
       }
     }
