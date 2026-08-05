@@ -7,7 +7,6 @@ library dart._simd;
 import 'dart:_internal' show FixedLengthListMixin, IterableElementError;
 
 import 'dart:collection' show ListMixin;
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:_error_utils';
 import 'dart:_internal' show WasmTypedDataBase;
@@ -507,42 +506,48 @@ final class F32x4 extends WasmTypedDataBase implements Float32x4 {
   );
 }
 
-final class NaiveFloat64x2 extends WasmTypedDataBase implements Float64x2 {
-  final double x;
-  final double y;
+@pragma("wasm:entry-point")
+final class F64x2 extends WasmTypedDataBase implements Float64x2 {
+  @pragma("wasm:entry-point")
+  final WasmV128 _bits;
 
-  static Float64List _list = Float64List(2);
-  static Uint32List _uint32View = _list.buffer.asUint32List();
+  @pragma("wasm:entry-point")
+  F64x2.fromV128(this._bits);
 
-  NaiveFloat64x2(this.x, this.y);
+  factory F64x2(double x, double y) =>
+      F64x2.fromV128(WasmF64x2.fromDoubles(x, y));
 
-  NaiveFloat64x2.splat(double v) : this(v, v);
+  factory F64x2.splat(double v) =>
+      F64x2.fromV128(WasmF64x2.splat(WasmF64.fromDouble(v)));
 
-  NaiveFloat64x2.zero() : this.splat(0.0);
+  factory F64x2.zero() =>
+      F64x2.fromV128(WasmF64x2.splat(WasmF64.fromDouble(0.0)));
 
-  NaiveFloat64x2.fromFloat32x4(Float32x4 v) : this(v.x, v.y);
+  factory F64x2.fromFloat32x4(Float32x4 v) => F64x2(v.x, v.y);
 
-  NaiveFloat64x2._doubles(this.x, this.y);
+  double get x => WasmF64x2(_bits).extractLane(0).toDouble();
+  double get y => WasmF64x2(_bits).extractLane(1).toDouble();
 
   String toString() => '[$x, $y]';
 
   Float64x2 operator +(Float64x2 other) =>
-      NaiveFloat64x2._doubles(x + other.x, y + other.y);
+      F64x2.fromV128(WasmF64x2(_bits) + WasmF64x2((other as F64x2)._bits));
 
-  Float64x2 operator -() => NaiveFloat64x2._doubles(-x, -y);
+  Float64x2 operator -() => F64x2.fromV128(-WasmF64x2(_bits));
 
   Float64x2 operator -(Float64x2 other) =>
-      NaiveFloat64x2._doubles(x - other.x, y - other.y);
+      F64x2.fromV128(WasmF64x2(_bits) - WasmF64x2((other as F64x2)._bits));
 
   Float64x2 operator *(Float64x2 other) =>
-      NaiveFloat64x2._doubles(x * other.x, y * other.y);
+      F64x2.fromV128(WasmF64x2(_bits) * WasmF64x2((other as F64x2)._bits));
 
   Float64x2 operator /(Float64x2 other) =>
-      NaiveFloat64x2._doubles(x / other.x, y / other.y);
+      F64x2.fromV128(WasmF64x2(_bits) / WasmF64x2((other as F64x2)._bits));
 
-  Float64x2 scale(double s) => NaiveFloat64x2._doubles(x * s, y * s);
+  Float64x2 scale(double s) =>
+      F64x2.fromV128(WasmF64x2(_bits) * WasmF64x2.splat(WasmF64.fromDouble(s)));
 
-  Float64x2 abs() => NaiveFloat64x2._doubles(x.abs(), y.abs());
+  Float64x2 abs() => F64x2.fromV128(WasmF64x2(_bits).abs());
 
   Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) {
     double _lx = lowerLimit.x;
@@ -556,33 +561,24 @@ final class NaiveFloat64x2 extends WasmTypedDataBase implements Float64x2 {
     _y = _y > _uy ? _uy : _y;
     _x = _x < _lx ? _lx : _x;
     _y = _y < _ly ? _ly : _y;
-    return NaiveFloat64x2._doubles(_x, _y);
+    return F64x2(_x, _y);
   }
 
-  int get signMask {
-    var view = _uint32View;
-    _list[0] = x;
-    _list[1] = y;
-    var mx = (view[1] & 0x80000000) >> 31;
-    var my = (view[3] & 0x80000000) >> 31;
-    return mx | my << 1;
-  }
+  int get signMask => WasmI64x2(_bits).bitmask.toIntUnsigned();
 
-  Float64x2 withX(double x) => NaiveFloat64x2._doubles(x, y);
+  Float64x2 withX(double x) =>
+      F64x2.fromV128(WasmF64x2(_bits).replaceLane(0, WasmF64.fromDouble(x)));
 
-  Float64x2 withY(double y) => NaiveFloat64x2._doubles(x, y);
+  Float64x2 withY(double y) =>
+      F64x2.fromV128(WasmF64x2(_bits).replaceLane(1, WasmF64.fromDouble(y)));
 
-  Float64x2 min(Float64x2 other) => NaiveFloat64x2._doubles(
-    x < other.x ? x : other.x,
-    y < other.y ? y : other.y,
-  );
+  Float64x2 min(Float64x2 other) =>
+      F64x2(x < other.x ? x : other.x, y < other.y ? y : other.y);
 
-  Float64x2 max(Float64x2 other) => NaiveFloat64x2._doubles(
-    x > other.x ? x : other.x,
-    y > other.y ? y : other.y,
-  );
+  Float64x2 max(Float64x2 other) =>
+      F64x2(x > other.x ? x : other.x, y > other.y ? y : other.y);
 
-  Float64x2 sqrt() => NaiveFloat64x2._doubles(math.sqrt(x), math.sqrt(y));
+  Float64x2 sqrt() => F64x2.fromV128(WasmF64x2(_bits).sqrt());
 }
 
 @pragma("wasm:entry-point")

@@ -38,14 +38,14 @@ class Float32x4 {
 @patch
 class Float64x2 {
   @patch
-  factory Float64x2(double x, double y) = NaiveFloat64x2;
+  factory Float64x2(double x, double y) = F64x2;
 
   @patch
-  factory Float64x2.splat(double v) = NaiveFloat64x2.splat;
+  factory Float64x2.splat(double v) = F64x2.splat;
 
   @patch
-  factory Float64x2.zero() = NaiveFloat64x2.zero;
+  factory Float64x2.zero() = F64x2.zero;
 
   @patch
-  factory Float64x2.fromFloat32x4(Float32x4 v) = NaiveFloat64x2.fromFloat32x4;
+  factory Float64x2.fromFloat32x4(Float32x4 v) = F64x2.fromFloat32x4;
 }

@@ -315,7 +315,10 @@ abstract class AstCodeGenerator
         );
         b.ref_eq();
         b.if_();
-        translateExpression(variable.defaultValue!, local.type);
+        instantiateConstant(
+          ParameterInfo.defaultValue(variable, member)!,
+          local.type,
+        );
         b.local_set(local);
         b.end();
       }
@@ -327,6 +330,7 @@ abstract class AstCodeGenerator
         final incomingArgumentType = translator.translateTypeOfParameter(
           variable,
           isRequired,
+          member,
         );
         if (!local.type.isSubtypeOf(incomingArgumentType)) {
           final newLocal = addLocal(incomingArgumentType);
@@ -3941,8 +3945,10 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       } else {
         // Default to use if the callee has the `i` parameter.
         final defaultFunctionValue = i < targetPositionalParams.length
-            ? (targetPositionalParams[i].defaultValue as ConstantExpression?)
-                  ?.constant
+            ? ParameterInfo.defaultValue(
+                targetPositionalParams[i],
+                targetProcedure,
+              )
             : null;
         // Default to use if callee doesn't have the `i` parameter.
         final defaultValue = targetParamInfo.positional[i];
@@ -3950,7 +3956,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // a selector signature (which is based on all implementations of a
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
-        final value = defaultFunctionValue ?? defaultValue!;
+        final value = (defaultFunctionValue ?? defaultValue)!;
         instantiateConstantBackendUse(value, targetParamType);
       }
     }
@@ -3983,8 +3989,9 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         translator.convertType(b, paramValue.type, targetParamType);
       } else {
         // Default to use if callee has the `name` parameter.
-        final defaultFunctionValue =
-            (namedParam?.defaultValue as ConstantExpression?)?.constant;
+        final defaultFunctionValue = namedParam == null
+            ? null
+            : ParameterInfo.defaultValue(namedParam, targetProcedure);
         // Default to use if callee doesn't have `name` parameter.
         final defaultValue = targetParamInfo.named[name];
         // The target wasm function corresponding to an instance method may have
