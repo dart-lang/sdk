@@ -1445,17 +1445,17 @@ void f() {
     );
   }
 
-  void test_postfixExpression() {
+  void test_postfixIncrement() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a++;
   b++;
 }
 ''');
-    _assertReplacementForChildren<PostfixExpression>(
-      destination: parseResult.findNode.postfix('a++'),
-      source: parseResult.findNode.postfix('b++'),
-      childAccessors: [(node) => node.operand2],
+    _assertReplacementForChildren<PostfixIncrement>(
+      destination: parseResult.findNode.postfixIncrement('a++'),
+      source: parseResult.findNode.postfixIncrement('b++'),
+      childAccessors: [(node) => node.operand],
     );
   }
 
@@ -1473,17 +1473,17 @@ void f() {
     );
   }
 
-  void test_prefixExpression() {
+  void test_prefixIncrement() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   ++a;
   ++b;
 }
 ''');
-    _assertReplacementForChildren<PrefixExpression>(
-      destination: parseResult.findNode.prefix('++a'),
-      source: parseResult.findNode.prefix('++b'),
-      childAccessors: [(node) => node.operand2],
+    _assertReplacementForChildren<PrefixIncrement>(
+      destination: parseResult.findNode.prefixIncrement('++a'),
+      source: parseResult.findNode.prefixIncrement('++b'),
+      childAccessors: [(node) => node.operand],
     );
   }
 

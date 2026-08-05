@@ -273,17 +273,27 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    var element = node.element;
-    usedElements.addMember(element);
-    super.visitPostfixExpression(node);
+  void visitPostfixDecrement(PostfixDecrement node) {
+    usedElements.addMember(node.element);
+    super.visitPostfixDecrement(node);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    var element = node.element;
-    usedElements.addMember(element);
-    super.visitPrefixExpression(node);
+  void visitPostfixIncrement(PostfixIncrement node) {
+    usedElements.addMember(node.element);
+    super.visitPostfixIncrement(node);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    usedElements.addMember(node.element);
+    super.visitPrefixDecrement(node);
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    usedElements.addMember(node.element);
+    super.visitPrefixIncrement(node);
   }
 
   @override
@@ -482,8 +492,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     if (parent.parent2 is ExpressionStatement) {
       if (parent is NullAssertionExpression ||
           parent is LogicalNot ||
-          parent is PrefixExpression ||
-          parent is PostfixExpression ||
+          parent is IncrementOrDecrementExpression ||
           parent is UnaryOperatorInvocation) {
         // v++;
         // ++v;

@@ -1741,12 +1741,18 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitPostfixExpression(covariant PostfixExpressionImpl node) {
-    var operand = node.operand2;
-    _checkForAssignmentToFinal(operand);
-    _checkForAssignmentToPrimaryConstructorParameter(operand);
-    _checkForIntNotAssignable(operand);
-    super.visitPostfixExpression(node);
+  void visitPostfixDecrement(covariant PostfixDecrementImpl node) {
+    _visitIncrementOrDecrement(node, isPrefix: false);
+  }
+
+  @override
+  void visitPostfixIncrement(covariant PostfixIncrementImpl node) {
+    _visitIncrementOrDecrement(node, isPrefix: false);
+  }
+
+  @override
+  void visitPrefixDecrement(covariant PrefixDecrementImpl node) {
+    _visitIncrementOrDecrement(node, isPrefix: true);
   }
 
   @override
@@ -1762,15 +1768,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitPrefixExpression(covariant PrefixExpressionImpl node) {
-    var operand = node.operand2;
-    if (node.operator.type.isIncrementOperator) {
-      _checkForAssignmentToFinal(operand);
-      _checkForAssignmentToPrimaryConstructorParameter(operand);
-    }
-    checkForUseOfVoidResult(operand);
-    _checkForIntNotAssignable(operand);
-    super.visitPrefixExpression(node);
+  void visitPrefixIncrement(covariant PrefixIncrementImpl node) {
+    _visitIncrementOrDecrement(node, isPrefix: true);
   }
 
   @override
@@ -8477,6 +8476,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         );
       }
     }
+  }
+
+  void _visitIncrementOrDecrement(
+    IncrementOrDecrementExpressionImpl node, {
+    required bool isPrefix,
+  }) {
+    var operand = node.operand;
+    _checkForAssignmentToFinal(operand);
+    _checkForAssignmentToPrimaryConstructorParameter(operand);
+    if (isPrefix) {
+      checkForUseOfVoidResult(operand);
+    }
+    _checkForIntNotAssignable(operand);
+    node.visitChildren2(this);
   }
 
   void _withEnclosingExecutable(

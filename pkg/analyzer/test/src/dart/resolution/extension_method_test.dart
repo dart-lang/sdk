@@ -2199,10 +2199,19 @@ f(C c) {
   c++;
 }
 ''');
-    var node = result.findNode.postfix('++');
+    var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  operator: ++
+  element: <testLibrary>::@class::C::@method::+
+  operatorResultType: C
+  staticType: C
 PostfixExpression
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
@@ -2225,10 +2234,19 @@ g(int Function(int) f) {
   f++;
 }
 ''');
-    var node = result.findNode.postfix('++');
+    var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: null
+  operator: ++
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: int Function(int)
+  staticType: int Function(int)
 PostfixExpression
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: null
@@ -2252,10 +2270,19 @@ f(C c) {
   c++;
 }
 ''');
-    var node = result.findNode.postfix('++');
+    var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  operator: ++
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: C
+  staticType: C
 PostfixExpression
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
@@ -2281,10 +2308,19 @@ f(A? a) {
   a++;
 }
 ''');
-    var node = result.findNode.postfix('a++');
+    var node = result.findNode.postfixIncrement('a++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: null
+  operator: ++
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: A?
+  staticType: A?
 PostfixExpression
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
@@ -2310,11 +2346,20 @@ f(C c) {
   ++c;
 }
 ''');
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  element: <testLibrary>::@class::C::@method::+
+  operatorResultType: C
+  staticType: C
 PrefixExpression
   operator: ++
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
@@ -2336,11 +2381,20 @@ g(int Function(int) f) {
   ++f;
 }
 ''');
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: null
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: int Function(int)
+  staticType: int Function(int)
 PrefixExpression
   operator: ++
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: null
@@ -2363,11 +2417,20 @@ f(C c) {
   ++c;
 }
 ''');
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: C
+  staticType: C
 PrefixExpression
   operator: ++
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
@@ -2392,11 +2455,20 @@ f(A? a) {
   ++a;
 }
 ''');
-    var node = result.findNode.prefix('++a');
+    var node = result.findNode.prefixIncrement('++a');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: null
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: A?
+  staticType: A?
 PrefixExpression
   operator: ++
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null

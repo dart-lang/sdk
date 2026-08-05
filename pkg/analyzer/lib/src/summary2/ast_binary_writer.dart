@@ -603,23 +603,24 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    _writeByte(Tag.PostfixExpression);
+  void visitPostfixDecrement(PostfixDecrement node) {
+    _writeByte(Tag.PostfixDecrement);
+    _writeNode(node.operand);
+    _writeIncrementOrDecrementResolution(node);
+  }
 
-    _writeNode(node.operand2);
+  @override
+  void visitPostfixIncrement(PostfixIncrement node) {
+    _writeByte(Tag.PostfixIncrement);
+    _writeNode(node.operand);
+    _writeIncrementOrDecrementResolution(node);
+  }
 
-    var operatorToken = node.operator.type;
-    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
-    _writeByte(binaryToken.index);
-
-    _sink.writeElement(node.element);
-    if (operatorToken.isIncrementOperator) {
-      _sink.writeElement(node.readElement);
-      _sink.writeType(node.readType);
-      _sink.writeElement(node.writeElement);
-      _sink.writeType(node.writeType);
-    }
-    _storeExpression(node);
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _writeByte(Tag.PrefixDecrement);
+    _writeNode(node.operand);
+    _writeIncrementOrDecrementResolution(node);
   }
 
   @override
@@ -633,24 +634,10 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    _writeByte(Tag.PrefixExpression);
-
-    var operatorToken = node.operator.type;
-    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
-    _writeByte(binaryToken.index);
-
-    _writeNode(node.operand2);
-
-    _sink.writeElement(node.element);
-    if (operatorToken.isIncrementOperator) {
-      _sink.writeElement(node.readElement);
-      _sink.writeType(node.readType);
-      _sink.writeElement(node.writeElement);
-      _sink.writeType(node.writeType);
-    }
-
-    _storeExpression(node);
+  void visitPrefixIncrement(PrefixIncrement node) {
+    _writeByte(Tag.PrefixIncrement);
+    _writeNode(node.operand);
+    _writeIncrementOrDecrementResolution(node);
   }
 
   @override
@@ -1026,6 +1013,19 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   void _writeDouble(double value) {
     _sink.writeDouble(value);
+  }
+
+  void _writeIncrementOrDecrementResolution(
+    IncrementOrDecrementExpression node,
+  ) {
+    _sink.writeElement(node.element);
+    var nodeImpl = node as IncrementOrDecrementExpressionImpl;
+    _sink.writeElement(nodeImpl.readElement);
+    _sink.writeType(nodeImpl.readType);
+    _sink.writeElement(nodeImpl.writeElement);
+    _sink.writeType(nodeImpl.writeType);
+    _sink.writeType(node.operatorResultType);
+    _storeExpression(node);
   }
 
   void _writeNode(AstNode node) {

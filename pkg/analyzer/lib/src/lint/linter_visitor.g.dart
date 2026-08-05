@@ -2052,9 +2052,24 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    _runSubscriptions(node, _registry._forPostfixExpression);
+  void visitPostfixDecrement(PostfixDecrement node) {
+    _runSubscriptions(node, _registry._forPostfixDecrement);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitPostfixIncrement(PostfixIncrement node) {
+    _runSubscriptions(node, _registry._forPostfixIncrement);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _runSubscriptions(node, _registry._forPrefixDecrement);
     node.visitChildren2(this);
   }
 
@@ -2064,9 +2079,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    _runSubscriptions(node, _registry._forPrefixExpression);
+  void visitPrefixIncrement(PrefixIncrement node) {
+    _runSubscriptions(node, _registry._forPrefixIncrement);
     node.visitChildren2(this);
   }
 
@@ -4506,11 +4522,15 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<PatternVariableDeclarationStatement>>
   _forPatternVariableDeclarationStatement = [];
 
-  final List<_Subscription2<PostfixExpression>> _forPostfixExpression = [];
+  final List<_Subscription2<PostfixDecrement>> _forPostfixDecrement = [];
+
+  final List<_Subscription2<PostfixIncrement>> _forPostfixIncrement = [];
+
+  final List<_Subscription2<PrefixDecrement>> _forPrefixDecrement = [];
 
   final List<_Subscription2<PrefixedIdentifier>> _forPrefixedIdentifier = [];
 
-  final List<_Subscription2<PrefixExpression>> _forPrefixExpression = [];
+  final List<_Subscription2<PrefixIncrement>> _forPrefixIncrement = [];
 
   final List<_Subscription2<PrimaryConstructorBody>>
   _forPrimaryConstructorBody = [];
@@ -5649,9 +5669,21 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addPostfixExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addPostfixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forPostfixExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forPostfixDecrement.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addPostfixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forPostfixIncrement.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addPrefixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forPrefixDecrement.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5661,9 +5693,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addPrefixExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addPrefixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forPrefixExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forPrefixIncrement.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

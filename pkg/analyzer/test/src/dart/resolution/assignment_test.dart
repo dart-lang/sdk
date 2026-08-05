@@ -1257,8 +1257,17 @@ void f(num x, int y) {
     var node = result.findNode.assignment('= y');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PostfixExpression
-    operand2: SimpleIdentifier
+  leftHandSide2: PostfixIncrement
+    operand: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: null
+    operator: ++
+    element: dart:core::@class::num::@method::+
+    operatorResultType: num
+    staticType: num
+  leftHandSide(v1): PostfixExpression
+    operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
@@ -1297,8 +1306,17 @@ void f(num x, int y) {
     var node = result.findNode.assignment('= y');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PostfixExpression
-    operand2: SimpleIdentifier
+  leftHandSide2: PostfixIncrement
+    operand: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: null
+    operator: ++
+    element: dart:core::@class::num::@method::+
+    operatorResultType: num
+    staticType: num
+  leftHandSide(v1): PostfixExpression
+    operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
@@ -1337,8 +1355,17 @@ void f(num x, int y) {
     var node = result.findNode.assignment('= y');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PostfixExpression
-    operand2: SimpleIdentifier
+  leftHandSide2: PostfixIncrement
+    operand: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: null
+    operator: ++
+    element: dart:core::@class::num::@method::+
+    operatorResultType: num
+    staticType: num
+  leftHandSide(v1): PostfixExpression
+    operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
@@ -1377,9 +1404,18 @@ void f(num x, int y) {
     var node = result.findNode.assignment('= y');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PrefixExpression
+  leftHandSide2: PrefixIncrement
     operator: ++
-    operand2: SimpleIdentifier
+    operand: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: null
+    element: dart:core::@class::num::@method::+
+    operatorResultType: num
+    staticType: num
+  leftHandSide(v1): PrefixExpression
+    operator: ++
+    operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
@@ -1417,9 +1453,18 @@ void f(num x, int y) {
     var node = result.findNode.assignment('= y');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PrefixExpression
+  leftHandSide2: PrefixIncrement
     operator: ++
-    operand2: SimpleIdentifier
+    operand: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: null
+    element: dart:core::@class::num::@method::+
+    operatorResultType: num
+    staticType: num
+  leftHandSide(v1): PrefixExpression
+    operator: ++
+    operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
@@ -1457,9 +1502,18 @@ void f(num x, int y) {
     var node = result.findNode.assignment('= y');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PrefixExpression
+  leftHandSide2: PrefixIncrement
     operator: ++
-    operand2: SimpleIdentifier
+    operand: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: null
+    element: dart:core::@class::num::@method::+
+    operatorResultType: num
+    staticType: num
+  leftHandSide(v1): PrefixExpression
+    operator: ++
+    operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null

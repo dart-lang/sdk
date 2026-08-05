@@ -674,9 +674,14 @@ Block
             literal: 7
         rightSeparator: ;
         updaters2
+          PrefixIncrement
+            operator: ++
+            operand: SimpleIdentifier
+              token: x
+        updaters(v1)
           PrefixExpression
             operator: ++
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: x
       rightParenthesis: )
       body: Block
@@ -734,9 +739,14 @@ Block
             literal: 10
         rightSeparator: ;
         updaters2
+          PrefixIncrement
+            operator: ++
+            operand: SimpleIdentifier
+              token: y
+        updaters(v1)
           PrefixExpression
             operator: ++
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: y
       rightParenthesis: )
       body: Block
@@ -787,9 +797,14 @@ Block
             literal: 7
         rightSeparator: ;
         updaters2
+          PrefixIncrement
+            operator: ++
+            operand: SimpleIdentifier
+              token: x
+        updaters(v1)
           PrefixExpression
             operator: ++
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: x
       rightParenthesis: )
       body: Block
@@ -3282,8 +3297,8 @@ Block
   statements
     ExpressionStatement
       expression2: NullAssertionExpression
-        operand: PostfixExpression
-          operand2: SimpleIdentifier
+        operand: PostfixIncrement
+          operand: SimpleIdentifier
             token: x
           operator: ++
         operator: !

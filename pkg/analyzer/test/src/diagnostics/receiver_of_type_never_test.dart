@@ -1006,7 +1006,7 @@ MethodInvocation
 ''');
   }
 
-  test_postfixExpression_never_plusPlus() async {
+  test_postfixIncrement_never() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x++;
@@ -1015,10 +1015,19 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.postfix('x++');
+    var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: null
+  operator: ++
+  element: <null>
+  operatorResultType: Never
+  staticType: Never
 PostfixExpression
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -1032,7 +1041,7 @@ PostfixExpression
 ''');
   }
 
-  test_postfixExpression_neverQ_plusPlus() async {
+  test_postfixIncrement_neverQ() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x++;
@@ -1041,10 +1050,19 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.postfix('x++');
+    var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: null
+  operator: ++
+  element: <null>
+  operatorResultType: dynamic
+  staticType: Never?
 PostfixExpression
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -1068,11 +1086,20 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: null
+  element: <null>
+  operatorResultType: Never
+  staticType: Never
 PrefixExpression
   operator: ++
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -1094,11 +1121,20 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: null
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
 PrefixExpression
   operator: ++
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null

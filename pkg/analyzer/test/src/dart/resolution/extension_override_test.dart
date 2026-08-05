@@ -938,15 +938,40 @@ f(){
 }
 ''');
 
-    var node = result.findNode.postfix('++;');
+    var node = result.findNode.postfixIncrement('++;');
     assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand2: PropertyAccess
+PostfixIncrement
+  operand: PropertyAccess
     target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: v
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+PostfixExpression
+  operand: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           IntegerLiteral
             literal: 0
             correspondingParameter: <null>

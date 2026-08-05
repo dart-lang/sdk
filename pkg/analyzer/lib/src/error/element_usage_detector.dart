@@ -279,6 +279,12 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.libraryImport?.importedLibrary, node);
   }
 
+  void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
+    checkUsage(node.readElement, node.operand);
+    checkUsage(node.writeElement, node.operand);
+    checkUsage(node.element, node);
+  }
+
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
   }
@@ -300,14 +306,14 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void postfixExpression(PostfixExpression node) {
-    checkUsage(node.readElement, node.operand2);
-    checkUsage(node.writeElement, node.operand2);
+    checkUsage(node.readElement, node.operand);
+    checkUsage(node.writeElement, node.operand);
     checkUsage(node.element, node);
   }
 
   void prefixExpression(PrefixExpression node) {
-    checkUsage(node.readElement, node.operand2);
-    checkUsage(node.writeElement, node.operand2);
+    checkUsage(node.readElement, node.operand);
+    checkUsage(node.writeElement, node.operand);
     checkUsage(node.element, node);
   }
 
@@ -498,10 +504,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   void assignmentExpression(AssignmentExpression node) {
     checkUsage(node.readElement, node.leftHandSide2);
     checkUsage(node.writeElement, node.leftHandSide2);
-    checkUsage(node.element, node);
-  }
-
-  void binaryExpression(BinaryExpression node) {
     checkUsage(node.element, node);
   }
 
@@ -728,6 +730,12 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.libraryImport?.importedLibrary, node);
   }
 
+  void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
+    checkUsage(node.readElement, node.operand);
+    checkUsage(node.writeElement, node.operand);
+    checkUsage(node.element, node);
+  }
+
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
   }
@@ -741,18 +749,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void patternField(PatternField node) {
-    checkUsage(node.element, node);
-  }
-
-  void postfixExpression(PostfixExpression node) {
-    checkUsage(node.readElement, node.operand2);
-    checkUsage(node.writeElement, node.operand2);
-    checkUsage(node.element, node);
-  }
-
-  void prefixExpression(PrefixExpression node) {
-    checkUsage(node.readElement, node.operand2);
-    checkUsage(node.writeElement, node.operand2);
     checkUsage(node.element, node);
   }
 

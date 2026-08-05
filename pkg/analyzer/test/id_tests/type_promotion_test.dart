@@ -6,10 +6,10 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -77,7 +77,7 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
       return parent.readElement;
-    } else if (parent is PostfixExpression) {
+    } else if (parent is IncrementOrDecrementExpressionImpl) {
       return parent.readElement;
     } else if (parent is PrefixExpression) {
       return parent.readElement;
@@ -90,7 +90,7 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
       return parent.readType;
-    } else if (parent is PostfixExpression) {
+    } else if (parent is IncrementOrDecrementExpressionImpl) {
       return parent.readType;
     } else if (parent is PrefixExpression) {
       return parent.readType;

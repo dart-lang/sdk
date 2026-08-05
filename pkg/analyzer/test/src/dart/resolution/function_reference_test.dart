@@ -4973,8 +4973,17 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f++');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PostfixExpression
-    operand2: SimpleIdentifier
+  function2: PostfixIncrement
+    operand: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      staticType: null
+    operator: ++
+    element: <testLibrary>::@extension::#0::@method::+
+    operatorResultType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PostfixExpression
+    operand: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
@@ -5039,9 +5048,18 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('++f');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PrefixExpression
+  function2: PrefixIncrement
     operator: ++
-    operand2: SimpleIdentifier
+    operand: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      staticType: null
+    element: <testLibrary>::@extension::#0::@method::+
+    operatorResultType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PrefixExpression
+    operator: ++
+    operand: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null

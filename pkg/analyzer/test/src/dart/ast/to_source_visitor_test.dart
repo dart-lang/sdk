@@ -3484,14 +3484,14 @@ void f([$code]) {}
     _assertSource(code, node);
   }
 
-  void test_visitPostfixExpression() {
+  void test_visitPostfixIncrement() {
     var code = 'a++';
     var parseResult = parseTestCodeWithDiagnostics('''
 int f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singlePostfixExpression;
+    var node = parseResult.findNode.singlePostfixIncrement;
     _assertSource(code, node);
   }
 

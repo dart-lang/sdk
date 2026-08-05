@@ -242,7 +242,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is AssignmentExpression) {
       return node.element;
-    } else if (node is BinaryExpression) {
+    } else if (node is BinaryOperatorInvocation) {
+      return node.element;
+    } else if (node is BinaryOperatorInvocation) {
       return node.element;
     } else if (node is BinaryOperatorInvocation) {
       return node.element;
@@ -460,6 +462,8 @@ final class TestResolvedUnitResult {
 
   late final FindNode2 findNode = FindNode2(content, unit);
 
+  late final FindNode findNodeV1 = FindNode(content, unit);
+
   TestResolvedUnitResult(this.analysisResult);
 
   String get content => analysisResult.content;
@@ -530,6 +534,10 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
 
   FindNode2 get findNode {
     return FindNode2(content, unit);
+  }
+
+  FindNode get findNodeV1 {
+    return FindNode(content, unit);
   }
 
   InheritanceManager3 get inheritanceManager {

@@ -41,9 +41,9 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 ///    The identifiers within directives are exceptions to this rule and are
 ///    covered below.
 /// 2. Every node containing a token representing an operator that can be
-///    overridden ( [BinaryExpression], [PrefixExpression], [PostfixExpression])
-///    should resolve to the element representing the method invoked by that
-///    operator (a [MethodElement]).
+///    overridden ([BinaryOperatorInvocation], [UnaryOperatorInvocation], and
+///    [IncrementOrDecrementExpression]) should resolve to the element
+///    representing the method invoked by that operator (a [MethodElement]).
 /// 3. Every [FunctionExpressionInvocation] should resolve to the element
 ///    representing the function being invoked (a [ExecutableElement]). This
 ///    will be the same element as that to which the name is resolved if the

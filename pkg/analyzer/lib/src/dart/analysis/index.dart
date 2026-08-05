@@ -1064,6 +1064,14 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    recordOperatorReference(node.operator, node.element);
+    super.visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     if (element is MethodElement) {
@@ -1181,12 +1189,6 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    recordOperatorReference(node.operator, node.element);
-    super.visitPostfixExpression(node);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     var element = node.element;
     var prefixElement = node.prefix.element;
@@ -1194,12 +1196,6 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       assembler.addPrefixForElement(element, prefix: prefixElement);
     }
     super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    recordOperatorReference(node.operator, node.element);
-    super.visitPrefixExpression(node);
   }
 
   @override
