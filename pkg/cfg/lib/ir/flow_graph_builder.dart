@@ -607,13 +607,19 @@ class FlowGraphBuilder {
   }
 
   /// Append [AllocateArray] to the graph.
-  AllocateArray addAllocateArray(ArrayKind kind, CType type) {
+  AllocateArray addAllocateArray(
+    ArrayKind kind,
+    CType type, {
+    bool hasTypeArguments = false,
+  }) {
     final length = pop();
+    final typeArguments = hasTypeArguments ? pop() : null;
     final instr = AllocateArray(
       graph,
       currentSourcePosition,
       kind,
       type,
+      typeArguments,
       length,
     );
     push(instr);

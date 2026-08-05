@@ -1662,6 +1662,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final scratch2Reg = temporaryReg(instr, 2);
     final instanceSizeReg = temporaryReg(instr, 3);
     final resultReg = outputReg(instr);
+    final typeArgsReg = instr.hasTypeArguments ? inputReg(instr, 0) : nullReg;
 
     final lengthDef = instr.length;
     var lengthReg = invalidReg;
@@ -1679,7 +1680,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.loadConstant(lengthReg, lengthDef.value);
       }
     } else {
-      lengthReg = inputReg(instr, 0);
+      lengthReg = inputReg(instr, instr.hasTypeArguments ? 1 : 0);
     }
 
     final done = Label();
@@ -1692,7 +1693,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         case .fixedLengthList:
           assert(stackFrame.maxArgumentsStackSlots >= 3);
           _asm.stp(
-            nullReg, // Type arguments.
+            typeArgsReg, // Type arguments.
             lengthReg, // Array length.
             RegOffsetAddress(stackPointerReg, 0),
           );
@@ -1805,6 +1806,13 @@ final class Arm64CodeGenerator extends CodeGenerator {
         dataFieldOffset: arrayKind.dataFieldOffset(vmOffsets),
         headerSize: headerSize,
         initValueReg: (arrayKind == .fixedLengthList) ? nullReg : ZR,
+      );
+    }
+    if (instr.hasTypeArguments) {
+      assert(arrayKind == .fixedLengthList);
+      _asm.str(
+        typeArgsReg,
+        _asm.fieldAddress(resultReg, vmOffsets.Array_type_arguments_offset),
       );
     }
     _asm.bind(done);

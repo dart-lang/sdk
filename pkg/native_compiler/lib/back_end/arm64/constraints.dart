@@ -415,6 +415,7 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitAllocateArray(AllocateArray instr) {
     final inputs = [
+      if (instr.hasTypeArguments) anyCpuRegister,
       registerOrImmediate(AllocationStub.lengthReg, instr.length),
     ];
     return InstructionConstraints(

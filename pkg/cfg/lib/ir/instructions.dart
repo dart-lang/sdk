@@ -1334,8 +1334,8 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
 /// passed to a call or an instance allocation.
 ///
 /// Only used as the first input of call instructions, [AllocateObject],
-/// [AllocateListLiteral], [AllocateMapLiteral], [InstantiateClosure] and
-/// [EnterSuspendableFunction].
+/// [AllocateListLiteral], [AllocateMapLiteral], [AllocateArray],
+/// [InstantiateClosure] and [EnterSuspendableFunction].
 final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   final List<ast.DartType> types;
   TypeArguments(
@@ -1854,6 +1854,9 @@ final class ExternalCall extends CallInstruction with BackendInstruction {
 }
 
 /// Allocate an array (built-in list or typed data list) of given length.
+///
+/// When creating built-in lists, [AllocateArray] can optionally take type arguments
+/// as an input.
 final class AllocateArray extends Definition
     with CanThrow, Pure, BackendInstruction {
   final ArrayKind kind;
@@ -1866,12 +1869,21 @@ final class AllocateArray extends Definition
     super.sourcePosition,
     this.kind,
     this.type,
+    Definition? typeArguments,
     Definition length,
-  ) : super(inputCount: 1) {
-    setInputAt(0, length);
+  ) : super(inputCount: typeArguments != null ? 2 : 1) {
+    if (typeArguments != null) {
+      assert(kind == .fixedLengthList);
+      setInputAt(0, typeArguments);
+      setInputAt(1, length);
+    } else {
+      setInputAt(0, length);
+    }
   }
 
-  Definition get length => inputDefAt(0);
+  bool get hasTypeArguments => inputCount > 1;
+  Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
+  Definition get length => inputDefAt(hasTypeArguments ? 1 : 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateArray(this);

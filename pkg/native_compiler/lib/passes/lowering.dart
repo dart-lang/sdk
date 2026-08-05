@@ -280,6 +280,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       instr.sourcePosition,
       .fixedLengthList,
       StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
+      null,
       graph.getConstant(ConstantValue.fromInt(instr.length)),
     );
     argument.insertBefore(instr);
@@ -319,6 +320,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
         instr.sourcePosition,
         .fixedLengthList,
         StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
+        null,
         graph.getConstant(ConstantValue.fromInt(instr.length << 1)),
       );
       argument.insertBefore(instr);
@@ -390,6 +392,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
         instr.sourcePosition,
         .fixedLengthList,
         StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
+        null,
         graph.getConstant(ConstantValue.fromInt(instr.inputCount)),
       );
       argument.insertBefore(instr);

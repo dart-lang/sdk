@@ -89,16 +89,20 @@ void buildArrayElementGetter(
   builder.addReturn();
 }
 
-/// Build IR for typed data list factory constructors.
-void buildTypedDataFactory(
+/// Build IR for factory constructors of typed data lists and built-in _List.
+void buildArrayFactory(
   FlowGraphBuilder builder,
   ArrayKind kind,
   ast.Class cls,
 ) {
+  final hasTypeArguments = kind == .fixedLengthList;
+  final coreTypes = GlobalContext.instance.coreTypes;
   final type = StaticType(
-    GlobalContext.instance.coreTypes.nonNullableRawType(cls),
+    hasTypeArguments
+        ? coreTypes.thisInterfaceType(cls, .nonNullable)
+        : coreTypes.nonNullableRawType(cls),
   );
-  builder.addAllocateArray(kind, type);
+  builder.addAllocateArray(kind, type, hasTypeArguments: hasTypeArguments);
   builder.addReturn();
 }
 
@@ -199,6 +203,13 @@ final class VmRecognizedMethods(
       'get:length',
     ): (FlowGraphBuilder builder) {
       buildInstanceGetter(builder, objectLayout.Array_length);
+    },
+    index.getProcedure('dart:core', '_List', ''): (FlowGraphBuilder builder) {
+      buildArrayFactory(
+        builder,
+        .fixedLengthList,
+        index.getClass('dart:core', '_List'),
+      );
     },
 
     // dart:_compact_hash
@@ -351,7 +362,7 @@ final class VmRecognizedMethods(
         '${arrayKind.elementName}List',
         '',
       ): (FlowGraphBuilder builder) {
-        buildTypedDataFactory(
+        buildArrayFactory(
           builder,
           arrayKind,
           index.getClass('dart:typed_data', '${arrayKind.elementName}List'),
