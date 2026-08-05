@@ -2319,8 +2319,14 @@ no_dynamic_casts:
   notes: The easy fix is to wrap the expression in a cast.
 no_leading_underscores_for_library_prefixes:
   status: hasFix
+no_leading_underscores_for_library_prefixes_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_leading_underscores_for_local_identifiers:
   status: hasFix
+no_leading_underscores_for_local_identifiers_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:

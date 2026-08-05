@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
@@ -32,7 +33,10 @@ abstract class LintRuleTest extends AnalysisRuleTest {
   /// Asserts that the given [content] has diagnostics at the marked ranges.
   ///
   /// See the [TestCode] class for more information about the markup format.
-  Future<void> assertDiagnosticsFromMarkup(String content) {
+  Future<void> assertDiagnosticsFromMarkup(
+    String content, {
+    DiagnosticCode? code,
+  }) {
     // TODO(brianwilkerson): Generalize this method and remove the specialized
     //  methods below in favor of this one.
     var testCode = TestCode.parse(content);
@@ -41,7 +45,10 @@ abstract class LintRuleTest extends AnalysisRuleTest {
     }
     var expectedDiagnostics = [
       for (var range in testCode.ranges)
-        lint(range.sourceRange.offset, range.sourceRange.length),
+        if (code != null)
+          error(code, range.sourceRange.offset, range.sourceRange.length)
+        else
+          lint(range.sourceRange.offset, range.sourceRange.length),
     ];
     return super.assertDiagnostics(testCode.code, expectedDiagnostics);
   }

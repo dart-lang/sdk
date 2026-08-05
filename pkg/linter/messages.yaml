@@ -7988,8 +7988,8 @@ LinterLintCode:
   noLeadingUnderscoresForLibraryPrefixes:
     type: lint
     parameters:
-      Object p0: undocumented
-    problemMessage: "The library prefix '#p0' starts with an underscore."
+      String prefix: The library prefix.
+    problemMessage: "The library prefix '#prefix' starts with an underscore."
     correctionMessage: "Try renaming the prefix to not start with an underscore."
     state:
       stable: "2.16"
@@ -8035,11 +8035,20 @@ LinterLintCode:
       ```dart
       import 'dart:core' as core;
       ```
+  noLeadingUnderscoresForLibraryPrefixesShadowed:
+    type: lint
+    sharedName: noLeadingUnderscoresForLibraryPrefixes
+    parameters:
+      String prefix: The library prefix.
+    problemMessage: "The library prefix '#prefix' starts with an underscore."
+    correctionMessage: "Try renaming the prefix to not start with an underscore."
+    hasPublishedDocs: true
   noLeadingUnderscoresForLocalIdentifiers:
     type: lint
+    sharedName: noLeadingUnderscoresForLocalIdentifiers
     parameters:
-      Object p0: undocumented
-    problemMessage: "The local variable '#p0' starts with an underscore."
+      String variableName: The variable name.
+    problemMessage: "The local variable '#variableName' starts with an underscore."
     correctionMessage: "Try renaming the variable to not start with an underscore."
     state:
       stable: "2.16"
@@ -8105,6 +8114,14 @@ LinterLintCode:
       ```dart
       [1,2,3].map((_) => print('Hello'));
       ```
+  noLeadingUnderscoresForLocalIdentifiersShadowed:
+    type: lint
+    sharedName: noLeadingUnderscoresForLocalIdentifiers
+    parameters:
+      String variableName: The variable name.
+    problemMessage: "The local variable '#variableName' starts with an underscore."
+    correctionMessage: "Try renaming the variable to not start with an underscore."
+    hasPublishedDocs: true
   noLiteralBoolComparisons:
     type: lint
     parameters: none

@@ -402,28 +402,14 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     String? matchFixMessage,
     bool allowFixAllFixes = false,
   }) async {
-    parsedExpectedCode = TestCode.parseNormalized(expectedContent);
-    var diagnostic = await _findDiagnosticToFix(filter: filter);
-    var fix = await _assertHasFix(
-      diagnostic,
+    await assertHasFixForTarget(
+      expectedContent,
+      target: target ?? testFilePath,
+      filter: filter,
       expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
       matchFixMessage: matchFixMessage,
       allowFixAllFixes: allowFixAllFixes,
     );
-    change = fix.change;
-
-    // Apply to file.
-    var fileEdits = change.edits;
-    expect(fileEdits, hasLength(1));
-
-    var fileContent = testCode;
-    if (target != null) {
-      expect(fileEdits.first.file, convertPath(target));
-      fileContent = getFile(target).readAsStringSync();
-    }
-
-    _resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    expect(_resultCode, parsedExpectedCode.code);
   }
 
   Future<void> assertHasFixAllFix(
@@ -464,6 +450,45 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
       matchFixMessages: matchFixMessages,
     );
+  }
+
+  /// Asserts that the resolved compilation unit has a fix which produces
+  /// [expected] output.
+  ///
+  /// [expected] will have newlines normalized and be parsed with
+  /// [TestCode.parse], with the resulting code stored in [parsedExpectedCode].
+  Future<void> assertHasFixForTarget(
+    String expected, {
+    required String target,
+    DiagnosticFilter? filter,
+    int? expectedNumberOfFixesForKind,
+    String? matchFixMessage,
+    bool allowFixAllFixes = false,
+  }) async {
+    parsedExpectedCode = TestCode.parseNormalized(expected);
+    var diagnostic = await _findDiagnosticToFix(filter: filter);
+    var fix = await _assertHasFix(
+      diagnostic,
+      expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
+      matchFixMessage: matchFixMessage,
+      allowFixAllFixes: allowFixAllFixes,
+    );
+    change = fix.change;
+
+    // Apply to file.
+    var fileEdits = change.edits;
+    var targetEdits = fileEdits
+        .where((edit) => edit.file == convertPath(target))
+        .singleOrNull;
+    expect(
+      targetEdits,
+      isNotNull,
+      reason: 'Expected a single fileEdit for ${convertPath(target)}',
+    );
+    var fileContent = getFile(target).readAsStringSync();
+
+    _resultCode = SourceEdit.applySequence(fileContent, targetEdits!.edits);
+    expect(_resultCode, parsedExpectedCode.code);
   }
 
   Future<void> assertHasFixWithoutApplying({DiagnosticFilter? filter}) async {
