@@ -58,9 +58,7 @@ abstract class AbstractMigrateTest extends AbstractLspAnalysisServerTest {
     if (expectedSummary != null) {
       expect(result.summary, expectedSummary);
     }
-    if (!apply) {
-      expect(result.edit, isNull);
-    } else if (expectedEdit != null) {
+    if (expectedEdit != null) {
       verifyEdit(result.edit!, expectedEdit);
     }
   }

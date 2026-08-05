@@ -40,12 +40,6 @@ class MigrationRunner({
   required AnalysisServer server,
   required final List<PubspecTarget> pubspecTargets,
   required final MigrationSummaryBuilder summaryBuilder,
-
-  /// Whether to apply the migration edits to the files.
-  ///
-  /// If `false`, the migration is run as a dry run (previewing changes in the
-  /// summary without applying them to the workspace).
-  required final bool apply,
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
 
@@ -73,11 +67,9 @@ class MigrationRunner({
 
   void _applyAndRecordEdits(ChangeBuilder builder) {
     for (var fileEdit in builder.sourceChange.edits) {
-      if (apply) {
-        // Record the edit to be returned to the client at the end of the entire
-        // migration.
-        _fileEdits.add(fileEdit);
-      }
+      // Record the edit to be returned to the client at the end of the entire
+      // migration.
+      _fileEdits.add(fileEdit);
       // Apply the edit to the in-memory overlays so that subsequent analysis
       // (like the clean up step or other packages in the workspace) sees the
       // updated code.

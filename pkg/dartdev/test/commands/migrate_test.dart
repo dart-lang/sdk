@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -75,6 +76,25 @@ void migrate() {
 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+    });
+
+    test('--dry-run with changes prints apply tip', () async {
+      p = project(
+        mainSrc: 'class Foo {}\n',
+        sdkConstraint: VersionConstraint.parse('^3.12.0'),
+      );
+
+      var result = await p.runMigrate(['--dry-run', '--step=bump', p.dirPath]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+        result.stdout,
+        contains(
+          'To apply the proposed changes, run:\n'
+          '  dart migrate --apply --step=bump ${p.dirPath}',
+        ),
+      );
     });
 
     test('--apply', () async {
