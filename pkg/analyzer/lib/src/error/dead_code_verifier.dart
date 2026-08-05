@@ -280,6 +280,8 @@ class NullSafetyDeadCodeVerifier {
         }
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
+      } else if (parent is BinaryOperatorInvocation) {
+        offset = parent.operator.offset;
       } else if (parent is IfNull) {
         offset = parent.operator.offset;
       }
@@ -313,6 +315,9 @@ class NullSafetyDeadCodeVerifier {
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
         node = parent.rightOperand2;
+      } else if (parent is BinaryOperatorInvocation) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
       } else if (parent is IfNull) {
         offset = parent.operator.offset;
         node = parent.rightOperand;

@@ -1063,13 +1063,26 @@ ForElement
             element: hasImplicitType isPublic
               type: dynamic
     leftSeparator: ;
-    condition2: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    condition2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: i
         element: i@28
         staticType: dynamic
       operator: <
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+      binaryOperator: lessThan
+      element: <null>
+      staticType: dynamic
+    condition(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: i
+        element: i@28
+        staticType: dynamic
+      operator: <
+      rightOperand: IntegerLiteral
         literal: 1
         correspondingParameter: <null>
         staticType: int
@@ -1125,13 +1138,26 @@ ForElement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition2: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    condition2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: i2
         element: i2@28
         staticType: int
       operator: <
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 10
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: i2
+        element: i2@28
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
         literal: 10
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -1196,13 +1222,26 @@ ForElement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition2: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    condition2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: j
         element: j@30
         staticType: int
       operator: <
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 1
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: j
+        element: j@30
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
         literal: 1
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int

@@ -1050,13 +1050,27 @@ void f(int a, int b, double c) {
     var node = result.findNode.assignment('= c');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  leftHandSide2: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int
     operator: +
-    rightOperand2: SimpleIdentifier
+    rightOperand: SimpleIdentifier
+      token: b
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      element: <testLibrary>::@function::f::@formalParameter::b
+      staticType: int
+    binaryOperator: add
+    element: dart:core::@class::num::@method::+
+    staticType: int
+  leftHandSide(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int
+    operator: +
+    rightOperand: SimpleIdentifier
       token: b
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       element: <testLibrary>::@function::f::@formalParameter::b
@@ -1094,13 +1108,27 @@ void f(int a, int b, double c) {
 AssignmentExpression
   leftHandSide2: ParenthesizedExpression
     leftParenthesis: (
-    expression2: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: int
       operator: +
-      rightOperand2: SimpleIdentifier
+      rightOperand: SimpleIdentifier
+        token: b
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        element: <testLibrary>::@function::f::@formalParameter::b
+        staticType: int
+      binaryOperator: add
+      element: dart:core::@class::num::@method::+
+      staticType: int
+    expression(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: int
+      operator: +
+      rightOperand: SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
         element: <testLibrary>::@function::f::@formalParameter::b
@@ -1173,13 +1201,26 @@ void f(int a, double b) {
 AssignmentExpression
   leftHandSide2: ParenthesizedExpression
     leftParenthesis: (
-    expression2: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: int
       operator: +
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 0
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      binaryOperator: add
+      element: dart:core::@class::num::@method::+
+      staticType: int
+    expression(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
         literal: 0
         correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
         staticType: int

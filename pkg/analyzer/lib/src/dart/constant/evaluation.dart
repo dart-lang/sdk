@@ -671,7 +671,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
-  Constant visitBinaryExpression(BinaryExpression node) {
+  Constant visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var operatorElement = node.element;
     var operatorContainer = operatorElement?.enclosingElement;
     switch (operatorContainer) {
@@ -688,13 +688,13 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     }
 
     TokenType operatorType = node.operator.type;
-    var leftResult = evaluateConstant(node.leftOperand2);
+    var leftResult = evaluateConstant(node.leftOperand as Expression);
     if (leftResult is! DartObjectImpl) {
       return leftResult;
     }
 
     // Evaluate eager operators.
-    var rightResult = evaluateConstant(node.rightOperand2);
+    var rightResult = evaluateConstant(node.rightOperand);
     if (rightResult is! DartObjectImpl) {
       return rightResult;
     }
@@ -1473,6 +1473,35 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
 
   @override
   Constant visitTypeLiteral(TypeLiteral node) => evaluateConstant(node.type);
+
+  @override
+  Constant visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    var operatorElement = node.element;
+    switch (operatorElement?.enclosingElement) {
+      case ExtensionElement():
+        return InvalidConstant.forEntity(
+          entity: node,
+          locatableDiagnostic: diag.constEvalExtensionMethod,
+        );
+      case ExtensionTypeElement():
+        return InvalidConstant.forEntity(
+          entity: node,
+          locatableDiagnostic: diag.constEvalExtensionTypeMethod,
+        );
+    }
+
+    var operand = evaluateConstant(node.operand as Expression);
+    if (operand is! DartObjectImpl) {
+      return operand;
+    }
+    return switch (node.unaryOperator) {
+      UnaryOperator.negate => _dartObjectComputer.negated(node, operand),
+      UnaryOperator.bitwiseComplement => _dartObjectComputer.bitNot(
+        node,
+        operand,
+      ),
+    };
+  }
 
   /// Builds a list constant by adding the evaluated entries of [elements] to
   /// the given [list].
@@ -2326,7 +2355,7 @@ class DartObjectComputer {
   DartObjectComputer(this._typeSystem, this._featureSet);
 
   Constant add(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2399,7 +2428,7 @@ class DartObjectComputer {
   }
 
   Constant divide(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2414,7 +2443,7 @@ class DartObjectComputer {
   }
 
   Constant eagerAnd(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2429,7 +2458,7 @@ class DartObjectComputer {
   }
 
   Constant eagerOr(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2444,7 +2473,7 @@ class DartObjectComputer {
   }
 
   Constant eagerXor(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2474,7 +2503,7 @@ class DartObjectComputer {
   }
 
   Constant greaterThan(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2489,7 +2518,7 @@ class DartObjectComputer {
   }
 
   Constant greaterThanOrEqual(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2504,7 +2533,7 @@ class DartObjectComputer {
   }
 
   Constant integerDivide(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2576,7 +2605,7 @@ class DartObjectComputer {
   }
 
   Constant lessThan(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2591,7 +2620,7 @@ class DartObjectComputer {
   }
 
   Constant lessThanOrEqual(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2617,7 +2646,7 @@ class DartObjectComputer {
   }
 
   Constant logicalShiftRight(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2632,7 +2661,7 @@ class DartObjectComputer {
   }
 
   Constant minus(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2658,7 +2687,7 @@ class DartObjectComputer {
   }
 
   Constant notEqual(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2684,7 +2713,7 @@ class DartObjectComputer {
   }
 
   Constant remainder(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2699,7 +2728,7 @@ class DartObjectComputer {
   }
 
   Constant shiftLeft(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2714,7 +2743,7 @@ class DartObjectComputer {
   }
 
   Constant shiftRight(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {
@@ -2740,7 +2769,7 @@ class DartObjectComputer {
   }
 
   Constant times(
-    BinaryExpression node,
+    Expression node,
     DartObjectImpl leftOperand,
     DartObjectImpl rightOperand,
   ) {

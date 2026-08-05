@@ -56,10 +56,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var element = node.element;
     usedElements.addMember(element);
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
@@ -407,6 +407,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    usedElements.addMember(node.element);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept2(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
@@ -477,7 +483,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       if (parent is NullAssertionExpression ||
           parent is LogicalNot ||
           parent is PrefixExpression ||
-          parent is PostfixExpression) {
+          parent is PostfixExpression ||
+          parent is UnaryOperatorInvocation) {
         // v++;
         // ++v;
         return false;

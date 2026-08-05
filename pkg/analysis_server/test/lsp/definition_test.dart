@@ -517,6 +517,30 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_constructor_newImplicit() async {
+    var contents = '''
+class [!WithGeneric!]<T> {}
+
+void fn() {
+  final val = WithGeneric<String>.n^ew();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_newImplicit_dotShorthands() async {
+    var contents = '''
+class [!WithGeneric!]<T> {}
+
+void fn() {
+  final WithGeneric<String> val = .n^ew();
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_constructor_redirectingSuper_wildcards() async {
     var contents = '''
 class A {
@@ -656,6 +680,26 @@ var _ = StringEx^tension('').x();
 
 extension [!StringExtension!] on String {
   void x() {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_extensionType_parameter() async {
+    var contents = '''
+extension type E(int [!it!]) {
+  int get value => it^;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_extensionType_parameter_ofTypeParameter() async {
+    var contents = '''
+extension type E<T>(T [!it!]) {
+  T get value => it^;
 }
 ''';
 

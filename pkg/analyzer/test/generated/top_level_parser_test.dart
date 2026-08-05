@@ -4794,11 +4794,18 @@ CompilationUnit
                 leftHandSide2: SimpleIdentifier
                   token: f
                 operator: =
-                rightHandSide2: BinaryExpression
-                  leftOperand2: SimpleIdentifier
+                rightHandSide2: BinaryOperatorInvocation
+                  leftOperand: SimpleIdentifier
                     token: f
                   operator: +
-                  rightOperand2: SimpleIdentifier
+                  rightOperand: SimpleIdentifier
+                    token: v
+                  binaryOperator: add
+                rightHandSide(v1): BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: f
+                  operator: +
+                  rightOperand: SimpleIdentifier
                     token: v
               semicolon: ;
         rightBracket: }

@@ -263,7 +263,7 @@ void f() async => await e;
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a + b;
 ''');
-    var node = parseResult.findNode.singleBinaryExpression;
+    var node = parseResult.findNode.singleBinaryOperatorInvocation;
     _assertSource('a + b', node);
   }
 
@@ -271,7 +271,7 @@ var v = a + b;
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a * (b + c);
 ''');
-    var node = parseResult.findNode.binary('a *');
+    var node = parseResult.findNode.binaryOperatorInvocation('a *');
     _assertSource('a * (b + c)', node);
   }
 
@@ -3519,17 +3519,6 @@ int f() {
     _assertSource(code, node);
   }
 
-  void test_visitPrefixExpression() {
-    var code = '-foo';
-    var parseResult = parseTestCodeWithDiagnostics('''
-int f() {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singlePrefixExpression;
-    _assertSource(code, node);
-  }
-
   void test_visitPrefixExpression_precedence() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = !(a == b);
@@ -4486,6 +4475,17 @@ class A$code {}
 class A$code {}
 ''');
     var node = parseResult.findNode.singleTypeParameterList;
+    _assertSource(code, node);
+  }
+
+  void test_visitUnaryOperatorInvocation() {
+    var code = '-foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+int f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleUnaryOperatorInvocation;
     _assertSource(code, node);
   }
 

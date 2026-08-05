@@ -13,11 +13,11 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   MixinSuperInvokedNamesCollector(this._names);
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    if (node.leftOperand2 is SuperExpression) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    if (node.leftOperand is SuperExpression) {
       _names.add(node.operator.lexeme);
     }
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
@@ -66,5 +66,16 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    if (node.operand is SuperExpression) {
+      _names.add(switch (node.unaryOperator) {
+        UnaryOperator.negate => 'unary-',
+        UnaryOperator.bitwiseComplement => '~',
+      });
+    }
+    super.visitUnaryOperatorInvocation(node);
   }
 }

@@ -1186,11 +1186,18 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
       rightParenthesis: )
@@ -1217,11 +1224,18 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
       rightParenthesis: )
@@ -1248,11 +1262,18 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
@@ -1284,11 +1305,18 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
@@ -1324,11 +1352,18 @@ Block
             token: i
           operator: --
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
@@ -1364,11 +1399,18 @@ Block
             token: i
           operator: --
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
@@ -1550,11 +1592,18 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
       rightParenthesis: )
@@ -1589,11 +1638,18 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
       rightParenthesis: )
@@ -1628,11 +1684,18 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
@@ -1672,11 +1735,18 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
@@ -1722,11 +1792,18 @@ Block
               initializer2: SimpleIdentifier
                 token: count
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: j
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: j
         rightSeparator: ;
         updaters2
@@ -1776,11 +1853,18 @@ Block
               initializer2: SimpleIdentifier
                 token: count
         leftSeparator: ;
-        condition2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: j
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: j
         rightSeparator: ;
         updaters2
@@ -1970,11 +2054,18 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryExpression
-              leftOperand2: SimpleIdentifier
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
                 token: p
               operator: *
-              rightOperand2: IntegerLiteral
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
                 literal: 2
             semicolon: ;
   rightBracket: }
@@ -2021,11 +2112,18 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryExpression
-              leftOperand2: SimpleIdentifier
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
                 token: p
               operator: *
-              rightOperand2: IntegerLiteral
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
                 literal: 2
             semicolon: ;
   rightBracket: }
@@ -2070,11 +2168,18 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryExpression
-              leftOperand2: SimpleIdentifier
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
                 token: p
               operator: *
-              rightOperand2: IntegerLiteral
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
                 literal: 2
             semicolon: ;
   rightBracket: }
@@ -2735,11 +2840,18 @@ Block
               statements
                 ReturnStatement
                   returnKeyword: return
-                  expression2: BinaryExpression
-                    leftOperand2: SimpleIdentifier
+                  expression2: BinaryOperatorInvocation
+                    leftOperand: SimpleIdentifier
                       token: a
                     operator: +
-                    rightOperand2: SimpleIdentifier
+                    rightOperand: SimpleIdentifier
+                      token: a
+                    binaryOperator: add
+                  expression(v1): BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: a
+                    operator: +
+                    rightOperand: SimpleIdentifier
                       token: a
                   semicolon: ;
               rightBracket: }

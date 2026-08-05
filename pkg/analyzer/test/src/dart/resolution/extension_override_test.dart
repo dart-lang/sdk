@@ -791,10 +791,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -809,7 +809,30 @@ BinaryExpression
     extendedType: A
     staticType: null
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
+BinaryExpression
+  leftOperand: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -830,10 +853,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -858,7 +881,40 @@ BinaryExpression
     typeArgumentTypes
       int
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
+BinaryExpression
+  leftOperand: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -929,10 +985,10 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -951,7 +1007,34 @@ BinaryExpression
     extendedType: A
     staticType: null
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: package:test/lib.dart::@extension::E::@method::+
+  staticType: void
+BinaryExpression
+  leftOperand: ExtensionOverride
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -975,10 +1058,10 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -1007,7 +1090,44 @@ BinaryExpression
     typeArgumentTypes
       int
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: package:test/lib.dart::@extension::E::@method::+
+  staticType: void
+BinaryExpression
+  leftOperand: ExtensionOverride
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
     staticType: int

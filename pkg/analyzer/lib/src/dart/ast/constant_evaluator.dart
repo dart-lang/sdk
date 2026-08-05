@@ -434,7 +434,7 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
   }
 
   @override
-  Object? visitBinaryExpression(BinaryExpression node) {
+  Object? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var leftOperand = node.leftOperand.accept2(this);
     if (identical(leftOperand, NOT_A_CONSTANT)) {
       return leftOperand;
@@ -743,6 +743,20 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
       buffer.write(component.lexeme);
     }
     return buffer.toString();
+  }
+
+  @override
+  Object? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    var operand = (node.operand as Expression).accept2(this);
+    if (identical(operand, NOT_A_CONSTANT)) {
+      return operand;
+    }
+    return switch (node.unaryOperator) {
+      UnaryOperator.negate when operand == null => null,
+      UnaryOperator.negate when operand is num => -operand,
+      UnaryOperator.bitwiseComplement when operand is int => ~operand,
+      _ => NOT_A_CONSTANT,
+    };
   }
 
   /// Return the constant value of the static constant represented by the given

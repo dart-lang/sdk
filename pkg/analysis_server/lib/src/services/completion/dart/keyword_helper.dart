@@ -201,17 +201,17 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is in the
   /// [initializer] list of the given [constructor].
   void addConstructorInitializerKeywords(
-    ConstructorDeclaration constructor,
-    ConstructorInitializer? initializer,
-  ) {
+    NodeList<ConstructorInitializer> list,
+    ConstructorInitializer? initializer, {
+    required bool isExtensionType,
+  }) {
     addKeyword(Keyword.ASSERT);
-    var initializers = constructor.initializers;
-    if (initializer == null || initializers.last == initializer) {
-      var last = initializers.lastNonSynthetic;
+    if (initializer == null || list.last == initializer) {
+      var last = list.lastNonSynthetic;
       if (last == initializer ||
           (last is! SuperConstructorInvocation &&
               last is! RedirectingConstructorInvocation)) {
-        if (constructor.parent is! ExtensionTypeDeclaration) {
+        if (!isExtensionType) {
           addKeyword(Keyword.SUPER);
         }
         addKeyword(Keyword.THIS);

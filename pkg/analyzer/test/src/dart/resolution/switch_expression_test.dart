@@ -662,13 +662,26 @@ SwitchExpression
           requiredType: List<Object?>
         whenClause: WhenClause
           whenKeyword: when
-          expression2: BinaryExpression
-            leftOperand2: SimpleIdentifier
+          expression2: BinaryOperatorInvocation
+            leftOperand: SimpleIdentifier
               token: a
               element: a@58
               staticType: int
             operator: >
-            rightOperand2: IntegerLiteral
+            rightOperand: IntegerLiteral
+              literal: 0
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+              staticType: int
+            binaryOperator: greaterThan
+            element: dart:core::@class::num::@method::>
+            staticType: bool
+          expression(v1): BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              element: a@58
+              staticType: int
+            operator: >
+            rightOperand: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -732,13 +745,26 @@ SwitchExpression
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression2: BinaryExpression
-            leftOperand2: SimpleIdentifier
+          expression2: BinaryOperatorInvocation
+            leftOperand: SimpleIdentifier
               token: a
               element: a@44
               staticType: int
             operator: >
-            rightOperand2: IntegerLiteral
+            rightOperand: IntegerLiteral
+              literal: 0
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+              staticType: int
+            binaryOperator: greaterThan
+            element: dart:core::@class::num::@method::>
+            staticType: bool
+          expression(v1): BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              element: a@44
+              staticType: int
+            operator: >
+            rightOperand: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int

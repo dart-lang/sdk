@@ -27,10 +27,10 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.binary('==');
+    var node = result.findNode.binaryOperatorInvocation('==');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ParenthesizedExpression
+BinaryOperatorInvocation
+  leftOperand: ParenthesizedExpression
     leftParenthesis: (
     expression2: ThrowExpression
       throwKeyword: throw
@@ -40,16 +40,42 @@ BinaryExpression
     rightParenthesis: )
     staticType: Never
   operator: ==
-  rightOperand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
       staticType: int
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
     correspondingParameter: <null>
+    binaryOperator: add
+    element: dart:core::@class::num::@method::+
+    staticType: int
+  binaryOperator: equal
+  element: <null>
+  staticType: Never
+BinaryExpression
+  leftOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      staticType: int
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -70,24 +96,45 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.binary('x ==');
+    var node = result.findNode.binaryOperatorInvocation('x ==');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Never
   operator: ==
-  rightOperand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
       staticType: int
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
     correspondingParameter: <null>
+    binaryOperator: add
+    element: dart:core::@class::num::@method::+
+    staticType: int
+  binaryOperator: equal
+  element: <null>
+  staticType: Never
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      staticType: int
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -108,22 +155,60 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.binary('x +');
+    var node = result.findNode.binaryOperatorInvocation('x +');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Never
   operator: +
-  rightOperand2: ParenthesizedExpression
+  rightOperand: ParenthesizedExpression
     leftParenthesis: (
-    expression2: BinaryExpression
-      leftOperand2: IntegerLiteral
+    expression2: BinaryOperatorInvocation
+      leftOperand: IntegerLiteral
         literal: 1
         staticType: int
       operator: +
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      binaryOperator: add
+      element: dart:core::@class::num::@method::+
+      staticType: int
+    expression(v1): BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      element: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: Never
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
         literal: 2
         correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
         staticType: int
@@ -146,24 +231,45 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.binary('x ==');
+    var node = result.findNode.binaryOperatorInvocation('x ==');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Never?
   operator: ==
-  rightOperand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
       staticType: int
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
     correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+    binaryOperator: add
+    element: dart:core::@class::num::@method::+
+    staticType: int
+  binaryOperator: equal
+  element: dart:core::@class::Object::@method::==
+  staticType: bool
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never?
+  operator: ==
+  rightOperand: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      staticType: int
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -182,22 +288,60 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.binary('x +');
+    var node = result.findNode.binaryOperatorInvocation('x +');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Never?
   operator: +
-  rightOperand2: ParenthesizedExpression
+  rightOperand: ParenthesizedExpression
     leftParenthesis: (
-    expression2: BinaryExpression
-      leftOperand2: IntegerLiteral
+    expression2: BinaryOperatorInvocation
+      leftOperand: IntegerLiteral
         literal: 1
         staticType: int
       operator: +
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      binaryOperator: add
+      element: dart:core::@class::num::@method::+
+      staticType: int
+    expression(v1): BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      element: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: InvalidType
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never?
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
         literal: 2
         correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
         staticType: int
@@ -224,10 +368,10 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.binary('+ (');
+    var node = result.findNode.binaryOperatorInvocation('+ (');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ParenthesizedExpression
+BinaryOperatorInvocation
+  leftOperand: ParenthesizedExpression
     leftParenthesis: (
     expression2: ThrowExpression
       throwKeyword: throw
@@ -237,14 +381,57 @@ BinaryExpression
     rightParenthesis: )
     staticType: Never
   operator: +
-  rightOperand2: ParenthesizedExpression
+  rightOperand: ParenthesizedExpression
     leftParenthesis: (
-    expression2: BinaryExpression
-      leftOperand2: IntegerLiteral
+    expression2: BinaryOperatorInvocation
+      leftOperand: IntegerLiteral
         literal: 1
         staticType: int
       operator: +
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      binaryOperator: add
+      element: dart:core::@class::num::@method::+
+      staticType: int
+    expression(v1): BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      element: dart:core::@class::num::@method::+
+      staticInvokeType: num Function(num)
+      staticType: int
+    rightParenthesis: )
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: Never
+BinaryExpression
+  leftOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: +
+  rightOperand: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
+      leftOperand: IntegerLiteral
+        literal: 1
+        staticType: int
+      operator: +
+      rightOperand: IntegerLiteral
         literal: 2
         correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
         staticType: int
@@ -259,7 +446,7 @@ BinaryExpression
   staticType: Never
 ''');
 
-    assertType(result.findNode.binary('1 + 2'), 'int');
+    assertType(result.findNode.binaryOperatorInvocation('1 + 2'), 'int');
   }
 
   test_conditionalExpression_falseBranch() async {
@@ -357,16 +544,28 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  rightHandSide2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
       staticType: int
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
     correspondingParameter: <null>
+    binaryOperator: add
+    element: dart:core::@class::num::@method::+
+    staticType: int
+  rightHandSide(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      staticType: int
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -407,16 +606,28 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  rightHandSide2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
       staticType: int
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
     correspondingParameter: <null>
+    binaryOperator: add
+    element: dart:core::@class::num::@method::+
+    staticType: int
+  rightHandSide(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      staticType: int
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -482,16 +693,28 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  rightHandSide2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
       staticType: int
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
     correspondingParameter: <null>
+    binaryOperator: add
+    element: dart:core::@class::num::@method::+
+    staticType: int
+  rightHandSide(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      staticType: int
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -530,16 +753,28 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  rightHandSide2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
       staticType: int
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
     correspondingParameter: <null>
+    binaryOperator: add
+    element: dart:core::@class::num::@method::+
+    staticType: int
+  rightHandSide(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      staticType: int
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -586,12 +821,26 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      BinaryExpression
-        leftOperand2: IntegerLiteral
+      BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
           literal: 1
           staticType: int
         operator: +
-        rightOperand2: IntegerLiteral
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        correspondingParameter: <null>
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        staticType: int
+    arguments(v1)
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
           literal: 2
           correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int
@@ -631,12 +880,26 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      BinaryExpression
-        leftOperand2: IntegerLiteral
+      BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
           literal: 1
           staticType: int
         operator: +
-        rightOperand2: IntegerLiteral
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        correspondingParameter: <null>
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        staticType: int
+    arguments(v1)
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
           literal: 2
           correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int
@@ -674,12 +937,26 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      BinaryExpression
-        leftOperand2: IntegerLiteral
+      BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
           literal: 1
           staticType: int
         operator: +
-        rightOperand2: IntegerLiteral
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        correspondingParameter: <null>
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        staticType: int
+    arguments(v1)
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
           literal: 2
           correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int

@@ -239,18 +239,16 @@ class DeclarationHelper {
   /// given [constructor]. If a [fieldToInclude] is provided, then it should not
   /// be skipped because the cursor is inside that field's name.
   void addFieldsForInitializers(
-    ConstructorDeclaration constructor,
+    ConstructorElement constructorElement,
+    NodeList<ConstructorInitializer> list,
+    FormalParameterList parameters,
     FieldElement? fieldToInclude,
   ) {
-    var constructorElement = constructor.declaredFragment?.element;
-    var containingElement = constructorElement?.enclosingElement;
-    if (containingElement == null) {
-      return;
-    }
+    var containingElement = constructorElement.enclosingElement;
 
     var fieldsToSkip = <FieldElement>{};
     // Skip fields that are already initialized in the initializer list.
-    for (var initializer in constructor.initializers) {
+    for (var initializer in list) {
       if (initializer is ConstructorFieldInitializer) {
         var fieldElement = initializer.fieldName.element;
         if (fieldElement is FieldElement) {
@@ -259,7 +257,7 @@ class DeclarationHelper {
       }
     }
     // Skip fields that are already initialized in the parameter list.
-    for (var parameter in constructor.parameters.parameters) {
+    for (var parameter in parameters.parameters) {
       if (parameter is FieldFormalParameter) {
         var parameterElement = parameter.declaredFragment?.element;
         if (parameterElement is FieldFormalParameterElement) {

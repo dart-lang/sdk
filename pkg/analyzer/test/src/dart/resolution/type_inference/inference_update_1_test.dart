@@ -94,7 +94,11 @@ example(List<int> list) {
       assertType(result.findElement.parameter('x').type, 'int');
       assertType(result.findElement.parameter('y').type, 'int');
       expect(
-        result.findNode.binary('x + y').element!.enclosingElement!.name,
+        result.findNode
+            .binaryOperatorInvocation('x + y')
+            .element!
+            .enclosingElement!
+            .name,
         'num',
       );
     } else {
@@ -200,7 +204,11 @@ test(List<int> list) {
     );
     assertType(result.findElement.parameter('y').type, 'int');
     expect(
-      result.findNode.binary('+ y').element?.enclosingElement!.name,
+      result.findNode
+          .binaryOperatorInvocation('+ y')
+          .element
+          ?.enclosingElement!
+          .name,
       _isEnabled ? 'num' : null,
     );
   }
@@ -468,7 +476,11 @@ test(List<int> list) {
     assertType(result.findElement.parameter('x').type, 'int?');
     assertType(result.findElement.parameter('y').type, 'int');
     expect(
-      result.findNode.binary('+ y').element!.enclosingElement!.name,
+      result.findNode
+          .binaryOperatorInvocation('+ y')
+          .element!
+          .enclosingElement!
+          .name,
       'num',
     );
   }
@@ -488,7 +500,11 @@ test() {
     assertType(result.findElement.parameter('x').type, 'int?');
     assertType(result.findElement.parameter('y').type, 'int');
     expect(
-      result.findNode.binary('+ y').element!.enclosingElement!.name,
+      result.findNode
+          .binaryOperatorInvocation('+ y')
+          .element!
+          .enclosingElement!
+          .name,
       'num',
     );
   }

@@ -268,15 +268,27 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BinaryExpression
-                  leftOperand2: BinaryExpression
-                    leftOperand2: IntegerLiteral
+                condition2: BinaryOperatorInvocation
+                  leftOperand: BinaryOperatorInvocation
+                    leftOperand: IntegerLiteral
                       literal: 1
                     operator: <
-                    rightOperand2: SimpleIdentifier
+                    rightOperand: SimpleIdentifier
+                      token: x
+                    binaryOperator: lessThan
+                  operator: <
+                  rightOperand: IntegerLiteral
+                    literal: 3
+                  binaryOperator: lessThan
+                condition(v1): BinaryExpression
+                  leftOperand: BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1
+                    operator: <
+                    rightOperand: SimpleIdentifier
                       token: x
                   operator: <
-                  rightOperand2: IntegerLiteral
+                  rightOperand: IntegerLiteral
                     literal: 3
                 rightParenthesis: )
                 body: Block

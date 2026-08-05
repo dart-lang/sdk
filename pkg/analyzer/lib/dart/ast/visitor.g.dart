@@ -244,7 +244,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitExportDirective(ExportDirective node) =>
       visitNamespaceDirective(node);
 
-  R? visitExpression(Expression node) => visitNode(node);
+  R? visitExpression(Expression node) => visitInstanceReceiver(node);
 
   @override
   R? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
@@ -395,6 +395,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitInstanceCreationExpression(InstanceCreationExpression node) =>
       visitExpression(node);
+
+  R? visitInstanceReceiver(InstanceReceiver node) => visitNode(node);
 
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => visitLiteral(node);
@@ -813,8 +815,10 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitAwaitExpression(AwaitExpression node) => visitExpression(node);
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) => visitExpression(node);
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) =>
+      visitExpression(node);
 
   @override
   R? visitBlock(Block node) => visitStatement(node);
@@ -994,7 +998,7 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitExportDirective(ExportDirective node) =>
       visitNamespaceDirective(node);
 
-  R? visitExpression(Expression node) => visitNode(node);
+  R? visitExpression(Expression node) => visitInstanceReceiver(node);
 
   @override
   R? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
@@ -1145,6 +1149,8 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitIndexExpression(IndexExpression node) => visitExpression(node);
+
+  R? visitInstanceReceiver(InstanceReceiver node) => visitNode(node);
 
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => visitLiteral(node);
@@ -1475,6 +1481,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitTypeParameterList(TypeParameterList node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) =>
+      visitExpression(node);
 
   R? visitUriBasedDirective(UriBasedDirective node) => visitDirective(node);
 
@@ -2727,8 +2738,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) {
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3769,6 +3781,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitVariableDeclaration(VariableDeclaration node) {
     node.visitChildren2(this);
@@ -4450,8 +4469,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitAwaitExpression(AwaitExpression node) => null;
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) => null;
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) => null;
 
   @override
   R? visitBlock(Block node) => null;
@@ -4986,6 +5006,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitTypeParameterList(TypeParameterList node) => null;
+
+  @experimental
+  @override
+  R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) => null;
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => null;
@@ -5667,8 +5691,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitAwaitExpression(AwaitExpression node) => _throw(node);
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) => _throw(node);
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) =>
+      _throw(node);
 
   @override
   R? visitBlock(Block node) => _throw(node);
@@ -6214,6 +6240,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitTypeParameterList(TypeParameterList node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) => _throw(node);
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => _throw(node);
@@ -7860,10 +7890,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitBinaryExpression(BinaryExpression node) {
+  T? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitBinaryExpression(node);
+    T? result = _baseVisitor.visitBinaryOperatorInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -9242,6 +9273,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitUnaryOperatorInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitVariableDeclaration(VariableDeclaration node) {
     stopwatch.start();
@@ -9985,8 +10025,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitAwaitExpression(AwaitExpression node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitBinaryExpression(BinaryExpression node) => visitNode(node);
+  R? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) =>
+      visitNode(node);
 
   @override
   R? visitBlock(Block node) => visitNode(node);
@@ -10552,6 +10594,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitTypeParameterList(TypeParameterList node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) =>
+      visitNode(node);
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => visitNode(node);

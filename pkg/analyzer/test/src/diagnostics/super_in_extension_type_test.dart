@@ -27,14 +27,26 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SuperExpression
+BinaryOperatorInvocation
+  leftOperand: SuperExpression
     superKeyword: super
     staticType: A
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: InvalidType
+BinaryExpression
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int

@@ -3609,249 +3609,38 @@ abstract final class BinaryExpression
   FunctionType? get staticInvokeType;
 }
 
+/// The V1 compatibility projection of a canonical V2 binary expression.
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
-    GenerateNodeProperty(
-      'leftOperand2',
-      v1Name: 'leftOperand',
-      v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
-    ),
+    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty(
-      'rightOperand2',
-      v1Name: 'rightOperand',
-      v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
-    ),
+    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
   ],
 )
 final class BinaryExpressionImpl extends ExpressionImpl
     implements BinaryExpression {
-  @generated
-  ExpressionImpl _leftOperand2;
-
-  @generated
-  @override
-  final Token operator;
-
-  @generated
-  ExpressionImpl _rightOperand2;
-
-  @override
-  MethodElement? element;
-
-  @override
-  FunctionTypeImpl? staticInvokeType;
-
-  @generated
-  BinaryExpressionImpl({
-    required ExpressionImpl leftOperand2,
-    required this.operator,
-    required ExpressionImpl rightOperand2,
-  }) : _leftOperand2 = leftOperand2,
-       _rightOperand2 = rightOperand2 {
-    _becomeParentOf2(leftOperand2);
-    _becomeParentOf1(V1Projection.toV1Expression(leftOperand2));
-    _becomeParentOf2(rightOperand2);
-    _becomeParentOf1(V1Projection.toV1Expression(rightOperand2));
-  }
-
-  @generated
-  @override
-  Token get beginToken {
-    return leftOperand2.beginToken;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return rightOperand2.endToken;
-  }
-
-  @generated
-  @ToBeDeprecated('Use leftOperand2 instead.')
-  @override
-  ExpressionImpl get leftOperand => V1Projection.toV1Expression(leftOperand2);
-
-  @generated
-  @experimental
-  @override
-  ExpressionImpl get leftOperand2 => _leftOperand2;
-
-  @generated
-  @experimental
-  set leftOperand2(ExpressionImpl leftOperand2) {
-    _leftOperand2 = _becomeParentOf2(leftOperand2);
-    _becomeParentOf1(V1Projection.toV1Expression(leftOperand2));
-  }
-
-  @override
-  Precedence get precedence => Precedence.forTokenType(operator.type);
-
-  @generated
-  @ToBeDeprecated('Use rightOperand2 instead.')
-  @override
-  ExpressionImpl get rightOperand => V1Projection.toV1Expression(rightOperand2);
-
-  @generated
-  @experimental
-  @override
-  ExpressionImpl get rightOperand2 => _rightOperand2;
-
-  @generated
-  @experimental
-  set rightOperand2(ExpressionImpl rightOperand2) {
-    _rightOperand2 = _becomeParentOf2(rightOperand2);
-    _becomeParentOf1(V1Projection.toV1Expression(rightOperand2));
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('leftOperand', leftOperand)
-    ..addToken('operator', operator)
-    ..addNode('rightOperand', rightOperand);
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('leftOperand2', leftOperand2)
-    ..addToken('operator', operator)
-    ..addNode('rightOperand2', rightOperand2);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBinaryExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(leftOperand2, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'leftOperand2'.");
-    }
-    if (identical(rightOperand2, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'rightOperand2'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(leftOperand2, oldNode)) {
-      leftOperand2 = newNode as ExpressionImpl;
-      return;
-    }
-    if (identical(rightOperand2, oldNode)) {
-      rightOperand2 = newNode as ExpressionImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @generated
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitBinaryExpression(this, contextType: contextType);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    leftOperand.accept(visitor);
-    rightOperand.accept(visitor);
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    leftOperand2.accept2(visitor);
-    rightOperand2.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitLeftOperand2,
-    void Function(ExpressionImpl)? visitRightOperand2,
-  }) {
-    if (visitLeftOperand2 != null) {
-      visitLeftOperand2(leftOperand2);
-    } else {
-      leftOperand2.accept2(visitor);
-    }
-    if (visitRightOperand2 != null) {
-      visitRightOperand2(rightOperand2);
-    } else {
-      rightOperand2.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
-      return leftOperand;
-    }
-    if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
-      return rightOperand;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (leftOperand2._containsOffset(rangeOffset, rangeEnd)) {
-      return leftOperand2;
-    }
-    if (rightOperand2._containsOffset(rangeOffset, rangeEnd)) {
-      return rightOperand2;
-    }
-    return null;
-  }
-}
-
-/// The V1 compatibility projection of an [IfNull], [LogicalAnd], or
-/// [LogicalOr].
-final class BinaryExpressionV1Impl extends ExpressionImpl
-    implements BinaryExpression {
   final ExpressionImpl _origin;
 
-  BinaryExpressionV1Impl._and(LogicalAndImpl origin) : _origin = origin {
+  BinaryExpressionImpl._and(LogicalAndImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  BinaryExpressionV1Impl._ifNull(IfNullImpl origin) : _origin = origin {
+  BinaryExpressionImpl._ifNull(IfNullImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  BinaryExpressionV1Impl._or(LogicalOrImpl origin) : _origin = origin {
+  BinaryExpressionImpl._operator(BinaryOperatorInvocationImpl origin)
+    : _origin = origin {
     _attachV1Children();
   }
 
+  BinaryExpressionImpl._or(LogicalOrImpl origin) : _origin = origin {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
   Token get beginToken => _origin.beginToken;
 
@@ -3860,28 +3649,37 @@ final class BinaryExpressionV1Impl extends ExpressionImpl
       _origin.correspondingParameter;
 
   @override
-  MethodElement? get element => null;
+  MethodElement? get element => switch (_origin) {
+    BinaryOperatorInvocationImpl(:var element) => element,
+    _ => null,
+  };
 
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
   Token get endToken => _origin.endToken;
 
   @override
   bool get inConstantContext => _origin.inConstantContext;
 
+  @DoNotGenerate(reason: 'Projects the canonical V2 operand')
   @override
   ExpressionImpl get leftOperand => V1Projection.toV1Expression(leftOperand2);
 
   @experimental
   @override
   ExpressionImpl get leftOperand2 => switch (_origin) {
+    BinaryOperatorInvocationImpl(:var leftOperand) =>
+      leftOperand as ExpressionImpl,
     IfNullImpl(:var leftOperand) => leftOperand,
     LogicalAndImpl(:var leftOperand) => leftOperand,
     LogicalOrImpl(:var leftOperand) => leftOperand,
     _ => throw StateError('Unexpected binary expression: $_origin'),
   };
 
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
   Token get operator => switch (_origin) {
+    BinaryOperatorInvocationImpl(:var operator) => operator,
     IfNullImpl(:var operator) => operator,
     LogicalAndImpl(:var operator) => operator,
     LogicalOrImpl(:var operator) => operator,
@@ -3891,12 +3689,14 @@ final class BinaryExpressionV1Impl extends ExpressionImpl
   @override
   Precedence get precedence => _origin.precedence;
 
+  @DoNotGenerate(reason: 'Projects the canonical V2 operand')
   @override
   ExpressionImpl get rightOperand => V1Projection.toV1Expression(rightOperand2);
 
   @experimental
   @override
   ExpressionImpl get rightOperand2 => switch (_origin) {
+    BinaryOperatorInvocationImpl(:var rightOperand) => rightOperand,
     IfNullImpl(:var rightOperand) => rightOperand,
     LogicalAndImpl(:var rightOperand) => rightOperand,
     LogicalOrImpl(:var rightOperand) => rightOperand,
@@ -3904,29 +3704,37 @@ final class BinaryExpressionV1Impl extends ExpressionImpl
   };
 
   @override
-  FunctionTypeImpl? get staticInvokeType => null;
+  FunctionTypeImpl? get staticInvokeType => switch (_origin) {
+    BinaryOperatorInvocationImpl(:var element) => element?.type,
+    _ => null,
+  };
 
   @override
   TypeImpl? get staticType => _origin.staticType;
 
+  @generated
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
+  @generated
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftOperand', leftOperand)
     ..addToken('operator', operator)
     ..addNode('rightOperand', rightOperand);
 
+  @generated
   @override
   ChildEntities get _childEntities2 {
     throw StateError('BinaryExpression is not in the V2 AST view.');
   }
 
+  @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
 
+  @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
@@ -3937,19 +3745,26 @@ final class BinaryExpressionV1Impl extends ExpressionImpl
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _origin.computeConstantValue();
 
+  @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) => true;
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
 
+  @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
+  @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     throw StateError('BinaryExpression is a V1 projection.');
@@ -3958,6 +3773,7 @@ final class BinaryExpressionV1Impl extends ExpressionImpl
   @override
   String toSource() => _origin.toSource();
 
+  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3965,6 +3781,7 @@ final class BinaryExpressionV1Impl extends ExpressionImpl
     rightOperand.accept(visitor);
   }
 
+  @generated
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
@@ -3976,6 +3793,7 @@ final class BinaryExpressionV1Impl extends ExpressionImpl
     _becomeParentOf1(rightOperand);
   }
 
+  @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
@@ -3987,9 +3805,290 @@ final class BinaryExpressionV1Impl extends ExpressionImpl
     return null;
   }
 
+  @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     throw StateError('BinaryExpression is not in the V2 AST view.');
+  }
+}
+
+/// The semantic operation selected by a [BinaryOperatorInvocation].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+enum BinaryOperator {
+  multiply,
+  divide,
+  modulo,
+  truncatingDivide,
+  add,
+  subtract,
+  shiftLeft,
+  shiftRight,
+  unsignedShiftRight,
+  bitwiseAnd,
+  bitwiseXor,
+  bitwiseOr,
+  lessThan,
+  lessThanOrEqual,
+  greaterThan,
+  greaterThanOrEqual,
+  equal,
+  notEqual,
+}
+
+/// An invocation of an overloadable binary operator.
+///
+///    binaryOperatorInvocation ::=
+///        [InstanceReceiver] [Token] [Expression]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class BinaryOperatorInvocation implements Expression {
+  /// The semantic operator derived from [operator].
+  ///
+  /// For invalid recovery tokens `===` and `!==`, this returns [BinaryOperator.equal]
+  /// and [BinaryOperator.notEqual], respectively.
+  BinaryOperator get binaryOperator;
+
+  /// The method statically selected for this operator application, or `null`
+  /// if this node hasn't been resolved or no method was statically selected.
+  MethodElement? get element;
+
+  /// The receiver on which the operator is invoked.
+  InstanceReceiver get leftOperand;
+
+  /// The written operator token.
+  Token get operator;
+
+  /// The expression passed as the operator argument.
+  Expression get rightOperand;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+  ],
+)
+final class BinaryOperatorInvocationImpl extends ExpressionImpl
+    implements BinaryOperatorInvocation {
+  @generated
+  InstanceReceiverImpl _leftOperand;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  ExpressionImpl _rightOperand;
+
+  @override
+  InternalMethodElement? element;
+
+  BinaryExpressionImpl? _binaryExpression;
+
+  @generated
+  BinaryOperatorInvocationImpl({
+    required InstanceReceiverImpl leftOperand,
+    required this.operator,
+    required ExpressionImpl rightOperand,
+  }) : _leftOperand = leftOperand,
+       _rightOperand = rightOperand {
+    _becomeParentOf2(leftOperand);
+    _becomeParentOf2(rightOperand);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftOperand.beginToken;
+  }
+
+  /// The cached V1 compatibility projection for this expression.
+  BinaryExpressionImpl get binaryExpression =>
+      _binaryExpression ??= BinaryExpressionImpl._operator(this);
+
+  @override
+  BinaryOperator get binaryOperator {
+    return switch (operator.type) {
+      TokenType.STAR => BinaryOperator.multiply,
+      TokenType.SLASH => BinaryOperator.divide,
+      TokenType.PERCENT => BinaryOperator.modulo,
+      TokenType.TILDE_SLASH => BinaryOperator.truncatingDivide,
+      TokenType.PLUS => BinaryOperator.add,
+      TokenType.MINUS => BinaryOperator.subtract,
+      TokenType.LT_LT => BinaryOperator.shiftLeft,
+      TokenType.GT_GT => BinaryOperator.shiftRight,
+      TokenType.GT_GT_GT => BinaryOperator.unsignedShiftRight,
+      TokenType.AMPERSAND => BinaryOperator.bitwiseAnd,
+      TokenType.CARET => BinaryOperator.bitwiseXor,
+      TokenType.BAR => BinaryOperator.bitwiseOr,
+      TokenType.LT => BinaryOperator.lessThan,
+      TokenType.LT_EQ => BinaryOperator.lessThanOrEqual,
+      TokenType.GT => BinaryOperator.greaterThan,
+      TokenType.GT_EQ => BinaryOperator.greaterThanOrEqual,
+      TokenType.EQ_EQ || TokenType.EQ_EQ_EQ => BinaryOperator.equal,
+      TokenType.BANG_EQ || TokenType.BANG_EQ_EQ => BinaryOperator.notEqual,
+      _ => throw StateError(
+        'Unexpected binary operator ${operator.type.lexeme}',
+      ),
+    };
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightOperand.endToken;
+  }
+
+  @generated
+  @override
+  InstanceReceiverImpl get leftOperand => _leftOperand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set leftOperand(InstanceReceiverImpl leftOperand) {
+    _leftOperand = _becomeParentOf2(leftOperand);
+    _binaryExpression?._attachV1Children();
+  }
+
+  @override
+  Precedence get precedence => Precedence.forTokenType(operator.type);
+
+  @generated
+  @override
+  ExpressionImpl get rightOperand => _rightOperand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set rightOperand(ExpressionImpl rightOperand) {
+    _rightOperand = _becomeParentOf2(rightOperand);
+    _binaryExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitBinaryOperatorInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(leftOperand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'leftOperand'.");
+    }
+    if (identical(rightOperand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'rightOperand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(leftOperand, oldNode)) {
+      leftOperand = newNode as InstanceReceiverImpl;
+      return;
+    }
+    if (identical(rightOperand, oldNode)) {
+      rightOperand = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitBinaryOperatorInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    leftOperand.accept2(visitor);
+    rightOperand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(InstanceReceiverImpl)? visitLeftOperand,
+    void Function(ExpressionImpl)? visitRightOperand,
+  }) {
+    if (visitLeftOperand != null) {
+      visitLeftOperand(leftOperand);
+    } else {
+      leftOperand.accept2(visitor);
+    }
+    if (visitRightOperand != null) {
+      visitRightOperand(rightOperand);
+    } else {
+      rightOperand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand;
+    }
+    if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand;
+    }
+    return null;
   }
 }
 
@@ -10038,7 +10137,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
+    assert(identical(child.parent, this));
     return false;
   }
 
@@ -10417,7 +10516,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
+    assert(identical(child.parent, this));
     return false;
   }
 
@@ -14614,7 +14713,11 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///      | [ThrowExpression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Expression
-    implements Argument, CollectionElement, RecordLiteralField {
+    implements
+        Argument,
+        CollectionElement,
+        InstanceReceiver,
+        RecordLiteralField {
   /// Whether it would be valid for this expression to have a `const` keyword.
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
@@ -14934,7 +15037,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-sealed class ExpressionImpl extends AstNodeImpl
+sealed class ExpressionImpl extends InstanceReceiverImpl
     with ArgumentImpl, CollectionElementImpl, RecordLiteralFieldImpl
     implements Expression {
   TypeImpl? _staticType;
@@ -14959,10 +15062,10 @@ sealed class ExpressionImpl extends AstNodeImpl
       if (identical(parent.index2, this)) {
         return parent._staticParameterElementForIndex;
       }
-    } else if (parent is BinaryExpressionImpl) {
+    } else if (parent is BinaryOperatorInvocationImpl) {
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
-      if (identical(parent.rightOperand2, this)) {
-        var parameters = parent.staticInvokeType?.formalParameters;
+      if (identical(parent.rightOperand, this)) {
+        var parameters = parent.element?.formalParameters;
         if (parameters != null && parameters.isNotEmpty) {
           return parameters[0];
         }
@@ -23515,7 +23618,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @generated
   ExpressionImpl _rightOperand;
 
-  BinaryExpressionV1Impl? _binaryExpression;
+  BinaryExpressionImpl? _binaryExpression;
 
   @generated
   IfNullImpl({
@@ -23535,8 +23638,8 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   }
 
   /// The cached V1 compatibility projection for this expression.
-  BinaryExpressionV1Impl get binaryExpression =>
-      _binaryExpression ??= BinaryExpressionV1Impl._ifNull(this);
+  BinaryExpressionImpl get binaryExpression =>
+      _binaryExpression ??= BinaryExpressionImpl._ifNull(this);
 
   @generated
   @override
@@ -25511,7 +25614,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
+    assert(identical(child.parent, this));
     return false;
   }
 
@@ -25583,6 +25686,18 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 }
 
+/// An expression or non-value form that can receive an instance operation.
+///
+/// An ordinary expression supplies its value as the receiver. Non-value forms
+/// such as `super` and extension overrides can also fill this role. Supported
+/// operations include property access, method or `call` invocation, indexing,
+/// and overloadable operators.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InstanceReceiver implements AstNode {}
+
+sealed class InstanceReceiverImpl extends AstNodeImpl
+    implements InstanceReceiver {}
+
 /// An integer literal expression.
 ///
 ///    integerLiteral ::=
@@ -25635,15 +25750,16 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     return literal;
   }
 
-  /// Whether this literal's [parent2] is a [PrefixExpression] of unary negation.
+  /// Whether this literal's [parent2] is a unary negation.
   ///
   /// Note: this does *not* indicate that the value itself is negated, just that
   /// the literal is the child of a negation operation. The literal value itself
   /// is always positive.
   bool get immediatelyNegated {
-    var parent = parent2!;
-    return parent is PrefixExpressionImpl &&
-        parent.operator.type == TokenType.MINUS;
+    return switch (parent2) {
+      UnaryOperatorInvocationImpl(unaryOperator: UnaryOperator.negate) => true,
+      _ => false,
+    };
   }
 
   @generated
@@ -27558,7 +27674,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @generated
   ExpressionImpl _rightOperand;
 
-  BinaryExpressionV1Impl? _binaryExpression;
+  BinaryExpressionImpl? _binaryExpression;
 
   @generated
   LogicalAndImpl({
@@ -27578,8 +27694,8 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   }
 
   /// The cached V1 compatibility projection for this expression.
-  BinaryExpressionV1Impl get binaryExpression =>
-      _binaryExpression ??= BinaryExpressionV1Impl._and(this);
+  BinaryExpressionImpl get binaryExpression =>
+      _binaryExpression ??= BinaryExpressionImpl._and(this);
 
   @generated
   @override
@@ -28170,7 +28286,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @generated
   ExpressionImpl _rightOperand;
 
-  BinaryExpressionV1Impl? _binaryExpression;
+  BinaryExpressionImpl? _binaryExpression;
 
   @generated
   LogicalOrImpl({
@@ -28190,8 +28306,8 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   }
 
   /// The cached V1 compatibility projection for this expression.
-  BinaryExpressionV1Impl get binaryExpression =>
-      _binaryExpression ??= BinaryExpressionV1Impl._or(this);
+  BinaryExpressionImpl get binaryExpression =>
+      _binaryExpression ??= BinaryExpressionImpl._or(this);
 
   @generated
   @override
@@ -44923,6 +45039,337 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 }
 
+/// The semantic operation selected by a [UnaryOperatorInvocation].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+enum UnaryOperator {
+  /// Numeric negation using `unary-`.
+  negate,
+
+  /// Bitwise complementation using `~`.
+  bitwiseComplement,
+}
+
+/// An invocation of an overloadable unary operator.
+///
+///    unaryOperatorInvocation ::=
+///        ('-' | '~') [InstanceReceiver]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class UnaryOperatorInvocation implements Expression {
+  /// The method statically selected for this operator application, or `null`
+  /// if this node hasn't been resolved or no method was statically selected.
+  MethodElement? get element;
+
+  /// The operand on which the operator is invoked.
+  InstanceReceiver get operand;
+
+  /// The written `-` or `~` token.
+  Token get operator;
+
+  /// The semantic operator derived from [operator].
+  UnaryOperator get unaryOperator;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+  ],
+)
+final class UnaryOperatorInvocationImpl extends ExpressionImpl
+    implements UnaryOperatorInvocation {
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  InstanceReceiverImpl _operand;
+
+  @override
+  InternalMethodElement? element;
+
+  UnaryOperatorInvocationV1Impl? _prefixExpression;
+
+  @generated
+  UnaryOperatorInvocationImpl({
+    required this.operator,
+    required InstanceReceiverImpl operand,
+  }) : _operand = operand {
+    _becomeParentOf2(operand);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return operator;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return operand.endToken;
+  }
+
+  @generated
+  @override
+  InstanceReceiverImpl get operand => _operand;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set operand(InstanceReceiverImpl operand) {
+    _operand = _becomeParentOf2(operand);
+    _prefixExpression?._attachV1Children();
+  }
+
+  @override
+  Precedence get precedence => Precedence.prefix;
+
+  /// The cached V1 compatibility projection for this expression.
+  UnaryOperatorInvocationV1Impl get prefixExpression =>
+      _prefixExpression ??= UnaryOperatorInvocationV1Impl._(this);
+
+  @override
+  UnaryOperator get unaryOperator {
+    return switch (operator.type) {
+      TokenType.MINUS => UnaryOperator.negate,
+      TokenType.TILDE => UnaryOperator.bitwiseComplement,
+      _ => throw StateError(
+        'Unexpected unary operator ${operator.type.lexeme}',
+      ),
+    };
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitUnaryOperatorInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as InstanceReceiverImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitUnaryOperatorInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(InstanceReceiverImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+}
+
+/// The V1 compatibility projection of a [UnaryOperatorInvocation].
+final class UnaryOperatorInvocationV1Impl extends ExpressionImpl
+    with CompoundAssignmentExpressionImpl
+    implements PrefixExpression {
+  final UnaryOperatorInvocationImpl _origin;
+
+  UnaryOperatorInvocationV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @override
+  MethodElement? get element => _origin.element;
+
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  ExpressionImpl get operand =>
+      V1Projection.toV1Expression(_origin.operand as ExpressionImpl);
+
+  @experimental
+  @override
+  ExpressionImpl get operand2 => _origin.operand as ExpressionImpl;
+
+  @override
+  Token get operator => _origin.operator;
+
+  @override
+  Precedence get precedence => Precedence.prefix;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
+
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
+
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @override
+  bool isInValueExpressionSlot(AstNode child) => true;
+
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('PrefixExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    operand.accept(visitor);
+  }
+
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(operand);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('PrefixExpression is not in the V2 AST view.');
+  }
+}
+
 /// A directive that references a URI.
 ///
 ///    uriBasedDirective ::=
@@ -45069,6 +45516,9 @@ enum V1Projection {
     if (node is ConstructorTearOffImpl) {
       return node.constructorReference;
     }
+    if (node is BinaryOperatorInvocationImpl) {
+      return node.binaryExpression;
+    }
     if (node is IfNullImpl) {
       return node.binaryExpression;
     }
@@ -45083,6 +45533,9 @@ enum V1Projection {
     }
     if (node is NullAssertionExpressionImpl) {
       return node.postfixExpression;
+    }
+    if (node is UnaryOperatorInvocationImpl) {
+      return node.prefixExpression;
     }
     return node;
   }

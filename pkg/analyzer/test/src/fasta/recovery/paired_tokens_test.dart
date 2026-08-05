@@ -559,11 +559,18 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BinaryExpression
-                  leftOperand2: SimpleIdentifier
+                expression2: BinaryOperatorInvocation
+                  leftOperand: SimpleIdentifier
                     token: x
                   operator: !=
-                  rightOperand2: NullLiteral
+                  rightOperand: NullLiteral
+                    literal: null
+                  binaryOperator: notEqual
+                expression(v1): BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: x
+                  operator: !=
+                  rightOperand: NullLiteral
                     literal: null
                 rightParenthesis: )
                 thenStatement: Block
@@ -606,11 +613,18 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BinaryExpression
-                  leftOperand2: SimpleIdentifier
+                expression2: BinaryOperatorInvocation
+                  leftOperand: SimpleIdentifier
                     token: x
                   operator: !=
-                  rightOperand2: NullLiteral
+                  rightOperand: NullLiteral
+                    literal: null
+                  binaryOperator: notEqual
+                expression(v1): BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: x
+                  operator: !=
+                  rightOperand: NullLiteral
                     literal: null
                 rightParenthesis: )
                 thenStatement: Block
@@ -619,11 +633,18 @@ CompilationUnit
                     WhileStatement
                       whileKeyword: while
                       leftParenthesis: (
-                      condition2: BinaryExpression
-                        leftOperand2: SimpleIdentifier
+                      condition2: BinaryOperatorInvocation
+                        leftOperand: SimpleIdentifier
                           token: x
                         operator: ==
-                        rightOperand2: NullLiteral
+                        rightOperand: NullLiteral
+                          literal: null
+                        binaryOperator: equal
+                      condition(v1): BinaryExpression
+                        leftOperand: SimpleIdentifier
+                          token: x
+                        operator: ==
+                        rightOperand: NullLiteral
                           literal: null
                       rightParenthesis: )
                       body: Block
@@ -1117,11 +1138,18 @@ CompilationUnit
                 thenStatement: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BinaryExpression
-                    leftOperand2: SimpleIdentifier
+                  condition2: BinaryOperatorInvocation
+                    leftOperand: SimpleIdentifier
                       token: x
                     operator: !=
-                    rightOperand2: NullLiteral
+                    rightOperand: NullLiteral
+                      literal: null
+                    binaryOperator: notEqual
+                  condition(v1): BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: x
+                    operator: !=
+                    rightOperand: NullLiteral
                       literal: null
                   rightParenthesis: )
                   body: Block

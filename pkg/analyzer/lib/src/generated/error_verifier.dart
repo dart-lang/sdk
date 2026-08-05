@@ -469,12 +469,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitBinaryExpression(covariant BinaryExpressionImpl node) {
+  void visitBinaryOperatorInvocation(
+    covariant BinaryOperatorInvocationImpl node,
+  ) {
+    checkForUseOfVoidResult(node.leftOperand as Expression);
+    _constArgumentsVerifier.visitBinaryOperatorInvocation(node);
 
-    checkForUseOfVoidResult(node.leftOperand2);
-    _constArgumentsVerifier.visitBinaryExpression(node);
-
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
@@ -2216,6 +2217,16 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _duplicateDefinitionVerifier.checkTypeParameters(node);
     _checkForTypeParameterBoundRecursion(node.typeParameters);
     super.visitTypeParameterList(node);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(
+    covariant UnaryOperatorInvocationImpl node,
+  ) {
+    var operand = node.operand as ExpressionImpl;
+    checkForUseOfVoidResult(operand);
+    _checkForIntNotAssignable(operand);
+    super.visitUnaryOperatorInvocation(node);
   }
 
   @override

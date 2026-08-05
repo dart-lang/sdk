@@ -835,6 +835,11 @@ final ${property.typeCode} $propertyName;
       return;
     }
 
+    var parentGetter = switch (implClass.api) {
+      _AstNodeApi.v1 => 'parent',
+      _AstNodeApi.v2 || _AstNodeApi.shared => 'parent2',
+    };
+
     var valueNodeOrListProperties = implClass.nodeOrListProperties
         .where((property) => property.isInValueExpressionSlot)
         .toList();
@@ -848,7 +853,7 @@ final ${property.typeCode} $propertyName;
 \n@generated
 @override
 bool isInValueExpressionSlot(AstNode child) {
-  assert(identical(child.parent2, this));
+  assert(identical(child.$parentGetter, this));
   return false;
 }
 ''');
@@ -860,7 +865,7 @@ bool isInValueExpressionSlot(AstNode child) {
 \n@generated
 @override
 bool isInValueExpressionSlot(AstNode child) {
-  assert(identical(child.parent2, this));
+  assert(identical(child.$parentGetter, this));
   return true;
 }
 ''');
@@ -871,7 +876,7 @@ bool isInValueExpressionSlot(AstNode child) {
 \n@generated
 @override
 bool isInValueExpressionSlot(AstNode child) {
-  assert(identical(child.parent2, this));
+  assert(identical(child.$parentGetter, this));
 ''');
 
     String returnValue;
@@ -1086,11 +1091,18 @@ if ($propertyName.replaceChild(oldNode, newNode)) {
     if (implClass.doNotGenerateLookupNames.contains('resolveExpression')) {
       return;
     }
-    if (!implClass.api.hasV1View) {
+    if (!implClass.interfaceElement.isExpressionOrSubtype) {
       return;
     }
 
-    if (implClass.interfaceElement.isExpressionOrSubtype) {
+    if (implClass.api == _AstNodeApi.v1) {
+      buffer.write('''
+\n@generated
+@override
+void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+  throw StateError('${implClass.interfaceName} is a V1 projection.');
+}''');
+    } else {
       buffer.write('''
 \n@generated
 @override

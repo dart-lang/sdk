@@ -101,13 +101,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -184,13 +197,26 @@ IfStatement
         requiredType: List<int>
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -266,13 +292,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -347,13 +386,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: InvalidType
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+          binaryOperator: greaterThan
+          element: <null>
+          staticType: InvalidType
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: InvalidType
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: <null>
             staticType: int
@@ -427,13 +479,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -510,13 +575,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -596,13 +674,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -679,13 +770,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -759,13 +863,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -842,13 +959,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@null
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -930,13 +1060,26 @@ IfStatement
         requiredType: List<Object?>
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@51
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@51
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -1082,13 +1225,26 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: a
             element: a@37
             staticType: int
           operator: >
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@37
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -1504,13 +1660,26 @@ f(bool b) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  expression2: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
       token: x
       element: x@25
       staticType: int?
     operator: !=
-    rightOperand2: NullLiteral
+    rightOperand: NullLiteral
+      literal: null
+      correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+      staticType: Null
+    binaryOperator: notEqual
+    element: dart:core::@class::num::@method::==
+    staticType: bool
+  expression(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+      element: x@25
+      staticType: int?
+    operator: !=
+    rightOperand: NullLiteral
       literal: null
       correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
       staticType: Null
@@ -1569,13 +1738,26 @@ f(bool b) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  expression2: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
       token: x
       element: x@30
       staticType: int?
     operator: !=
-    rightOperand2: NullLiteral
+    rightOperand: NullLiteral
+      literal: null
+      correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+      staticType: Null
+    binaryOperator: notEqual
+    element: dart:core::@class::num::@method::==
+    staticType: bool
+  expression(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+      element: x@30
+      staticType: int?
+    operator: !=
+    rightOperand: NullLiteral
       literal: null
       correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
       staticType: Null

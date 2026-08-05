@@ -274,6 +274,8 @@ const isTypeParameter = TypeMatcher<TypeParameter>();
 
 const isTypeParameterList = TypeMatcher<TypeParameterList>();
 
+const isUnaryOperatorInvocation = TypeMatcher<UnaryOperatorInvocation>();
+
 const isUriBasedDirective = TypeMatcher<UriBasedDirective>();
 
 const isVariableDeclaration = TypeMatcher<VariableDeclaration>();

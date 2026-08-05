@@ -186,7 +186,8 @@ class UseResultVerifier {
         parent is LogicalNot ||
         parent is ParenthesizedExpression ||
         parent is PrefixExpression ||
-        parent is SpreadElement) {
+        parent is SpreadElement ||
+        parent is UnaryOperatorInvocation) {
       return _isUsed(parent);
     }
 
@@ -203,6 +204,7 @@ class UseResultVerifier {
         // assignment.
         parent is AssignmentExpression ||
         parent is BinaryExpression ||
+        parent is BinaryOperatorInvocation ||
         parent is IfNull ||
         parent is ConstructorFieldInitializer ||
         parent is DoStatement ||

@@ -114,12 +114,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _writeOperand(node, node.leftOperand2);
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    _writeOperand(node, node.leftOperand as Expression);
     sink.write(' ');
     sink.write(node.operator.lexeme);
     sink.write(' ');
-    _writeOperand(node, node.rightOperand2);
+    _writeOperand(node, node.rightOperand);
   }
 
   @override
@@ -1518,6 +1518,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('<');
     _visitNodeList(node.typeParameters, separator: ', ');
     sink.write('>');
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    sink.write(node.operator.lexeme);
+    _writeOperand(node, node.operand as Expression);
   }
 
   @override

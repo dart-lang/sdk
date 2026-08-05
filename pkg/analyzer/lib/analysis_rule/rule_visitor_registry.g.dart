@@ -527,7 +527,11 @@ abstract class RuleVisitorRegistry2 {
 
   void addAwaitExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addBinaryExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addBinaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addBlock(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -987,6 +991,12 @@ abstract class RuleVisitorRegistry2 {
   void addTypeParameter(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addTypeParameterList(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addUnaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addVariableDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

@@ -600,6 +600,17 @@ void f(E e) {
     );
   }
 
+  Future<void> test_extensionType_parameter() async {
+    await _testMarkedContent(
+      '''
+extension type E(int /*[0*/it/*0]*/) {
+  int get value => /*[1*/it/*1]*/;
+}
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
+  }
+
   Future<void> test_extensionType_setter() async {
     await _testMarkedContent('''
 extension type E(int it) {

@@ -30,6 +30,7 @@ import 'src/commands/info.dart';
 import 'src/commands/install.dart';
 import 'src/commands/installed.dart';
 import 'src/commands/language_server.dart';
+import 'src/commands/migrate.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/commands/tooling_daemon.dart';
@@ -140,6 +141,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(DartMCPServerCommand(verbose: verbose));
+    addCommand(MigrateCommand(verbose: verbose));
     addCommand(
       pubCommand(
         isVerbose: () => verbose,

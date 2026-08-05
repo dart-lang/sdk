@@ -244,6 +244,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is BinaryExpression) {
       return node.element;
+    } else if (node is BinaryOperatorInvocation) {
+      return node.element;
     } else if (node is ConstructorTearOff) {
       return node.element;
     } else if (node is Declaration) {
@@ -278,6 +280,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is PostfixExpression) {
       return node.element;
     } else if (node is PrefixExpression) {
+      return node.element;
+    } else if (node is UnaryOperatorInvocation) {
       return node.element;
     } else if (node is PropertyAccess) {
       return node.propertyName.element;

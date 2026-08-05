@@ -37,10 +37,10 @@ f() {
 }
 ''');
 
-    var node = result.findNode.binary('+ 1');
+    var node = result.findNode.binaryOperatorInvocation('+ 1');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -52,7 +52,27 @@ BinaryExpression
     extendedType: String
     staticType: null
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: InvalidType
+BinaryExpression
+  leftOperand: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleStringLiteral
+          literal: 'a'
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: String
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: <null>
     staticType: int

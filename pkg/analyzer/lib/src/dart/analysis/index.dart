@@ -734,9 +734,9 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     recordOperatorReference(node.operator, node.element);
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
@@ -1354,6 +1354,12 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     }
 
     return super.visitSuperFormalParameter(node);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    recordOperatorReference(node.operator, node.element);
+    super.visitUnaryOperatorInvocation(node);
   }
 
   @override

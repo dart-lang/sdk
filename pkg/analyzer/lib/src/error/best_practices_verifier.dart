@@ -196,12 +196,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _elementUsageFrontierDetector.binaryExpression(node);
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    _elementUsageFrontierDetector.binaryOperatorInvocation(node);
     _checkForInvariantNanComparison(node);
     _checkForInvariantNullComparison(node);
     _invalidAccessVerifier.verifyBinary(node);
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
@@ -875,6 +875,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    _elementUsageFrontierDetector.unaryOperatorInvocation(node);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
   /// Checks for the passed [IsExpression] for the unnecessary type check
   /// warning codes as well as null checks expressed using an
   /// [IsExpression].
@@ -1102,7 +1108,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _checkForInvariantNanComparison(BinaryExpression node) {
+  void _checkForInvariantNanComparison(BinaryOperatorInvocation node) {
     void reportStartEnd(
       LocatableDiagnostic locatableDiagnostic,
       SyntacticEntity startEntity,
@@ -1118,10 +1124,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
 
     void checkLeftRight(LocatableDiagnostic locatableDiagnostic) {
-      if (node.leftOperand2.isDoubleNan) {
-        reportStartEnd(locatableDiagnostic, node.leftOperand2, node.operator);
-      } else if (node.rightOperand2.isDoubleNan) {
-        reportStartEnd(locatableDiagnostic, node.operator, node.rightOperand2);
+      if ((node.leftOperand as Expression).isDoubleNan) {
+        reportStartEnd(locatableDiagnostic, node.leftOperand, node.operator);
+      } else if (node.rightOperand.isDoubleNan) {
+        reportStartEnd(locatableDiagnostic, node.operator, node.rightOperand);
       }
     }
 
@@ -1132,7 +1138,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _checkForInvariantNullComparison(BinaryExpression node) {
+  void _checkForInvariantNullComparison(BinaryOperatorInvocation node) {
     LocatableDiagnostic locatableDiagnostic;
     if (node.operator.type == TokenType.BANG_EQ) {
       locatableDiagnostic = diag.unnecessaryNullComparisonNeverNullTrue;
@@ -1142,10 +1148,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
 
-    if (node.leftOperand2 is NullLiteral) {
-      var rightType = node.rightOperand2.typeOrThrow;
+    if (node.leftOperand is NullLiteral) {
+      var rightType = node.rightOperand.typeOrThrow;
       if (_typeSystem.isStrictlyNonNullable(rightType)) {
-        var offset = node.leftOperand2.offset;
+        var offset = node.leftOperand.offset;
         _diagnosticReporter.report(
           locatableDiagnostic.atOffset(
             offset: offset,
@@ -1155,14 +1161,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       }
     }
 
-    if (node.rightOperand2 is NullLiteral) {
-      var leftType = node.leftOperand2.typeOrThrow;
+    if (node.rightOperand is NullLiteral) {
+      var leftType = (node.leftOperand as Expression).typeOrThrow;
       if (_typeSystem.isStrictlyNonNullable(leftType)) {
         var offset = node.operator.offset;
         _diagnosticReporter.report(
           locatableDiagnostic.atOffset(
             offset: offset,
-            length: node.rightOperand2.end - offset,
+            length: node.rightOperand.end - offset,
           ),
         );
       }
@@ -1528,13 +1534,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
         expression.thenExpression2,
         addTo: expressions,
       );
-    } else if (expression is BinaryExpression) {
+    } else if (expression is BinaryOperatorInvocation) {
       _getSubExpressionsMarkedDoNotStore(
-        expression.leftOperand2,
+        expression.leftOperand as Expression,
         addTo: expressions,
       );
       _getSubExpressionsMarkedDoNotStore(
-        expression.rightOperand2,
+        expression.rightOperand,
         addTo: expressions,
       );
     } else if (expression is IfNull) {
@@ -1690,12 +1696,12 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(identifier, element);
   }
 
-  void verifyBinary(BinaryExpression node) {
+  void verifyBinary(BinaryOperatorInvocation node) {
     var element = node.element;
     if (element != null && _hasVisibleForOverriding(element)) {
       var operator = node.operator;
 
-      if (node.leftOperand2 is SuperExpression) {
+      if (node.leftOperand is SuperExpression) {
         var methodDeclaration = node.thisOrAncestorOfType2<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == operator.lexeme) {
           return;

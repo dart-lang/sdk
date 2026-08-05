@@ -260,6 +260,23 @@ class LspAnalysisServer {
     );
   }
 
+  /// Sends a migrate request.
+  Future<DartMigrateResult?> migrate(
+    List<Uri> uris, {
+    bool? apply,
+    List<MigrationStep>? steps,
+  }) {
+    return _expectSuccessfulResponse(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: uris,
+        apply: apply,
+        steps: steps,
+      ),
+      DartMigrateResult.fromJson,
+    );
+  }
+
   Future<void> shutdown({Duration? timeout}) async {
     // Request shutdown.
     var future = _gracefulShutdown();
