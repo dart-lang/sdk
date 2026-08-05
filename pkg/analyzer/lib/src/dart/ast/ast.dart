@@ -39508,6 +39508,24 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     throw StateError('Expected at least one non-null');
   }
 
+  /// Whether this formal parameter declares a field whose type was inferred
+  /// from an initializer or an overridden member.
+  ///
+  /// Returns `false` if this formal parameter has not been resolved.
+  bool get isDeclaringFieldTypeInferred {
+    if (declaredFragment?.element case FieldFormalParameterElement element) {
+      if (!element.isDeclaring) {
+        return false;
+      }
+
+      if (element.field case FieldElementImpl field) {
+        return field.isTypeInferredFromInitializer ||
+            field.isTypeInferredFromOverride;
+      }
+    }
+    return false;
+  }
+
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities

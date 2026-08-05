@@ -170,9 +170,21 @@ class InstanceMemberInferrer {
       return null;
     }
 
+    void setFieldType(FieldElementImpl field, TypeImpl? inferredType) {
+      var type = inferredType ?? DynamicTypeImpl.instance;
+      field.type = type;
+      field.isTypeInferredFromOverride = inferredType != null;
+    }
+
     if (getter != null) {
       if (!getter.hasImplicitReturnType) {
         return;
+      }
+
+      void setGetterReturnType(TypeImpl? inferredType) {
+        var field = getter.variable as FieldElementImpl;
+        setFieldType(field, inferredType);
+        getter.returnType = field.type;
       }
 
       // The return type of a getter, parameter type of a setter or type of a
@@ -184,10 +196,8 @@ class InstanceMemberInferrer {
       // and a getter is inferred to be the return type of the combined member
       // signature of said getter in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty) {
-        var returnType = combinedGetterType() ?? DynamicTypeImpl.instance;
-        getter.returnType = returnType;
-        var fieldElement = getter.variable as FieldElementImpl;
-        fieldElement.type = returnType;
+        var inferredType = combinedGetterType();
+        setGetterReturnType(inferredType);
         return;
       }
 
@@ -196,10 +206,8 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        var returnType = combinedSetterType() ?? DynamicTypeImpl.instance;
-        getter.returnType = returnType;
-        var fieldElement = getter.variable as FieldElementImpl;
-        fieldElement.type = returnType;
+        var inferredType = combinedSetterType();
+        setGetterReturnType(inferredType);
         return;
       }
 
@@ -217,11 +225,12 @@ class InstanceMemberInferrer {
         return;
       }
 
-      void setSetterValueType(TypeImpl valueType) {
+      void setSetterValueType(TypeImpl? inferredType) {
+        var valueType = inferredType ?? DynamicTypeImpl.instance;
         valueFormalParameter.type = valueType;
         var field = setter.variable as FieldElementImpl;
         if (field.getter == null) {
-          field.type = valueType;
+          setFieldType(field, inferredType);
         }
       }
 
@@ -230,8 +239,8 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        var valueType = combinedGetterType() ?? DynamicTypeImpl.instance;
-        setSetterValueType(valueType);
+        var inferredType = combinedGetterType();
+        setSetterValueType(inferredType);
         return;
       }
 
@@ -244,8 +253,8 @@ class InstanceMemberInferrer {
       // setter and a getter is inferred to be the parameter type of the
       // combined member signature of said setter in the direct superinterfaces.
       if (overriddenSetters.isNotEmpty) {
-        var valueType = combinedSetterType() ?? DynamicTypeImpl.instance;
-        setSetterValueType(valueType);
+        var inferredType = combinedSetterType();
+        setSetterValueType(inferredType);
         return;
       }
 
@@ -269,7 +278,8 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        field.type = combinedGetterType() ?? DynamicTypeImpl.instance;
+        var inferredType = combinedGetterType();
+        setFieldType(field, inferredType);
         return;
       }
 
@@ -278,7 +288,8 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        field.type = combinedSetterType() ?? DynamicTypeImpl.instance;
+        var inferredType = combinedSetterType();
+        setFieldType(field, inferredType);
         return;
       }
 
@@ -287,7 +298,8 @@ class InstanceMemberInferrer {
         // and a getter is inferred to be the return type of the combined
         // member signature of said getter in the direct superinterfaces.
         if (field.isFinal) {
-          field.type = combinedGetterType() ?? DynamicTypeImpl.instance;
+          var inferredType = combinedGetterType();
+          setFieldType(field, inferredType);
           return;
         }
 
@@ -302,7 +314,7 @@ class InstanceMemberInferrer {
           var setterType = combinedSetterType();
 
           if (getterType != null && getterType == setterType) {
-            field.type = getterType;
+            setFieldType(field, getterType);
           } else if (getterType != null && setterType != null) {
             field.typeInferenceError =
                 TopLevelInferenceErrorDifferentGetterAndSetterTypes(

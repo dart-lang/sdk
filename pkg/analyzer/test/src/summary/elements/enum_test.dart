@@ -5410,7 +5410,7 @@ library
             fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::B::@getter::values
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@enum::B::@field::foo
           firstFragment: #F10
           type: int

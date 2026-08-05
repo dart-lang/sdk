@@ -10994,7 +10994,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -11093,7 +11093,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: num
@@ -11658,7 +11658,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -31925,7 +31925,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration v
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -32312,7 +32312,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration v
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -32457,7 +32457,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration f
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromOverride f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F6
           type: List<int>
@@ -32639,7 +32639,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration foo
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: double
@@ -35272,7 +35272,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration foo
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -36526,7 +36526,7 @@ library
       interfaces
         A
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -36617,7 +36617,7 @@ library
       interfaces
         A
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -48201,7 +48201,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        isOriginGetterSetter f
+        isOriginGetterSetter isTypeInferredFromOverride f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int

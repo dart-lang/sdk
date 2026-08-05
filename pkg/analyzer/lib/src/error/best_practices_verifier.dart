@@ -1451,8 +1451,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
 
     var implicitlyTypedParameters = parameterList.parameters
-        .whereType<RegularFormalParameter>()
-        .where((p) => p.functionTypedSuffix == null && p.type == null)
+        .whereType<RegularFormalParameterImpl>()
+        .where(
+          (p) =>
+              p.functionTypedSuffix == null &&
+              p.type == null &&
+              !p.isDeclaringFieldTypeInferred,
+        )
         .toList();
 
     if (implicitlyTypedParameters.isEmpty) return;

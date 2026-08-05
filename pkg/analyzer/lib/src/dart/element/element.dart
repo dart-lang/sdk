@@ -10112,6 +10112,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
       'isOriginDeclaration': isOriginDeclaration,
       'isOriginGetterSetter': isOriginGetterSetter,
       'isTypeInferredFromInitializer': isTypeInferredFromInitializer,
+      'isTypeInferredFromOverride': isTypeInferredFromOverride,
     };
   }
 
@@ -10158,6 +10159,22 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   set isTypeInferredFromInitializer(bool value) {
     setFlag(
       _ElementStorageFlag.propertyInducingElement_isTypeInferredFromInitializer,
+      value,
+    );
+  }
+
+  @generated
+  @trackedIncludedInId
+  bool get isTypeInferredFromOverride {
+    return hasFlag(
+      _ElementStorageFlag.propertyInducingElement_isTypeInferredFromOverride,
+    );
+  }
+
+  @generated
+  set isTypeInferredFromOverride(bool value) {
+    setFlag(
+      _ElementStorageFlag.propertyInducingElement_isTypeInferredFromOverride,
       value,
     );
   }
@@ -12066,6 +12083,7 @@ enum _ElementStorageFlag {
   instanceElement_isSimplyBounded,
   libraryElement_isSynthetic,
   propertyInducingElement_isTypeInferredFromInitializer,
+  propertyInducingElement_isTypeInferredFromOverride,
   typeAliasElement_isSimplyBounded,
 }
 
@@ -12316,7 +12334,8 @@ enum _PropertyInducingElementFlags {
     fragment: true,
     element: _ElementFlagSource.firstFragment,
   ),
-  isTypeInferredFromInitializer(element: _ElementFlagSource.stored);
+  isTypeInferredFromInitializer(element: _ElementFlagSource.stored),
+  isTypeInferredFromOverride(element: _ElementFlagSource.stored);
 
   final bool fragment;
   final _ElementFlagSource element;

@@ -37,6 +37,22 @@ class C(final a);
 ''');
   }
 
+  test_declaringParameter_typeFromDefaultValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C({final a = 0});
+''');
+  }
+
+  test_declaringParameter_typeFromOverride() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  int get a;
+}
+
+class C({required final a}) implements A {}
+''');
+  }
+
   test_declaringParameter_withType() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C(final int a);
