@@ -7001,8 +7001,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
     bool valid = treatedAsDouble
-        ? IntegerLiteralImpl.isValidAsDouble(source)
-        : IntegerLiteralImpl.isValidAsInteger(source, isNegated);
+        ? node.parseDoubleValue(negated: isNegated) != null
+        : node.parseIntValue(negated: isNegated) != null;
 
     if (!valid) {
       var lexeme = node.literal.lexeme;

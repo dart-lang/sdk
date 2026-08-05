@@ -12,6 +12,7 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
+import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -25940,9 +25941,29 @@ abstract final class IntegerLiteral implements Literal {
   /// The token representing the literal.
   Token get literal;
 
-  /// The value of the literal, or `null` when [literal] doesn't represent a
-  /// valid `int` value, for example because of overflow.
+  /// The unnegated value represented by [literal], or `null` if it can't be
+  /// represented as an `int`, for example because of overflow.
+  ///
+  /// This does not account for a surrounding unary minus or for conversion to
+  /// `double` based on the literal's context. Use [parseIntValue] or
+  /// [parseDoubleValue] when either distinction matters.
   int? get value;
+
+  /// Returns the `double` value represented by this literal, or `null` if the
+  /// value can't be represented exactly as a finite `double`.
+  ///
+  /// If [negated] is `true`, returns the value of the expression formed by
+  /// immediately preceding this literal with a unary minus. In particular,
+  /// negating a literal whose value is zero produces negative zero.
+  double? parseDoubleValue({required bool negated});
+
+  /// Returns the `int` value represented by this literal, or `null` if the
+  /// value can't be represented as an `int`.
+  ///
+  /// If [negated] is `true`, parses the expression formed by immediately
+  /// preceding this literal with a unary minus. This allows the minimum `int`
+  /// value to be represented even though its positive magnitude can't be.
+  int? parseIntValue({required bool negated});
 }
 
 @GenerateNodeImpl(
@@ -25997,6 +26018,14 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   ChildEntities get _childEntities2 =>
       ChildEntities()..addToken('literal', literal);
 
+  String get _lexemeWithoutSeparators {
+    var source = literal.lexeme;
+    if (source.contains('_')) {
+      source = shared.stripSeparators(source);
+    }
+    return source;
+  }
+
   @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
@@ -26012,6 +26041,21 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
     return false;
+  }
+
+  @override
+  double? parseDoubleValue({required bool negated}) {
+    var value = _parseDoubleValue(_lexemeWithoutSeparators);
+    if (value == null) {
+      return null;
+    }
+    return negated ? -value : value;
+  }
+
+  @override
+  int? parseIntValue({required bool negated}) {
+    var lexeme = _lexemeWithoutSeparators;
+    return int.tryParse(negated ? '-$lexeme' : lexeme);
   }
 
   @generated
@@ -26047,54 +26091,6 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     return null;
   }
 
-  static bool isValidAsDouble(String source) {
-    // Less than 16 characters must be a valid double since it's less than
-    // 9007199254740992, 0x10000000000000, both 16 characters and 53 bits.
-    if (source.length < 16) {
-      return true;
-    }
-
-    var fullPrecision = BigInt.tryParse(source);
-    if (fullPrecision == null) {
-      return false;
-    }
-
-    // Usually handled by the length check, however, we must check this before
-    // constructing a mask later, or we'd get a negative-shift runtime error.
-    var bitLengthAsInt = fullPrecision.bitLength;
-    if (bitLengthAsInt <= 53) {
-      return true;
-    }
-
-    // This would overflow the exponent (larger than maximum double).
-    if (fullPrecision > BigInt.from(double.maxFinite)) {
-      return false;
-    }
-
-    // Say [lexeme] uses 100 bits as an integer. The bottom 47 must be 0s -- so
-    // construct a mask of 47 ones, via of 2^n - 1 where n is 47.
-    var bottomMask = (BigInt.one << (bitLengthAsInt - 53)) - BigInt.one;
-
-    return fullPrecision & bottomMask == BigInt.zero;
-  }
-
-  /// Whether the given [source] is a valid lexeme for an integer
-  /// literal.
-  ///
-  /// The flag [isNegative] should be `true` if the lexeme is preceded by a
-  /// unary negation operator.
-  static bool isValidAsInteger(String source, bool isNegative) {
-    // TODO(jmesserly): this depends on the platform int implementation, and
-    // might not be accurate if run in a browser.
-    //
-    // (Prior to https://dart-review.googlesource.com/c/sdk/+/63023 there was
-    // a partial implementation here which might be a good starting point.
-    // _isValidDecimalLiteral relied on int.parse so that would need some fixes.
-    // _isValidHexadecimalLiteral worked except for negative int64 max.)
-    if (isNegative) source = '-$source';
-    return int.tryParse(source) != null;
-  }
-
   /// Suggests the nearest valid double to a user.
   ///
   /// If the integer they wrote requires more than a 53 bit mantissa, or more
@@ -26102,6 +26098,40 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   /// that would work for them.
   static double nearestValidDouble(String source) =>
       math.min(double.maxFinite, BigInt.parse(source).toDouble());
+
+  static double? _parseDoubleValue(String source) {
+    // Less than 16 characters must be a valid double since it's less than
+    // 9007199254740992, 0x10000000000000, both 16 characters and 53 bits.
+    if (source.length < 16) {
+      return int.tryParse(source)?.toDouble();
+    }
+
+    var fullPrecision = BigInt.tryParse(source);
+    if (fullPrecision == null) {
+      return null;
+    }
+
+    // Usually handled by the length check, however, we must check this before
+    // constructing a mask later, or we'd get a negative-shift runtime error.
+    var bitLengthAsInt = fullPrecision.bitLength;
+    if (bitLengthAsInt <= 53) {
+      return fullPrecision.toDouble();
+    }
+
+    // This would overflow the exponent (larger than maximum double).
+    if (fullPrecision > BigInt.from(double.maxFinite)) {
+      return null;
+    }
+
+    // Say [lexeme] uses 100 bits as an integer. The bottom 47 must be 0s -- so
+    // construct a mask of 47 ones, via of 2^n - 1 where n is 47.
+    var bottomMask = (BigInt.one << (bitLengthAsInt - 53)) - BigInt.one;
+    if (fullPrecision & bottomMask != BigInt.zero) {
+      return null;
+    }
+
+    return fullPrecision.toDouble();
+  }
 }
 
 /// A node within a [StringInterpolation].

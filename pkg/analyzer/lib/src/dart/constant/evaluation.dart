@@ -1040,18 +1040,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
 
   @override
   Constant visitIntegerLiteral(IntegerLiteral node) {
-    if (node.staticType == _typeProvider.doubleType) {
-      return DartObjectImpl(
-        typeSystem,
-        _typeProvider.doubleType,
-        DoubleState(node.value?.toDouble()),
-      );
-    }
-    return DartObjectImpl(
-      typeSystem,
-      _typeProvider.intType,
-      IntState(node.value),
-    );
+    return _evaluateIntegerLiteral(node, negated: false);
   }
 
   @override
@@ -1478,6 +1467,13 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
         );
     }
 
+    if (node.unaryOperator == UnaryOperator.negate) {
+      var operand = node.operand;
+      if (operand is IntegerLiteral) {
+        return _evaluateIntegerLiteral(operand, negated: true);
+      }
+    }
+
     var operand = evaluateConstant(node.operand as Expression);
     if (operand is! DartObjectImpl) {
       return operand;
@@ -1885,6 +1881,24 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       );
     }
     return result;
+  }
+
+  DartObjectImpl _evaluateIntegerLiteral(
+    IntegerLiteral node, {
+    required bool negated,
+  }) {
+    if (node.staticType == _typeProvider.doubleType) {
+      return DartObjectImpl(
+        typeSystem,
+        _typeProvider.doubleType,
+        DoubleState(node.parseDoubleValue(negated: negated)),
+      );
+    }
+    return DartObjectImpl(
+      typeSystem,
+      _typeProvider.intType,
+      IntState(node.parseIntValue(negated: negated)),
+    );
   }
 
   /// Attempt to evaluate a constant property access.

@@ -1851,6 +1851,8 @@ package:analyzer/dart/ast/ast.dart:
   IntegerLiteral (class extends Object implements Literal, abstract, final):
     literal (getter: Token)
     value (getter: int?)
+    parseDoubleValue (method: double? Function({required bool negated}))
+    parseIntValue (method: int? Function({required bool negated}))
   InterpolationElement (class extends Object implements AstNode, sealed (immediate subtypes: InterpolationElementImpl, InterpolationExpression, InterpolationString))
   InterpolationExpression (class extends Object implements InterpolationElement, abstract, final):
     expression (getter: Expression)
