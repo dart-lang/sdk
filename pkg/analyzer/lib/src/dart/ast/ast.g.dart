@@ -710,11 +710,19 @@ abstract class AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   );
 
-  R? visitPostfixExpression(PostfixExpression node);
+  @experimental
+  R? visitPostfixDecrement(PostfixDecrement node);
+
+  @experimental
+  R? visitPostfixIncrement(PostfixIncrement node);
+
+  @experimental
+  R? visitPrefixDecrement(PrefixDecrement node);
 
   R? visitPrefixedIdentifier(PrefixedIdentifier node);
 
-  R? visitPrefixExpression(PrefixExpression node);
+  @experimental
+  R? visitPrefixIncrement(PrefixIncrement node);
 
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
 

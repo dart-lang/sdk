@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 /// Visitor that collects super-invoked names in a mixin declaration.
@@ -42,16 +41,13 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    if (node.operand2 is SuperExpression) {
-      TokenType operatorType = node.operator.type;
-      if (operatorType == TokenType.MINUS) {
-        _names.add('unary-');
-      } else if (operatorType == TokenType.TILDE) {
-        _names.add('~');
-      }
-    }
-    super.visitPrefixExpression(node);
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _visitPrefixIncrementOrDecrement(node, '-');
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    _visitPrefixIncrementOrDecrement(node, '+');
   }
 
   @override
@@ -77,5 +73,15 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
       });
     }
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  void _visitPrefixIncrementOrDecrement(
+    IncrementOrDecrementExpression node,
+    String operatorName,
+  ) {
+    if (node.operand is SuperExpression) {
+      _names.add(operatorName);
+    }
+    node.visitChildren2(this);
   }
 }

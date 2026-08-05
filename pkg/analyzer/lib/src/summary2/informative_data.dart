@@ -2112,9 +2112,21 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixDecrement(PostfixDecrement node) {
     _tokenOrNull(node.operator);
-    super.visitPostfixExpression(node);
+    super.visitPostfixDecrement(node);
+  }
+
+  @override
+  void visitPostfixIncrement(PostfixIncrement node) {
+    _tokenOrNull(node.operator);
+    super.visitPostfixIncrement(node);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _tokenOrNull(node.operator);
+    super.visitPrefixDecrement(node);
   }
 
   @override
@@ -2125,9 +2137,9 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixIncrement(PrefixIncrement node) {
     _tokenOrNull(node.operator);
-    super.visitPrefixExpression(node);
+    super.visitPrefixIncrement(node);
   }
 
   @override

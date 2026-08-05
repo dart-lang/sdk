@@ -1719,9 +1719,9 @@ var v = --a.b == c;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: PrefixExpression
+  leftOperand: PrefixDecrement
     operator: --
-    operand2: PrefixedIdentifier
+    operand: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
       period: .
@@ -2124,9 +2124,9 @@ var v = --a.b == c;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: PrefixExpression
+  leftOperand: PrefixDecrement
     operator: --
-    operand2: PrefixedIdentifier
+    operand: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
       period: .
@@ -2218,8 +2218,12 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: PostfixExpression
-      operand2: SimpleIdentifier
+    expression2: PostfixIncrement
+      operand: SimpleIdentifier
+        token: i
+      operator: ++
+    expression(v1): PostfixExpression
+      operand: SimpleIdentifier
         token: i
       operator: ++
 ''');
@@ -2257,8 +2261,12 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: PostfixExpression
-      operand2: SimpleIdentifier
+    expression2: PostfixIncrement
+      operand: SimpleIdentifier
+        token: i
+      operator: ++
+    expression(v1): PostfixExpression
+      operand: SimpleIdentifier
         token: i
       operator: ++
 ''');
@@ -2321,8 +2329,12 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: PostfixExpression
-      operand2: SimpleIdentifier
+    expression2: PostfixIncrement
+      operand: SimpleIdentifier
+        token: i
+      operator: ++
+    expression(v1): PostfixExpression
+      operand: SimpleIdentifier
         token: i
       operator: ++
 ''');
@@ -3163,8 +3175,12 @@ var v = i--;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+PostfixDecrement
+  operand: SimpleIdentifier
+    token: i
+  operator: --
 PostfixExpression
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: i
   operator: --
 ''');
@@ -3176,8 +3192,12 @@ var v = i++;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: i
+  operator: ++
 PostfixExpression
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: i
   operator: ++
 ''');
@@ -4830,13 +4850,22 @@ var v = --a[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixExpression
+PrefixDecrement
   operator: --
-  operand2: IndexExpression
+  operand: IndexExpression
     target2: SimpleIdentifier
       token: a
     leftBracket: [
     index2: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+PrefixExpression
+  operator: --
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
 ''');
@@ -4848,9 +4877,13 @@ var v = --x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+PrefixDecrement
+  operator: --
+  operand: SimpleIdentifier
+    token: x
 PrefixExpression
   operator: --
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
 ''');
   }
@@ -4875,10 +4908,18 @@ var v = --super.x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+PrefixDecrement
+  operator: --
+  operand: PropertyAccess
+    target2: SuperExpression
+      superKeyword: super
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
 PrefixExpression
   operator: --
-  operand2: PropertyAccess
-    target2: SuperExpression
+  operand: PropertyAccess
+    target: SuperExpression
       superKeyword: super
     operator: .
     propertyName: SimpleIdentifier
@@ -4906,13 +4947,22 @@ var v = ++a[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
   operator: ++
-  operand2: IndexExpression
+  operand: IndexExpression
     target2: SimpleIdentifier
       token: a
     leftBracket: [
     index2: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
 ''');
@@ -4924,9 +4974,13 @@ var v = ++x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: x
 PrefixExpression
   operator: ++
-  operand2: SimpleIdentifier
+  operand: SimpleIdentifier
     token: x
 ''');
   }
@@ -4937,13 +4991,22 @@ var v = ++super[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
   operator: ++
-  operand2: IndexExpression
+  operand: IndexExpression
     target2: SuperExpression
       superKeyword: super
     leftBracket: [
     index2: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: SuperExpression
+      superKeyword: super
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
 ''');
@@ -4955,10 +5018,18 @@ var v = ++super.x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: PropertyAccess
+    target2: SuperExpression
+      superKeyword: super
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
 PrefixExpression
   operator: ++
-  operand2: PropertyAccess
-    target2: SuperExpression
+  operand: PropertyAccess
+    target: SuperExpression
       superKeyword: super
     operator: .
     propertyName: SimpleIdentifier

@@ -1212,6 +1212,21 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       evaluateConstant(node.expression2);
 
   @override
+  Constant visitPostfixDecrement(PostfixDecrement node) {
+    return InvalidConstant.genericError(node: node);
+  }
+
+  @override
+  Constant visitPostfixIncrement(PostfixIncrement node) {
+    return InvalidConstant.genericError(node: node);
+  }
+
+  @override
+  Constant visitPrefixDecrement(PrefixDecrement node) {
+    return InvalidConstant.genericError(node: node);
+  }
+
+  @override
   Constant visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var prefixNode = node.prefix;
     var prefixElement = prefixNode.element;
@@ -1251,35 +1266,8 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
-  Constant visitPrefixExpression(PrefixExpression node) {
-    var operatorElement = node.element;
-    var operatorContainer = operatorElement?.enclosingElement;
-    switch (operatorContainer) {
-      case ExtensionElement():
-        return InvalidConstant.forEntity(
-          entity: node,
-          locatableDiagnostic: diag.constEvalExtensionMethod,
-        );
-      case ExtensionTypeElement():
-        return InvalidConstant.forEntity(
-          entity: node,
-          locatableDiagnostic: diag.constEvalExtensionTypeMethod,
-        );
-    }
-
-    var operand = evaluateConstant(node.operand2);
-    if (operand is! DartObjectImpl) {
-      return operand;
-    }
-    if (node.operator.type == TokenType.TILDE) {
-      return _dartObjectComputer.bitNot(node, operand);
-    } else if (node.operator.type == TokenType.MINUS) {
-      return _dartObjectComputer.negated(node, operand);
-    } else {
-      // TODO(srawlins): Use a specific error code.
-      // https://github.com/dart-lang/sdk/issues/47061
-      return InvalidConstant.genericError(node: node);
-    }
+  Constant visitPrefixIncrement(PrefixIncrement node) {
+    return InvalidConstant.genericError(node: node);
   }
 
   @override

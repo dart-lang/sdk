@@ -30,6 +30,10 @@ class FindNode extends _FindNodeBase {
     return _node(search, (node) => node is InstanceCreationExpression);
   }
 
+  PostfixExpression postfixExpression(String search) {
+    return _node(search, (node) => node is PostfixExpression);
+  }
+
   @override
   AstNode? _locateNode(int offset) {
     return NodeLocator(offset).searchWithin(unit);
@@ -104,6 +108,22 @@ class FindNode2 extends _FindNodeBase {
 
   NullAssertionExpression nullAssertion(String search) {
     return _node(search, (node) => node is NullAssertionExpression);
+  }
+
+  PostfixDecrement postfixDecrement(String search) {
+    return _node(search, (node) => node is PostfixDecrement);
+  }
+
+  PostfixIncrement postfixIncrement(String search) {
+    return _node(search, (node) => node is PostfixIncrement);
+  }
+
+  PrefixDecrement prefixDecrement(String search) {
+    return _node(search, (node) => node is PrefixDecrement);
+  }
+
+  PrefixIncrement prefixIncrement(String search) {
+    return _node(search, (node) => node is PrefixIncrement);
   }
 
   UnaryOperatorInvocation unaryOperatorInvocation(String search) {
@@ -364,11 +384,15 @@ abstract class _FindNodeBase {
   PatternVariableDeclarationStatement
   get singlePatternVariableDeclarationStatement => _single();
 
-  PostfixExpression get singlePostfixExpression => _single();
+  PostfixDecrement get singlePostfixDecrement => _single();
+
+  PostfixIncrement get singlePostfixIncrement => _single();
+
+  PrefixDecrement get singlePrefixDecrement => _single();
 
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
 
-  PrefixExpression get singlePrefixExpression => _single();
+  PrefixIncrement get singlePrefixIncrement => _single();
 
   PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
@@ -961,10 +985,6 @@ abstract class _FindNodeBase {
     String search,
   ) {
     return _node(search, (n) => n is PatternVariableDeclarationStatement);
-  }
-
-  PostfixExpression postfix(String search) {
-    return _node(search, (n) => n is PostfixExpression);
   }
 
   PrefixExpression prefix(String search) {

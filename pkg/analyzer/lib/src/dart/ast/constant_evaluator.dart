@@ -663,29 +663,6 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
       _getConstantValue(null);
 
   @override
-  Object? visitPrefixExpression(PrefixExpression node) {
-    var operand = node.operand.accept2(this);
-    if (identical(operand, NOT_A_CONSTANT)) {
-      return operand;
-    }
-    while (true) {
-      if (node.operator.type == TokenType.TILDE) {
-        if (operand is int) {
-          return ~operand;
-        }
-      } else if (node.operator.type == TokenType.MINUS) {
-        if (operand == null) {
-          return null;
-        } else if (operand is num) {
-          return -operand;
-        }
-      } else {}
-      break;
-    }
-    return NOT_A_CONSTANT;
-  }
-
-  @override
   Object? visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
 
   @override

@@ -9,6 +9,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show IncrementOrDecrementExpressionImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
@@ -118,9 +120,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     required this.eventListener,
   }) : coreLibrary = typeProvider.objectElement.library;
 
-  /// If [node] is used as the target of a [CompoundAssignmentExpression],
-  /// returns the [CompoundAssignmentExpression].
-  CompoundAssignmentExpression? assignmentTargeting(AstNode node) {
+  /// If [node] is used as a read-write target, returns the elements selected
+  /// for its implicit read and write.
+  ({Element? readElement, Element? writeElement})? assignmentTargeting(
+    AstNode node,
+  ) {
     while (true) {
       var parent = node.parent2!;
       switch (parent) {
@@ -128,13 +132,15 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         case PropertyAccess() when identical(node, parent.propertyName):
           node = parent;
         case AssignmentExpression() when identical(node, parent.leftHandSide2):
-          return parent;
-        case PostfixExpression(operator: Token(:var type))
-            when type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS:
-          return parent;
-        case PrefixExpression(operator: Token(:var type))
-            when type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS:
-          return parent;
+          return (
+            readElement: parent.readElement,
+            writeElement: parent.writeElement,
+          );
+        case IncrementOrDecrementExpressionImpl():
+          return (
+            readElement: parent.readElement,
+            writeElement: parent.writeElement,
+          );
         case dynamic(:var runtimeType):
           throw UnimplementedError('TODO(paulberry): $runtimeType');
       }
@@ -384,7 +390,22 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: (lhs == rhs)
         ir.not();
       // Stack: (lhs != rhs)
-      default:
+      case BinaryOperator.add:
+      case BinaryOperator.bitwiseAnd:
+      case BinaryOperator.bitwiseOr:
+      case BinaryOperator.bitwiseXor:
+      case BinaryOperator.divide:
+      case BinaryOperator.greaterThan:
+      case BinaryOperator.greaterThanOrEqual:
+      case BinaryOperator.lessThan:
+      case BinaryOperator.lessThanOrEqual:
+      case BinaryOperator.modulo:
+      case BinaryOperator.multiply:
+      case BinaryOperator.shiftLeft:
+      case BinaryOperator.shiftRight:
+      case BinaryOperator.subtract:
+      case BinaryOperator.truncatingDivide:
+      case BinaryOperator.unsignedShiftRight:
         dispatchNode(node.leftOperand);
         // Stack: lhs
         dispatchNode(node.rightOperand);
@@ -834,27 +855,18 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  Null visitPostfixExpression(PostfixExpression node) {
-    switch (node.operator.type) {
-      case TokenType.PLUS_PLUS:
-      case TokenType.MINUS_MINUS:
-        var lValueTemplates = dispatchLValue(node.operand2);
-        // Stack: lValue
-        eventListener.onEnterNode(node.operand2);
-        lValueTemplates.readForPostfixIncDec(this);
-        // Stack: oldValue lValue oldValue
-        eventListener.onExitNode();
-        ir.literal(one);
-        // Stack: oldValue lValue oldValue 1
-        instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
-        // Stack: oldValue lValue newValue
-        lValueTemplates.write(this);
-        // Stack: oldValue newValue
-        ir.drop();
-      // Stack: oldValue
-      default:
-        throw UnimplementedError('TODO(paulberry): ${node.operator.type}');
-    }
+  Null visitPostfixDecrement(PostfixDecrement node) {
+    _visitPostfixIncrementOrDecrement(node);
+  }
+
+  @override
+  Null visitPostfixIncrement(PostfixIncrement node) {
+    _visitPostfixIncrementOrDecrement(node);
+  }
+
+  @override
+  Null visitPrefixDecrement(PrefixDecrement node) {
+    _visitPrefixIncrementOrDecrement(node);
   }
 
   @override
@@ -875,25 +887,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  Null visitPrefixExpression(PrefixExpression node) {
-    switch (node.operator.type) {
-      case TokenType.PLUS_PLUS:
-      case TokenType.MINUS_MINUS:
-        var lValueTemplates = dispatchLValue(node.operand2);
-        // Stack: lValue
-        lValueTemplates.readForCompoundAssignment(this);
-        // Stack: lValue oldValue
-        ir.literal(one);
-        // Stack: lValue oldValue 1
-        instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
-        // Stack: lValue newValue
-        eventListener.onEnterNode(node.operand2);
-        lValueTemplates.write(this);
-        // Stack: newValue
-        eventListener.onExitNode();
-      default:
-        throw UnimplementedError('TODO(paulberry): ${node.operator.type}');
-    }
+  Null visitPrefixIncrement(PrefixIncrement node) {
+    _visitPrefixIncrementOrDecrement(node);
   }
 
   @override
@@ -1049,6 +1044,38 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         argumentNames.add(null);
       }
     }
+  }
+
+  Null _visitPostfixIncrementOrDecrement(IncrementOrDecrementExpression node) {
+    var lValueTemplates = dispatchLValue(node.operand);
+    // Stack: lValue
+    eventListener.onEnterNode(node.operand);
+    lValueTemplates.readForPostfixIncDec(this);
+    // Stack: oldValue lValue oldValue
+    eventListener.onExitNode();
+    ir.literal(one);
+    // Stack: oldValue lValue oldValue 1
+    instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
+    // Stack: oldValue lValue newValue
+    lValueTemplates.write(this);
+    // Stack: oldValue newValue
+    ir.drop();
+    // Stack: oldValue
+  }
+
+  Null _visitPrefixIncrementOrDecrement(IncrementOrDecrementExpression node) {
+    var lValueTemplates = dispatchLValue(node.operand);
+    // Stack: lValue
+    lValueTemplates.readForCompoundAssignment(this);
+    // Stack: lValue oldValue
+    ir.literal(one);
+    // Stack: lValue oldValue 1
+    instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
+    // Stack: lValue newValue
+    eventListener.onEnterNode(node.operand);
+    lValueTemplates.write(this);
+    // Stack: newValue
+    eventListener.onExitNode();
   }
 }
 

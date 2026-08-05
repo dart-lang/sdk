@@ -1010,7 +1010,7 @@ test(int count, List<int> result) {
       ..containsSubrange(
         astNodes[result.findNode.binaryOperatorInvocation('i < count')]!,
       )
-      ..containsSubrange(astNodes[result.findNode.postfix('i++')]!)
+      ..containsSubrange(astNodes[result.findNode.postfixIncrement('i++')]!)
       ..containsSubrange(astNodes[result.findNode.block('result.add')]!);
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1406,7 +1406,7 @@ test(List<Object?>? list) => (list?.first).hashCode;
 test(List? l) => l?.length--;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('l?.length--')]
+    check(astNodes)[result.findNode.postfixDecrement('l?.length--')]
       ..containsSubrange(astNodes[result.findNode.simple('l?.length')]!)
       ..containsSubrange(
         astNodes[result.findNode.propertyAccess('l?.length')]!,
@@ -1422,7 +1422,7 @@ test(List? l) => l?.length--;
 test(List l) => l.length--;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('l.length--')]
+    check(astNodes)[result.findNode.postfixDecrement('l.length--')]
       ..containsSubrange(astNodes[result.findNode.simple('l.length')]!)
       ..containsSubrange(astNodes[result.findNode.prefixed('l.length')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
@@ -1435,7 +1435,7 @@ test(List l) => l.length--;
 test(List l) => (l).length--;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('(l).length--')]
+    check(astNodes)[result.findNode.postfixDecrement('(l).length--')]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
       ..containsSubrange(
         astNodes[result.findNode.propertyAccess('(l).length')]!,
@@ -1452,9 +1452,8 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.postfix('length--')].containsSubrange(
-      astNodes[result.findNode.simple('length')]!,
-    );
+    check(astNodes)[result.findNode.postfixDecrement('length--')]
+        .containsSubrange(astNodes[result.findNode.simple('length')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(5);
     check(l).deepEquals(['a', 'b', 'c', 'd']);
@@ -1469,7 +1468,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('i++')].containsSubrange(
+    check(astNodes)[result.findNode.postfixIncrement('i++')].containsSubrange(
       astNodes[result.findNode.simple('i++')]!,
     );
     check(runInterpreter(result, [])).equals(124);
@@ -1483,7 +1482,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('i++')].containsSubrange(
+    check(astNodes)[result.findNode.postfixIncrement('i++')].containsSubrange(
       astNodes[result.findNode.simple('i++')]!,
     );
     check(runInterpreter(result, [])).equals(123);
@@ -1497,7 +1496,7 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('i++')].containsSubrange(
+    check(astNodes)[result.findNode.postfixIncrement('i++')].containsSubrange(
       astNodes[result.findNode.simple('i++')]!,
     );
     check(runInterpreter(result, [123])).equals(124);
@@ -1508,7 +1507,7 @@ test(int i) {
 test(int i) => i++;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('i++')].containsSubrange(
+    check(astNodes)[result.findNode.postfixIncrement('i++')].containsSubrange(
       astNodes[result.findNode.simple('i++')]!,
     );
     check(runInterpreter(result, [123])).equals(123);
@@ -1519,7 +1518,7 @@ test(int i) => i++;
 test(List? l) => --l?.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('--l?.length')]
+    check(astNodes)[result.findNode.prefixDecrement('--l?.length')]
       ..containsSubrange(astNodes[result.findNode.simple('l?.length')]!)
       ..containsSubrange(
         astNodes[result.findNode.propertyAccess('l?.length')]!,
@@ -1535,7 +1534,7 @@ test(List? l) => --l?.length;
 test(List l) => --l.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('--l.length')]
+    check(astNodes)[result.findNode.prefixDecrement('--l.length')]
       ..containsSubrange(astNodes[result.findNode.simple('l.length')]!)
       ..containsSubrange(astNodes[result.findNode.prefixed('l.length')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
@@ -1548,7 +1547,7 @@ test(List l) => --l.length;
 test(List l) => --(l).length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('--(l).length')]
+    check(astNodes)[result.findNode.prefixDecrement('--(l).length')]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
       ..containsSubrange(
         astNodes[result.findNode.propertyAccess('(l).length')]!,
@@ -1565,9 +1564,8 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.prefix('--length')].containsSubrange(
-      astNodes[result.findNode.simple('length')]!,
-    );
+    check(astNodes)[result.findNode.prefixDecrement('--length')]
+        .containsSubrange(astNodes[result.findNode.simple('length')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(4);
     check(l).deepEquals(['a', 'b', 'c', 'd']);
@@ -1582,7 +1580,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('++i')].containsSubrange(
+    check(astNodes)[result.findNode.prefixIncrement('++i')].containsSubrange(
       astNodes[result.findNode.simple('i; // increment')]!,
     );
     check(runInterpreter(result, [])).equals(124);
@@ -1596,7 +1594,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('++i')].containsSubrange(
+    check(astNodes)[result.findNode.prefixIncrement('++i')].containsSubrange(
       astNodes[result.findNode.simple('i;')]!,
     );
     check(runInterpreter(result, [])).equals(124);
@@ -1610,7 +1608,7 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('++i')].containsSubrange(
+    check(astNodes)[result.findNode.prefixIncrement('++i')].containsSubrange(
       astNodes[result.findNode.simple('i; // increment')]!,
     );
     check(runInterpreter(result, [123])).equals(124);
@@ -1621,7 +1619,7 @@ test(int i) {
 test(int i) => ++i;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('++i')].containsSubrange(
+    check(astNodes)[result.findNode.prefixIncrement('++i')].containsSubrange(
       astNodes[result.findNode.simple('i;')]!,
     );
     check(runInterpreter(result, [123])).equals(124);

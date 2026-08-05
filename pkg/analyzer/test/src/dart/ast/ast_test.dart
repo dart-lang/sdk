@@ -1826,7 +1826,7 @@ var x = o?^.m();
     var node = await coveringNode('''
 var x = y+^+;
 ''');
-    node as PostfixExpression;
+    node as PostfixIncrement;
   }
 
   Future<void> test_libraryKeyword() async {

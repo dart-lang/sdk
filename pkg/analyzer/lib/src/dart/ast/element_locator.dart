@@ -592,6 +592,13 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    return node.element;
+  }
+
+  @override
   Element? visitIndexExpression(IndexExpression node) {
     return node.element;
   }
@@ -662,18 +669,8 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitPostfixExpression(PostfixExpression node) {
-    return node.element;
-  }
-
-  @override
   Element? visitPrefixedIdentifier(PrefixedIdentifier node) {
     return node.element ?? visitIdentifier(node.identifier);
-  }
-
-  @override
-  Element? visitPrefixExpression(PrefixExpression node) {
-    return node.element;
   }
 
   @override

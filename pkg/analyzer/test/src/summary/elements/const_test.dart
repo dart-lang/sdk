@@ -5891,17 +5891,14 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            PostfixExpression
-              operand2: SimpleIdentifier
+            PostfixIncrement
+              operand: SimpleIdentifier
                 token: a @23
                 element: <null>
                 staticType: null
               operator: ++ @24
-              readElement: <testLibrary>::@getter::a
-              readType: int
-              writeElement: <testLibrary>::@getter::a
-              writeType: InvalidType
               element: dart:core::@class::num::@method::+
+              operatorResultType: int
               staticType: int
           inducedGetter: #F4
       getters
@@ -6090,17 +6087,14 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            PrefixExpression
+            PrefixIncrement
               operator: ++ @23
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
                 token: a @25
                 element: <null>
                 staticType: null
-              readElement: <testLibrary>::@getter::a
-              readType: int
-              writeElement: <testLibrary>::@getter::a
-              writeType: InvalidType
               element: dart:core::@class::num::@method::+
+              operatorResultType: int
               staticType: int
           inducedGetter: #F4
       getters

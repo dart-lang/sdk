@@ -40,10 +40,7 @@ Element? _readElement2(AstNode node) {
   if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.readElement;
   }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.readElement;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
+  if (parent is IncrementOrDecrementExpressionImpl && parent.operand == node) {
     return parent.readElement;
   }
 
@@ -86,10 +83,7 @@ Element? _writeElement2(AstNode node) {
   if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.writeElement;
   }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
+  if (parent is IncrementOrDecrementExpressionImpl && parent.operand == node) {
     return parent.writeElement;
   }
 
@@ -132,10 +126,7 @@ DartType? _writeType2(AstNode node) {
   if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.writeType;
   }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.writeType;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
+  if (parent is IncrementOrDecrementExpressionImpl && parent.operand == node) {
     return parent.writeType;
   }
 

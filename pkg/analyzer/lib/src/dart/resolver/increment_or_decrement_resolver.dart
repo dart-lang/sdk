@@ -19,13 +19,13 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// Helper for resolving [PrefixExpression]s.
-class PrefixExpressionResolver {
+/// Helper for resolving prefix and postfix increment and decrement expressions.
+class IncrementOrDecrementResolver {
   final ResolverVisitor _resolver;
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
 
-  PrefixExpressionResolver({required ResolverVisitor resolver})
+  IncrementOrDecrementResolver({required ResolverVisitor resolver})
     : _resolver = resolver,
       _typePropertyResolver = resolver.typePropertyResolver,
       _assignmentShared = AssignmentExpressionShared(resolver: resolver);
@@ -36,9 +36,8 @@ class PrefixExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PrefixExpressionImpl node) {
-    assert(node.operator.type.isIncrementOperator);
-    var operand = node.operand2;
+  void resolve(IncrementOrDecrementExpressionImpl node) {
+    var operand = node.operand;
     var operandResolution = _resolver.resolveForWrite(
       node: operand,
       hasRead: true,
@@ -58,18 +57,18 @@ class PrefixExpressionResolver {
       atDynamicTarget: operandResolution.atDynamicTarget,
     );
 
+    // TODO(scheglov): Use VariableElement and do in resolveForWrite()?
     _assignmentShared.checkFinalAlreadyAssigned(operand);
 
-    _resolve1(node);
-    _resolve2(node);
+    var isPrefix = _isPrefix(node);
+    _resolveOperator(node, isPrefix: isPrefix);
+    _resolveResult(node, isPrefix: isPrefix);
   }
 
-  /// Check that the result [type] of a prefix or postfix `++` or `--`
-  /// expression is assignable to the write type of the operand.
-  ///
-  // TODO(scheglov): this is duplicate
+  /// Check that the result [type] of a `++` or `--` expression is assignable
+  /// to the write type of the operand.
   void _checkForInvalidAssignmentIncDec(
-    PrefixExpressionImpl node,
+    IncrementOrDecrementExpressionImpl node,
     TypeImpl type,
   ) {
     var operandWriteType = node.writeType!;
@@ -89,18 +88,12 @@ class PrefixExpressionResolver {
     }
   }
 
-  /// Compute the static return type of the method or function represented by the given element.
-  ///
-  /// @param element the element representing the method or function invoked by the given node
-  /// @return the static return type that was computed
-  ///
-  // TODO(scheglov): this is duplicate
-  TypeImpl _computeStaticReturnType(Element? element) {
+  /// Compute the static return type of the method or function represented by
+  /// [element].
+  TypeImpl _computeStaticReturnType(Element? element, TypeImpl fallback) {
     if (element is PropertyAccessorElement) {
-      //
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
-      //
       var propertyType = element.type;
       return InvocationInferrer.computeInvokeReturnType(
         propertyType.returnType,
@@ -108,27 +101,37 @@ class PrefixExpressionResolver {
     } else if (element is ExecutableElement) {
       return InvocationInferrer.computeInvokeReturnType(element.type);
     }
-    return InvalidTypeImpl.instance;
+    return fallback;
   }
 
-  /// Return the name of the method invoked by the given postfix [expression].
-  String _getPrefixOperator(PrefixExpression expression) {
-    var operator = expression.operator;
-    var operatorType = operator.type;
-    if (operatorType == TokenType.PLUS_PLUS) {
-      return TokenType.PLUS.lexeme;
-    } else if (operatorType == TokenType.MINUS_MINUS) {
-      return TokenType.MINUS.lexeme;
-    }
-    assert(operatorType == TokenType.MINUS_MINUS);
-    return TokenType.MINUS.lexeme;
+  /// Return the name of the method invoked by the given [expression].
+  String _getOperator(IncrementOrDecrementExpression expression) {
+    return switch (expression) {
+      PrefixIncrement() || PostfixIncrement() => TokenType.PLUS.lexeme,
+      PrefixDecrement() || PostfixDecrement() => TokenType.MINUS.lexeme,
+      _ => throw StateError('Expected an increment or decrement expression'),
+    };
   }
 
-  void _resolve1(PrefixExpressionImpl node) {
-    Token operator = node.operator;
-    ExpressionImpl operand = node.operand2;
-    String methodName = _getPrefixOperator(node);
-    if (operand is ExtensionOverrideImpl) {
+  bool _isPrefix(IncrementOrDecrementExpression expression) {
+    return switch (expression) {
+      PrefixIncrement() || PrefixDecrement() => true,
+      PostfixIncrement() || PostfixDecrement() => false,
+      _ => throw StateError('Expected an increment or decrement expression'),
+    };
+  }
+
+  void _resolveOperator(
+    IncrementOrDecrementExpressionImpl node, {
+    required bool isPrefix,
+  }) {
+    var operator = node.operator;
+    var operand = node.operand;
+    var methodName = _getOperator(node);
+
+    // TODO(scheglov): Review why only prefix increment and decrement handle an
+    // extension override by looking up the operator directly.
+    if (isPrefix && operand is ExtensionOverrideImpl) {
       var element = operand.element;
       var member = element.getMethod(methodName);
       if (member == null) {
@@ -144,8 +147,15 @@ class PrefixExpressionResolver {
       return;
     }
 
-    var readType = node.readType ?? operand.typeOrThrow;
-    if (readType is InvalidType) {
+    // TODO(scheglov): Review why prefix recovery falls back to the operand
+    // type, while postfix resolution requires `readType` to be set.
+    var readType = isPrefix
+        ? node.readType ?? operand.typeOrThrow
+        : node.readType!;
+
+    // TODO(scheglov): Review why an invalid read type stops operator lookup
+    // only for prefix increment and decrement.
+    if (isPrefix && readType is InvalidType) {
       return;
     }
     if (identical(readType, NeverTypeImpl.instance)) {
@@ -162,7 +172,7 @@ class PrefixExpressionResolver {
       propertyErrorEntity: node.operator,
       nameErrorEntity: operand,
     );
-    node.element = result.getter2 as MethodElement?;
+    node.element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
       if (operand is SuperExpression) {
         _diagnosticReporter.report(
@@ -180,45 +190,73 @@ class PrefixExpressionResolver {
     }
   }
 
-  void _resolve2(PrefixExpressionImpl node) {
-    var readType = node.readType ?? node.operand2.staticType;
+  void _resolveResult(
+    IncrementOrDecrementExpressionImpl node, {
+    required bool isPrefix,
+  }) {
+    var operandImpl = node.operand;
+    Expression operand = operandImpl;
+
+    // TODO(scheglov): Review why prefix recovery falls back to `staticType`,
+    // while postfix resolution requires `readType` to be set.
+    var readType = isPrefix
+        ? node.readType ?? operandImpl.staticType
+        : node.readType!;
+
     if (identical(readType, NeverTypeImpl.instance)) {
+      node.operatorResultType = NeverTypeImpl.instance;
       node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+      return;
+    }
+
+    TypeImpl operatorResultType;
+    if (isPrefix && readType is DynamicType) {
+      operatorResultType = DynamicTypeImpl.instance;
+    } else if (isPrefix && readType is InvalidType) {
+      operatorResultType = InvalidTypeImpl.instance;
+    } else if (readType!.isDartCoreInt) {
+      operatorResultType = isPrefix ? _typeProvider.intType : readType;
     } else {
-      // The other cases are equivalent to invoking a method.
-      TypeImpl staticType;
-      if (readType is DynamicType) {
-        staticType = DynamicTypeImpl.instance;
-      } else if (readType is InvalidType) {
-        staticType = InvalidTypeImpl.instance;
-      } else {
-        var staticMethodElement = node.element;
-        staticType = _computeStaticReturnType(staticMethodElement);
-      }
-      Expression operand = node.operand2;
-      if (operand is ExtensionOverride) {
-        // No special handling for incremental operators.
-      } else {
-        if (readType!.isDartCoreInt) {
-          staticType = _typeProvider.intType;
-        }
-        _checkForInvalidAssignmentIncDec(node, staticType);
-        if (operand is SimpleIdentifier) {
-          var element = operand.element;
-          if (element is PromotableElementImpl) {
+      // TODO(scheglov): Review why a missing operator element produces an
+      // invalid type for prefix expressions but `dynamic` for postfix ones.
+      var fallback = isPrefix
+          ? InvalidTypeImpl.instance
+          : DynamicTypeImpl.instance;
+      operatorResultType = _computeStaticReturnType(node.element, fallback);
+    }
+
+    // TODO(scheglov): Review why only prefix extension overrides skip the
+    // write-back assignability check and flow-model update.
+    if (!(isPrefix && operand is ExtensionOverride)) {
+      _checkForInvalidAssignmentIncDec(node, operatorResultType);
+      if (operand is SimpleIdentifier) {
+        var element = operand.element;
+        if (element is PromotableElementImpl) {
+          if (isPrefix) {
             _resolver.flowAnalysis.storeExpressionInfo(
               node,
               _resolver.flowAnalysis.flow?.write(
                 node,
                 element,
-                SharedTypeView(staticType),
+                SharedTypeView(operatorResultType),
                 null,
               ),
+            );
+          } else {
+            _resolver.flowAnalysis.flow?.postIncDec(
+              node,
+              element,
+              SharedTypeView(operatorResultType),
             );
           }
         }
       }
-      node.recordStaticType(staticType, resolver: _resolver);
     }
+
+    node.operatorResultType = operatorResultType;
+    node.recordStaticType(
+      isPrefix ? operatorResultType : readType!,
+      resolver: _resolver,
+    );
   }
 }

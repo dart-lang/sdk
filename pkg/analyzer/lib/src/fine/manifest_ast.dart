@@ -421,12 +421,6 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    node.visitChildren2(this);
-    _addElement(node.element);
-  }
-
-  @override
   void visitPropertyAccess(PropertyAccess node) {
     node.visitChildren2(this);
   }

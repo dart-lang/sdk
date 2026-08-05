@@ -869,11 +869,19 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addPostfixExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addPostfixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addPostfixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addPrefixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addPrefixExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addPrefixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addPrimaryConstructorBody(
     AbstractAnalysisRule rule,

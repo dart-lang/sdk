@@ -41,7 +41,6 @@ class Tag {
   static const int AssertInitializer = 82;
   static const int AssignmentExpression = 96;
   static const int AwaitExpression = 100;
-  static const int BinaryExpression = 52;
   static const int BooleanLiteral = 4;
   static const int CascadeExpression = 95;
   static const int ConditionalExpression = 51;
@@ -101,10 +100,12 @@ class Tag {
   static const int IfNull = 127;
   static const int UnaryOperatorInvocation = 128;
   static const int BinaryOperatorInvocation = 129;
+  static const int PostfixDecrement = 132;
+  static const int PostfixIncrement = 130;
+  static const int PrefixDecrement = 133;
+  static const int PrefixIncrement = 131;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
-  static const int PostfixExpression = 94;
-  static const int PrefixExpression = 79;
   static const int PrefixedIdentifier = 32;
   static const int PropertyAccess = 62;
   static const int RecordLiteral = 105;

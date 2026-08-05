@@ -1465,8 +1465,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1520,8 +1524,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1563,8 +1571,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1613,8 +1625,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1666,8 +1682,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1719,8 +1739,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1772,8 +1796,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1835,8 +1863,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1897,8 +1929,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixExpression
-                  operand2: SimpleIdentifier
+                expression2: PostfixIncrement
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+                expression(v1): PostfixExpression
+                  operand: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody

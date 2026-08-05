@@ -49,14 +49,13 @@ import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_reference_resolver.dart';
+import 'package:analyzer/src/dart/resolver/increment_or_decrement_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/logical_not_resolver.dart';
 import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
@@ -233,11 +232,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   functionExpressionInvocationResolver;
   late final FunctionExpressionResolver _functionExpressionResolver;
   late final ForResolver _forResolver;
+  late final IncrementOrDecrementResolver _incrementOrDecrementResolver;
   late final LogicalNotResolver _logicalNotResolver;
   late final NullAssertionExpressionResolver _nullAssertionExpressionResolver;
-  late final PostfixExpressionResolver _postfixExpressionResolver;
   late final PrefixedIdentifierResolver _prefixedIdentifierResolver;
-  late final PrefixExpressionResolver _prefixExpressionResolver;
   late final UnaryOperatorInvocationResolver _unaryOperatorInvocationResolver;
   late final VariableDeclarationResolver _variableDeclarationResolver;
   late final YieldStatementResolver _yieldStatementResolver;
@@ -380,11 +378,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(resolver: this);
+    _incrementOrDecrementResolver = IncrementOrDecrementResolver(
+      resolver: this,
+    );
     _logicalNotResolver = LogicalNotResolver(this);
     _nullAssertionExpressionResolver = NullAssertionExpressionResolver(this);
-    _postfixExpressionResolver = PostfixExpressionResolver(resolver: this);
     _prefixedIdentifierResolver = PrefixedIdentifierResolver(this);
-    _prefixExpressionResolver = PrefixExpressionResolver(resolver: this);
     _unaryOperatorInvocationResolver = UnaryOperatorInvocationResolver(this);
     _variableDeclarationResolver = VariableDeclarationResolver(
       resolver: this,
@@ -1472,7 +1471,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
-  /// or implicit [PrefixExpression] or [PostfixExpression].
+  /// or implicit [IncrementOrDecrementExpression].
   PropertyElementResolverResult resolveForWrite({
     required ExpressionImpl node,
     required bool hasRead,
@@ -1794,12 +1793,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
       parent.readElement = element;
       parent.readType = readType;
-    } else if (parent is PostfixExpressionImpl &&
-        parent.operator.type.isIncrementOperator) {
-      parent.readElement = element;
-      parent.readType = readType;
-    } else if (parent is PrefixExpressionImpl &&
-        parent.operator.type.isIncrementOperator) {
+    } else if (parent is IncrementOrDecrementExpressionImpl) {
       parent.readElement = element;
       parent.readType = readType;
     }
@@ -1850,12 +1844,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
       parent.writeElement = element;
       parent.writeType = writeType;
-    } else if (parent is PostfixExpressionImpl &&
-        parent.operator.type.isIncrementOperator) {
-      parent.writeElement = element;
-      parent.writeType = writeType;
-    } else if (parent is PrefixExpressionImpl &&
-        parent.operator.type.isIncrementOperator) {
+    } else if (parent is IncrementOrDecrementExpressionImpl) {
       parent.writeElement = element;
       parent.writeType = writeType;
     }
@@ -3928,29 +3917,27 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPostfixExpression(
-    covariant PostfixExpressionImpl node, {
+  void visitPostfixDecrement(
+    covariant PostfixDecrementImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
+    _visitIncrementOrDecrement(node, contextType: contextType);
+  }
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
+  @override
+  void visitPostfixIncrement(
+    covariant PostfixIncrementImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    _visitIncrementOrDecrement(node, contextType: contextType);
+  }
 
-    checkUnreachableNode(node);
-    _postfixExpressionResolver.resolve(node, contextType: contextType);
-    _insertImplicitCallReference(
-      insertGenericFunctionInstantiation(node, contextType: contextType),
-      contextType: contextType,
-    );
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
-
-    inferenceLogWriter?.exitExpression(node);
+  @override
+  void visitPrefixDecrement(
+    covariant PrefixDecrementImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    _visitIncrementOrDecrement(node, contextType: contextType);
   }
 
   @override
@@ -3991,18 +3978,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPrefixExpression(
-    PrefixExpression node, {
+  void visitPrefixIncrement(
+    covariant PrefixIncrementImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    checkUnreachableNode(node);
-    _prefixExpressionResolver.resolve(node as PrefixExpressionImpl);
-    _insertImplicitCallReference(
-      insertGenericFunctionInstantiation(node, contextType: contextType),
-      contextType: contextType,
-    );
-    inferenceLogWriter?.exitExpression(node);
+    _visitIncrementOrDecrement(node, contextType: contextType);
   }
 
   @override
@@ -4958,6 +4938,32 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         fragment.constantInitializer2 = defaultValue;
       }
     }
+  }
+
+  void _visitIncrementOrDecrement(
+    IncrementOrDecrementExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    var hasDotShorthandContext = isDotShorthand(node);
+    if (hasDotShorthandContext) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    _incrementOrDecrementResolver.resolve(node);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+
+    if (hasDotShorthandContext) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
   }
 
   void _withEnclosingExecutableElement(

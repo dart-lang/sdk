@@ -2342,8 +2342,18 @@ BlockFunctionBody
             staticType: bool
           rightSeparator: ;
           updaters2
+            PostfixIncrement
+              operand: SimpleIdentifier
+                token: i
+                element: i@27
+                staticType: null
+              operator: ++
+              element: dart:core::@class::num::@method::+
+              operatorResultType: int
+              staticType: int
+          updaters(v1)
             PostfixExpression
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
                 token: i
                 element: i@27
                 staticType: null
@@ -2425,9 +2435,19 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PrefixIncrement
+        operator: ++
+        operand: SimpleIdentifier
+          token: i
+          element: i@33
+          staticType: null
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PrefixExpression
         operator: ++
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: i
           element: i@33
           staticType: null
@@ -2520,8 +2540,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        operand: SimpleIdentifier
+          token: i
+          element: i@22
+          staticType: null
+        operator: ++
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: i
           element: i@22
           staticType: null
@@ -2605,8 +2635,18 @@ ForStatement
       staticType: dynamic
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        operand: SimpleIdentifier
+          token: i
+          element: i@27
+          staticType: null
+        operator: ++
+        element: <null>
+        operatorResultType: dynamic
+        staticType: dynamic
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: i
           element: i@27
           staticType: null
@@ -2679,9 +2719,19 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PrefixIncrement
+        operator: ++
+        operand: SimpleIdentifier
+          token: i2
+          element: i2@27
+          staticType: null
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PrefixExpression
         operator: ++
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: i2
           element: i2@27
           staticType: null
@@ -2762,8 +2812,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        operand: SimpleIdentifier
+          token: j
+          element: j@29
+          staticType: null
+        operator: ++
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: j
           element: j@29
           staticType: null
@@ -2911,8 +2971,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        operand: SimpleIdentifier
+          token: i
+          element: i@17
+          staticType: null
+        operator: ++
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: i
           element: i@17
           staticType: null
@@ -3057,8 +3127,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        operand: SimpleIdentifier
+          token: a
+          element: a@35
+          staticType: null
+        operator: ++
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@35
           staticType: null
@@ -3159,8 +3239,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        operand: SimpleIdentifier
+          token: a
+          element: a@40
+          staticType: null
+        operator: ++
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@40
           staticType: null
@@ -3239,8 +3329,18 @@ BlockFunctionBody
             staticType: bool
           rightSeparator: ;
           updaters2
+            PostfixDecrement
+              operand: SimpleIdentifier
+                token: a
+                element: a@43
+                staticType: null
+              operator: --
+              element: dart:core::@class::num::@method::-
+              operatorResultType: int
+              staticType: int
+          updaters(v1)
             PostfixExpression
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
                 token: a
                 element: a@43
                 staticType: null
@@ -3317,8 +3417,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixDecrement
+        operand: SimpleIdentifier
+          token: a
+          element: a@36
+          staticType: null
+        operator: --
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@36
           staticType: null
@@ -3407,8 +3517,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixDecrement
+        operand: SimpleIdentifier
+          token: a
+          element: a@36
+          staticType: null
+        operator: --
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@36
           staticType: null
@@ -3485,8 +3605,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixDecrement
+        operand: SimpleIdentifier
+          token: a
+          element: a@36
+          staticType: null
+        operator: --
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@36
           staticType: null
@@ -3567,8 +3697,18 @@ ForStatement
       staticType: InvalidType
     rightSeparator: ;
     updaters2
+      PostfixDecrement
+        operand: SimpleIdentifier
+          token: a
+          element: a@36
+          staticType: null
+        operator: --
+        element: <null>
+        operatorResultType: dynamic
+        staticType: InvalidType
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@36
           staticType: null
@@ -3650,8 +3790,18 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        operand: SimpleIdentifier
+          token: a
+          element: a@23
+          staticType: null
+        operator: ++
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@23
           staticType: null

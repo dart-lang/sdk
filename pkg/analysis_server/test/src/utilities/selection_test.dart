@@ -690,8 +690,8 @@ void f() {
 ''');
     _assertSelection(selection, r'''
 nodesInRange
-  PostfixExpressionImpl: x--
-  PrefixExpressionImpl: ++x
+  PostfixIncrementOrDecrementV1Impl: x--
+  PrefixIncrementOrDecrementV1Impl: ++x
 ''');
   }
 
@@ -704,8 +704,8 @@ void f() {
 ''');
     _assertSelection(selection, r'''
 nodesInRange
-  PostfixExpressionImpl: x--
-  PrefixExpressionImpl: ++x
+  PostfixIncrementOrDecrementV1Impl: x--
+  PrefixIncrementOrDecrementV1Impl: ++x
 ''');
   }
 
@@ -717,8 +717,8 @@ void f() {
 ''');
     _assertSelection(selection, r'''
 nodesInRange
-  PostfixExpressionImpl: x--
-  PrefixExpressionImpl: ++x
+  PostfixIncrementOrDecrementV1Impl: x--
+  PrefixIncrementOrDecrementV1Impl: ++x
 ''');
   }
 

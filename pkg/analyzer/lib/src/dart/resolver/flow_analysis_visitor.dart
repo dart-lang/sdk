@@ -1192,31 +1192,23 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    super.visitPostfixExpression(node);
-    if (node.operator.type.isIncrementOperator) {
-      var operand = node.operand2;
-      if (operand is SimpleIdentifier) {
-        var element = operand.element;
-        if (element is PromotableElementImpl) {
-          assignedVariables.write(element);
-        }
-      }
-    }
+  void visitPostfixDecrement(PostfixDecrement node) {
+    _visitIncrementOrDecrementExpression(node);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    super.visitPrefixExpression(node);
-    if (node.operator.type.isIncrementOperator) {
-      var operand = node.operand2;
-      if (operand is SimpleIdentifier) {
-        var element = operand.element;
-        if (element is PromotableElementImpl) {
-          assignedVariables.write(element);
-        }
-      }
-    }
+  void visitPostfixIncrement(PostfixIncrement node) {
+    _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    _visitIncrementOrDecrementExpression(node);
   }
 
   @override
@@ -1385,6 +1377,19 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       node.ifTrue2.accept2(this);
       assignedVariables.endNode(node);
       node.ifFalse2?.accept2(this);
+    }
+  }
+
+  void _visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    node.visitChildren2(this);
+    var operand = node.operand;
+    if (operand is SimpleIdentifier) {
+      var element = operand.element;
+      if (element is PromotableElementImpl) {
+        assignedVariables.write(element);
+      }
     }
   }
 }

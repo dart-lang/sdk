@@ -924,7 +924,7 @@ const a = 0;
 var x = a++;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.postfix('a++')],
+      (result) => [result.findNode.postfixIncrement('a++')],
     );
   }
 
@@ -1105,7 +1105,7 @@ const a = 0;
 var x = ++a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefix('++a')],
+      (result) => [result.findNode.prefixIncrement('++a')],
     );
   }
 

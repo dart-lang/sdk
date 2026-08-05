@@ -389,6 +389,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => visitNode(node);
 
+  @experimental
+  R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node) =>
+      visitExpression(node);
+
   @override
   R? visitIndexExpression(IndexExpression node) => visitExpression(node);
 
@@ -1147,6 +1151,10 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => visitNode(node);
 
+  @experimental
+  R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node) =>
+      visitExpression(node);
+
   @override
   R? visitIndexExpression(IndexExpression node) => visitExpression(node);
 
@@ -1309,14 +1317,28 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   ) => visitStatement(node);
 
+  @experimental
   @override
-  R? visitPostfixExpression(PostfixExpression node) => visitExpression(node);
+  R? visitPostfixDecrement(PostfixDecrement node) =>
+      visitIncrementOrDecrementExpression(node);
+
+  @experimental
+  @override
+  R? visitPostfixIncrement(PostfixIncrement node) =>
+      visitIncrementOrDecrementExpression(node);
+
+  @experimental
+  @override
+  R? visitPrefixDecrement(PrefixDecrement node) =>
+      visitIncrementOrDecrementExpression(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitIdentifier(node);
 
+  @experimental
   @override
-  R? visitPrefixExpression(PrefixExpression node) => visitExpression(node);
+  R? visitPrefixIncrement(PrefixIncrement node) =>
+      visitIncrementOrDecrementExpression(node);
 
   @override
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node) =>
@@ -3505,8 +3527,23 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitPostfixExpression(PostfixExpression node) {
+  R? visitPostfixDecrement(PostfixDecrement node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitPostfixIncrement(PostfixIncrement node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitPrefixDecrement(PrefixDecrement node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3517,8 +3554,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitPrefixExpression(PrefixExpression node) {
+  R? visitPrefixIncrement(PrefixIncrement node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4864,14 +4902,24 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   ) => null;
 
+  @experimental
   @override
-  R? visitPostfixExpression(PostfixExpression node) => null;
+  R? visitPostfixDecrement(PostfixDecrement node) => null;
+
+  @experimental
+  @override
+  R? visitPostfixIncrement(PostfixIncrement node) => null;
+
+  @experimental
+  @override
+  R? visitPrefixDecrement(PrefixDecrement node) => null;
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => null;
 
+  @experimental
   @override
-  R? visitPrefixExpression(PrefixExpression node) => null;
+  R? visitPrefixIncrement(PrefixIncrement node) => null;
 
   @override
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node) => null;
@@ -6096,14 +6144,24 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   ) => _throw(node);
 
+  @experimental
   @override
-  R? visitPostfixExpression(PostfixExpression node) => _throw(node);
+  R? visitPostfixDecrement(PostfixDecrement node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitPostfixIncrement(PostfixIncrement node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitPrefixDecrement(PrefixDecrement node) => _throw(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => _throw(node);
 
+  @experimental
   @override
-  R? visitPrefixExpression(PrefixExpression node) => _throw(node);
+  R? visitPrefixIncrement(PrefixIncrement node) => _throw(node);
 
   @override
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node) => _throw(node);
@@ -8907,10 +8965,29 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitPostfixExpression(PostfixExpression node) {
+  T? visitPostfixDecrement(PostfixDecrement node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitPostfixExpression(node);
+    T? result = _baseVisitor.visitPostfixDecrement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitPostfixIncrement(PostfixIncrement node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitPostfixIncrement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitPrefixDecrement(PrefixDecrement node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitPrefixDecrement(node);
     stopwatch.stop();
     return result;
   }
@@ -8923,10 +9000,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitPrefixExpression(PrefixExpression node) {
+  T? visitPrefixIncrement(PrefixIncrement node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitPrefixExpression(node);
+    T? result = _baseVisitor.visitPrefixIncrement(node);
     stopwatch.stop();
     return result;
   }
@@ -10446,14 +10524,24 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   ) => visitNode(node);
 
+  @experimental
   @override
-  R? visitPostfixExpression(PostfixExpression node) => visitNode(node);
+  R? visitPostfixDecrement(PostfixDecrement node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitPostfixIncrement(PostfixIncrement node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitPrefixDecrement(PrefixDecrement node) => visitNode(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitPrefixExpression(PrefixExpression node) => visitNode(node);
+  R? visitPrefixIncrement(PrefixIncrement node) => visitNode(node);
 
   @override
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node) =>

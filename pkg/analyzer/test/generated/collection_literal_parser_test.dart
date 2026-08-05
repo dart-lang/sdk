@@ -133,9 +133,14 @@ ListLiteral
             literal: 10
         rightSeparator: ;
         updaters2
+          PrefixIncrement
+            operator: ++
+            operand: SimpleIdentifier
+              token: x
+        updaters(v1)
           PrefixExpression
             operator: ++
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: x
       rightParenthesis: )
       body2: SpreadElement
@@ -547,9 +552,14 @@ SetOrMapLiteral
             literal: 10
         rightSeparator: ;
         updaters2
+          PrefixIncrement
+            operator: ++
+            operand: SimpleIdentifier
+              token: x
+        updaters(v1)
           PrefixExpression
             operator: ++
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: x
       rightParenthesis: )
       body2: SpreadElement

@@ -185,7 +185,8 @@ class UseResultVerifier {
         parent is IfElement ||
         parent is LogicalNot ||
         parent is ParenthesizedExpression ||
-        parent is PrefixExpression ||
+        parent is PrefixIncrement ||
+        parent is PrefixDecrement ||
         parent is SpreadElement ||
         parent is UnaryOperatorInvocation) {
       return _isUsed(parent);
@@ -203,7 +204,6 @@ class UseResultVerifier {
         // Node should always be RHS so no need to check for a property
         // assignment.
         parent is AssignmentExpression ||
-        parent is BinaryExpression ||
         parent is BinaryOperatorInvocation ||
         parent is IfNull ||
         parent is ConstructorFieldInitializer ||

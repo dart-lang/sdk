@@ -1277,8 +1277,13 @@ Block
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1320,8 +1325,13 @@ Block
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1347,8 +1357,12 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixExpression
-          operand2: SimpleIdentifier
+        initialization2: PostfixDecrement
+          operand: SimpleIdentifier
+            token: i
+          operator: --
+        initialization(v1): PostfixExpression
+          operand: SimpleIdentifier
             token: i
           operator: --
         leftSeparator: ;
@@ -1367,8 +1381,13 @@ Block
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1394,8 +1413,12 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixExpression
-          operand2: SimpleIdentifier
+        initialization2: PostfixDecrement
+          operand: SimpleIdentifier
+            token: i
+          operator: --
+        initialization(v1): PostfixExpression
+          operand: SimpleIdentifier
             token: i
           operator: --
         leftSeparator: ;
@@ -1414,8 +1437,13 @@ Block
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1699,8 +1727,13 @@ Block
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1750,8 +1783,13 @@ Block
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1807,12 +1845,21 @@ Block
             token: j
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+          PostfixDecrement
+            operand: SimpleIdentifier
+              token: j
+            operator: --
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: j
             operator: --
       rightParenthesis: )
@@ -1868,12 +1915,21 @@ Block
             token: j
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+          PostfixDecrement
+            operand: SimpleIdentifier
+              token: j
+            operator: --
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: j
             operator: --
       rightParenthesis: )
@@ -1910,8 +1966,13 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1948,8 +2009,13 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1978,8 +2044,13 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -2008,8 +2079,13 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            operand: SimpleIdentifier
+              token: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )

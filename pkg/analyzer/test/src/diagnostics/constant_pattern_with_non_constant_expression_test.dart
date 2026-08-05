@@ -448,6 +448,50 @@ void f(x) {
 ''');
   }
 
+  test_postfixDecrement_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case a--) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_postfixIncrement_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case a++) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_prefixDecrement_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case --a) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_prefixIncrement_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case ++a) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
   test_setLiteral_element_intLiteral() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {

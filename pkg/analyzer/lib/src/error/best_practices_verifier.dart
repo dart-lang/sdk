@@ -761,15 +761,27 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    _elementUsageFrontierDetector.postfixExpression(node);
-    super.visitPostfixExpression(node);
+  void visitPostfixDecrement(covariant PostfixDecrementImpl node) {
+    _elementUsageFrontierDetector.incrementOrDecrement(node);
+    node.visitChildren2(this);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    _elementUsageFrontierDetector.prefixExpression(node);
-    super.visitPrefixExpression(node);
+  void visitPostfixIncrement(covariant PostfixIncrementImpl node) {
+    _elementUsageFrontierDetector.incrementOrDecrement(node);
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitPrefixDecrement(covariant PrefixDecrementImpl node) {
+    _elementUsageFrontierDetector.incrementOrDecrement(node);
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitPrefixIncrement(covariant PrefixIncrementImpl node) {
+    _elementUsageFrontierDetector.incrementOrDecrement(node);
+    node.visitChildren2(this);
   }
 
   @override
