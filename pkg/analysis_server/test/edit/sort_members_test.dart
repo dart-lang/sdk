@@ -33,9 +33,8 @@ class SortMembersTest extends PubPackageAnalysisServerTest {
   @failingTest
   Future<void> test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
-    var request = EditSortMembersParams(
-      convertPath('/no/such/file.dart'),
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(convertPath('/no/such/file.dart'))
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -50,9 +49,8 @@ void f() {
   print()
 }
 ''');
-    var request = EditSortMembersParams(
-      testFile.path,
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(testFile.path)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -62,9 +60,8 @@ void f() {
   }
 
   Future<void> test_BAD_notDartFile() async {
-    var request = EditSortMembersParams(
-      convertPath('/not-a-Dart-file.txt'),
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(convertPath('/not-a-Dart-file.txt'))
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -74,9 +71,8 @@ void f() {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditSortMembersParams(
-      'test.dart',
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams('test.dart')
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -86,9 +82,8 @@ void f() {
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
-    var request = EditSortMembersParams(
-      convertPath('/foo/../bar/test.dart'),
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(convertPath('/foo/../bar/test.dart'))
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -300,9 +295,8 @@ class C {}
   }
 
   Future<void> _requestSort() async {
-    var request = EditSortMembersParams(
-      testFile.path,
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(testFile.path)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
     var result = EditSortMembersResult.fromResponse(
       response,

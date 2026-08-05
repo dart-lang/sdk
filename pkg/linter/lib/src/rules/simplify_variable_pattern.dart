@@ -19,8 +19,7 @@ import '../diagnostic.dart' as diag;
 const _desc = 'Avoid unnecessary member names in variable patterns.';
 
 class SimplifyVariablePattern extends AnalysisRule {
-  SimplifyVariablePattern()
-    : super(name: LintNames.simplify_variable_pattern, description: _desc);
+  new() : super(name: LintNames.simplify_variable_pattern, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.simplifyVariablePattern;
@@ -41,42 +40,46 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitPatternField(PatternField node) {
-    var pattern = node.pattern;
+    var pattern = node.pattern.unParenthesized;
     if (pattern is! DeclaredVariablePattern) return;
     if (node.name?.name case Token(:var isSynthetic, :var lexeme) && var name
         when !isSynthetic && pattern.name.lexeme == lexeme) {
       // Make sure the name exists
       if (node.parent case RecordPattern(:var matchedValueType)) {
-        if (matchedValueType is! RecordType) {
-          return;
-        }
-        if (!matchedValueType.namedFields
-            .map((field) => field.name)
-            .contains(lexeme)) {
-          return;
-        }
+        _reportIfNeeded(
+          name,
+          matchedValueType,
+          lexeme: lexeme,
+          accessor: _accessor(node),
+        );
       } else if (node.parent case ObjectPattern(
-        type: NamedType(:var element?),
+        type: NamedType(:var element?, :var type),
       )) {
-        if (element is! InstanceElement) {
-          return;
+        while (element is TypeAliasElement || element is TypeParameterElement) {
+          if (element case TypeAliasElement(
+            aliasedType: DartType(element: var aliasedElement) &&
+                var aliasedType,
+          )) {
+            type = aliasedType;
+            if (aliasedElement == null) {
+              break;
+            }
+            element = aliasedElement;
+          } else if (element is TypeParameterElement) {
+            type = element.bound ?? context.typeProvider.objectQuestionType;
+            var boundedElement = type.element;
+            if (boundedElement == null) {
+              break;
+            }
+            element = boundedElement;
+          }
         }
-        var methods = element.methods.map((e) => e.name).toList();
-        if (element.isDartCoreFunction) {
-          methods.add(MethodElement.CALL_METHOD_NAME);
-        }
-        if (!element.getters.map((e) => e.name).contains(lexeme) &&
-            !methods.contains(lexeme)) {
-          return;
-        }
-      } else {
-        return;
+        _reportIfNeeded(name, type, lexeme: lexeme, accessor: _accessor(node));
       }
-      rule.reportAtToken(name, arguments: [lexeme, _accessor(node)]);
     }
     super.visitPatternField(node);
   }
@@ -86,6 +89,37 @@ class _Visitor extends SimpleAstVisitor<void> {
     ObjectPattern() when field.element is GetterElement => 'getter',
     _ => 'field',
   };
+
+  void _reportIfNeeded(
+    Token name,
+    DartType? type, {
+    required String lexeme,
+    required String accessor,
+  }) {
+    if (type is! DynamicType) {
+      if (type?.element case InstanceElement element) {
+        var methods = element.methods.map((e) => e.name).toList();
+        if (element.isDartCoreFunction) {
+          methods.add(MethodElement.CALL_METHOD_NAME);
+        }
+        if (!element.getters.map((e) => e.name).contains(lexeme) &&
+            !methods.contains(lexeme)) {
+          return;
+        }
+      } else if (type case RecordType record) {
+        if (!record.namedFields.map((field) => field.name).contains(lexeme)) {
+          return;
+        }
+      } else if (type is FunctionType) {
+        if (name.lexeme != MethodElement.CALL_METHOD_NAME) {
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+    rule.reportAtToken(name, arguments: [lexeme, accessor]);
+  }
 }
 
 extension on InstanceElement {

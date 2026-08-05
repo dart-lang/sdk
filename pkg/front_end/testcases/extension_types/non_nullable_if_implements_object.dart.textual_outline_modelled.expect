@@ -15,12 +15,13 @@ extension type E7(num it) implements num {}
 test1(E1 e1, E2 e2, E3 e3, E4 e4, E5 e5, E6 e6, E7 e7) {}
 
 test2<
-    X1 extends E1,
-    X2 extends E2,
-    X3 extends E3,
-    X4 extends E4,
-    X5 extends E5,
-    X6 extends E6,
-    X7 extends E7>(X1 x1, X2 x2, X3 x3, X4 x4, X5 x5, X6 x6, X7 x7) {}
+  X1 extends E1,
+  X2 extends E2,
+  X3 extends E3,
+  X4 extends E4,
+  X5 extends E5,
+  X6 extends E6,
+  X7 extends E7
+>(X1 x1, X2 x2, X3 x3, X4 x4, X5 x5, X6 x6, X7 x7) {}
 
 test3(E1 e1, E2 e2, E3 e3, E4 e4, E5 e5, E6 e6, E7 e7, String s, bool b) {}

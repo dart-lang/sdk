@@ -25,6 +25,7 @@
 #include "vm/field_table.h"
 #include "vm/fixed_cache.h"
 #include "vm/handles.h"
+#include "vm/hash_map.h"
 #include "vm/heap/verifier.h"
 #include "vm/intrusive_dlist.h"
 #include "vm/megamorphic_cache_table.h"
@@ -32,6 +33,7 @@
 #include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/random.h"
+#include "vm/roots.h"
 #include "vm/service.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
@@ -134,16 +136,19 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 #define BOOL_ISOLATE_GROUP_FLAG_LIST(V)                                        \
   V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false)                       \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
-  V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
+  V(PRODUCT, use_field_guards, UseFieldGuards, use_field_guards,               \
     FLAG_use_field_guards)                                                     \
   V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
     load_vmservice_library, false)                                             \
-  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
+  V(PRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                           \
   V(NONPRODUCT, snapshot_is_dontneed_safe, SnapshotIsDontNeedSafe,             \
     snapshot_is_dontneed_safe, false)                                          \
   V(NONPRODUCT, branch_coverage, BranchCoverage, branch_coverage,              \
     FLAG_branch_coverage)                                                      \
-  V(NONPRODUCT, coverage, Coverage, coverage, FLAG_coverage)
+  V(NONPRODUCT, coverage, Coverage, coverage, FLAG_coverage)                   \
+  V(PRODUCT, dwarf_stack_traces, DwarfStackTraces, dwarf_stack_traces,         \
+    FLAG_dwarf_stack_traces_mode)                                              \
+  V(PRODUCT, code_comments, CodeComments, code_comments, FLAG_code_comments)
 
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
@@ -161,14 +166,14 @@ class IsolateGroupSource {
   IsolateGroupSource(const char* script_uri,
                      const char* name,
                      const uint8_t* snapshot_data,
-                     const uint8_t* snapshot_instructions,
+                     const uint8_t* snapshot_text,
                      const uint8_t* kernel_buffer,
                      intptr_t kernel_buffer_size,
                      Dart_IsolateFlags flags)
       : script_uri(script_uri == nullptr ? nullptr : Utils::StrDup(script_uri)),
         name(Utils::StrDup(name)),
         snapshot_data(snapshot_data),
-        snapshot_instructions(snapshot_instructions),
+        snapshot_text(snapshot_text),
         kernel_buffer(kernel_buffer),
         kernel_buffer_size(kernel_buffer_size),
         flags(flags),
@@ -189,7 +194,7 @@ class IsolateGroupSource {
   char* script_uri;
   char* name;
   const uint8_t* snapshot_data;
-  const uint8_t* snapshot_instructions;
+  const uint8_t* snapshot_text;
   const uint8_t* kernel_buffer;
   const intptr_t kernel_buffer_size;
   Dart_IsolateFlags flags;
@@ -316,12 +321,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                void* embedder_data,
                ObjectStore* object_store,
-               Dart_IsolateFlags api_flags,
-               bool is_vm_isolate);
+               Dart_IsolateFlags api_flags);
   IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                void* embedder_data,
-               Dart_IsolateFlags api_flags,
-               bool is_vm_isolate);
+               Dart_IsolateFlags api_flags);
   ~IsolateGroup();
 
   void RehashConstants(Become* become);
@@ -333,13 +336,16 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::shared_ptr<IsolateGroupSource> shareable_source() const {
     return source_;
   }
-  bool is_vm_isolate() const { return is_vm_isolate_; }
   void* embedder_data() const { return embedder_data_; }
 
   bool initial_spawn_successful() { return initial_spawn_successful_; }
   void set_initial_spawn_successful() { initial_spawn_successful_ = true; }
 
   Heap* heap() const { return heap_.get(); }
+  Roots* roots() const { return roots_.get(); }
+  FfiCallbackMetadata* callback_metadata() const {
+    return callback_metadata_.get();
+  }
 
   BackgroundCompiler* background_compiler() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -379,7 +385,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
 
-  void CreateHeap(bool is_vm_isolate, bool is_service_or_kernel_isolate);
+  void CreateHeap(bool is_service_or_kernel_isolate);
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
   void Shutdown();
 
@@ -455,6 +461,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   const char** obfuscation_map() const { return obfuscation_map_; }
 
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
+  bool is_bootstrapping() const { return bootstrapping_; }
+  void set_bootstrapping(bool v) { bootstrapping_ = v; }
 
   // IsolateGroup-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
@@ -496,13 +504,23 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_asserts(bool value) {
     isolate_group_flags_.UpdateBool<EnableAssertsBit>(value);
   }
-
   void set_branch_coverage(bool value) {
     isolate_group_flags_.UpdateBool<BranchCoverageBit>(value);
   }
-
   void set_coverage(bool value) {
     isolate_group_flags_.UpdateBool<CoverageBit>(value);
+  }
+  void set_use_field_guards(bool value) {
+    isolate_group_flags_.UpdateBool<UseFieldGuardsBit>(value);
+  }
+  void set_use_osr(bool value) {
+    isolate_group_flags_.UpdateBool<UseOsrBit>(value);
+  }
+  void set_code_comments(bool value) {
+    isolate_group_flags_.UpdateBool<CodeCommentsBit>(value);
+  }
+  void set_dwarf_stack_traces(bool value) {
+    isolate_group_flags_.UpdateBool<DwarfStackTracesBit>(value);
   }
 
 #if !defined(PRODUCT)
@@ -528,14 +546,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_has_seen_oom(bool value) {
     isolate_group_flags_.UpdateBool<HasSeenOOMBit>(value);
   }
-
-#if defined(PRODUCT)
-  void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
-#else   // defined(PRODUCT)
-  void set_use_osr(bool use_osr) {
-    isolate_group_flags_.UpdateBool<UseOsrBit>(use_osr);
-  }
-#endif  // defined(PRODUCT)
 
   // Class table for the program loaded into this isolate group.
   //
@@ -727,8 +737,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   static void RegisterIsolateGroup(IsolateGroup* isolate_group);
   static void UnregisterIsolateGroup(IsolateGroup* isolate_group);
 
+  static bool HasIsolateGroups();
   static bool HasApplicationIsolateGroups();
-  static bool HasOnlyVMIsolateGroup();
   static bool IsSystemIsolateGroup(const IsolateGroup* group);
 
   int64_t UptimeMicros() const;
@@ -844,6 +854,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return thread_locals_count_.fetch_add(1u, std::memory_order_relaxed);
   }
 
+  FfiCallbackMetadata::Trampoline CreateIsolateGroupBoundFfiCallback(
+      Zone* zone,
+      const Function& trampoline,
+      const Closure& target);
+  void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -864,7 +880,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(SnapshotIsDontNeedSafe)                                                    \
   V(BranchCoverage)                                                            \
   V(Coverage)                                                                  \
-  V(HasDynamicallyExtendableClasses)
+  V(HasDynamicallyExtendableClasses)                                           \
+  V(DwarfStackTraces)                                                          \
+  V(CodeComments)
 
   // Isolate group specific flags.
   enum FlagBits {
@@ -891,7 +909,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   const char** obfuscation_map_ = nullptr;
 
-  bool is_vm_isolate_ = false;
   void* embedder_data_ = nullptr;
 
   IdleTimeHandler idle_time_handler_;
@@ -907,6 +924,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
   int64_t start_time_micros_;
   bool is_system_isolate_group_;
+  bool bootstrapping_ = true;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
@@ -956,6 +974,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);
 
+  std::unique_ptr<FfiCallbackMetadata> callback_metadata_;
+
   Mutex symbols_mutex_;
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
@@ -1004,6 +1024,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   SafepointRwLock tag_table_lock_;
 
   std::atomic<intptr_t> thread_locals_count_ = 0;
+
+  std::unique_ptr<Roots> roots_;
+
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1088,6 +1112,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
     message_notify_callback_.store(value, std::memory_order_release);
+    is_acquirable_ = false;
   }
 
   void set_on_shutdown_callback(Dart_IsolateShutdownCallback value) {
@@ -1270,6 +1295,16 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void DecrementSpawnCount();
   void WaitForOutstandingSpawns();
 
+  bool TryAcquireOwnership();
+  void ReleaseOwnership();
+  bool is_permanently_pinned() { return is_permanently_pinned_; }
+  void set_is_permanently_pinned() { is_permanently_pinned_ = true; }
+  void clear_is_permanently_pinned_for_testing_only() {
+    is_permanently_pinned_ = false;
+  }
+  bool is_acquirable() { return is_acquirable_; }
+  void set_is_not_acquirable() { is_acquirable_ = false; }
+
   static void SetCreateGroupCallback(Dart_IsolateGroupCreateCallback cb) {
     create_group_callback_ = cb;
   }
@@ -1322,7 +1357,14 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   RingServiceIdZone* GetServiceIdZone(intptr_t zone_id) const;
 
-  intptr_t NumServiceIdZones() const;
+  template <typename F>
+  void ForEachServiceIdZone(F callback) const {
+    if (service_id_zones_ == nullptr) return;
+    auto it = service_id_zones_->GetIterator();
+    while (auto* pair = it.Next()) {
+      callback(pair->value);
+    }
+  }
 #endif  // !defined(PRODUCT)
 
   FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
@@ -1334,10 +1376,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const Function& trampoline,
       const Closure& target,
       bool keep_isolate_alive);
-  FfiCallbackMetadata::Trampoline CreateIsolateGroupBoundFfiCallback(
-      Zone* zone,
-      const Function& trampoline,
-      const Closure& target);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
   void UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta);
   bool HasOpenNativeCallables();
@@ -1430,11 +1468,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void PauseEventHandler();
 #endif
 
-  bool is_vm_isolate() const { return isolate_flags_.Read<IsVMIsolateBit>(); }
-  void set_is_vm_isolate(bool value) {
-    isolate_flags_.UpdateBool<IsVMIsolateBit>(value);
-  }
-
   bool is_service_registered() const {
     return isolate_flags_.Read<IsServiceRegisteredBit>();
   }
@@ -1514,8 +1547,8 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static void InitVM();
   static Isolate* InitIsolate(const char* name_prefix,
                               IsolateGroup* isolate_group,
-                              const Dart_IsolateFlags& api_flags,
-                              bool is_vm_isolate = false);
+                              const Dart_IsolateFlags& api_flags);
+  void FixInitiallyNullFields();
 
   // The isolate_creation_monitor_ should be held when calling Kill().
   void KillLocked(LibMsgId msg_id);
@@ -1636,8 +1669,13 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_ = nullptr;
 
-  // The array of Service ID zones is created lazily.
-  MallocGrowableArray<RingServiceIdZone*>* service_id_zones_;
+  // The map of Service ID zones is created lazily.
+  MallocDirectChainedHashMap<IntKeyRawPointerValueTrait<RingServiceIdZone*>>*
+      service_id_zones_;
+
+  // Monotonically increasing counter used to assign unique IDs to non-default
+  // Service ID zones.
+  intptr_t next_service_id_zone_id_;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
@@ -1673,6 +1711,8 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
   RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;
+  bool is_permanently_pinned_ = false;
+  bool is_acquirable_ = true;
 
   ErrorPtr sticky_error_;
 
@@ -1811,27 +1851,34 @@ class EnterIsolateGroupScope {
 // operate on an individual isolate.
 class NoActiveIsolateScope : public StackResource {
  public:
-  NoActiveIsolateScope() : NoActiveIsolateScope(Thread::Current()) {}
-  explicit NoActiveIsolateScope(Thread* thread)
+  explicit NoActiveIsolateScope(bool allow_no_thread = false)
+      : NoActiveIsolateScope(Thread::Current(), allow_no_thread) {}
+  explicit NoActiveIsolateScope(Thread* thread, bool allow_no_thread = false)
       : StackResource(thread), thread_(thread) {
-    outer_ = thread_->no_active_isolate_scope_;
-    saved_isolate_ = thread_->isolate_;
+    ASSERT(allow_no_thread || thread_ != nullptr);
+    if (thread_ != nullptr) {
+      outer_ = thread_->no_active_isolate_scope_;
+      saved_isolate_ = thread_->isolate_;
 
-    thread_->no_active_isolate_scope_ = this;
-    thread_->isolate_ = nullptr;
+      thread_->no_active_isolate_scope_ = this;
+      thread_->isolate_ = nullptr;
+    }
   }
   ~NoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == nullptr);
-    thread_->isolate_ = saved_isolate_;
-    thread_->no_active_isolate_scope_ = outer_;
+    ASSERT(thread_ == nullptr || thread_->isolate_ == nullptr);
+    ASSERT(thread_ != nullptr || saved_isolate_ == nullptr);
+    if (thread_ != nullptr) {
+      thread_->isolate_ = saved_isolate_;
+      thread_->no_active_isolate_scope_ = outer_;
+    }
   }
 
  private:
   friend class ActiveIsolateScope;
 
-  Thread* thread_;
-  Isolate* saved_isolate_;
-  NoActiveIsolateScope* outer_;
+  Thread* thread_ = nullptr;
+  Isolate* saved_isolate_ = nullptr;
+  NoActiveIsolateScope* outer_ = nullptr;
 };
 
 class ActiveIsolateScope : public StackResource {

@@ -22,7 +22,7 @@ bool IsZero(char* begin, char* end) {
 VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   const intptr_t kVirtualMemoryBlockSize = 64 * KB;
   VirtualMemory* vm =
-      VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, false, "test");
+      VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
   EXPECT(vm != nullptr);
   EXPECT(vm->address() != nullptr);
   EXPECT_EQ(vm->start(), reinterpret_cast<uword>(vm->address()));
@@ -58,7 +58,7 @@ VM_UNIT_TEST_CASE(AllocateAlignedVirtualMemory) {
   intptr_t kIterations = kHeapPageSize / kVirtualPageSize;
   for (intptr_t i = 0; i < kIterations; i++) {
     VirtualMemory* vm = VirtualMemory::AllocateAligned(
-        kHeapPageSize, kHeapPageSize, false, false, "test");
+        kHeapPageSize, kHeapPageSize, false, "test");
     EXPECT(Utils::IsAligned(vm->start(), kHeapPageSize));
     EXPECT_EQ(kHeapPageSize, vm->size());
     delete vm;
@@ -71,19 +71,19 @@ VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   const intptr_t kIterations = 900;  // Enough to exhaust 32-bit address space.
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, false, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
     delete vm;
   }
   // Check that truncation does not introduce leaks.
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, false, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
     vm->Truncate(kVirtualMemoryBlockSize / 2);
     delete vm;
   }
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, false, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, "test");
     vm->Truncate(0);
     delete vm;
   }
@@ -110,9 +110,9 @@ VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
   EXPECT_NE(nullptr, vm);
 
   const bool is_executable = false;
-  VirtualMemory* vm2 = VirtualMemory::AllocateAligned(
-      vm->size(), Page::kPageSize, is_executable,
-      /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
+  VirtualMemory* vm2 =
+      VirtualMemory::AllocateAligned(vm->size(), Page::kPageSize, is_executable,
+                                     "FfiCallbackMetadata::TrampolinePage");
   bool ok = vm->DuplicateRX(vm2);
   EXPECT_EQ(true, ok);
 

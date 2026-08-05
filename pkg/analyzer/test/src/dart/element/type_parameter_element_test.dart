@@ -18,76 +18,51 @@ main() {
 @reflectiveTest
 class TypeParameterElementTest extends AbstractTypeSystemTest {
   test_equal() {
-    var T1 = typeParameter('T');
-    var T2 = typeParameter('T');
+    withTypeParameterScope('T', (scope1) {
+      var T1 = scope1.typeParameter('T');
+      scope1.withTypeParameterScope('T', (scope2) {
+        var T2 = scope2.typeParameter('T');
 
-    expect(T1 == T1, isTrue);
-    expect(T2 == T2, isTrue);
+        expect(T1 == T1, isTrue);
+        expect(T2 == T2, isTrue);
 
-    expect(T1 == T2, isFalse);
-    expect(T2 == T1, isFalse);
+        expect(T1 == T2, isFalse);
+        expect(T2 == T1, isFalse);
+      });
+    });
   }
 }
 
 @reflectiveTest
 class TypeParameterTypeTest extends AbstractTypeSystemTest {
   test_equal_differentElements() {
-    var T1 = typeParameter('T');
-    var T2 = typeParameter('T');
-
-    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isFalse);
+    withTypeParameterScope('T', (scope1) {
+      var T1 = scope1.parseType('T');
+      scope1.withTypeParameterScope('T', (scope2) {
+        var T2 = scope2.parseType('T');
+        _assertEqual(T1, T2, isFalse);
+      });
+    });
   }
 
   test_equal_sameElement() {
-    var T = typeParameter('T');
-
-    _assertEqual(typeParameterTypeNone(T), typeParameterTypeNone(T), isTrue);
-
-    _assertEqual(
-      typeParameterTypeNone(T),
-      typeParameterTypeQuestion(T),
-      isFalse,
-    );
-
-    _assertEqual(
-      typeParameterTypeQuestion(T),
-      typeParameterTypeNone(T),
-      isFalse,
-    );
-
-    _assertEqual(
-      typeParameterTypeQuestion(T),
-      typeParameterTypeQuestion(T),
-      isTrue,
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.parseType('T');
+      _assertEqual(T, T, isTrue);
+      _assertEqual(T, scope.parseType('T?'), isFalse);
+      _assertEqual(scope.parseType('T?'), T, isFalse);
+      _assertEqual(scope.parseType('T?'), scope.parseType('T?'), isTrue);
+    });
   }
 
   test_equal_sameElement_promotedBounds() {
-    var T = typeParameter('T');
-
-    _assertEqual(
-      promotedTypeParameterTypeNone(T, intNone),
-      promotedTypeParameterTypeNone(T, intNone),
-      isTrue,
-    );
-
-    _assertEqual(
-      promotedTypeParameterTypeNone(T, intNone),
-      promotedTypeParameterTypeNone(T, doubleNone),
-      isFalse,
-    );
-
-    _assertEqual(
-      promotedTypeParameterTypeNone(T, intNone),
-      typeParameterTypeNone(T),
-      isFalse,
-    );
-
-    _assertEqual(
-      typeParameterTypeNone(T),
-      promotedTypeParameterTypeNone(T, intNone),
-      isFalse,
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.parseType('T & int');
+      _assertEqual(T, T, isTrue);
+      _assertEqual(T, scope.parseType('T & double'), isFalse);
+      _assertEqual(T, scope.parseType('T'), isFalse);
+      _assertEqual(scope.parseType('T'), T, isFalse);
+    });
   }
 
   void _assertEqual(DartType T1, DartType T2, matcher) {

@@ -227,6 +227,17 @@ void DeferredObject::Create() {
   cls ^= GetClass();
 
   switch (cls.id()) {
+    case kClosureCid: {
+      const intptr_t length_and_flags =
+          Smi::Cast(Object::Handle(GetLengthOrShape())).Value();
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("materializing closure with length and flags %" Px " (%" Px
+                     ", %" Pd " fields)\n",
+                     length_and_flags, reinterpret_cast<uword>(args_),
+                     field_count_);
+      }
+      object_ = &Closure::ZoneHandle(Closure::New(length_and_flags));
+    } break;
     case kContextCid: {
       const intptr_t num_variables =
           Smi::Cast(Object::Handle(GetLengthOrShape())).Value();
@@ -296,6 +307,35 @@ void DeferredObject::Fill() {
   cls ^= GetClass();
 
   switch (cls.id()) {
+    case kClosureCid: {
+      const Closure& closure = Closure::Cast(*object_);
+
+      Smi& offset = Smi::Handle();
+      Object& value = Object::Handle();
+
+      for (intptr_t i = 0; i < field_count_; i++) {
+        offset ^= GetFieldOffset(i);
+        if (offset.Value() == Closure::function_offset()) {
+          Function& function = Function::Handle();
+          function ^= GetValue(i);
+          closure.set_function(function);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    closure@function (offset %" Pd ") <- %s\n",
+                         offset.Value(), function.ToCString());
+          }
+        } else {
+          ASSERT(offset.Value() >= Closure::element_offset(0));
+          const intptr_t index =
+              Closure::element_index_at_offset(offset.Value());
+          value = GetValue(i);
+          closure.SetElementAt(index, value);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    closure@%" Pd " (offset %" Pd ") <- %s\n", index,
+                         offset.Value(), value.ToCString());
+          }
+        }
+      }
+    } break;
     case kContextCid: {
       const Context& context = Context::Cast(*object_);
 

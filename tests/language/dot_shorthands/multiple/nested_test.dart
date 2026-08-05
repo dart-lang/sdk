@@ -11,11 +11,12 @@ void main() {
     .memberType(.member()),
   );
 
-  StaticMemberExt<StaticMemberExt<StaticMemberExt>> memberMemberExt = .memberType(
-    .memberType(.member()),
-  );
+  StaticMemberExt<StaticMemberExt<StaticMemberExt>> memberMemberExt =
+      .memberType(.memberType(.member()));
 
-  StaticMember<StaticMember<StaticMember>> memberCtor = .memberType(.new(.member()));
+  StaticMember<StaticMember<StaticMember>> memberCtor = .memberType(
+    .new(.member()),
+  );
 
   StaticMemberExt<StaticMemberExt<StaticMemberExt>> memberCtorExt = .memberType(
     .new(.member()),

@@ -25,7 +25,7 @@ Future<void> main(List<String> args) async {
 }
 
 class NullabilityDataComputer extends CfeDataComputer<String> {
-  const NullabilityDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -47,7 +47,7 @@ class NullabilityDataComputer extends CfeDataComputer<String> {
 }
 
 class NullabilityDataExtractor extends CfeDataExtractor<String> {
-  NullabilityDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
   ) : super(compilerResult, actualMap);

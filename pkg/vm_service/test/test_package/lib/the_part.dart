@@ -85,7 +85,7 @@ class Foo10 {
   final String foo;
 
   Foo10(this.foo) {
-    print('hello from foo!');
+    print('hello from foo!'); // LINE_A
   }
 }
 

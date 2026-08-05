@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class AmbiguousImportFix extends MultiCorrectionProducer {
-  AmbiguousImportFix({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -28,9 +28,8 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       prefix = node.importPrefix?.name.lexeme;
     } else if (node is SimpleIdentifier) {
       element = node.element;
-      if (node.parent case PrefixedIdentifier(
-        prefix: var currentPrefix,
-      ) when currentPrefix != node) {
+      if (node.parent case PrefixedIdentifier(prefix: var currentPrefix)
+          when currentPrefix != node) {
         prefix = currentPrefix.name;
       }
     }
@@ -157,7 +156,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
   final String? prefix;
   final String _elementName;
 
-  _ImportAddHide(
+  new(
     this._elementName,
     this.uri,
     this.prefix,
@@ -230,7 +229,7 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
   final String uri;
   final String? prefix;
 
-  _ImportRemoveShow(
+  new(
     this._elementName,
     this.uri,
     this.prefix,

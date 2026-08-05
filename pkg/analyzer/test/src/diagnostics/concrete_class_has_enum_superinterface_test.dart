@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,53 +16,49 @@ main() {
 class NonAbstractClassHasEnumSuperinterfaceTest
     extends PubPackageResolutionTest {
   test_class_abstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A implements Enum {}
 ''');
   }
 
   test_class_concrete() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A implements Enum {}
-''',
-      [error(diag.concreteClassHasEnumSuperinterface, 19, 4)],
-    );
+//                 ^^^^
+// [diag.concreteClassHasEnumSuperinterface] Concrete classes can't have 'Enum' as a superinterface.
+''');
   }
 
   test_class_concrete_indirect() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A implements Enum {}
 class B implements A {}
-''',
-      [error(diag.concreteClassHasEnumSuperinterface, 42, 1)],
-    );
+//    ^
+// [diag.concreteClassHasEnumSuperinterface] Concrete classes can't have 'Enum' as a superinterface.
+''');
   }
 
   test_classTypeAlias_concrete() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class M {}
 class A = Object with M implements Enum;
-''',
-      [error(diag.concreteClassHasEnumSuperinterface, 46, 4)],
-    );
+//                                 ^^^^
+// [diag.concreteClassHasEnumSuperinterface] Concrete classes can't have 'Enum' as a superinterface.
+''');
   }
 
   test_classTypeAlias_concrete_indirect() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {}
 abstract class A implements Enum {}
 class B = Object with M implements A;
-''',
-      [error(diag.concreteClassHasEnumSuperinterface, 53, 1)],
-    );
+//    ^
+// [diag.concreteClassHasEnumSuperinterface] Concrete classes can't have 'Enum' as a superinterface.
+''');
   }
 
   test_enum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum E implements Enum {
   v
 }

@@ -35,15 +35,19 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
         if (initializer is! ConstructorInitializerImpl) continue;
         switch (initializer) {
           case AssertInitializerImpl(:var condition, :var message):
-            var conditionReplacement = replaceNotSerializableNode(condition);
+            var conditionReplacement = replaceNotSerializableExpression(
+              condition,
+            );
             initializer.condition = conditionReplacement;
 
             if (message != null) {
-              var messageReplacement = replaceNotSerializableNode(message);
+              var messageReplacement = replaceNotSerializableExpression(
+                message,
+              );
               initializer.message = messageReplacement;
             }
           case ConstructorFieldInitializerImpl(:var expression):
-            var replacement = replaceNotSerializableNode(expression);
+            var replacement = replaceNotSerializableExpression(expression);
             initializer.expression = replacement;
             AstNodeImpl.linkNodeTokens(initializer);
           case RedirectingConstructorInvocationImpl(:var argumentList):
@@ -102,7 +106,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
         if (initializer is ExpressionImpl) {
           _detachNode(initializer);
 
-          initializer = replaceNotSerializableNode(initializer);
+          initializer = replaceNotSerializableExpression(initializer);
           fragment.constantInitializer = initializer;
 
           ConstantContextForExpressionImpl(fragment, initializer);
@@ -121,10 +125,17 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
     }
   }
 
-  void _sanitizeArguments(List<ExpressionImpl>? arguments) {
+  void _sanitizeArguments(List<ArgumentImpl>? arguments) {
     if (arguments != null) {
-      for (var i = 0; i < arguments.length; i++) {
-        arguments[i] = replaceNotSerializableNode(arguments[i]);
+      for (var (i, argument) in arguments.indexed) {
+        switch (argument) {
+          case ExpressionImpl():
+            arguments[i] = replaceNotSerializableExpression(argument);
+          case NamedArgumentImpl():
+            argument.argumentExpression = replaceNotSerializableExpression(
+              argument.argumentExpression,
+            );
+        }
       }
     }
   }

@@ -23,7 +23,7 @@ void main() {
 abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
   /// Assuming that the test code starts with a function whose block body starts
   /// with a method invocation, return the list of arguments in that invocation.
-  NodeList<Expression> get _argumentList {
+  NodeList<Argument> get _argumentList {
     var invocation = findNode.methodInvocations.single;
     return invocation.argumentList.arguments;
   }
@@ -992,7 +992,7 @@ class _NodesCollector extends UnifyingAstVisitor<void> {
   final bool Function(AstNode) filter;
   final List<AstNode> _nodes = [];
 
-  _NodesCollector(this.filter);
+  new(this.filter);
 
   @override
   void visitNode(AstNode node) {

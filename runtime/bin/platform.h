@@ -110,6 +110,8 @@ class Platform {
 
   static void SetCoreDumpResourceLimit(int value);
 
+  static bool SetEnvironmentVariable(const char* name, const char* value);
+
  private:
   // The path to the executable.
   static const char* executable_name_;

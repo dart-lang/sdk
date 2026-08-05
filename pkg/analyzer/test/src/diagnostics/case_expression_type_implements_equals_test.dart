@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,7 +32,7 @@ mixin CaseExpressionTypeImplementsEqualsTestCases on PubPackageResolutionTest {
   _Variants get _variant;
 
   test_classInstance_declares() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int value;
 
@@ -54,7 +53,7 @@ void f(e) {
   }
 
   test_classInstance_fromObject() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int value;
   const A(this.value);
@@ -70,17 +69,29 @@ void f(e) {
   }
 
   test_classInstance_implements() async {
-    List<ExpectedDiagnostic> expectedDiagnostics;
-    switch (_variant) {
-      case _Variants.nullSafe:
-        expectedDiagnostics = [
-          error(diag.caseExpressionTypeImplementsEquals, 150, 10),
-        ];
-      case _Variants.patterns:
-        expectedDiagnostics = [];
-    }
+    if (_variant == _Variants.nullSafe) {
+      await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int value;
 
-    await assertErrorsInCode(r'''
+  const A(this.value);
+
+  bool operator ==(Object other) {
+    return false;
+  }
+}
+
+void f(e) {
+  switch (e) {
+    case const A(0):
+//       ^^^^^^^^^^
+// [diag.caseExpressionTypeImplementsEquals] The switch case expression type 'A' can't override the '==' operator.
+      break;
+  }
+}
+''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int value;
 
@@ -97,11 +108,12 @@ void f(e) {
       break;
   }
 }
-''', expectedDiagnostics);
+''');
+    }
   }
 
   test_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(e) {
   switch (e) {
     case 0:
@@ -112,7 +124,7 @@ void f(e) {
   }
 
   test_String() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(e) {
   switch (e) {
     case '0':

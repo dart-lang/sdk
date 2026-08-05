@@ -21,7 +21,7 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
   @override
   late ClassElement? classKey;
 
-  FlutterStatefulWidget(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

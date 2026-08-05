@@ -289,7 +289,9 @@ class FunctionNodeHelper {
     kEndPosition,
     kAsyncMarker,
     kDartAsyncMarker,
+    kScopeSize,
     kTypeParameters,
+    kThisVariable,
     kTotalParameterCount,
     kRequiredParameterCount,
     kPositionalParameters,
@@ -298,6 +300,8 @@ class FunctionNodeHelper {
     kEmittedValueType,
     kRedirectingFactoryTarget,
     kBody,
+    kScope,
+    kCapturedContexts,
     kEnd,
   };
 
@@ -389,16 +393,17 @@ class TypeParameterHelper {
   DISALLOW_COPY_AND_ASSIGN(TypeParameterHelper);
 };
 
-// Helper class that reads a kernel VariableDeclaration from binary.
+// Helper class that reads a kernel Variable from binary.
 //
 // Use ReadUntilExcluding to read up to but not including a field.
 // One can then for instance read the field from the call-site (and remember to
 // call SetAt to inform this helper class), and then use this to read more.
 // Simple fields are stored (e.g. integers) and can be fetched from this class.
 // If asked to read a compound field (e.g. an expression) it will be skipped.
-class VariableDeclarationHelper {
+class VariableHelper {
  public:
   enum Field {
+    kTag,
     kPosition,
     kEqualPosition,
     kAnnotations,
@@ -425,8 +430,8 @@ class VariableDeclarationHelper {
     kIsSuperInitializingFormal = 1 << 12,
   };
 
-  explicit VariableDeclarationHelper(KernelReaderHelper* helper)
-      : annotation_count_(0), helper_(helper), next_read_(kPosition) {}
+  explicit VariableHelper(KernelReaderHelper* helper)
+      : annotation_count_(0), helper_(helper), next_read_(kTag) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -469,7 +474,7 @@ class VariableDeclarationHelper {
   KernelReaderHelper* helper_;
   intptr_t next_read_;
 
-  DISALLOW_COPY_AND_ASSIGN(VariableDeclarationHelper);
+  DISALLOW_COPY_AND_ASSIGN(VariableHelper);
 };
 
 // Helper class that reads a kernel Field from binary.
@@ -491,9 +496,12 @@ class FieldHelper {
     kEndPosition,
     kFlags,
     kName,
+    kScopeSize,
     kAnnotations,
     kType,
+    kThisVariable,
     kInitializer,
+    kScope,
     kEnd,
   };
 
@@ -1340,6 +1348,7 @@ class KernelReaderHelper {
   void SkipListOfNamedExpressions();
   void SkipListOfDartTypes();
   void SkipListOfStrings();
+  void SkipListOfVariables();
   void SkipListOfVariableDeclarations();
   void SkipListOfCanonicalNameReferences();
   void SkipTypeParametersList();
@@ -1350,8 +1359,11 @@ class KernelReaderHelper {
   void SkipName();
   void SkipArguments();
   void SkipVariableDeclaration();
+  void SkipVariable();
   void SkipLibraryCombinator();
   void SkipLibraryDependency();
+  void SkipScope();
+  void SkipCapturedContexts();
   TokenPosition ReadPosition();
   Tag ReadTag(uint8_t* payload = nullptr);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
@@ -1398,7 +1410,7 @@ class KernelReaderHelper {
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class UnboxingInfoMetadataHelper;
-  friend class VariableDeclarationHelper;
+  friend class VariableHelper;
   friend class ObfuscationProhibitionsMetadataHelper;
   friend class LoadingUnitsMetadataHelper;
   friend ArrayPtr CollectConstConstructorCoverageFrom(
@@ -1427,11 +1439,6 @@ class ActiveClass {
            function_kind == UntaggedFunction::kMethodExtractor ||
            function_kind == UntaggedFunction::kDynamicInvocationForwarder ||
            member->IsFactory();
-  }
-
-  bool MemberIsFactoryProcedure() {
-    ASSERT(member != nullptr);
-    return member->IsFactory();
   }
 
   intptr_t MemberTypeParameterCount(Zone* zone);

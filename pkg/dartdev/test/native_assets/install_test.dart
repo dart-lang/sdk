@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartdev/src/commands/installed.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_formats/pub_formats.dart';
 import 'package:test/test.dart';
@@ -153,6 +154,67 @@ Run "dart help" to see global options.
       expect(result.stdout, contains(helpMessage));
     });
   }
+
+  skippableTest(
+    'dart installed with no installations',
+    timeout: longTimeout,
+    () async {
+      await inTempDir((tempUri) async {
+        final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
+
+        final environment = {
+          _dartDirectoryEnvKey: tempUri.toFilePath(),
+          'PATH':
+              '${binDir.path}$_pathEnvVarSeparator'
+              '${Platform.environment['PATH']!}',
+        };
+
+        Future<RunProcessResult> runInstalled([
+          List<String> arguments = const [],
+        ]) => _runDartdev(
+          fromDartdevSource,
+          'installed',
+          arguments,
+          null,
+          environment,
+        );
+
+        final emptyResult = await runInstalled();
+        expect(
+          emptyResult.stdout.trim(),
+          equals(InstalledCommand.noToolsInstalledMessage),
+        );
+        expect(emptyResult.stderr, isEmpty);
+
+        final emptyAllResult = await runInstalled(['--all']);
+        expect(
+          emptyAllResult.stdout.trim(),
+          equals(InstalledCommand.noToolsInstalledMessage),
+        );
+        expect(emptyAllResult.stderr, isEmpty);
+
+        await _runDartdev(
+          fromDartdevSource,
+          'install',
+          [_package2Dir.path],
+          null,
+          environment,
+        );
+
+        // Delete the bin directory to inactivate the installed tool.
+        if (binDir.existsSync()) {
+          binDir.deleteSync(recursive: true);
+        }
+
+        final inactiveResult = await runInstalled();
+        expect(
+          inactiveResult.stdout.trim(),
+          equals(InstalledCommand.noActiveToolsInstalledMessage),
+        );
+        expect(inactiveResult.stderr, isEmpty);
+      });
+    },
+  );
 
   final argumentss = [
     (null, [_packageForTest]),
@@ -735,7 +797,10 @@ void main(List<String> args) async {
           null,
           environment,
         );
-        expect(await runInstalled(), hasLength(0));
+        expect(
+          await runInstalled(),
+          equals([InstalledCommand.noToolsInstalledMessage]),
+        );
       });
     },
   );

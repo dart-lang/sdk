@@ -2,35 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OverrideOnNonOverridingMethodTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class OverrideOnNonOverridingMethodTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
   @override
   void foo() {}
+//     ^^^
+// [diag.overrideOnNonOverridingMethod] The method doesn't override an inherited method.
 }
-''',
-      [error(diag.overrideOnNonOverridingMethod, 51, 3)],
-    );
+''');
   }
 
   test_class_extends() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -42,7 +42,7 @@ class B extends A {
   }
 
   test_class_extends_abstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo();
 }
@@ -54,7 +54,7 @@ class B extends A {
   }
 
   test_class_extends_wildcardParams() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(int x) {}
 }
@@ -66,7 +66,7 @@ class B extends A {
   }
 
   test_class_extends_wildcardParams_preWildCards() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -81,23 +81,22 @@ class B extends A {
   }
 
   test_class_field_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
+//    ^
+// [diag.unusedField][column 7][length 0] The value of the field '<unnamed>' isn't used.
   @override
   Object? foo,;
+//        ^^^
+// [diag.overrideOnNonOverridingField] The field doesn't override an inherited getter or setter.
+//            ^
+// [diag.missingIdentifier] Expected an identifier.
 }
-''',
-      [
-        error(diag.unusedField, 6, 0),
-        error(diag.overrideOnNonOverridingField, 32, 3),
-        error(diag.missingIdentifier, 36, 1),
-      ],
-    );
+''');
   }
 
   test_class_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -109,7 +108,7 @@ class B implements A {
   }
 
   test_class_implements2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class I {
   void foo(int _);
 }
@@ -125,60 +124,56 @@ class C implements I, J {
   }
 
   test_class_static() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
   @override
   static void foo() {}
+//            ^^^
+// [diag.overrideOnNonOverridingMethod] The method doesn't override an inherited method.
 }
-''',
-      [error(diag.overrideOnNonOverridingMethod, 58, 3)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   @override
   void foo() {}
+//     ^^^
+// [diag.overrideOnNonOverridingMethod] The method doesn't override an inherited method.
 }
-''',
-      [error(diag.overrideOnNonOverridingMethod, 33, 3)],
-    );
+''');
   }
 
   test_extension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   @override
   void foo() {}
+//     ^^^
+// [diag.overrideOnNonOverridingMethod] The method doesn't override an inherited method.
 }
-''',
-      [error(diag.overrideOnNonOverridingMethod, 40, 3)],
-    );
+''');
   }
 
   test_mixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 mixin M on A {
   @override
   void foo() {}
+//     ^^^
+// [diag.overrideOnNonOverridingMethod] The method doesn't override an inherited method.
 }
-''',
-      [error(diag.overrideOnNonOverridingMethod, 46, 3)],
-    );
+''');
   }
 
   test_mixin_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -191,7 +186,7 @@ mixin M implements A {
   }
 
   test_mixin_on() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }

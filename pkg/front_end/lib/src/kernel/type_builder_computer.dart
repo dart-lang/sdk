@@ -27,7 +27,7 @@ import '../kernel/utils.dart';
 class TypeBuilderComputer {
   final _TypeBuilderComputerHelper _typeBuilderComputerHelper;
 
-  TypeBuilderComputer(Loader loader)
+  new(Loader loader)
     : _typeBuilderComputerHelper = new _TypeBuilderComputerHelper(loader);
 
   TypeBuilder visit(DartType type) => _typeBuilderComputerHelper.visit(type);
@@ -70,7 +70,7 @@ class _TypeBuilderComputerHelper
         -1,
       );
 
-  _TypeBuilderComputerHelper(this.loader);
+  new(this.loader);
 
   final Map<StructuralParameter, StructuralParameterBuilder>
   structuralTypeParameters =

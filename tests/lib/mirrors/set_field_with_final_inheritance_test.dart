@@ -5,6 +5,7 @@
 library test.set_field_with_final_inheritance;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class S {

@@ -1694,8 +1694,53 @@ if (!self.deferred_loader) {
       this.hotReloadGeneration += 1;
     }
 
+    // See docs on `DartDevEmbedder.hotRestartBegin`.
+    async hotRestartBegin(filesToRequest) {
+      if (!this.savedEntryPointLibraryName) {
+        throw 'Error: Hot restart requested before application started.';
+      }
+      this.hotRestartInProgress = true;
+      let reloadedFiles = await self.$dartReloadModifiedModules(
+          filesToRequest, this.savedEntryPointLibraryName);
+      return reloadedFiles;
+    }
+
+    // See docs on `DartDevEmbedder.hotRestartEnd`.
+    hotRestartEnd() {
+      if (!this.hotRestartInProgress) {
+        throw 'Error: Hot restart end called without a corresponding start.';
+      }
+      // Clear all libraries.
+      this.libraries = Object.create(null);
+      this.triggeredSDKLibrariesWithSideEffects = false;
+      this.setDartSDKRuntimeOptions(this.savedDartSdkRuntimeOptions);
+      // Update initializers. They'll be invoked later at some point after we
+      // call main.
+      for (let name in this.pendingHotRestartLibraryInitializers) {
+        let initializer = this.pendingHotRestartLibraryInitializers[name];
+        this.libraryInitializers[name] = initializer;
+      }
+      let entryPointLibrary =
+          this.initializeAndLinkLibrary(this.savedEntryPointLibraryName);
+      // TODO(nshahan): Start sharing a single source of truth for the restart
+      // generation between the dart:_runtime and this module system.
+      this.hotRestartGeneration += 1;
+      console.log(
+          'Hot restarting application from main method in: ' +
+          this.savedEntryPointLibraryName +
+          ' (generation: ' + this.hotRestartGeneration + ').');
+      // Cleanup.
+      this.hotRestartInProgress = false;
+      this.pendingHotRestartLibraryInitializers = Object.create(null);
+
+      this._runMain(entryPointLibrary);
+    }
+
+
     /**
      * Completes a hot restart operation.
+     *
+     * @deprecated Use `hotRestartBegin` and `hotRestartEnd` instead.
      */
     hotRestart() {
       if (!this.savedEntryPointLibraryName) {
@@ -2076,6 +2121,7 @@ if (!self.deferred_loader) {
      * that invokes 'main' when called.
      * @type {?function(function())}
      */
+    // TODO(nshahan): Remove this once the migration is complete.
     capturedMainHandler = null;
 
     /**
@@ -2195,8 +2241,62 @@ if (!self.deferred_loader) {
     }
 
     /**
+     * Immediately triggers the start of a hot restart of the application.
+     *
+     * Assumes that a function named `$dartReloadModifiedModules` is available
+     * in the global scope and relies on it to actually request the files
+     * that are being reloaded and add them to the document.
+     *
+     * @param {!Array<!Object>} filesToRequest The descriptor Objects
+     *     describing the JavaScript files that could be part of this hot
+     *     restart. This must include all the files that changed and need
+     *     to be reloaded on the page.
+     *
+     *     Each descriptor Object must have the following properties:
+     *     - src: The url of the Javascript file to request.
+     *     - id: The unique and stable identifier for this file, typically
+     *       the "module name" is used.
+     *
+     *     Additional properties may be present and will simply be passed
+     *     through to the `$dartReloadModifiedModules` function.
+     *
+     * @return {!Promise<!Array<!Object>>} Descriptor Objects for the
+     *     JavaScript files that were actually requested by
+     *     `$dartReloadModifiedModules`.
+     *
+     *     This is expected to be the same set of files described by
+     *     `filesToRequest` or a subset. Naming additional files could cause
+     *     undefined behavior.
+     *
+     *     Note: when a Dart debugger is attached, the hot restart operation
+     *     will block until a script parse event is received from Chrome
+     *     DevTools for each of the JavaScript files described here.
+     *
+     *     Each descriptor Object returned from `$dartReloadModifiedModules`
+     *     must contain the following properties:
+     *     - src: The url of the Javascript file that was requested.
+     *
+     *     Additional properties may be present.
+     */
+    async hotRestartBegin(filesToRequest) {
+      return await libraryManager.hotRestartBegin(filesToRequest);
+    }
+
+    /**
+     * Finishes the hot restart operation that must have been previously
+     * started by [hotRestartBegin] losing all application state and running
+     * the main method again.
+     */
+    hotRestartEnd() {
+      libraryManager.hotRestartEnd();
+    }
+
+
+    /**
      * Immediately triggers a hot restart of the application losing all state
      * and running the main method again.
+     *
+     * @deprecated Use `hotRestartBegin` and `hotRestartEnd` instead.
      */
     async hotRestart() {
       libraryManager.hotRestartInProgress = true;

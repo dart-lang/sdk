@@ -1,3 +1,6 @@
+## 2.0.2-wip
+- Bug fix for `List<String>` parameters to do proper deep casting.
+
 ## 2.0.1
 - Update `package:vm_service` constraint to `>=14.3.0 <16.0.0`.
 

@@ -3,35 +3,35 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidUseOfNullValueTest);
     defineReflectiveTests(UncheckedUseOfNullableValueTest);
     defineReflectiveTests(UncheckedUseOfNullableValueInsideExtensionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class InvalidUseOfNullValueTest extends PubPackageResolutionTest {
   test_as() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   x as int;
+//^^^^^^^^
+// [diag.castFromNullAlwaysFails] This cast always throws an exception because the expression always evaluates to 'null'.
 }
-''',
-      [error(diag.castFromNullAlwaysFails, 18, 8)],
-    );
+''');
   }
 
   test_await() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() async {
   Null x;
   await x;
@@ -40,7 +40,7 @@ m() async {
   }
 
   test_cascade() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   x..toString;
@@ -49,34 +49,31 @@ m() {
   }
 
   test_eq() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   x == null;
+//^^^^
+// [diag.unnecessaryNullComparisonAlwaysNullTrue] The operand must be 'null', so the condition is always 'true'.
 }
-''',
-      [error(diag.unnecessaryNullComparisonAlwaysNullTrue, 18, 4)],
-    );
+''');
   }
 
   test_forLoop() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   for (var y in x) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
+//              ^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 27, 1),
-        error(diag.invalidUseOfNullValue, 32, 1),
-      ],
-    );
+''');
   }
 
   test_is() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   x is int;
@@ -85,7 +82,7 @@ m() {
   }
 
   test_member() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   x.runtimeType;
@@ -94,7 +91,7 @@ m() {
   }
 
   test_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   x.toString();
@@ -103,19 +100,18 @@ m() {
   }
 
   test_notEq() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Null x;
   x != null;
+//^^^^
+// [diag.unnecessaryNullComparisonAlwaysNullFalse] The operand must be 'null', so the condition is always 'false'.
 }
-''',
-      [error(diag.unnecessaryNullComparisonAlwaysNullFalse, 18, 4)],
-    );
+''');
   }
 
   test_ternary_lhs() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(bool cond) {
   Null x;
   cond ? x : 1;
@@ -124,7 +120,7 @@ m(bool cond) {
   }
 
   test_ternary_rhs() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(bool cond) {
   Null x;
   cond ? 0 : x;
@@ -137,7 +133,7 @@ m(bool cond) {
 class UncheckedUseOfNullableValueInsideExtensionTest
     extends PubPackageResolutionTest {
   test_indexExpression_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
 
@@ -155,8 +151,7 @@ extension E on A {
   }
 
   test_indexExpression_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
 
@@ -166,22 +161,21 @@ class A {
 extension E on A? {
   void bar() {
     this[0];
+//      ^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '[]' can't be unconditionally invoked because the receiver can be 'null'.
     this?[0];
 
     this[0] = 0;
+//      ^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '[]' can't be unconditionally invoked because the receiver can be 'null'.
     this?[0] = 0;
   }
 }
-''',
-      [
-        error(diag.uncheckedMethodInvocationOfNullableValue, 130, 1),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 158, 1),
-      ],
-    );
+''');
   }
 
   test_methodInvocation_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -199,8 +193,7 @@ extension E on A {
   }
 
   test_methodInvocation_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -208,7 +201,11 @@ class A {
 extension E on A? {
   void bar() {
     foo();
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
     this.foo();
+//       ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
     this?.foo();
 
     bar();
@@ -216,16 +213,11 @@ extension E on A? {
     this?.bar();
   }
 }
-''',
-      [
-        error(diag.uncheckedMethodInvocationOfNullableValue, 68, 3),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 84, 3),
-      ],
-    );
+''');
   }
 
   test_methodInvocation_nuverNullable_extensionMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension<X> on X {
   X m() => this;
 }
@@ -237,7 +229,7 @@ Future<void> f(Never? x) async {
   }
 
   test_prefixExpression_minus_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator-() => this;
 }
@@ -251,8 +243,7 @@ extension E on A {
   }
 
   test_prefixExpression_minus_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator-() => this;
 }
@@ -260,15 +251,15 @@ class A {
 extension E on A? {
   void bar() {
     -this;
+//  ^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'unary-' can't be unconditionally invoked because the receiver can be 'null'.
   }
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 77, 1)],
-    );
+''');
   }
 
   test_propertyAccess_getter_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -288,8 +279,7 @@ extension E on A {
   }
 
   test_propertyAccess_getter_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -299,7 +289,11 @@ extension E on A? {
 
   void baz() {
     foo;
+//  ^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'foo' can't be unconditionally accessed because the receiver can be 'null'.
     this.foo;
+//       ^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'foo' can't be unconditionally accessed because the receiver can be 'null'.
     this?.foo;
 
     bar;
@@ -307,16 +301,11 @@ extension E on A? {
     this?.bar;
   }
 }
-''',
-      [
-        error(diag.uncheckedPropertyAccessOfNullableValue, 93, 3),
-        error(diag.uncheckedPropertyAccessOfNullableValue, 107, 3),
-      ],
-    );
+''');
   }
 
   test_propertyAccess_setter_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(int _) {}
 }
@@ -336,8 +325,7 @@ extension E on A {
   }
 
   test_propertyAccess_setter_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(int _) {}
 }
@@ -347,7 +335,11 @@ extension E on A? {
 
   void baz() {
     foo = 0;
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
     this.foo = 0;
+//       ^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'foo' can't be unconditionally accessed because the receiver can be 'null'.
     this?.foo = 0;
 
     bar = 0;
@@ -355,19 +347,14 @@ extension E on A? {
     this?.bar = 0;
   }
 }
-''',
-      [
-        error(diag.uncheckedMethodInvocationOfNullableValue, 93, 3),
-        error(diag.uncheckedPropertyAccessOfNullableValue, 111, 3),
-      ],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest {
   test_and_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool x = true;
   if(x && true) {}
@@ -376,31 +363,29 @@ m() {
   }
 
   test_and_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool? x;
   if(x && true) {}
+//   ^
+// [diag.uncheckedUseOfNullableValueAsCondition] A nullable expression can't be used as a condition.
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueAsCondition, 22, 1)],
-    );
+''');
   }
 
   test_as_nullable_nonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   num? x;
   x as int;
+//^
+// [diag.castFromNullableAlwaysFails] This cast will always throw an exception because the nullable local variable 'x' is not assigned.
 }
-''',
-      [error(diag.castFromNullableAlwaysFails, 23, 1)],
-    );
+''');
   }
 
   test_as_nullable_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   num? x;
   x as String?;
@@ -409,7 +394,7 @@ void f() {
   }
 
   test_assert_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool x = true;
   assert(x);
@@ -418,20 +403,18 @@ m() {
   }
 
   test_assert_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool? x;
   assert(x);
+//       ^
+// [diag.uncheckedUseOfNullableValueAsCondition] A nullable expression can't be used as a condition.
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueAsCondition, 26, 1)],
-    );
+''');
   }
 
   test_assignment_eq_propertyAccess3_short1() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -445,12 +428,13 @@ class B {
 m(B b) {
   b.a?.x = 1;
   b.a.x = 2;
+//    ^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 104, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.assignment('x = 1'), r'''
+    var node1 = result.findNode.assignment('x = 1');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -484,7 +468,8 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x = 2'), r'''
+    var node2 = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -520,14 +505,15 @@ AssignmentExpression
   }
 
   test_assignment_eq_simpleIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 m(int x, int? y) {
   x = 0;
   y = 0;
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x ='), r'''
+    var node1 = result.findNode.assignment('x =');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -546,7 +532,8 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(findNode.assignment('y ='), r'''
+    var node2 = result.findNode.assignment('y =');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
@@ -567,8 +554,7 @@ AssignmentExpression
   }
 
   test_assignment_plusEq_propertyAccess3() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   int? y;
@@ -583,12 +569,13 @@ class B {
 m(B b) {
   b.a.x += 0;
   b.a.y += 0;
+//      ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 115, 2)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.assignment('x +='), r'''
+    var node1 = result.findNode.assignment('x +=');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -622,7 +609,8 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(findNode.assignment('y +='), r'''
+    var node2 = result.findNode.assignment('y +=');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -658,8 +646,7 @@ AssignmentExpression
   }
 
   test_assignment_plusEq_propertyAccess3_short1() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -673,12 +660,13 @@ class B {
 m(B b) {
   b.a?.x += 1;
   b.a.x += 2;
+//    ^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 105, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.assignment('x += 1'), r'''
+    var node1 = result.findNode.assignment('x += 1');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -712,7 +700,8 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x += 2'), r'''
+    var node2 = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -748,17 +737,17 @@ AssignmentExpression
   }
 
   test_assignment_plusEq_simpleIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 m(int x, int? y) {
   x += 0;
   y += 0;
+//  ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 33, 2)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.assignment('x +='), r'''
+    var node1 = result.findNode.assignment('x +=');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -777,7 +766,8 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(findNode.assignment('y +='), r'''
+    var node2 = result.findNode.assignment('y +=');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
@@ -798,7 +788,7 @@ AssignmentExpression
   }
 
   test_await_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() async {
   Future x = Future.value(null);
   await x;
@@ -807,7 +797,7 @@ m() async {
   }
 
   test_await_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() async {
   Future? x;
   await x;
@@ -816,7 +806,7 @@ m() async {
   }
 
   test_cascade_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   int x = 0;
   x..isEven;
@@ -825,18 +815,17 @@ f() {
   }
 
   test_cascade_nullable_indexed_assignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(List<int>? x) {
   x..[0] = 1;
+//   ^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '[]' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 23, 1)],
-    );
+''');
   }
 
   test_cascade_nullable_indexed_assignment_null_aware() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(List<int>? x) {
   x?..[0] = 1;
 }
@@ -844,19 +833,18 @@ f(List<int>? x) {
   }
 
   test_cascade_nullable_method_invocation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x..abs();
+//   ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'abs' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 21, 3)],
-    );
+''');
   }
 
   test_cascade_nullable_method_invocation_null_aware() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int? x) {
   x?..abs();
 }
@@ -864,18 +852,17 @@ f(int? x) {
   }
 
   test_cascade_nullable_property_access() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int? x) {
   x..isEven;
+//   ^^^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 17, 6)],
-    );
+''');
   }
 
   test_cascade_nullable_property_access_null_aware() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int? x) {
   x?..isEven;
 }
@@ -883,76 +870,69 @@ m(int? x) {
   }
 
   test_eqEq_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x == null;
+//^^^^
+// [diag.unnecessaryNullComparisonAlwaysNullTrue] The operand must be 'null', so the condition is always 'true'.
 }
-''',
-      [error(diag.unnecessaryNullComparisonAlwaysNullTrue, 18, 4)],
-    );
+''');
   }
 
   test_forLoop_nonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   List x = [];
   for (var y in x) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 32, 1)],
-    );
+''');
   }
 
   test_forLoop_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   List? x;
   for (var y in x) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
+//              ^
+// [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 28, 1),
-        error(diag.uncheckedUseOfNullableValueAsIterator, 33, 1),
-      ],
-    );
+''');
   }
 
   test_forLoop_pattern_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   List? x;
   for (var (y) in x) {}
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
+//                ^
+// [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 29, 1),
-        error(diag.uncheckedUseOfNullableValueAsIterator, 35, 1),
-      ],
-    );
+''');
   }
 
   test_getter_nullable_nonNullableExtension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo => 0;
 }
 
 m(int? x) {
   x.foo;
+//  ^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'foo' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 60, 3)],
-    );
+''');
   }
 
   test_if_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool x = true;
   if (x) {}
@@ -961,19 +941,18 @@ m() {
   }
 
   test_if_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool? x;
   if (x) {}
+//    ^
+// [diag.uncheckedUseOfNullableValueAsCondition] A nullable expression can't be used as a condition.
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueAsCondition, 23, 1)],
-    );
+''');
   }
 
   test_index_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   List x = [1];
   x[0];
@@ -982,19 +961,18 @@ m() {
   }
 
   test_index_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   List? x;
   x[0];
+// ^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '[]' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 20, 1)],
-    );
+''');
   }
 
   test_invoke_dynamicFunctionType_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Function x = () {};
   x();
@@ -1003,30 +981,28 @@ m() {
   }
 
   test_invoke_dynamicFunctionType_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Function? x;
   x();
+//^
+// [diag.uncheckedInvocationOfNullableValue] The function can't be unconditionally invoked because it can be 'null'.
 }
-''',
-      [error(diag.uncheckedInvocationOfNullableValue, 23, 1)],
-    );
+''');
   }
 
   test_invoke_dynamicFunctionType_nullable2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<F extends Function>(List<F?> funcList) {
   funcList[0]();
+//^^^^^^^^^^^
+// [diag.uncheckedInvocationOfNullableValue] The function can't be unconditionally invoked because it can be 'null'.
 }
-''',
-      [error(diag.uncheckedInvocationOfNullableValue, 50, 11)],
-    );
+''');
   }
 
   test_invoke_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Function() x = () {};
   x();
@@ -1035,19 +1011,18 @@ m() {
   }
 
   test_invoke_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Function()? x;
   x();
+//^
+// [diag.uncheckedInvocationOfNullableValue] The function can't be unconditionally invoked because it can be 'null'.
 }
-''',
-      [error(diag.uncheckedInvocationOfNullableValue, 25, 1)],
-    );
+''');
   }
 
   test_invoke_parenthesized_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   Function x = () {};
   (x)();
@@ -1056,7 +1031,7 @@ m() {
   }
 
   test_is_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x is int;
@@ -1065,7 +1040,7 @@ m() {
   }
 
   test_member_dynamic_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   dynamic x;
   x.foo;
@@ -1074,7 +1049,7 @@ m() {
   }
 
   test_member_hashCode_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x.hashCode;
@@ -1083,7 +1058,7 @@ m() {
   }
 
   test_member_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int x = 0;
   x.isEven;
@@ -1092,17 +1067,16 @@ m() {
   }
 
   test_member_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x.isEven;
+//  ^^^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 20, 6)],
-    );
+''');
 
-    var node = findNode.simple('isEven');
+    var node = result.findNode.simple('isEven;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: isEven
@@ -1112,7 +1086,7 @@ SimpleIdentifier
   }
 
   test_member_parenthesized_hashCode_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   (x).hashCode;
@@ -1121,19 +1095,18 @@ m() {
   }
 
   test_member_parenthesized_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   (x).isEven;
+//    ^^^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 22, 6)],
-    );
+''');
   }
 
   test_member_parenthesized_runtimeType_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   (x).runtimeType;
@@ -1142,29 +1115,27 @@ m() {
   }
 
   test_member_potentiallyNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m<T extends int?>(T x) {
   x.isEven;
+//  ^^^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 29, 6)],
-    );
+''');
   }
 
   test_member_potentiallyNullable_called() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m<T extends Function>(List<T?> x) {
   x.first();
+//^^^^^^^
+// [diag.uncheckedInvocationOfNullableValue] The function can't be unconditionally invoked because it can be 'null'.
 }
-''',
-      [error(diag.uncheckedInvocationOfNullableValue, 38, 7)],
-    );
+''');
   }
 
   test_member_questionDot_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int? x) {
   x?.isEven;
 }
@@ -1172,7 +1143,7 @@ f(int? x) {
   }
 
   test_member_runtimeType_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x.runtimeType;
@@ -1181,7 +1152,7 @@ m() {
   }
 
   test_method_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int x = 0;
   x.round();
@@ -1190,7 +1161,7 @@ m() {
   }
 
   test_method_noSuchMethod_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int x) {
   x.noSuchMethod(throw '');
 }
@@ -1198,34 +1169,32 @@ m(int x) {
   }
 
   test_method_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x.round();
+//  ^^^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'round' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 20, 5)],
-    );
+''');
   }
 
   test_method_nullable_notNullableExtension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
 }
 
 m(int? x) {
   x.foo();
+//  ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 56, 3)],
-    );
+''');
   }
 
   test_method_questionDot_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int? x) {
   x?.round();
 }
@@ -1233,7 +1202,7 @@ m(int? x) {
   }
 
   test_method_toString_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int x) {
   x.toString();
 }
@@ -1241,7 +1210,7 @@ m(int x) {
   }
 
   test_methodInvocation_call_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(Function x) {
   x.call();
 }
@@ -1249,81 +1218,74 @@ m(Function x) {
   }
 
   test_methodInvocation_call_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(Function? x) {
   x.call();
+//  ^^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'call' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 21, 4)],
-    );
+''');
   }
 
   test_minusEq_nonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int x = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x -= 1;
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_minusEq_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x -= 1;
+//  ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '-' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 13, 1),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 20, 2),
-      ],
-    );
+''');
   }
 
   test_not_nonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool x = true;
   if(!x) {}
+//       ^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 32, 2)],
-    );
+''');
   }
 
   test_not_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool? x;
   if(!x) {}
+//    ^
+// [diag.uncheckedUseOfNullableValueAsCondition] A nullable expression can't be used as a condition.
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueAsCondition, 23, 1)],
-    );
+''');
   }
 
   test_notEq_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x != null;
+//^^^^
+// [diag.unnecessaryNullComparisonAlwaysNullFalse] The operand must be 'null', so the condition is always 'false'.
 }
-''',
-      [error(diag.unnecessaryNullComparisonAlwaysNullFalse, 18, 4)],
-    );
+''');
   }
 
   test_nullable_dotQ_propertyAccess_dot_methodInvocation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -1332,12 +1294,12 @@ void f(A? a) {
   a?.foo.abs();
 }
 ''');
-    assertType(findNode.propertyAccess('.foo'), 'int');
-    assertType(findNode.methodInvocation('.abs()'), 'int?');
+    assertType(result.findNode.propertyAccess('.foo'), 'int');
+    assertType(result.findNode.methodInvocation('.abs()'), 'int?');
   }
 
   test_nullable_dotQ_propertyAccess_dot_propertyAccess() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -1346,12 +1308,12 @@ void f(A? a) {
   a?.foo.isEven;
 }
 ''');
-    assertType(findNode.propertyAccess('.foo'), 'int');
-    assertType(findNode.propertyAccess('.isEven'), 'bool?');
+    assertType(result.findNode.propertyAccess('.foo'), 'int');
+    assertType(result.findNode.propertyAccess('.isEven'), 'bool?');
   }
 
   test_operatorMinus_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int x = 0;
   x - 3;
@@ -1360,19 +1322,18 @@ m() {
   }
 
   test_operatorMinus_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x - 3;
+//  ^
+// [diag.uncheckedOperatorInvocationOfNullableValue] The operator '-' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedOperatorInvocationOfNullableValue, 20, 1)],
-    );
+''');
   }
 
   test_operatorPlus_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int x = 0;
   x + 3;
@@ -1381,46 +1342,42 @@ m() {
   }
 
   test_operatorPlus_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x + 3;
+//  ^
+// [diag.uncheckedOperatorInvocationOfNullableValue] The operator '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedOperatorInvocationOfNullableValue, 20, 1)],
-    );
+''');
   }
 
   test_operatorPostfixDec_nonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int x = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x--;
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_operatorPostfixDec_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x--;
+// ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '-' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 13, 1),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 19, 2),
-      ],
-    );
+''');
   }
 
   test_operatorPostfixInc_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int x) {
   x++;
 }
@@ -1428,19 +1385,17 @@ m(int x) {
   }
 
   test_operatorPostfixInc_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int? x) {
   x++;
+// ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 15, 2)],
-    );
+''');
   }
 
   test_operatorPostfixInc_nullable_nonNullableExtension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -1449,41 +1404,38 @@ extension E on A {
 
 m(A? x) {
   x++;
+// ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 78, 2)],
-    );
+''');
   }
 
   test_operatorPrefixDec_nonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int x = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   --x;
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_operatorPrefixDec_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   --x;
+//^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '-' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 13, 1),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 18, 2),
-      ],
-    );
+''');
   }
 
   test_operatorPrefixInc_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int x) {
   ++x;
 }
@@ -1491,46 +1443,41 @@ m(int x) {
   }
 
   test_operatorPrefixInc_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int? x) {
   ++x;
+//^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 14, 2)],
-    );
+''');
   }
 
   test_operatorUnaryMinus_nonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int x = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   -x;
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_operatorUnaryMinus_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   -x;
+//^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'unary-' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 13, 1),
-        error(diag.uncheckedMethodInvocationOfNullableValue, 18, 1),
-      ],
-    );
+''');
   }
 
   test_operatorUnaryMinus_nullable_nonNullableExtension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E on A {
@@ -1539,38 +1486,36 @@ extension E on A {
 
 m(A? x) {
   -x;
+//^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'unary-' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 72, 1)],
-    );
+''');
   }
 
   test_or_nonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool x = true;
   if(x || false) {}
+//     ^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 30, 8)],
-    );
+''');
   }
 
   test_or_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool? x;
   if(x || false) {}
+//   ^
+// [diag.uncheckedUseOfNullableValueAsCondition] A nullable expression can't be used as a condition.
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueAsCondition, 22, 1)],
-    );
+''');
   }
 
   test_plusEq_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int x) {
   x += 1;
 }
@@ -1578,19 +1523,17 @@ m(int x) {
   }
 
   test_plusEq_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(int? x) {
   x += 1;
+//  ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 16, 2)],
-    );
+''');
   }
 
   test_read_propertyAccess2_short1() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   A(this.x);
@@ -1599,12 +1542,12 @@ class A {
 m(A? a) {
   a?.x; // 1
   a.x; // 2
+//  ^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 68, 1)],
-    );
-    var propertyAccess1 = findNode.propertyAccess('a?.x; // 1');
-    var propertyAccess2 = findNode.prefixed('a.x; // 2');
+''');
+    var propertyAccess1 = result.findNode.propertyAccess('a?.x; // 1');
+    var propertyAccess2 = result.findNode.prefixed('a.x; // 2');
     assertType(propertyAccess1.target, 'A?');
     assertType(propertyAccess2.prefix, 'A?');
 
@@ -1616,8 +1559,7 @@ m(A? a) {
   }
 
   test_read_propertyAccess3_short1() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -1631,12 +1573,12 @@ class B {
 m(B b) {
   b.a?.x; // 1
   b.a.x; // 2
+//    ^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 105, 1)],
-    );
-    var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
-    var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
+''');
+    var propertyAccess1 = result.findNode.propertyAccess('b.a?.x; // 1');
+    var propertyAccess2 = result.findNode.propertyAccess('b.a.x; // 2');
     assertType(propertyAccess1.target, 'A?');
     assertType(propertyAccess2.target, 'A?');
 
@@ -1648,8 +1590,7 @@ m(B b) {
   }
 
   test_read_propertyAccess3_short2() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -1663,12 +1604,12 @@ class B {
 m(B? b) {
   b?.a.x; // 1
   b.a.x; // 2
+//  ^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 103, 1)],
-    );
-    var propertyAccess1 = findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+''');
+    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
     assertType(propertyAccess1.target, 'A');
     assertType(propertyAccess2.target, 'A');
 
@@ -1680,8 +1621,7 @@ m(B? b) {
   }
 
   test_read_propertyAccess4_short1() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -1700,12 +1640,12 @@ class C {
 m(C c) {
   c.b.a?.x; // 1
   c.b.a.x; // 2
+//      ^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 148, 1)],
-    );
-    var propertyAccess1 = findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+''');
+    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
     assertType(propertyAccess1.target, 'A?');
     assertType(propertyAccess2.target, 'A?');
 
@@ -1717,8 +1657,7 @@ m(C c) {
   }
 
   test_read_propertyAccess4_short2() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   A(this.x);
@@ -1737,12 +1676,12 @@ class C {
 m(C c) {
   c.b?.a.x; // 1
   c.b.a.x; // 2
+//    ^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 152, 1)],
-    );
-    var propertyAccess1 = findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+''');
+    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
     var propertyAccess1t = propertyAccess1.target as PropertyAccess;
     var propertyAccess2t = propertyAccess1.target as PropertyAccess;
     assertType(propertyAccess1t.target, 'B?');
@@ -1758,7 +1697,7 @@ m(C c) {
   }
 
   test_spread_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   var list = [];
   [...list];
@@ -1767,19 +1706,18 @@ m() {
   }
 
   test_spread_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   List? list;
   [...list];
+//    ^^^^
+// [diag.uncheckedUseOfNullableValueInSpread] A nullable expression can't be used in a spread.
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueInSpread, 26, 4)],
-    );
+''');
   }
 
   test_spread_nullable_question() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   List? list;
   [...?list];
@@ -1788,19 +1726,18 @@ m() {
   }
 
   test_ternary_condition_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {
   bool? x;
   x ? 0 : 1;
+//^
+// [diag.uncheckedUseOfNullableValueAsCondition] A nullable expression can't be used as a condition.
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueAsCondition, 19, 1)],
-    );
+''');
   }
 
   test_ternary_lhs_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(bool cond) {
   int? x;
   cond ? x : 1;
@@ -1809,7 +1746,7 @@ m(bool cond) {
   }
 
   test_ternary_rhs_nullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(bool cond) {
   int? x;
   cond ? 0 : x;
@@ -1818,29 +1755,27 @@ m(bool cond) {
   }
 
   test_tripleShift_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m(String? s) {
   s?.length >>> 2;
+//          ^^^
+// [diag.uncheckedOperatorInvocationOfNullableValue] The operator '>>>' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedOperatorInvocationOfNullableValue, 27, 3)],
-    );
+''');
   }
 
   test_uncheckedOperatorInvocation_relationalPattern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   if (x case > 0) {}
+//           ^
+// [diag.uncheckedOperatorInvocationOfNullableValue] The operator '>' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedOperatorInvocationOfNullableValue, 30, 1)],
-    );
+''');
   }
 
   test_uncheckedOperatorInvocation_relationalPattern_hasExtension() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   if (x case > 0) {}
 }
@@ -1852,7 +1787,7 @@ extension on int? {
   }
 
   test_yieldEach_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() sync* {
   List<int> x = [];
   yield* x;
@@ -1861,17 +1796,14 @@ m() sync* {
   }
 
   test_yieldEach_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() sync* {
   List<int>? x;
   yield* x;
+//       ^
+// [diag.uncheckedUseOfNullableValueInYieldEach] A nullable expression can't be used in a yield-each statement.
+// [diag.yieldEachOfInvalidType] The type 'List<int>?' implied by the 'yield*' expression must be assignable to 'Iterable<dynamic>'.
 }
-''',
-      [
-        error(diag.yieldEachOfInvalidType, 37, 1),
-        error(diag.uncheckedUseOfNullableValueInYieldEach, 37, 1),
-      ],
-    );
+''');
   }
 }

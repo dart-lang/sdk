@@ -87,7 +87,7 @@ static extension-member method E|set#setter1<T extends self::G<self::E|set#sette
 static extension-member method E|get#getter2<T extends self::G<self::E|get#getter2::T> = dynamic>(lowered final self::E|get#getter2::T #this) → <T extends self::G<self::G<dynamic>> = dynamic>() → void
   return throw "";
 static extension-member method E|set#setter2<T extends self::G<self::E|set#setter2::T> = self::G<dynamic>>(lowered final self::E|set#setter2::T #this, wildcard <T extends self::G<self::G<dynamic>> = dynamic>() → void _#wc1#formal) → void {}
-static extension-type-member method ET|constructor#<T extends self::G<self::ET|constructor#::T> = self::G<dynamic>>(self::ET|constructor#::T it) → self::ET<self::ET|constructor#::T>% /* erasure=self::ET|constructor#::T, declared=! */ {
+static extension-type-member method ET|constructor#<T extends self::G<self::ET|constructor#::T> = self::G<dynamic>>(initializing-formal self::ET|constructor#::T it) → self::ET<self::ET|constructor#::T>% /* erasure=self::ET|constructor#::T, declared=! */ {
   lowered final self::ET<self::ET|constructor#::T>% /* erasure=self::ET|constructor#::T, declared=! */ #this = it;
   return #this;
 }

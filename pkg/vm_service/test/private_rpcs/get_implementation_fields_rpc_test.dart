@@ -5,7 +5,8 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../common/test_helper.dart';
+import '../common/service_test_common.dart';
+import 'get_implementation_fields_rpc_lib.dart' as testee_lib;
 
 Future<Response> getImplementationFields(
   VmService service,
@@ -30,8 +31,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'get_implementation_fields_rpc_test.dart',
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('get_implementation_fields_rpc_lib.dart', args)
+        .addCustomTest(tests[0])
+        .run(testeeMain: testee_lib.main);

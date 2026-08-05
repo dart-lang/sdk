@@ -20,7 +20,7 @@ extension type I2(core::int it) {
   constructor • = self::I2|constructor#;
   constructor tearoff • = self::I2|constructor#_#new#tearOff;
 }
-static extension-type-member method I|constructor#_(core::int it) → self::I% /* erasure=core::int, declared=! */
+static extension-type-member method I|constructor#_(initializing-formal core::int it) → self::I% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method I|constructor#_#_#tearOff(core::int it) → self::I% /* erasure=core::int, declared=! */
   return self::I|constructor#_(it);
@@ -32,7 +32,7 @@ static extension-type-member method I|m(lowered final self::I% /* erasure=core::
   ;
 static extension-type-member method I|get#m(lowered final self::I% /* erasure=core::int, declared=! */ #this) → (core::String, [core::int]) → void
   return (core::String s, [core::int i]) → void => self::I|m(#this, s, i);
-static extension-type-member method I2|constructor#_(core::int it) → self::I2% /* erasure=core::int, declared=! */
+static extension-type-member method I2|constructor#_(initializing-formal core::int it) → self::I2% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method I2|constructor#_#_#tearOff(core::int it) → self::I2% /* erasure=core::int, declared=! */
   return self::I2|constructor#_(it);

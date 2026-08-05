@@ -7,6 +7,7 @@
 library min_max_test;
 
 import "package:expect/expect.dart";
+
 import 'dart:math';
 
 var inf = double.infinity;

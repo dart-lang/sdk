@@ -1,3 +1,8 @@
+## 1.18.3
+
+- One new TargetKind is introduced: `TargetKind.importDirective`, which
+  indicates an annotation is valid on an import directive.
+
 ## 1.18.2
 
 - Change private types in the public API signatures to `Object`.

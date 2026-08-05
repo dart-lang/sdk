@@ -5,6 +5,7 @@
 import "package:expect/expect.dart";
 // A deferred library that doesn't exist.
 import 'package:foo/foo.dart' deferred as foo;
+
 // A deferred library that does exist.
 import 'deferred/exists.dart' deferred as exists;
 // A deferred library that transitively will fail due to a file not found.

@@ -2,53 +2,51 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SubtypeOfStructClassInExtendsTest);
     defineReflectiveTests(SubtypeOfStructClassInImplementsTest);
     defineReflectiveTests(SubtypeOfStructClassInWithTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SubtypeOfStructClassInExtendsTest extends PubPackageResolutionTest {
   test_extends_struct() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S extends Struct {
   external Pointer notEmpty;
 }
 final class C extends S {}
-''',
-      [error(diag.subtypeOfStructClassInExtends, 103, 1)],
-    );
+//                    ^
+// [diag.subtypeOfStructClassInExtends] The class 'C' can't extend 'S' because 'S' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+''');
   }
 
   test_extends_union() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S extends Union {
   external Pointer notEmpty;
 }
 final class C extends S {}
-''',
-      [error(diag.subtypeOfStructClassInExtends, 102, 1)],
-    );
+//                    ^
+// [diag.subtypeOfStructClassInExtends] The class 'C' can't extend 'S' because 'S' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+''');
   }
 }
 
 @reflectiveTest
 class SubtypeOfStructClassInImplementsTest extends PubPackageResolutionTest {
   test_implements_abi_specific_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint32(),
@@ -57,29 +55,25 @@ final class AbiSpecificInteger1 extends AbiSpecificInteger {
   const AbiSpecificInteger1();
 }
 final class AbiSpecificInteger4 implements AbiSpecificInteger1 {
+//                                         ^^^^^^^^^^^^^^^^^^^
+// [diag.baseClassImplementedOutsideOfLibrary] The class 'AbiSpecificInteger' can't be implemented outside of its library because it's a base class.
+// [diag.subtypeOfStructClassInImplements] The class 'AbiSpecificInteger4' can't implement 'AbiSpecificInteger1' because 'AbiSpecificInteger1' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
   const AbiSpecificInteger4();
 }
-''',
-      [
-        error(diag.baseClassImplementedOutsideOfLibrary, 216, 19),
-        error(diag.subtypeOfStructClassInImplements, 216, 19),
-      ],
-    );
+''');
   }
 
   test_implements_struct() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S extends Struct {}
+//          ^
+// [diag.emptyStruct] The class 'S' can't be empty because it's a subclass of 'Struct'.
 final class C implements S {}
-''',
-      [
-        error(diag.emptyStruct, 31, 1),
-        error(diag.baseClassImplementedOutsideOfLibrary, 76, 1),
-        error(diag.subtypeOfStructClassInImplements, 76, 1),
-      ],
-    );
+//                       ^
+// [diag.baseClassImplementedOutsideOfLibrary] The class 'Struct' can't be implemented outside of its library because it's a base class.
+// [diag.subtypeOfStructClassInImplements] The class 'C' can't implement 'S' because 'S' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+''');
   }
 
   test_implements_struct_prefixed() async {
@@ -87,55 +81,43 @@ final class C implements S {}
 import 'dart:ffi';
 final class S extends Struct {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' as lib1;
 class C implements lib1.S {}
-''',
-      [
-        error(diag.baseClassImplementedOutsideOfLibrary, 47, 6),
-        error(diag.finalClassImplementedOutsideOfLibrary, 47, 6),
-        error(diag.subtypeOfStructClassInImplements, 47, 6),
-      ],
-    );
+//                 ^^^^^^
+// [diag.baseClassImplementedOutsideOfLibrary] The class 'Struct' can't be implemented outside of its library because it's a base class.
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'S' can't be implemented outside of its library because it's a final class.
+// [diag.subtypeOfStructClassInImplements] The class 'C' can't implement 'S' because 'S' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+''');
   }
 
   test_implements_union() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S extends Union {}
+//          ^
+// [diag.emptyStruct] The class 'S' can't be empty because it's a subclass of 'Union'.
 final class C implements S {}
-''',
-      [
-        error(diag.emptyStruct, 31, 1),
-        error(diag.baseClassImplementedOutsideOfLibrary, 75, 1),
-        error(diag.subtypeOfStructClassInImplements, 75, 1),
-      ],
-    );
+//                       ^
+// [diag.baseClassImplementedOutsideOfLibrary] The class 'Union' can't be implemented outside of its library because it's a base class.
+// [diag.subtypeOfStructClassInImplements] The class 'C' can't implement 'S' because 'S' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+''');
   }
 }
 
 @reflectiveTest
 class SubtypeOfStructClassInWithTest extends PubPackageResolutionTest {
   test_with_struct() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S extends Struct {}
+//          ^
+// [diag.emptyStruct] The class 'S' can't be empty because it's a subclass of 'Struct'.
 final class C with S {}
-''',
-      [
-        error(diag.emptyStruct, 31, 1),
-        error(diag.classUsedAsMixin, 70, 1),
-        error(
-          diag.subtypeOfStructClassInWith,
-          70,
-          1,
-          messageContains: ["class 'C'", "mix in 'S'"],
-        ),
-      ],
-    );
+//                 ^
+// [diag.classUsedAsMixin] The class 'S' can't be used as a mixin because it's neither a mixin class nor a mixin.
+// [diag.subtypeOfStructClassInWith] The class 'C' can't mix in 'S' because 'S' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+''');
   }
 
   test_with_struct_prefixed() async {
@@ -143,36 +125,26 @@ final class C with S {}
 import 'dart:ffi';
 final class S extends Struct {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' as lib1;
 
 class C with lib1.S {}
-''',
-      [
-        error(diag.classUsedAsMixin, 42, 6),
-        error(
-          diag.subtypeOfStructClassInWith,
-          42,
-          6,
-          messageContains: ["class 'C'", "mix in 'S'"],
-        ),
-      ],
-    );
+//           ^^^^^^
+// [diag.classUsedAsMixin] The class 'S' can't be used as a mixin because it's neither a mixin class nor a mixin.
+// [diag.subtypeOfStructClassInWith] The class 'C' can't mix in 'S' because 'S' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+''');
   }
 
   test_with_union() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class S extends Union {}
+//          ^
+// [diag.emptyStruct] The class 'S' can't be empty because it's a subclass of 'Union'.
 final class C with S {}
-''',
-      [
-        error(diag.emptyStruct, 31, 1),
-        error(diag.classUsedAsMixin, 69, 1),
-        error(diag.subtypeOfStructClassInWith, 69, 1),
-      ],
-    );
+//                 ^
+// [diag.classUsedAsMixin] The class 'S' can't be used as a mixin because it's neither a mixin class nor a mixin.
+// [diag.subtypeOfStructClassInWith] The class 'C' can't mix in 'S' because 'S' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+''');
   }
 }

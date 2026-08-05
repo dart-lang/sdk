@@ -6,37 +6,27 @@ test1(dynamic x) => [for (var [int i, int n] = x; i < n; i++) i];
 
 test2(dynamic x) => {
   -1: -1,
-  for (var [int i, int n] = x; i < n; i++) i : i,
+  for (var [int i, int n] = x; i < n; i++) i: i,
   -2: -2,
 };
 
 test3(dynamic x, dynamic another) => {
   -1: -1,
   for (var [int i1, n1, ...] = x; i1 < n1; i1++)
-    for (var [_, _, int i2, n2, ...] = x; i2 < n2; i2++)
-      ...another,
+    for (var [_, _, int i2, n2, ...] = x; i2 < n2; i2++) ...another,
   -2: -2,
 };
 
 main() {
-  expectEquals(
-    listToString(test1([0, 3])),
-    listToString([0, 1, 2]),
-  );
-  expectEquals(
-    listToString(test1([0, 0])),
-    listToString([]),
-  );
+  expectEquals(listToString(test1([0, 3])), listToString([0, 1, 2]));
+  expectEquals(listToString(test1([0, 0])), listToString([]));
   expectThrows(() => test1({}));
 
   expectEquals(
     mapToString(test2([0, 3])),
     mapToString({-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}),
   );
-  expectEquals(
-    mapToString(test2([0, 0])),
-    mapToString({-2: -2, -1: -1}),
-  );
+  expectEquals(mapToString(test2([0, 0])), mapToString({-2: -2, -1: -1}));
   expectThrows(() => test1([]));
 
   expectEquals(
@@ -71,8 +61,7 @@ expectThrows(void Function() f) {
 
 mapToString(Map map) {
   List<String> entryStrings = [
-    for (var entry in map.entries)
-      "${entry.key}:${entry.value}"
+    for (var entry in map.entries) "${entry.key}:${entry.value}",
   ];
   entryStrings.sort();
   return "[${entryStrings.join(',')}]";

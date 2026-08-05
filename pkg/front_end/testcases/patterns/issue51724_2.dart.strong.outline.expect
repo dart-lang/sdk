@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   final field core::int value;
   field core::String log;
-  constructor •(core::int value) → self::C
+  constructor •(initializing-formal core::int value) → self::C
     ;
   method clearLog() → void
     ;

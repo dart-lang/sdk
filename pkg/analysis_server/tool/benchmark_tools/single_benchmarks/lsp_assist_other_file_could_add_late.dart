@@ -74,7 +74,7 @@ class FileContentPair {
   final Uri uri;
   final String content;
 
-  FileContentPair(this.uri, this.content);
+  new(this.uri, this.content);
 }
 
 class LspAssistLate extends DartLanguageServerBenchmark {
@@ -85,7 +85,7 @@ class LspAssistLate extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LspAssistLate(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
     : super(useLspProtocol: true);
 
   @override
@@ -139,5 +139,5 @@ class LspAssistLate extends DartLanguageServerBenchmark {
 class RunDetails {
   final FileContentPair mainFile;
 
-  RunDetails({required this.mainFile});
+  new({required this.mainFile});
 }

@@ -128,7 +128,10 @@ CStringUniquePtr EXEUtils::GetDirectoryPrefixFromUnresolvedExeName() {
 #if !defined(DART_HOST_OS_WINDOWS)
 void EXEUtils::LoadDartProfilerSymbols(const char* argv0) {
   char* path = reinterpret_cast<char*>(malloc(PATH_MAX + 5));
-  if (Platform::ResolveExecutablePathInto(path, PATH_MAX) <= 0) return;
+  if (Platform::ResolveExecutablePathInto(path, PATH_MAX) <= 0) {
+    free(path);
+    return;
+  }
 
   int len = strlen(path);
   memcpy(path + len, ".sym", 5);  // NOLINT

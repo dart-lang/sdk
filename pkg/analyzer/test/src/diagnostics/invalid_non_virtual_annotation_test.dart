@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +21,7 @@ class InvalidNonVirtualAnnotationTest extends PubPackageResolutionTest {
   }
 
   test_instanceField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 abstract class C {
@@ -33,7 +32,7 @@ abstract class C {
   }
 
   test_instanceField_originPrimaryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 abstract class C(@nonVirtual final int m);
@@ -41,7 +40,7 @@ abstract class C(@nonVirtual final int m);
   }
 
   test_instanceMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 abstract class C {
@@ -52,41 +51,38 @@ abstract class C {
   }
 
   test_instanceMethod_abstract() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 abstract class C {
   @nonVirtual
+// ^^^^^^^^^^
+// [diag.invalidNonVirtualAnnotation] The annotation '@nonVirtual' can only be applied to a concrete instance member.
   void m();
 }
-''',
-      [error(diag.invalidNonVirtualAnnotation, 56, 10)],
-    );
+''');
   }
 
   test_instanceMethod_onExtensionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 extension type E(int i) {
   @nonVirtual
+// ^^^^^^^^^^
+// [diag.invalidNonVirtualAnnotation] The annotation '@nonVirtual' can only be applied to a concrete instance member.
   void m() { }
 }
-''',
-      [error(diag.invalidNonVirtualAnnotation, 63, 10)],
-    );
+''');
   }
 
   test_parameter_onPrimaryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 abstract class C(@nonVirtual int m);
-''',
-      [error(diag.invalidAnnotationTarget, 52, 10)],
-    );
+//                ^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'nonVirtual' can only be used on overridable members.
+''');
   }
 }

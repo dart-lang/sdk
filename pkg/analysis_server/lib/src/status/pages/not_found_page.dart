@@ -10,7 +10,7 @@ class NotFoundPage extends DiagnosticPage {
   @override
   final String path;
 
-  NotFoundPage(DiagnosticsSite site, this.path)
+  new(DiagnosticsSite site, this.path)
     : super(site, '', '404 Not found', description: "'$path' not found.");
 
   @override

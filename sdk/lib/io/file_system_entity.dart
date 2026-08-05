@@ -134,9 +134,9 @@ interface class FileStat {
     var data = _statSync(_Namespace._namespace, path);
     if (data is! Int64List) return FileStat._notFound;
     return FileStat._internal(
-      DateTime.fromMillisecondsSinceEpoch(data[_changedTime]),
-      DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime]),
-      DateTime.fromMillisecondsSinceEpoch(data[_accessedTime]),
+      DateTime.fromMicrosecondsSinceEpoch(data[_changedTime]),
+      DateTime.fromMicrosecondsSinceEpoch(data[_modifiedTime]),
+      DateTime.fromMicrosecondsSinceEpoch(data[_accessedTime]),
       FileSystemEntityType._lookup(data[_type]),
       data[_mode],
       data[_size],
@@ -171,9 +171,9 @@ interface class FileStat {
         // Unwrap the real list from the "I'm not an error" wrapper.
         var data = (response as List)[1] as List<Object?>;
         return FileStat._internal(
-          DateTime.fromMillisecondsSinceEpoch(data[_changedTime] as int),
-          DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime] as int),
-          DateTime.fromMillisecondsSinceEpoch(data[_accessedTime] as int),
+          DateTime.fromMicrosecondsSinceEpoch(data[_changedTime] as int),
+          DateTime.fromMicrosecondsSinceEpoch(data[_modifiedTime] as int),
+          DateTime.fromMicrosecondsSinceEpoch(data[_accessedTime] as int),
           FileSystemEntityType._lookup(data[_type] as int),
           data[_mode] as int,
           data[_size] as int,

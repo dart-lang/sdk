@@ -14,7 +14,7 @@ import 'package:kernel/ast.dart'
 class ConditionSpan {
   final startOffset;
   final endOffset;
-  ConditionSpan(this.startOffset, this.endOffset);
+  new(this.startOffset, this.endOffset);
 }
 
 /// Generated test with multiple functions each containing a single
@@ -25,7 +25,7 @@ class Test {
   final String source;
   final Map<String, ConditionSpan> spans;
 
-  Test(this.source, this.spans);
+  new(this.source, this.spans);
 }
 
 Test generateTest() {
@@ -116,7 +116,7 @@ class VerifyingVisitor extends RecursiveVisitor {
   /// span.
   ConditionSpan? expectedSpan;
 
-  VerifyingVisitor(this.test);
+  new(this.test);
 
   @override
   void visitProcedure(Procedure node) {

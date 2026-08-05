@@ -5,6 +5,7 @@
 // Regression test for Issue 13817.
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class Tag {

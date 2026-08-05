@@ -16,8 +16,7 @@ import '../util/leak_detector_visitor.dart';
 const _desc = r'Cancel instances of `dart:async` `StreamSubscription`.';
 
 class CancelSubscriptions extends AnalysisRule {
-  CancelSubscriptions()
-    : super(name: LintNames.cancel_subscriptions, description: _desc);
+  new() : super(name: LintNames.cancel_subscriptions, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.cancelSubscriptions;
@@ -37,7 +36,7 @@ class CancelSubscriptions extends AnalysisRule {
 class _Visitor extends LeakDetectorProcessors {
   static final _predicates = {_isSubscription: 'cancel'};
 
-  _Visitor(super.rule);
+  new(super.rule);
 
   @override
   Map<DartTypePredicate, String> get predicates => _predicates;

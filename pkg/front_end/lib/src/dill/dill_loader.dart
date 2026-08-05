@@ -71,7 +71,7 @@ class DillLoader extends Loader {
 
   int byteCount = 0;
 
-  DillLoader(this.target);
+  new(this.target);
 
   @override
   LibraryBuilder get coreLibrary => _coreLibrary!;

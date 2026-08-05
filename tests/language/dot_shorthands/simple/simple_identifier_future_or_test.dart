@@ -20,24 +20,42 @@ class IntegerFutureOrContext {
   final FutureOr<Integer> integer;
   final FutureOr<Integer?> nullableInteger;
   IntegerFutureOrContext(this.integer, this.nullableInteger);
-  IntegerFutureOrContext.named({this.integer = .constOne, this.nullableInteger});
-  IntegerFutureOrContext.optional([this.integer = .constOne, this.nullableInteger]);
+  IntegerFutureOrContext.named({
+    this.integer = .constOne,
+    this.nullableInteger,
+  });
+  IntegerFutureOrContext.optional([
+    this.integer = .constOne,
+    this.nullableInteger,
+  ]);
 }
 
 class IntegerExtFutureOrContext {
   final FutureOr<IntegerExt> integer;
   final FutureOr<IntegerExt?> nullableInteger;
   IntegerExtFutureOrContext(this.integer, this.nullableInteger);
-  IntegerExtFutureOrContext.named({this.integer = .constOne, this.nullableInteger});
-  IntegerExtFutureOrContext.optional([this.integer = .constOne, this.nullableInteger]);
+  IntegerExtFutureOrContext.named({
+    this.integer = .constOne,
+    this.nullableInteger,
+  });
+  IntegerExtFutureOrContext.optional([
+    this.integer = .constOne,
+    this.nullableInteger,
+  ]);
 }
 
 class IntegerMixinFutureOrContext {
   final FutureOr<IntegerMixin> integer;
   final FutureOr<IntegerMixin?> nullableInteger;
   IntegerMixinFutureOrContext(this.integer, this.nullableInteger);
-  IntegerMixinFutureOrContext.named({this.integer = .mixinConstOne, this.nullableInteger});
-  IntegerMixinFutureOrContext.optional([this.integer = .mixinConstOne, this.nullableInteger]);
+  IntegerMixinFutureOrContext.named({
+    this.integer = .mixinConstOne,
+    this.nullableInteger,
+  });
+  IntegerMixinFutureOrContext.optional([
+    this.integer = .mixinConstOne,
+    this.nullableInteger,
+  ]);
 }
 
 void main() {
@@ -62,7 +80,10 @@ void main() {
   var nullableColorList = <FutureOr<Color?>>[.blue, .green, .red];
 
   var colorContextPositional = ColorFutureOrContext(.blue, .red);
-  var colorContextNamed = ColorFutureOrContext.named(color: .blue, nullableColor: .red);
+  var colorContextNamed = ColorFutureOrContext.named(
+    color: .blue,
+    nullableColor: .red,
+  );
   var colorContextOptional = ColorFutureOrContext.optional(.blue, .red);
 
   // Class
@@ -76,7 +97,10 @@ void main() {
   var nullableIntegerList = <FutureOr<Integer?>>[.one, .two, .one];
 
   var integerContextPositional = IntegerFutureOrContext(.one, .two);
-  var integerContextNamed = IntegerFutureOrContext.named(integer: .one, nullableInteger: .two);
+  var integerContextNamed = IntegerFutureOrContext.named(
+    integer: .one,
+    nullableInteger: .two,
+  );
   var integerContextOptional = IntegerFutureOrContext.optional(.one, .two);
 
   // Extension type
@@ -90,8 +114,14 @@ void main() {
   var nullableIntegerExtList = <FutureOr<IntegerExt?>>[.one, .two, .one];
 
   var integerExtContextPositional = IntegerExtFutureOrContext(.one, .two);
-  var integerExtContextNamed = IntegerExtFutureOrContext.named(integer: .one, nullableInteger: .two);
-  var integerExtContextOptional = IntegerExtFutureOrContext.optional(.one, .two);
+  var integerExtContextNamed = IntegerExtFutureOrContext.named(
+    integer: .one,
+    nullableInteger: .two,
+  );
+  var integerExtContextOptional = IntegerExtFutureOrContext.optional(
+    .one,
+    .two,
+  );
 
   // Mixin
   FutureOr<IntegerMixin> integerMixin = .mixinOne;
@@ -103,8 +133,16 @@ void main() {
   var integerMixinList = <FutureOr<IntegerExt>>[.one, .two, .one];
   var nullableIntegerMixinList = <FutureOr<IntegerExt?>>[.one, .two, .one];
 
-  var integerMixinContextPositional = IntegerMixinFutureOrContext(.mixinOne, .mixinTwo);
-  var integerMixinContextNamed = IntegerMixinFutureOrContext.named(integer: .mixinOne, nullableInteger: .mixinTwo);
-  var integerMixinContextOptional = IntegerMixinFutureOrContext.optional(.mixinOne, .mixinTwo);
+  var integerMixinContextPositional = IntegerMixinFutureOrContext(
+    .mixinOne,
+    .mixinTwo,
+  );
+  var integerMixinContextNamed = IntegerMixinFutureOrContext.named(
+    integer: .mixinOne,
+    nullableInteger: .mixinTwo,
+  );
+  var integerMixinContextOptional = IntegerMixinFutureOrContext.optional(
+    .mixinOne,
+    .mixinTwo,
+  );
 }
-

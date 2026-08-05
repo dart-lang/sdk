@@ -203,7 +203,7 @@ static extension-member method E|get#barOptionalPositionalImplicit(lowered final
 static extension-member method E|barOptionalNamedImplicit(lowered final self::A #this, {erroneously-initialized core::int x = #C1}) → void {}
 static extension-member method E|get#barOptionalNamedImplicit(lowered final self::A #this) → ({x: core::int}) → void
   return ({erroneously-initialized core::int x = #C1}) → void => self::E|barOptionalNamedImplicit(#this, x: x);
-static extension-type-member method ET|constructor#(self::A it) → self::ET% /* erasure=self::A, declared=! */ {
+static extension-type-member method ET|constructor#(initializing-formal self::A it) → self::ET% /* erasure=self::A, declared=! */ {
   lowered final self::ET% /* erasure=self::A, declared=! */ #this = it;
   return #this;
 }

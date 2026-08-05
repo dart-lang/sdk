@@ -7,9 +7,9 @@ extension _ on int {
 }
 
 method(dynamic d) => switch (d) {
-      int(:var method) => method(d),
-      _ => 0,
-    };
+  int(:var method) => method(d),
+  _ => 0,
+};
 
 main() {
   expect(42, method(21));

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,13 +20,12 @@ class DeprecatedSubclassTest extends PubPackageResolutionTest {
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 enum Bar implements Foo { one; }
-''',
-      [error(diag.deprecatedSubclass, 39, 3)],
-    );
+//                  ^^^
+// [diag.deprecatedSubclass] Subclassing 'Foo' is deprecated.
+''');
   }
 
   test_extendsClass() async {
@@ -36,13 +34,12 @@ enum Bar implements Foo { one; }
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo {}
-''',
-      [error(diag.deprecatedSubclass, 37, 3)],
-    );
+//                ^^^
+// [diag.deprecatedSubclass] Subclassing 'Foo' is deprecated.
+''');
   }
 
   test_implementsClass() async {
@@ -51,13 +48,12 @@ class Bar extends Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar implements Foo {}
-''',
-      [error(diag.deprecatedSubclass, 40, 3)],
-    );
+//                   ^^^
+// [diag.deprecatedSubclass] Subclassing 'Foo' is deprecated.
+''');
   }
 
   test_implementsMixin() async {
@@ -66,17 +62,16 @@ class Bar implements Foo {}
 mixin Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar implements Foo {}
-''',
-      [error(diag.deprecatedSubclass, 40, 3)],
-    );
+//                   ^^^
+// [diag.deprecatedSubclass] Subclassing 'Foo' is deprecated.
+''');
   }
 
   test_insideLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
 class Foo {}
 class Bar extends Foo {}
@@ -90,14 +85,13 @@ class Bar extends Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.12
 import 'foo.dart';
 class Bar extends Object with Foo {}
-''',
-      [error(diag.deprecatedSubclass, 65, 3)],
-    );
+//                            ^^^
+// [diag.deprecatedSubclass] Subclassing 'Foo' is deprecated.
+''');
   }
 
   test_mixinImplementsClass() async {
@@ -106,13 +100,12 @@ class Bar extends Object with Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 mixin Bar implements Foo {}
-''',
-      [error(diag.deprecatedSubclass, 40, 3)],
-    );
+//                   ^^^
+// [diag.deprecatedSubclass] Subclassing 'Foo' is deprecated.
+''');
   }
 
   test_mixinOnClass() async {
@@ -121,13 +114,12 @@ mixin Bar implements Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 mixin Bar on Foo {}
-''',
-      [error(diag.deprecatedSubclass, 32, 3)],
-    );
+//           ^^^
+// [diag.deprecatedSubclass] Subclassing 'Foo' is deprecated.
+''');
   }
 
   test_noAnnotation() async {
@@ -135,7 +127,7 @@ mixin Bar on Foo {}
 class Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo {}
 ''');

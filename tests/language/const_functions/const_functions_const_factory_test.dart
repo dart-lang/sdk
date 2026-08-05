@@ -18,8 +18,8 @@ class MessageType {
   final String name;
 
   const factory MessageType.parse(String name) {
-//^^^^^
-// [analyzer] SYNTACTIC_ERROR.CONST_FACTORY
+    // [error column 3]
+    // [analyzer] SYNTACTIC_ERROR.CONST_FACTORY
     if (name == 'print') {
       return MessageType.print;
     }

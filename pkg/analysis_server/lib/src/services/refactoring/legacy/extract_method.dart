@@ -18,14 +18,12 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -36,179 +34,8 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:meta/meta.dart';
 
 const String _tokenSeparator = '\uFFFF';
-
-/// Adds edits to the given [change] that ensure that all the [libraries] are
-/// imported into the given [targetLibrary2].
-@visibleForTesting
-Future<void> addLibraryImports(
-  AnalysisSession session,
-  SourceChange change,
-  LibraryElement targetLibrary2,
-  Set<Source> libraries,
-) async {
-  var libraryPath = targetLibrary2.firstFragment.source.fullName;
-
-  var resolveResult = await session.getResolvedUnit(libraryPath);
-  if (resolveResult is! ResolvedUnitResult) {
-    return;
-  }
-
-  var libUtils = CorrectionUtils(resolveResult);
-  var eol = libUtils.endOfLine;
-  // Prepare information about existing imports.
-  var directives = resolveResult.unit.directives;
-  var libraryDirective = directives.whereType<LibraryDirective>().firstOrNull;
-  var importDirectives = [
-    for (var directive in directives)
-      if (directive case ImportDirective(uri: StringLiteral(:var stringValue?)))
-        _ImportDirectiveInfo(stringValue, directive.offset, directive.end),
-  ];
-
-  // Prepare all URIs to import.
-  var uriList =
-      libraries
-          .map(
-            (library) => getLibrarySourceUri(
-              session.resourceProvider.pathContext,
-              targetLibrary2,
-              library.uri,
-            ),
-          )
-          .toList()
-        ..sort((a, b) => a.compareTo(b));
-
-  var analysisOptions = session.analysisContext.getAnalysisOptionsForFile(
-    resolveResult.file,
-  );
-  var quote = analysisOptions.codeStyleOptions.preferredQuoteForUris(
-    directives.whereType<NamespaceDirective>(),
-  );
-
-  // Insert imports: between existing imports.
-  if (importDirectives.isNotEmpty) {
-    var isFirstPackage = true;
-    for (var importUri in uriList) {
-      var inserted = false;
-      var isPackage = importUri.startsWith('package:');
-      var isAfterDart = false;
-      for (var existingImport in importDirectives) {
-        if (existingImport.uri.startsWith('dart:')) {
-          isAfterDart = true;
-        }
-        if (existingImport.uri.startsWith('package:')) {
-          isFirstPackage = false;
-        }
-        if (importUri.compareTo(existingImport.uri) < 0) {
-          var importCode = 'import $quote$importUri$quote;$eol';
-          doSourceChange_addFragmentEdit(
-            change,
-            targetLibrary2.firstFragment,
-            SourceEdit(existingImport.offset, 0, importCode),
-          );
-          inserted = true;
-          break;
-        }
-      }
-      if (!inserted) {
-        var importCode = '${eol}import $quote$importUri$quote;';
-        if (isPackage && isFirstPackage && isAfterDart) {
-          importCode = eol + importCode;
-        }
-        doSourceChange_addFragmentEdit(
-          change,
-          targetLibrary2.firstFragment,
-          SourceEdit(importDirectives.last.end, 0, importCode),
-        );
-      }
-      if (isPackage) {
-        isFirstPackage = false;
-      }
-    }
-    return;
-  }
-
-  // Insert imports: after the library directive.
-  if (libraryDirective != null) {
-    var prefix = eol + eol;
-    for (var importUri in uriList) {
-      var importCode = '${prefix}import $quote$importUri$quote;';
-      prefix = eol;
-      doSourceChange_addFragmentEdit(
-        change,
-        targetLibrary2.firstFragment,
-        SourceEdit(libraryDirective.end, 0, importCode),
-      );
-    }
-    return;
-  }
-
-  // If still at the beginning of the file, skip hash-bang and line comments.
-  {
-    // Skip leading line comments.
-    var offset = 0;
-    var insertEmptyLineBefore = false;
-    var insertEmptyLineAfter = false;
-    var source = resolveResult.content;
-    // Skip hash-bang.
-    if (offset < source.length - 2) {
-      var linePrefix = libUtils.getText(offset, 2);
-      if (linePrefix == '#!') {
-        insertEmptyLineBefore = true;
-        offset = libUtils.getLineNext(offset);
-        // Skip empty lines to first line comment.
-        var emptyOffset = offset;
-        while (emptyOffset < source.length - 2) {
-          var nextLineOffset = libUtils.getLineNext(emptyOffset);
-          var line = source.substring(emptyOffset, nextLineOffset);
-          if (line.trim().isEmpty) {
-            emptyOffset = nextLineOffset;
-            continue;
-          } else if (line.startsWith('//')) {
-            offset = emptyOffset;
-            break;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-    // Skip line comments.
-    while (offset < source.length - 2) {
-      var linePrefix = libUtils.getText(offset, 2);
-      if (linePrefix == '//') {
-        insertEmptyLineBefore = true;
-        offset = libUtils.getLineNext(offset);
-      } else {
-        break;
-      }
-    }
-    // Determine if empty line is required after.
-    var nextLineOffset = libUtils.getLineNext(offset);
-    var insertLine = source.substring(offset, nextLineOffset);
-    if (insertLine.trim().isNotEmpty) {
-      insertEmptyLineAfter = true;
-    }
-
-    for (var i = 0; i < uriList.length; i++) {
-      var importUri = uriList[i];
-      var importCode = 'import $quote$importUri$quote;$eol';
-      if (i == 0 && insertEmptyLineBefore) {
-        importCode = '$eol$importCode';
-      }
-      if (i == uriList.length - 1 && insertEmptyLineAfter) {
-        importCode = '$importCode$eol';
-      }
-      doSourceChange_addFragmentEdit(
-        change,
-        targetLibrary2.firstFragment,
-        SourceEdit(offset, 0, importCode),
-      );
-    }
-  }
-}
 
 bool isLocalElement(Element? element) {
   return element is LocalVariableElement ||
@@ -253,7 +80,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   final int _selectionLength;
   SourceRange _selectionRange;
   final CorrectionUtils _utils;
-  final Set<Source> _librariesToImport = <Source>{};
+  final Set<LibraryElement> _librariesToImport = <LibraryElement>{};
 
   @override
   String returnType = '';
@@ -296,7 +123,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   final List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
-  ExtractMethodRefactoringImpl(
+  new(
     this._searchEngine,
     this._resolveResult,
     this._selectionOffset,
@@ -361,6 +188,160 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     return sb.toString();
   }
 
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    await builder.addDartFileEdit(
+      _resolveResult.unit.declaredFragment!.source.fullName,
+      (builder) {
+        // Replace each of the occurrences with a method invocation.
+        for (var occurrence in _occurrences) {
+          if (!extractAll && !occurrence.isSelection) {
+            // If the replacement of duplicates is disabled, and this isn't the
+            // selected occurrence, then skip it.
+            continue;
+          }
+          builder.addReplacement(occurrence.range, (builder) {
+            if (_selectionFunctionExpression != null) {
+              builder.write(name);
+            } else {
+              // may be returns value
+              if (_selectionStatements != null && _variableType != null) {
+                // single variable assignment / return statement
+                if (_returnVariableName != null) {
+                  var occurrenceName = occurrence
+                      ._parameterOldToOccurrenceName[_returnVariableName]!;
+                  // may be declare variable
+                  if (!_parametersMap.containsKey(_returnVariableName)) {
+                    if (_variableType!.isEmpty) {
+                      builder.write('var ');
+                    } else {
+                      builder.write(_variableType!);
+                      builder.write(' ');
+                    }
+                  }
+                  // assign the return value
+                  builder.write(occurrenceName);
+                  builder.write(' = ');
+                } else {
+                  builder.write('return ');
+                }
+              }
+              // await
+              if (_hasAwait) {
+                builder.write('await ');
+              }
+              // invocation itself
+              builder.write(name);
+              if (!createGetter) {
+                builder.write('(');
+                var firstParameter = true;
+                for (var parameter in _parameters) {
+                  // may be comma
+                  if (firstParameter) {
+                    firstParameter = false;
+                  } else {
+                    builder.write(', ');
+                  }
+                  // argument name
+                  var argumentName =
+                      occurrence._parameterOldToOccurrenceName[parameter.id];
+                  if (argumentName != null) {
+                    builder.write(argumentName);
+                  }
+                }
+                builder.write(')');
+              }
+              // statements as extracted with their ";", so add new after invocation
+              if (_selectionStatements != null) {
+                builder.write(';');
+              }
+            }
+          });
+        }
+
+        // Add the method declaration.
+        builder.addInsertion(_parentMember!.end, (builder) {
+          var eol = _utils.endOfLine;
+          var prefix = _utils.getNodePrefix(_parentMember!);
+          builder.write('$eol$eol$prefix');
+
+          // Compute the modifiers for the declaration.
+          var modifiers = _staticContext ? 'static ' : '';
+
+          var returnExpressionSource = _getMethodBodySource();
+          var selectionFunctionExpression = _selectionFunctionExpression;
+          if (selectionFunctionExpression != null) {
+            // Write a closure.
+            var returnTypeCode = _getExpectedClosureReturnTypeCode();
+            builder.write(modifiers);
+            builder.write(returnTypeCode);
+            builder.write(name);
+            builder.write(returnExpressionSource);
+            if (selectionFunctionExpression.body is ExpressionFunctionBody) {
+              builder.write(';');
+            }
+          } else if (_selectionExpression != null) {
+            // Write the expression.
+            var asyncKeyword = _hasAwait ? ' async' : '';
+            var isMultiLine = returnExpressionSource.contains(eol);
+
+            // We generate the method body using the shorthand syntax if it fits
+            // into a single line and use the regular method syntax otherwise.
+            if (!isMultiLine) {
+              // just return expression
+              builder.write(modifiers);
+              if (returnType.isNotEmpty) {
+                builder.write('$returnType ');
+              }
+              builder.write(signature);
+              builder.write(asyncKeyword);
+              builder.write(' => ');
+              builder.write(returnExpressionSource);
+              builder.write(';');
+            } else {
+              // Left indent once; returnExpressionSource was indented for method
+              // shorthands.
+              returnExpressionSource = _utils
+                  .indentSourceLeftRight('${returnExpressionSource.trim()};')
+                  .trim();
+
+              builder.write(modifiers);
+              if (returnType.isNotEmpty) {
+                builder.write('$returnType ');
+              }
+              builder.write(signature);
+              builder.write(asyncKeyword);
+              builder.write(' {$eol$prefix  ');
+              if (returnType.isNotEmpty) {
+                builder.write('return ');
+              }
+              builder.write(returnExpressionSource);
+              builder.write('$eol$prefix}');
+            }
+          } else if (_selectionStatements != null) {
+            // Write the statements.
+            var asyncKeyword = _hasAwait ? ' async' : '';
+
+            builder.write(modifiers);
+            if (returnType.isNotEmpty) {
+              builder.write('$returnType ');
+            }
+            builder.write(signature);
+            builder.write(asyncKeyword);
+            builder.write(' {$eol');
+            builder.write(returnExpressionSource);
+            if (_returnVariableName != null) {
+              builder.write('$prefix  return $_returnVariableName;$eol');
+            }
+            builder.write('$prefix}');
+          }
+        });
+        for (var library in _librariesToImport) {
+          builder.importLibrary(library.uri);
+        }
+      },
+    );
+  }
+
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
@@ -416,175 +397,14 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange({ChangeBuilder? builder}) async {
-    var change = SourceChange(refactoringName);
-    // replace occurrences with method invocation
-    for (var occurrence in _occurrences) {
-      var range = occurrence.range;
-      // may be replacement of duplicates disabled
-      if (!extractAll && !occurrence.isSelection) {
-        continue;
-      }
-      // prepare invocation source
-      String invocationSource;
-      if (_selectionFunctionExpression != null) {
-        invocationSource = name;
-      } else {
-        var sb = StringBuffer();
-        // may be returns value
-        if (_selectionStatements != null && _variableType != null) {
-          // single variable assignment / return statement
-          if (_returnVariableName != null) {
-            var occurrenceName =
-                occurrence._parameterOldToOccurrenceName[_returnVariableName];
-            // may be declare variable
-            if (!_parametersMap.containsKey(_returnVariableName)) {
-              if (_variableType!.isEmpty) {
-                sb.write('var ');
-              } else {
-                sb.write(_variableType);
-                sb.write(' ');
-              }
-            }
-            // assign the return value
-            sb.write(occurrenceName);
-            sb.write(' = ');
-          } else {
-            sb.write('return ');
-          }
-        }
-        // await
-        if (_hasAwait) {
-          sb.write('await ');
-        }
-        // invocation itself
-        sb.write(name);
-        if (!createGetter) {
-          sb.write('(');
-          var firstParameter = true;
-          for (var parameter in _parameters) {
-            // may be comma
-            if (firstParameter) {
-              firstParameter = false;
-            } else {
-              sb.write(', ');
-            }
-            // argument name
-            {
-              var argumentName =
-                  occurrence._parameterOldToOccurrenceName[parameter.id];
-              sb.write(argumentName);
-            }
-          }
-          sb.write(')');
-        }
-        invocationSource = sb.toString();
-        // statements as extracted with their ";", so add new after invocation
-        if (_selectionStatements != null) {
-          invocationSource += ';';
-        }
-      }
-      // add replace edit
-      var edit = newSourceEdit_range(range, invocationSource);
-      doSourceChange_addFragmentEdit(
-        change,
-        _resolveResult.unit.declaredFragment!,
-        edit,
-      );
-    }
-    // add method declaration
-    {
-      // prepare environment
-      var prefix = _utils.getNodePrefix(_parentMember!);
-      var eol = _utils.endOfLine;
-      // prepare annotations
-      var annotations = '';
-      {
-        // may be "static"
-        if (_staticContext) {
-          annotations = 'static ';
-        }
-      }
-      // prepare declaration source
-      String? declarationSource;
-      {
-        var returnExpressionSource = _getMethodBodySource();
-        // closure
-        var selectionFunctionExpression = _selectionFunctionExpression;
-        if (selectionFunctionExpression != null) {
-          var returnTypeCode = _getExpectedClosureReturnTypeCode();
-          declarationSource =
-              '$annotations$returnTypeCode$name$returnExpressionSource';
-          if (selectionFunctionExpression.body is ExpressionFunctionBody) {
-            declarationSource += ';';
-          }
-        }
-        // optional 'async' body modifier
-        var asyncKeyword = _hasAwait ? ' async' : '';
-        // expression
-        if (_selectionExpression != null) {
-          var isMultiLine = returnExpressionSource.contains(eol);
-
-          // We generate the method body using the shorthand syntax if it fits
-          // into a single line and use the regular method syntax otherwise.
-          if (!isMultiLine) {
-            // add return type
-            if (returnType.isNotEmpty) {
-              annotations += '$returnType ';
-            }
-            // just return expression
-            declarationSource = '$annotations$signature$asyncKeyword => ';
-            declarationSource += '$returnExpressionSource;';
-          } else {
-            // Left indent once; returnExpressionSource was indented for method
-            // shorthands.
-            returnExpressionSource = _utils
-                .indentSourceLeftRight('${returnExpressionSource.trim()};')
-                .trim();
-
-            // add return type
-            if (returnType.isNotEmpty) {
-              annotations += '$returnType ';
-            }
-            declarationSource = '$annotations$signature$asyncKeyword {$eol';
-            declarationSource += '$prefix  ';
-            if (returnType.isNotEmpty) {
-              declarationSource += 'return ';
-            }
-            declarationSource += '$returnExpressionSource$eol$prefix}';
-          }
-        }
-        // statements
-        if (_selectionStatements != null) {
-          if (returnType.isNotEmpty) {
-            annotations += '$returnType ';
-          }
-          declarationSource = '$annotations$signature$asyncKeyword {$eol';
-          declarationSource += returnExpressionSource;
-          if (_returnVariableName != null) {
-            declarationSource += '$prefix  return $_returnVariableName;$eol';
-          }
-          declarationSource += '$prefix}';
-        }
-      }
-      // insert declaration
-      if (declarationSource != null) {
-        var offset = _parentMember!.end;
-        var edit = SourceEdit(offset, 0, '$eol$eol$prefix$declarationSource');
-        doSourceChange_addFragmentEdit(
-          change,
-          _resolveResult.unit.declaredFragment!,
-          edit,
-        );
-      }
-    }
-    // done
-    await addLibraryImports(
-      _resolveResult.session,
-      change,
-      _resolveResult.libraryElement,
-      _librariesToImport,
+    builder ??= ChangeBuilder(
+      session: _resolveResult.session,
+      defaultEol: _utils.endOfLine,
     );
-    return change;
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return sourceChange;
   }
 
   @override
@@ -792,6 +612,12 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     var offset = _selectionRange.offset;
     var node = _resolveResult.unit.nodeCovering(offset: offset);
 
+    if (node case NamedArgument(
+      argumentExpression: FunctionExpression function,
+    )) {
+      return function;
+    }
+
     // Check for the parameter list of a FunctionExpression.
     {
       var function = node?.thisOrAncestorOfType<FunctionExpression>();
@@ -806,20 +632,6 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       }
     }
 
-    // Check for the name of the named argument with the closure expression.
-    if (node is SimpleIdentifier) {
-      var label = node.parent;
-      if (label is Label) {
-        var namedExpression = label.parent;
-        if (namedExpression is NamedExpression) {
-          var expression = namedExpression.expression;
-          if (expression is FunctionExpression) {
-            return expression;
-          }
-        }
-      }
-    }
-
     return null;
   }
 
@@ -828,9 +640,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   /// function type has the return type specified, return this return type's
   /// code. Otherwise return the empty string.
   String _getExpectedClosureReturnTypeCode() {
-    Expression argument = _selectionFunctionExpression!;
-    if (argument.parent is NamedExpression) {
-      argument = argument.parent as NamedExpression;
+    Argument argument = _selectionFunctionExpression!;
+    if (argument.parent case NamedArgument parent) {
+      argument = parent;
     }
     var parameter = argument.correspondingParameter;
     if (parameter != null) {
@@ -1197,7 +1009,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
 /// [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
 class _ExtractMethodAnalyzer extends StatementAnalyzer {
-  _ExtractMethodAnalyzer(super.resolveResult, super.selection);
+  new(super.resolveResult, super.selection);
 
   @override
   void handleNextSelectedNode(AstNode node) {
@@ -1400,11 +1212,11 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
   final _SourcePattern pattern;
   final List<SourceEdit> replaceEdits;
 
-  _GetSourcePatternVisitor(this.partRange, this.pattern, this.replaceEdits);
+  new(this.partRange, this.pattern, this.replaceEdits);
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    node.expression.accept(this);
+  void visitNamedArgument(NamedArgument node) {
+    node.argumentExpression.accept(this);
   }
 
   @override
@@ -1488,14 +1300,6 @@ class _HasReturnStatementVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _ImportDirectiveInfo {
-  final String uri;
-  final int offset;
-  final int end;
-
-  _ImportDirectiveInfo(this.uri, this.offset, this.end);
-}
-
 class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
   final _SourcePattern selectionPattern;
@@ -1503,11 +1307,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
 
   bool forceStatic = false;
 
-  _InitializeOccurrencesVisitor(
-    this.ref,
-    this.selectionPattern,
-    this.patternToSelectionName,
-  );
+  new(this.ref, this.selectionPattern, this.patternToSelectionName);
 
   @override
   void visitBlock(Block node) {
@@ -1624,7 +1424,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
   final List<VariableElement> assignedUsedVariables;
 
-  _InitializeParametersVisitor(this.ref, this.assignedUsedVariables);
+  new(this.ref, this.assignedUsedVariables);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -1636,10 +1436,6 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
     // analyze local element
     var element = _getLocalElement(node);
     if (element != null) {
-      // name of the named expression
-      if (isNamedExpressionName(node)) {
-        return;
-      }
       // if declared outside, add parameter
       if (!ref._isDeclaredInSelection(element)) {
         // add parameter
@@ -1732,7 +1528,7 @@ class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
   final Element element;
   bool result = false;
 
-  _IsUsedAfterSelectionVisitor(this.ref, this.element);
+  new(this.ref, this.element);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -1754,7 +1550,7 @@ class _Occurrence {
 
   final Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
 
-  _Occurrence(this.range, this.isSelection);
+  new(this.range, this.isSelection);
 }
 
 /// Generalized version of some source, in which references to the specific
@@ -1788,7 +1584,7 @@ extension on LibraryElement {
   /// used by the generated source, but not imported.
   String? getTypeSource(
     DartType type,
-    Set<Source> librariesToImport, {
+    Set<LibraryElement> librariesToImport, {
     StringBuffer? parametersBuffer,
   }) {
     var alias = type.alias;
@@ -1878,7 +1674,7 @@ extension on LibraryElement {
   }
 
   String? _getTypeCodeElementArguments({
-    required Set<Source> librariesToImport,
+    required Set<LibraryElement> librariesToImport,
     required Element element,
     required bool isNullable,
     required List<DartType> typeArguments,
@@ -1901,7 +1697,7 @@ extension on LibraryElement {
           sb.write('.');
         }
       } else {
-        librariesToImport.add(library.firstFragment.source);
+        librariesToImport.add(library);
       }
     }
 
@@ -1936,7 +1732,7 @@ extension on LibraryElement {
   }
 
   String _getTypeCodeRecord({
-    required Set<Source> librariesToImport,
+    required Set<LibraryElement> librariesToImport,
     required RecordType type,
   }) {
     var buffer = StringBuffer();

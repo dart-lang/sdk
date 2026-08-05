@@ -9,6 +9,7 @@ import 'flutter_test.dart' as flutter;
 import 'import_analyzer_test.dart' as import_analyzer;
 import 'json_test.dart' as json;
 import 'profiling_test.dart' as profiling;
+import 'pubspec_test.dart' as pubspec;
 import 'selection_coverage_test.dart' as selection_coverage;
 import 'selection_test.dart' as selection;
 import 'source_change_merger_test.dart' as source_change_merger;
@@ -21,6 +22,7 @@ void main() {
     json.main();
     import_analyzer.main();
     profiling.main();
+    pubspec.main();
     selection_coverage.main();
     selection.main();
     source_change_merger.main();

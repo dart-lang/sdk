@@ -181,7 +181,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final bool mayImplementRestrictedTypes;
 
-  factory SourceCompilationUnitImpl({
+  factory({
     required Uri importUri,
     required Uri fileUri,
     required Uri? packageUri,
@@ -229,7 +229,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     );
   }
 
-  SourceCompilationUnitImpl._(
+  new _(
     LibraryNameSpaceBuilder libraryNameSpaceBuilder, {
     required this.importUri,
     required this.fileUri,
@@ -1230,16 +1230,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       referencesFromIndex: indexedLibrary,
     );
     Import import = new Import(
-      this,
-      compilationUnit,
-      false,
-      deferred,
-      prefix,
-      combinators,
-      null,
-      fileUri,
-      -1,
-      -1,
+      importer: this,
+      importedCompilationUnit: compilationUnit,
+      deferred: deferred,
+      prefix: prefix,
+      combinators: combinators,
+      configurations: null,
+      fileUri: fileUri,
+      importOffset: -1,
+      prefixOffset: -1,
       nativeImportPath: null,
     );
     _compilationUnitData.registerImport(import);

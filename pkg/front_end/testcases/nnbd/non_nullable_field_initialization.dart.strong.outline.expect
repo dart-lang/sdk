@@ -30,7 +30,7 @@ class A extends core::Object {
   field core::int fieldOfA;
   constructor foo() → self::A
     ;
-  constructor bar(core::int fieldOfA) → self::A
+  constructor bar(initializing-formal core::int fieldOfA) → self::A
     ;
 }
 class B<X extends core::Object?, Y extends core::Object> extends core::Object {
@@ -38,7 +38,7 @@ class B<X extends core::Object?, Y extends core::Object> extends core::Object {
   covariant-by-class field self::B::Y fieldOfB2;
   constructor foo() → self::B<self::B::X%, self::B::Y>
     ;
-  constructor bar(self::B::X% fieldOfB, self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
+  constructor bar(initializing-formal self::B::X% fieldOfB, initializing-formal self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
     ;
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {
@@ -63,9 +63,9 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
   late covariant-by-class field self::C::X% fieldOfC8;
   late covariant-by-class field self::C::Y fieldOfC9;
   field core::int fieldOfC10;
-  constructor foo(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
+  constructor foo(initializing-formal core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
     ;
-  constructor bar(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
+  constructor bar(initializing-formal core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
     ;
 }
 abstract class L<X extends core::Object?, Y extends core::Object> extends core::Object /*isMixinDeclaration*/  {

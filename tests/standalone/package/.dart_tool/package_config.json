@@ -5,7 +5,7 @@
       "name": "expect",
       "rootUri": "../../../../pkg/expect",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.13"
     },
     {
       "name": "path",

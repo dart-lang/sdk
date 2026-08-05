@@ -243,7 +243,7 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.element;
           if (element is PromotableElementImpl) {
-            _resolver.flowAnalysis.flow?.storeExpressionInfo(
+            _resolver.flowAnalysis.storeExpressionInfo(
               node,
               _resolver.flowAnalysis.flow?.write(
                 node,
@@ -268,7 +268,7 @@ class PrefixExpressionResolver {
     );
     operand = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.flow?.getExpressionInfo(operand),
+      _resolver.flowAnalysis.getExpressionInfo(operand),
     );
 
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(
@@ -279,9 +279,9 @@ class PrefixExpressionResolver {
     node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
 
     if (_resolver.flowAnalysis.flow case var flow?) {
-      flow.storeExpressionInfo(
+      _resolver.flowAnalysis.storeExpressionInfo(
         node,
-        flow.logicalNot_end(flow.getExpressionInfo(operand)),
+        flow.logicalNot_end(_resolver.flowAnalysis.getExpressionInfo(operand)),
       );
     }
   }

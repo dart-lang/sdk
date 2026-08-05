@@ -100,7 +100,7 @@ class Library extends NamedNode
   List<Procedure> _procedures;
   List<Field> _fields;
 
-  Library(
+  new(
     this.importUri, {
     this.name,
     List<Expression>? annotations,
@@ -419,7 +419,7 @@ class LibraryDependency extends TreeNode implements Annotatable {
 
   final List<Combinator> combinators;
 
-  LibraryDependency.deferredImport(
+  new deferredImport(
     Library importedLibrary,
     String name, {
     List<Combinator>? combinators,
@@ -432,7 +432,7 @@ class LibraryDependency extends TreeNode implements Annotatable {
          combinators ?? <Combinator>[],
        );
 
-  LibraryDependency.import(
+  new import(
     Library importedLibrary, {
     String? name,
     List<Combinator>? combinators,
@@ -445,7 +445,7 @@ class LibraryDependency extends TreeNode implements Annotatable {
          combinators ?? <Combinator>[],
        );
 
-  LibraryDependency.export(
+  new export(
     Library importedLibrary, {
     List<Combinator>? combinators,
     List<Expression>? annotations,
@@ -457,7 +457,7 @@ class LibraryDependency extends TreeNode implements Annotatable {
          combinators ?? <Combinator>[],
        );
 
-  LibraryDependency.byReference(
+  new byReference(
     this.flags,
     this.annotations,
     this.importedLibraryReference,
@@ -539,7 +539,7 @@ class LibraryPart extends TreeNode implements Annotatable {
 
   final String partUri;
 
-  LibraryPart(this.annotations, this.partUri) {
+  new(this.annotations, this.partUri) {
     setParents(annotations, this);
   }
 
@@ -586,9 +586,9 @@ class Combinator extends TreeNode {
 
   final List<String> names;
 
-  Combinator(this.isShow, this.names);
-  Combinator.show(this.names) : isShow = true;
-  Combinator.hide(this.names) : isShow = false;
+  new(this.isShow, this.names);
+  new show(this.names) : isShow = true;
+  new hide(this.names) : isShow = false;
 
   bool get isHide => !isShow;
 

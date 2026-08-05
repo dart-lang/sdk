@@ -220,7 +220,7 @@ class BatchCompiler {
 
   void Function(CfeDiagnosticMessage)? _originalOnDiagnostic;
 
-  BatchCompiler(this.lines);
+  new(this.lines);
 
   Future<void> run() async {
     await for (String line in lines!) {
@@ -324,8 +324,8 @@ class BatchCompiler {
       "Platform must be omitted for the batch compiler.",
     );
     assert(
-      !options.hasAdditionalDills,
-      "Additional dills are not supported for the batch compiler.",
+      !options.hasAdditionalDillModules,
+      "Additional dill modules are not supported for the batch compiler.",
     );
     IncrementalCompilerResult compilerResult = await _incrementalCompiler!
         .computeDelta(fullComponent: true);

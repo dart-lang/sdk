@@ -2,41 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UriDoesNotExistInDocImportTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UriDoesNotExistInDocImportTest extends PubPackageResolutionTest {
   test_libraryDocImport_cannotResolve_dart() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:foo';
+//             ^^^^^^^^^^
+// [diag.uriDoesNotExistInDocImport] Target of URI doesn't exist: 'dart:foo'.
 library;
-''',
-      [error(diag.uriDoesNotExistInDocImport, 15, 10)],
-    );
+''');
   }
 
   test_libraryDocImport_cannotResolve_file() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
+//             ^^^^^^^^^^
+// [diag.uriDoesNotExistInDocImport] Target of URI doesn't exist: 'foo.dart'.
 library;
-''',
-      [error(diag.uriDoesNotExistInDocImport, 15, 10)],
-    );
+''');
   }
 
   test_libraryDocImport_canResolve_dart() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:math';
 library;
 ''');
@@ -46,7 +45,7 @@ library;
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'foo.dart';
 library;
 ''');

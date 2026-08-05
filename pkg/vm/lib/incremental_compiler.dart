@@ -255,10 +255,12 @@ class IncrementalCompiler {
     assert(_lastKnownGood != null || _pendingDeltas.isNotEmpty);
     ClassHierarchy classHierarchy =
         (_lastKnownGood ?? _combinePendingDeltas(false)).classHierarchy;
+    Set<String> definitionsAddedByUser = {};
     Map<String, DartType>? completeDefinitions = createDefinitionsWithTypes(
       classHierarchy.knownLibraries,
       definitionTypes,
       definitions,
+      definitionsAddedByUser,
     );
     if (completeDefinitions == null) {
       completeDefinitions = {};
@@ -296,6 +298,7 @@ class IncrementalCompiler {
       typeParameters,
       kDebugProcedureName,
       library,
+      definitionsAddedByUser: definitionsAddedByUser,
       className: klass,
       methodName: method,
       offset: offset,

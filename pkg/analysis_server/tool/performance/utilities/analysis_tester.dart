@@ -32,7 +32,7 @@ class AnalysisTester {
   final Set<String> packagePaths = {};
 
   /// Initialize an analysis tester that uses a memory resource provider.
-  factory AnalysisTester.memory() {
+  factory memory() {
     var provider = MemoryResourceProvider();
     var sdkPath = '/sdk';
     var packageRootPath = '/test/pkgs';
@@ -48,7 +48,7 @@ class AnalysisTester {
   }
 
   /// Initialize an analysis tester that uses a physical resource provider.
-  factory AnalysisTester.physical() {
+  factory physical() {
     var provider = PhysicalResourceProvider();
     var sdkPath = '/Users/brianwilkerson/dart-sdk';
     var packageRootPath = '/Users/brianwilkerson/src/dart/samples/Overmorrow';
@@ -61,7 +61,7 @@ class AnalysisTester {
 
   /// Initialize an analysis tester that uses the given resource [provider],
   /// [sdkPath], and [packagePath].
-  AnalysisTester._({
+  new _({
     required this.provider,
     required this.sdkPath,
     required this.packageRootPath,

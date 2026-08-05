@@ -1,9 +1,27 @@
-# 3.12.0-wip
+# 3.13.0-wip
 
+- new lint: `async_return_with_no_await`
+- new lint: `empty_container_bodies`
+- new lint: `initialize_in_field_declaration`
+- new lint: `no_dynamic_casts`
+- new lint: `no_raw_types`
+- new lint: `unnecessary_const_in_enum_constructor`
+- new lint: `unnecessary_primary_constructor_body`
+- new lint: `unnecessary_type_name_in_constructor`
+- new lint: `use_declaring_parameters`
+- deprecated lint: `avoid_private_typedef_functions`
+- deprecated lint: `one_member_abstracts`
+- stable: `unnecessary_null_checks`
+- update `type_literal_in_constant_pattern` to ignore cases where the matched
+  pattern is of type `Type`.
+
+# 3.12.0
+
+- new lint: `simple_directive_paths`
 - new lint: `var_with_no_type_annotation`
 - stable: `omit_obvious_local_variable_types`
 - stable: `omit_obvious_property_types`
-- stable: `specify_nonobvious_property_types`
+- stable: `specify_nonobvious_local_variable_types`
 - stable: `specify_nonobvious_property_types`
 
 # 3.11.0

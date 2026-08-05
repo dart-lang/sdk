@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,79 +15,69 @@ main() {
 @reflectiveTest
 class IllegalSyncGeneratorReturnTypeTest extends PubPackageResolutionTest {
   test_arrowFunction_iterator() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Iterable<void> f() sync* => [];
-''',
-      [error(diag.returnInGenerator, 25, 2)],
-    );
+//                       ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
+''');
   }
 
   test_function_iterator() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 Iterable<void> f() sync* {}
 ''');
   }
 
   test_function_nonIterator() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() sync* {}
-''',
-      [error(diag.illegalSyncGeneratorReturnType, 0, 3)],
-    );
+// [diag.illegalSyncGeneratorReturnType][column 1][length 3] Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'.
+''');
   }
 
   test_function_subclassOfIterator() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class SubIterator<T> implements Iterator<T> {}
 SubIterator<int> f() sync* {}
-''',
-      [error(diag.illegalSyncGeneratorReturnType, 56, 16)],
-    );
+// [diag.illegalSyncGeneratorReturnType][column 1][length 16] Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'.
+''');
   }
 
   test_function_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() sync* {}
-''',
-      [error(diag.illegalSyncGeneratorReturnType, 0, 4)],
-    );
+// [diag.illegalSyncGeneratorReturnType][column 1][length 4] Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'.
+''');
   }
 
   test_method_nonIterator() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int f() sync* {}
+//^^^
+// [diag.illegalSyncGeneratorReturnType] Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'.
 }
-''',
-      [error(diag.illegalSyncGeneratorReturnType, 12, 3)],
-    );
+''');
   }
 
   test_method_subclassOfIterator() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class SubIterator<T> implements Iterator<T> {}
 class C {
   SubIterator<int> f() sync* {}
+//^^^^^^^^^^^^^^^^
+// [diag.illegalSyncGeneratorReturnType] Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'.
 }
-''',
-      [error(diag.illegalSyncGeneratorReturnType, 68, 16)],
-    );
+''');
   }
 
   test_method_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void f() sync* {}
+//^^^^
+// [diag.illegalSyncGeneratorReturnType] Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'.
 }
-''',
-      [error(diag.illegalSyncGeneratorReturnType, 12, 4)],
-    );
+''');
   }
 }

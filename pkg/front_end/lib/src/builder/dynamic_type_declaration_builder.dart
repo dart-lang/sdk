@@ -9,11 +9,8 @@ import 'library_builder.dart';
 import 'type_builder.dart';
 
 class DynamicTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
-  DynamicTypeDeclarationBuilder(
-    DartType type,
-    LibraryBuilder compilationUnit,
-    int charOffset,
-  ) : super("dynamic", type, compilationUnit, charOffset);
+  new(DartType type, LibraryBuilder compilationUnit, int charOffset)
+    : super("dynamic", type, compilationUnit, charOffset);
 
   @override
   Nullability computeNullabilityWithArguments(

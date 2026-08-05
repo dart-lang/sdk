@@ -5,6 +5,7 @@
 if (is_linux) {
   action("debian_package") {
     version = exec_script("get_version.py", [], "trim string")
+    timestamp = exec_script("get_timestamp.py", [], "trim string")
     if (target_cpu == "x86" || target_cpu == "ia32") {
       debian_arch = "i386"
       lib_dir = "//buildtools/sysroot/linux/lib/i386-linux-gnu"
@@ -37,9 +38,9 @@ if (is_linux) {
     outputs = [ "$root_out_dir/dart_${version}-1_${debian_arch}.deb" ]
     script = "../../build/gn_run_binary.py"
     args = [
-      "compiled_action",
       rebase_path("create_debian_package.py"),
       "--version=$version",
+      "--timestamp=$timestamp",
       "--arch=$debian_arch",
       "--lib_dir=" + rebase_path(lib_dir),
     ]

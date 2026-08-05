@@ -25,6 +25,6 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: VariableGet @ org-dartlang-testcase:///pointwise_implicit_downcasts.dart:17:84 -> InstantiationConstant(id<int>)
-Evaluated: VariableGet @ org-dartlang-testcase:///pointwise_implicit_downcasts.dart:17:78 -> DoubleConstant(3.0)
+Evaluated: VariableGet @ org-dartlang-testcase:///pointwise_implicit_downcasts.dart:20:8 -> InstantiationConstant(id<int>)
+Evaluated: VariableGet @ org-dartlang-testcase:///pointwise_implicit_downcasts.dart:19:8 -> DoubleConstant(3.0)
 Extra constant evaluation: evaluated: 38, effectively constant: 2

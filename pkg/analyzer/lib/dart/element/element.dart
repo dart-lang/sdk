@@ -241,21 +241,24 @@ abstract class ConstructorElement implements ExecutableElement {
   /// Whether the constructor is from an explicit [ConstructorDeclaration]
   /// or [PrimaryConstructorDeclaration].
   ///
-  /// When this is `true`, [isOriginImplicitDefault] and
-  /// [isOriginMixinApplication] are `false`.
+  /// Constructor origin getters are mutually exclusive. Exactly one of the
+  /// following is `true`:
+  ///
+  /// * [isOriginDeclaration]
+  /// * [isOriginExtensionTypeRecovery]
+  /// * [isOriginImplicitDefault]
+  /// * [isOriginMixinApplication]
   bool get isOriginDeclaration;
+
+  /// Whether the constructor represents the recovery constructor of an extension
+  /// type when no introductory declaration is present in the library.
+  bool get isOriginExtensionTypeRecovery;
 
   /// Whether the constructor was created because there are no explicit
   /// constructors.
-  ///
-  /// When this is `true`, [isOriginDeclaration] and
-  /// [isOriginMixinApplication] are `false`.
   bool get isOriginImplicitDefault;
 
   /// Whether the constructor was created for a mixin application.
-  ///
-  /// When this is `true`, [isOriginDeclaration] and
-  /// [isOriginImplicitDefault] are `false`.
   bool get isOriginMixinApplication;
 
   /// Whether this is a primary constructor.
@@ -297,6 +300,10 @@ abstract class ConstructorFragment implements ExecutableFragment {
   ///
   /// It is `null` if the fragment is synthetic, or does not have the keyword.
   int? get factoryKeywordOffset;
+
+  /// Whether the constructor represents the recovery constructor of an extension
+  /// type when no introductory declaration is present in the library.
+  bool get isOriginExtensionTypeRecovery;
 
   @override
   String get name;
@@ -758,6 +765,16 @@ abstract class ElementAnnotation {
   /// value to be computed if it had not previously been computed, or `null`
   /// if the value of this annotation could not be computed because of errors.
   DartObject? computeConstantValue();
+
+  /// Whether this annotation is a valid annotation for the given [element].
+  ///
+  /// Returns `true` if the annotation has known target kinds, and the
+  /// [element] matches one of them. Returns `false` if the annotation has known
+  /// target kinds, and the [element] does not match any of them.
+  ///
+  /// Returns `null` if there is no known set of target kinds for this
+  /// annotation.
+  bool? isValidAtElement(Element element);
 
   /// Returns a textual description of this annotation in a form approximating
   /// valid source.
@@ -1273,10 +1290,10 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   FieldElement? get field;
 
   @override
-  FieldFormalParameterFragment get firstFragment;
+  FormalParameterFragment get firstFragment;
 
   @override
-  List<FieldFormalParameterFragment> get fragments;
+  List<FormalParameterFragment> get fragments;
 
   /// Whether this is a declaring formal parameter.
   bool get isDeclaring;
@@ -1305,13 +1322,13 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FieldFormalParameterFragment implements FormalParameterFragment {
   @override
-  FieldFormalParameterElement get element;
+  FormalParameterElement get element;
 
   @override
-  FieldFormalParameterFragment? get nextFragment;
+  FormalParameterFragment? get nextFragment;
 
   @override
-  FieldFormalParameterFragment? get previousFragment;
+  FormalParameterFragment? get previousFragment;
 
   /// If this field formal parameter is a named parameter with a private name,
   /// the original private name.
@@ -1357,12 +1374,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   @override
   FormalParameterFragment get firstFragment;
 
-  /// The formal parameters defined by this formal parameter.
-  ///
-  /// A parameter will only define other parameters if it is a function typed
-  /// formal parameter.
-  List<FormalParameterElement> get formalParameters;
-
   @override
   List<FormalParameterFragment> get fragments;
 
@@ -1372,9 +1383,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   /// Whether the parameter is covariant, meaning it is allowed to have a
   /// narrower type in an override.
   bool get isCovariant;
-
-  /// Whether the parameter is an initializing formal parameter.
-  bool get isInitializingFormal;
 
   /// Whether the parameter is a named parameter.
   ///
@@ -1424,15 +1432,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
 
   /// Whether the parameter is both a required and positional parameter.
   bool get isRequiredPositional;
-
-  /// Whether the parameter is a super formal parameter.
-  bool get isSuperFormal;
-
-  /// The type parameters defined by this parameter.
-  ///
-  /// A parameter will only define type parameters if it is a function typed
-  /// parameter.
-  List<TypeParameterElement> get typeParameters;
 
   /// Appends the type, name and possibly the default value of this parameter
   /// to the given [buffer].
@@ -2741,18 +2740,6 @@ abstract class MixinFragment implements InterfaceFragment {
 
   @override
   MixinFragment? get previousFragment;
-
-  /// The superclass constraints defined for this mixin.
-  ///
-  /// If the declaration does not have an `on` clause, then the list will
-  /// contain the type for the class `Object`.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  List<InterfaceType> get superclassConstraints;
 }
 
 /// A pseudo-element that represents multiple elements defined within a single
@@ -2953,6 +2940,13 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
   @override
   PropertyAccessorElement get element;
 
+  /// The field or top-level variable fragment that induced this accessor
+  /// fragment.
+  ///
+  /// Returns `null` for explicit getter and setter declarations, including
+  /// explicit augmentations.
+  PropertyInducingFragment? get inducingVariable;
+
   @override
   PropertyAccessorFragment? get nextFragment;
 
@@ -2969,7 +2963,7 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 /// * Every explicit variable is represented by a non-synthetic
 ///   [PropertyInducingElement].
 /// * Every explicit variable induces a synthetic [GetterElement],
-///   possibly a synthetic [SetterElement.
+///   possibly a synthetic [SetterElement].
 /// * Every explicit getter by a non-synthetic [GetterElement].
 /// * Every explicit setter by a non-synthetic [SetterElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
@@ -3030,6 +3024,21 @@ abstract class PropertyInducingFragment implements VariableFragment {
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
+
+  /// The getter fragment induced by this variable or field fragment.
+  ///
+  /// Returns `null` for synthetic variable or field fragments created for
+  /// explicit accessor declarations. Such fragments do not induce accessors;
+  /// instead, they are created because explicit accessors need an associated
+  /// property-inducing element.
+  GetterFragment? get inducedGetter;
+
+  /// The setter fragment induced by this variable or field fragment.
+  ///
+  /// Returns `null` if this fragment does not induce a setter, or if this
+  /// fragment is a synthetic variable or field fragment created for explicit
+  /// accessor declarations.
+  SetterFragment? get inducedSetter;
 
   /// Whether the element is an augmentation.
   ///
@@ -3107,10 +3116,10 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameterElement implements FormalParameterElement {
   @override
-  SuperFormalParameterFragment get firstFragment;
+  FormalParameterFragment get firstFragment;
 
   @override
-  List<SuperFormalParameterFragment> get fragments;
+  List<FormalParameterFragment> get fragments;
 
   /// The associated super-constructor parameter, from the super-constructor
   /// that is referenced by the implicit or explicit super-constructor
@@ -3127,13 +3136,13 @@ abstract class SuperFormalParameterElement implements FormalParameterElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameterFragment implements FormalParameterFragment {
   @override
-  SuperFormalParameterElement get element;
+  FormalParameterElement get element;
 
   @override
-  SuperFormalParameterFragment? get nextFragment;
+  FormalParameterFragment? get nextFragment;
 
   @override
-  SuperFormalParameterFragment? get previousFragment;
+  FormalParameterFragment? get previousFragment;
 }
 
 /// A top-level function.
@@ -3286,7 +3295,7 @@ abstract class TypeParameterElement implements Element {
   ///
   /// Returns `null` if this parameter does not have an explicit bound. Being
   /// able to distinguish between an implicit and explicit bound is needed by
-  /// the instantiate to bounds algorithm.`
+  /// the instantiate to bounds algorithm.
   DartType? get bound;
 
   @override

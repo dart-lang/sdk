@@ -223,27 +223,35 @@ void DirectoryListingEntry::ResetLink() {
   }
 }
 
-static bool DeleteRecursively(PathBuffer* path);
+static bool DeleteRecursively(PathBuffer* path, bool fail_on_missing = true);
 
 static bool DeleteFile(char* file_name, PathBuffer* path) {
-  return path->Add(file_name) && (unlink(path->AsString()) == 0);
+  if (!path->Add(file_name)) {
+    return false;
+  }
+  if (unlink(path->AsString()) == 0) {
+    return true;
+  }
+  return (errno == ENOENT);
 }
 
 static bool DeleteDir(char* dir_name, PathBuffer* path) {
   if ((strcmp(dir_name, ".") == 0) || (strcmp(dir_name, "..") == 0)) {
     return true;
   }
-  return path->Add(dir_name) && DeleteRecursively(path);
+  return path->Add(dir_name) &&
+         DeleteRecursively(path, /*fail_on_missing=*/false);
 }
 
-static bool DeleteRecursively(PathBuffer* path) {
+static bool DeleteRecursively(PathBuffer* path, bool fail_on_missing) {
   // Do not recurse into links for deletion. Instead delete the link.
   // If it's a file, delete it.
   struct stat st;
   if (NO_RETRY_EXPECTED(lstat(path->AsString(), &st)) == -1) {
-    return false;
+    return !fail_on_missing && (errno == ENOENT);
   } else if (!S_ISDIR(st.st_mode)) {
-    return (unlink(path->AsString()) == 0);
+    return (unlink(path->AsString()) == 0) ||
+           (!fail_on_missing && (errno == ENOENT));
   }
 
   if (!path->Add(File::PathSeparator())) {
@@ -257,7 +265,7 @@ static bool DeleteRecursively(PathBuffer* path) {
     dir_pointer = opendir(path->AsString());
   } while ((dir_pointer == nullptr) && (errno == EINTR));
   if (dir_pointer == nullptr) {
-    return false;
+    return !fail_on_missing && (errno == ENOENT);
   }
 
   // Iterate the directory and delete all files and directories.
@@ -279,7 +287,7 @@ static bool DeleteRecursively(PathBuffer* path) {
         return false;
       }
       status = NO_RETRY_EXPECTED(remove(path->AsString()));
-      return status == 0;
+      return (status == 0) || (!fail_on_missing && (errno == ENOENT));
     }
     bool ok = false;
     switch (entry->d_type) {
@@ -306,6 +314,9 @@ static bool DeleteRecursively(PathBuffer* path) {
         // type.
         struct stat entry_info;
         if (NO_RETRY_EXPECTED(lstat(path->AsString(), &entry_info)) == -1) {
+          if (errno == ENOENT) {
+            ok = true;
+          }
           break;
         }
         path->Reset(path_length);

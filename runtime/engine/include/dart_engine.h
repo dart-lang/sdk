@@ -53,10 +53,8 @@ typedef struct DartEngine_SnapshotData {
       intptr_t kernel_buffer_size;
     };
     struct {
-      const uint8_t* vm_snapshot_data;
-      const uint8_t* vm_snapshot_instructions;
-      const uint8_t* vm_isolate_data;
-      const uint8_t* vm_isolate_instructions;
+      const uint8_t* snapshot_data;
+      const uint8_t* snapshot_text;
     };
   };
 } DartEngine_SnapshotData;

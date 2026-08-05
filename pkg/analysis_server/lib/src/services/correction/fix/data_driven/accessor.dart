@@ -15,7 +15,7 @@ abstract class Accessor {
 /// The result of using an accessor to get a result.
 abstract class AccessorResult {
   /// Initialize a newly created result.
-  const AccessorResult();
+  const new();
 
   /// Return `true` if the accessor returned a valid result.
   bool get isValid;
@@ -33,7 +33,7 @@ class ArgumentAccessor extends Accessor {
 
   /// Initialize a newly created accessor to access the argument that
   /// corresponds to the given [parameter].
-  ArgumentAccessor(this.parameter);
+  new(this.parameter);
 
   @override
   AccessorResult getValue(Object? target) {
@@ -74,7 +74,7 @@ class ArgumentAccessor extends Accessor {
 /// A representation of an invalid result.
 class InvalidResult implements AccessorResult {
   /// Initialize a newly created invalid result.
-  const InvalidResult();
+  const new();
 
   @override
   bool get isValid => false;
@@ -90,7 +90,7 @@ class TypeArgumentAccessor extends Accessor {
 
   /// Initialize a newly created accessor to access the type argument at the
   /// given [index].
-  TypeArgumentAccessor(this.index);
+  new(this.index);
 
   @override
   AccessorResult getValue(Object? target) {
@@ -132,7 +132,7 @@ class ValidResult implements AccessorResult {
   final Object result;
 
   /// Initialize a newly created valid result.
-  ValidResult(this.result);
+  new(this.result);
 
   @override
   bool get isValid => true;

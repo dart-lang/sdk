@@ -28,7 +28,6 @@ import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled, unimplemented;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
-import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -139,7 +138,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   final ClassDeclaration _introductory;
   List<ClassDeclaration> _augmentations;
 
-  SourceClassBuilder({
+  new({
     required Modifiers modifiers,
     required this.name,
     required this.typeParameters,
@@ -646,16 +645,14 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    filteredConstructorsIterator<SourceMemberBuilder>(
-      includeDuplicates: false,
-    ).forEach(build);
-    filteredMembersIterator<SourceMemberBuilder>(
-      includeDuplicates: false,
-    ).forEach(build);
+    filteredConstructorsIterator<SourceMemberBuilder>(includeDuplicates: false)
+        .forEach(build);
+    filteredMembersIterator<SourceMemberBuilder>(includeDuplicates: false)
+        .forEach(build);
 
     for (SourceMemberBuilder memberBuilder in _constructorBuilders) {
       if (memberBuilder is SourceConstructorBuilder &&
-          memberBuilder.isPrimaryConstructor &&
+          memberBuilder.shouldTakeFieldInitializers &&
           memberBuilder.isConst) {
         memberBuilder.buildPrimaryConstructorFieldInitializers();
       }
@@ -1328,74 +1325,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  // Coverage-ignore(suite): Not run.
-  void checkVarianceInFunction(
-    Procedure procedure,
-    TypeEnvironment typeEnvironment,
-    List<TypeParameter> typeParameters,
-  ) {
-    List<TypeParameter> functionTypeParameters =
-        procedure.function.typeParameters;
-    List<VariableDeclaration> positionalParameters =
-        procedure.function.positionalParameters;
-    List<VariableDeclaration> namedParameters =
-        procedure.function.namedParameters;
-    DartType returnType = procedure.function.returnType;
-
-    for (TypeParameter functionParameter in functionTypeParameters) {
-      for (TypeParameter typeParameter in typeParameters) {
-        Variance typeVariance = Variance.invariant.combine(
-          computeVariance(typeParameter, functionParameter.bound),
-        );
-        reportVariancePositionIfInvalid(
-          typeVariance,
-          typeParameter,
-          fileUri,
-          functionParameter.fileOffset,
-        );
-      }
-    }
-    for (VariableDeclaration formal in positionalParameters) {
-      if (!formal.isCovariantByDeclaration) {
-        for (TypeParameter typeParameter in typeParameters) {
-          Variance formalVariance = Variance.contravariant.combine(
-            computeVariance(typeParameter, formal.type),
-          );
-          reportVariancePositionIfInvalid(
-            formalVariance,
-            typeParameter,
-            fileUri,
-            formal.fileOffset,
-          );
-        }
-      }
-    }
-    for (VariableDeclaration named in namedParameters) {
-      for (TypeParameter typeParameter in typeParameters) {
-        Variance namedVariance = Variance.contravariant.combine(
-          computeVariance(typeParameter, named.type),
-        );
-        reportVariancePositionIfInvalid(
-          namedVariance,
-          typeParameter,
-          fileUri,
-          named.fileOffset,
-        );
-      }
-    }
-
-    for (TypeParameter typeParameter in typeParameters) {
-      Variance returnTypeVariance = computeVariance(typeParameter, returnType);
-      reportVariancePositionIfInvalid(
-        returnTypeVariance,
-        typeParameter,
-        fileUri,
-        procedure.function.fileOffset,
-        isReturnType: true,
-      );
-    }
-  }
-
   void reportVariancePositionIfInvalid(
     Variance variance,
     TypeParameter typeParameter,
@@ -1874,7 +1803,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     DartType declaredType,
     DartType interfaceType,
     bool isCovariantByDeclaration,
-    VariableDeclaration? declaredParameter,
+    Variable? declaredParameter,
     bool isInterfaceCheck, {
     bool asIfDeclaredParameter = false,
     required Member? localMember,
@@ -1929,7 +1858,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         fileOffset = declaredMember.fileOffset;
       } else {
         message = diag.overrideTypeMismatchParameter.withArguments(
-          parameterName: declaredParameter.name!,
+          parameterName: declaredParameter.cosmeticName!,
           declaredMemberName: declaredMemberName,
           declaredType: declaredType,
           overriddenType: interfaceType,
@@ -2075,9 +2004,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           i < interfaceFunction.positionalParameters.length;
       i++
     ) {
-      VariableDeclaration declaredParameter =
+      PositionalParameter declaredParameter =
           declaredFunction.positionalParameters[i];
-      VariableDeclaration interfaceParameter =
+      PositionalParameter interfaceParameter =
           interfaceFunction.positionalParameters[i];
       DartType declaredParameterType = declaredParameter.type;
       if (declaredSignatureType != null) {
@@ -2137,25 +2066,25 @@ class SourceClassBuilder extends ClassBuilderImpl
       );
     }
 
-    int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
-      return p0.name!.compareTo(p1.name!);
+    int compareNamedParameters(NamedParameter p0, NamedParameter p1) {
+      return p0.parameterName.compareTo(p1.parameterName);
     }
 
-    List<VariableDeclaration> sortedFromDeclared = new List.of(
+    List<NamedParameter> sortedFromDeclared = new List.of(
       declaredFunction.namedParameters,
     )..sort(compareNamedParameters);
-    List<VariableDeclaration> sortedFromInterface = new List.of(
+    List<NamedParameter> sortedFromInterface = new List.of(
       interfaceFunction.namedParameters,
     )..sort(compareNamedParameters);
-    Iterator<VariableDeclaration> declaredNamedParameters =
+    Iterator<NamedParameter> declaredNamedParameters =
         sortedFromDeclared.iterator;
-    Iterator<VariableDeclaration> interfaceNamedParameters =
+    Iterator<NamedParameter> interfaceNamedParameters =
         sortedFromInterface.iterator;
     outer:
     while (declaredNamedParameters.moveNext() &&
         interfaceNamedParameters.moveNext()) {
-      while (declaredNamedParameters.current.name !=
-          interfaceNamedParameters.current.name) {
+      while (declaredNamedParameters.current.parameterName !=
+          interfaceNamedParameters.current.parameterName) {
         if (!declaredNamedParameters.moveNext()) {
           reportInvalidOverride(
             isInterfaceCheck,
@@ -2164,7 +2093,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               declaredMemberName:
                   "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
-              parameterName: interfaceNamedParameters.current.name!,
+              parameterName: interfaceNamedParameters.current.parameterName,
               overriddenMemberName:
                   "${interfaceMember.enclosingClass!.name}."
                   "${interfaceMember.name.text}",
@@ -2185,7 +2114,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           break outer;
         }
       }
-      VariableDeclaration declaredParameter = declaredNamedParameters.current;
+      NamedParameter declaredParameter = declaredNamedParameters.current;
       _checkTypes(
         types,
         interfaceSubstitution,
@@ -2206,7 +2135,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           isInterfaceCheck,
           declaredMember,
           diag.overrideMismatchRequiredNamedParameter.withArguments(
-            parameterName: declaredParameter.name!,
+            parameterName: declaredParameter.parameterName,
             declaredMemberName:
                 "${declaredMember.enclosingClass!.name}."
                 "${declaredMember.name.text}",
@@ -2318,7 +2247,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     );
     DartType declaredType = declaredMember.setterType;
     DartType interfaceType = interfaceMember.setterType;
-    VariableDeclaration? declaredParameter = declaredMember
+    PositionalParameter? declaredParameter = declaredMember
         .function
         ?.positionalParameters
         .elementAt(0);
@@ -2434,12 +2363,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
   }
-
-  // Coverage-ignore(suite): Not run.
-  /// Returns an iterator the origin class and all augmentations in application
-  /// order.
-  Iterator<SourceClassBuilder> get declarationIterator =>
-      new AugmentationIterator<SourceClassBuilder>(this, null);
 
   @override
   // Coverage-ignore(suite): Not run.

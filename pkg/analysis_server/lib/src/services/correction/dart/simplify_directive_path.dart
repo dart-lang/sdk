@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
 
 class SimplifyDirectivePath extends ResolvedCorrectionProducer {
-  SimplifyDirectivePath({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

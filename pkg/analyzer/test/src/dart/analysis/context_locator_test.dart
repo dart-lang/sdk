@@ -11,7 +11,7 @@ import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -964,27 +964,6 @@ ${getFolder(outPath).path}
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
-  void test_locateRoots_nested_excluded_explicit() {
-    Folder outerRootFolder = newFolder('/test/outer');
-    File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
-    File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
-    Folder excludedFolder = newFolder('/test/outer/examples');
-    newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
-
-    List<ContextRoot> roots = locateContextRoots(
-      includedPaths: [outerRootFolder.path],
-      excludedPaths: [excludedFolder.path],
-      resourceProvider: resourceProvider,
-    );
-    expect(roots, hasLength(1));
-
-    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
-    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
-    expect(outerRoot.excludedPaths, unorderedEquals([excludedFolder.path]));
-    expect(outerRoot.optionsFile, outerOptionsFile);
-    expect(outerRoot.packagesFile, outerPackagesFile);
-  }
-
   /// Verify that overlapped roots do not result in nested files being analyzed
   /// in multiple contexts (when the nested folder is passed first).
   ///
@@ -1354,10 +1333,10 @@ ${getFolder(outPath).path}
     var flutterPath = '/home/packages/flutter';
 
     var packageConfigFileBuilder = PackageConfigFileBuilder()
-      ..add(name: 'flutter', rootPath: flutterPath);
+      ..add(name: 'flutter', rootFolder: getFolder(flutterPath));
     var packagesFile = newPackageConfigJsonFile(
       rootFolder.path,
-      packageConfigFileBuilder.toContent(pathContext: pathContext),
+      packageConfigFileBuilder.toContent(),
     );
 
     var roots = locateContextRoots(

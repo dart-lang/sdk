@@ -10,6 +10,7 @@ analyzer:
 
   exclude:
     - test/ir_tests/*.dart
+    - test/deferred_loading/partition_tests/*.dart
 
 linter:
   rules:

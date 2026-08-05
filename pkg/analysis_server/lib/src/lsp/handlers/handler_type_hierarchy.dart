@@ -36,7 +36,7 @@ class PrepareTypeHierarchyHandler
           TextDocumentPrepareTypeHierarchyResult
         >
     with _TypeHierarchyUtils {
-  PrepareTypeHierarchyHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_prepareTypeHierarchy;
@@ -83,7 +83,7 @@ class PrepareTypeHierarchyHandler
 
 class TypeHierarchyRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  TypeHierarchyRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>
@@ -106,7 +106,7 @@ class TypeHierarchySubtypesHandler
           TypeHierarchySubtypesResult
         >
     with _TypeHierarchyUtils {
-  TypeHierarchySubtypesHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.typeHierarchy_subtypes;
@@ -154,7 +154,7 @@ class TypeHierarchySupertypesHandler
           TypeHierarchySupertypesResult
         >
     with _TypeHierarchyUtils {
-  TypeHierarchySupertypesHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.typeHierarchy_supertypes;

@@ -5,7 +5,7 @@ import "dart:core" as core;
 class D extends core::Object {
   field self::E v;
   late static field self::E staticE;
-  constructor •(self::E v) → self::D
+  constructor •(initializing-formal self::E v) → self::D
     ;
 }
 class E extends core::Object {

@@ -11,12 +11,9 @@ import 'constant_evaluator.dart';
 abstract class ConstantIntFolder {
   final ConstantEvaluator evaluator;
 
-  ConstantIntFolder(this.evaluator);
+  new(this.evaluator);
 
-  factory ConstantIntFolder.forSemantics(
-    ConstantEvaluator evaluator,
-    NumberSemantics semantics,
-  ) {
+  factory forSemantics(ConstantEvaluator evaluator, NumberSemantics semantics) {
     if (semantics == NumberSemantics.js) {
       return new JsConstantIntFolder(evaluator);
     } else {
@@ -80,7 +77,7 @@ abstract class ConstantIntFolder {
 }
 
 class VmConstantIntFolder extends ConstantIntFolder {
-  VmConstantIntFolder(ConstantEvaluator evaluator) : super(evaluator);
+  new(ConstantEvaluator evaluator) : super(evaluator);
 
   @override
   bool isInt(Constant constant) => constant is IntConstant;
@@ -190,7 +187,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
 }
 
 class JsConstantIntFolder extends ConstantIntFolder {
-  JsConstantIntFolder(ConstantEvaluator evaluator) : super(evaluator);
+  new(ConstantEvaluator evaluator) : super(evaluator);
 
   static bool _valueIsInteger(double value) {
     return value.isFinite && value.truncateToDouble() == value;

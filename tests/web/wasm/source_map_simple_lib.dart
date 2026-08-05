@@ -4,11 +4,10 @@
 
 import 'dart:convert';
 
+import 'package:dart2wasm/util.dart';
 import 'package:source_maps/parser.dart';
 
 import 'utils.dart';
-
-final isMinified = const bool.fromEnvironment('dart.tool.dart2wasm.minify');
 
 void f() {
   g();
@@ -137,9 +136,7 @@ List<(String?, int?, int?, String?)?> parseStack(
       throw 'Unable to parse module name in frame "$line"';
     }
     final moduleIdString = moduleIdMatch[1]!;
-    final moduleId = isMinified
-        ? parseMinifiedModule(moduleIdString)
-        : int.parse(moduleIdString.replaceAll('module', ''));
+    final moduleId = moduleNameToId(moduleIdString)!;
     final uri = getSourceMapFilePath(testName, moduleId);
     final span = mapping.spanFor(0, offset, uri: uri);
     if (span == null) {
@@ -154,17 +151,6 @@ List<(String?, int?, int?, String?)?> parseStack(
     parsed.add((filename, 1 + lineNumber, 1 + columnNumber, symbolName));
   }
   return parsed;
-}
-
-int parseMinifiedModule(String moduleName) {
-  final codeUnits = moduleName.codeUnits;
-  int result = 0;
-  int power = 1;
-  for (final codeUnit in codeUnits) {
-    result += (codeUnit - 35) * power;
-    power *= 92;
-  }
-  return result - 1;
 }
 
 final stackTraceHexOffsetRegExp = RegExp(r'wasm-function.*(0x[0-9a-fA-F]+)\)$');

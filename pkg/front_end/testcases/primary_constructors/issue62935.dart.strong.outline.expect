@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class C1 extends core::Object {
-  constructor •([final dynamic v = 42]) → self::C1
+  constructor •([dynamic v = 42]) → self::C1
     ;
 }
 class C2 extends core::Object {
-  constructor •({final dynamic v = "42"}) → self::C2
+  constructor •({dynamic v = "42"}) → self::C2
     ;
 }
 static method main() → dynamic

@@ -122,10 +122,10 @@ import "dart:core" as core;
 class A<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::A::S% x;
   covariant-by-class field self::A::T% y;
-  constructor •(self::A::S% x, self::A::T% y) → self::A<self::A::S%, self::A::T%>
+  constructor •(initializing-formal self::A::S% x, initializing-formal self::A::T% y) → self::A<self::A::S%, self::A::T%>
     : self::A::x = x, self::A::y = y, super core::Object::•()
     ;
-  constructor named(self::A::S% x, self::A::T% y) → self::A<self::A::S%, self::A::T%>
+  constructor named(initializing-formal self::A::S% x, initializing-formal self::A::T% y) → self::A<self::A::S%, self::A::T%>
     : self::A::x = x, self::A::y = y, super core::Object::•()
     ;
 }

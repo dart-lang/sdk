@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class A extends self::B {
-  constructor •({required invalid-type field}) → self::A
+  constructor •({required super-initializing-formal invalid-type field}) → self::A
     ;
 }
 class B extends core::Object {
   final field core::int field;
-  constructor named({required core::int field}) → self::B
+  constructor named({required initializing-formal core::int field}) → self::B
     ;
 }

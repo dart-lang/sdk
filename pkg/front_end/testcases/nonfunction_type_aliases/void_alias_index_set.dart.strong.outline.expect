@@ -55,13 +55,13 @@ static extension-member method Extension1|[]=(lowered final core::int #this, cor
   ;
 static extension-member method Extension2|[]=(lowered final core::int #this, core::Object key, core::Object value) → void
   ;
-static extension-type-member method ExtensionType1|constructor#(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
+static extension-type-member method ExtensionType1|constructor#(initializing-formal core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtensionType1|constructor#_#new#tearOff(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
   return self::ExtensionType1|constructor#(it);
 static extension-type-member method ExtensionType1|[]=(lowered final self::ExtensionType1% /* erasure=core::int, declared=! */ #this, core::Object key, core::Object value) → void
   ;
-static extension-type-member method ExtensionType2|constructor#(core::int it) → self::ExtensionType2% /* erasure=core::int, declared=! */
+static extension-type-member method ExtensionType2|constructor#(initializing-formal core::int it) → self::ExtensionType2% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtensionType2|constructor#_#new#tearOff(core::int it) → self::ExtensionType2% /* erasure=core::int, declared=! */
   return self::ExtensionType2|constructor#(it);

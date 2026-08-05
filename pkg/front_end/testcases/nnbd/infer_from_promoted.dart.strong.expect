@@ -2,9 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/infer_from_promoted.dart:16:21: Error: A value of type 'String' can't be returned from a function with return type 'int'.
+// pkg/front_end/testcases/nnbd/infer_from_promoted.dart:16:17: Error: A value of type 'String' can't be returned from a function with return type 'int'.
 //   d = (a, b) => '$a';
-//                     ^
+//                 ^
 //
 import self as self;
 import "dart:core" as core;
@@ -18,8 +18,8 @@ static method test1() → dynamic {
 static method test2() → dynamic {
   dynamic d = (core::int a, core::int b) → core::int => a;
   d as (core::int, core::int) → core::int;
-  d = (core::int a, core::int b) → core::int => invalid-expression "pkg/front_end/testcases/nnbd/infer_from_promoted.dart:16:21: Error: A value of type 'String' can't be returned from a function with return type 'int'.
+  d = (core::int a, core::int b) → core::int => invalid-expression "pkg/front_end/testcases/nnbd/infer_from_promoted.dart:16:17: Error: A value of type 'String' can't be returned from a function with return type 'int'.
   d = (a, b) => '\$a';
-                    ^" in "${a}" as{TypeError} core::int;
+                ^" in "${a}" as{TypeError} core::int;
 }
 static method main() → dynamic {}

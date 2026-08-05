@@ -16,7 +16,7 @@ export 'package:analyzer/analysis_rule/analysis_rule.dart';
 bool _isInLibDir(String? filePath, WorkspacePackage? package) {
   if (package == null) return false;
   if (filePath == null) return false;
-  var libDir = package.root.getChildAssumingFolder('lib');
+  var libDir = package.root.getFolder('lib');
   return libDir.contains(filePath);
 }
 

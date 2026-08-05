@@ -8,7 +8,7 @@ import '../type_algebra.dart';
 /// Helper visitor that clones a type if a nested type is replaced, and
 /// otherwise returns `null`.
 class ReplacementVisitor implements DartTypeVisitor1<DartType?, Variance> {
-  const ReplacementVisitor();
+  const new();
 
   Nullability? visitNullability(DartType node) => null;
 

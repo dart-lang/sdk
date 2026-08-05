@@ -36,10 +36,13 @@ import 'package:status_file/expectation.dart';
 import 'package:status_file/src/expression.dart';
 
 StatusEntry? filterExpectations(
-    StatusEntry entry, List<Expectation> expectationsToKeep) {
+  StatusEntry entry,
+  List<Expectation> expectationsToKeep,
+) {
   List<Expectation> remaining = entry.expectations
       .where(
-          (Expectation expectation) => expectationsToKeep.contains(expectation))
+        (Expectation expectation) => expectationsToKeep.contains(expectation),
+      )
       .toList();
   return remaining.isEmpty
       ? null
@@ -128,11 +131,12 @@ String getIssueText(String comment, bool resolveState) {
 }
 
 Future<StatusFile> removeNonEssentialEntries(
-    StatusFile statusFile,
-    List<Expectation> expectationsToKeep,
-    bool removeComments,
-    List<String> comments,
-    bool resolveIssueState) async {
+  StatusFile statusFile,
+  List<Expectation> expectationsToKeep,
+  bool removeComments,
+  List<String> comments,
+  bool resolveIssueState,
+) async {
   List<StatusSection> sections = <StatusSection>[];
   for (StatusSection section in statusFile.sections) {
     bool hasStatusEntries = false;
@@ -160,7 +164,8 @@ Future<StatusFile> removeNonEssentialEntries(
                 ? "${section.condition}"
                 : "";
             String issueText = getIssueText(comment, resolveIssueState);
-            String statusLine = "$conditionPrefix\t$testName\t$expectations"
+            String statusLine =
+                "$conditionPrefix\t$testName\t$expectations"
                 "\t$comment\t$issueText";
             comments.add(statusLine);
           }
@@ -177,8 +182,11 @@ Future<StatusFile> removeNonEssentialEntries(
     var isDefaultSection = section.condition == Expression.always;
     if (hasStatusEntries ||
         (isDefaultSection && section.sectionHeaderComments.isNotEmpty)) {
-      var newSection =
-          StatusSection(section.condition, -1, section.sectionHeaderComments);
+      var newSection = StatusSection(
+        section.condition,
+        -1,
+        section.sectionHeaderComments,
+      );
       newSection.entries.addAll(entries);
       sections.add(newSection);
     }
@@ -191,28 +199,46 @@ Future<StatusFile> removeNonEssentialEntries(
 
 ArgParser buildParser() {
   var parser = ArgParser();
-  parser.addFlag("overwrite",
-      abbr: 'w',
-      negatable: false,
-      defaultsTo: false,
-      help: "Overwrite input file with output.");
-  parser.addFlag("keep-crashes",
-      abbr: 'c', negatable: false, defaultsTo: false);
-  parser.addFlag("remove-comments",
-      abbr: 'r', negatable: false, defaultsTo: false);
-  parser.addFlag("resolve-issue-states",
-      abbr: 'i', negatable: false, defaultsTo: false);
-  parser.addFlag("help",
-      abbr: "h",
-      negatable: false,
-      defaultsTo: false,
-      help: "Show help and commands for this tool.");
+  parser.addFlag(
+    "overwrite",
+    abbr: 'w',
+    negatable: false,
+    defaultsTo: false,
+    help: "Overwrite input file with output.",
+  );
+  parser.addFlag(
+    "keep-crashes",
+    abbr: 'c',
+    negatable: false,
+    defaultsTo: false,
+  );
+  parser.addFlag(
+    "remove-comments",
+    abbr: 'r',
+    negatable: false,
+    defaultsTo: false,
+  );
+  parser.addFlag(
+    "resolve-issue-states",
+    abbr: 'i',
+    negatable: false,
+    defaultsTo: false,
+  );
+  parser.addFlag(
+    "help",
+    abbr: "h",
+    negatable: false,
+    defaultsTo: false,
+    help: "Show help and commands for this tool.",
+  );
   return parser;
 }
 
 void printHelp(ArgParser parser) {
-  print("Usage: dart pkg/status_file/bin/remove_non_essential_entries.dart"
-      " <path>");
+  print(
+    "Usage: dart pkg/status_file/bin/remove_non_essential_entries.dart"
+    " <path>",
+  );
   print(parser.usage);
 }
 
@@ -237,7 +263,7 @@ void main(List<String> arguments) async {
     Expectation.skipByDesign,
     Expectation.skipSlow,
     Expectation.slow,
-    Expectation.extraSlow
+    Expectation.extraSlow,
   ];
 
   if (results["keep-crashes"]) {
@@ -255,8 +281,13 @@ void main(List<String> arguments) async {
     if (resolveGithubIssueState) {
       await parseIssueFile();
     }
-    statusFile = await removeNonEssentialEntries(statusFile, expectationsToKeep,
-        removeComments, comments, resolveGithubIssueState);
+    statusFile = await removeNonEssentialEntries(
+      statusFile,
+      expectationsToKeep,
+      removeComments,
+      comments,
+      resolveGithubIssueState,
+    );
     if (writeFile) {
       await File(path).writeAsString(statusFile.toString());
       print("Wrote $path.");

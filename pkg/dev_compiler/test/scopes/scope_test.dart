@@ -9,8 +9,8 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, ddcMarker, runTests;
 import 'package:front_end/src/api_prototype/experimental_flags.dart' as fe;
+import 'package:front_end/src/api_unstable/ddc.dart' show DartScopeBuilder2;
 import 'package:kernel/ast.dart';
-import 'package:kernel/dart_scope_calculator.dart';
 import 'package:kernel/src/printer.dart' show AstPrinter, AstTextStrategy;
 
 import '../id_testing_helper.dart';

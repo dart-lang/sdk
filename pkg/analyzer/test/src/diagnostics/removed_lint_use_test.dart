@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemovedLintUseTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -31,23 +32,21 @@ linter:
   }
 
   test_file() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: super_goes_last
+//                  ^^^^^^^^^^^^^^^
+// [diag.removedLintUse] 'super_goes_last' was removed in Dart '3.0.0'
 
 void f() { }
-''',
-      [error(diag.removedLintUse, 20, 15)],
-    );
+''');
   }
 
   test_line() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: super_goes_last
+//         ^^^^^^^^^^^^^^^
+// [diag.removedLintUse] 'super_goes_last' was removed in Dart '3.0.0'
 void f() { }
-''',
-      [error(diag.removedLintUse, 11, 15)],
-    );
+''');
   }
 }

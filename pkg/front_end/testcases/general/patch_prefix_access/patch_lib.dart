@@ -4,6 +4,7 @@
 
 // ignore: import_internal_library
 import 'dart:_internal';
+
 import 'main_lib.dart' as prefix;
 
 @patch

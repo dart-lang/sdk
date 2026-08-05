@@ -183,11 +183,11 @@ class RelevanceData {
   final Map<String, Map<_Kind, int>> _byKind = {};
 
   /// Initialize a newly created set of relevance data to be empty.
-  RelevanceData();
+  new();
 
   /// Initialize a newly created set of relevance data based on the content of
   /// the JSON encoded string.
-  RelevanceData.fromJson(String encoded) {
+  new fromJson(String encoded) {
     var map = json.decode(encoded) as Map<String, dynamic>;
     for (var contextEntry in map.entries) {
       var contextMap = _byKind.putIfAbsent(contextEntry.key, () => {});
@@ -340,7 +340,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
-  RelevanceDataCollector(this.data);
+  new(this.data);
 
   /// Initialize this collector prior to visiting the unit in the [result].
   void initializeFrom(ResolvedUnitResult result) {
@@ -397,12 +397,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitArgumentList(ArgumentList node) {
     var context = _argumentListContext(node);
     for (var argument in node.arguments) {
-      var realArgument = argument;
-      var argumentKind = 'unnamed';
-      if (argument is NamedExpression) {
-        realArgument = argument.expression;
-        argumentKind = 'named';
-      }
+      var realArgument = argument.argumentExpression;
+      var argumentKind = argument is NamedArgument ? 'named' : 'unnamed';
       _recordDataForNode(
         'ArgumentList_${context}_$argumentKind',
         realArgument,
@@ -529,7 +525,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitBreakStatement(BreakStatement node) {
     // The token following the `break` (if there is one) is always a label.
-    if (node.label case var label?) _unrecorded(label.token);
+    if (node.label case var label?) _unrecorded(label.name);
     super.visitBreakStatement(node);
   }
 
@@ -756,7 +752,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitContinueStatement(ContinueStatement node) {
     // The token following the `continue` (if there is one) is always a label.
-    if (node.label case var label?) _unrecorded(label.token);
+    if (node.label case var label?) _unrecorded(label.name);
     super.visitContinueStatement(node);
   }
 
@@ -772,16 +768,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // There are no completions.
     _recordDeclaration(node.name);
     super.visitDeclaredVariablePattern(node);
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _recordDataForNode(
-      'DefaultFormalParameter_defaultValue',
-      node.defaultValue,
-      allowedKeywords: expressionKeywords,
-    );
-    super.visitDefaultFormalParameter(node);
   }
 
   @override
@@ -992,7 +978,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // No other completions are valid after `extension`.
     _unrecorded(node.typeKeyword);
 
-    _recordDeclaration(node.primaryConstructor.typeName);
+    _recordDeclaration(node.namePart.typeName);
 
     for (var member in node.body.members) {
       _recordDataForNode(
@@ -1073,6 +1059,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     _recordDataForNode('ForElement_forLoopParts', node.forLoopParts);
     _recordDataForNode('ForElement_body', node.body);
     super.visitForElement(node);
+  }
+
+  @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    _recordDataForNode(
+      'DefaultFormalParameter_defaultValue',
+      node.value,
+      allowedKeywords: expressionKeywords,
+    );
+    super.visitFormalParameterDefaultClause(node);
   }
 
   @override
@@ -1188,10 +1184,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) {
     // There are no completions.
-    _recordDeclaration(node.name);
-    super.visitFunctionTypedFormalParameter(node);
+    super.visitFunctionTypedFormalParameterSuffix(node);
   }
 
   @override
@@ -1383,7 +1380,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitLabel(Label node) {
     // There are no completions.
-    _recordDeclaration(node.label.token);
+    _recordDeclaration(node.name);
     super.visitLabel(node);
   }
 
@@ -1544,9 +1541,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
+  void visitNamedArgument(NamedArgument node) {
     // Named expressions only occur in argument lists and are handled there.
-    super.visitNamedExpression(node);
+    super.visitNamedArgument(node);
   }
 
   @override
@@ -1742,8 +1739,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitRecordLiteral(RecordLiteral node) {
     for (var field in node.fields) {
       _recordDataForNode('RecordLiteral_fieldName', field);
-      if (field is NamedExpression) {
-        _recordDataForNode('RecordListeral_fieldValue', field.expression);
+      if (field is RecordLiteralNamedField) {
+        _recordDataForNode('RecordListeral_fieldValue', field.fieldExpression);
       }
     }
     super.visitRecordLiteral(node);
@@ -1796,6 +1793,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // list of constructors.
     if (node.constructorName?.token case var name?) _recordMember(name);
     super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _recordDataForNode('SimpleFormalParameter_type', node.type);
+    if (node.name case var name?) {
+      _recordDeclaration(name);
+    }
+    super.visitRegularFormalParameter(node);
   }
 
   @override
@@ -1858,15 +1864,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDataForNode('ShowCombinator_shownName', name);
     }
     super.visitShowCombinator(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _recordDataForNode('SimpleFormalParameter_type', node.type);
-    if (node.name case var name?) {
-      _recordDeclaration(name);
-    }
-    super.visitSimpleFormalParameter(node);
   }
 
   @override
@@ -2404,7 +2401,7 @@ class RelevanceMetricsComputer {
 
   /// Initialize a newly created metrics computer that can compute the metrics
   /// in one or more files and directories.
-  RelevanceMetricsComputer();
+  new();
 
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
@@ -2432,7 +2429,6 @@ class RelevanceMetricsComputer {
     // Create a new collection to avoid consuming large quantities of memory.
     var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
-      excludedPaths: root.excludedPaths.toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];
@@ -2531,7 +2527,7 @@ class RelevanceMetricsComputer {
 class RelevanceTableWriter {
   final StringSink sink;
 
-  RelevanceTableWriter(this.sink);
+  new(this.sink);
 
   void write(RelevanceData data) {
     writeFileHeader();
@@ -2699,10 +2695,10 @@ class _ElementKind extends _Kind {
 
   final ElementKind elementKind;
 
-  factory _ElementKind(ElementKind elementKind) =>
+  factory(ElementKind elementKind) =>
       instances.putIfAbsent(elementKind, () => _ElementKind._(elementKind));
 
-  _ElementKind._(this.elementKind);
+  new _(this.elementKind);
 
   @override
   String get uniqueKey => 'e${elementKind.name}';
@@ -2715,10 +2711,10 @@ class _Keyword extends _Kind {
 
   final Keyword keyword;
 
-  factory _Keyword(Keyword keyword) =>
+  factory(Keyword keyword) =>
       instances.putIfAbsent(keyword, () => _Keyword._(keyword));
 
-  _Keyword._(this.keyword);
+  new _(this.keyword);
 
   @override
   String get uniqueKey => 'k${keyword.lexeme}';

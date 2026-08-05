@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceColonWithEquals extends ResolvedCorrectionProducer {
-  ReplaceColonWithEquals({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -25,12 +25,12 @@ class ReplaceColonWithEquals extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    if (node is! DefaultFormalParameter) {
+    if (node is! FormalParameterDefaultClause) {
       return;
     }
 
     var separator = node.separator;
-    if (separator == null) {
+    if (separator.lexeme != ':') {
       return;
     }
 

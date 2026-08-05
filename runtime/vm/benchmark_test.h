@@ -21,10 +21,8 @@ DECLARE_FLAG(int, old_gen_growth_space_ratio);
 
 namespace bin {
 // Snapshot pieces if we link in a snapshot, otherwise initialized to nullptr.
-extern const uint8_t* vm_snapshot_data;
-extern const uint8_t* vm_snapshot_instructions;
-extern const uint8_t* core_isolate_snapshot_data;
-extern const uint8_t* core_isolate_snapshot_instructions;
+extern const uint8_t* core_snapshot_data;
+extern const uint8_t* core_snapshot_text;
 }  // namespace bin
 
 // The BENCHMARK macros are used for benchmarking a specific functionality

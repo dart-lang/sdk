@@ -19,7 +19,6 @@ dependencies:
   collection: any
   dart2native: any
   dart_data_home: any
-  dart_mcp_server: any
   dart_style: any
   dartdoc: any
   data_assets: any
@@ -47,7 +46,6 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  dart_mcp: any
   expect: any
   lints: any
   pub_semver: any

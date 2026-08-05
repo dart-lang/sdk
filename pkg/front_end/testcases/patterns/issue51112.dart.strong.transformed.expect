@@ -2,20 +2,20 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/issue51112.dart:8:47: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// pkg/front_end/testcases/patterns/issue51112.dart:11:13: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 // Try assigning to a different variable.
-//     case [int y, _] when () { setToOne = () { y = 1; }; return true; }():
-//                                               ^
+//             y = 1;
+//             ^
 //
-// pkg/front_end/testcases/patterns/issue51112.dart:9:47: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// pkg/front_end/testcases/patterns/issue51112.dart:18:13: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 // Try assigning to a different variable.
-//     case [_, int y] when () { setToOne = () { y = 1; }; return true; }():
-//                                               ^
+//             y = 1;
+//             ^
 //
-// pkg/front_end/testcases/patterns/issue51112.dart:12:47: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// pkg/front_end/testcases/patterns/issue51112.dart:27:13: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 // Try assigning to a different variable.
-//     case [double y] when () { setToOne = () { y = 1.0; }; return true; }():
-//                                               ^
+//             y = 1.0;
+//             ^
 //
 import self as self;
 import "dart:core" as core;

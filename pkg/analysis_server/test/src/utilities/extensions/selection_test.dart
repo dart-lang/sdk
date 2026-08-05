@@ -24,6 +24,118 @@ void main() {
 /// containing the constructor declaration.
 @reflectiveTest
 class SelectionConstructorInClassTest extends _SelectionConstructorTestBase {
+  Future<void> test_declaration_inBody_factory_named_onConstructorName() async {
+    await resolveTestCode('''
+class C {
+  factory na^me() => C._();
+  C._();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_factory_named_onFactory() async {
+    await resolveTestCode('''
+class C {
+  facto^ry name() => C._();
+  C._();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_factory_named_overBoth() async {
+    await resolveTestCode('''
+class C {
+  fact[!ory na!]me() => C._();
+  C._();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_factory_unnamed() async {
+    await resolveTestCode('''
+class C {
+  facto^ry () => C._();
+  C._();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_new_named_onConstructorName() async {
+    await resolveTestCode('''
+class C {
+  new na^me();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_new_named_onNew() async {
+    await resolveTestCode('''
+class C {
+  ne^w name();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_new_named_overBoth() async {
+    await resolveTestCode('''
+class C {
+  ne[!w na!]me();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_new_unnamed() async {
+    await resolveTestCode('''
+class C {
+  ^new ();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_simple_named_onClassName() async {
+    await resolveTestCode('''
+class C {
+  ^C.name();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_simple_named_onConstructorName() async {
+    await resolveTestCode('''
+class C {
+  C.na^me();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_simple_named_overBoth() async {
+    await resolveTestCode('''
+class C {
+  [!C.na!]me();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_simple_unnamed() async {
+    await resolveTestCode('''
+class C {
+  ^C();
+}
+''');
+    _assertHasConstructor();
+  }
+
   Future<void> test_declaration_primary_named_onConstructorName() async {
     await resolveTestCode('''
 class C.n^ame() {}
@@ -55,120 +167,6 @@ cla^ss C() {}
   Future<void> test_declaration_primary_unnamed() async {
     await resolveTestCode('''
 class C^() {}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void>
-  test_declaration_secondary_factory_named_onConstructorName() async {
-    await resolveTestCode('''
-class C {
-  factory na^me() => C._();
-  C._();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_factory_named_onFactory() async {
-    await resolveTestCode('''
-class C {
-  facto^ry name() => C._();
-  C._();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_factory_named_overBoth() async {
-    await resolveTestCode('''
-class C {
-  fact[!ory na!]me() => C._();
-  C._();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_factory_unnamed() async {
-    await resolveTestCode('''
-class C {
-  facto^ry () => C._();
-  C._();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_new_named_onConstructorName() async {
-    await resolveTestCode('''
-class C {
-  new na^me();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_new_named_onNew() async {
-    await resolveTestCode('''
-class C {
-  ne^w name();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_new_named_overBoth() async {
-    await resolveTestCode('''
-class C {
-  ne[!w na!]me();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_new_unnamed() async {
-    await resolveTestCode('''
-class C {
-  ^new ();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_simple_named_onClassName() async {
-    await resolveTestCode('''
-class C {
-  ^C.name();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void>
-  test_declaration_secondary_simple_named_onConstructorName() async {
-    await resolveTestCode('''
-class C {
-  C.na^me();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_simple_named_overBoth() async {
-    await resolveTestCode('''
-class C {
-  [!C.na!]me();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_simple_unnamed() async {
-    await resolveTestCode('''
-class C {
-  ^C();
-}
 ''');
     _assertHasConstructor();
   }
@@ -239,6 +237,146 @@ void f() {
 
 @reflectiveTest
 class SelectionConstructorInEnumTest extends _SelectionConstructorTestBase {
+  Future<void> test_declaration_inBody_factory_named_onConstructorName() async {
+    await resolveTestCode('''
+enum E {
+  a._();
+
+  factory na^me() => a;
+
+  const E._();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_factory_named_onFactory() async {
+    await resolveTestCode('''
+enum E {
+  a._();
+
+  facto^ry name() => a;
+
+  const E._();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_factory_named_overBoth() async {
+    await resolveTestCode('''
+enum E {
+  a._();
+
+  fa[!ctory na!]me() => a;
+
+  const E._();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_factory_unnamed() async {
+    await resolveTestCode('''
+enum E {
+  a._();
+
+  facto^ry () => a;
+
+  const E._();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_new_named_onConstructorName() async {
+    await resolveTestCode('''
+enum E {
+  a.name();
+
+  const new na^me();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_new_named_onNew() async {
+    await resolveTestCode('''
+enum E {
+  a.name();
+
+  const new^ name();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_new_named_overBoth() async {
+    await resolveTestCode('''
+enum E {
+  a.name();
+
+  const ne[!w na!]me();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_new_unnamed() async {
+    await resolveTestCode('''
+enum E {
+  a();
+
+  const ^new ();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_simple_named_onConstructorName() async {
+    await resolveTestCode('''
+enum E {
+  a.name();
+
+  const E.na^me();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_simple_named_onEnumName() async {
+    await resolveTestCode('''
+enum E {
+  a.name();
+
+  const E^.name();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_simple_named_overBoth() async {
+    await resolveTestCode('''
+enum E {
+  a.name();
+
+  const [!E.na!]me();
+}
+''');
+    _assertHasConstructor();
+  }
+
+  Future<void> test_declaration_inBody_simple_unnamed() async {
+    await resolveTestCode('''
+enum E {
+  a();
+
+  const E^();
+}
+''');
+    _assertHasConstructor();
+  }
+
   Future<void> test_declaration_primary_named_onConstructorName() async {
     await resolveTestCode('''
 enum E.n^ame() { a.name() }
@@ -270,148 +408,6 @@ en^um E() { a }
   Future<void> test_declaration_primary_unnamed() async {
     await resolveTestCode('''
 enum E^() { a }
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void>
-  test_declaration_secondary_factory_named_onConstructorName() async {
-    await resolveTestCode('''
-enum E {
-  a._();
-
-  factory na^me() => a;
-
-  const E._();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_factory_named_onFactory() async {
-    await resolveTestCode('''
-enum E {
-  a._();
-
-  facto^ry name() => a;
-
-  const E._();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_factory_named_overBoth() async {
-    await resolveTestCode('''
-enum E {
-  a._();
-
-  fa[!ctory na!]me() => a;
-
-  const E._();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_factory_unnamed() async {
-    await resolveTestCode('''
-enum E {
-  a._();
-
-  facto^ry () => a;
-
-  const E._();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_new_named_onConstructorName() async {
-    await resolveTestCode('''
-enum E {
-  a.name();
-
-  const new na^me();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_new_named_onNew() async {
-    await resolveTestCode('''
-enum E {
-  a.name();
-
-  const new^ name();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_new_named_overBoth() async {
-    await resolveTestCode('''
-enum E {
-  a.name();
-
-  const ne[!w na!]me();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_new_unnamed() async {
-    await resolveTestCode('''
-enum E {
-  a();
-
-  const ^new ();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void>
-  test_declaration_secondary_simple_named_onConstructorName() async {
-    await resolveTestCode('''
-enum E {
-  a.name();
-
-  const E.na^me();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_simple_named_onEnumName() async {
-    await resolveTestCode('''
-enum E {
-  a.name();
-
-  const E^.name();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_simple_named_overBoth() async {
-    await resolveTestCode('''
-enum E {
-  a.name();
-
-  const [!E.na!]me();
-}
-''');
-    _assertHasConstructor();
-  }
-
-  Future<void> test_declaration_secondary_simple_unnamed() async {
-    await resolveTestCode('''
-enum E {
-  a();
-
-  const E^();
-}
 ''');
     _assertHasConstructor();
   }

@@ -14,7 +14,7 @@ abstract class DartCompletionContributor {
   final DartCompletionRequest request;
   final SuggestionBuilder builder;
 
-  DartCompletionContributor(this.request, this.builder);
+  new(this.request, this.builder);
 
   /// Return a [Future] that completes when the suggestions appropriate for the
   /// given completion [request] have been added to the [builder].

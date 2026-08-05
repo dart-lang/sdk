@@ -194,7 +194,7 @@ class UnboxingInfoManager {
         // Arguments of implicit setters for covariant fields
         // cannot be unboxed based on the field type as setter
         // performs a type check before value is assigned to the field.
-        if (member.isCovariantByDeclaration) {
+        if (member.isCovariantByDeclaration || member.isCovariantByClass) {
           unboxingInfo.argsInfo.length = 0;
         } else {
           _applyToArg(member, unboxingInfo, 0, inferredType);

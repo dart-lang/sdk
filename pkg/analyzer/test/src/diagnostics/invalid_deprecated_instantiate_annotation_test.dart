@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,59 +16,50 @@ main() {
 class InvalidDeprecatedInstantiateAnnotationTest
     extends PubPackageResolutionTest {
   test_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.instantiate()
 class C {}
 ''');
   }
 
   test_class_abstract() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.instantiate()
+// [diag.invalidDeprecatedInstantiateAnnotation][column 2][length 22] The annotation '@Deprecated.instantiate' can only be applied to classes.
 abstract class C {}
-''',
-      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
-    );
+''');
   }
 
   test_class_private() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.instantiate()
+// [diag.invalidDeprecatedInstantiateAnnotation][column 2][length 22] The annotation '@Deprecated.instantiate' can only be applied to classes.
 class _C {}
-''',
-      [
-        error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22),
-        error(diag.unusedElement, 32, 2),
-      ],
-    );
+//    ^^
+// [diag.unusedElement] The declaration '_C' isn't referenced.
+''');
   }
 
   test_class_privateConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.instantiate()
+// [diag.invalidDeprecatedInstantiateAnnotation][column 2][length 22] The annotation '@Deprecated.instantiate' can only be applied to classes.
 sealed class C {
   C._();
 }
-''',
-      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
-    );
+''');
   }
 
   test_class_sealed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.instantiate()
+// [diag.invalidDeprecatedInstantiateAnnotation][column 2][length 22] The annotation '@Deprecated.instantiate' can only be applied to classes.
 sealed class C {}
-''',
-      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
-    );
+''');
   }
 
   test_classTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 @Deprecated.instantiate()
 class C = Object with M;
@@ -77,27 +67,23 @@ class C = Object with M;
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.instantiate()
+// [diag.invalidDeprecatedInstantiateAnnotation][column 2][length 22] The annotation '@Deprecated.instantiate' can only be applied to classes.
 enum E { one; }
-''',
-      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
-    );
+''');
   }
 
   test_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.instantiate()
+// [diag.invalidDeprecatedInstantiateAnnotation][column 2][length 22] The annotation '@Deprecated.instantiate' can only be applied to classes.
 void f() {}
-''',
-      [error(diag.invalidDeprecatedInstantiateAnnotation, 1, 22)],
-    );
+''');
   }
 
   test_typeAlias_forClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 @Deprecated.instantiate()
 typedef D = C;
@@ -105,13 +91,11 @@ typedef D = C;
   }
 
   test_typeAlias_forEnum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { one; }
 @Deprecated.instantiate()
+// [diag.invalidDeprecatedInstantiateAnnotation][column 2][length 22] The annotation '@Deprecated.instantiate' can only be applied to classes.
 typedef F = E;
-''',
-      [error(diag.invalidDeprecatedInstantiateAnnotation, 17, 22)],
-    );
+''');
   }
 }

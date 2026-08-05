@@ -19,105 +19,92 @@ class AlwaysDeclareReturnTypesTest extends LintRuleTest {
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
-  f() { }
+  [!f!]() { }
 }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(39, 1)]);
   }
 
   test_augmentationTopLevelFunction() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
-f() { }
+[!f!]() { }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(19, 1)]);
   }
 
   /// Augmentation target chain variations tested in
   /// `augmentedTopLevelFunction{*}`.
   test_augmentedMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment class A {
+  augment f();
+}
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class A {
-  f() { }
+  [!f!]() { }
 }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment class A {
-  augment f() { }
-}
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(28, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment f();
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
-f() { }
+[!f!]() { }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment f() { }
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction_chain() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment dynamic f();
+augment f();
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
-f() { }
+[!f!]() { }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment dynamic f() { }
-augment f() { }
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_extensionMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int {
-  f() {}
+  [!f!]() {}
 }
-''',
-      [lint(23, 1)],
-    );
+''');
   }
 
   test_instanceSetter() async {
@@ -129,14 +116,11 @@ class C {
   }
 
   test_method_expressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
-  f() => 42;
+  [!f!]() => 42;
 }
-''',
-      [lint(12, 1)],
-    );
+''');
   }
 
   test_method_testUnderscore_notInPubPackageTest_hasReturnType() async {
@@ -148,14 +132,11 @@ class A {
   }
 
   test_method_testUnderscore_notInPubPackageTest_noReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
-  test_foo() {}
+  [!test_foo!]() {}
 }
-''',
-      [lint(12, 8)],
-    );
+''');
   }
 
   test_method_withReturnType() async {
@@ -166,63 +147,68 @@ class C {
 ''');
   }
 
-  test_operator() async {
+  test_operator_binary() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  operator [!+!](C c) => c;
+}
+''');
+  }
+
+  test_operator_binary_withReturnType() async {
     await assertNoDiagnostics(r'''
 class C {
-  operator []=(int index, int value) //OK: #300
-  {}
+  C operator +(C c) => c;
+}
+''');
+  }
+
+  test_operator_indexAssignment() async {
+    await assertNoDiagnostics(r'''
+class C {
+  operator []=(int index, int value) {}
 }
 ''');
   }
 
   test_pubPackageTest_method_notTest_hasReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertNoDiagnosticsInTestDir(r'''
 class MyTest {
   void foo() {}
 }
 ''');
-
-    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_pubPackageTest_method_notTest_noReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertDiagnosticsInTestDirFromMarkup(r'''
 class MyTest {
-  foo() {}
+  [!foo!]() {}
 }
 ''');
-
-    await assertDiagnosticsInFile(file.path, [lint(17, 3)]);
   }
 
   test_pubPackageTest_method_soloTest_noReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertNoDiagnosticsInTestDir(r'''
 class MyTest {
   solo_test_foo() {}
 }
 ''');
-
-    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_pubPackageTest_method_test_hasReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertNoDiagnosticsInTestDir(r'''
 class MyTest {
   void test_foo() {}
 }
 ''');
-
-    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_pubPackageTest_method_test_noReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertNoDiagnosticsInTestDir(r'''
 class MyTest {
   test_foo() {}
 }
 ''');
-
-    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_staticSetter() async {
@@ -240,12 +226,9 @@ int f() => 7;
   }
 
   test_topLevelFunction_expressionBody() async {
-    await assertDiagnostics(
-      r'''
-f() => 7;
-''',
-      [lint(0, 1)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+[!f!]() => 7;
+''');
   }
 
   test_topLevelFunction_expressionBody_withReturnType() async {
@@ -255,12 +238,9 @@ void f() { }
   }
 
   test_topLevelFunction_noReturn() async {
-    await assertDiagnostics(
-      r'''
-f() {}
-''',
-      [lint(0, 1)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+[!f!]() {}
+''');
   }
 
   test_topLevelSetter() async {
@@ -270,12 +250,9 @@ set f(int p) {}
   }
 
   test_typedef_oldStyle() async {
-    await assertDiagnostics(
-      r'''
-typedef t(int x);
-''',
-      [lint(8, 1)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+typedef [!t!](int x);
+''');
   }
 
   test_typedef_oldStyle_withReturnType() async {

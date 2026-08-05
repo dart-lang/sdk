@@ -19,7 +19,7 @@ extension type E(<T extends core::Object? = dynamic>(T%) → T% call) {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(<T extends core::Object? = dynamic>(T%) → T% call) → self::E% /* erasure=<T extends core::Object? = dynamic>(T%) → T%, declared=! */ {
+static extension-type-member method E|constructor#(initializing-formal <T extends core::Object? = dynamic>(T%) → T% call) → self::E% /* erasure=<T extends core::Object? = dynamic>(T%) → T%, declared=! */ {
   lowered final self::E% /* erasure=<T extends core::Object? = dynamic>(T%) → T%, declared=! */ #this = call;
   return #this;
 }

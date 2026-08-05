@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,97 +20,88 @@ main() {
 class ConflictingTypeVariableAndMemberClassTest
     extends PubPackageResolutionTest {
   test_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberClass] 'T' can't be used to name both a type parameter and a member in this class.
   A.T();
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
-    );
+''');
   }
 
   test_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberClass] 'T' can't be used to name both a type parameter and a member in this class.
   var T;
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
-    );
+''');
   }
 
   test_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberClass] 'T' can't be used to name both a type parameter and a member in this class.
   get T => null;
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberClass] 'T' can't be used to name both a type parameter and a member in this class.
   T() {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
-    );
+''');
   }
 
   test_method_static() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberClass] 'T' can't be used to name both a type parameter and a member in this class.
   static T() {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
-    );
+''');
   }
 
   test_method_wildcard() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<_> {
   _() {}
+//^
+// [diag.unusedElement] The declaration '_' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 15, 1)],
-    );
+''');
   }
 
   test_method_wildcard_preWildcards() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 class A<_> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberClass] '_' can't be used to name both a type parameter and a member in this class.
   _() {}
+//^
+// [diag.unusedElement] The declaration '_' isn't referenced.
 }
-''',
-      [
-        error(diag.conflictingTypeVariableAndMemberClass, 52, 1),
-        error(diag.unusedElement, 59, 1),
-      ],
-    );
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberClass] 'T' can't be used to name both a type parameter and a member in this class.
   set T(x) {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
-    );
+''');
   }
 }
 
@@ -119,39 +109,36 @@ class A<T> {
 class ConflictingTypeVariableAndMemberEnumTest
     extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T> {
+//     ^
+// [diag.conflictingTypeVariableAndMemberEnum] 'T' can't be used to name both a type parameter and a member in this enum.
   v;
   get T => null;
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberEnum, 7, 1)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T> {
+//     ^
+// [diag.conflictingTypeVariableAndMemberEnum] 'T' can't be used to name both a type parameter and a member in this enum.
   v;
   void T() {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberEnum, 7, 1)],
-    );
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A<T> {
+//     ^
+// [diag.conflictingTypeVariableAndMemberEnum] 'T' can't be used to name both a type parameter and a member in this enum.
   v;
   set T(x) {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberEnum, 7, 1)],
-    );
+''');
   }
 }
 
@@ -159,36 +146,33 @@ enum A<T> {
 class ConflictingTypeVariableAndMemberExtensionTest
     extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T> on String {
+//          ^
+// [diag.conflictingTypeVariableAndMemberExtension] 'T' can't be used to name both a type parameter and a member in this extension.
   get T => null;
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberExtension, 12, 1)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T> on String {
+//          ^
+// [diag.conflictingTypeVariableAndMemberExtension] 'T' can't be used to name both a type parameter and a member in this extension.
   T() {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberExtension, 12, 1)],
-    );
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A<T> on String {
+//          ^
+// [diag.conflictingTypeVariableAndMemberExtension] 'T' can't be used to name both a type parameter and a member in this extension.
   set T(x) {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberExtension, 12, 1)],
-    );
+''');
   }
 }
 
@@ -196,56 +180,51 @@ extension A<T> on String {
 class ConflictingTypeVariableAndMemberExtensionTypeTest
     extends PubPackageResolutionTest {
   test_constructor_explicit() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {
+//               ^
+// [diag.conflictingTypeVariableAndMemberExtensionType] 'T' can't be used to name both a type parameter and a member in this extension type.
   A.T(int it) : this(it);
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
-    );
+''');
   }
 
   test_constructor_primary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>.T(int it) {}
-''',
-      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
-    );
+//               ^
+// [diag.conflictingTypeVariableAndMemberExtensionType] 'T' can't be used to name both a type parameter and a member in this extension type.
+''');
   }
 
   test_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {
+//               ^
+// [diag.conflictingTypeVariableAndMemberExtensionType] 'T' can't be used to name both a type parameter and a member in this extension type.
   get T => null;
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {
+//               ^
+// [diag.conflictingTypeVariableAndMemberExtensionType] 'T' can't be used to name both a type parameter and a member in this extension type.
   T() {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
-    );
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {
+//               ^
+// [diag.conflictingTypeVariableAndMemberExtensionType] 'T' can't be used to name both a type parameter and a member in this extension type.
   set T(x) {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
-    );
+''');
   }
 }
 
@@ -253,57 +232,52 @@ extension type A<T>(int it) {
 class ConflictingTypeVariableAndMemberMixinTest
     extends PubPackageResolutionTest {
   test_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberMixin] 'T' can't be used to name both a type parameter and a member in this mixin.
   var T;
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
-    );
+''');
   }
 
   test_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberMixin] 'T' can't be used to name both a type parameter and a member in this mixin.
   get T => null;
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberMixin] 'T' can't be used to name both a type parameter and a member in this mixin.
   T() {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
-    );
+''');
   }
 
   test_method_static() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberMixin] 'T' can't be used to name both a type parameter and a member in this mixin.
   static T() {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
-    );
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M<T> {
+//      ^
+// [diag.conflictingTypeVariableAndMemberMixin] 'T' can't be used to name both a type parameter and a member in this mixin.
   set T(x) {}
 }
-''',
-      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
-    );
+''');
   }
 }

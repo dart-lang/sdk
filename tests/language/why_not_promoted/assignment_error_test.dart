@@ -59,9 +59,9 @@ via_prefix_op(C? c) {
 via_for_each_statement(int? i, List<int?> list) {
   if (i == null) return;
   for (i in list) {
-  //   ^
-  // [context 5] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
-  // [context 14] Variable 'i' could not be promoted due to an assignment.
+    // ^
+    // [context 5] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+    // [context 14] Variable 'i' could not be promoted due to an assignment.
     i.isEven;
     //^^^^^^
     // [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE

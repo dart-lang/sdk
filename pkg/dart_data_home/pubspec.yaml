@@ -1,12 +1,11 @@
 name: dart_data_home
-version: 0.1.0-wip
+version: 0.1.0
 description: >-
   A package providing a standardized way to access a user-specific data
-  directory for Dart and Flutter tooling, defaulting to OS-conventions
-  and configurable via the `DART_DATA_HOME` environment variable.
+  directory for Dart and Flutter tooling, defaulting to OS-conventions and
+  configurable via the `DART_DATA_HOME` environment variable.
 
-# This package will be published at some point to be able to use it for Dart and
-# Flutter tooling that does not live in the Dart SDK.
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/dart_data_home
 
 environment:
   sdk: ^3.8.0
@@ -14,7 +13,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  cli_util: 0.5.0-wip
+  cli_util: ^0.5.0
   path: ^1.9.0
 
 # We use 'any' version constraints here as we get our package versions from

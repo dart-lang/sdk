@@ -9,6 +9,7 @@
 // This test is not compatible with dart2js: Int64List is not supported.
 
 import "dart:typed_data";
+
 import 'package:expect/expect.dart';
 
 void testStoreLoad(l, z) {

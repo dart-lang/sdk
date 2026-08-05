@@ -22,8 +22,7 @@ const _desc =
     r'If-elements testing for null can be replaced with null-aware elements.';
 
 class UseNullAwareElements extends AnalysisRule {
-  UseNullAwareElements()
-    : super(name: LintNames.use_null_aware_elements, description: _desc);
+  new() : super(name: LintNames.use_null_aware_elements, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.useNullAwareElements;
@@ -42,17 +41,19 @@ class UseNullAwareElements extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitIfElement(IfElement node) {
     if (node case IfElement(:var thenElement, elseKeyword: null)) {
       Element? nullCheckTarget;
-      if (node.expression case BinaryExpression(
-        :var operator,
-        :var leftOperand,
-        :var rightOperand,
-      ) when operator.isOperator && operator.lexeme == '!=') {
+      if (node.expression
+          case BinaryExpression(
+            :var operator,
+            :var leftOperand,
+            :var rightOperand,
+          )
+          when operator.isOperator && operator.lexeme == '!=') {
         // Case of non-pattern null checks of the form `if (x != null) x`.
         if (leftOperand is NullLiteral) {
           // Cases of the form `if (null != x) x`.
@@ -61,9 +62,11 @@ class _Visitor extends SimpleAstVisitor<void> {
           // Cases of the form `if (x != null) x`.
           nullCheckTarget = leftOperand.canonicalElement;
         }
-      } else if (node.caseClause?.guardedPattern.pattern case NullCheckPattern(
-        pattern: DeclaredVariablePattern(:var declaredFragment),
-      ) when node.caseClause?.guardedPattern.whenClause == null) {
+      } else if (node.caseClause?.guardedPattern.pattern
+          case NullCheckPattern(
+            pattern: DeclaredVariablePattern(:var declaredFragment),
+          )
+          when node.caseClause?.guardedPattern.whenClause == null) {
         // Case of pattern null checks of the form `if (x case var y?) y`.
         nullCheckTarget = declaredFragment?.element;
       }
@@ -117,15 +120,19 @@ class _Visitor extends SimpleAstVisitor<void> {
         //     {..., if (x != null) x!: value, ...}
         //     {..., if (x != null) key: x!, ...}
         case (GetterElement(), MapLiteralEntry(:var key, :var value)):
-          if (key case PostfixExpression(
-            operand: SimpleIdentifier(canonicalElement: var reference),
-            operator: Token(lexeme: '!'),
-          ) when nullCheckTarget == reference) {
+          if (key
+              case PostfixExpression(
+                operand: SimpleIdentifier(canonicalElement: var reference),
+                operator: Token(lexeme: '!'),
+              )
+              when nullCheckTarget == reference) {
             rule.reportAtToken(node.ifKeyword);
-          } else if (value case PostfixExpression(
-            operand: SimpleIdentifier(canonicalElement: var reference),
-            operator: Token(lexeme: '!'),
-          ) when nullCheckTarget == reference) {
+          } else if (value
+              case PostfixExpression(
+                operand: SimpleIdentifier(canonicalElement: var reference),
+                operator: Token(lexeme: '!'),
+              )
+              when nullCheckTarget == reference) {
             rule.reportAtToken(node.ifKeyword);
           }
       }

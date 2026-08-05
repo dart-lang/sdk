@@ -31,7 +31,7 @@ Future<void> main(List<String> args) async {
 }
 
 class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
-  const ClassHierarchyDataComputer();
+  const new();
 
   /// Function that computes a data mapping for [library].
   ///
@@ -122,10 +122,8 @@ class Tag {
 class InheritanceDataExtractor extends CfeDataExtractor<Features> {
   final InternalCompilerResult _compilerResult;
 
-  InheritanceDataExtractor(
-    this._compilerResult,
-    Map<Id, ActualData<Features>> actualMap,
-  ) : super(_compilerResult, actualMap);
+  new(this._compilerResult, Map<Id, ActualData<Features>> actualMap)
+    : super(_compilerResult, actualMap);
 
   CoreTypes get _coreTypes => _compilerResult.coreTypes!;
 

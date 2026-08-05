@@ -54,7 +54,7 @@ void f() {
     await assertHasFix('''
 /// $_text200
 class A {
-  A(int i, double d);
+  new(int i, double d);
 }
 ''', target: a);
   }
@@ -74,7 +74,7 @@ A f() {
     await assertHasFix('''
 /// $_text200
 class A {
-  A(int i, double d);
+  new(int i, double d);
 }
 ''', target: a);
   }
@@ -94,7 +94,7 @@ void f() {
     await assertHasFix('''
 /// $_text200
 class A {
-  A.named(int i, double d);
+  new named(int i, double d);
 }
 ''', target: a);
   }
@@ -114,7 +114,7 @@ A f() {
     await assertHasFix('''
 /// $_text200
 class A {
-  A.named(int i, double d);
+  new named(int i, double d);
 }
 ''', target: a);
   }
@@ -147,7 +147,7 @@ void f() {
 class A {
   int field = 0;
 
-  A(int i, double d);
+  new(int i, double d);
 
   method() {}
 }
@@ -172,7 +172,7 @@ A f() {
 class A {
   int field = 0;
 
-  A(int i, double d);
+  new(int i, double d);
 
   method() {}
 }
@@ -204,7 +204,7 @@ void f() {
 ''');
     await assertHasFix('''
 class A {
-  A.named(int i, double d);
+  new named(int i, double d);
 
   method() {}
 }
@@ -226,7 +226,7 @@ A f() {
 ''');
     await assertHasFix('''
 class A {
-  A.named(int i, double d);
+  new named(int i, double d);
 
   method() {}
 }
@@ -246,7 +246,7 @@ void f() {
 ''');
     await assertHasFix('''
 class A {
-  A.named(int i);
+  new named(int i);
 }
 void f() {
   new A.named(1);
@@ -264,7 +264,7 @@ A f() {
 ''');
     await assertHasFix('''
 class A {
-  A.named(int i);
+  new named(int i);
 }
 A f() {
   return .named(1);
@@ -285,7 +285,7 @@ enum E {
   c.x();
   const E.y();
 
-  const E.x();
+  const new x();
 }
 ''', matchFixMessage: "Create constructor 'E.x'");
   }
@@ -302,7 +302,7 @@ enum E {
   c;
   const E.x();
 
-  const E();
+  const new();
 }
 ''', matchFixMessage: "Create constructor 'E'");
   }
@@ -319,7 +319,7 @@ enum E {
   c(1);
   const E.x();
 
-  const E(int i);
+  const new(int i);
 }
 ''');
   }
@@ -335,7 +335,7 @@ A f() {
 ''');
     await assertHasFix('''
 class A {
-  A(int i);
+  new(int i);
 
   method() {}
 }

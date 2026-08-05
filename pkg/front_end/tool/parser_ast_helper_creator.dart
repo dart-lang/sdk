@@ -17,9 +17,8 @@ import '../test/utils/io_utils.dart'
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateAstHelper(repoDir);
-  new File.fromUri(
-    computeAstHelperUri(repoDir),
-  ).writeAsStringSync(generated, flush: true);
+  new File.fromUri(computeAstHelperUri(repoDir))
+      .writeAsStringSync(generated, flush: true);
 }
 
 Uri computeAstHelperUri(Uri repoDir) {
@@ -71,7 +70,7 @@ abstract class ParserAstNode {
   List<ParserAstNode>? children;
   ParserAstNode? parent;
 
-  ParserAstNode(this.what, this.type);
+  new(this.what, this.type);
 
   R accept<R>(ParserAstVisitor<R> v);
 
@@ -179,9 +178,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
   out.write(r"}");
 
-  return new DartFormatter(
-    languageVersion: getPackageVersionFor("front_end"),
-  ).format("$out");
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {
@@ -195,13 +193,12 @@ class ParserCreatorListener extends Listener {
   final StringBuffer newClasses = new StringBuffer();
   final List<String> visitNames = [];
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -380,7 +377,7 @@ class ParserCreatorListener extends Listener {
         }
         newClasses.write('\n');
         newClasses.write(
-          "  ${name}${typeStringCamel}"
+          "  new"
           "(ParserAstType type",
         );
         String separator = ", {";
@@ -465,5 +462,5 @@ class Parameter {
   final String type;
   final bool hasQuestion;
 
-  Parameter(this.name, this.type, this.hasQuestion);
+  new(this.name, this.type, this.hasQuestion);
 }

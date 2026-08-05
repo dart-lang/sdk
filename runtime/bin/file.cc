@@ -392,7 +392,7 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
   const char* raw_name = DartUtils::GetNativeTypedDataArgument(args, 1);
   int64_t return_value = File::LastModified(namespc, raw_name);
   if (return_value >= 0) {
-    Dart_SetIntegerReturnValue(args, return_value * kMillisecondsPerSecond);
+    Dart_SetIntegerReturnValue(args, return_value);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -400,13 +400,13 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_SetLastModified)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  int64_t millis;
-  if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &millis)) {
+  int64_t micros;
+  if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &micros)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "The second argument must be a 64-bit int."));
   }
   const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
-  bool result = File::SetLastModified(namespc, name, millis);
+  bool result = File::SetLastModified(namespc, name, micros);
   if (!result) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -417,7 +417,7 @@ void FUNCTION_NAME(File_LastAccessed)(Dart_NativeArguments args) {
   const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
   int64_t return_value = File::LastAccessed(namespc, name);
   if (return_value >= 0) {
-    Dart_SetIntegerReturnValue(args, return_value * kMillisecondsPerSecond);
+    Dart_SetIntegerReturnValue(args, return_value);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -425,13 +425,13 @@ void FUNCTION_NAME(File_LastAccessed)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_SetLastAccessed)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  int64_t millis;
-  if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &millis)) {
+  int64_t micros;
+  if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &micros)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "The second argument must be a 64-bit int."));
   }
   const char* name = DartUtils::GetNativeTypedDataArgument(args, 1);
-  bool result = File::SetLastAccessed(namespc, name, millis);
+  bool result = File::SetLastAccessed(namespc, name, micros);
   if (!result) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -1030,8 +1030,7 @@ CObject* File::LastAccessedRequest(const CObjectArray& request) {
   if (return_value < 0) {
     return CObject::NewOSError();
   }
-  return new CObjectIntptr(
-      CObject::NewInt64(return_value * kMillisecondsPerSecond));
+  return new CObjectIntptr(CObject::NewInt64(return_value));
 }
 
 CObject* File::SetLastAccessedRequest(const CObjectArray& request) {
@@ -1045,9 +1044,9 @@ CObject* File::SetLastAccessedRequest(const CObjectArray& request) {
     return CObject::IllegalArgumentError();
   }
   CObjectUint8Array filepath(request[1]);
-  const int64_t millis = CObjectInt32OrInt64ToInt64(request[2]);
+  const int64_t micros = CObjectInt32OrInt64ToInt64(request[2]);
   return File::SetLastAccessed(
-             namespc, reinterpret_cast<const char*>(filepath.Buffer()), millis)
+             namespc, reinterpret_cast<const char*>(filepath.Buffer()), micros)
              ? CObject::Null()
              : CObject::NewOSError();
 }
@@ -1067,8 +1066,7 @@ CObject* File::LastModifiedRequest(const CObjectArray& request) {
   if (return_value < 0) {
     return CObject::NewOSError();
   }
-  return new CObjectIntptr(
-      CObject::NewInt64(return_value * kMillisecondsPerSecond));
+  return new CObjectIntptr(CObject::NewInt64(return_value));
 }
 
 CObject* File::SetLastModifiedRequest(const CObjectArray& request) {
@@ -1082,9 +1080,9 @@ CObject* File::SetLastModifiedRequest(const CObjectArray& request) {
     return CObject::IllegalArgumentError();
   }
   CObjectUint8Array filepath(request[1]);
-  const int64_t millis = CObjectInt32OrInt64ToInt64(request[2]);
+  const int64_t micros = CObjectInt32OrInt64ToInt64(request[2]);
   return File::SetLastModified(
-             namespc, reinterpret_cast<const char*>(filepath.Buffer()), millis)
+             namespc, reinterpret_cast<const char*>(filepath.Buffer()), micros)
              ? CObject::Null()
              : CObject::NewOSError();
 }

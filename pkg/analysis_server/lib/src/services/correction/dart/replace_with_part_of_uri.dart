@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceWithPartOrUriEmpty extends ResolvedCorrectionProducer {
   String _uriStr = '';
 
-  ReplaceWithPartOrUriEmpty({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

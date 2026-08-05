@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
@@ -132,7 +131,7 @@ class _Processor {
 
   Map<Uri, TopLevel> parsed = {};
 
-  _Processor(this.verbosityLevel, this.fileSystem, this.uriTranslator);
+  new(this.verbosityLevel, this.fileSystem, this.uriTranslator);
 
   void log(String s) {
     if (verbosityLevel <= 0) return;
@@ -153,11 +152,8 @@ class _Processor {
     // the package version.
     ExperimentalFeatures experimentalFeatures =
         const DefaultExperimentalFeatures();
-    final ScannerConfiguration configuration = new ScannerConfiguration(
-      enableTripleShift: experimentalFeatures.isExperimentEnabled(
-        ExperimentalFlag.tripleShift,
-      ),
-    );
+    final ScannerConfiguration configuration = experimentalFeatures
+        .buildScannerConfiguration();
     textualOutlineStopwatch.start();
     final String? outlined = textualOutline(
       bytes,
@@ -617,7 +613,7 @@ class _TopLevelAndAstNode {
   final TopLevel topLevel;
   final AstNode entry;
 
-  _TopLevelAndAstNode(this.topLevel, this.entry);
+  new(this.topLevel, this.entry);
 }
 
 class _IdentifierExtractor {
@@ -644,7 +640,7 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
   final int verbosityLevel;
   final List<Token> languageVersionsSeen;
 
-  _ParserAstVisitor(
+  new(
     this.verbosityLevel,
     String sourceText,
     this.uri,

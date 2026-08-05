@@ -25,12 +25,6 @@ NativeMessageHandler::NativeMessageHandler(const char* name,
 
 NativeMessageHandler::~NativeMessageHandler() {}
 
-#if defined(DEBUG)
-void NativeMessageHandler::CheckAccess() const {
-  ASSERT(Isolate::Current() == nullptr);
-}
-#endif
-
 namespace {
 class HandleMessage : public ThreadPool::Task {
  public:

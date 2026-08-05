@@ -2,34 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssetDoesNotExistTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AssetDoesNotExistTest extends PubspecDiagnosticTest {
   test_assetDoesNotExist_path_error() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 flutter:
   assets:
     - assets/my_icon.png
-''',
-      [diag.assetDoesNotExist],
-    );
+//    ^^^^^^^^^^^^^^^^^^
+// [diag.assetDoesNotExist] The asset file 'assets/my_icon.png' doesn't exist.
+''');
   }
 
   test_assetDoesNotExist_path_inRoot_noError() {
     newFile('/sample/assets/my_icon.png', '');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 flutter:
   assets:
@@ -39,7 +39,7 @@ flutter:
 
   test_assetDoesNotExist_path_inSubdir_noError() {
     newFile('/sample/assets/images/2.0x/my_icon.png', '');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 flutter:
   assets:
@@ -47,23 +47,23 @@ flutter:
 ''');
   }
 
-  @failingTest
+  // TODO(scheglov): Support package assets.
+  @skippedTest
   test_assetDoesNotExist_uri_error() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 flutter:
   assets:
     - packages/icons/my_icon.png
-''',
-      [diag.assetDoesNotExist],
-    );
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.assetDoesNotExist] The asset file 'packages/icons/my_icon.png' doesn't exist.
+''');
   }
 
   test_assetDoesNotExist_uri_noError() {
     // TODO(brianwilkerson): Create a package named `icons` that contains the
     // referenced file, and a `.packages` file that references that package.
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 flutter:
   assets:

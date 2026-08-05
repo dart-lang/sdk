@@ -35,19 +35,18 @@ class PrintedLine {
   final List<PrintedLine>? parentShown;
   final int? selected;
 
-  PrintedLine.parent(this.parentShown, this.selected) : text = "..", ast = null;
+  new parent(this.parentShown, this.selected) : text = "..", ast = null;
 
-  PrintedLine.parentWithText(this.parentShown, this.text, this.selected)
-    : ast = null;
+  new parentWithText(this.parentShown, this.text, this.selected) : ast = null;
 
-  PrintedLine.ast(this.ast, this.text) : parentShown = null, selected = null;
+  new ast(this.ast, this.text) : parentShown = null, selected = null;
 }
 
 class AstWidget extends Widget {
   late List<PrintedLine> shown;
   int selected = 0;
 
-  AstWidget(ParserAstNode ast) {
+  new(ParserAstNode ast) {
     shown = [new PrintedLine.ast(ast, textualize(ast))];
   }
 

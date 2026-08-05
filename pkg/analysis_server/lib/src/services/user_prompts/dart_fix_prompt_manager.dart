@@ -78,7 +78,7 @@ class DartFixPromptManager {
 
   CancelableToken? _inProgressCheckCancellationToken;
 
-  DartFixPromptManager(this.server, this.preferences);
+  new(this.server, this.preferences);
 
   /// Gets a map of context root paths to a list of associated sdk version
   /// constraints.
@@ -121,6 +121,7 @@ class DartFixPromptManager {
     var processor = BulkFixProcessor(
       server.instrumentationService,
       workspace,
+      byteStore: server.byteStore,
       cancellationToken: token,
     );
 
@@ -155,6 +156,7 @@ class DartFixPromptManager {
   }) async {
     _hasPromptedThisSession = true;
 
+    var cancellationToken = NotCancelableToken(); // Can't be cancelled by user
     var executeCommandHandler = server.executeCommandHandler;
     String prompt;
     List<String> actions;
@@ -179,6 +181,7 @@ class DartFixPromptManager {
       MessageType.info,
       prompt,
       actions,
+      cancellationToken,
     ).then((value) => value, onError: (_) => null);
 
     switch ((response, executeCommandHandler)) {
@@ -196,6 +199,7 @@ class DartFixPromptManager {
             execHandler,
             userPromptSender,
             command,
+            cancellationToken,
           ),
         );
 
@@ -244,6 +248,7 @@ class DartFixPromptManager {
     ExecuteCommandHandler handler,
     UserPromptSender userPromptSender,
     String command,
+    CancellationToken cancellationToken,
   ) async {
     // Go through the main handle method so that things like analytics are
     // recorded the same.
@@ -256,7 +261,7 @@ class DartFixPromptManager {
         clientCapabilities: clientCapabilities,
         isTrustedCaller: true,
       ),
-      NotCancelableToken(),
+      cancellationToken,
     );
 
     result.ifError((error) {
@@ -265,6 +270,7 @@ class DartFixPromptManager {
           MessageType.error,
           "Failed to execute '$command': ${error.message}",
           [],
+          cancellationToken,
         ),
       );
     });

@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToContains extends ResolvedCorrectionProducer {
-  ConvertToContains({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

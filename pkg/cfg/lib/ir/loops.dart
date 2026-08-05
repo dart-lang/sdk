@@ -61,6 +61,15 @@ class Loop {
           workList.add(pred);
         }
       }
+      if (block is CatchBlock) {
+        // Blocks from the try body are implicit predecessors of a catch block.
+        for (final pred in block.graph.reversePostorder) {
+          if (pred.exceptionHandler == block && !contains(pred)) {
+            add(pred);
+            workList.add(pred);
+          }
+        }
+      }
     }
   }
 

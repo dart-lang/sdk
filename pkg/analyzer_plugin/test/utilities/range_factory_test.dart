@@ -193,7 +193,7 @@ void g(int a) {}
 class RangeFactory_NodeInListTest extends AbstractSingleUnitTest {
   /// Assuming that the test code starts with a function whose block body starts
   /// with a method invocation, return the list of arguments in that invocation.
-  NodeList<Expression> get _argumentList {
+  NodeList<Argument> get _argumentList {
     var f = testUnit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;

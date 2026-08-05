@@ -16,7 +16,9 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/internal_ast.dart';
+import '../../kernel/internal_ast_helper.dart' as intern;
 import '../../kernel/kernel_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -29,6 +31,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
@@ -43,9 +46,9 @@ abstract class ConstructorEncoding {
 
   void prependInitializer(Initializer initializer);
 
-  VariableDeclaration? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 
-  VariableDeclaration? get thisVariable;
+  InternalVariable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 
@@ -87,9 +90,13 @@ abstract class ConstructorEncoding {
     ConstructorFragmentDeclaration constructorDeclaration,
   );
 
-  void registerFunctionBody({required Statement? body, Scope? scope});
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    required ThisVariable? thisVariable,
+  });
 
-  void registerNoBodyConstructor();
+  void registerNoBodyConstructor({required ThisVariable? thisVariable});
 
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
@@ -124,24 +131,31 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
   List<Initializer>? _prependedInitializers;
 
-  RegularConstructorEncoding({
-    required bool isExternal,
-    required bool isEnumConstructor,
-  }) : _isExternal = isExternal,
-       _isEnumConstructor = isEnumConstructor;
+  new({required bool isExternal, required bool isEnumConstructor})
+    : _isExternal = isExternal,
+      _isEnumConstructor = isEnumConstructor;
 
   @override
-  void registerFunctionBody({required Statement? body, Scope? scope}) {
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    required ThisVariable? thisVariable,
+  }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
     _constructor.function.scope = scope;
+    _constructor.function.thisVariable = thisVariable
+      ?..parent = _constructor.function;
   }
 
   @override
-  void registerNoBodyConstructor() {
+  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
     if (!_isExternal) {
-      registerFunctionBody(body: new EmptyStatement());
+      registerFunctionBody(
+        body: extern.createEmptyStatement(),
+        thisVariable: thisVariable,
+      );
     }
   }
 
@@ -184,7 +198,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
-  VariableDeclaration? get thisVariable => null;
+  InternalVariable? get thisVariable => null;
 
   @override
   List<TypeParameter>? get thisTypeParameters => null;
@@ -261,17 +275,20 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     if (!_hasBeenBuilt) {
-      _constructor =
-          new Constructor(
-              new FunctionNode(_isExternal ? null : new EmptyStatement()),
-              name: dummyName,
-              fileUri: fileUri,
-              reference: constructorReferences?.constructorReference,
-              isSynthetic: isSynthetic,
-            )
-            ..startFileOffset = startOffset
-            ..fileOffset = fileOffset
-            ..fileEndOffset = endOffset;
+      _constructor = extern.createConstructor(
+        extern.createFunctionNode(
+          _isExternal ? null : extern.createEmptyStatement(),
+          fileOffset: fileOffset,
+          fileEndOffset: endOffset,
+        ),
+        name: dummyName,
+        fileUri: fileUri,
+        reference: constructorReferences?.constructorReference,
+        isSynthetic: isSynthetic,
+        fileStartOffset: startOffset,
+        fileOffset: fileOffset,
+        fileEndOffset: endOffset,
+      );
       nameScheme
           .getConstructorMemberName(name, isTearOff: false)
           .attachMember(_constructor);
@@ -338,7 +355,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable.type = const UnknownType();
           needsInference = true;
-        } else if (!formal.hasDeclaredInitializer &&
+        } else if (!formal.hasDeclaredDefaultValue &&
             formal.isSuperInitializingFormal) {
           needsInference = true;
         }
@@ -387,7 +404,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
       if (index < constructorTearOff.function.positionalParameters.length) {
@@ -451,6 +468,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       constructorBuilder,
       constructorDeclaration,
       _constructor,
+      new _RegularConstructorContext(constructorBuilder),
     );
   }
 
@@ -489,7 +507,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisVariable] holds the synthetically added `this`
   /// parameter.
-  VariableDeclaration? _thisVariable;
+  InternalDeclaredVariable? _thisVariable;
 
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisTypeParameters] holds the type parameters copied
@@ -511,17 +529,27 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  void registerFunctionBody({required Statement? body, Scope? scope}) {
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    required ThisVariable? thisVariable,
+  }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
     _constructor.function.scope = scope;
+    _constructor.function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = _constructor.function;
   }
 
   @override
-  void registerNoBodyConstructor() {
+  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
     if (!_hasBuiltBody && !_isExternal) {
-      registerFunctionBody(body: new EmptyStatement());
+      registerFunctionBody(
+        body: extern.createEmptyStatement(),
+        thisVariable: thisVariable,
+      );
     }
   }
 
@@ -542,6 +570,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     required NameScheme nameScheme,
     required ConstructorReferences? constructorReferences,
     required Uri fileUri,
+    required int startOffset,
     required int fileOffset,
     required int formalsOffset,
     required int endOffset,
@@ -553,16 +582,20 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     if (!_hasBeenBuilt) {
-      _constructor =
-          new Procedure(
-              dummyName,
-              ProcedureKind.Method,
-              new FunctionNode(_isExternal ? null : new EmptyStatement()),
-              fileUri: fileUri,
-              reference: constructorReferences?.constructorReference,
-            )
-            ..fileOffset = fileOffset
-            ..fileEndOffset = endOffset;
+      _constructor = extern.createProcedure(
+        dummyName,
+        ProcedureKind.Method,
+        extern.createFunctionNode(
+          _isExternal ? null : extern.createEmptyStatement(),
+          fileOffset: fileOffset,
+          fileEndOffset: endOffset,
+        ),
+        fileUri: fileUri,
+        reference: constructorReferences?.constructorReference,
+        fileStartOffset: startOffset,
+        fileOffset: fileOffset,
+        fileEndOffset: endOffset,
+      );
       nameScheme
           .getConstructorMemberName(name, isTearOff: false)
           .attachMember(_constructor);
@@ -609,14 +642,14 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         typeArguments = [];
       }
 
-      _thisVariable =
-          new VariableDeclarationImpl(
-              syntheticThisName,
-              isFinal: true,
-              type: _computeThisType(declarationBuilder, typeArguments),
-            )
-            ..fileOffset = fileOffset
-            ..isLowered = true;
+      _thisVariable = intern.createSyntheticVariable(
+        name: syntheticThisName,
+        type: _computeThisType(declarationBuilder, typeArguments),
+        isFinal: true,
+        isLowered: true,
+        isSynthesized: false,
+        fileOffset: fileOffset,
+      );
 
       List<DartType> typeParameterTypes = <DartType>[];
       for (int i = 0; i < _constructor.function.typeParameters.length; i++) {
@@ -656,7 +689,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable.type = const UnknownType();
           needsInference = true;
-        } else if (!formal.hasDeclaredInitializer &&
+        } else if (!formal.hasDeclaredDefaultValue &&
             formal.isSuperInitializingFormal) {
           needsInference = true;
         }
@@ -670,7 +703,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  VariableDeclaration? get thisVariable {
+  InternalDeclaredVariable? get thisVariable {
     assert(
       _thisVariable != null,
       "ProcedureBuilder.thisVariable has not been set.",
@@ -715,7 +748,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
       if (index < constructorTearOff.function.positionalParameters.length) {
@@ -738,23 +771,39 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       return;
     }
     if (!_isExternal) {
-      VariableDeclaration thisVariable = this.thisVariable!;
-      List<Statement> statements = [thisVariable];
+      InternalDeclaredVariable thisVariable = this.thisVariable!;
+      VariableStatement thisVariableStatement = extern.createVariableStatement(
+        extern.createVariableDeclaration(thisVariable.astVariable),
+      );
+      List<Statement> statements = [thisVariableStatement];
       _ExtensionTypeInitializerToStatementConverter visitor =
           new _ExtensionTypeInitializerToStatementConverter(
             statements,
-            thisVariable,
+            thisVariableStatement,
           );
       for (Initializer initializer in _initializers) {
         initializer.accept(visitor);
       }
-      if (_constructor.function.body != null &&
-          _constructor.function.body is! EmptyStatement) {
-        statements.add(_constructor.function.body!);
+      int fileOffset = _constructor.fileOffset;
+      int endOffset = _constructor.fileEndOffset;
+      if (_constructor.function.body case Statement body
+          when body is! EmptyStatement) {
+        statements.add(body);
       }
-      statements.add(new ReturnStatement(new VariableGet(thisVariable)));
+      statements.add(
+        extern.createReturnStatement(
+          extern.createVariableGet(thisVariable.astVariable),
+        ),
+      );
       // TODO(cstefantsova): Provide a scope here.
-      registerFunctionBody(body: new Block(statements));
+      registerFunctionBody(
+        body: extern.createBlock(
+          statements,
+          fileOffset: fileOffset,
+          fileEndOffset: endOffset,
+        ),
+        thisVariable: null,
+      );
     }
     _hasBuiltBody = true;
   }
@@ -768,6 +817,10 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       constructorBuilder,
       constructorDeclaration,
       _constructor,
+      new _ExtensionTypeConstructorContext(
+        constructorBuilder,
+        thisVariable!.astVariable,
+      ),
     );
   }
 
@@ -797,13 +850,10 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
 class _ExtensionTypeInitializerToStatementConverter
     implements InitializerVisitor<void> {
-  VariableDeclaration thisVariable;
+  VariableStatement thisVariableStatement;
   final List<Statement> statements;
 
-  _ExtensionTypeInitializerToStatementConverter(
-    this.statements,
-    this.thisVariable,
-  );
+  new(this.statements, this.thisVariableStatement);
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
@@ -814,25 +864,31 @@ class _ExtensionTypeInitializerToStatementConverter
   void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
     if (node is ExtensionTypeRedirectingInitializer) {
       statements.add(
-        new ExpressionStatement(
-          new VariableSet(
-            thisVariable,
-            new StaticInvocation(
+        extern.createExpressionStatement(
+          extern.createVariableSet(
+            thisVariableStatement.declaration.variable,
+            extern.createStaticInvocation(
               node.target,
               node.arguments.toArguments(
                 node.inferredTypeArguments,
                 node.positional,
                 node.named,
               ),
-            )..fileOffset = node.fileOffset,
-          )..fileOffset = node.fileOffset,
-        )..fileOffset = node.fileOffset,
+              fileOffset: node.fileOffset,
+            ),
+            fileOffset: node.fileOffset,
+            // TODO(johnniwinther): Can we avoid this?
+            allowFinalAssignment: true,
+          ),
+        ),
       );
       return;
     } else if (node is ExtensionTypeRepresentationFieldInitializer) {
-      thisVariable
-        ..initializer = (node.value..parent = thisVariable)
+      thisVariableStatement.declaration.variable
+        ..initializer = (node.value
+          ..parent = thisVariableStatement.declaration.variable)
         ..fileOffset = node.fileOffset;
+      thisVariableStatement.fileOffset = node.fileOffset;
       return;
     }
     // Coverage-ignore-block(suite): Not run.
@@ -844,23 +900,32 @@ class _ExtensionTypeInitializerToStatementConverter
   @override
   // Coverage-ignore(suite): Not run.
   void visitFieldInitializer(FieldInitializer node) {
-    thisVariable
-      ..initializer = (node.value..parent = thisVariable)
+    thisVariableStatement.declaration.variable
+      ..initializer = (node.value
+        ..parent = thisVariableStatement.declaration.variable)
       ..fileOffset = node.fileOffset;
+    thisVariableStatement.fileOffset = node.fileOffset;
   }
 
   @override
   void visitInvalidInitializer(InvalidInitializer node) {
     statements.add(
-      new ExpressionStatement(
-        new InvalidExpression(node.message)..fileOffset = node.fileOffset,
-      )..fileOffset,
+      extern.createExpressionStatement(
+        extern.createInvalidExpression(
+          node.message,
+          fileOffset: node.fileOffset,
+        ),
+      ),
     );
   }
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    statements.add(node.variable);
+    statements.add(
+      extern.createVariableStatement(
+        extern.createVariableDeclaration(node.variable),
+      ),
+    );
   }
 
   @override
@@ -886,8 +951,7 @@ class ExtensionTypeConstructorEncoding
   @override
   final bool _isExternal;
 
-  ExtensionTypeConstructorEncoding({required bool isExternal})
-    : _isExternal = isExternal;
+  new({required bool isExternal}) : _isExternal = isExternal;
 
   @override
   DartType _computeThisType(
@@ -934,6 +998,7 @@ class ExtensionTypeConstructorEncoding
       constructorReferences: constructorReferences,
       fileUri: fileUri,
       fileOffset: fileOffset,
+      startOffset: startOffset,
       formalsOffset: formalsOffset,
       endOffset: endOffset,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
@@ -998,8 +1063,7 @@ class ExtensionConstructorEncoding
   @override
   final bool _isExternal;
 
-  ExtensionConstructorEncoding({required bool isExternal})
-    : _isExternal = isExternal;
+  new({required bool isExternal}) : _isExternal = isExternal;
 
   @override
   void buildOutlineNodes(
@@ -1032,6 +1096,7 @@ class ExtensionConstructorEncoding
       constructorReferences: constructorReferences,
       fileUri: fileUri,
       fileOffset: fileOffset,
+      startOffset: startOffset,
       formalsOffset: formalsOffset,
       endOffset: endOffset,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
@@ -1096,16 +1161,14 @@ class ExtensionConstructorEncoding
 }
 
 abstract class ConstructorEncodingStrategy {
-  factory ConstructorEncodingStrategy(
+  factory(
     DeclarationBuilder declarationBuilder, {
     required bool isClosureContextLoweringEnabled,
   }) {
     switch (declarationBuilder) {
       case ClassBuilder():
         if (declarationBuilder.isEnum) {
-          return new EnumConstructorEncodingStrategy(
-            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-          );
+          return const EnumConstructorEncodingStrategy();
         } else {
           return const RegularConstructorEncodingStrategy();
         }
@@ -1135,7 +1198,7 @@ abstract class ConstructorEncodingStrategy {
 
 class RegularConstructorEncodingStrategy
     implements ConstructorEncodingStrategy {
-  const RegularConstructorEncodingStrategy();
+  const new();
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1167,11 +1230,7 @@ class RegularConstructorEncodingStrategy
 }
 
 class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
-  final bool isClosureContextLoweringEnabled;
-
-  const EnumConstructorEncodingStrategy({
-    required this.isClosureContextLoweringEnabled,
-  });
+  const new();
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1197,8 +1256,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileOffset: fileOffset,
         fileUri: fileUri,
         nameOffset: null,
-        hasImmediatelyDeclaredInitializer: false,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+        hasImmediatelyDeclaredDefaultValue: false,
       ),
       new FormalParameterBuilder(
         kind: FormalParameterKind.requiredPositional,
@@ -1208,8 +1266,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileOffset: fileOffset,
         fileUri: fileUri,
         nameOffset: null,
-        hasImmediatelyDeclaredInitializer: false,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+        hasImmediatelyDeclaredDefaultValue: false,
       ),
       ...?formals,
     ];
@@ -1228,7 +1285,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
 
 class ExtensionConstructorEncodingStrategy
     implements ConstructorEncodingStrategy {
-  const ExtensionConstructorEncodingStrategy();
+  const new();
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1274,7 +1331,7 @@ class ExtensionConstructorEncodingStrategy
 
 class ExtensionTypeConstructorEncodingStrategy
     implements ConstructorEncodingStrategy {
-  const ExtensionTypeConstructorEncodingStrategy();
+  const new();
 
   @override
   List<FormalParameterBuilder>? createFormals({
@@ -1315,5 +1372,40 @@ class ExtensionTypeConstructorEncodingStrategy
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
     return new ExtensionTypeConstructorEncoding(isExternal: isExternal);
+  }
+}
+
+class _RegularConstructorContext implements ConstructorContext {
+  final SourceConstructorBuilder _builder;
+
+  new(this._builder);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  FunctionSignature get signature => _builder.signature;
+
+  @override
+  DartType substituteFieldType(DartType fieldType) {
+    return _builder.substituteFieldType(fieldType);
+  }
+
+  @override
+  Variable? get thisVariable => null;
+}
+
+class _ExtensionTypeConstructorContext implements ConstructorContext {
+  final SourceConstructorBuilder _builder;
+
+  @override
+  final Variable thisVariable;
+
+  new(this._builder, this.thisVariable);
+
+  @override
+  FunctionSignature get signature => _builder.signature;
+
+  @override
+  DartType substituteFieldType(DartType fieldType) {
+    return _builder.substituteFieldType(fieldType);
   }
 }

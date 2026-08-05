@@ -105,15 +105,32 @@ class ResolutionBundle {
   // TODO(scheglov): too complicated? Read all?
   List<Uint30>? libraryOffsets;
 
-  /// The index of the parent reference, so we can add its name from
-  /// the [referenceNames]. Is `0` for the root.
+  /// The semantic tag of the reference row.
   ///
   /// [referencesOffset] points here.
-  List<Uint30>? referenceParents;
+  List<Uint30>? referenceTags;
 
-  /// The name of this component of a reference, e.g. `String` or `@class`.
-  /// Is the empty string for the root.
-  List<StringRef>? referenceNames;
+  /// The index of the semantic enclosing reference:
+  /// - `0` for the root and libraries
+  /// - the library for top-level declarations
+  /// - the enclosing declaration for members
+  List<Uint30>? referenceEnclosings;
+
+  /// The kind index for rows that need one:
+  /// - the internal top-level reference kind for top-level declarations
+  /// - the member reference kind for members
+  /// - the built-in reference kind for built-in references
+  /// Otherwise `0`.
+  List<Uint30>? referenceKinds;
+
+  /// The semantic reference key, such as `A`, `A#1`, or `foo`.
+  /// Empty for rows that do not use one.
+  List<StringRef>? referenceKeys;
+
+  /// The URI payload for rows that need one:
+  /// - library URI for library rows
+  /// Empty otherwise.
+  List<StringRef>? referenceUris;
 
   /// We record `uint32` to know exactly the location of this field.
   /// It is always at the end of the byte buffer `-8`.
@@ -122,7 +139,7 @@ class ResolutionBundle {
   /// We record `uint32` to know exactly the location of this field.
   /// It is always at the end of the byte buffer `-4`.
   ///
-  /// Points at [referenceParents].
+  /// Points at [referenceTags].
   Uint32? referencesOffset;
 
   /// We record `uint32` to know exactly the location of this field.
@@ -137,8 +154,9 @@ class ResolutionLibrary {
   /// [ResolutionBundle.libraryOffsets] points here.
   StringRef? uriStr;
 
-  /// Indexes of exported elements in [ResolutionBundle.referenceNames].
-  List<Uint30>? exportedReferences;
+  /// Serialized exported entries, each with an exported name, a reference
+  /// index, and zero or more export locations.
+  List<Uint30>? exportEntries;
 
   /// Absolute offsets pointing at [ResolutionUnitFormat.uriStr].
   List<Uint30>? unitOffsets;

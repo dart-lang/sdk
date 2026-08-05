@@ -19,7 +19,7 @@ class ConvertToSuperParametersTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToSuperParameters;
 
-  Future<void> test_cursorLocation_named_onClassName() async {
+  Future<void> test_cursorLocation_named_onClassName_inBody() async {
     await resolveTestCode('''
 class A {
   A({int? x});
@@ -38,7 +38,26 @@ class B extends A {
 ''');
   }
 
-  Future<void> test_cursorLocation_named_onConstructorName() async {
+  Future<void> test_cursorLocation_named_onClassName_primary() async {
+    await resolveTestCode('''
+class A {
+  A({int? x});
+}
+class ^B.name({int? x}) extends A {
+  this : super(x: x);
+}
+''');
+    await assertHasAssist('''
+class A {
+  A({int? x});
+}
+class B.name({super.x}) extends A {
+  this;
+}
+''');
+  }
+
+  Future<void> test_cursorLocation_named_onConstructorName_inBody() async {
     await resolveTestCode('''
 class A {
   A({int? x});
@@ -57,7 +76,45 @@ class B extends A {
 ''');
   }
 
-  Future<void> test_cursorLocation_unnamed_notOnClassName() async {
+  Future<void> test_cursorLocation_named_onConstructorName_primary() async {
+    await resolveTestCode('''
+class A {
+  A({int? x});
+}
+class B.n^ame({int? x}) extends A {
+  this : super(x: x);
+}
+''');
+    await assertHasAssist('''
+class A {
+  A({int? x});
+}
+class B.name({super.x}) extends A {
+  this;
+}
+''');
+  }
+
+  Future<void> test_cursorLocation_named_onThis_primary() async {
+    await resolveTestCode('''
+class A {
+  A({int? x});
+}
+class B.name({int? x}) extends A {
+  ^this : super(x: x);
+}
+''');
+    await assertHasAssist('''
+class A {
+  A({int? x});
+}
+class B.name({super.x}) extends A {
+  this;
+}
+''');
+  }
+
+  Future<void> test_cursorLocation_unnamed_notOnClassName_inBody() async {
     await resolveTestCode('''
 class A {
   A({int? x});
@@ -69,7 +126,19 @@ class B extends A {
     await assertNoAssist();
   }
 
-  Future<void> test_cursorLocation_unnamed_onClassName() async {
+  Future<void> test_cursorLocation_unnamed_notOnClassName_primary() async {
+    await resolveTestCode('''
+class A {
+  A({int? x});
+}
+class B({int? x}) extends A {
+  this : ^super(x: x);
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_cursorLocation_unnamed_onClassName_inBody() async {
     await resolveTestCode('''
 class A {
   A({int? x});
@@ -84,6 +153,44 @@ class A {
 }
 class B extends A {
   B({super.x});
+}
+''');
+  }
+
+  Future<void> test_cursorLocation_unnamed_onClassName_primary() async {
+    await resolveTestCode('''
+class A {
+  A({int? x});
+}
+class ^B({int? x}) extends A {
+  this : super(x: x);
+}
+''');
+    await assertHasAssist('''
+class A {
+  A({int? x});
+}
+class B({super.x}) extends A {
+  this;
+}
+''');
+  }
+
+  Future<void> test_cursorLocation_unnamed_onThis_primary() async {
+    await resolveTestCode('''
+class A {
+  A({int? x});
+}
+class B({int? x}) extends A {
+  ^this : super(x: x);
+}
+''');
+    await assertHasAssist('''
+class A {
+  A({int? x});
+}
+class B({super.x}) extends A {
+  this;
 }
 ''');
   }

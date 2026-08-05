@@ -1056,6 +1056,25 @@ const MessageCode extensionDeclaresInstanceField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode extensionPrimaryConstructor = const MessageCode(
+  "ExtensionPrimaryConstructor",
+  sharedCode: SharedCode.extensionPrimaryConstructor,
+  problemMessage: """Extensions can't have primary constructors.""",
+  correctionMessage:
+      """Try removing the primary constructor or changing the extension to an extension type.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+extensionTypeAugmentationSpecifiesRepresentationField = const MessageCode(
+  "ExtensionTypeAugmentationSpecifiesRepresentationField",
+  sharedCode: SharedCode.extensionTypeAugmentationSpecifiesRepresentationField,
+  problemMessage:
+      """An extension type augmentation can't specify a representation field.""",
+  correctionMessage: """Try removing the representation field.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionTypeDeclaresAbstractMember = const MessageCode(
   "ExtensionTypeDeclaresAbstractMember",
   pseudoSharedCode: PseudoSharedCode.extensionTypeWithAbstractMember,
@@ -1558,6 +1577,15 @@ const MessageCode initializedVariableInForEach = const MessageCode(
       """The loop variable in a for-each loop can't be initialized.""",
   correctionMessage:
       """Try removing the initializer, or using a different kind of loop.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode initializingDeclaringParameter = const MessageCode(
+  "InitializingDeclaringParameter",
+  sharedCode: SharedCode.initializingDeclaringParameter,
+  problemMessage: """Declaring parameters can't be initializing.""",
+  correctionMessage:
+      """Try removing the `this.` prefix or making the parameter non-declaring.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2129,6 +2157,15 @@ const MessageCode mixinDeclaresConstructor = const MessageCode(
   "MixinDeclaresConstructor",
   sharedCode: SharedCode.mixinDeclaresConstructor,
   problemMessage: """Mixins can't declare constructors.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinPrimaryConstructor = const MessageCode(
+  "MixinPrimaryConstructor",
+  sharedCode: SharedCode.mixinPrimaryConstructor,
+  problemMessage: """Mixins can't have primary constructors.""",
+  correctionMessage:
+      """Try removing the primary constructor or changing the mixin to a class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2704,6 +2741,15 @@ const MessageCode staticOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode superInitializingDeclaringParameter = const MessageCode(
+  "SuperInitializingDeclaringParameter",
+  sharedCode: SharedCode.superInitializingDeclaringParameter,
+  problemMessage: """Declaring parameters can't be super parameters.""",
+  correctionMessage:
+      """Try removing the `super.` prefix or making the parameter non-declaring.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode superNullAware = const MessageCode(
   "SuperNullAware",
   sharedCode: SharedCode.invalidOperatorQuestionmarkPeriodForSuper,
@@ -3130,6 +3176,8 @@ enum SharedCode {
   extensionAugmentationHasOnClause,
   extensionDeclaresAbstractMember,
   extensionDeclaresConstructor,
+  extensionPrimaryConstructor,
+  extensionTypeAugmentationSpecifiesRepresentationField,
   extensionTypeExtends,
   extensionTypeWith,
   externalClass,
@@ -3167,6 +3215,7 @@ enum SharedCode {
   implementsBeforeWith,
   importDirectiveAfterPartDirective,
   initializedVariableInForEach,
+  initializingDeclaringParameter,
   interfaceEnum,
   interfaceMixin,
   interfaceMixinClass,
@@ -3211,6 +3260,7 @@ enum SharedCode {
   missingStatement,
   mixinApplicationClassAugmentation,
   mixinDeclaresConstructor,
+  mixinPrimaryConstructor,
   mixinWithClause,
   modifierOutOfOrder,
   multipleClauses,
@@ -3245,6 +3295,7 @@ enum SharedCode {
   stackOverflow,
   staticConstructor,
   staticOperator,
+  superInitializingDeclaringParameter,
   switchHasCaseAfterDefaultCase,
   switchHasMultipleDefaultCases,
   topLevelOperator,

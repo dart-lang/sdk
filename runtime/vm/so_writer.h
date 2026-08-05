@@ -17,6 +17,7 @@
 namespace dart {
 
 class Dwarf;
+class CoffWriter;
 class ElfWriter;
 class MachOWriter;
 
@@ -33,6 +34,7 @@ class SharedObjectWriter : public ZoneObject {
   };
 
   enum class Output {
+    Coff,
     Elf,
     MachO,
   };
@@ -177,10 +179,12 @@ class SharedObjectWriter : public ZoneObject {
       stream_->WriteBytes(b, size);
     }
     void WriteByte(uint8_t value) override { stream_->WriteByte(value); }
-    intptr_t Align(intptr_t alignment, intptr_t offset = 0) override {
+    intptr_t Align(intptr_t alignment,
+                   intptr_t offset = 0,
+                   uint8_t fill_byte = 0) override {
       ASSERT(Utils::IsPowerOfTwo(alignment));
       ASSERT(alignment <= page_size_);
-      return stream_->Align(alignment, offset);
+      return stream_->Align(alignment, offset, fill_byte);
     }
 
    protected:
@@ -196,14 +200,11 @@ class SharedObjectWriter : public ZoneObject {
   // Must be the same value as the values returned by ImageWriter::SectionLabel
   // for the appropriate section and vm values.
   enum ReservedLabels : intptr_t {
-    kVmInstructionsLabel = 1,
-    kIsolateInstructionsLabel = 2,
-    kVmDataLabel = 3,
-    kIsolateDataLabel = 4,
-    kVmBssLabel = 5,
-    kIsolateBssLabel = 6,
-    kBuildIdLabel = 7,
-    kMachOEhFrameLabel = 8,
+    kIsolateInstructionsLabel = 1,
+    kIsolateDataLabel = 2,
+    kIsolateBssLabel = 3,
+    kBuildIdLabel = 4,
+    kMachOEhFrameLabel = 5,
     kLastReservedLabel = kMachOEhFrameLabel,
   };
 
@@ -226,6 +227,7 @@ class SharedObjectWriter : public ZoneObject {
 
   virtual const ElfWriter* AsElfWriter() const { return nullptr; }
   virtual const MachOWriter* AsMachOWriter() const { return nullptr; }
+  virtual const CoffWriter* AsCoffWriter() const { return nullptr; }
 
  protected:
   Zone* const zone_;

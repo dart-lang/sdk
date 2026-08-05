@@ -6,9 +6,11 @@ import 'dart:io';
 
 String computeRepoDir() {
   ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
+    'git',
+    ['rev-parse', '--show-toplevel'],
+    runInShell: true,
+    workingDirectory: new File.fromUri(Platform.script).parent.path,
+  );
   return (result.stdout as String).trim();
 }
 

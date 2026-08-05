@@ -14,12 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 class SearchGetElementDeclarationsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  SearchGetElementDeclarationsHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {

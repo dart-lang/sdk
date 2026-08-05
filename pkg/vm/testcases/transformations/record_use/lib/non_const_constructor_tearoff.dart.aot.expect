@@ -12,7 +12,7 @@ final class NonConstA extends core::Object {
   @#C4
   @#C6
   @#C8
-  constructor •(core::int i) → self::NonConstA
+  constructor •(initializing-formal core::int i) → self::NonConstA
     : super core::Object::•()
     ;
 }

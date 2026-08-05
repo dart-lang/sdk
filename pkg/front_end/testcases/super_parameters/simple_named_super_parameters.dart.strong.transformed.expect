@@ -19,17 +19,17 @@ import "dart:core" as core;
 
 class A1 extends core::Object {
   final field core::int foo;
-  constructor •({required core::int foo}) → self::A1
+  constructor •({required initializing-formal core::int foo}) → self::A1
     : self::A1::foo = foo, super core::Object::•()
     ;
 }
 class B1 extends self::A1 {
-  constructor •({required core::int foo}) → self::B1
+  constructor •({required super-initializing-formal core::int foo}) → self::B1
     : super self::A1::•(foo: foo)
     ;
 }
 class C1 extends self::A1 {
-  constructor •({required core::int foo}) → self::C1
+  constructor •({required super-initializing-formal core::int foo}) → self::C1
     : super self::A1::•(foo: invalid-expression "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:15:36: Error: Duplicated named argument 'foo'.
   C1({required super.foo}) : super(foo: foo); // Error.
                                    ^^^" in block {
@@ -40,7 +40,7 @@ class C1 extends self::A1 {
 class A2 extends core::Object {
   final field core::int foo;
   final field core::String bar;
-  constructor •({required core::int foo, required core::String bar}) → self::A2
+  constructor •({required initializing-formal core::int foo, required initializing-formal core::String bar}) → self::A2
     : self::A2::foo = foo, self::A2::bar = bar, super core::Object::•()
     ;
 }
@@ -52,12 +52,12 @@ class B2 extends self::A2 {
     ;
 }
 class C2 extends self::A2 {
-  constructor •({required core::int foo}) → self::C2
+  constructor •({required super-initializing-formal core::int foo}) → self::C2
     : invalid-initializer "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:29:35: Error: Required named parameter 'bar' must be provided.
   C2({required super.foo}) : super(); // Error.
                                   ^"
     ;
-  constructor other({required core::int foo}) → self::C2
+  constructor other({required super-initializing-formal core::int foo}) → self::C2
     : super self::A2::•(foo: foo, bar: "bar")
     ;
 }

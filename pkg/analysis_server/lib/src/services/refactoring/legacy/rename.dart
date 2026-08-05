@@ -28,12 +28,7 @@ class RenameProcessor {
   final SourceChange change;
   final String newName;
 
-  RenameProcessor(
-    this.workspace,
-    this.sessionHelper,
-    this.change,
-    this.newName,
-  );
+  new(this.workspace, this.sessionHelper, this.change, this.newName);
 
   /// Add the edit that updates the [element] declaration.
   void addDeclarationEdit(Element? element) {
@@ -136,12 +131,7 @@ class RenameProcessor2 {
   final ChangeBuilder builder;
   final String newName;
 
-  RenameProcessor2(
-    this.workspace,
-    this.sessionHelper,
-    this.builder,
-    this.newName,
-  );
+  new(this.workspace, this.sessionHelper, this.builder, this.newName);
 
   /// Add the edit that updates the [element] declaration.
   Future<void> addDeclarationEdit(Element? element) async {
@@ -265,7 +255,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   late String newName;
 
-  RenameRefactoringImpl(this.workspace, this.sessionHelper, Element element)
+  new(this.workspace, this.sessionHelper, Element element)
     : searchEngine = workspace.searchEngine,
       _element = element,
       elementKindName = element.kind.displayName,

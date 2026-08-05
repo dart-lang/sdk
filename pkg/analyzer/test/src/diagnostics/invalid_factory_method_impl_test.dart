@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +21,7 @@ class InvalidFactoryMethodImplTest extends PubPackageResolutionTest {
   }
 
   test_abstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 abstract class Stateful {
   @factory
@@ -33,38 +32,36 @@ class State { }
   }
 
   test_badReturn() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class Stateful {
   State _s = new State();
 
   @factory
   State createState() => _s;
+//      ^^^^^^^^^^^
+// [diag.invalidFactoryMethodImpl] Factory method 'createState' doesn't return a newly allocated object.
 }
 class State { }
-''',
-      [error(diag.invalidFactoryMethodImpl, 96, 11)],
-    );
+''');
   }
 
   test_badReturn_extensionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 extension type E(int i) {
   @factory
   Object create() {
+//       ^^^^^^
+// [diag.invalidFactoryMethodImpl] Factory method 'create' doesn't return a newly allocated object.
     return i;
   }  
 }
-''',
-      [error(diag.invalidFactoryMethodImpl, 79, 6)],
-    );
+''');
   }
 
   test_block() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class Stateful {
   @factory
@@ -77,7 +74,7 @@ class State { }
   }
 
   test_block_extensionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 extension type E(int i) {
   @factory
@@ -89,7 +86,7 @@ extension type E(int i) {
   }
 
   test_block_returnNull() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class Stateful {
   @factory
@@ -102,7 +99,7 @@ class State { }
   }
 
   test_expr() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class Stateful {
   @factory
@@ -113,7 +110,7 @@ class State { }
   }
 
   test_expr_returnNull() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class Stateful {
   @factory
@@ -125,7 +122,7 @@ class State { }
 
   test_noReturnType() async {
     // Null return types will get flagged elsewhere, no need to pile on here.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class Stateful {
   @factory
@@ -137,7 +134,7 @@ class Stateful {
   }
 
   test_subclass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 abstract class Stateful {
   @factory
@@ -156,16 +153,15 @@ class MyState extends State { }
   }
 
   test_voidReturn() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class Stateful {
   @factory
   void createState() {}
+//     ^^^^^^^^^^^
+// [diag.invalidFactoryMethodDecl] Factory method 'createState' must have a return type.
 }
-''',
-      [error(diag.invalidFactoryMethodDecl, 69, 11)],
-    );
+''');
   }
 }

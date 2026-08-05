@@ -30,7 +30,6 @@ dev_dependencies:
   browser_launcher: any
   expect: any
   http_multi_server: any
-  js: any
   lints: any
   modular_test: any
   reload_test: any

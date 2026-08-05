@@ -23,10 +23,9 @@ typedef _FieldRecord = ({bool required, String parameter});
 class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
 
-  CreateConstructorForFinalFields.requiredNamed({required super.context})
-    : _style = _Style.requiredNamed;
+  new requiredNamed({required super.context}) : _style = _Style.requiredNamed;
 
-  CreateConstructorForFinalFields.requiredPositional({required super.context})
+  new requiredPositional({required super.context})
     : _style = _Style.requiredPositional;
 
   @override
@@ -86,9 +85,8 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         return;
     }
 
-    var requiredNamedParametersFirst = getCodeStyleOptions(
-      unitResult.file,
-    ).requiredNamedParametersFirst;
+    var requiredNamedParametersFirst = getCodeStyleOptions(unitResult.file)
+        .requiredNamedParametersFirst;
 
     if (superType.isExactlyStatelessWidgetType ||
         superType.isExactlyStatefulWidgetType) {
@@ -178,7 +176,11 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         builder.write('const ');
-        builder.write(fixContext.containerName);
+        if (isEnabled(Feature.primary_constructors)) {
+          builder.write('new');
+        } else {
+          builder.write(fixContext.containerName);
+        }
         builder.write('({');
         if (!requiredNamedParametersFirst) {
           builder.writeType(
@@ -228,7 +230,11 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         builder.write('const ');
-        builder.write(fixContext.containerName);
+        if (isEnabled(Feature.primary_constructors)) {
+          builder.write('new');
+        } else {
+          builder.write(fixContext.containerName);
+        }
         builder.write('({');
         if (!requiredNamedParametersFirst) {
           builder.write('super.key');
@@ -277,7 +283,11 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         if (isConst) {
           builder.write('const ');
         }
-        builder.write(fixContext.containerName);
+        if (isEnabled(Feature.primary_constructors)) {
+          builder.write('new');
+        } else {
+          builder.write(fixContext.containerName);
+        }
         builder.write('({');
         var parameters = <_FieldRecord>[];
         var buffer = StringBuffer();
@@ -337,7 +347,11 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         if (isConst) {
           builder.write('const ');
         }
-        builder.write(fixContext.containerName);
+        if (isEnabled(Feature.primary_constructors)) {
+          builder.write('new');
+        } else {
+          builder.write(fixContext.containerName);
+        }
         builder.write('(');
         var hasWritten = false;
         for (var field in fields) {
@@ -464,7 +478,7 @@ class _Field {
   final String namedFormalParameterName;
   final bool hasNonNullableType;
 
-  _Field({
+  new({
     required this.typeAnnotation,
     required this.fieldName,
     required this.namedFormalParameterName,
@@ -498,7 +512,7 @@ class _FixContext {
   final InterfaceType superType;
   final Iterable<VariableDeclarationList> variableLists;
 
-  _FixContext({
+  new({
     required this.builder,
     required this.containerName,
     required this.superType,
@@ -524,7 +538,7 @@ enum _Style {
 
   final FixKind fixKind;
 
-  const _Style({required this.fixKind});
+  new({required this.fixKind});
 }
 
 extension on List<ClassMember> {

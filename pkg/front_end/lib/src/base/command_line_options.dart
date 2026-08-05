@@ -26,13 +26,12 @@ class Flags {
 
   static const String target = "--target";
 
+  /// TODO(jensj): Consider removing this. Or renaming it.
   static const String linkDependencies = "--link-dependencies";
 
   static const String compileSdk = "--compile-sdk";
   static const String dumpIr = "--dump-ir";
   static const String enableExperiment = "--enable-experiment";
-  static const String enableUnscheduledExperiments =
-      "--enable-unscheduled-experiments";
   static const String excludeSource = "--exclude-source";
   static const String omitPlatform = "--omit-platform";
   static const String fatal = "--fatal";
@@ -73,10 +72,6 @@ class Options {
   static const Option<List<String>?> enableExperiment = const Option(
     Flags.enableExperiment,
     const StringListValue(),
-  );
-  static const Option<bool> enableUnscheduledExperiments = const Option(
-    Flags.enableUnscheduledExperiments,
-    const BoolValue(false),
   );
   static const Option<bool> excludeSource = const Option(
     Flags.excludeSource,

@@ -25,6 +25,7 @@ class PreferGenericFunctionTypeAliasesTest extends LintRuleTest {
 ''',
     issue: 'https://github.com/dart-lang/linter/issues/4942',
   )
+  // TODO(scheglov): implement augmentation
   test_augmentedTypeAlias() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -40,12 +41,9 @@ augment typedef void F();
   }
 
   test_classicTypedef() async {
-    await assertDiagnostics(
-      r'''
-typedef void F();
-''',
-      [lint(13, 1)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+typedef void [!F!]();
+''');
   }
 
   test_genericFunctionType() async {

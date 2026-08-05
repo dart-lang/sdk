@@ -21,24 +21,30 @@ static method callClosure(positional-parameter func) → void/* scope=[
 static method foo45() → void /* scope=[
   #ctx2: direct-captured VariableContext([
     local-variable a;
-    local-variable b;
-    local-variable c;
   ]),
 ] */ {
   a := 10;
   self::callClosure(() /* #ctx2 */ → void {
     a = a.{core::num::+}(11){(core::num) → core::int};
   });
-  if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1) {
+  if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
+    #ctx3: direct-captured VariableContext([
+      local-variable b;
+    ]),
+  ] */ {
     b := 20;
-    self::callClosure(() /* #ctx2 */ → void {
+    self::callClosure(() /* #ctx2 #ctx3 */ → void {
       a = a.{core::num::+}(12){(core::num) → core::int};
       b = b.{core::num::+}(22){(core::num) → core::int};
     });
   }
-  if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1) {
+  if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
+    #ctx4: direct-captured VariableContext([
+      local-variable c;
+    ]),
+  ] */ {
     c := 30;
-    self::callClosure(() /* #ctx2 */ → void {
+    self::callClosure(() /* #ctx2 #ctx4 */ → void {
       a = a.{core::num::+}(13){(core::num) → core::int};
       c = c.{core::num::+}(33){(core::num) → core::int};
     });

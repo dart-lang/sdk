@@ -15,10 +15,8 @@ namespace dart {
 
 // Native implementations of the profiler parts of the dart:developer library.
 
-DEFINE_NATIVE_ENTRY(UserTag_new, 0, 2) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(String, tag_label, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(UserTag_new, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, tag_label, arguments->NativeArgAt(0));
   return UserTag::New(thread, tag_label);
 }
 

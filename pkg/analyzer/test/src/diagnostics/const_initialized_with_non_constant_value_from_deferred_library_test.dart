@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,20 +22,13 @@ class ConstInitializedWithNonConstantValueFromDeferredLibraryTest
 library lib1;
 const V = 1;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 const B = a.V;
-''',
-      [
-        error(
-          diag.constInitializedWithNonConstantValueFromDeferredLibrary,
-          60,
-          1,
-        ),
-      ],
-    );
+//          ^
+// [diag.constInitializedWithNonConstantValueFromDeferredLibrary] Constant values from a deferred library can't be used to initialize a 'const' variable.
+''');
   }
 
   test_nested() async {
@@ -44,39 +36,26 @@ const B = a.V;
 library lib1;
 const V = 1;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 const B = a.V + 1;
-''',
-      [
-        error(
-          diag.constInitializedWithNonConstantValueFromDeferredLibrary,
-          60,
-          1,
-        ),
-      ],
-    );
+//          ^
+// [diag.constInitializedWithNonConstantValueFromDeferredLibrary] Constant values from a deferred library can't be used to initialize a 'const' variable.
+''');
   }
 
   test_staticMethod_ofExtension() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import '' deferred as self;
+//     ^^
+// [diag.deferredImportOfExtension] Deferred library imports must hide all extension declarations.
 extension E on int {
   static int f(String s) => 7;
 }
 const g = self.E.f;
-''',
-      [
-        error(diag.deferredImportOfExtension, 7, 2),
-        error(
-          diag.constInitializedWithNonConstantValueFromDeferredLibrary,
-          97,
-          1,
-        ),
-      ],
-    );
+//             ^
+// [diag.constInitializedWithNonConstantValueFromDeferredLibrary] Constant values from a deferred library can't be used to initialize a 'const' variable.
+''');
   }
 }

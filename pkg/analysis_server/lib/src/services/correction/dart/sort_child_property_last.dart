@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class SortChildPropertyLast extends ResolvedCorrectionProducer {
-  SortChildPropertyLast({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -32,12 +32,12 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var childProp = _findNamedExpression(node);
-    if (childProp == null) {
+    var childProperty = _findNamedArgument(node);
+    if (childProperty == null) {
       return;
     }
 
-    var creationExpression = childProp.parent?.parent;
+    var creationExpression = childProperty.parent?.parent;
     if (creationExpression is! InstanceCreationExpression ||
         !creationExpression.isWidgetCreation) {
       return;
@@ -46,7 +46,7 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
     var args = creationExpression.argumentList;
 
     var last = args.arguments.last;
-    if (last == childProp) {
+    if (last == childProperty) {
       // Already sorted.
       return;
     }
@@ -54,19 +54,47 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (fileEditBuilder) {
       var hasTrailingComma = last.endToken.next!.type == TokenType.COMMA;
 
-      var childStart = childProp.beginToken.previous!.end;
-      var childEnd = childProp.endToken.next!.end;
+      var childStart = childProperty.beginToken.previous!.end;
+      var childEnd = childProperty.endToken.next!.end;
+
+      // There is definitely a next argument since `last != childProperty`.
+      var nextArgument = args.arguments[1];
+      var childLine = unitResult.lineInfo.getLocation(childEnd);
+      var nextLine = unitResult.lineInfo.getLocation(nextArgument.offset);
+      var argsAreOnSameLine = childLine.lineNumber == nextLine.lineNumber;
+      if (!argsAreOnSameLine) {
+        // A comment which comes after the child's trailing comma is technically
+        // not associated with the child, but is clearly meant to be associated
+        // with it. Move it as well.
+        Token? precedingComment = nextArgument.beginToken.precedingComments;
+        while (precedingComment is CommentToken) {
+          var precedingCommentLine = unitResult.lineInfo.getLocation(
+            precedingComment.offset,
+          );
+          if (precedingCommentLine.lineNumber == childLine.lineNumber) {
+            childEnd = precedingComment.end;
+          } else {
+            break;
+          }
+          precedingComment = precedingComment.next;
+        }
+      }
+
+      // The range of the child/children argument which is used for the inserted
+      // text after the last argument. (This might be different from the text
+      // which is deleted, insofar as leading/trailing whitespace is accounted
+      // for.)
       var childRange = range.startOffsetEndOffset(childStart, childEnd);
 
       var deletionRange = childRange;
-      if (childProp == args.arguments.first) {
-        var deletionStart = childProp.offset;
-        var deletionEnd = args.arguments[1].offset;
+      if (childProperty == args.arguments.first) {
+        var deletionStart = childProperty.offset;
+        var deletionEnd = nextArgument.offset;
         deletionRange = range.startOffsetEndOffset(deletionStart, deletionEnd);
       }
 
       if (!hasTrailingComma) {
-        childEnd = childProp.end;
+        childEnd = childProperty.end;
         childRange = range.startOffsetEndOffset(childStart, childEnd);
       }
       var childText = utils.getRangeText(childRange);
@@ -74,7 +102,7 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
       var insertionPoint = last.end;
       if (hasTrailingComma) {
         insertionPoint = last.endToken.next!.end;
-      } else if (childStart == childProp.offset) {
+      } else if (childStart == childProperty.offset) {
         childText = ', $childText';
       } else {
         childText = ',$childText';
@@ -87,11 +115,11 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
     });
   }
 
-  /// Using the [node] as the starting point, find the named expression that is
+  /// Using the [node] as the starting point, find the named argument that is
   /// for either the `child` or `children` parameter.
-  NamedExpression? _findNamedExpression(AstNode node) {
-    if (node is NamedExpression) {
-      var name = node.name.label.name;
+  NamedArgument? _findNamedArgument(AstNode node) {
+    if (node is NamedArgument) {
+      var name = node.name.lexeme;
       if (name == 'child' || name == 'children') {
         return node;
       }

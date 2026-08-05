@@ -151,7 +151,7 @@ void main() {
       var unitBC = await compileUnit(
         ['b.dart', 'c.dart'],
         sources,
-        additionalDills: ['a.dill'],
+        additionalDillModules: ['a.dill'],
       );
 
       // Pretend that the compiled code is a summary
@@ -171,14 +171,14 @@ void main() {
       var unitD1 = await compileUnit(
         ['d.dart'],
         sources,
-        additionalDills: ['a.dill', 'bc.dill'],
+        additionalDillModules: ['a.dill', 'bc.dill'],
       );
       checkDCallsC(unitD1!);
 
       var unitD2 = await compileUnit(
         ['d.dart'],
         sources,
-        additionalDills: ['bc.dill', 'a.dill'],
+        additionalDillModules: ['bc.dill', 'a.dill'],
       );
       checkDCallsC(unitD2!);
     });

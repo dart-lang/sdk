@@ -52,8 +52,7 @@ Future<void> main(List<String> args) async {
 }
 
 class TestConfigWithLanguageVersion extends CfeTestConfig {
-  TestConfigWithLanguageVersion(String marker, String name)
-    : super(marker, name);
+  new(String marker, String name) : super(marker, name);
 
   @override
   CompilerOptions customizeCompilerOptions(
@@ -89,7 +88,7 @@ class Tags {
 }
 
 class LanguageVersioningDataComputer extends CfeDataComputer<Features> {
-  const LanguageVersioningDataComputer();
+  const new();
 
   @override
   Future<void> inspectTestResultData(CfeTestResultData testResultData) async {
@@ -149,7 +148,7 @@ Language version API (import URI): ${lvImportUri}
 }
 
 class LanguageVersioningDataExtractor extends CfeDataExtractor<Features> {
-  LanguageVersioningDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<Features>> actualMap,
   ) : super(compilerResult, actualMap);

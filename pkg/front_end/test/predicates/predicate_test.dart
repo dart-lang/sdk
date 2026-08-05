@@ -81,7 +81,7 @@ class Tags {
 }
 
 class PredicateDataComputer extends CfeDataComputer<Features> {
-  const PredicateDataComputer();
+  const new();
 
   /// Function that computes a data mapping for [library].
   ///
@@ -120,7 +120,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   Map<Object?, Features> featureMap = {};
   Map<Object?, NodeId> nodeIdMap = {};
 
-  PredicateDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<Features>> actualMap,
   ) : super(compilerResult, actualMap);
@@ -215,36 +215,36 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     Object? identity;
     String? name;
     String? tag;
     if (isLateLoweredLocal(node)) {
-      name = extractLocalNameFromLateLoweredLocal(node.name!);
+      name = extractLocalNameFromLateLoweredLocal(node.cosmeticName!);
       tag = Tags.lateLocal;
       identity = name;
     } else if (isLateLoweredIsSetLocal(node)) {
-      name = extractLocalNameFromLateLoweredIsSet(node.name!);
+      name = extractLocalNameFromLateLoweredIsSet(node.cosmeticName!);
       tag = Tags.lateIsSetLocal;
       identity = name;
     } else if (isLateLoweredLocalGetter(node)) {
-      name = extractLocalNameFromLateLoweredGetter(node.name!);
+      name = extractLocalNameFromLateLoweredGetter(node.cosmeticName!);
       tag = Tags.lateLocalGetter;
       identity = name;
     } else if (isLateLoweredLocalSetter(node)) {
-      name = extractLocalNameFromLateLoweredSetter(node.name!);
+      name = extractLocalNameFromLateLoweredSetter(node.cosmeticName!);
       tag = Tags.lateLocalSetter;
       identity = name;
     } else if (isExtensionThis(node)) {
-      name = extractLocalNameForExtensionThis(node.name!);
+      name = extractLocalNameForExtensionThis(node.cosmeticName!);
       tag = Tags.extensionThis;
       identity = name;
     } else if (isJoinedIntermediateVariable(node)) {
-      name = extractJoinedIntermediateName(node.name!);
+      name = extractJoinedIntermediateName(node.cosmeticName!);
       tag = Tags.joinedIntermediate;
       identity = node;
-    } else if (node.name != null) {
-      name = node.name;
+    } else if (node.cosmeticName != null) {
+      name = node.cosmeticName;
       identity = name;
     }
     if (name != null) {
@@ -257,7 +257,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
         features[Tags.name] = name;
       }
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override

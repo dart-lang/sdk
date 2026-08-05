@@ -48,13 +48,13 @@ class UnreachableIfFinder extends RecursiveVisitor {
     return unreachableIfFinder.warnings;
   }
 
-  final Set<VariableDeclaration> unwritten;
+  final Set<Variable> unwritten;
 
-  UnreachableIfFinder._(this.unwritten);
+  new _(this.unwritten);
 
   List<Warning> warnings = [];
 
-  Map<VariableDeclaration, bool> knownValues = {};
+  Map<Variable, bool> knownValues = {};
 
   @override
   void visitIfStatement(IfStatement node) {
@@ -75,7 +75,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
     // TODO(jensj): We could make the visit return a bool? instead and use that
     // from the condition instead of doing special casing on `Not` and
     // `VariableGet`.
-    VariableDeclaration? newKnownValueHere;
+    Variable? newKnownValueHere;
     bool conditionNegated = false;
 
     if (condition is Not) {
@@ -123,14 +123,14 @@ class UnreachableIfFinder extends RecursiveVisitor {
 }
 
 class EffectivelyFinal extends RecursiveVisitor {
-  final Set<VariableDeclaration> unwritten = {};
+  final Set<Variable> unwritten = {};
 
-  EffectivelyFinal._();
+  new _();
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     unwritten.add(node);
-    super.visitVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override
@@ -145,7 +145,7 @@ class Warning {
   final String message;
   final String? hint;
 
-  Warning(this.location, this.message, this.hint);
+  new(this.location, this.message, this.hint);
 
   @override
   String toString() {

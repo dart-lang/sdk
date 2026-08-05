@@ -34,7 +34,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   /// operator token.
   final Token? _nullAwareToken;
 
-  factory AddNullCheck({required CorrectionProducerContext context}) {
+  factory({required CorrectionProducerContext context}) {
     var (:target, :nullAwareToken) = context is StubCorrectionProducerContext
         ? (target: null, nullAwareToken: null)
         : _computeTargetAndNullAwareToken(context.node);
@@ -48,7 +48,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     );
   }
 
-  factory AddNullCheck.withoutAssignabilityCheck({
+  factory withoutAssignabilityCheck({
     required CorrectionProducerContext context,
   }) {
     var (:target, :nullAwareToken) = context is StubCorrectionProducerContext
@@ -64,7 +64,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     );
   }
 
-  AddNullCheck._({
+  new _({
     required super.context,
     required this.skipAssignabilityCheck,
     required this.applicability,

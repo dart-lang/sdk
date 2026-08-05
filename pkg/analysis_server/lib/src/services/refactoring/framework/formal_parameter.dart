@@ -69,13 +69,13 @@ final class NamedFormalParameterReference extends FormalParameterReference {
 
   /// Initialize a newly created reference to refer to the named formal
   /// parameter with the given [name].
-  NamedFormalParameterReference(this.name) : assert(name.isNotEmpty);
+  new(this.name) : assert(name.isNotEmpty);
 
   @override
   Expression? argumentFrom(ArgumentList argumentList) {
     for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression && argument.name.label.name == name) {
-        return argument.expression;
+      if (argument is NamedArgument && argument.name.lexeme == name) {
+        return argument.argumentExpression;
       }
     }
     return null;
@@ -93,7 +93,7 @@ final class PositionalFormalParameterReference
 
   /// Initialize a newly created reference to refer to the positional formal
   /// parameter with the given [index].
-  PositionalFormalParameterReference(this.index) : assert(index >= 0);
+  new(this.index) : assert(index >= 0);
 
   @override
   Expression? argumentFrom(ArgumentList argumentList) {
@@ -102,10 +102,10 @@ final class PositionalFormalParameterReference
       return null;
     }
     var argument = arguments[index];
-    if (argument is NamedExpression) {
+    if (argument is NamedArgument) {
       return null;
     }
-    return argument;
+    return argument.argumentExpression;
   }
 
   @override

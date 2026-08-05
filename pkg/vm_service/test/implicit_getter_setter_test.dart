@@ -7,24 +7,17 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
-
-class A {
-  double field = 0.0;
-}
-
-void script() {
-  for (int i = 0; i < 10; i++) {
-    A();
-  }
-}
+import 'common/service_test_common.dart';
+import 'implicit_getter_setter_lib.dart' as testee_lib;
 
 Future<void> testGetter(VmService service, IsolateRef isolateRef) async {
   final isolateId = isolateRef.id!;
   final isolate = await service.getIsolate(isolateId);
   final rootLib = await service.getObject(
     isolateId,
-    isolate.rootLib!.id!,
+    isolate.libraries!
+        .firstWhere((l) => l.uri!.contains('implicit_getter_setter_lib'))
+        .id!,
   ) as Library;
   expect(rootLib.classes!.length, 1);
 
@@ -70,7 +63,9 @@ Future<void> testSetter(VmService service, IsolateRef isolateRef) async {
   final isolate = await service.getIsolate(isolateId);
   final rootLib = await service.getObject(
     isolateId,
-    isolate.rootLib!.id!,
+    isolate.libraries!
+        .firstWhere((l) => l.uri!.contains('implicit_getter_setter_lib'))
+        .id!,
   ) as Library;
   expect(rootLib.classes!.length, 1);
 
@@ -110,14 +105,8 @@ Future<void> testSetter(VmService service, IsolateRef isolateRef) async {
   expect(classDouble.name, '_Double');
 }
 
-final tests = <IsolateTest>[
-  testGetter,
-  testSetter,
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'implicit_getter_setter_test.dart',
-      testeeBefore: script,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('implicit_getter_setter_lib.dart', args)
+        .addCustomTest(testGetter)
+        .addCustomTest(testSetter)
+        .run(testeeMain: testee_lib.main);

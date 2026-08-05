@@ -278,7 +278,7 @@ part 'main_augmentation.dart';
 
 class A {
   void f() {}
-  String get g => '';
+  String get g;
 }
 ''';
 
@@ -286,9 +286,7 @@ class A {
 part of 'main.dart';
 
 augment class A {
-  augment void f() {
-    0;
-  }
+  augment void f();
   augment get g => 'augmented';
 }
 ''';
@@ -318,7 +316,6 @@ augment class A {
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance,
       ]),
-      _Token("''", SemanticTokenTypes.string),
     ]);
 
     // Augmentation.
@@ -338,7 +335,6 @@ augment class A {
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance,
       ]),
-      _Token('0', SemanticTokenTypes.number),
       _Token('augment', SemanticTokenTypes.keyword),
       _Token('get', SemanticTokenTypes.keyword),
       _Token('g', SemanticTokenTypes.property, [
@@ -1039,6 +1035,131 @@ int double(int bbb) => bbb * 2;
       ]),
       _Token('bbb', SemanticTokenTypes.parameter),
       _Token('2', SemanticTokenTypes.number),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_dartdoc_codeBlock_indented() async {
+    var content = '''
+/// MyClass.
+///
+///     CODE
+class MyClass;
+''';
+
+    var expected = [
+      _Token('/// MyClass.', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('     CODE', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_dartdoc_codeBlock_tripleBackticks() async {
+    var content = '''
+/// MyClass.
+///
+/// ```
+/// CODE
+/// ```
+class MyClass;
+''';
+
+    var expected = [
+      _Token('/// MyClass.', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' ```', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' CODE', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' ```', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_dartdoc_codeBlock_tripleBackticks_namedLanguage() async {
+    var content = '''
+/// MyClass.
+///
+/// ```dart
+/// CODE
+/// ```
+class MyClass;
+''';
+
+    var expected = [
+      _Token('/// MyClass.', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' ```dart', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' CODE', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' ```', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -3379,7 +3500,7 @@ class _Token {
   final SemanticTokenTypes type;
   final List<SemanticTokenModifiers> modifiers;
 
-  _Token(this.content, this.type, [this.modifiers = const []]);
+  new(this.content, this.type, [this.modifiers = const []]);
 
   @override
   int get hashCode => content.hashCode;

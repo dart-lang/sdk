@@ -5,8 +5,6 @@
 // Extension types are allowed to have non-redirecting generative constructors,
 // implicitly or explicitly initializing the representation variable.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import "package:expect/expect.dart";
 
 extension type ET1(int x) {

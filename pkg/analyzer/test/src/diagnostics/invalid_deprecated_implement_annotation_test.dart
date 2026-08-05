@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,57 +16,48 @@ main() {
 class InvalidDeprecatedImplementAnnotationTest
     extends PubPackageResolutionTest {
   test_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
 class C {}
 ''');
   }
 
   test_class_base() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
+// [diag.invalidDeprecatedImplementAnnotation][column 2][length 20] The annotation '@Deprecated.implement' can only be applied to implementable classes.
 base class C {}
-''',
-      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
-    );
+''');
   }
 
   test_class_final() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
+// [diag.invalidDeprecatedImplementAnnotation][column 2][length 20] The annotation '@Deprecated.implement' can only be applied to implementable classes.
 final class C {}
-''',
-      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
-    );
+''');
   }
 
   test_class_private() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
+// [diag.invalidDeprecatedImplementAnnotation][column 2][length 20] The annotation '@Deprecated.implement' can only be applied to implementable classes.
 class _C {}
-''',
-      [
-        error(diag.invalidDeprecatedImplementAnnotation, 1, 20),
-        error(diag.unusedElement, 30, 2),
-      ],
-    );
+//    ^^
+// [diag.unusedElement] The declaration '_C' isn't referenced.
+''');
   }
 
   test_class_sealed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
+// [diag.invalidDeprecatedImplementAnnotation][column 2][length 20] The annotation '@Deprecated.implement' can only be applied to implementable classes.
 sealed class C {}
-''',
-      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
-    );
+''');
   }
 
   test_classTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 @Deprecated.implement()
 class C = Object with M;
@@ -75,47 +65,40 @@ class C = Object with M;
   }
 
   test_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
+// [diag.invalidDeprecatedImplementAnnotation][column 2][length 20] The annotation '@Deprecated.implement' can only be applied to implementable classes.
 void f() {}
-''',
-      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
-    );
+''');
   }
 
   test_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
 mixin M {}
 ''');
   }
 
   test_mixin_base() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
+// [diag.invalidDeprecatedImplementAnnotation][column 2][length 20] The annotation '@Deprecated.implement' can only be applied to implementable classes.
 base mixin M {}
-''',
-      [error(diag.invalidDeprecatedImplementAnnotation, 1, 20)],
-    );
+''');
   }
 
   test_mixin_private() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
+// [diag.invalidDeprecatedImplementAnnotation][column 2][length 20] The annotation '@Deprecated.implement' can only be applied to implementable classes.
 mixin _M {}
-''',
-      [
-        error(diag.invalidDeprecatedImplementAnnotation, 1, 20),
-        error(diag.unusedElement, 30, 2),
-      ],
-    );
+//    ^^
+// [diag.unusedElement] The declaration '_M' isn't referenced.
+''');
   }
 
   test_typeAlias_forClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 @Deprecated.implement()
 typedef D = C;
@@ -123,13 +106,11 @@ typedef D = C;
   }
 
   test_typeAlias_forEnum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { one; }
 @Deprecated.implement()
+// [diag.invalidDeprecatedImplementAnnotation][column 2][length 20] The annotation '@Deprecated.implement' can only be applied to implementable classes.
 typedef F = E;
-''',
-      [error(diag.invalidDeprecatedImplementAnnotation, 17, 20)],
-    );
+''');
   }
 }

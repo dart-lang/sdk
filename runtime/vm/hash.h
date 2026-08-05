@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HASH_H_
 
 #include "platform/globals.h"
+#include "platform/unaligned.h"
 
 namespace dart {
 
@@ -28,14 +29,26 @@ inline uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits = kBitsPerInt32) {
   return (hash == 0) ? 1 : hash;
 }
 
-inline uint32_t HashBytes(const uint8_t* bytes, intptr_t size) {
-  uint32_t hash = size;
-  while (size > 0) {
-    hash = CombineHashes(hash, *bytes);
-    bytes++;
-    size--;
+// The value returned by HashBytes when the length is 0. Used to avoid storing
+// canonical hashes to and loading from the heap for empty container Instances.
+static constexpr uint32_t kEmptyContainerHash = 1;
+
+inline uint32_t HashBytes(const void* bytes,
+                          intptr_t len,
+                          intptr_t hashbits = kBitsPerInt32) {
+  if (len == 0) {
+    return kEmptyContainerHash;
   }
-  return hash;
+  uint32_t hash = len;
+  const intptr_t chunks = len / kInt32Size;
+  for (intptr_t i = 0; i < chunks; i++) {
+    hash = CombineHashes(
+        hash, LoadUnaligned(&(reinterpret_cast<const uint32_t*>(bytes)[i])));
+  }
+  for (intptr_t i = chunks * kInt32Size; i < len; i++) {
+    hash = CombineHashes(hash, reinterpret_cast<const uint8_t*>(bytes)[i]);
+  }
+  return FinalizeHash(hash, hashbits);
 }
 
 }  // namespace dart

@@ -55,7 +55,7 @@ class PrefixBuilder extends NamedBuilderImpl
 
   final bool isWildcard;
 
-  PrefixBuilder(
+  new(
     this.name,
     this.deferred,
     this.parent,
@@ -154,7 +154,7 @@ class PrefixFragment {
 
   PrefixBuilder? _builder;
 
-  PrefixFragment({
+  new({
     required this.name,
     required this.importer,
     required this.imported,

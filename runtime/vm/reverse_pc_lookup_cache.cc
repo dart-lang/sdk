@@ -84,14 +84,8 @@ const UntaggedCompressedStackMaps::Payload* ReversePc::FindStackMap(
     const UntaggedCompressedStackMaps::Payload** global_table) {
   ASSERT(FLAG_precompiled_mode);
   NoSafepointScope no_safepoint;
-
-  auto map = FindStackMapInGroup(group, pc, is_return_address, code_start,
-                                 global_table);
-  if (map == nullptr) {
-    map = FindStackMapInGroup(Dart::vm_isolate_group(), pc, is_return_address,
-                              code_start, global_table);
-  }
-  return map;
+  return FindStackMapInGroup(group, pc, is_return_address, code_start,
+                             global_table);
 }
 
 CodePtr ReversePc::FindCode(IsolateGroup* group,
@@ -99,13 +93,7 @@ CodePtr ReversePc::FindCode(IsolateGroup* group,
                             bool is_return_address) {
   ASSERT(FLAG_precompiled_mode);
   NoSafepointScope no_safepoint;
-
-  auto code_descriptor = FindCodeInGroup(group, pc, is_return_address);
-  if (code_descriptor == Code::null()) {
-    code_descriptor =
-        FindCodeInGroup(Dart::vm_isolate_group(), pc, is_return_address);
-  }
-  return code_descriptor;
+  return FindCodeInGroup(group, pc, is_return_address);
 }
 
 CodePtr ReversePc::Lookup(IsolateGroup* group,

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,14 +15,13 @@ main() {
 @reflectiveTest
 class ExtendsNonClassTest extends PubPackageResolutionTest {
   test_class_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends dynamic {}
-''',
-      [error(diag.extendsNonClass, 16, 7)],
-    );
+//              ^^^^^^^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -35,15 +33,14 @@ ExtendsClause
   }
 
   test_class_enum() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { ONE }
 class A extends E {}
-''',
-      [error(diag.extendsNonClass, 31, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -55,15 +52,14 @@ ExtendsClause
   }
 
   test_class_extensionType() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 class B extends A {}
-''',
-      [error(diag.extendsNonClass, 44, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -75,15 +71,14 @@ ExtendsClause
   }
 
   test_class_mixin() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class A extends M {}
-''',
-      [error(diag.extendsNonClass, 27, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -95,15 +90,14 @@ ExtendsClause
   }
 
   test_class_variable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int v = 0;
 class A extends v {}
-''',
-      [error(diag.extendsNonClass, 27, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -115,15 +109,14 @@ ExtendsClause
   }
 
   test_class_variable_generic() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int v = 0;
 class A extends v<int> {}
-''',
-      [error(diag.extendsNonClass, 27, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -143,14 +136,13 @@ ExtendsClause
   }
 
   test_Never() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends Never {}
-''',
-      [error(diag.extendsNonClass, 16, 5)],
-    );
+//              ^^^^^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -162,14 +154,13 @@ ExtendsClause
   }
 
   test_undefined() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C extends A {}
-''',
-      [error(diag.extendsNonClass, 16, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -181,16 +172,15 @@ ExtendsClause
   }
 
   test_undefined_ignore_import_prefix() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
 
 class C extends p.A {}
-''',
-      [error(diag.uriDoesNotExist, 7, 8)],
-    );
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -198,7 +188,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: A
     element: <null>
     type: InvalidType
@@ -211,12 +201,12 @@ import 'x.dart' as p;
 part 'test.dart';
 ''');
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 class C extends p.A {}
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -224,7 +214,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: package:test/a.dart::<fragment>::@prefix2::p
+      element: package:test/a.dart::<fragment>::@prefix::p
     name: A
     element: <null>
     type: InvalidType
@@ -236,16 +226,15 @@ ExtendsClause
 part 'test.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 import 'x.dart' as p;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'x.dart'.
 class C extends p.A {}
-''',
-      [error(diag.uriDoesNotExist, 25, 8)],
-    );
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -253,7 +242,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: package:test/a.dart::@fragment::package:test/test.dart::@prefix2::p
+      element: package:test/a.dart::@fragment::package:test/test.dart::@prefix::p
     name: A
     element: <null>
     type: InvalidType
@@ -261,14 +250,13 @@ ExtendsClause
   }
 
   test_undefined_ignore_import_show_it() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' show A;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
 
 class C extends A {}
-''',
-      [error(diag.uriDoesNotExist, 7, 8)],
-    );
+''');
   }
 
   test_undefined_ignore_import_show_it_part() async {
@@ -277,7 +265,7 @@ part 'test.dart';
 import 'x.dart' show A;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 class C extends A {}
 ''');
@@ -288,14 +276,13 @@ class C extends A {}
 part 'test.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 import 'x.dart' show A;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'x.dart'.
 class C extends A {}
-''',
-      [error(diag.uriDoesNotExist, 25, 8)],
-    );
+''');
   }
 
   test_undefined_ignore_import_show_it_part3() async {
@@ -310,7 +297,7 @@ part 'test.dart';
 ''');
 
     // This file is on the path with `b.dart`, so no error.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'b.dart';
 class C extends A {}
 ''');
@@ -328,24 +315,24 @@ import 'x.dart' show A;
 ''');
 
     // This file is not on the path with `b.dart`, so the error.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 class C extends A {}
-''',
-      [error(diag.extendsNonClass, 34, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
   }
 
   test_undefined_ignore_import_show_other() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' show B;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
 
 class C extends A {}
-''',
-      [error(diag.uriDoesNotExist, 7, 8), error(diag.extendsNonClass, 41, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
   }
 
   test_undefined_ignore_part_exists_uriGenerated_nameIgnorable() async {
@@ -353,74 +340,71 @@ class C extends A {}
 part of 'test.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.g.dart';
 
 class C extends _$A {}
-''',
-      [error(diag.extendsNonClass, 34, 3)],
-    );
+//              ^^^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
   }
 
   test_undefined_ignore_part_notExist_uriGenerated_nameIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.g.dart';
+//   ^^^^^^^^^^
+// [diag.uriHasNotBeenGenerated] Target of URI hasn't been generated: 'package:test/a.g.dart'.
 
 class C extends _$A {}
-''',
-      [error(diag.uriHasNotBeenGenerated, 5, 10)],
-    );
+''');
   }
 
   test_undefined_ignore_part_notExist_uriGenerated_nameNotIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.g.dart';
+//   ^^^^^^^^^^
+// [diag.uriHasNotBeenGenerated] Target of URI hasn't been generated: 'package:test/a.g.dart'.
 
 class C extends A {}
-''',
-      [
-        error(diag.uriHasNotBeenGenerated, 5, 10),
-        error(diag.extendsNonClass, 34, 1),
-      ],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
   }
 
   test_undefined_ignore_part_notExist_uriNotGenerated_nameIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
+//   ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/a.dart'.
 
 class C extends _$A {}
-''',
-      [error(diag.uriDoesNotExist, 5, 8), error(diag.extendsNonClass, 32, 3)],
-    );
+//              ^^^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
   }
 
   test_undefined_ignore_part_notExist_uriNotGenerated_nameNotIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
+//   ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/a.dart'.
 
 class C extends A {}
-''',
-      [error(diag.uriDoesNotExist, 5, 8), error(diag.extendsNonClass, 32, 1)],
-    );
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
   }
 
   test_undefined_import_exists_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as p;
 
 class C extends p.A {}
-''',
-      [error(diag.extendsNonClass, 42, 3)],
-    );
+//              ^^^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -428,7 +412,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: A
     element: <null>
     type: InvalidType

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonGenerativeImplicitConstructorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -25,7 +26,7 @@ augment class B {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -34,16 +35,15 @@ class B extends A {}
   }
 
   test_implicit() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() => throw 0;
   A.named();
 }
 class B extends A {
+//    ^
+// [diag.nonGenerativeImplicitConstructor] The unnamed constructor of superclass 'A' (called by the default constructor of 'B') must be a generative constructor, but factory found.
 }
-''',
-      [error(diag.nonGenerativeImplicitConstructor, 57, 1)],
-    );
+''');
   }
 }

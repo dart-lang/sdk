@@ -47,7 +47,7 @@ class ExtensionMemberInfo {
   /// The [ExtensionMemberDescriptor] for the lowered [member].
   final ExtensionMemberDescriptor descriptor;
 
-  ExtensionMemberInfo(this.extension, this.member, this.descriptor);
+  new(this.extension, this.member, this.descriptor);
 }
 
 /// Information about an extension type member lowered as a top level member.
@@ -61,11 +61,7 @@ class ExtensionTypeMemberInfo {
   /// The [ExtensionMemberDescriptor] for the lowered [member].
   final ExtensionTypeMemberDescriptor descriptor;
 
-  ExtensionTypeMemberInfo(
-    this.extensionTypeDeclaration,
-    this.member,
-    this.descriptor,
-  );
+  new(this.extensionTypeDeclaration, this.member, this.descriptor);
 }
 
 class _LibraryInfo {
@@ -75,7 +71,7 @@ class _LibraryInfo {
     _library,
   );
 
-  _LibraryInfo(this._library);
+  new(this._library);
 
   ExtensionMemberInfo getExtensionMemberInfo(Member member) {
     return _extensionTable[member];
@@ -89,7 +85,7 @@ class _LibraryInfo {
 class _ExtensionTable {
   final Map<Member, ExtensionMemberInfo> _map = {};
 
-  _ExtensionTable(Library library) {
+  new(Library library) {
     for (Extension extension in library.extensions) {
       for (ExtensionMemberDescriptor descriptor
           in extension.memberDescriptors) {
@@ -119,7 +115,7 @@ class _ExtensionTable {
 class _ExtensionTypeTable {
   final Map<Member, ExtensionTypeMemberInfo> _map = {};
 
-  _ExtensionTypeTable(Library library) {
+  new(Library library) {
     for (ExtensionTypeDeclaration extensionTypeDeclaration
         in library.extensionTypeDeclarations) {
       for (ExtensionTypeMemberDescriptor descriptor

@@ -1,0 +1,7 @@
+concurrency: 1
+retry: 3
+
+tags:
+  # The release tests are only run from the release_reminder.yml workflow.
+  # This allows them to be skipped with the `prepare-release` label.
+  release:

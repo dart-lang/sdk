@@ -10,6 +10,7 @@
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+
 import "package:expect/expect.dart";
 
 Future sendData(List<int> data, int port) {
@@ -121,11 +122,13 @@ testEarlyClose2() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       String name = Platform.script.toFilePath();
-      new File(
-        name,
-      ).openRead().cast<List<int>>().pipe(request.response).catchError((e) {
-        /* ignore */
-      });
+      new File(name)
+          .openRead()
+          .cast<List<int>>()
+          .pipe(request.response)
+          .catchError((e) {
+            /* ignore */
+          });
     });
 
     var count = 0;

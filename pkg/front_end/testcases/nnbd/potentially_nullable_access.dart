@@ -69,8 +69,8 @@ var topLevelExtensionFunctionTypeImplicitCall = nullableClass();
 var topLevelExtensionFunctionTypeExplicitCall = nullableClass.call();
 var topLevelExtensionFunctionTypeTearOff = nullableClass.call;
 var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
-var topLevelExtensionFunctionTypeGetter =
-    nullableClass.extensionFunctionTypeGetter();
+var topLevelExtensionFunctionTypeGetter = nullableClass
+    .extensionFunctionTypeGetter();
 
 test() {
   var localBinary = nullableInt + 0;
@@ -108,8 +108,8 @@ test() {
   var localExtensionFunctionTypeExplicitCall = nullableClass.call();
   var localExtensionFunctionTypeTearOff = nullableClass.call;
   var localExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
-  var localExtensionFunctionTypeGetter =
-      nullableClass.extensionFunctionTypeGetter();
+  var localExtensionFunctionTypeGetter = nullableClass
+      .extensionFunctionTypeGetter();
 }
 
 main() {}

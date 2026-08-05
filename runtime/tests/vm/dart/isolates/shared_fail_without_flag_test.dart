@@ -4,7 +4,6 @@
 //
 // This checks that use of 'vm:shared' pragma crashes VM if no flag is passed.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,8 +12,6 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:expect/async_helper.dart';
-import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
 
 void main(List<String> args) async {
   if (isVmAotConfiguration) return; // Skip testing on AOT
@@ -25,7 +22,8 @@ void main(List<String> args) async {
   try {
     final sharedUseTest = path.join(tempDir.path, 'shared_use_test.dart');
     File(sharedUseTest).writeAsStringSync(r'''
-@pragma('vm:shared') int foo = 1;
+import 'dart:typed_data';
+@pragma('vm:shared') final foo = Uint8List(0);
 void main() {}
 ''');
 

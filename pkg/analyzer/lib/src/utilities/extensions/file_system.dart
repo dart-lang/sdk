@@ -27,7 +27,7 @@ extension FolderExtension on Folder {
   /// If the target contains an existing file with the given [name], then
   /// returns it. Otherwise, return `null`.
   File? getExistingFile(String name) {
-    var file = getChildAssumingFile(name);
+    var file = getFile(name);
     return file.exists ? file : null;
   }
 }

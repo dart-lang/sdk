@@ -16,8 +16,6 @@ enum E2<X> {
   const E2(X f);
 }
 
-enum E3<X extends num, Y extends String, Z extends Function(X, Y)> {
-  element
-}
+enum E3<X extends num, Y extends String, Z extends Function(X, Y)> { element }
 
 main() {}

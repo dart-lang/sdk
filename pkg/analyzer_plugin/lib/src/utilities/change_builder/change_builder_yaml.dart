@@ -53,8 +53,8 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
     String filePath,
     this.document,
     int timeStamp, {
-    required String eol,
-  }) : super(changeBuilder, filePath, timeStamp, eol: eol);
+    required super.eol,
+  }) : super(changeBuilder, filePath, timeStamp);
 
   @override
   void addInsertion(

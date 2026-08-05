@@ -54,7 +54,7 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
   /// during performance measurement.
   final String tmpSrcDirPath;
 
-  CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap);
+  new(this.tmpSrcDirPath, this.srcPathMap);
 
   Map<String, Object?> asMap(dynamic value) => value as Map<String, Object?>;
 
@@ -268,7 +268,7 @@ class InputConverter extends Converter<String, Operation?> {
   /// or `false` if an exception has occurred.
   bool _active = true;
 
-  InputConverter(this.tmpSrcDirPath, this.srcPathMap);
+  new(this.tmpSrcDirPath, this.srcPathMap);
 
   @override
   Operation? convert(String line) {
@@ -340,7 +340,7 @@ class PathMapEntry {
   final String oldSrcPrefix;
   final String newSrcPrefix;
 
-  PathMapEntry(this.oldSrcPrefix, this.newSrcPrefix);
+  new(this.oldSrcPrefix, this.newSrcPrefix);
 
   String translate(String original) {
     return original.startsWith(oldSrcPrefix)
@@ -353,7 +353,7 @@ class _InputSink implements ChunkedConversionSink<String> {
   final Converter<String, Operation?> converter;
   final Sink<Operation?> outSink;
 
-  _InputSink(this.converter, this.outSink);
+  new(this.converter, this.outSink);
 
   @override
   void add(String line) {

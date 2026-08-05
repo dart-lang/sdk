@@ -16,7 +16,7 @@ import 'package:yaml/yaml.dart';
 
 /// Produces [CodeActionLiteral]s from Pubspec fixes.
 class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
-  PubspecCodeActionsProducer(
+  new(
     super.server,
     super.file,
     super.lineInfo, {

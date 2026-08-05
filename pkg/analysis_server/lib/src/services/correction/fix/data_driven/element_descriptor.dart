@@ -31,7 +31,7 @@ class ElementDescriptor {
   /// accessible via any of the [libraryUris] where the path to the element
   /// within the library is given by the list of [components]. The [kind] of the
   /// element is represented by the key used in the data file.
-  ElementDescriptor({
+  new({
     required this.libraryUris,
     required this.kind,
     required this.isStatic,
@@ -64,6 +64,7 @@ class ElementDescriptor {
       ElementKind.getterKind =>
         // TODO(brianwilkerson): Handle this case.
         false,
+      ElementKind.libraryKind => _matchesType(node),
       ElementKind.methodKind => _matchesMethod(node),
       ElementKind.mixinKind => _matchesType(node),
       ElementKind.setterKind =>
@@ -169,6 +170,9 @@ class ElementDescriptor {
       // A plain or prefixed identifier with the correct name.
       var typeName = _nameFromIdentifier(node);
       return name == typeName;
+    }
+    if (node is LibraryImport) {
+      return name == (node as LibraryImport).importedLibrary?.name;
     }
     if (node is NamedType) {
       return name == node.name.lexeme;

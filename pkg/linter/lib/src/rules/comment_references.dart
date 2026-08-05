@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Only reference in-scope identifiers in doc comments.';
 
 class CommentReferences extends AnalysisRule {
-  CommentReferences()
-    : super(name: LintNames.comment_references, description: _desc);
+  new() : super(name: LintNames.comment_references, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.commentReferences;
@@ -41,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// https://spec.commonmark.org/0.31.2/#link-reference-definitions).
   final linkReferences = <String>[];
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitComment(Comment node) {

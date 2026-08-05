@@ -122,7 +122,7 @@ class TTestResult {
   final double aMean;
   final double bMean;
 
-  TTestResult(
+  new(
     this.significant,
     this.percentDiff,
     this.percentDiffConfidence,

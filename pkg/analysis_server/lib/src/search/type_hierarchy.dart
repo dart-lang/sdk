@@ -21,7 +21,7 @@ class TypeHierarchyComputer {
   final Map<Element, TypeHierarchyItem> _elementItemMap =
       HashMap<Element, TypeHierarchyItem>();
 
-  TypeHierarchyComputer(this._searchEngine, Element pivotElement)
+  new(this._searchEngine, Element pivotElement)
     : helper = TypeHierarchyComputerHelper.fromElement(pivotElement);
 
   /// Returns the computed type hierarchy, maybe `null`.
@@ -29,8 +29,7 @@ class TypeHierarchyComputer {
     var pivotClass = helper.pivotClass;
     if (pivotClass != null) {
       _createSuperItem(pivotClass, null);
-      var searchEngineCache = SearchEngineCache();
-      await _createSubclasses(_items[0], 0, pivotClass, searchEngineCache);
+      await _createSubclasses(_items[0], 0, pivotClass);
       return _items;
     }
     return null;
@@ -50,13 +49,8 @@ class TypeHierarchyComputer {
     TypeHierarchyItem item,
     int itemId,
     InterfaceElement classElement,
-    SearchEngineCache searchEngineCache,
   ) async {
-    var subElements = await getDirectSubClasses(
-      _searchEngine,
-      classElement,
-      searchEngineCache,
-    );
+    var subElements = await getDirectSubClasses(_searchEngine, classElement);
     var subItemIds = <int>[];
     for (var subElement in subElements) {
       // check for recursion
@@ -89,12 +83,7 @@ class TypeHierarchyComputer {
     for (var subItemId in subItemIds) {
       var subItem = _items[subItemId];
       var subItemElement = _itemClassElements[subItemId];
-      await _createSubclasses(
-        subItem,
-        subItemId,
-        subItemElement,
-        searchEngineCache,
-      );
+      await _createSubclasses(subItem, subItemId, subItemElement);
     }
   }
 
@@ -165,7 +154,7 @@ class TypeHierarchyComputerHelper {
   final bool pivotFieldFinal;
   final InterfaceElement? pivotClass;
 
-  TypeHierarchyComputerHelper(
+  new(
     this.pivotElement,
     this.pivotLibrary,
     this.pivotKind,
@@ -174,7 +163,7 @@ class TypeHierarchyComputerHelper {
     this.pivotClass,
   );
 
-  factory TypeHierarchyComputerHelper.fromElement(Element pivotElement) {
+  factory fromElement(Element pivotElement) {
     // try to find enclosing ClassElement
     Element? element = pivotElement;
     bool pivotFieldFinal = false;

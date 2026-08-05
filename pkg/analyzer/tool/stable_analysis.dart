@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -91,14 +90,14 @@ void main(List<String> args) {
   AnalysisContextCollectionImpl collection = AnalysisContextCollectionImpl(
     includedPaths: [dir.path],
     scheduler: scheduler,
-    updateAnalysisOptions4: ({required AnalysisOptionsImpl analysisOptions}) {
-      analysisOptions.warning = warnings;
-      analysisOptions.lint = lints;
+    configureAnalysisOptionsBuilder: ({required analysisOptionsBuilder}) {
+      analysisOptionsBuilder.warning = warnings;
+      analysisOptionsBuilder.lint = lints;
       if (lints) {
         int added = 0;
         for (var rule in linter.Registry.ruleRegistry.rules) {
           if (wantedLints.contains(rule.name)) {
-            analysisOptions.lintRules.add(rule);
+            analysisOptionsBuilder.lintRules.add(rule);
             added++;
           }
         }

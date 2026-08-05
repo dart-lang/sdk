@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A<X extends E> {}
+
 extension type E(Function<Y extends A>() it) {}

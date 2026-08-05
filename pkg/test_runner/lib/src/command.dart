@@ -40,11 +40,24 @@ abstract class Command {
   /// commands are only run once by the dependency graph scheduler.
   Command indexedCopy(int index);
 
-  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-          List<int> stderr, Duration time, bool compilationSkipped,
-          [int pid = 0]) =>
-      CommandOutput(this, exitCode, timedOut, stdout, stderr, time,
-          compilationSkipped, pid);
+  CommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int pid = 0,
+  ]) => CommandOutput(
+    this,
+    exitCode,
+    timedOut,
+    stdout,
+    stderr,
+    time,
+    compilationSkipped,
+    pid,
+  );
 
   @override
   int get hashCode {
@@ -90,11 +103,14 @@ class ProcessCommand extends Command {
   /// Working directory for the command.
   final String? workingDirectory;
 
-  ProcessCommand(super.displayName, this.executable, this.arguments,
-      [this.environmentOverrides = const {},
-      this.workingDirectory,
-      int index = 0])
-      : super._(index: index) {
+  ProcessCommand(
+    super.displayName,
+    this.executable,
+    this.arguments, [
+    this.environmentOverrides = const {},
+    this.workingDirectory,
+    int index = 0,
+  ]) : super._(index: index) {
     if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
@@ -105,8 +121,14 @@ class ProcessCommand extends Command {
 
   @override
   ProcessCommand indexedCopy(int index) {
-    return ProcessCommand(displayName, executable, arguments,
-        environmentOverrides, workingDirectory, index);
+    return ProcessCommand(
+      displayName,
+      executable,
+      arguments,
+      environmentOverrides,
+      workingDirectory,
+      index,
+    );
   }
 
   @override
@@ -129,13 +151,16 @@ class ProcessCommand extends Command {
   @override
   String get reproductionCommand {
     var env = StringBuffer();
-    environmentOverrides.forEach((key, value) =>
-        (io.Platform.operatingSystem == 'windows')
-            ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
-            : env.write('$key=${escapeCommandLineArgument(value)} '));
-    var command = [executable, ...nonBatchArguments, ...arguments]
-        .map(escapeCommandLineArgument)
-        .join(' ');
+    environmentOverrides.forEach(
+      (key, value) => (io.Platform.operatingSystem == 'windows')
+          ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
+          : env.write('$key=${escapeCommandLineArgument(value)} '),
+    );
+    var command = [
+      executable,
+      ...nonBatchArguments,
+      ...arguments,
+    ].map(escapeCommandLineArgument).join(' ');
     if (workingDirectory != null) {
       command = "$command (working directory: $workingDirectory)";
     }
@@ -164,47 +189,81 @@ class CompilationCommand extends ProcessCommand {
   final List<Uri> _bootstrapDependencies;
 
   CompilationCommand(
-      String displayName,
-      this.outputFile,
-      this._bootstrapDependencies,
-      String executable,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      {required this._alwaysCompile,
-      String? workingDirectory,
-      int index = 0})
-      : super(displayName, executable, arguments, environmentOverrides,
-            workingDirectory, index);
+    String displayName,
+    this.outputFile,
+    this._bootstrapDependencies,
+    String executable,
+    List<String> arguments,
+    Map<String, String> environmentOverrides, {
+    required this._alwaysCompile,
+    String? workingDirectory,
+    int index = 0,
+  }) : super(
+         displayName,
+         executable,
+         arguments,
+         environmentOverrides,
+         workingDirectory,
+         index,
+       );
 
   @override
   CompilationCommand indexedCopy(int index) => CompilationCommand(
-      displayName,
-      outputFile,
-      _bootstrapDependencies,
-      executable,
-      arguments,
-      environmentOverrides,
-      alwaysCompile: _alwaysCompile,
-      workingDirectory: workingDirectory,
-      index: index);
+    displayName,
+    outputFile,
+    _bootstrapDependencies,
+    executable,
+    arguments,
+    environmentOverrides,
+    alwaysCompile: _alwaysCompile,
+    workingDirectory: workingDirectory,
+    index: index,
+  );
 
   @override
-  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-      List<int> stderr, Duration time, bool compilationSkipped,
-      [int pid = 0]) {
+  CommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int pid = 0,
+  ]) {
     if (displayName == 'precompiler' ||
         displayName == 'app_jit' ||
         displayName == 'dart2bytecode' ||
         displayName == 'modaot') {
       return VMCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, pid);
+        this,
+        exitCode,
+        timedOut,
+        stdout,
+        stderr,
+        time,
+        pid,
+      );
     } else if (displayName == 'dart2wasm') {
       return Dart2WasmCompilerCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+        this,
+        exitCode,
+        timedOut,
+        stdout,
+        stderr,
+        time,
+        compilationSkipped,
+      );
     }
 
     return CompilationCommandOutput(
-        this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+      this,
+      exitCode,
+      timedOut,
+      stdout,
+      stderr,
+      time,
+      compilationSkipped,
+    );
   }
 
   @override
@@ -224,13 +283,15 @@ class CompilationCommand extends ProcessCommand {
     }
 
     dependencies.addAll(_bootstrapDependencies);
-    var jsOutputLastModified = TestUtils.lastModifiedCache
-        .getLastModified(Uri(scheme: 'file', path: outputFile));
+    var jsOutputLastModified = TestUtils.lastModifiedCache.getLastModified(
+      Uri(scheme: 'file', path: outputFile),
+    );
     if (jsOutputLastModified == null) return false;
 
     for (var dependency in dependencies) {
-      var dependencyLastModified =
-          TestUtils.lastModifiedCache.getLastModified(dependency);
+      var dependencyLastModified = TestUtils.lastModifiedCache.getLastModified(
+        dependency,
+      );
       if (dependencyLastModified == null ||
           dependencyLastModified.isAfter(jsOutputLastModified)) {
         return false;
@@ -264,36 +325,56 @@ class Dart2jsCompilationCommand extends CompilationCommand {
   final bool useSdk;
 
   Dart2jsCompilationCommand(
-      String outputFile,
-      List<Uri> bootstrapDependencies,
-      String executable,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      {required this.useSdk,
-      required super.alwaysCompile,
-      super.workingDirectory,
-      super.index = 0})
-      : super("dart2js", outputFile, bootstrapDependencies, executable,
-            arguments, environmentOverrides);
+    String outputFile,
+    List<Uri> bootstrapDependencies,
+    String executable,
+    List<String> arguments,
+    Map<String, String> environmentOverrides, {
+    required this.useSdk,
+    required super.alwaysCompile,
+    super.workingDirectory,
+    super.index = 0,
+  }) : super(
+         "dart2js",
+         outputFile,
+         bootstrapDependencies,
+         executable,
+         arguments,
+         environmentOverrides,
+       );
 
   @override
   Dart2jsCompilationCommand indexedCopy(int index) => Dart2jsCompilationCommand(
-      outputFile,
-      _bootstrapDependencies,
-      executable,
-      arguments,
-      environmentOverrides,
-      useSdk: useSdk,
-      alwaysCompile: _alwaysCompile,
-      workingDirectory: workingDirectory,
-      index: index);
+    outputFile,
+    _bootstrapDependencies,
+    executable,
+    arguments,
+    environmentOverrides,
+    useSdk: useSdk,
+    alwaysCompile: _alwaysCompile,
+    workingDirectory: workingDirectory,
+    index: index,
+  );
 
   @override
-  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-      List<int> stderr, Duration time, bool compilationSkipped,
-      [int? pid = 0]) {
+  CommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int? pid = 0,
+  ]) {
     return Dart2jsCompilerCommandOutput(
-        this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+      this,
+      exitCode,
+      timedOut,
+      stdout,
+      stderr,
+      time,
+      compilationSkipped,
+    );
   }
 
   @override
@@ -330,35 +411,60 @@ class DevCompilerCompilationCommand extends CompilationCommand {
   final bool enableHostAsserts;
 
   DevCompilerCompilationCommand(
-      String outputFile,
-      List<Uri> bootstrapDependencies,
-      String executable,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      {required this.compilerPath,
-      required super.alwaysCompile,
-      required this.enableHostAsserts,
-      super.workingDirectory,
-      super.index = 0})
-      : super("ddc", outputFile, bootstrapDependencies, executable, arguments,
-            environmentOverrides);
+    String outputFile,
+    List<Uri> bootstrapDependencies,
+    String executable,
+    List<String> arguments,
+    Map<String, String> environmentOverrides, {
+    required this.compilerPath,
+    required super.alwaysCompile,
+    required this.enableHostAsserts,
+    super.workingDirectory,
+    super.index = 0,
+  }) : super(
+         "ddc",
+         outputFile,
+         bootstrapDependencies,
+         executable,
+         arguments,
+         environmentOverrides,
+       );
 
   @override
   DevCompilerCompilationCommand indexedCopy(int index) =>
-      DevCompilerCompilationCommand(outputFile, _bootstrapDependencies,
-          executable, arguments, environmentOverrides,
-          compilerPath: compilerPath,
-          alwaysCompile: _alwaysCompile,
-          enableHostAsserts: enableHostAsserts,
-          workingDirectory: workingDirectory,
-          index: index);
+      DevCompilerCompilationCommand(
+        outputFile,
+        _bootstrapDependencies,
+        executable,
+        arguments,
+        environmentOverrides,
+        compilerPath: compilerPath,
+        alwaysCompile: _alwaysCompile,
+        enableHostAsserts: enableHostAsserts,
+        workingDirectory: workingDirectory,
+        index: index,
+      );
 
   @override
-  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-      List<int> stderr, Duration time, bool compilationSkipped,
-      [int pid = 0]) {
-    return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
-        time, compilationSkipped, pid);
+  CommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int pid = 0,
+  ]) {
+    return DevCompilerCommandOutput(
+      this,
+      exitCode,
+      timedOut,
+      stdout,
+      stderr,
+      time,
+      compilationSkipped,
+      pid,
+    );
   }
 
   @override
@@ -395,35 +501,55 @@ class FastaCompilationCommand extends CompilationCommand {
   final Uri _compilerLocation;
 
   FastaCompilationCommand(
-      this._compilerLocation,
-      String outputFile,
-      List<Uri> bootstrapDependencies,
-      String executable,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      String? workingDirectory,
-      {super.index = 0})
-      : super("fasta", outputFile, bootstrapDependencies, executable, arguments,
-            environmentOverrides,
-            alwaysCompile: true, workingDirectory: workingDirectory);
+    this._compilerLocation,
+    String outputFile,
+    List<Uri> bootstrapDependencies,
+    String executable,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    String? workingDirectory, {
+    super.index = 0,
+  }) : super(
+         "fasta",
+         outputFile,
+         bootstrapDependencies,
+         executable,
+         arguments,
+         environmentOverrides,
+         alwaysCompile: true,
+         workingDirectory: workingDirectory,
+       );
 
   @override
   FastaCompilationCommand indexedCopy(int index) => FastaCompilationCommand(
-      _compilerLocation,
-      outputFile,
-      _bootstrapDependencies,
-      executable,
-      arguments,
-      environmentOverrides,
-      workingDirectory,
-      index: index);
+    _compilerLocation,
+    outputFile,
+    _bootstrapDependencies,
+    executable,
+    arguments,
+    environmentOverrides,
+    workingDirectory,
+    index: index,
+  );
 
   @override
-  FastaCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-          List<int> stderr, Duration time, bool compilationSkipped,
-          [int? pid = 0]) =>
-      FastaCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+  FastaCommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int? pid = 0,
+  ]) => FastaCommandOutput(
+    this,
+    exitCode,
+    timedOut,
+    stdout,
+    stderr,
+    time,
+    compilationSkipped,
+  );
 
   @override
   List<String> get batchArguments {
@@ -439,7 +565,9 @@ class FastaCompilationCommand extends CompilationCommand {
     String relativizeAndEscape(String argument) {
       if (workingDirectory != null) {
         argument = argument.replaceAll(
-            workingDirectory!, Uri.directory(".").toFilePath());
+          workingDirectory!,
+          Uri.directory(".").toFilePath(),
+        );
       }
       return escapeCommandLineArgument(argument);
     }
@@ -463,8 +591,11 @@ class FastaCompilationCommand extends CompilationCommand {
       buffer.write(" ");
     });
     buffer.writeAll(
-      [executable, _compilerLocation.toFilePath(), ...arguments]
-          .map(relativizeAndEscape),
+      [
+        executable,
+        _compilerLocation.toFilePath(),
+        ...arguments,
+      ].map(relativizeAndEscape),
       " ",
     );
     if (workingDirectory != null) {
@@ -491,33 +622,52 @@ class FastaCompilationCommand extends CompilationCommand {
 
 class VMKernelCompilationCommand extends CompilationCommand {
   VMKernelCompilationCommand(
-      String outputFile,
-      List<Uri> bootstrapDependencies,
-      String executable,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      {required super.alwaysCompile,
-      super.index = 0})
-      : super('vm_compile_to_kernel', outputFile, bootstrapDependencies,
-            executable, arguments, environmentOverrides);
+    String outputFile,
+    List<Uri> bootstrapDependencies,
+    String executable,
+    List<String> arguments,
+    Map<String, String> environmentOverrides, {
+    required super.alwaysCompile,
+    super.index = 0,
+  }) : super(
+         'vm_compile_to_kernel',
+         outputFile,
+         bootstrapDependencies,
+         executable,
+         arguments,
+         environmentOverrides,
+       );
 
   @override
   VMKernelCompilationCommand indexedCopy(int index) =>
-      VMKernelCompilationCommand(outputFile, _bootstrapDependencies, executable,
-          arguments, environmentOverrides,
-          alwaysCompile: _alwaysCompile, index: index);
+      VMKernelCompilationCommand(
+        outputFile,
+        _bootstrapDependencies,
+        executable,
+        arguments,
+        environmentOverrides,
+        alwaysCompile: _alwaysCompile,
+        index: index,
+      );
 
   @override
   VMKernelCompilationCommandOutput createOutput(
-          int exitCode,
-          bool timedOut,
-          List<int> stdout,
-          List<int> stderr,
-          Duration time,
-          bool compilationSkipped,
-          [int? pid = 0]) =>
-      VMKernelCompilationCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int? pid = 0,
+  ]) => VMKernelCompilationCommandOutput(
+    this,
+    exitCode,
+    timedOut,
+    stdout,
+    stderr,
+    time,
+    compilationSkipped,
+  );
 
   @override
   int get maxNumRetries => 1;
@@ -542,7 +692,7 @@ class BrowserTestCommand extends Command {
   final TestConfiguration configuration;
 
   BrowserTestCommand(this.url, this.configuration, {super.index = 0})
-      : super._(configuration.runtime.name);
+    : super._(configuration.runtime.name);
 
   @override
   BrowserTestCommand indexedCopy(int index) =>
@@ -569,7 +719,7 @@ class BrowserTestCommand extends Command {
       io.Platform.resolvedExecutable,
       'pkg/test_runner/bin/launch_browser.dart',
       browser.name,
-      url
+      url,
     ];
     return parts.map(escapeCommandLineArgument).join(' ');
   }
@@ -581,23 +731,48 @@ class BrowserTestCommand extends Command {
 class AnalysisCommand extends ProcessCommand {
   final List<String> commonAnalyzerCliArguments;
 
-  AnalysisCommand(String executable, List<String> arguments,
-      this.commonAnalyzerCliArguments, Map<String, String> environmentOverrides,
-      {int index = 0})
-      : super('dart2analyzer', executable, arguments, environmentOverrides,
-            null, index);
+  AnalysisCommand(
+    String executable,
+    List<String> arguments,
+    this.commonAnalyzerCliArguments,
+    Map<String, String> environmentOverrides, {
+    int index = 0,
+  }) : super(
+         'dart2analyzer',
+         executable,
+         arguments,
+         environmentOverrides,
+         null,
+         index,
+       );
 
   @override
   AnalysisCommand indexedCopy(int index) => AnalysisCommand(
-      executable, arguments, commonAnalyzerCliArguments, environmentOverrides,
-      index: index);
+    executable,
+    arguments,
+    commonAnalyzerCliArguments,
+    environmentOverrides,
+    index: index,
+  );
 
   @override
-  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-          List<int> stderr, Duration time, bool compilationSkipped,
-          [int? pid = 0]) =>
-      AnalysisCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+  CommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int? pid = 0,
+  ]) => AnalysisCommandOutput(
+    this,
+    exitCode,
+    timedOut,
+    stdout,
+    stderr,
+    time,
+    compilationSkipped,
+  );
 
   @override
   List<String> get batchArguments => commonAnalyzerCliArguments;
@@ -610,73 +785,120 @@ class AnalysisCommand extends ProcessCommand {
     return other is AnalysisCommand &&
         super._equal(other) &&
         deepJsonCompare(
-            commonAnalyzerCliArguments, other.commonAnalyzerCliArguments);
+          commonAnalyzerCliArguments,
+          other.commonAnalyzerCliArguments,
+        );
   }
 }
 
 class CompareAnalyzerCfeCommand extends ProcessCommand {
-  CompareAnalyzerCfeCommand(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides, {int index = 0})
-      : super('compare_analyzer_cfe', executable, arguments,
-            environmentOverrides, null, index);
+  CompareAnalyzerCfeCommand(
+    String executable,
+    List<String> arguments,
+    Map<String, String> environmentOverrides, {
+    int index = 0,
+  }) : super(
+         'compare_analyzer_cfe',
+         executable,
+         arguments,
+         environmentOverrides,
+         null,
+         index,
+       );
 
   @override
-  CompareAnalyzerCfeCommand indexedCopy(int index) =>
-      CompareAnalyzerCfeCommand(executable, arguments, environmentOverrides,
-          index: index);
+  CompareAnalyzerCfeCommand indexedCopy(int index) => CompareAnalyzerCfeCommand(
+    executable,
+    arguments,
+    environmentOverrides,
+    index: index,
+  );
 
   @override
   CompareAnalyzerCfeCommandOutput createOutput(
-          int exitCode,
-          bool timedOut,
-          List<int> stdout,
-          List<int> stderr,
-          Duration time,
-          bool compilationSkipped,
-          [int? pid = 0]) =>
-      CompareAnalyzerCfeCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int? pid = 0,
+  ]) => CompareAnalyzerCfeCommandOutput(
+    this,
+    exitCode,
+    timedOut,
+    stdout,
+    stderr,
+    time,
+    compilationSkipped,
+  );
 }
 
 class SpecParseCommand extends ProcessCommand {
-  SpecParseCommand(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides, {int index = 0})
-      : super('spec_parser', executable, arguments, environmentOverrides, null,
-            index);
+  SpecParseCommand(
+    String executable,
+    List<String> arguments,
+    Map<String, String> environmentOverrides, {
+    int index = 0,
+  }) : super(
+         'spec_parser',
+         executable,
+         arguments,
+         environmentOverrides,
+         null,
+         index,
+       );
 
   @override
-  SpecParseCommand indexedCopy(int index) =>
-      SpecParseCommand(executable, arguments, environmentOverrides,
-          index: index);
+  SpecParseCommand indexedCopy(int index) => SpecParseCommand(
+    executable,
+    arguments,
+    environmentOverrides,
+    index: index,
+  );
 
   @override
   SpecParseCommandOutput createOutput(
-          int exitCode,
-          bool timedOut,
-          List<int> stdout,
-          List<int> stderr,
-          Duration time,
-          bool compilationSkipped,
-          [int? pid = 0]) =>
-      SpecParseCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int? pid = 0,
+  ]) => SpecParseCommandOutput(
+    this,
+    exitCode,
+    timedOut,
+    stdout,
+    stderr,
+    time,
+    compilationSkipped,
+  );
 }
 
 class VMCommand extends ProcessCommand {
-  VMCommand(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides,
-      {int index = 0})
-      : super('vm', executable, arguments, environmentOverrides, null, index);
+  VMCommand(
+    String executable,
+    List<String> arguments,
+    Map<String, String> environmentOverrides, {
+    int index = 0,
+  }) : super('vm', executable, arguments, environmentOverrides, null, index);
 
   @override
   VMCommand indexedCopy(int index) =>
       VMCommand(executable, arguments, environmentOverrides, index: index);
 
   @override
-  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-          List<int> stderr, Duration time, bool compilationSkipped,
-          [int pid = 0]) =>
-      VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
+  CommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int pid = 0,
+  ]) => VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
 }
 
 // Run a VM test under RR, and copy the trace if it crashes. Using a helper
@@ -691,7 +913,7 @@ class RRCommand extends Command {
   late io.Directory savedDir;
 
   RRCommand(this.originalCommand)
-      : super._(originalCommand.displayName, index: originalCommand.index) {
+    : super._(originalCommand.displayName, index: originalCommand.index) {
     final suffix = "/rr-trace-${originalCommand.hashCode}";
     recordingDir = io.Directory(io.Directory.systemTemp.path + suffix);
     savedDir = io.Directory("out$suffix");
@@ -705,12 +927,13 @@ class RRCommand extends Command {
     arguments.addAll(originalCommand.nonBatchArguments);
     arguments.addAll(originalCommand.arguments);
     wrappedCommand = ProcessCommand(
-        originalCommand.displayName,
-        executable,
-        arguments,
-        originalCommand.environmentOverrides,
-        originalCommand.workingDirectory,
-        originalCommand.index);
+      originalCommand.displayName,
+      executable,
+      arguments,
+      originalCommand.environmentOverrides,
+      originalCommand.workingDirectory,
+      originalCommand.index,
+    );
   }
 
   @override
@@ -718,22 +941,27 @@ class RRCommand extends Command {
       RRCommand(originalCommand.indexedCopy(index));
 
   Future<CommandOutput> run(
-      int timeout, TestConfiguration configuration) async {
+    int timeout,
+    TestConfiguration configuration,
+  ) async {
     // rr will fail if the output trace directory already exists. Delete any
     // that might be leftover from interrupting the harness.
     if (await recordingDir.exists()) {
       await recordingDir.delete(recursive: true);
     }
-    final output = await RunningProcess(wrappedCommand, timeout,
-            configuration: configuration)
-        .run();
+    final output = await RunningProcess(
+      wrappedCommand,
+      timeout,
+      configuration: configuration,
+    ).run();
     if (output.hasCrashed) {
       if (await savedDir.exists()) {
         await savedDir.delete(recursive: true);
       }
       await recordingDir.rename(savedDir.path);
-      await io.File("${savedDir.path}/command.txt")
-          .writeAsString(wrappedCommand.reproductionCommand);
+      await io.File(
+        "${savedDir.path}/command.txt",
+      ).writeAsString(wrappedCommand.reproductionCommand);
       await io.File("${savedDir.path}/stdout.txt").writeAsBytes(output.stdout);
       await io.File("${savedDir.path}/stderr.txt").writeAsBytes(output.stderr);
     } else if (await recordingDir.exists()) {
@@ -746,36 +974,46 @@ class RRCommand extends Command {
       case 'precompiler':
       case 'run_vm_unittest':
       case 'vm':
-        return VMCommandOutput(this, output.exitCode, output.hasTimedOut,
-            output.stdout, output.stderr, output.time, output.pid);
+        return VMCommandOutput(
+          this,
+          output.exitCode,
+          output.hasTimedOut,
+          output.stdout,
+          output.stderr,
+          output.time,
+          output.pid,
+        );
       case 'dart2wasm':
         return Dart2WasmCompilerCommandOutput(
-            this,
-            output.exitCode,
-            output.hasTimedOut,
-            output.stdout,
-            output.stderr,
-            output.time,
-            compilationSkipped);
+          this,
+          output.exitCode,
+          output.hasTimedOut,
+          output.stdout,
+          output.stderr,
+          output.time,
+          compilationSkipped,
+        );
       case 'dart2js':
         return Dart2jsCompilerCommandOutput(
-            this,
-            output.exitCode,
-            output.hasTimedOut,
-            output.stdout,
-            output.stderr,
-            output.time,
-            compilationSkipped);
+          this,
+          output.exitCode,
+          output.hasTimedOut,
+          output.stdout,
+          output.stderr,
+          output.time,
+          compilationSkipped,
+        );
       case 'ddc':
         return DevCompilerCommandOutput(
-            this,
-            output.exitCode,
-            output.hasTimedOut,
-            output.stdout,
-            output.stderr,
-            output.time,
-            compilationSkipped,
-            output.pid);
+          this,
+          output.exitCode,
+          output.hasTimedOut,
+          output.stdout,
+          output.stderr,
+          output.time,
+          compilationSkipped,
+          output.pid,
+        );
     }
     throw "Don't know how to interpret output for $displayName";
   }
@@ -813,32 +1051,38 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
   final List<String> extraLibraries;
 
   AdbPrecompilationCommand(
-      this.buildPath,
-      this.processTestFilename,
-      this.abstractSocketTestFilename,
-      this.precompiledTestDirectory,
-      this.arguments,
-      this.useElf,
-      this.extraLibraries,
-      {super.index = 0})
-      : super._("adb_precompilation");
+    this.buildPath,
+    this.processTestFilename,
+    this.abstractSocketTestFilename,
+    this.precompiledTestDirectory,
+    this.arguments,
+    this.useElf,
+    this.extraLibraries, {
+    super.index = 0,
+  }) : super._("adb_precompilation");
 
   @override
   AdbPrecompilationCommand indexedCopy(int index) => AdbPrecompilationCommand(
-      buildPath,
-      processTestFilename,
-      abstractSocketTestFilename,
-      precompiledTestDirectory,
-      arguments,
-      useElf,
-      extraLibraries,
-      index: index);
+    buildPath,
+    processTestFilename,
+    abstractSocketTestFilename,
+    precompiledTestDirectory,
+    arguments,
+    useElf,
+    extraLibraries,
+    index: index,
+  );
 
   @override
-  VMCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-          List<int> stderr, Duration time, bool compilationSkipped,
-          [int pid = 0]) =>
-      VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
+  VMCommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int pid = 0,
+  ]) => VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
 
   @override
   _buildHashCode(HashCodeBuilder builder) {
@@ -860,7 +1104,8 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       deepJsonCompare(extraLibraries, other.extraLibraries);
 
   @override
-  String toString() => 'Steps to push precompiled runner and precompiled code '
+  String toString() =>
+      'Steps to push precompiled runner and precompiled code '
       'to an attached device. Uses (and requires) adb.';
 
   @override
@@ -878,24 +1123,25 @@ class AdbDartkCommand extends Command implements AdbCommand {
   final List<String> extraLibraries;
 
   AdbDartkCommand(
-      this.buildPath,
-      this.processTestFilename,
-      this.abstractSocketTestFilename,
-      this.kernelFile,
-      this.arguments,
-      this.extraLibraries,
-      {super.index = 0})
-      : super._("adb_precompilation");
+    this.buildPath,
+    this.processTestFilename,
+    this.abstractSocketTestFilename,
+    this.kernelFile,
+    this.arguments,
+    this.extraLibraries, {
+    super.index = 0,
+  }) : super._("adb_precompilation");
 
   @override
   AdbDartkCommand indexedCopy(int index) => AdbDartkCommand(
-      buildPath,
-      processTestFilename,
-      abstractSocketTestFilename,
-      kernelFile,
-      arguments,
-      extraLibraries,
-      index: index);
+    buildPath,
+    processTestFilename,
+    abstractSocketTestFilename,
+    kernelFile,
+    arguments,
+    extraLibraries,
+    index: index,
+  );
 
   @override
   _buildHashCode(HashCodeBuilder builder) {
@@ -915,13 +1161,19 @@ class AdbDartkCommand extends Command implements AdbCommand {
       kernelFile == other.kernelFile;
 
   @override
-  VMCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
-          List<int> stderr, Duration time, bool compilationSkipped,
-          [int pid = 0]) =>
-      VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
+  VMCommandOutput createOutput(
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int pid = 0,
+  ]) => VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
 
   @override
-  String toString() => 'Steps to push Dart VM and Dill file '
+  String toString() =>
+      'Steps to push Dart VM and Dill file '
       'to an attached device. Uses (and requires) adb.';
 
   @override
@@ -930,50 +1182,84 @@ class AdbDartkCommand extends Command implements AdbCommand {
 
 class JSCommandLineCommand extends ProcessCommand {
   JSCommandLineCommand(
-      String displayName, String executable, List<String> arguments,
-      [Map<String, String> environmentOverrides = const {}, int index = 0])
-      : super(displayName, executable, arguments, environmentOverrides, null,
-            index);
+    String displayName,
+    String executable,
+    List<String> arguments, [
+    Map<String, String> environmentOverrides = const {},
+    int index = 0,
+  ]) : super(
+         displayName,
+         executable,
+         arguments,
+         environmentOverrides,
+         null,
+         index,
+       );
 
   @override
   JSCommandLineCommand indexedCopy(int index) => JSCommandLineCommand(
-      displayName, executable, arguments, environmentOverrides, index);
+    displayName,
+    executable,
+    arguments,
+    environmentOverrides,
+    index,
+  );
 
   @override
   JSCommandLineOutput createOutput(
-          int exitCode,
-          bool timedOut,
-          List<int> stdout,
-          List<int> stderr,
-          Duration time,
-          bool compilationSkipped,
-          [int? pid = 0]) =>
-      JSCommandLineOutput(this, exitCode, timedOut, stdout, stderr, time);
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int? pid = 0,
+  ]) => JSCommandLineOutput(this, exitCode, timedOut, stdout, stderr, time);
 }
 
 class Dart2WasmCommandLineCommand extends ProcessCommand {
   Dart2WasmCommandLineCommand(
-      String displayName, String executable, List<String> arguments,
-      [Map<String, String> environmentOverrides = const {}, int index = 0])
-      : super(displayName, executable, arguments, environmentOverrides, null,
-            index);
+    String displayName,
+    String executable,
+    List<String> arguments, [
+    Map<String, String> environmentOverrides = const {},
+    int index = 0,
+  ]) : super(
+         displayName,
+         executable,
+         arguments,
+         environmentOverrides,
+         null,
+         index,
+       );
 
   @override
   Dart2WasmCommandLineCommand indexedCopy(int index) =>
       Dart2WasmCommandLineCommand(
-          displayName, executable, arguments, environmentOverrides, index);
+        displayName,
+        executable,
+        arguments,
+        environmentOverrides,
+        index,
+      );
 
   @override
   Dart2WasmCommandLineOutput createOutput(
-          int exitCode,
-          bool timedOut,
-          List<int> stdout,
-          List<int> stderr,
-          Duration time,
-          bool compilationSkipped,
-          [int? pid = 0]) =>
-      Dart2WasmCommandLineOutput(
-          this, exitCode, timedOut, stdout, stderr, time);
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped, [
+    int? pid = 0,
+  ]) => Dart2WasmCommandLineOutput(
+    this,
+    exitCode,
+    timedOut,
+    stdout,
+    stderr,
+    time,
+  );
 }
 
 /// [ScriptCommand]s are executed by dart code.

@@ -6,6 +6,7 @@
 // library.
 
 import 'package:expect/expect.dart';
+
 import 'base_mixin_typedef_with_lib.dart';
 
 abstract base class AOutside with BaseMixinTypeDef {}

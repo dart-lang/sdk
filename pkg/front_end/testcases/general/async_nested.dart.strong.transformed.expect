@@ -8,7 +8,7 @@ import "dart:async";
 class Node extends core::Object {
   final field core::List<self::Node>? nested;
   final field core::String name;
-  constructor •(core::String name, [core::List<self::Node>? nested = #C1]) → self::Node
+  constructor •(initializing-formal core::String name, [initializing-formal core::List<self::Node>? nested = #C1]) → self::Node
     : self::Node::name = name, self::Node::nested = nested, super core::Object::•() {}
   method toString() → core::String
     return "<${this.{self::Node::name}{core::String}}:[${let final core::List<self::Node>? #t1 = this.{self::Node::nested}{core::List<self::Node>?} in #t1 == null ?{core::String?} null : #t1{core::List<self::Node>}.{core::Iterable::join}(", "){([core::String]) → core::String}}]>";

@@ -18,7 +18,7 @@ class BinaryExpression extends Expression {
 
   /// Initialize a newly created binary expression consisting of the
   /// [leftOperand], [operator], and [rightOperand].
-  BinaryExpression(this.leftOperand, this.operator, this.rightOperand);
+  new(this.leftOperand, this.operator, this.rightOperand);
 
   @override
   Object? evaluateIn(TemplateContext context) {
@@ -58,7 +58,7 @@ class LiteralString extends Expression {
   final String value;
 
   /// Initialize a newly created literal string to have the given [value].
-  LiteralString(this.value);
+  new(this.value);
 
   @override
   String evaluateIn(TemplateContext context) {
@@ -79,7 +79,7 @@ class VariableReference extends Expression {
 
   /// Initialize a newly created variable reference to reference the variable
   /// whose value is computed by the [generator].
-  VariableReference(this.generator);
+  new(this.generator);
 
   @override
   String evaluateIn(TemplateContext context) {

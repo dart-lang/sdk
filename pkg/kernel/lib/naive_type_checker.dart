@@ -17,7 +17,7 @@ abstract class FailureListener {
 class NaiveTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
-  factory NaiveTypeChecker(
+  factory(
     FailureListener failures,
     Component component, {
     bool ignoreSdk = false,
@@ -37,7 +37,7 @@ class NaiveTypeChecker extends type_checker.TypeChecker {
     );
   }
 
-  NaiveTypeChecker._(
+  new _(
     this.failures,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
@@ -233,9 +233,9 @@ ${ownType} is not a subtype of ${superType}
     }
 
     for (int i = 0; i < superFunction.positionalParameters.length; ++i) {
-      final VariableDeclaration ownParameter =
+      final PositionalParameter ownParameter =
           ownFunction.positionalParameters[i];
-      final VariableDeclaration superParameter =
+      final PositionalParameter superParameter =
           superFunction.positionalParameters[i];
       if (!_isValidParameterOverride(
         ownSubstitution.substituteType(ownParameter.type),
@@ -244,7 +244,7 @@ ${ownType} is not a subtype of ${superType}
         isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder,
       )) {
         return '''
-type of parameter ${ownParameter.name} is incompatible
+type of parameter ${ownParameter.cosmeticName} is incompatible
 override declares ${ownParameter.type}
 super method declares ${superParameter.type}
 ''';
@@ -257,16 +257,15 @@ super method declares ${superParameter.type}
 
     // Note: FunctionNode.namedParameters are not sorted so we convert them
     // to map to make lookup faster.
-    final Map<String, VariableDeclaration> ownParameters =
-        new Map<String, VariableDeclaration>.fromIterable(
-          ownFunction.namedParameters,
-          key: (v) => v.name,
-        );
-    for (VariableDeclaration superParameter in superFunction.namedParameters) {
-      final VariableDeclaration? ownParameter =
-          ownParameters[superParameter.name];
+    final Map<String, NamedParameter> ownParameters = new Map.fromIterable(
+      ownFunction.namedParameters,
+      key: (v) => v.parameterName,
+    );
+    for (NamedParameter superParameter in superFunction.namedParameters) {
+      final NamedParameter? ownParameter =
+          ownParameters[superParameter.parameterName];
       if (ownParameter == null) {
-        return 'override is missing ${superParameter.name} parameter';
+        return 'override is missing ${superParameter.parameterName} parameter';
       }
 
       if (!_isValidParameterOverride(
@@ -276,7 +275,7 @@ super method declares ${superParameter.type}
         isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder,
       )) {
         return '''
-type of parameter ${ownParameter.name} is incompatible
+type of parameter ${ownParameter.parameterName} is incompatible
 override declares ${ownParameter.type}
 super method declares ${superParameter.type}
 ''';

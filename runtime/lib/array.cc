@@ -10,7 +10,7 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(List_allocate, 0, 2) {
+DEFINE_NATIVE_ENTRY(List_allocate, 1, 1) {
   // Implemented in FlowGraphBuilder::VisitNativeBody.
   UNREACHABLE();
   return Object::null();
@@ -55,12 +55,11 @@ DEFINE_NATIVE_ENTRY(List_slice, 0, 4) {
 }
 
 // Private factory, expects correct arguments.
-DEFINE_NATIVE_ENTRY(ImmutableList_from, 0, 4) {
-  // Ignore first argument of this factory (type argument).
+DEFINE_NATIVE_ENTRY(ImmutableList_from, 1, 3) {
   const Array& from_array =
-      Array::CheckedHandle(zone, arguments->NativeArgAt(1));
-  const Smi& smi_offset = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
-  const Smi& smi_length = Smi::CheckedHandle(zone, arguments->NativeArgAt(3));
+      Array::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Smi& smi_offset = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const Smi& smi_length = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
   const intptr_t length = smi_length.Value();
   const intptr_t offset = smi_offset.Value();
   const Array& result = Array::Handle(Array::New(length));

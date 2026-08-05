@@ -45,7 +45,7 @@ Future<void> main(List<String> args) async {
 }
 
 class ExhaustivenessDataComputer extends CfeDataComputer<Features> {
-  const ExhaustivenessDataComputer();
+  const new();
 
   @override
   DataInterpreter<Features> get dataValidator =>
@@ -73,7 +73,7 @@ class ExhaustivenessDataComputer extends CfeDataComputer<Features> {
 class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
   final ExhaustivenessDataForTesting _exhaustivenessData;
 
-  ExhaustivenessDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<Features>> actualMap,
   ) : _exhaustivenessData = compilerResult

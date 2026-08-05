@@ -5,6 +5,7 @@
 library foo;
 
 import 'dart:mirrors';
+
 import 'typedef_library.dart' deferred as def;
 
 import 'package:expect/async_helper.dart';

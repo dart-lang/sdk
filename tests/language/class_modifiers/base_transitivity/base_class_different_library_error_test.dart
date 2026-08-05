@@ -5,6 +5,7 @@
 /// Test the invalid uses of a base class defined in a different library
 
 import 'dart:collection';
+
 import "shared_library_definitions.dart" show SimpleClass, BaseClass;
 import 'shared_library_definitions_legacy.dart' show LegacyImplementBaseCore;
 
@@ -201,66 +202,66 @@ sealed class SealedExtend extends BaseClass {}
 
 class SimpleSealedExtendExtend extends SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 1 see shared_library_definitions.dart] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleSealedExtendExtend' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 interface class InterfaceSealedExtendExtend extends SealedExtend {}
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 2 see shared_library_definitions.dart] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'InterfaceSealedExtendExtend' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
 
 // Implementing through a sealed class.
 
 class SimpleSealedExtendImplement implements SealedExtend {}
 //                                           ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 3 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base class BaseSealedExtendImplement implements SealedExtend {}
 //                                              ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 4 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 interface class InterfaceSealedExtendImplement implements SealedExtend {}
 //                                                        ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 5 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 final class FinalSealedExtendImplement implements SealedExtend {}
 //                                                ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 6 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 sealed class SealedSealedExtendImplement implements SealedExtend {}
 //                                                  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 7 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin class MixinClassSealedExtendImplement implements SealedExtend {}
 //                                                     ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 8 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base mixin class BaseMixinClassSealedExtendImplement implements SealedExtend {}
 //                                                              ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 9 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 mixin MixinSealedExtendImplement implements SealedExtend {}
 //                                          ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 10 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 base mixin BaseMixinSealedExtendImplement implements SealedExtend {}
 //                                                   ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 11 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseClass' can't be implemented outside of its library because it's a base class.
 
 // Using a sealed class as an `on` type
 
 mixin MixinSealedExtendOn on SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 12 see shared_library_definitions.dart] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The mixin 'MixinSealedExtendOn' must be 'base' because the supertype 'BaseClass' is 'base'.
 
 // Implementing via an on type (valid).
@@ -407,12 +408,11 @@ base mixin class BaseMixinClassImplement implements BaseClass {}
 
 // Implementing with a mixin application class.
 
-class SimpleImplementApplication = Object
-//    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [error line 414, column 7, length 26]
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
-        with
-        _MixinOnObject
+class SimpleImplementApplication = Object
+    with _MixinOnObject
     implements BaseClass;
 //             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY

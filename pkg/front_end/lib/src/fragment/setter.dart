@@ -51,7 +51,7 @@ class SetterFragment implements Fragment, FunctionFragment {
   /// The declared formals on this setter.
   final List<FormalParameterBuilder>? declaredFormals;
 
-  final AsyncMarker asyncModifier;
+  final AsyncModifier asyncModifier;
   final String? nativeMethodName;
 
   final DeclarationFragment? enclosingDeclaration;
@@ -67,7 +67,7 @@ class SetterFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
-  SetterFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.startOffset,
@@ -129,7 +129,7 @@ class _SetterFunctionBodyBuildingContext
     implements FunctionBodyBuildingContext {
   SetterFragment _fragment;
 
-  _SetterFunctionBodyBuildingContext(this._fragment);
+  new(this._fragment);
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -154,7 +154,7 @@ class _SetterFunctionBodyBuildingContext
       _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   ExtensionScope get extensionScope {

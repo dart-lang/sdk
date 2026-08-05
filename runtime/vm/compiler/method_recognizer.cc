@@ -15,6 +15,7 @@ intptr_t MethodRecognizer::NumArgsCheckedForStaticCall(
     const Function& function) {
   switch (function.recognized_kind()) {
     case MethodRecognizer::kDoubleFromInteger:
+      return 1;
     case MethodRecognizer::kMathMin:
     case MethodRecognizer::kMathMax:
       return 2;

@@ -113,7 +113,11 @@ class DartDevelopmentServiceLauncher {
       executable = dartExecutable;
       args = ['development-service', ...args];
     }
-    final process = await Process.start(executable, args);
+    final process = await Process.start(
+      executable,
+      args,
+      mode: ProcessStartMode.detachedWithStdio,
+    );
     final completer = Completer<DartDevelopmentServiceLauncher>();
     late StreamSubscription<Object?> stderrSub;
     stderrSub = process.stderr
@@ -133,15 +137,19 @@ class DartDevelopmentServiceLauncher {
             (result['dtd'] as Map<String, Object?>?)?['uri'] as String?;
         final dtdUri = dtdUriStr == null ? null : Uri.parse(dtdUriStr);
 
-        completer.complete(
-          DartDevelopmentServiceLauncher._(
-            process: process,
-            uri: ddsUri,
-            devToolsUri: devToolsUri,
-            dtdUri: dtdUri,
-            appName: appName,
-          ),
+        final launcher = DartDevelopmentServiceLauncher._(
+          process: process,
+          uri: ddsUri,
+          devToolsUri: devToolsUri,
+          dtdUri: dtdUri,
+          appName: appName,
         );
+        process.stdout.listen(
+          (_) {},
+          onDone: () => launcher._exitCompleter.complete(),
+          onError: (_) => launcher._exitCompleter.complete(),
+        );
+        completer.complete(launcher);
       } else if (result
           case {
             'state': 'error',
@@ -158,6 +166,14 @@ class DartDevelopmentServiceLauncher {
         throw StateError('Unexpected result from DDS: $result');
       }
       stderrSub.cancel();
+    }, onError: (Object error, StackTrace stackTrace) {
+      if (!completer.isCompleted) {
+        completer.completeError(
+          DartDevelopmentServiceException.failedToStart(),
+          stackTrace,
+        );
+      }
+      stderrSub.cancel();
     });
     return completer.future;
   }
@@ -171,6 +187,7 @@ class DartDevelopmentServiceLauncher {
   }) : _ddsInstance = process;
 
   final Process _ddsInstance;
+  final _exitCompleter = Completer<void>();
 
   /// A short, user focused description of the application that DDS will
   /// connect to.
@@ -233,11 +250,11 @@ class DartDevelopmentServiceLauncher {
   }
 
   /// Completes when the DDS instance has shutdown.
-  Future<void> get done => _ddsInstance.exitCode;
+  Future<void> get done => _exitCompleter.future;
 
   /// Shutdown the DDS instance.
-  Future<void> shutdown() {
+  Future<void> shutdown() async {
     _ddsInstance.kill();
-    return _ddsInstance.exitCode;
+    await done;
   }
 }

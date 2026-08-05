@@ -20,8 +20,7 @@ const _desc =
     r' parameters.';
 
 class UnnecessaryOverrides extends AnalysisRule {
-  UnnecessaryOverrides()
-    : super(name: LintNames.unnecessary_overrides, description: _desc);
+  new() : super(name: LintNames.unnecessary_overrides, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryOverrides;
@@ -45,7 +44,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   late ExecutableElement _inheritedMethod;
   late MethodDeclaration declaration;
 
-  _AbstractUnnecessaryOverrideVisitor(this.rule);
+  new(this.rule);
 
   ExecutableElement? getInheritedElement(MethodDeclaration node);
 
@@ -183,7 +182,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor
 
 class _UnnecessaryGetterOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
-  _UnnecessaryGetterOverrideVisitor(super.rule);
+  new(super.rule);
 
   @override
   ExecutableElement? getInheritedElement(MethodDeclaration node) {
@@ -211,7 +210,7 @@ class _UnnecessaryGetterOverrideVisitor
 
 class _UnnecessaryMethodOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
-  _UnnecessaryMethodOverrideVisitor(super.rule);
+  new(super.rule);
 
   @override
   ExecutableElement? getInheritedElement(node) {
@@ -245,7 +244,7 @@ class _UnnecessaryMethodOverrideVisitor
 
 class _UnnecessaryOperatorOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
-  _UnnecessaryOperatorOverrideVisitor(super.rule);
+  new(super.rule);
 
   @override
   ExecutableElement? getInheritedElement(node) {
@@ -294,7 +293,7 @@ class _UnnecessaryOperatorOverrideVisitor
 
 class _UnnecessarySetterOverrideVisitor
     extends _AbstractUnnecessaryOverrideVisitor {
-  _UnnecessarySetterOverrideVisitor(super.rule);
+  new(super.rule);
 
   @override
   ExecutableElement? getInheritedElement(node) {
@@ -330,7 +329,7 @@ class _UnnecessarySetterOverrideVisitor
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

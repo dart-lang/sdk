@@ -8,7 +8,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class ShutdownMessageHandler extends LspMessageHandler<void, void> {
-  ShutdownMessageHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.shutdown;

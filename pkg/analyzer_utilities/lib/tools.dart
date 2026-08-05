@@ -40,8 +40,9 @@ String capitalize(String string) {
 
 /// Type of functions used to compute the contents of a set of generated files.
 /// [pkgRoot] is the path to the SDK's `pkg` directory.
-typedef DirectoryContentsComputer =
-    Map<String, FileContentsComputer> Function(String pkgRoot);
+typedef DirectoryContentsComputer = Map<String, FileContentsComputer> Function(
+  String pkgRoot,
+);
 
 /// Type of functions used to compute the contents of a generated file.
 /// [pkgRoot] is the path to the SDK's `pkg` directory.
@@ -57,6 +58,10 @@ mixin CodeGenerator {
 
   /// Measure the width of the current indentation level.
   int get indentWidth => _state.nextIndent.length;
+
+  /// Name of the script that should be included in the header to instruct
+  /// developers how to re-run code generation.
+  String get regenScript => 'pkg/analysis_server/tool/spec/generate_files';
 
   /// Execute [callback], collecting any code that is output using [write]
   /// or [writeln], and return the result as a string.
@@ -168,7 +173,7 @@ mixin CodeGenerator {
  * BSD-style license that can be found in the LICENSE file.
  *
  * This file has been automatically generated. Please do not edit it manually.
- * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
+ * To regenerate the file, use the script "$regenScript".
  */''';
     } else if (codeGeneratorSettings.languageName == 'python') {
       header =
@@ -179,7 +184,7 @@ mixin CodeGenerator {
 #
 # This file has been automatically generated. Please do not edit it manually.
 # To regenerate the file, use the script
-# "pkg/analysis_server/tool/spec/generate_files".
+# "$regenScript".
 ''';
     } else {
       header =
@@ -190,7 +195,23 @@ mixin CodeGenerator {
 //
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
-// "pkg/analysis_server/tool/spec/generate_files".
+// "$regenScript".
+''';
+      // During the transition period to Dart language version 3.13, some
+      // generated files will be using language version 3.13, and will have the
+      // `unnecessary_type_name_in_constructor` lint enabled in order to
+      // encourage use of the new constructor declaration syntax. Others will be
+      // using older language versions that don't support this syntax. To ease
+      // the transition, ignore the `unnecessary_type_name_in_constructor` lint
+      // in generated code. Also ignore the `unnecessary_ignore` and
+      // `duplicate_ignore` lints, which would otherwise sometimes be triggered
+      // by the ignores we're adding.
+      // TODO(paulberry): clean this up once all generated code is using Dart
+      // language version 3.13.
+      header += '''
+
+// ignore_for_file: unnecessary_ignore, duplicate_ignore
+// ignore_for_file: unnecessary_type_name_in_constructor
 ''';
     }
     writeln(header.trim());
@@ -232,7 +253,7 @@ class CodeGeneratorSettings {
   /// String used for indenting code.
   String indent;
 
-  CodeGeneratorSettings({
+  new({
     this.languageName = 'java',
     this.lineCommentLineLeader = '// ',
     this.docCommentStartMarker = '/**',
@@ -322,7 +343,7 @@ class GeneratedDirectory extends GeneratedContent {
   /// Callback function that computes the directory contents.
   final DirectoryContentsComputer directoryContentsComputer;
 
-  GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
+  new(this.outputDirPath, this.directoryContentsComputer);
 
   @override
   Future<void> generate(String pkgRoot) async {
@@ -366,7 +387,7 @@ class GeneratedFile extends GeneratedContent {
   /// Callback function which computes the file.
   final FileContentsComputer computeContents;
 
-  GeneratedFile(this.outputPath, this.computeContents);
+  new(this.outputPath, this.computeContents);
 
   bool get isDartFile => outputPath.endsWith('.dart');
 

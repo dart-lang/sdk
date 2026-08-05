@@ -21,7 +21,7 @@ class WillRenameFilesHandler
   @visibleForTesting
   static Future<void>? delayDuringComputeForTests;
 
-  WillRenameFilesHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.workspace_willRenameFiles;
@@ -112,7 +112,7 @@ class WillRenameFilesHandler
 
 class WillRenameFilesRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  WillRenameFilesRegistrations(super.info);
+  new(super.info);
 
   @override
   FileOperationRegistrationOptions? get options =>

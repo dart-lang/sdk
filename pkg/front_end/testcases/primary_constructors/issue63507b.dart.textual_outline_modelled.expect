@@ -1,0 +1,16 @@
+class C0 {
+  C0(int? i) : assert((i = 0) == 0);
+}
+
+class C1(int? i) {
+  this : assert((i = 0) == 0);
+}
+
+class C2 {
+  C2(int? i) : field = (i = 0) == 0;
+  bool field;
+}
+
+class C3(int? i) {
+  bool field = (i = 0) == 0;
+}

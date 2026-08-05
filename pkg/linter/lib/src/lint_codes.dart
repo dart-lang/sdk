@@ -5,7 +5,7 @@
 import 'analyzer.dart';
 
 class LinterLintCode extends LintCodeWithExpectedTypes {
-  const LinterLintCode({
+  const new({
     required super.name,
     required super.problemMessage,
     required super.uniqueName,
@@ -29,7 +29,7 @@ final class LinterLintTemplate<T extends Function> extends LinterLintCode
   final T withArguments;
 
   /// Initialize a newly created error code to have the given [name].
-  const LinterLintTemplate({
+  const new({
     required super.name,
     required super.problemMessage,
     required this.withArguments,
@@ -43,7 +43,7 @@ final class LinterLintTemplate<T extends Function> extends LinterLintCode
 final class LinterLintWithoutArguments extends LinterLintCode
     with DiagnosticWithoutArguments {
   /// Initialize a newly created error code to have the given [name].
-  const LinterLintWithoutArguments({
+  const new({
     required super.name,
     required super.problemMessage,
     required super.expectedTypes,

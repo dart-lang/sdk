@@ -5,19 +5,19 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::int zero;
   field core::int? zeroOrNull;
-  constructor •(core::int zero, [core::int? zeroOrNull = null]) → self::A
+  constructor •(initializing-formal core::int zero, [initializing-formal core::int? zeroOrNull = null]) → self::A
     ;
 }
 class Foo extends core::Object {
   field self::Bar? bar;
-  constructor •(self::Bar? bar) → self::Foo
+  constructor •(initializing-formal self::Bar? bar) → self::Foo
     ;
   operator [](core::int? index) → self::Bar?
     ;
 }
 class Bar extends core::Object {
   field core::int baz;
-  constructor •(core::int baz) → self::Bar
+  constructor •(initializing-formal core::int baz) → self::Bar
     ;
   operator [](core::int index) → core::int
     ;

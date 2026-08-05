@@ -139,8 +139,8 @@ class EvictingFileByteStore implements ByteStore {
       }
       try {
         file.deleteSync();
+        currentSizeBytes -= fileStatMap[file]!.size;
       } catch (_) {}
-      currentSizeBytes -= fileStatMap[file]!.size;
     }
   }
 }

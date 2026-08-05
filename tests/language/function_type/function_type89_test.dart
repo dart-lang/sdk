@@ -13,6 +13,7 @@
 
 import 'dart:core';
 import 'dart:core' as core;
+
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart' as v;
 
@@ -33,10 +34,12 @@ typedef F7<T> = Function Function(int y, [List<Function> x]) Function(int x);
 typedef F8<T> = Function Function(int, [List<T>]) Function(int x);
 typedef F9<T> = List<Function> Function({Function x}) Function(int x);
 typedef F10<T> = List<Function> Function(List<T> x) Function(int x);
-typedef F11<T> =
-    core.List<core.int> Function(int, [Function x]) Function(int x);
-typedef F12<T> =
-    core.List<core.int> Function([core.List<core.int>]) Function(int x);
+typedef F11<T> = core.List<core.int> Function(int, [Function x]) Function(
+  int x,
+);
+typedef F12<T> = core.List<core.int> Function([core.List<core.int>]) Function(
+  int x,
+);
 typedef F13<T> = List<T> Function(int x, [int]) Function(int x);
 typedef F14<T> = List<T> Function(int y, {List<Function> x}) Function(int x);
 typedef F15<T> = Function([int x]) Function(int x);

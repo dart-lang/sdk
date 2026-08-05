@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
 
+const String _dartJsAnnotationsUri = 'dart:_js_annotations';
 const String _dartJsInteropUri = 'dart:js_interop';
 const String _dartJsUri = 'dart:js';
 
@@ -86,9 +87,15 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
   }
   if (type is! InterfaceType) return false;
   var element = type.element;
-  // `hasJS` only checks for the `dart:_js_annotations` definition, which is
-  // what we want here.
-  if (element.metadata.hasJS) return true;
+  // Ignore if `package:js` class.
+  for (var annotation in element.metadata.annotations) {
+    var annotationElement = annotation.element;
+    if (annotationElement is ConstructorElement &&
+        annotationElement.isFromLibrary(_dartJsAnnotationsUri) &&
+        annotationElement.enclosingElement.name == 'JS') {
+      return true;
+    }
+  }
   return _sdkWebLibraries.any((uri) => element.isFromLibrary(uri)) ||
       // While a type test with types from this library is very rare, we should
       // still ignore it for consistency.
@@ -107,7 +114,8 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
   var element = type.element;
   if (element is! ClassElement) return null;
   var metadata = element.metadata;
-  var hasJS = false;
+  if (!metadata.hasJS) return null;
+
   var hasStaticInterop = false;
   LibraryElement? dartJsInterop;
   for (var annotation in metadata.annotations) {
@@ -115,7 +123,6 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
     if (annotationElement is ConstructorElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
         annotationElement.enclosingElement.name == 'JS') {
-      hasJS = true;
       dartJsInterop = annotationElement.library;
     } else if (annotationElement is GetterElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
@@ -123,7 +130,7 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
       hasStaticInterop = true;
     }
   }
-  return (hasJS && hasStaticInterop && dartJsInterop != null)
+  return (hasStaticInterop && dartJsInterop != null)
       ? dartJsInterop.extensionTypes
             .singleWhere((extType) => extType.name == 'JSObject')
             // Nullability is ignored in this lint, so just return `thisType`.
@@ -153,9 +160,21 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
     if (_keepUserInteropTypes
         ? _isJsInteropType(type, _InteropTypeKind.any)
         : _isJsInteropType(type, _InteropTypeKind.dartJsInteropType)) {
-      // Nullability and generics on interop types are ignored for this lint. In
-      // order to just compare the interfaces themselves, we use `thisType`.
-      return type.element.thisType;
+      // Nullability and generics on interop types are ignored for this lint.
+      // In order to just compare the interfaces themselves, we replace type
+      // args with their bounds and treat the type as non-nullable.
+      // TODO(srujzs): We shouldn't ignore generics when doing an `is` check.
+      // https://github.com/dart-lang/sdk/issues/63248
+      var typeArguments = <TypeImpl>[];
+      for (var typeParam in type.element.typeParameters) {
+        typeArguments.add(typeParam.bound ?? DynamicTypeImpl.instance);
+      }
+      return createInterfaceType(
+        type: type,
+        newAlias: type.alias,
+        newTypeArguments: typeArguments,
+        newNullability: NullabilitySuffix.none,
+      );
     } else {
       // TODO(scheglov): remove this cast
       var jsType = _jsTypeForStaticInterop(type) as TypeImpl?;
@@ -186,7 +205,7 @@ class InteropTypeChecker extends RecursiveTypeVisitor {
   bool _hasInteropType = false;
   final _visitedTypes = <DartType>{};
 
-  InteropTypeChecker() : super(includeTypeAliasArguments: false);
+  new() : super(includeTypeAliasArguments: false);
 
   bool hasInteropType(DartType type) {
     _hasInteropType = false;
@@ -210,7 +229,7 @@ class InteropTypeChecker extends RecursiveTypeVisitor {
 }
 
 class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
-  InvalidRuntimeCheckWithJSInteropTypes()
+  new()
     : super(
         name: LintNames.invalid_runtime_check_with_js_interop_types,
         description: _desc,
@@ -257,7 +276,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       EraseNonJSInteropTypes();
   final InteropTypeChecker interopTypeChecker = InteropTypeChecker();
 
-  _Visitor(this.rule, TypeSystem typeSystem)
+  new(this.rule, TypeSystem typeSystem)
     : typeSystem = typeSystem as TypeSystemImpl;
 
   /// Determines if a type test from [leftType] to [rightType] is a valid test
@@ -319,10 +338,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         erasedRight,
         _InteropTypeKind.dartJsInteropType,
       );
+
       // If there's already an invalid check in this `canBeSubtypeOf` check, we
       // are already going to lint, so only continue checking if we haven't
       // found an issue.
-
       if (lintCode == null && leftIsInteropType || rightIsInteropType) {
         if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
             !_isWasmIncompatibleJsInterop(erasedRight)) {

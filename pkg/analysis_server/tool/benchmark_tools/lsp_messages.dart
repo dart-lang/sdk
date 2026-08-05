@@ -7,7 +7,7 @@ class Location {
   final int line;
   final int column;
 
-  Location(this.uri, this.line, this.column);
+  new(this.uri, this.line, this.column);
 
   @override
   String toString() => 'Location[$uri:$line:$column]';

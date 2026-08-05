@@ -395,6 +395,8 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
     if (reachable_->Contains(
             block->PredecessorAt(pred_idx)->preorder_number())) {
       Join(&value, instr->InputAt(pred_idx)->definition()->constant_value());
+      // Once top is reached, further Joins cannot change the value.
+      if (IsNonConstant(value)) break;
     }
   }
   SetValue(instr, value);
@@ -911,7 +913,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   const Object& value = def->constant_value();
   const AbstractType& checked_type = instr->type();
   // If the checked type is a top type, the result is always true.
-  if (checked_type.IsTopTypeForInstanceOf()) {
+  if (checked_type.IsTopType()) {
     SetValue(instr, Bool::True());
   } else if (IsNonConstant(value)) {
     intptr_t value_cid = instr->value()->definition()->Type()->ToCid();

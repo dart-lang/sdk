@@ -15,7 +15,9 @@ void cascadedPropertyAccess(C c) {
 }
 
 void cascadedNullAwarePropertyAccess(C? c) {
-  c?.._field!.toString().._field.toString();
+  c
+    ?.._field!.toString()
+    .._field.toString();
   c?._field;
 }
 

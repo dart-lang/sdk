@@ -112,7 +112,7 @@ abstract class AbstractScanner {
   int recoveryCount = 0;
   final bool allowLazyStrings;
 
-  AbstractScanner(
+  new(
     ScannerConfiguration? config,
     this.includeComments,
     this.languageVersionChanged, {
@@ -125,7 +125,7 @@ abstract class AbstractScanner {
     this.configuration = config;
   }
 
-  AbstractScanner.recoveryOptionScanner(AbstractScanner copyFrom)
+  new recoveryOptionScanner(AbstractScanner copyFrom)
     : lineStarts = [],
       includeComments = false,
       languageVersionChanged = null,
@@ -2077,8 +2077,7 @@ class LineStarts extends Object with ListMixin<int> {
   List<int> array;
   int arrayLength = 0;
 
-  LineStarts(int numberOfBytesHint)
-    : array = _createInitialArray(numberOfBytesHint) {
+  new(int numberOfBytesHint) : array = _createInitialArray(numberOfBytesHint) {
     // The first line starts at character offset 0.
     add(/* value = */ 0);
   }
@@ -2168,7 +2167,7 @@ class ScannerConfiguration {
   /// If `true`, 'augment' is treated as a built-in identifier.
   final bool forAugmentationLibrary;
 
-  const ScannerConfiguration({
+  const new({
     this.enableTripleShift = false,
     this.forAugmentationLibrary = false,
   });

@@ -226,15 +226,14 @@ void testBasicAuthenticateCallback() {
     }
 
     Future.wait(makeRequests()).then((_) {
-      makeRequest(Uri.parse("http://127.0.0.1:${server.port}/passwdchg")).then((
-        _,
-      ) {
-        passwordChanged = true;
-        Future.wait(makeRequests()).then((_) {
-          server.shutdown();
-          client.close();
-        });
-      });
+      makeRequest(Uri.parse("http://127.0.0.1:${server.port}/passwdchg"))
+          .then((_) {
+            passwordChanged = true;
+            Future.wait(makeRequests()).then((_) {
+              server.shutdown();
+              client.close();
+            });
+          });
     });
   });
 }

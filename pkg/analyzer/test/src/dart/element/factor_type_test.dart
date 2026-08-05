@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/factory_type_test_helper.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart' as test;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,38 +15,72 @@ main() {
 }
 
 @reflectiveTest
-class FactorTypeTest with FactorTypeTestMixin<TypeImpl>, ElementsTypesMixin {
-  @override
-  late final TypeProviderImpl typeProvider;
-
-  late final TypeSystemImpl typeSystem;
-
-  @override
-  TypeImpl get voidType => typeProvider.voidType;
-
-  @override
-  void expect(
-    TypeImpl T,
-    TypeImpl S,
-    String actualResult,
-    String expectedResult,
-  ) {
-    test.expect(actualResult, expectedResult);
+class FactorTypeTest extends AbstractTypeSystemTest {
+  void check(TypeImpl T, TypeImpl S, String expectedStr) {
+    TypeImpl result = typeSystem.factor(T, S);
+    String resultStr = result.getDisplayString();
+    test.expect(resultStr, expectedStr);
   }
 
-  @override
-  TypeImpl factor(TypeImpl T, TypeImpl S) {
-    return typeSystem.factor(T, S);
+  void test_dynamic() {
+    check(parseType('dynamic'), parseType('int'), 'dynamic');
   }
 
-  void setUp() {
-    var analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProvider;
-    typeSystem = analysisContext.typeSystem;
+  void test_futureOr() {
+    check(parseType('FutureOr<int>'), parseType('int'), 'Future<int>');
+    check(parseType('FutureOr<int>'), parseType('Future<int>'), 'int');
+
+    check(parseType('FutureOr<int?>'), parseType('int'), 'FutureOr<int?>');
+    check(
+      parseType('FutureOr<int?>'),
+      parseType('Future<int>'),
+      'FutureOr<int?>',
+    );
+    check(parseType('FutureOr<int?>'), parseType('int?'), 'Future<int?>');
+    check(parseType('FutureOr<int?>'), parseType('Future<int?>'), 'int?');
+
+    check(parseType('FutureOr<int>'), parseType('num'), 'Future<int>');
+    check(parseType('FutureOr<int>'), parseType('Future<num>'), 'int');
   }
 
-  @override
-  String typeString(covariant TypeImpl type) {
-    return type.getDisplayString();
+  void test_object() {
+    check(parseType('Object'), parseType('Object'), 'Never');
+    check(parseType('Object'), parseType('Object?'), 'Never');
+
+    check(parseType('Object'), parseType('int'), 'Object');
+    check(parseType('Object'), parseType('int?'), 'Object');
+
+    check(parseType('Object?'), parseType('Object'), 'Never?');
+    check(parseType('Object?'), parseType('Object?'), 'Never');
+
+    check(parseType('Object?'), parseType('int'), 'Object?');
+    check(parseType('Object?'), parseType('int?'), 'Object');
+  }
+
+  void test_subtype() {
+    check(parseType('int'), parseType('int'), 'Never');
+    check(parseType('int'), parseType('int?'), 'Never');
+
+    check(parseType('int?'), parseType('int'), 'Never?');
+    check(parseType('int?'), parseType('int?'), 'Never');
+
+    check(parseType('int'), parseType('num'), 'Never');
+    check(parseType('int'), parseType('num?'), 'Never');
+
+    check(parseType('int?'), parseType('num'), 'Never?');
+    check(parseType('int?'), parseType('num?'), 'Never');
+
+    check(parseType('int'), parseType('Null'), 'int');
+    check(parseType('int?'), parseType('Null'), 'int');
+
+    check(parseType('int'), parseType('String'), 'int');
+    check(parseType('int?'), parseType('String'), 'int?');
+
+    check(parseType('int'), parseType('String?'), 'int');
+    check(parseType('int?'), parseType('String?'), 'int');
+  }
+
+  void test_void() {
+    check(parseType('void'), parseType('int'), 'void');
   }
 }

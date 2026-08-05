@@ -241,6 +241,16 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitLabel(Label node) {
+    return node.declaredFragment?.element;
+  }
+
+  @override
+  Element? visitLabelReference(LabelReference node) {
+    return node.element;
+  }
+
+  @override
   Element? visitLibraryDirective(LibraryDirective node) {
     return node.element;
   }
@@ -258,6 +268,11 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitMixinDeclaration(MixinDeclaration node) {
     return node.declaredFragment?.element;
+  }
+
+  @override
+  Element? visitNamedArgument(NamedArgument node) {
+    return node.correspondingParameter;
   }
 
   @override

@@ -2,27 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportDirectiveParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ImportDirectiveParserTest extends ParserDiagnosticsTest {
   test_afterPart() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part 'a.dart';
 import 'b.dart';
+// [diag.importDirectiveAfterPartDirective][column 1][length 6] Import directives must precede part directives.
 ''');
-    parseResult.assertErrors([
-      error(diag.importDirectiveAfterPartDirective, 15, 6),
-    ]);
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -35,11 +34,10 @@ ImportDirective
   }
 
   test_afterPartOf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 import 'b.dart';
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -52,11 +50,10 @@ ImportDirective
   }
 
   test_configurableUri() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'foo.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -84,10 +81,9 @@ ImportDirective
   }
 
   test_it() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart';
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -100,12 +96,12 @@ ImportDirective
   }
 
   test_language305_afterPartOf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 part of 'a.dart';
 import 'b.dart';
+// [diag.nonPartOfDirectiveInPart][column 1][length 6] The part-of directive must be the only directive in a part.
 ''');
-    parseResult.assertErrors([error(diag.nonPartOfDirectiveInPart, 33, 6)]);
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -118,12 +114,12 @@ ImportDirective
   }
 
   test_language305_beforePartOf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 import 'b.dart';
 part of 'a.dart';
+// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
 ''');
-    parseResult.assertErrors([error(diag.nonPartOfDirectiveInPart, 32, 4)]);
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -136,10 +132,11 @@ ImportDirective
   }
 
   test_noSemicolon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart'
+//     ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 7, 8)]);
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -152,10 +149,11 @@ ImportDirective
   }
 
   test_noUri_hasSemicolon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import ;
+//     ^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([error(diag.expectedStringLiteral, 7, 1)]);
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -168,13 +166,12 @@ ImportDirective
   }
 
   test_noUri_noSemicolon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import
+// [diag.expectedToken][column 1][length 6] Expected to find ';'.
+//    ^
+// [diag.expectedStringLiteral][column 7][length 0] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 6),
-      error(diag.expectedStringLiteral, 7, 0),
-    ]);
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''

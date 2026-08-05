@@ -6,49 +6,34 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'pause_on_start_and_exit_lib.dart' as testee_lib;
 
-void testMain() {
-  print('Hello');
+Future<void> verifyPauseTimestamp(
+  VmService service,
+  IsolateRef isolateRef,
+) async {
+  final isolateId = isolateRef.id!;
+  final isolate = await service.getIsolate(isolateId);
+  // Grab the timestamp.
+  final pausetime1 = isolate.pauseEvent!.timestamp;
+  expect(pausetime1, isNotNull);
+
+  // Reload the isolate.
+  final reloaded = await service.getIsolate(isolateId);
+  // Verify that it is the same.
+  expect(pausetime1, reloaded.pauseEvent!.timestamp);
 }
 
-final tests = <IsolateTest>[
-  hasPausedAtStart,
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    // Grab the timestamp.
-    final pausetime1 = isolate.pauseEvent!.timestamp;
-    expect(pausetime1, isNotNull);
-
-    // Reload the isolate.
-    final reloaded = await service.getIsolate(isolateId);
-    // Verify that it is the same.
-    expect(pausetime1, reloaded.pauseEvent!.timestamp);
-  },
-  resumeIsolate,
-  hasStoppedAtExit,
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    // Grab the timestamp.
-    final pausetime1 = isolate.pauseEvent!.timestamp;
-    expect(pausetime1, isNotNull);
-
-    // Reload the isolate.
-    final reloaded = await service.getIsolate(isolateId);
-    // Verify that it is the same.
-    expect(pausetime1, reloaded.pauseEvent!.timestamp);
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'pause_on_start_and_exit_test.dart',
-      testeeConcurrent: testMain,
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('pause_on_start_and_exit_lib.dart', args)
+        .hasPausedAtStart()
+        .addCustomTest(verifyPauseTimestamp)
+        .resumeIsolate()
+        .hasStoppedAtExit()
+        .addCustomTest(verifyPauseTimestamp)
+        .run(
+      testeeMain: testee_lib.main,
       pauseOnStart: true,
       pauseOnExit: true,
-      verboseVm: true,
       extraArgs: ['--trace-service', '--trace-service-verbose'],
     );

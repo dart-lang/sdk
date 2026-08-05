@@ -13,7 +13,7 @@ class A1 implements A<C1> {}
 /*class: B:explicit=[B.T],needsArgs,test*/
 class B<T> {
   @pragma('dart2js:noInline')
-  method(var t) => t is T;
+  method(t) => t is T;
 }
 
 /*class: C:implicit=[List<A<C>>]*/

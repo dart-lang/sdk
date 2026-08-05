@@ -48,7 +48,7 @@ class NestingVisitor extends ScrapeVisitor {
   bool _pushed = false;
   int _deepestNesting = 0;
 
-  NestingVisitor({bool? allCode}) : _allCode = allCode ?? false;
+  new({bool? allCode}) : _allCode = allCode ?? false;
 
   @override
   void beforeVisitBuildMethod(Declaration node) {
@@ -83,8 +83,7 @@ class NestingVisitor extends ScrapeVisitor {
       }
 
       for (var argument in node.arguments) {
-        var argName =
-            argument is NamedExpression ? argument.name.label.name : '';
+        var argName = argument is NamedArgument ? argument.name.lexeme : '';
 
         if (_allCode || isInFlutterBuildMethod) {
           record('Argument names', argName);
@@ -155,8 +154,10 @@ class NestingVisitor extends ScrapeVisitor {
       record('Argument nesting', _stack.join(' '));
       record('Nesting depth', _stack.length);
       record('Ignoring lists', _stack.where((s) => s != '[').length);
-      record('Child nesting depth',
-          _stack.where((s) => s.contains('child')).length);
+      record(
+        'Child nesting depth',
+        _stack.where((s) => s.contains('child')).length,
+      );
     }
     _pushed = false;
     _stack.removeLast();

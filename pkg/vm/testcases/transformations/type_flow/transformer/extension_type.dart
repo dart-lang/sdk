@@ -33,13 +33,13 @@ class C4 {
 extension type SomeExtensionType(int foo) {}
 
 class Run<T> {
-  void execute(final List<T> list) {
+  void execute(List<T> list) {
     // Should be unchecked.
   }
 }
 
 void testTypeCheckRemoval() {
-  final list = List.generate(10, (final a) => SomeExtensionType(a));
+  final list = List.generate(10, (a) => SomeExtensionType(a));
   final obj = Run<SomeExtensionType>();
   obj.execute(list);
 }

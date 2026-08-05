@@ -65,5 +65,5 @@ class _FuzzyScoredSuggestion {
   final CompletionSuggestionBuilder suggestion;
   final double score;
 
-  _FuzzyScoredSuggestion(this.suggestion, this.score);
+  new(this.suggestion, this.score);
 }

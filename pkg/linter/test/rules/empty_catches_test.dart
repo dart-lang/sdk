@@ -29,16 +29,13 @@ void foo() {
   }
 
   test_emptyCatch() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   try {
     throw Exception();
-  } catch (e) {}
+  } catch (e) [!{}!]
 }
-''',
-      [lint(58, 2)],
-    );
+''');
   }
 
   test_statement() async {

@@ -59,7 +59,7 @@ class _Runner {
   final int _savedExitCode;
   final ExitHandler _savedExitHandler;
 
-  _Runner.setUp()
+  new setUp()
     : _savedOutSink = outSink,
       _savedErrorSink = errorSink,
       _savedExitHandler = exitHandler,

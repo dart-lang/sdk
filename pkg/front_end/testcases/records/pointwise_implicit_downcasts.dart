@@ -14,8 +14,18 @@ foo() {
   var c = Callable();
   dynamic d = 3;
   (num, double, int Function(int), void Function()) r = (d, 3, id, c);
-  ({num x, double y, int Function(int) f, void Function() g}) r2 = (x: d, y: 3, f: id, g: c);
-  (num, double, {int Function(int) f, void Function() g}) r3 = (d, 3, f: id, g: c);
+  ({num x, double y, int Function(int) f, void Function() g}) r2 = (
+    x: d,
+    y: 3,
+    f: id,
+    g: c,
+  );
+  (num, double, {int Function(int) f, void Function() g}) r3 = (
+    d,
+    3,
+    f: id,
+    g: c,
+  );
 }
 
 main() {}

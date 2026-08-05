@@ -24,13 +24,13 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that adds a function body.
-  ConvertIntoBlockBody.missingBody({required super.context})
+  new missingBody({required super.context})
     : _correctionKind = _CorrectionKind.missingBody,
       applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that converts the set literal to
   /// a function body.
-  ConvertIntoBlockBody.setLiteral({required super.context})
+  new setLiteral({required super.context})
     : _correctionKind = _CorrectionKind.setLiteral,
       applicability = CorrectionApplicability.automatically;
 
@@ -54,8 +54,46 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
 
   Future<void> _computeMissingBody(ChangeBuilder builder) async {
     var body = getEnclosingFunctionBody();
-    if (body == null || body.isGenerator) return;
+    if (body != null) {
+      if (!body.isGenerator) {
+        await _computeMissingFunctionBody(builder, body);
+      }
+      return;
+    }
 
+    var container = node.thisOrAncestorOfType<CompilationUnitMember>();
+    if (container != null) {
+      await _computeMissingContainerBody(builder, container);
+    }
+  }
+
+  Future<void> _computeMissingContainerBody(
+    ChangeBuilder builder,
+    CompilationUnitMember container,
+  ) async {
+    var body = switch (container) {
+      ClassDeclaration() => container.body,
+      EnumDeclaration() => container.body,
+      ExtensionDeclaration() => container.body,
+      ExtensionTypeDeclaration() => container.body,
+      MixinDeclaration() => container.body,
+      _ => null,
+    };
+    if (body == null) {
+      return;
+    }
+    if (body is EmptyClassBody || body is EmptyEnumBody) {
+      var bodyRange = body.sourceRange;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(bodyRange, ' {}');
+      });
+    }
+  }
+
+  Future<void> _computeMissingFunctionBody(
+    ChangeBuilder builder,
+    FunctionBody body,
+  ) async {
     List<String>? codeLines;
 
     if (body is ExpressionFunctionBody) {
@@ -187,6 +225,8 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
       return node.declaredFragment?.element;
     } else if (node is FunctionExpression) {
       return node.declaredFragment?.element;
+    } else if (node is PrimaryConstructorBody) {
+      return node.declaration?.declaredFragment?.element;
     }
     return null;
   }

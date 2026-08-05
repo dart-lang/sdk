@@ -9,8 +9,9 @@ import 'package:test_runner/src/configuration.dart';
 void main() async {
   var configuration = TestConfiguration(
     configuration: Configuration.parse(
-        const String.fromEnvironment("test_runner.configuration"),
-        {'runtime': 'vm'}),
+      const String.fromEnvironment("test_runner.configuration"),
+      {'runtime': 'vm'},
+    ),
     isVerbose: false,
     localIP: '127.0.0.1',
     testDriverErrorPort: 0,
@@ -22,8 +23,12 @@ void main() async {
   );
   await configuration.startServers();
   try {
-    var testRunner =
-        BrowserTestRunner(configuration, '127.0.0.1', 1, (_) => FakeBrowser());
+    var testRunner = BrowserTestRunner(
+      configuration,
+      '127.0.0.1',
+      1,
+      (_) => FakeBrowser(),
+    );
     await testRunner.start();
     try {
       Expect.isTrue(testRunner.testingServerStarted);

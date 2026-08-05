@@ -120,7 +120,7 @@ class SwitchContinueAnalysis extends ir.VisitorDefault<bool>
         node is ir.ReturnStatement ||
         node is ir.AssertStatement ||
         node is ir.YieldStatement ||
-        node is ir.VariableDeclaration) {
+        node is ir.VariableStatement) {
       return false;
     }
     throw 'Statement type ${node.runtimeType} not handled in '

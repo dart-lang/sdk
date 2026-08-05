@@ -312,6 +312,7 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   CID(FreeListElement)                                                         \
   CID(ForwardingCorpse)                                                        \
   CLASS_LIST(DEFINE_CLASS_ID)                                                  \
+  CID(LinkedHashBaseCid)                                                       \
   CLASS_LIST_FFI(DEFINE_FFI_CLASS_ID)                                          \
   CLASS_LIST_TYPED_DATA(DEFINE_TYPED_DATA_CLASS_ID)                            \
   CID(ByteDataViewCid)                                                         \

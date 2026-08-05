@@ -29,15 +29,12 @@ void f() {
   }
 
   test_localVariable_nullAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
   void f() {
     var x;
-    x ??= null;
+    [!x ??= null!];
   }
-''',
-      [lint(28, 10)],
-    );
+''');
   }
 
   test_localVariable_otherAssignment() async {

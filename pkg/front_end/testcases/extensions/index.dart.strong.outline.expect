@@ -14,7 +14,7 @@ class MapLike<K extends core::Object? = dynamic, V extends core::Object? = dynam
 class MapLike2<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
   final field core::Map<self::MapLike2::K%, self::MapLike2::V%> _map;
   final field self::MapLike2::V% defaultValue;
-  constructor •(self::MapLike2::V% defaultValue) → self::MapLike2<self::MapLike2::K%, self::MapLike2::V%>
+  constructor •(initializing-formal self::MapLike2::V% defaultValue) → self::MapLike2<self::MapLike2::K%, self::MapLike2::V%>
     ;
   method get(core::Object key) → self::MapLike2::V%
     ;

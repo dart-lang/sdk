@@ -18,130 +18,97 @@ class SlashForDocCommentsTest extends LintRuleTest {
   String get lintRule => LintNames.slash_for_doc_comments;
 
   test_class() async {
-    await assertDiagnostics(
-      r'''
-/** C */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** C */!]
 class C {}
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_constructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
-  /** C */
+  [!/** C */!]
   C();
 }
-''',
-      [lint(12, 8)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertDiagnostics(
-      r'''
-/** E */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** E */!]
 enum E {
   A,
   B
 }
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_enumConstant() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
-  /** A */
+  [!/** A */!]
   A,
   B
 }
-''',
-      [lint(11, 8)],
-    );
+''');
   }
 
   test_extension() async {
-    await assertDiagnostics(
-      r'''
-/** A */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** A */!]
 extension on int {}
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_field() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
-  /** x */
+  [!/** x */!]
   var x;
 }
-''',
-      [lint(12, 8)],
-    );
+''');
   }
 
   test_library() async {
-    await assertDiagnostics(
-      r'''
-/** l */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** l */!]
 library l;
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_localFunction() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
-  /** g */
+  [!/** g */!]
   // ignore: unused_element
   void g() {}
 }
-''',
-      [lint(13, 8)],
-    );
+''');
   }
 
   test_method() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
-  /** f */
+  [!/** f */!]
   void f() {}
 }
-''',
-      [lint(12, 8)],
-    );
+''');
   }
 
   test_mixin() async {
-    await assertDiagnostics(
-      r'''
-/** M */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** M */!]
 mixin M {}
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_mixinApplication() async {
-    await assertDiagnostics(
-      r'''
-/** C */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** C */!]
 class C = Object with M;
 
 mixin M {}
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_noComment() async {
@@ -165,15 +132,12 @@ mixin M {}
   }
 
   test_primaryConstructorBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C() {
-  /** C */
+  [!/** C */!]
   this;
 }
-''',
-      [lint(14, 8)],
-    );
+''');
   }
 
   test_threeSlashes_class() async {
@@ -184,52 +148,37 @@ class C {}
   }
 
   test_topLevelFunction() async {
-    await assertDiagnostics(
-      r'''
-/** f */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** f */!]
 void f() {}
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_topLevelVariable() async {
-    await assertDiagnostics(
-      r'''
-/** x */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** x */!]
 var x = 1;
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_typedef_genericFunctionType() async {
-    await assertDiagnostics(
-      r'''
-/** T */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** T */!]
 typedef T = bool Function();
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_typedef_legacy() async {
-    await assertDiagnostics(
-      r'''
-/** F */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** F */!]
 typedef bool F();
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 
   test_typedef_nonFunction() async {
-    await assertDiagnostics(
-      r'''
-/** T */
+    await assertDiagnosticsFromMarkup(r'''
+[!/** T */!]
 typedef T = Object;
-''',
-      [lint(0, 8)],
-    );
+''');
   }
 }

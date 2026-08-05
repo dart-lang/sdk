@@ -2,26 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/node_text_expectations.dart';
 import 'parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtraneousModifierTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ExtraneousModifierTest extends ParserDiagnosticsTest {
   test_class_constructor_formalParameter_requiredPositional_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A(const a);
+//  ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -40,12 +42,13 @@ ConstructorDeclaration
   }
 
   test_class_constructor_formalParameter_requiredPositional_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A(final a);
+//  ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -64,13 +67,12 @@ ConstructorDeclaration
   }
 
   test_class_constructor_formalParameter_requiredPositional_final_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 class A {
   A(final a);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -89,12 +91,13 @@ ConstructorDeclaration
   }
 
   test_class_constructor_formalParameter_requiredPositional_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A(var a);
+//  ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 3)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -113,13 +116,12 @@ ConstructorDeclaration
   }
 
   test_class_constructor_formalParameter_requiredPositional_var_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 class A {
   A(var a);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -138,12 +140,13 @@ ConstructorDeclaration
   }
 
   test_class_constructor_superFormalParameter_requiredPositional_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A(const super.a);
+//  ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -164,12 +167,13 @@ ConstructorDeclaration
   }
 
   test_class_constructor_superFormalParameter_requiredPositional_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A(final super.a);
+//  ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -190,12 +194,13 @@ ConstructorDeclaration
   }
 
   test_class_constructor_superFormalParameter_requiredPositional_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A(var super.a);
+//  ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 3)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -216,12 +221,13 @@ ConstructorDeclaration
   }
 
   test_class_method_formalParameter_optionalNamed_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo({final int a}) {}
+//          ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 22, 5)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -247,15 +253,14 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_optionalNamed_var_hasType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo({var int a}) {}
+//          ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
+// [diag.varAndType] Variables can't be declared using both 'var' and a type name.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifier, 22, 3),
-      error(diag.varAndType, 22, 3),
-    ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -281,12 +286,13 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_optionalNamed_var_noType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo({var a}) {}
+//          ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 22, 3)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -310,12 +316,13 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_optionalPositional_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo([final int a]) {}
+//          ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 22, 5)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -341,15 +348,14 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_optionalPositional_var_hasType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo([var int a]) {}
+//          ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
+// [diag.varAndType] Variables can't be declared using both 'var' and a type name.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifier, 22, 3),
-      error(diag.varAndType, 22, 3),
-    ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -375,12 +381,13 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_optionalPositional_var_noType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo([var a]) {}
+//          ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 22, 3)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -404,12 +411,13 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_requiredNamed_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo({required final int a}) {}
+//                   ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 31, 5)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -436,15 +444,14 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_requiredNamed_var_hasType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo({required var int a}) {}
+//                   ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
+// [diag.varAndType] Variables can't be declared using both 'var' and a type name.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifier, 31, 3),
-      error(diag.varAndType, 31, 3),
-    ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -471,12 +478,13 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_requiredNamed_var_noType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo({required var a}) {}
+//                   ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 31, 3)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -501,12 +509,13 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_requiredPositional_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo(final int a) {}
+//         ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 21, 5)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -530,15 +539,14 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_requiredPositional_var_hasType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo(var int a) {}
+//         ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
+// [diag.varAndType] Variables can't be declared using both 'var' and a type name.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifier, 21, 3),
-      error(diag.varAndType, 21, 3),
-    ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -562,12 +570,13 @@ MethodDeclaration
   }
 
   test_class_method_formalParameter_requiredPositional_var_noType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void foo(var a) {}
+//         ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 21, 3)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -589,12 +598,13 @@ MethodDeclaration
   }
 
   test_closure_formalParameter_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (final value) => null;
+// ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
 
     var node = parseResult.findNode.functionExpression('(final');
     assertParsedNodeText(node, r'''
@@ -613,12 +623,13 @@ FunctionExpression
   }
 
   test_closure_formalParameter_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (var value) => null;
+// ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 3)]);
 
     var node = parseResult.findNode.functionExpression('(var');
     assertParsedNodeText(node, r'''

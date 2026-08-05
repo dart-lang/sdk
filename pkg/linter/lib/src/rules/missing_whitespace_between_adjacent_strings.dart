@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Missing whitespace between adjacent strings.';
 
 class MissingWhitespaceBetweenAdjacentStrings extends AnalysisRule {
-  MissingWhitespaceBetweenAdjacentStrings()
+  new()
     : super(
         name: LintNames.missing_whitespace_between_adjacent_strings,
         description: _desc,
@@ -38,7 +38,7 @@ class MissingWhitespaceBetweenAdjacentStrings extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'common/test_helper.dart';
 import 'id_zone_deletion_on_client_disconnect_common.dart';
+import 'id_zone_deletion_on_client_disconnect_lib.dart' as testee_lib;
 
-Future<void> main([args = const <String>[]]) => runIsolateTests(
-      args,
-      idZoneDeletionOnDisconnectTests,
-      'id_zone_deletion_on_client_disconnect_without_dds_test.dart',
-      testeeConcurrent: testeeMain,
-    );
+void main([args = const <String>[]]) =>
+    createHarness(args).run(testeeMain: testee_lib.main);

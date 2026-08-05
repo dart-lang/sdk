@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class ExtraAnnotationOnStructFieldTest extends PubPackageResolutionTest {
   test_one() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Struct {
   @Int32()
@@ -26,16 +25,15 @@ final class C extends Struct {
   }
 
   test_two() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Struct {
   @Int32()
   @Int16()
+//^^^^^^^^
+// [diag.extraAnnotationOnStructField] Fields in a struct class must have exactly one annotation indicating the native type.
   external int x;
 }
-''',
-      [error(diag.extraAnnotationOnStructField, 63, 8)],
-    );
+''');
   }
 }

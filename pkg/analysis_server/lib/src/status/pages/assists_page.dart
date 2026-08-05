@@ -10,7 +10,7 @@ import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:path/path.dart' as path;
 
 class AssistsPage extends DiagnosticPageWithNav with PerformanceChartMixin {
-  AssistsPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'assists',

@@ -135,6 +135,10 @@ js_interop_unsafe/*: SkipByDesign # Only supported on web backends.
 [ $compiler != dart2js && $compiler != ddc ]
 web/*: SkipByDesign
 
+[ $compiler == dart2wasm && $dart2wasm_standalone ]
+js/*: SkipByDesign # This is a generic WebAssembly target without JavaScript support
+js_interop_unsafe/*: SkipByDesign # This is a generic WebAssembly target without JavaScript support
+
 [ $runtime == chrome && $system == macos ]
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 html/canvasrendering/arc_test: Skip # Issue 42048

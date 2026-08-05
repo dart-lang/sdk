@@ -6,8 +6,10 @@ library interactive_test;
 
 import 'dart:async';
 import 'dart:html';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import 'utils.dart';
 
 Future testGetCurrentPosition() async {

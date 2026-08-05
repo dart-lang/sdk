@@ -5,6 +5,7 @@
 class B implements A {
   final int x = 1;
 }
+
 abstract class A {
   int get x;
   factory A() = B;

@@ -2,32 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainHasRequiredNamedParametersTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MainHasRequiredNamedParametersTest extends PubPackageResolutionTest {
   test_namedOptional() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main({int a = 0}) {}
 ''');
-    assertNoErrorsInResult();
   }
 
   test_namedRequired() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void main({required List<String> a}) {}
-''',
-      [error(diag.mainHasRequiredNamedParameters, 5, 4)],
-    );
+//   ^^^^
+// [diag.mainHasRequiredNamedParameters] The function 'main' can't have any required named parameters.
+''');
   }
 }

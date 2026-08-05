@@ -24,7 +24,7 @@ const MEMORY_SOURCE_FILES = const {
       }
 
       class C {
-        foo(var x, var y) {
+        foo(x, y) {
           var arguments, eval;
           arguments = x + y;
           eval = x - y;

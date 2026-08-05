@@ -292,14 +292,10 @@ void f() {}
 void f() {}
 
 class Test {
-  const Test(String s);
+  const new(String s);
 }
 ''');
-    assertLinkedGroup(change.linkedEditGroups[0], [
-      "Test('",
-      'Test {',
-      'Test(S',
-    ]);
+    assertLinkedGroup(change.linkedEditGroups[0], ["Test('", 'Test {']);
   }
 
   Future<void> test_class_instanceMember() async {
@@ -437,7 +433,7 @@ void f() {
 }
 
 class Test {
-  const Test();
+  const new();
 }
 ''');
   }
@@ -468,7 +464,7 @@ const v = Test();
 const v = Test();
 
 class Test {
-  const Test();
+  const new();
 }
 ''',
       filter: (e) {

@@ -2169,6 +2169,7 @@ void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
       movq(RAX, compiler::Address(
                     THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
       break;
+    case kFourBytes:
     case kUnsignedFourBytes:
       movq(RAX, compiler::Address(
                     THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
@@ -2182,7 +2183,7 @@ void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
   movq(compiler::Assembler::VMTagAddress(),
        compiler::Immediate(VMTag::kDartTagId));
 
-  MoveRegister(dst, RAX);
+  ExtendValue(dst, RAX, size);
 
   // RSP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
@@ -2768,6 +2769,17 @@ void Assembler::EmitGenericShift(bool wide,
   EmitRegisterREX(operand, wide ? REX_W : REX_NONE);
   EmitUint8(0xD3);
   EmitOperand(rm, Operand(operand));
+}
+
+void Assembler::ExtractBitField(Register dst,
+                                Register src,
+                                intptr_t low_bit,
+                                intptr_t width) {
+  MoveRegister(dst, src);
+  if (low_bit > 0) {
+    LsrImmediate(dst, low_bit);
+  }
+  AndImmediate(dst, Immediate((1 << width) - 1));
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {

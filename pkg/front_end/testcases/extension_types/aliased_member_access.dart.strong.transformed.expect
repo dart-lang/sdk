@@ -58,13 +58,13 @@ extension type D<Y extends core::Object? = dynamic>(Y% i) {
   constructor named = self::D|constructor#named;
   constructor tearoff named = self::D|constructor#_#named#tearOff;
 }
-static extension-type-member method B|constructor#(core::int i) → self::B% /* erasure=core::int, declared=! */ {
+static extension-type-member method B|constructor#(initializing-formal core::int i) → self::B% /* erasure=core::int, declared=! */ {
   lowered final self::B% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method B|constructor#_#new#tearOff(core::int i) → self::B% /* erasure=core::int, declared=! */
   return self::B|constructor#(i);
-static extension-type-member method B|constructor#named(core::int i) → self::B% /* erasure=core::int, declared=! */ {
+static extension-type-member method B|constructor#named(initializing-formal core::int i) → self::B% /* erasure=core::int, declared=! */ {
   lowered final self::B% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -72,13 +72,13 @@ static extension-type-member synthetic method B|constructor#_#named#tearOff(core
   return self::B|constructor#named(i);
 static extension-type-member method B|method(core::int i) → self::B% /* erasure=core::int, declared=! */
   return self::B|constructor#(i);
-static extension-type-member method D|constructor#<Y extends core::Object? = dynamic>(self::D|constructor#::Y% i) → self::D<self::D|constructor#::Y%>% /* erasure=self::D|constructor#::Y%, declared=! */ {
+static extension-type-member method D|constructor#<Y extends core::Object? = dynamic>(initializing-formal self::D|constructor#::Y% i) → self::D<self::D|constructor#::Y%>% /* erasure=self::D|constructor#::Y%, declared=! */ {
   lowered final self::D<self::D|constructor#::Y%>% /* erasure=self::D|constructor#::Y%, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method D|constructor#_#new#tearOff<Y extends core::Object? = dynamic>(self::D|constructor#_#new#tearOff::Y% i) → self::D<self::D|constructor#_#new#tearOff::Y%>% /* erasure=self::D|constructor#_#new#tearOff::Y%, declared=! */
   return self::D|constructor#<self::D|constructor#_#new#tearOff::Y%>(i);
-static extension-type-member method D|constructor#named<Y extends core::Object? = dynamic>(self::D|constructor#named::Y% i) → self::D<self::D|constructor#named::Y%>% /* erasure=self::D|constructor#named::Y%, declared=! */ {
+static extension-type-member method D|constructor#named<Y extends core::Object? = dynamic>(initializing-formal self::D|constructor#named::Y% i) → self::D<self::D|constructor#named::Y%>% /* erasure=self::D|constructor#named::Y%, declared=! */ {
   lowered final self::D<self::D|constructor#named::Y%>% /* erasure=self::D|constructor#named::Y%, declared=! */ #this = i;
   return #this;
 }

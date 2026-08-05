@@ -127,7 +127,7 @@ intptr_t SocketBase::ReceiveMessage(intptr_t fd,
   int flags = 0;
 #ifdef MSG_CMSG_CLOEXEC
   // MSG_CMSG_CLOEXEC is not supported on macOS.
-  flags &= MSG_CMSG_CLOEXEC;
+  flags |= MSG_CMSG_CLOEXEC;
 #endif
   ssize_t read_bytes = TEMP_FAILURE_RETRY(recvmsg(fd, &msg, flags));
   if ((sync == kAsync) && (read_bytes == -1) && (errno == EWOULDBLOCK)) {
@@ -163,14 +163,17 @@ intptr_t SocketBase::ReceiveMessage(intptr_t fd,
     new (control_message) SocketControlMessage(
         cmsg->cmsg_level, cmsg->cmsg_type, copied_data, data_length);
 
-    int fd;
-    memmove(&fd, CMSG_DATA(cmsg), sizeof(int));
-
 #ifndef MSG_CMSG_CLOEXEC
-    // MSG_CMSG_CLOEXEC is not supported on macOS.
-    if (!FDUtils::SetCloseOnExec(fd)) {
-      FDUtils::SaveErrorAndClose(fd);
-      return -1;
+    // MSG_CMSG_CLOEXEC is not supported on macOS, so set close-on-exec on each
+    // received descriptor. A single SCM_RIGHTS message can carry more than one.
+    const intptr_t num_fds = data_length / sizeof(int);
+    const int* fds = reinterpret_cast<int*>(copied_data);
+    for (intptr_t i = 0; i < num_fds; i++) {
+      const int fd = fds[i];
+      if (!FDUtils::SetCloseOnExec(fd)) {
+        FDUtils::SaveErrorAndClose(fd);
+        return -1;
+      }
     }
 #endif
   }
@@ -339,6 +342,26 @@ static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
            ((family == AF_INET) || (family == AF_INET6))));
 }
 
+static intptr_t PrefixLengthFromNetmask(const struct sockaddr* netmask) {
+  if (netmask == nullptr) return 0;
+
+  if (netmask->sa_family == AF_INET6) {
+    auto* mask = reinterpret_cast<const struct sockaddr_in6*>(netmask);
+    intptr_t prefix = 0;
+    for (int i = 0; i < 16; i++) {
+      uint8_t byte = mask->sin6_addr.s6_addr[i];
+      prefix += Utils::CountLeadingOnes(byte);
+      if (byte != 0xFF) {
+        break;
+      }
+    }
+    return prefix;
+  }
+
+  auto* mask = reinterpret_cast<const struct sockaddr_in*>(netmask);
+  return Utils::CountOneBits32(ntohl(mask->sin_addr.s_addr));
+}
+
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {
@@ -369,7 +392,8 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
       char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
       addresses->SetAt(i, new InterfaceSocketAddress(
                               RawAddr::FromInet4or6(ifa->ifa_addr), ifa_name,
-                              if_nametoindex(ifa->ifa_name)));
+                              if_nametoindex(ifa->ifa_name),
+                              PrefixLengthFromNetmask(ifa->ifa_netmask)));
       i++;
     }
   }

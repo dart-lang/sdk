@@ -1,6 +1,6 @@
 name: vm_service_interface
 
-version: 2.0.1
+version: 2.0.2-wip
 description: >-
   A library providing an interface to implement the Dart VM service protocol.
 

@@ -198,13 +198,13 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
     Expression value = node.value;
     if (value is InstanceCreationExpression) {
       SdkLibraryImpl library = SdkLibraryImpl(libraryName);
-      List<Expression> arguments = value.argumentList.arguments;
-      for (Expression argument in arguments) {
+      List<Argument> arguments = value.argumentList.arguments;
+      for (Argument argument in arguments) {
         if (argument is SimpleStringLiteral) {
           library.path = argument.value;
-        } else if (argument is NamedExpression) {
-          String name = argument.name.label.name;
-          Expression expression = argument.expression;
+        } else if (argument is NamedArgument) {
+          String name = argument.name.lexeme;
+          Expression expression = argument.argumentExpression;
           if (name == _IMPLEMENTATION) {
             library._implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {

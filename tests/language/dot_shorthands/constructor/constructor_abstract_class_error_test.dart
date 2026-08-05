@@ -5,8 +5,6 @@
 // It's a compile-time error if the shorthand context does not denote a
 // declaration and static namespace.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 Function getFunction() {
   return .new();
   //     ^^^^^^

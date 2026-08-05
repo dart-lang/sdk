@@ -30,7 +30,7 @@ Future<void> addNamedSuperFormalParameters(
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
   visitChildren(parent, (element) {
-    if (name == null || element.name == name) {
+    if (name == null || element.lookupName == name) {
       children.add(element);
     }
     return false;
@@ -69,9 +69,8 @@ List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
 Future<Set<InterfaceElement>> getDirectSubClasses(
   SearchEngine searchEngine,
   InterfaceElement seed,
-  SearchEngineCache searchEngineCache,
 ) async {
-  var matches = await searchEngine.searchSubtypes(seed, searchEngineCache);
+  var matches = await searchEngine.searchSubtypes(seed);
   return matches.map((match) => match.element).cast<InterfaceElement>().toSet();
 }
 

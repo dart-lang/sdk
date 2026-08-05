@@ -2146,6 +2146,172 @@ main() {
       ]);
     });
 
+    group('suspension:', () {
+      group('await:', () {
+        test('demotes variables written to in an outer function', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            localFunction([
+              x.as_('int'),
+              checkPromoted(x, 'int'),
+              await_(expr('Future<void>')),
+              checkNotPromoted(x),
+            ]),
+            x.write(expr('Object?')),
+          ]);
+        });
+
+        test(
+          'unnecessary to demote variables written to in an inner function',
+          () {
+            // No demotion is necessary in this case because it's not sound to
+            // promote the variable in the first place.
+            var x = Var('x');
+            h.run([
+              declare(x, initializer: expr('Object?')),
+              localFunction([
+                x.as_('int'),
+                // As far as flow analysis knows, evaluation of any nontrivial
+                // expression in this local function could potentially cause
+                // another instance of this local function to be invoked, which
+                // could in turn potentially write to `x`. So it's not sound to
+                // promote `x` to `int`.
+                checkNotPromoted(x),
+                await_(expr('Future<void>')),
+                checkNotPromoted(x),
+                x.write(expr('Object?')),
+                checkNotPromoted(x),
+              ]),
+            ]);
+          },
+        );
+
+        test('demotes after the await operand', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            localFunction([
+              x.as_('int'),
+              checkPromoted(x, 'int'),
+              await_(second(checkPromoted(x, 'int'), expr('Future<void>'))),
+              checkNotPromoted(x),
+            ]),
+            x.write(expr('Object?')),
+          ]);
+        });
+
+        test('does not demote variables declared in the current function', () {
+          var x = Var('x');
+          h.run([
+            localFunction([
+              declare(x, initializer: expr('Object?')),
+              x.as_('int'),
+              checkPromoted(x, 'int'),
+              await_(expr('Future<void>')),
+              checkPromoted(x, 'int'),
+              x.write(expr('Object?')),
+            ]),
+          ]);
+        });
+
+        test('does not demote variables that are not written anywhere', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            localFunction([
+              x.as_('int'),
+              checkPromoted(x, 'int'),
+              await_(expr('Future<void>')),
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+      });
+
+      group('yield:', () {
+        test('demotes variables written to in an outer function', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            localFunction([
+              x.as_('int'),
+              checkPromoted(x, 'int'),
+              yield_(expr('Future<void>')),
+              checkNotPromoted(x),
+            ]),
+            x.write(expr('Object?')),
+          ]);
+        });
+
+        test(
+          'unnecessary to demote variables written to in an inner function',
+          () {
+            // No demotion is necessary in this case because it's not sound to
+            // promote the variable in the first place.
+            var x = Var('x');
+            h.run([
+              declare(x, initializer: expr('Object?')),
+              localFunction([
+                x.as_('int'),
+                // As far as flow analysis knows, evaluation of any nontrivial
+                // expression in this local function could potentially cause
+                // another instance of this local function to be invoked, which
+                // could in turn potentially write to `x`. So it's not sound to
+                // promote `x` to `int`.
+                checkNotPromoted(x),
+                yield_(expr('Future<void>')),
+                checkNotPromoted(x),
+                x.write(expr('Object?')),
+                checkNotPromoted(x),
+              ]),
+            ]);
+          },
+        );
+
+        test('demotes after the yield operand', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            localFunction([
+              x.as_('int'),
+              checkPromoted(x, 'int'),
+              yield_(second(checkPromoted(x, 'int'), expr('Future<void>'))),
+              checkNotPromoted(x),
+            ]),
+            x.write(expr('Object?')),
+          ]);
+        });
+
+        test('does not demote variables declared in the current function', () {
+          var x = Var('x');
+          h.run([
+            localFunction([
+              declare(x, initializer: expr('Object?')),
+              x.as_('int'),
+              checkPromoted(x, 'int'),
+              yield_(expr('Future<void>')),
+              checkPromoted(x, 'int'),
+              x.write(expr('Object?')),
+            ]),
+          ]);
+        });
+
+        test('does not demote variables that are not written anywhere', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object?')),
+            localFunction([
+              x.as_('int'),
+              checkPromoted(x, 'int'),
+              yield_(expr('Future<void>')),
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+      });
+    });
+
     test('switchExpression throw in scrutinee makes all cases unreachable', () {
       h.run([
         switchExpr(throw_(expr('C')), [
@@ -5333,6 +5499,56 @@ main() {
       ]);
     });
 
+    test('due to await', () {
+      var x = Var('x');
+      late Expression awaitExpression;
+      h.run([
+        declare(x, type: 'int?', initializer: expr('int?')),
+        localFunction([
+          if_(x.eq(nullLiteral), [return_()]),
+          checkPromoted(x, 'int'),
+          (awaitExpression = await_(expr('Object?'))),
+          checkNotPromoted(x),
+          x.whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('int')]));
+            var nonPromotionReason =
+                reasons.values.single as DemoteViaSuspension<Var>;
+            expect(nonPromotionReason.node, same(awaitExpression));
+            expect(
+              nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.suspension,
+            );
+          }),
+        ]),
+        x.write(expr('int?')),
+      ]);
+    });
+
+    test('due to yield', () {
+      var x = Var('x');
+      late Statement yieldStatement;
+      h.run([
+        declare(x, type: 'int?', initializer: expr('int?')),
+        localFunction([
+          if_(x.eq(nullLiteral), [return_()]),
+          checkPromoted(x, 'int'),
+          (yieldStatement = yield_(expr('Object?'))),
+          checkNotPromoted(x),
+          x.whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('int')]));
+            var nonPromotionReason =
+                reasons.values.single as DemoteViaSuspension<Var>;
+            expect(nonPromotionReason.node, same(yieldStatement));
+            expect(
+              nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.suspension,
+            );
+          }),
+        ]),
+        x.write(expr('int?')),
+      ]);
+    });
+
     test('due to pattern assignment', () {
       var x = Var('x');
       late Pattern writePattern;
@@ -5471,6 +5687,7 @@ main() {
 
     group('because this', () {
       test('explicit', () {
+        h.disableThisPromotion();
         h.thisType = 'C';
         h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
@@ -5488,6 +5705,7 @@ main() {
       });
 
       test('implicit', () {
+        h.disableThisPromotion();
         h.thisType = 'C';
         h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
@@ -5501,6 +5719,105 @@ main() {
               NonPromotionDocumentationLink.this_,
             );
           }),
+        ]);
+      });
+    });
+
+    group('this promotion', () {
+      test('promotes this', () {
+        h.thisType = 'C';
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          if_(this_.isNot('D'), [return_()]),
+          checkPromoted(this_, 'D'),
+          this_.checkType('D'),
+          this_.whyNotPromoted((reasons) {
+            expect(reasons, isEmpty);
+          }),
+        ]);
+      });
+
+      test('implicit this whyNotPromoted is empty', () {
+        h.thisType = 'C';
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          if_(this_.isNot('D'), [return_()]),
+          implicitThis_whyNotPromoted('C', (reasons) {
+            expect(reasons, isEmpty);
+          }),
+        ]);
+      });
+
+      test('switchStatement this promotes', () {
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switch_(this_, [
+            wildcard(type: 'D').then([checkPromoted(this_, 'D')]),
+          ]),
+        ]);
+      });
+
+      test('switchStatement this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switch_(this_, [
+            wildcard(type: 'D').then([checkNotPromoted(this_)]),
+          ]),
+        ]);
+      });
+
+      test('switchExpression this promotes', () {
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switchExpr(this_, [
+            wildcard(type: 'D').thenExpr(checkPromoted(this_, 'D')),
+          ]),
+        ]);
+      });
+
+      test('switchExpression this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switchExpr(this_, [
+            wildcard(type: 'D').thenExpr(checkNotPromoted(this_)),
+          ]),
+        ]);
+      });
+
+      test('ifCase this promotes', () {
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard(type: 'D'), [checkPromoted(this_, 'D')]),
+        ]);
+      });
+
+      test('ifCase this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard(type: 'D'), [checkNotPromoted(this_)]),
         ]);
       });
     });
@@ -12825,6 +13142,163 @@ main() {
         // definitely assigned nor definitely unassigned.
         checkUnassigned(branch1, false),
         checkAssigned(branch1, false),
+      ]);
+    });
+
+    test('Anonymous method with target having no ExpressionInfo', () {
+      h.run([
+        expr(
+          'A',
+        ).invokeAnonymousMethod([checkReachable(true)], returnType: 'void'),
+      ]);
+    });
+
+    test('Anonymous method has a different notion of this', () {
+      h.addMember('C', '_field', 'Object', promotable: true);
+      h.thisType = 'C';
+      h.run([
+        this_.as_('C'),
+        this_.property('_field').as_('num'),
+        checkPromoted(this_.property('_field'), 'num'),
+        expr('C').invokeAnonymousMethod([
+          checkNotPromoted(this_.property('_field')),
+          this_.property('_field').as_('int'),
+          checkPromoted(this_.property('_field'), 'int'),
+        ], returnType: 'void'),
+        checkPromoted(this_.property('_field'), 'num'),
+      ]);
+    });
+
+    test(
+      'Anonymous method with target having ExpressionInfo but not a Reference',
+      () {
+        h.addMember('C', '_field', 'Object', promotable: true);
+        h.thisType = 'C';
+        h.run([
+          this_.as_('C'),
+          this_.property('_field').as_('num'),
+          checkPromoted(this_.property('_field'), 'num'),
+          expr('bool').conditional(expr('C'), expr('C')).invokeAnonymousMethod([
+            checkNotPromoted(this_.property('_field')),
+            this_.property('_field').as_('int'),
+            checkPromoted(this_.property('_field'), 'int'),
+          ], returnType: 'void'),
+          checkPromoted(this_.property('_field'), 'num'),
+        ]);
+      },
+    );
+
+    test('Anonymous method promotes this._field '
+        'from localVariable._field and vice versa', () {
+      var x = Var('x');
+      h.addMember('A', '_field', 'Object', promotable: true);
+      h.run([
+        declare(x, type: 'A', initializer: expr('A')),
+        x.property('_field').as_('num'),
+        x.invokeAnonymousMethod([
+          checkPromoted(this_.property('_field'), 'num'),
+          this_.property('_field').as_('int'),
+        ], returnType: 'void'),
+        checkPromoted(x.property('_field'), 'int'),
+      ]);
+    });
+
+    test('Anonymous method promotes this._field '
+        'from instanceVariable._field and vice versa', () {
+      h.addMember('A', '_field', 'Object', promotable: true);
+      h.addMember('B', '_subField', 'Object', promotable: true);
+      h.thisType = 'A';
+      h.run([
+        this_.as_('A'),
+        this_.property('_field').as_('B'),
+        this_.property('_field').property('_subField').as_('num'),
+        this_.property('_field').invokeAnonymousMethod([
+          checkPromoted(this_.property('_subField'), 'num'),
+          this_.property('_subField').as_('int'),
+        ], returnType: 'void'),
+        checkPromoted(this_.property('_field').property('_subField'), 'int'),
+      ]);
+    });
+
+    test('Parameterized anonymous method has the same notion of this', () {
+      h.addMember('C', '_field', 'Object', promotable: true);
+      h.thisType = 'C';
+      h.run([
+        this_.as_('C'),
+        this_.property('_field').as_('num'),
+        checkPromoted(this_.property('_field'), 'num'),
+        expr('C').invokeAnonymousMethod(isParameterless: false, [
+          checkPromoted(this_.property('_field'), 'num'),
+          this_.property('_field').as_('int'),
+          checkPromoted(this_.property('_field'), 'int'),
+        ], returnType: 'void'),
+        checkPromoted(this_.property('_field'), 'int'),
+      ]);
+    });
+
+    test('Parameterized anonymous method with target having ExpressionInfo '
+        'but not a Reference', () {
+      h.addMember('C', '_field', 'Object', promotable: true);
+      h.thisType = 'C';
+      h.run([
+        this_.as_('C'),
+        this_.property('_field').as_('num'),
+        checkPromoted(this_.property('_field'), 'num'),
+        expr('bool')
+            .conditional(expr('C'), expr('C'))
+            .invokeAnonymousMethod(isParameterless: false, [
+              checkPromoted(this_.property('_field'), 'num'),
+              this_.property('_field').as_('int'),
+              checkPromoted(this_.property('_field'), 'int'),
+            ], returnType: 'void'),
+        checkPromoted(this_.property('_field'), 'int'),
+      ]);
+    });
+
+    test('Parameterized anonymous method parameter '
+        'does not inherit promotion', () {
+      var x = Var('x');
+      var p = Var('p');
+      h.addMember('A', '_field', 'Object', promotable: true);
+      h.thisType = 'A';
+      h.run([
+        declare(x, type: 'A', initializer: expr('A')),
+        x.property('_field').as_('num'),
+        x.invokeAnonymousMethod(isParameterless: false, parameter: p, [
+          checkNotPromoted(p.property('_field')),
+          p.property('_field').as_('int'),
+        ], returnType: 'void'),
+        checkPromoted(x.property('_field'), 'num'),
+      ]);
+    });
+
+    test('Parameterized anonymous method does not promote parameter._field '
+        'from instanceVariable._field or vice versa', () {
+      var p = Var('p');
+      h.addMember('A', '_field', 'B', promotable: true);
+      h.addMember('B', '_subField', 'Object', promotable: true);
+      h.thisType = 'A';
+      h.run([
+        this_.as_('A'),
+        this_.property('_field').as_('B'),
+        this_.property('_field').property('_subField').as_('num'),
+        this_
+            .property('_field')
+            .invokeAnonymousMethod(isParameterless: false, parameter: p, [
+              checkNotPromoted(p.property('_subField')),
+              p.property('_subField').as_('int'),
+            ], returnType: 'void'),
+        checkPromoted(this_.property('_field').property('_subField'), 'num'),
+      ]);
+    });
+
+    test('Anonymous method this serves as condition variable', () {
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'int?', initializer: expr('int?')),
+        x.eq(nullLiteral).not.invokeAnonymousMethod(isParameterless: true, [
+          this_.conditional(checkPromoted(x, 'int'), expr('bool')),
+        ], returnType: 'bool'),
       ]);
     });
   });

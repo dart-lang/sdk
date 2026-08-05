@@ -5,13 +5,13 @@ import "dart:core" as core;
 typedef Hello<T extends core::Object? = dynamic> = (T%, {required name: T%});
 class MyClass<T extends core::Object? = dynamic> extends core::Object {
   final field () → self::Value<(self::MyClass::T%, {required name: self::MyClass::T%})>? myField;
-  constructor •(() → self::Value<(self::MyClass::T%, {required name: self::MyClass::T%})>? myField) → self::MyClass<self::MyClass::T%>
+  constructor •(initializing-formal () → self::Value<(self::MyClass::T%, {required name: self::MyClass::T%})>? myField) → self::MyClass<self::MyClass::T%>
     : self::MyClass::myField = myField, super core::Object::•()
     ;
 }
 class Value<T extends core::Object? = dynamic> extends core::Object {
   final field self::Value::T% value;
-  constructor •(self::Value::T% value) → self::Value<self::Value::T%>
+  constructor •(initializing-formal self::Value::T% value) → self::Value<self::Value::T%>
     : self::Value::value = value, super core::Object::•()
     ;
 }

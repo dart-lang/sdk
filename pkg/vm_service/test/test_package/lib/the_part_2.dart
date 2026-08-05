@@ -6,5 +6,5 @@
 part of has_part;
 
 void bar() {
-  print('Should break here');
+  print('Should break here'); // LINE_A
 }

@@ -679,6 +679,7 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   @override
   bool shouldRecordMethodUses(FunctionEntity member) {
+    if (!_options.writeRecordedUses) return false;
     EnumSet<PragmaAnnotation>? annotations = memberPragmaAnnotations[member];
     if (annotations != null) {
       if (annotations.contains(PragmaAnnotation.recordUse)) {
@@ -690,6 +691,7 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   @override
   bool shouldRecordConstInstances(ClassEntity clazz) {
+    if (!_options.writeRecordedUses) return false;
     EnumSet<PragmaAnnotation>? set = classPragmaAnnotations[clazz];
     return set != null && set.contains(PragmaAnnotation.recordUse);
   }

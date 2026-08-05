@@ -27,7 +27,7 @@ class CanRenameResponse {
 
   FlutterWidgetState? _flutterWidgetState;
 
-  CanRenameResponse(
+  new(
     this.lineInfo,
     this.refactoringElement,
     this._fileResolver,
@@ -117,7 +117,7 @@ class CheckNameResponse {
   final CanRenameResponse canRename;
   final String newName;
 
-  CheckNameResponse(this.status, this.canRename, this.newName);
+  new(this.status, this.canRename, this.newName);
 
   LineInfo get lineInfo => canRename.lineInfo;
 
@@ -284,9 +284,9 @@ class CheckNameResponse {
         }
       }
     } else {
-      var location = (await canRename._fileResolver.resolve(
-        path: sourcePath,
-      )).lineInfo.getLocation(element.firstFragment.nameOffset!);
+      var location = (await canRename._fileResolver.resolve(path: sourcePath))
+          .lineInfo
+          .getLocation(element.firstFragment.nameOffset!);
       infos.add(ReplaceInfo(newName, location, element.name!.length));
     }
     return infos;
@@ -403,6 +403,7 @@ class CheckNameResponse {
     }
     var edit = await buildEditForInsertedConstructor(
       node,
+      isNamed: newName.isNotEmpty,
       resolvedUnit: resolvedUnit,
       session: fileResolver.contextObjects!.analysisSession,
       (builder) => builder.writeConstructorDeclaration(
@@ -428,7 +429,7 @@ class CheckNameResponse {
 class CiderRenameComputer {
   final FileResolver _fileResolver;
 
-  CiderRenameComputer(this._fileResolver);
+  new(this._fileResolver);
 
   /// Check if the identifier at the [line], [column] for the file at the
   /// [filePath] can be renamed.
@@ -490,7 +491,7 @@ class CiderReplaceMatch {
   final String path;
   List<ReplaceInfo> matches;
 
-  CiderReplaceMatch(this.path, this.matches);
+  new(this.path, this.matches);
 }
 
 class FlutterWidgetRename {
@@ -501,7 +502,7 @@ class FlutterWidgetRename {
   final List<CiderSearchMatch> matches;
   final List<CiderReplaceMatch> replacements;
 
-  FlutterWidgetRename(this.name, this.matches, this.replacements);
+  new(this.name, this.matches, this.replacements);
 }
 
 /// The corresponding `State` declaration of a  Flutter `StatefulWidget`.
@@ -509,7 +510,7 @@ class FlutterWidgetState {
   ClassElement state;
   String newName;
 
-  FlutterWidgetState(this.state, this.newName);
+  new(this.state, this.newName);
 }
 
 class RenameResponse {
@@ -521,7 +522,7 @@ class RenameResponse {
   final List<CiderReplaceMatch> replaceMatches;
   FlutterWidgetRename? flutterWidgetRename;
 
-  RenameResponse(
+  new(
     this.matches,
     this.checkName,
     this.replaceMatches, {
@@ -534,7 +535,7 @@ class ReplaceInfo {
   final CharacterLocation startPosition;
   final int length;
 
-  ReplaceInfo(this.replacementText, this.startPosition, this.length);
+  new(this.replacementText, this.startPosition, this.length);
 
   @override
   int get hashCode => Object.hash(replacementText, startPosition, length);

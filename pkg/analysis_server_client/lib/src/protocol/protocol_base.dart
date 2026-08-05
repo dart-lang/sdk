@@ -41,12 +41,14 @@ class Notification {
   /// Initialize a newly created [Notification] to have the given [event] name.
   /// If [params] is provided, it will be used as the params; otherwise no
   /// params will be used.
-  Notification(this.event, [this.params]);
+  new(this.event, [this.params]);
 
   /// Initialize a newly created instance based on the given JSON data.
-  factory Notification.fromJson(Map json) {
-    return Notification(json[Notification.EVENT],
-        json[Notification.PARAMS] as Map<String, Object?>);
+  factory fromJson(Map json) {
+    return Notification(
+      json[Notification.EVENT],
+      json[Notification.PARAMS] as Map<String, Object?>,
+    );
   }
 
   /// Return a table representing the structure of the Json object that will be
@@ -95,9 +97,12 @@ class Request {
   /// Initialize a newly created [Request] to have the given [id] and [method]
   /// name. If [params] is supplied, it is used as the "params" map for the
   /// request. Otherwise an empty "params" map is allocated.
-  Request(this.id, this.method,
-      [Map<String, Object?>? params, this.clientRequestTime])
-      : params = params ?? <String, Object?>{};
+  new(
+    this.id,
+    this.method, [
+    Map<String, Object?>? params,
+    this.clientRequestTime,
+  ]) : params = params ?? <String, Object?>{};
 
   @override
   int get hashCode {
@@ -267,7 +272,7 @@ class RequestFailure implements Exception {
   final Response response;
 
   /// Initialize a newly created exception to return the given response.
-  RequestFailure(this.response);
+  new(this.response);
 }
 
 /// An object that can handle requests and produce responses for them.
@@ -315,152 +320,228 @@ class Response {
   /// with the given [id]. If [result] is provided, it will be used as the
   /// result; otherwise an empty result will be used. If an [error] is provided
   /// then the response will represent an error condition.
-  Response(this.id, {this.result, this.error});
+  new(this.id, {this.result, this.error});
 
   /// Create and return the `DEBUG_PORT_COULD_NOT_BE_OPENED` error response.
-  Response.debugPortCouldNotBeOpened(Request request, dynamic error)
-      : this(request.id,
-            error: RequestError(
-                RequestErrorCode.DEBUG_PORT_COULD_NOT_BE_OPENED, '$error'));
+  new debugPortCouldNotBeOpened(Request request, dynamic error)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.DEBUG_PORT_COULD_NOT_BE_OPENED,
+          '$error',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the FILE_NOT_ANALYZED
   /// error condition.
-  Response.fileNotAnalyzed(Request request, String file)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.FILE_NOT_ANALYZED,
-                'File is not analyzed: $file.'));
+  new fileNotAnalyzed(Request request, String file)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.FILE_NOT_ANALYZED,
+          'File is not analyzed: $file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the FORMAT_INVALID_FILE
   /// error condition.
-  Response.formatInvalidFile(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
-                'Error during `${request.method}`: invalid file.'));
+  new formatInvalidFile(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.FORMAT_INVALID_FILE,
+          'Error during `${request.method}`: invalid file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the FORMAT_WITH_ERROR
   /// error condition.
-  Response.formatWithErrors(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.FORMAT_WITH_ERRORS,
-                'Error during `edit.format`: source contains syntax errors.'));
+  new formatWithErrors(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.FORMAT_WITH_ERRORS,
+          'Error during `edit.format`: source contains syntax errors.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// GET_ERRORS_INVALID_FILE error condition.
-  Response.getErrorsInvalidFile(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
-                'Error during `analysis.getErrors`: invalid file.'));
+  new getErrorsInvalidFile(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.GET_ERRORS_INVALID_FILE,
+          'Error during `analysis.getErrors`: invalid file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// GET_IMPORTED_ELEMENTS_INVALID_FILE error condition.
-  Response.getImportedElementsInvalidFile(Request request)
-      : this(request.id,
-            error: RequestError(
-                RequestErrorCode.GET_IMPORTED_ELEMENTS_INVALID_FILE,
-                'Error during `analysis.getImportedElements`: invalid file.'));
+  new getImportedElementsInvalidFile(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.GET_IMPORTED_ELEMENTS_INVALID_FILE,
+          'Error during `analysis.getImportedElements`: invalid file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// GET_NAVIGATION_INVALID_FILE error condition.
-  Response.getNavigationInvalidFile(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.GET_NAVIGATION_INVALID_FILE,
-                'Error during `analysis.getNavigation`: invalid file.'));
+  new getNavigationInvalidFile(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.GET_NAVIGATION_INVALID_FILE,
+          'Error during `analysis.getNavigation`: invalid file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// GET_REACHABLE_SOURCES_INVALID_FILE error condition.
-  Response.getReachableSourcesInvalidFile(Request request)
-      : this(request.id,
-            error: RequestError(
-                RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE,
-                'Error during `analysis.getReachableSources`: invalid file.'));
+  new getReachableSourcesInvalidFile(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE,
+          'Error during `analysis.getReachableSources`: invalid file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// GET_SIGNATURE_INVALID_FILE error condition.
-  Response.getSignatureInvalidFile(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.GET_SIGNATURE_INVALID_FILE,
-                'Error during `analysis.getSignature`: invalid file.'));
+  new getSignatureInvalidFile(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.GET_SIGNATURE_INVALID_FILE,
+          'Error during `analysis.getSignature`: invalid file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// GET_SIGNATURE_INVALID_OFFSET error condition.
-  Response.getSignatureInvalidOffset(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET,
-                'Error during `analysis.getSignature`: invalid offset.'));
+  new getSignatureInvalidOffset(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET,
+          'Error during `analysis.getSignature`: invalid offset.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// GET_SIGNATURE_UNKNOWN_FUNCTION error condition.
-  Response.getSignatureUnknownFunction(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION,
-                'Error during `analysis.getSignature`: unknown function.'));
+  new getSignatureUnknownFunction(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION,
+          'Error during `analysis.getSignature`: unknown function.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// IMPORT_ELEMENTS_INVALID_FILE error condition.
-  Response.importElementsInvalidFile(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.IMPORT_ELEMENTS_INVALID_FILE,
-                'Error during `edit.importElements`: invalid file.'));
+  new importElementsInvalidFile(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.IMPORT_ELEMENTS_INVALID_FILE,
+          'Error during `edit.importElements`: invalid file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by an analysis.reanalyze [request] that specifies an analysis root that is
   /// not in the current list of analysis roots.
-  Response.invalidAnalysisRoot(Request request, String rootPath)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
-                'Invalid analysis root: $rootPath'));
+  new invalidAnalysisRoot(Request request, String rootPath)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.INVALID_ANALYSIS_ROOT,
+          'Invalid analysis root: $rootPath',
+        ),
+      );
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] that specifies an execution context whose context root does
   /// not exist.
-  Response.invalidExecutionContext(Request request, String contextId)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.INVALID_EXECUTION_CONTEXT,
-                'Invalid execution context: $contextId'));
+  new invalidExecutionContext(Request request, String contextId)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.INVALID_EXECUTION_CONTEXT,
+          'Invalid execution context: $contextId',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// INVALID_FILE_PATH_FORMAT error condition.
-  Response.invalidFilePathFormat(Request request, path)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.INVALID_FILE_PATH_FORMAT,
-                'Invalid file path format: $path'));
+  new invalidFilePathFormat(Request request, path)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.INVALID_FILE_PATH_FORMAT,
+          'Invalid file path format: $path',
+        ),
+      );
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] that had invalid parameter. [path] is the path to the
   /// invalid parameter, in JavaScript notation (e.g. "foo.bar" means that the
   /// parameter "foo" contained a key "bar" whose value was the wrong type).
   /// [expectation] is a description of the type of data that was expected.
-  Response.invalidParameter(Request request, String path, String expectation)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.INVALID_PARAMETER,
-                "Invalid parameter '$path'. $expectation."));
+  new invalidParameter(Request request, String path, String expectation)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.INVALID_PARAMETER,
+          "Invalid parameter '$path'. $expectation.",
+        ),
+      );
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a malformed request.
-  Response.invalidRequestFormat()
-      : this('',
-            error: RequestError(
-                RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
+  new invalidRequestFormat()
+    : this(
+        '',
+        error: RequestError(
+          RequestErrorCode.INVALID_REQUEST,
+          'Invalid request',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// ORGANIZE_DIRECTIVES_ERROR error condition.
-  Response.organizeDirectivesError(Request request, String message)
-      : this(request.id,
-            error: RequestError(
-                RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR, message));
+  new organizeDirectivesError(Request request, String message)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR,
+          message,
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// REFACTORING_REQUEST_CANCELLED error condition.
-  Response.refactoringRequestCancelled(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
-                'The `edit.getRefactoring` request was cancelled.'));
+  new refactoringRequestCancelled(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
+          'The `edit.getRefactoring` request was cancelled.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the SERVER_ERROR error
   /// condition.
-  factory Response.serverError(Request request, exception, stackTrace) {
-    var error =
-        RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+  factory serverError(Request request, exception, stackTrace) {
+    var error = RequestError(
+      RequestErrorCode.SERVER_ERROR,
+      exception.toString(),
+    );
     if (stackTrace != null) {
       error.stackTrace = stackTrace.toString();
     }
@@ -469,30 +550,44 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// SORT_MEMBERS_INVALID_FILE error condition.
-  Response.sortMembersInvalidFile(Request request)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
-                'Error during `edit.sortMembers`: invalid file.'));
+  new sortMembersInvalidFile(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
+          'Error during `edit.sortMembers`: invalid file.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent the
   /// SORT_MEMBERS_PARSE_ERRORS error condition.
-  Response.sortMembersParseErrors(Request request, int numErrors)
-      : this(request.id,
-            error: RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
-                'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
+  new sortMembersParseErrors(Request request, int numErrors)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
+          'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.',
+        ),
+      );
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] that cannot be handled by any known handlers.
-  Response.unknownRequest(Request request)
-      : this(request.id,
-            error: RequestError(
-                RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
+  new unknownRequest(Request request)
+    : this(
+        request.id,
+        error: RequestError(
+          RequestErrorCode.UNKNOWN_REQUEST,
+          'Unknown request',
+        ),
+      );
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] for a service that is not supported.
-  Response.unsupportedFeature(String requestId, String message)
-      : this(requestId,
-            error: RequestError(RequestErrorCode.UNSUPPORTED_FEATURE, message));
+  new unsupportedFeature(String requestId, String message)
+    : this(
+        requestId,
+        error: RequestError(RequestErrorCode.UNSUPPORTED_FEATURE, message),
+      );
 
   /// Return a table representing the structure of the Json object that will be
   /// sent to the client to represent this response.
@@ -521,8 +616,11 @@ class Response {
       RequestError? decodedError;
       var error = json[Response.ERROR];
       if (error is Map) {
-        decodedError =
-            RequestError.fromJson(ResponseDecoder(null), '.error', error);
+        decodedError = RequestError.fromJson(
+          ResponseDecoder(null),
+          '.error',
+          error,
+        );
       }
 
       Map<String, Object?>? decodedResult;

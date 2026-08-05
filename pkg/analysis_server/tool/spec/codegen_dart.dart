@@ -12,7 +12,7 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
     'object': 'Object',
   };
 
-  DartCodegenVisitor(super.api);
+  new(super.api);
 
   /// Convert the given [TypeDecl] to a Dart type.
   String dartType(TypeDecl type) {

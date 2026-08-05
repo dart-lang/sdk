@@ -81,7 +81,6 @@ int sizeOf<T extends SizedNativeType>() {
   throw UnimplementedError("$T");
 }
 
-@pragma("vm:idempotent")
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
@@ -200,6 +199,11 @@ external Pointer<NS> _createNativeCallableIsolateGroupBound<
 
 @pragma("vm:external-name", "Ffi_deleteNativeCallable")
 external void _deleteNativeCallable<NS extends NativeFunction>(
+  Pointer<NS> pointer,
+);
+
+@pragma("vm:external-name", "Ffi_deleteIsolateGroupNativeCallable")
+external void _deleteIsolateGroupNativeCallable<NS extends NativeFunction>(
   Pointer<NS> pointer,
 );
 
@@ -348,28 +352,40 @@ final class _NativeCallableListener<T extends Function>
 }
 
 final class _NativeCallableIsolateGroupBound<T extends Function>
-    extends _NativeCallableBase<T> {
-  bool _isKeepingIsolateAlive = true;
+    implements NativeCallable<T> {
+  Pointer<NativeFunction<T>> _pointer;
 
-  _NativeCallableIsolateGroupBound(super._pointer) {
-    _updateNativeCallableKeepIsolateAliveCounter(1);
+  _NativeCallableIsolateGroupBound(this._pointer);
+
+  @override
+  Pointer<NativeFunction<T>> get nativeFunction {
+    if (_isClosed) {
+      throw StateError("NativeCallable is already closed.");
+    }
+    return _pointer;
   }
 
   @override
-  void _close() {
-    _keepIsolateAlive = false;
-  }
-
-  @override
-  void set _keepIsolateAlive(bool value) {
-    if (_isKeepingIsolateAlive != value) {
-      _isKeepingIsolateAlive = value;
-      _updateNativeCallableKeepIsolateAliveCounter(value ? 1 : -1);
+  void close() {
+    if (!_isClosed) {
+      _deleteIsolateGroupNativeCallable(_pointer);
+      _pointer = nullptr;
     }
   }
 
   @override
-  bool get _keepIsolateAlive => _isKeepingIsolateAlive;
+  void set keepIsolateAlive(bool value) {
+    if (value) {
+      throw ArgumentError(
+        "IsolateGroupBound callables can not keep isolate alive",
+      );
+    }
+  }
+
+  @override
+  bool get keepIsolateAlive => false;
+
+  bool get _isClosed => _pointer == nullptr;
 }
 
 @patch

@@ -7,6 +7,7 @@
 library float32x4_cross_test;
 
 import 'dart:typed_data';
+
 import 'package:expect/expect.dart';
 
 Float32x4 cross(Float32x4 a, Float32x4 b) {

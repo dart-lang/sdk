@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// The formatter puts a blank line after the second import.
+// dart format off
+
 import "package:expect/expect.dart";
 
 // It is an error to import a deferred library containing extensions without

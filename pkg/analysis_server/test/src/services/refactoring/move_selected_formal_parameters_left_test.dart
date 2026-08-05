@@ -17,7 +17,8 @@ void main() {
 @reflectiveTest
 class MoveSelectedFormalParametersLeftTest extends RefactoringTest {
   @override
-  String get refactoringName => MoveSelectedFormalParametersLeft.commandName;
+  String get refactoringCommandId =>
+      MoveSelectedFormalParametersLeft.commandName;
 
   /// This refactor uses the formatter internally, ensure the refactor doesn't
   /// fail because of sytnax errors elsewhere in the file.

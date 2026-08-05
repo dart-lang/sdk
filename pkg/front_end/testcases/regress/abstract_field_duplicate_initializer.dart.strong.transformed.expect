@@ -22,7 +22,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Foo extends core::Object {
-  constructor •(core::int foo, core::int foo) → self::Foo
+  constructor •(initializing-formal core::int foo, initializing-formal core::int foo) → self::Foo
     : invalid-initializer "pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:12: Error: Abstract fields cannot have initializers.
 Try removing the field initializer or the 'abstract' keyword from the field declaration.
   Foo(this.foo, this.foo) {}

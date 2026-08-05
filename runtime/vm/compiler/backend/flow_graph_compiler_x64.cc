@@ -30,10 +30,7 @@ DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
   if (FLAG_precompiled_mode) {
-    auto object_store = isolate_group()->object_store();
-
-    const auto& stub =
-        Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
+    const auto& stub = StubCode::WriteBarrierWrappers();
     if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
         const intptr_t offset_into_target =
@@ -43,8 +40,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
       };
     }
 
-    const auto& array_stub =
-        Code::ZoneHandle(object_store->array_write_barrier_stub());
+    const auto& array_stub = StubCode::ArrayWriteBarrier();
     if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_array_write_barrier_ = [&]() {
         assembler_->GenerateUnRelocatedPcRelativeCall();
@@ -1070,32 +1066,6 @@ void FlowGraphCompiler::EmitNativeLoad(Register dst,
     default:
       UNREACHABLE();
   }
-}
-
-void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
-                                     Register dst,
-                                     Register tmp) {
-  compiler::Label skip_reloc;
-  __ jmp(&skip_reloc);
-  InsertBSSRelocation(relocation);
-  const intptr_t reloc_end = __ CodeSize();
-  __ Bind(&skip_reloc);
-
-  const intptr_t kLeaqLength = 7;
-  __ leaq(dst, compiler::Address::AddressRIPRelative(
-                   -kLeaqLength - compiler::target::kWordSize));
-  ASSERT((__ CodeSize() - reloc_end) == kLeaqLength);
-
-  // dst holds the address of the relocation.
-  __ movq(tmp, compiler::Address(dst, 0));
-
-  // tmp holds the relocation itself: dst - bss_start.
-  // dst = dst + (bss_start - dst) = bss_start
-  __ addq(dst, tmp);
-
-  // dst holds the start of the BSS section.
-  // Load the routine.
-  __ movq(dst, compiler::Address(dst, 0));
 }
 
 #undef __

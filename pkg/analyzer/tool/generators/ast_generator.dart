@@ -590,18 +590,13 @@ final ${property.typeCode} $propertyName;
       return;
     }
 
-    var nodeOrListProperties = implClass.properties.where((property) {
-      return property.typeKind is _PropertyTypeKindNode ||
-          property.typeKind is _PropertyTypeKindNodeList;
-    }).toList();
+    var valueNodeOrListProperties = implClass.nodeOrListProperties
+        .where((property) => property.isInValueExpressionSlot)
+        .toList();
 
-    var valueNodeOrListProperties = nodeOrListProperties.where((property) {
-      return property.isInValueExpressionSlot;
-    }).toList();
-
-    var nonValueNodeOrListProperties = nodeOrListProperties.where((property) {
-      return !property.isInValueExpressionSlot;
-    }).toList();
+    var nonValueNodeOrListProperties = implClass.nodeOrListProperties
+        .where((property) => !property.isInValueExpressionSlot)
+        .toList();
 
     if (valueNodeOrListProperties.isEmpty) {
       buffer.write('''
@@ -700,6 +695,102 @@ set $propertyName(${property.typeCode} $propertyName) {
     }
   }
 
+  void _generateRemoveChild(_ImplClass implClass, StringBuffer buffer) {
+    if (implClass.doNotGenerateLookupNames.contains('removeChild')) {
+      return;
+    }
+
+    if (implClass.nodeOrListProperties.isEmpty) {
+      return;
+    }
+
+    buffer.write('''
+\n@generated
+@override
+void removeChild(AstNodeImpl oldNode) {
+''');
+
+    for (var property in implClass.nodeOrListProperties) {
+      var propertyName = property.name;
+      switch (property.typeKind) {
+        case _PropertyTypeKindNode():
+          buffer.write('''
+if (identical($propertyName, oldNode)) {
+''');
+          if (!property.isNullable) {
+            buffer.write('''
+  throw UnsupportedError("Cannot remove required child '$propertyName'.");
+}
+''');
+          } else {
+            buffer.write('''
+  $propertyName = null;
+  return;
+}
+''');
+          }
+        case _PropertyTypeKindNodeList():
+          buffer.write('''
+if ($propertyName.containsChild(oldNode)) {
+  throw UnsupportedError(
+    "Cannot remove child '$propertyName' because NodeList cannot be resized.",
+  );
+}
+''');
+        default:
+          throw StateError('Unexpected: $propertyName');
+      }
+    }
+
+    buffer.write('''
+  super.removeChild(oldNode);
+}
+''');
+  }
+
+  void _generateReplaceChild(_ImplClass implClass, StringBuffer buffer) {
+    if (implClass.doNotGenerateLookupNames.contains('replaceChild')) {
+      return;
+    }
+
+    if (implClass.nodeOrListProperties.isEmpty) {
+      return;
+    }
+
+    buffer.write('''
+\n@generated
+@override
+void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+''');
+
+    for (var property in implClass.nodeOrListProperties) {
+      var propertyName = property.name;
+      switch (property.typeKind) {
+        case _PropertyTypeKindNode():
+          var typeCode = property.typeCode;
+          buffer.write('''
+if (identical($propertyName, oldNode)) {
+  $propertyName = newNode as $typeCode;
+  return;
+}
+''');
+        case _PropertyTypeKindNodeList():
+          buffer.write('''
+if ($propertyName.replaceChild(oldNode, newNode)) {
+  return;
+}
+''');
+        default:
+          throw StateError('Unexpected: $propertyName');
+      }
+    }
+
+    buffer.write('''
+  super.replaceChild(oldNode, newNode);
+}
+''');
+  }
+
   void _generateResolveExpression(_ImplClass implClass, StringBuffer buffer) {
     if (implClass.doNotGenerateLookupNames.contains('resolveExpression')) {
       return;
@@ -726,6 +817,8 @@ void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     _generateChildContainingRange(implClass, buffer);
     _generateChildEntities(implClass, buffer);
     _generateIsInValueExpressionSlot(implClass, buffer);
+    _generateRemoveChild(implClass, buffer);
+    _generateReplaceChild(implClass, buffer);
     _generateResolveExpression(implClass, buffer);
     _generateVisitChildren(implClass, buffer);
     _generateVisitChildrenWithHooks(implClass, buffer);
@@ -960,6 +1053,10 @@ class _ImplClass {
   final Set<String> doNotGenerateLookupNames = {};
   int leftBracketOffset;
 
+  late final List<_Property> nodeOrListProperties = properties
+      .where((property) => property.isNodeOrList)
+      .toList();
+
   late final Set<String> generatedLookupNames = () {
     var generatedLookupNames = {
       '_childContainingRange',
@@ -970,6 +1067,8 @@ class _ImplClass {
       'firstTokenAfterCommentAndMetadata',
       'new',
       'isInValueExpressionSlot',
+      'removeChild',
+      'replaceChild',
       'resolveExpression',
       'visitChildren',
       'visitChildrenWithHooks',
@@ -1048,6 +1147,11 @@ class _Property {
     required this.withOverride,
     required this.withOverrideSuperNotNull,
   });
+
+  bool get isNodeOrList {
+    return typeKind is _PropertyTypeKindNode ||
+        typeKind is _PropertyTypeKindNodeList;
+  }
 
   bool get isNullable {
     return type.nullabilitySuffix == NullabilitySuffix.question;

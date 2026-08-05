@@ -15,7 +15,7 @@ extension type V<X1 extends core::num, X2 extends core::Object>(X1 id) {
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }
-static extension-type-member method V|constructor#<X1 extends core::num, X2 extends core::Object>(self::V|constructor#::X1 id) → self::V<self::V|constructor#::X1, self::V|constructor#::X2>% /* erasure=self::V|constructor#::X1, declared=! */ {
+static extension-type-member method V|constructor#<X1 extends core::num, X2 extends core::Object>(initializing-formal self::V|constructor#::X1 id) → self::V<self::V|constructor#::X1, self::V|constructor#::X2>% /* erasure=self::V|constructor#::X1, declared=! */ {
   lowered final self::V<self::V|constructor#::X1, self::V|constructor#::X2>% /* erasure=self::V|constructor#::X1, declared=! */ #this = id;
   return #this;
 }

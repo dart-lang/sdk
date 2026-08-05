@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertFlutterChild extends ResolvedCorrectionProducer {
-  ConvertFlutterChild({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -30,7 +30,7 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
     }
 
     // child: widget
-    var expression = named.expression;
+    var expression = named.argumentExpression;
     if (expression.isWidgetExpression) {
       await builder.addDartFileEdit(file, (builder) {
         var eol = builder.eol;
@@ -78,7 +78,7 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
     if (expression is ListLiteral &&
         expression.elements.every((e) => e.isWidgetExpression)) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.node(named.name), 'children:');
+        builder.addSimpleReplacement(range.token(named.name), 'children');
       });
     }
   }

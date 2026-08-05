@@ -51,9 +51,8 @@ Future<void> test() async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri platformDill = base.resolve(platformBaseName);
   final List<int> platformDillBytes = await new File.fromUri(
-    computePlatformBinariesLocation(
-      forceBuildDir: true,
-    ).resolve(platformBaseName),
+    computePlatformBinariesLocation(forceBuildDir: true)
+        .resolve(platformBaseName),
   ).readAsBytes();
   MemoryFileSystem fs = new MemoryFileSystem(base);
   fs.entityForUri(platformDill).writeAsBytesSync(platformDillBytes);
@@ -79,7 +78,7 @@ Future<void> test() async {
 
   options = new CompilerOptions()
     ..fileSystem = fs
-    ..additionalDills = <Uri>[base.resolve("lib.dart.dill")]
+    ..additionalDillModules = <Uri>[base.resolve("lib.dart.dill")]
     ..sdkSummary = platformDill
     ..target = new NoneTarget(new TargetFlags());
 

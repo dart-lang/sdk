@@ -119,6 +119,17 @@ void stringInterpolation(int x) {
   print('enclosing start... ${'some nested $s, x=$x'} ...end');
 }
 
+void stringInterpolation2(List<String> x) {
+  var path = '${x[0]}${x[1]}';
+  var right = 'prefix1:$path';
+  var wrong = 'prefix2:$path';
+
+  print(
+    'A very very looooooooooooooooooooooooooooong prefix: '
+    "'$right', not '$wrong'.",
+  );
+}
+
 void closureCall() {
   final x = (int arg) {
     print(arg);

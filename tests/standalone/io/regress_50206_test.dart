@@ -7,6 +7,7 @@ import "dart:io";
 import "dart:typed_data";
 
 import "package:expect/expect.dart";
+
 import "test_utils.dart" show withTempDir;
 
 const chunkCount = 8192;

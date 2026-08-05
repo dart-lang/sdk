@@ -12,12 +12,10 @@ class Path {
   final bool isWindowsShare;
 
   Path(String source)
-      : _path = _clean(source),
-        isWindowsShare = _isWindowsShare(source);
+    : _path = _clean(source),
+      isWindowsShare = _isWindowsShare(source);
 
-  Path.raw(String source)
-      : _path = source,
-        isWindowsShare = false;
+  Path.raw(String source) : _path = source, isWindowsShare = false;
 
   Path._internal(this._path, this.isWindowsShare);
 
@@ -77,9 +75,11 @@ class Path {
     // Throws exception if an impossible case is reached.
     if (base.isAbsolute != isAbsolute ||
         base.isWindowsShare != isWindowsShare) {
-      throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
-          "  Path and base must both be relative, or both absolute.\n"
-          "  Arguments: $_path.relativeTo($base)");
+      throw ArgumentError(
+        "Invalid case of Path.relativeTo(base):\n"
+        "  Path and base must both be relative, or both absolute.\n"
+        "  Arguments: $_path.relativeTo($base)",
+      );
     }
 
     var basePath = base.toString();
@@ -100,15 +100,19 @@ class Path {
             base = Path(basePath);
           }
         } else {
-          throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
-              "  Base path and target path are on different Windows drives.\n"
-              "  Arguments: $_path.relativeTo($base)");
+          throw ArgumentError(
+            "Invalid case of Path.relativeTo(base):\n"
+            "  Base path and target path are on different Windows drives.\n"
+            "  Arguments: $_path.relativeTo($base)",
+          );
         }
       } else if (baseHasDrive != pathHasDrive) {
-        throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
-            "  Base path must start with a drive letter if and "
-            "only if target path does.\n"
-            "  Arguments: $_path.relativeTo($base)");
+        throw ArgumentError(
+          "Invalid case of Path.relativeTo(base):\n"
+          "  Base path must start with a drive letter if and "
+          "only if target path does.\n"
+          "  Arguments: $_path.relativeTo($base)",
+        );
       }
     }
     if (_path.startsWith(basePath)) {
@@ -140,9 +144,11 @@ class Path {
     final segments = <String>[];
 
     if (common < baseSegments.length && baseSegments[common] == '..') {
-      throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
-          "  Base path has more '..'s than path does.\n"
-          "  Arguments: $_path.relativeTo($base)");
+      throw ArgumentError(
+        "Invalid case of Path.relativeTo(base):\n"
+        "  Base path has more '..'s than path does.\n"
+        "  Arguments: $_path.relativeTo($base)",
+      );
     }
     for (var i = common; i < baseSegments.length; i++) {
       segments.add('..');
@@ -242,10 +248,10 @@ class Path {
       if (isAbs) '',
       ?drive,
       if (newSegs.isEmpty) ...[
-        if (isAbs) '' else '.'
+        if (isAbs) '' else '.',
       ] else ...[
         ...newSegs,
-        if (hasTrailingSeparator) ''
+        if (hasTrailingSeparator) '',
       ],
     ];
 

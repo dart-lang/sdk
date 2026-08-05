@@ -16,7 +16,7 @@ extension type ET(core::int? i) {
 static extension-member method E|foo(lowered final self::ET? /* erasure=core::int? */ #this, core::int i) → void {}
 static extension-member method E|get#foo(lowered final self::ET? /* erasure=core::int? */ #this) → (core::int) → void
   return (core::int i) → void => self::E|foo(#this, i);
-static extension-type-member method ET|constructor#(core::int? i) → self::ET% /* erasure=core::int?, declared=! */ {
+static extension-type-member method ET|constructor#(initializing-formal core::int? i) → self::ET% /* erasure=core::int?, declared=! */ {
   lowered final self::ET% /* erasure=core::int?, declared=! */ #this = i;
   return #this;
 }

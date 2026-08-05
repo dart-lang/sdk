@@ -4,6 +4,9 @@
 
 // Packages=invalid_package_name.packages
 
+// The formatter puts a blank line above the static error marker.
+// dart format off
+
 library invalid_package_name_test;
 
 import 'package:foo/foo.dart' as foo;

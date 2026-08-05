@@ -88,10 +88,12 @@ class SourceReport {
                           const Function& func,
                           const Code& code);
   void PrintCoverageData(JSONObject* jsobj,
+                         const Script& script,
                          intptr_t script_index,
                          const Function& func,
                          bool report_branch_coverage);
   void PrintPossibleBreakpointsData(JSONObject* jsobj,
+                                    const Script& script,
                                     const Function& func,
                                     const Code& code);
   void PrintProfileData(JSONObject* jsobj, ProfileFunction* profile_function);
@@ -103,6 +105,12 @@ class SourceReport {
   void VisitFunction(JSONArray* jsarr,
                      const Function& func,
                      CompileMode compile_mode);
+  void VisitCodeOrBytecode(JSONObject* jsobj,
+                           const Script& script,
+                           intptr_t script_index,
+                           const Function& func,
+                           const Code& code,
+                           CompileMode compile_mode);
   void VisitField(JSONArray* jsarr,
                   const Field& field,
                   CompileMode compile_mode);

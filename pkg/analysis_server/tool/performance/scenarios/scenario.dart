@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:cli_util/cli_util.dart';
 
@@ -26,12 +27,12 @@ class Scenario {
   /// Handles project setup.
   final ProjectGenerator project;
 
-  Scenario({required this.name, required this.logFile, required this.project});
+  new({required this.name, required this.logFile, required this.project});
 
-  Future<void> run(Duration timeout) async {
+  Future<void> run(Duration timeout, {bool verbose = false}) async {
     var watch = Stopwatch()..start();
     await runZoned(
-      () => _run(timeout),
+      () => _run(timeout, verbose: verbose),
       zoneSpecification: ZoneSpecification(
         print: (_, _, _, message) =>
             stdout.writeln('${watch.elapsed}: $message'),
@@ -39,7 +40,7 @@ class Scenario {
     );
   }
 
-  Future<void> _run(Duration timeout) async {
+  Future<void> _run(Duration timeout, {bool verbose = false}) async {
     print('Initializing scenario for project: ${project.description}');
 
     print('Setting up project');
@@ -52,23 +53,29 @@ class Scenario {
       exit(1);
     });
 
+    // Set up the normalizer that will be used to reverse the normalization.
+    var normalizer = LogNormalizer();
+    normalizer.addReplacementsForPath(sdkPath, 'dartSdkRoot');
+    // TODO(somebody): replace {{flutterSdkRoot}} with the flutter SDK path
+    for (var i = 0; i < workspace.workspaceDirectories.length; i++) {
+      normalizer.addReplacementsForPath(
+        workspace.workspaceDirectories.elementAt(i).path,
+        'workspaceFolder-$i',
+      );
+    }
+    for (var i = 0; i < workspace.contextRoots.length; i++) {
+      for (var package in workspace.contextRoots[i].packageConfig.packages) {
+        normalizer.addReplacementsForUri(
+          package.root,
+          'context-$i:package-root:${package.name}',
+        );
+      }
+    }
+
     print('Reading logs');
     Log? logs;
     try {
-      logs = Log.fromFile(logFile, {
-        for (var i = 0; i < workspace.workspaceDirectories.length; i++)
-          '{{workspaceFolder-$i}}': workspace.workspaceDirectories
-              .elementAt(i)
-              .path
-              .replaceAll(r'\', r'\\'),
-        '{{dartSdkRoot}}': sdkPath.replaceAll(r'\', r'\\'),
-        // TODO(somebody): replace {{flutterSdkRoot}} with the flutter SDK path
-        for (var i = 0; i < workspace.contextRoots.length; i++)
-          for (var package in workspace.contextRoots[i].packageConfig.packages)
-            '{{context-$i:package-root:${package.name}}}': package.root
-                .toString()
-                .replaceAll(r'\', r'\\'),
-      });
+      logs = Log.fromFile(logFile, normalizer.denormalize);
     } catch (e, s) {
       print('''
 Scenario failed with Error: $e
@@ -79,7 +86,7 @@ $s
       exit(1);
     }
     print('Creating log player');
-    var logPlayer = LogPlayer(log: logs, timeout: timeout);
+    var logPlayer = LogPlayer(log: logs, timeout: timeout, verbose: verbose);
 
     print(
       'Scenario initialized with workpace dirs:\n'

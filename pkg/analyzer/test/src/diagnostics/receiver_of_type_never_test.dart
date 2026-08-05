@@ -2,30 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidUseOfNeverTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class InvalidUseOfNeverTest extends PubPackageResolutionTest {
   test_binaryExpression_eqEq() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '') == 1 + 2;
+//^^^^^^^^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//           ^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 13, 10), error(diag.deadCode, 24, 8)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.binary('=='), r'''
+    var node = result.findNode.binary('==');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ParenthesizedExpression
     leftParenthesis: (
@@ -57,16 +60,18 @@ BinaryExpression
   }
 
   test_binaryExpression_never_eqEq() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x == 1 + 2;
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//  ^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 8)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.binary('x =='), r'''
+    var node = result.findNode.binary('x ==');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -93,16 +98,18 @@ BinaryExpression
   }
 
   test_binaryExpression_never_plus() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x + (1 + 2);
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//  ^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 9)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.binary('x +'), r'''
+    var node = result.findNode.binary('x +');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -133,13 +140,14 @@ BinaryExpression
   }
 
   test_binaryExpression_neverQ_eqEq() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x == 1 + 2;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('x =='), r'''
+    var node = result.findNode.binary('x ==');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -166,16 +174,16 @@ BinaryExpression
   }
 
   test_binaryExpression_neverQ_plus() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x + (1 + 2);
+//  ^
+// [diag.uncheckedOperatorInvocationOfNullableValue] The operator '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedOperatorInvocationOfNullableValue, 23, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.binary('x +'), r'''
+    var node = result.findNode.binary('x +');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -206,16 +214,18 @@ BinaryExpression
   }
 
   test_binaryExpression_plus() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '') + (1 + 2);
+//^^^^^^^^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//           ^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 13, 10), error(diag.deadCode, 24, 9)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.binary('+ ('), r'''
+    var node = result.findNode.binary('+ (');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ParenthesizedExpression
     leftParenthesis: (
@@ -249,11 +259,11 @@ BinaryExpression
   staticType: Never
 ''');
 
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertType(result.findNode.binary('1 + 2'), 'int');
   }
 
   test_conditionalExpression_falseBranch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c, Never x) {
   c ? 0 : x;
 }
@@ -261,7 +271,7 @@ void f(bool c, Never x) {
   }
 
   test_conditionalExpression_trueBranch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c, Never x) {
   c ? x : 0;
 }
@@ -269,38 +279,40 @@ void f(bool c, Never x) {
   }
 
   test_functionExpressionInvocation_never() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x();
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+// ^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 21, 3)],
-    );
+''');
   }
 
   test_functionExpressionInvocation_neverQ() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x();
+//^
+// [diag.uncheckedInvocationOfNullableValue] The function can't be unconditionally invoked because it can be 'null'.
 }
-''',
-      [error(diag.uncheckedInvocationOfNullableValue, 21, 1)],
-    );
+''');
   }
 
   test_indexExpression_never_read() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x[0];
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//  ^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 3)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.index('x[0]'), r'''
+    var node = result.findNode.index('x[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: x
@@ -318,17 +330,18 @@ IndexExpression
   }
 
   test_indexExpression_never_readWrite() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x[0] += 1 + 2;
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//  ^^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 12)],
-    );
+''');
 
-    var assignment = findNode.assignment('[0] +=');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] +=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -367,16 +380,18 @@ AssignmentExpression
   }
 
   test_indexExpression_never_write() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x[0] = 1 + 2;
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//  ^^^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 11)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.assignment('x[0]'), r'''
+    var node = result.findNode.assignment('x[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -415,16 +430,16 @@ AssignmentExpression
   }
 
   test_indexExpression_neverQ_read() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x[0];
+// ^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '[]' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 22, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.index('x[0]'), r'''
+    var node = result.findNode.index('x[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: x
@@ -442,17 +457,16 @@ IndexExpression
   }
 
   test_indexExpression_neverQ_readWrite() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x[0] += 1 + 2;
+// ^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '[]' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 22, 1)],
-    );
+''');
 
-    var assignment = findNode.assignment('[0] +=');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] +=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -491,16 +505,16 @@ AssignmentExpression
   }
 
   test_indexExpression_neverQ_write() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x[0] = 1 + 2;
+// ^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '[]' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 22, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.assignment('x[0]'), r'''
+    var node = result.findNode.assignment('x[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -539,7 +553,7 @@ AssignmentExpression
   }
 
   test_invocationArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(g, Never x) {
   g(x);
 }
@@ -547,16 +561,17 @@ void f(g, Never x) {
   }
 
   test_methodInvocation_never() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.foo(1 + 2);
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//     ^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 25, 8)],
-    );
+''');
 
-    var node = findNode.methodInvocation('.foo(1 + 2)');
+    var node = result.findNode.methodInvocation('.foo(1 + 2)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -591,16 +606,17 @@ MethodInvocation
   }
 
   test_methodInvocation_never_toString() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.toString(1 + 2);
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//          ^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 30, 8)],
-    );
+''');
 
-    var node = findNode.methodInvocation('.toString(1 + 2)');
+    var node = result.findNode.methodInvocation('.toString(1 + 2)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -635,16 +651,15 @@ MethodInvocation
   }
 
   test_methodInvocation_neverQ_toString() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.toString(1 + 2);
+//           ^^^^^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArguments, 32, 5)],
-    );
+''');
 
-    var node = findNode.methodInvocation('.toString(1 + 2)');
+    var node = result.findNode.methodInvocation('.toString(1 + 2)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -679,16 +694,17 @@ MethodInvocation
   }
 
   test_methodInvocation_toString() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '').toString();
+//^^^^^^^^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//                   ^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.receiverOfTypeNever, 13, 10), error(diag.deadCode, 32, 3)],
-    );
+''');
 
-    var node = findNode.methodInvocation('toString()');
+    var node = result.findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ParenthesizedExpression
@@ -714,16 +730,16 @@ MethodInvocation
   }
 
   test_postfixExpression_never_plusPlus() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x++;
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
 }
-''',
-      [error(diag.receiverOfTypeNever, 20, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.postfix('x++'), r'''
+    var node = result.findNode.postfix('x++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -740,16 +756,16 @@ PostfixExpression
   }
 
   test_postfixExpression_neverQ_plusPlus() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x++;
+// ^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 22, 2)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.postfix('x++'), r'''
+    var node = result.findNode.postfix('x++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -767,16 +783,16 @@ PostfixExpression
 
   test_prefixExpression_never_plusPlus() async {
     // Reports 'undefined operator'
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   ++x;
+//  ^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
 }
-''',
-      [error(diag.receiverOfTypeNever, 22, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.prefix('++x'), r'''
+    var node = result.findNode.prefix('++x');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -793,16 +809,16 @@ PrefixExpression
   }
 
   test_prefixExpression_neverQ_plusPlus() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   ++x;
+//^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 21, 2)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.prefix('++x'), r'''
+    var node = result.findNode.prefix('++x');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -819,16 +835,15 @@ PrefixExpression
   }
 
   test_propertyAccess_never_read() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.foo;
+//  ^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 22, 4)],
-    );
+''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -846,16 +861,15 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_read_hashCode() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.hashCode;
+//  ^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 22, 9)],
-    );
+''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -873,17 +887,16 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_readWrite() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.foo += 0;
+//         ^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 29, 2)],
-    );
+''');
 
-    var assignment = findNode.assignment('foo += 0');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -912,16 +925,15 @@ AssignmentExpression
   }
 
   test_propertyAccess_never_tearOff_toString() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.toString;
+//  ^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 22, 9)],
-    );
+''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -939,17 +951,16 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_write() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.foo = 0;
+//        ^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 28, 2)],
-    );
+''');
 
-    var assignment = findNode.assignment('foo = 0');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -978,16 +989,15 @@ AssignmentExpression
   }
 
   test_propertyAccess_neverQ_read() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.foo;
+//  ^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'foo' can't be unconditionally accessed because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 23, 3)],
-    );
+''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1005,13 +1015,13 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_neverQ_read_hashCode() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.hashCode;
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1029,13 +1039,13 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_neverQ_tearOff_toString() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.toString;
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1053,16 +1063,15 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_toString() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '').toString;
+//           ^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 24, 9)],
-    );
+''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1084,16 +1093,15 @@ PropertyAccess
   }
 
   test_throw_getter_hashCode() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '').hashCode;
+//           ^^^^^^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 24, 9)],
-    );
+''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression

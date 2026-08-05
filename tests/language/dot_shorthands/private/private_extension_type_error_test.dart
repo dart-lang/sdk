@@ -5,8 +5,6 @@
 // Dot shorthands should not be able to access private extension types in other
 // libraries.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import 'private_extension_type_lib.dart';
 
 void main() {

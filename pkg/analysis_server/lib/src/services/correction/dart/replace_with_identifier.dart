@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithIdentifier extends ResolvedCorrectionProducer {
-  ReplaceWithIdentifier({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -24,15 +24,14 @@ class ReplaceWithIdentifier extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var functionTyped = node
-        .thisOrAncestorOfType<FunctionTypedFormalParameter>();
-    if (functionTyped != null) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-          range.node(functionTyped),
-          functionTyped.name.lexeme,
-        );
-      });
+    if (node case FormalParameter parameter) {
+      if (parameter.functionTypedSuffix != null) {
+        var name = parameter.name;
+        if (name == null) return;
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.node(parameter), name.lexeme);
+        });
+      }
     }
   }
 }

@@ -380,7 +380,7 @@ class Location {
   final int line;
   final int column;
 
-  Location(this.uri, this.line, this.column);
+  new(this.uri, this.line, this.column);
 
   @override
   String toString() => "Location[$uri:$line:$column]";
@@ -518,7 +518,7 @@ class Messages {
 class OutstandingRequest {
   final Stopwatch stopwatch = Stopwatch();
   final Completer<Map<String, dynamic>> completer = Completer();
-  OutstandingRequest() {
+  new() {
     stopwatch.start();
   }
 }

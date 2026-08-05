@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,27 +17,25 @@ class ExpectedTwoMapTypeArgumentsTest extends PubPackageResolutionTest {
   test_three_type_arguments_ambiguous() async {
     // TODO(brianwilkerson): We probably need a new error code for "expected
     //  either one or two type arguments" to handle the ambiguous case.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   <int, int, int>{};
-}''',
-      [error(diag.expectedTwoMapTypeArguments, 11, 15)],
-    );
+//^^^^^^^^^^^^^^^
+// [diag.expectedTwoMapTypeArguments] Map literals require two type arguments or none, but 3 found.
+}''');
   }
 
   test_three_type_arguments_map() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   <int, int, int>{1: 2};
-}''',
-      [error(diag.expectedTwoMapTypeArguments, 11, 15)],
-    );
+//^^^^^^^^^^^^^^^
+// [diag.expectedTwoMapTypeArguments] Map literals require two type arguments or none, but 3 found.
+}''');
   }
 
   test_two_type_arguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   <int, int> {};
 }

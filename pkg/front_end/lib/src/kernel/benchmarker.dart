@@ -37,7 +37,7 @@ class Benchmarker {
     _currentPhase = BenchmarkPhases.implicitInitialization;
   }
 
-  void beginSubdivide(final BenchmarkSubdivides phase) {
+  void beginSubdivide(BenchmarkSubdivides phase) {
     _pauseLatestSubdivide(addAsCount: false);
     _subdivideStopwatch.reset();
     _subdivides.add(phase);
@@ -111,7 +111,7 @@ class PhaseTiming {
     growable: false,
   );
 
-  PhaseTiming(this.phase);
+  new(this.phase);
 
   void addRuntime(int runtime) {
     _runtime += runtime;
@@ -141,7 +141,7 @@ class SubdivideTiming {
   int _runtime = 0;
   int _count = 0;
 
-  SubdivideTiming(this.phase);
+  new(this.phase);
 
   void addRuntime(int runtime, {required bool addAsCount}) {
     _runtime += runtime;
@@ -162,7 +162,7 @@ class SubdivideTiming {
 enum BenchmarkPhases {
   implicitInitialization,
   loadSDK,
-  loadAdditionalDills,
+  loadAdditionalDillModules,
 
   dill_buildOutlines,
   dill_finalizeExports,
@@ -278,7 +278,7 @@ enum BenchmarkSubdivides {
   inferImplicitFieldType,
   inferFieldInitializer,
   inferFunctionBody,
-  inferInitializer,
+  inferInitializers,
   inferMetadata,
   inferParameterInitializer,
   inferRedirectingFactoryTypeArguments,

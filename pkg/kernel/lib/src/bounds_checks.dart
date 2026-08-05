@@ -18,7 +18,7 @@ class TypeVariableGraph extends Graph<int> {
   // variable with the index `i` in their bounds.
   late List<List<int>> edges;
 
-  TypeVariableGraph(this.typeParameters, this.bounds) {
+  new(this.typeParameters, this.bounds) {
     assert(typeParameters.length == bounds.length);
 
     vertices = new List<int>.filled(
@@ -59,7 +59,7 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   final Set<TypeParameter> typeParameters;
   Set<TypeParameter> occurred = new Set<TypeParameter>();
 
-  OccurrenceCollectorVisitor(this.typeParameters);
+  new(this.typeParameters);
 
   void visit(DartType node) => node.accept(this);
 
@@ -320,7 +320,7 @@ class TypeArgumentIssue {
 
   final bool isGenericTypeAsArgumentIssue;
 
-  TypeArgumentIssue(
+  new(
     this.index,
     this.argument,
     this.typeParameter,
@@ -590,7 +590,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   final TypeEnvironment typeEnvironment;
   bool isOutermost = true;
 
-  _SuperBoundedTypeInverter(this.typeEnvironment);
+  new(this.typeEnvironment);
 
   bool flipTop(Variance variance) {
     return variance != Variance.contravariant;
@@ -777,16 +777,14 @@ enum VarianceCalculationValue {
 
   final Variance? variance;
 
-  const VarianceCalculationValue(this.variance);
+  new(this.variance);
 
-  factory VarianceCalculationValue.fromVariance(Variance variance) =>
-      switch (variance) {
-        Variance.unrelated => VarianceCalculationValue.calculatedUnrelated,
-        Variance.covariant => VarianceCalculationValue.calculatedCovariant,
-        Variance.contravariant =>
-          VarianceCalculationValue.calculatedContravariant,
-        Variance.invariant => VarianceCalculationValue.calculatedInvariant,
-      };
+  factory fromVariance(Variance variance) => switch (variance) {
+    Variance.unrelated => VarianceCalculationValue.calculatedUnrelated,
+    Variance.covariant => VarianceCalculationValue.calculatedCovariant,
+    Variance.contravariant => VarianceCalculationValue.calculatedContravariant,
+    Variance.invariant => VarianceCalculationValue.calculatedInvariant,
+  };
 
   bool get isCalculated => variance != null;
 }
@@ -799,7 +797,7 @@ class VarianceCalculator
         > {
   final TypeParameter typeParameter;
 
-  VarianceCalculator(this.typeParameter);
+  new(this.typeParameter);
 
   @override
   VarianceCalculationValue visitAuxiliaryType(
@@ -1107,7 +1105,7 @@ bool hasGenericFunctionTypeAsTypeArgument(DartType type) {
 
 class _HasGenericFunctionTypeAsTypeArgumentVisitor
     extends DartTypeVisitor1<bool, bool> {
-  const _HasGenericFunctionTypeAsTypeArgumentVisitor();
+  const new();
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node, bool isTypeArgument) {

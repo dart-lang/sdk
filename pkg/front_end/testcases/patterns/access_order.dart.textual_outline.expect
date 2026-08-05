@@ -12,17 +12,21 @@ class MyList<E> with ListMixin<E> {
   void clearLog() {}
 }
 
-String test1(Object o) =>
-    switch (o) { [var x, 2, var y] => "match-1", _ => "no match" };
+String test1(Object o) => switch (o) {
+  [var x, 2, var y] => "match-1",
+  _ => "no match",
+};
 
-String test2(Object o) =>
-    switch (o) { [1, var x, var y] => "match-1", _ => "no match" };
+String test2(Object o) => switch (o) {
+  [1, var x, var y] => "match-1",
+  _ => "no match",
+};
 
 String test3(Object o) => switch (o) {
-      [var x!, 1] => "match-1",
-      [1, var x!] => "match-2",
-      _ => "no match"
-    };
+  [var x!, 1] => "match-1",
+  [1, var x!] => "match-2",
+  _ => "no match",
+};
 
 main() {}
 

@@ -143,7 +143,7 @@ class InvalidExpression extends Expression {
   /// The expression containing the error.
   Expression? expression;
 
-  InvalidExpression(this.message, [this.expression]) {
+  new(this.message, [this.expression]) {
     expression?.parent = this;
   }
 
@@ -202,12 +202,12 @@ class InvalidExpression extends Expression {
 
 class VariableGet extends Expression {
   /// The target variable.
-  VariableDeclaration variable;
+  Variable variable;
 
   /// Null if not promoted.
   DartType? promotedType;
 
-  VariableGet(this.variable, [this.promotedType]);
+  new(this.variable, [this.promotedType]);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -270,11 +270,11 @@ class VariableGet extends Expression {
 /// Evaluates to the value of [value].
 class VariableSet extends Expression {
   /// The target variable.
-  VariableDeclaration variable;
+  Variable variable;
 
   Expression value;
 
-  VariableSet(this.variable, this.value) {
+  new(this.variable, this.value) {
     value.parent = this;
   }
 
@@ -328,7 +328,7 @@ class RecordIndexGet extends Expression {
   RecordType receiverType;
   final int index;
 
-  RecordIndexGet(this.receiver, this.receiverType, this.index)
+  new(this.receiver, this.receiverType, this.index)
     : assert(0 <= index && index < receiverType.positional.length) {
     receiver.parent = this;
   }
@@ -386,7 +386,7 @@ class RecordNameGet extends Expression {
   RecordType receiverType;
   final String name;
 
-  RecordNameGet(this.receiver, this.receiverType, this.name)
+  new(this.receiver, this.receiverType, this.name)
     : assert(
         receiverType.named
                 .singleWhere((element) => element.name == name)
@@ -488,7 +488,7 @@ class DynamicGet extends Expression {
   Expression receiver;
   Name name;
 
-  DynamicGet(this.kind, this.receiver, this.name) {
+  new(this.kind, this.receiver, this.name) {
     receiver.parent = this;
   }
 
@@ -568,11 +568,19 @@ class InstanceGet extends Expression {
   ///      a.t; // The result type is `String`.
   ///    }
   ///
+  /// Note that [resultType] can be overwritten with a more general type in case
+  /// the type parameters of either the class or the generic method occur in the
+  /// return type contravariantly, so that [resultType] is always a supertype of
+  /// the runtime type of the invocation value. In that case an as-check is
+  /// generated to make sure the runtime type of the value is the subtype of the
+  /// return type of the method.  If that happens, [resultType] and
+  /// [getStaticType] yield the type that might be different from the static
+  /// type of the expression as defined by the language specification.
   DartType resultType;
 
   Reference interfaceTargetReference;
 
-  InstanceGet(
+  new(
     InstanceAccessKind kind,
     Expression receiver,
     Name name, {
@@ -588,7 +596,7 @@ class InstanceGet extends Expression {
          resultType: resultType,
        );
 
-  InstanceGet.byReference(
+  new byReference(
     this.kind,
     this.receiver,
     this.name, {
@@ -598,14 +606,14 @@ class InstanceGet extends Expression {
     receiver.parent = this;
   }
 
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
+
   Member get interfaceTarget => interfaceTargetReference.asMember;
 
   void set interfaceTarget(Member member) {
     interfaceTargetReference = getNonNullableMemberReferenceGetter(member);
   }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceGet(this);
@@ -657,7 +665,7 @@ class InstanceGet extends Expression {
 class FunctionTearOff extends Expression {
   Expression receiver;
 
-  FunctionTearOff(this.receiver) {
+  new(this.receiver) {
     receiver.parent = this;
   }
 
@@ -726,11 +734,19 @@ class InstanceTearOff extends Expression {
   ///      a.method; // The result type is `String Function<U>(int, U)`.
   ///    }
   ///
+  /// Note that [resultType] can be overwritten with a more general type in case
+  /// the type parameters of either the class or the generic method occur in the
+  /// return type contravariantly, so that [resultType] is always a supertype of
+  /// the runtime type of the invocation value. In that case an as-check is
+  /// generated to make sure the runtime type of the value is the subtype of the
+  /// return type of the method.  If that happens, [resultType] and
+  /// [getStaticType] yield the type that might be different from the static
+  /// type of the expression as defined by the language specification.
   DartType resultType;
 
   Reference interfaceTargetReference;
 
-  InstanceTearOff(
+  new(
     InstanceAccessKind kind,
     Expression receiver,
     Name name, {
@@ -746,7 +762,7 @@ class InstanceTearOff extends Expression {
          resultType: resultType,
        );
 
-  InstanceTearOff.byReference(
+  new byReference(
     this.kind,
     this.receiver,
     this.name, {
@@ -756,14 +772,14 @@ class InstanceTearOff extends Expression {
     receiver.parent = this;
   }
 
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
+
   Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
   void set interfaceTarget(Procedure procedure) {
     interfaceTargetReference = getNonNullableMemberReferenceGetter(procedure);
   }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceTearOff(this);
@@ -816,7 +832,7 @@ class DynamicSet extends Expression {
   Name name;
   Expression value;
 
-  DynamicSet(this.kind, this.receiver, this.name, this.value) {
+  new(this.kind, this.receiver, this.name, this.value) {
     receiver.parent = this;
     value.parent = this;
   }
@@ -885,7 +901,7 @@ class InstanceSet extends Expression {
 
   Reference interfaceTargetReference;
 
-  InstanceSet(
+  new(
     InstanceAccessKind kind,
     Expression receiver,
     Name name,
@@ -901,7 +917,7 @@ class InstanceSet extends Expression {
          ),
        );
 
-  InstanceSet.byReference(
+  new byReference(
     this.kind,
     this.receiver,
     this.name,
@@ -1004,21 +1020,14 @@ class AbstractSuperPropertyGet extends Expression {
 
   Reference interfaceTargetReference;
 
-  AbstractSuperPropertyGet(
-    Expression receiver,
-    Name name,
-    Member interfaceTarget,
-  ) : this.byReference(
+  new(Expression receiver, Name name, Member interfaceTarget)
+    : this.byReference(
         receiver,
         name,
         getNonNullableMemberReferenceGetter(interfaceTarget),
       );
 
-  AbstractSuperPropertyGet.byReference(
-    this.receiver,
-    this.name,
-    this.interfaceTargetReference,
-  ) {
+  new byReference(this.receiver, this.name, this.interfaceTargetReference) {
     receiver.parent = this;
   }
 
@@ -1090,18 +1099,14 @@ class SuperPropertyGet extends Expression {
 
   Reference interfaceTargetReference;
 
-  SuperPropertyGet(Expression receiver, Name name, Member interfaceTarget)
+  new(Expression receiver, Name name, Member interfaceTarget)
     : this.byReference(
         receiver,
         name,
         getNonNullableMemberReferenceGetter(interfaceTarget),
       );
 
-  SuperPropertyGet.byReference(
-    this.receiver,
-    this.name,
-    this.interfaceTargetReference,
-  ) {
+  new byReference(this.receiver, this.name, this.interfaceTargetReference) {
     receiver.parent = this;
   }
 
@@ -1196,19 +1201,15 @@ class AbstractSuperPropertySet extends Expression {
 
   Reference interfaceTargetReference;
 
-  AbstractSuperPropertySet(
-    Expression receiver,
-    Name name,
-    Expression value,
-    Member interfaceTarget,
-  ) : this.byReference(
+  new(Expression receiver, Name name, Expression value, Member interfaceTarget)
+    : this.byReference(
         receiver,
         name,
         value,
         getNonNullableMemberReferenceSetter(interfaceTarget),
       );
 
-  AbstractSuperPropertySet.byReference(
+  new byReference(
     this.receiver,
     this.name,
     this.value,
@@ -1285,19 +1286,15 @@ class SuperPropertySet extends Expression {
 
   Reference interfaceTargetReference;
 
-  SuperPropertySet(
-    Expression receiver,
-    Name name,
-    Expression value,
-    Member interfaceTarget,
-  ) : this.byReference(
+  new(Expression receiver, Name name, Expression value, Member interfaceTarget)
+    : this.byReference(
         receiver,
         name,
         value,
         getNonNullableMemberReferenceSetter(interfaceTarget),
       );
 
-  SuperPropertySet.byReference(
+  new byReference(
     this.receiver,
     this.name,
     this.value,
@@ -1367,11 +1364,11 @@ class StaticGet extends Expression {
   /// A static field, getter, or method (for tear-off).
   Reference targetReference;
 
-  StaticGet(Member target)
+  new(Member target)
     : assert(target is Field || (target is Procedure && target.isGetter)),
       this.targetReference = getNonNullableMemberReferenceGetter(target);
 
-  StaticGet.byReference(this.targetReference);
+  new byReference(this.targetReference);
 
   Member get target => targetReference.asMember;
 
@@ -1416,7 +1413,7 @@ class StaticGet extends Expression {
 class StaticTearOff extends Expression {
   Reference targetReference;
 
-  StaticTearOff(Procedure target)
+  new(Procedure target)
     : assert(target.isStatic, "Unexpected static tear off target: $target"),
       assert(
         target.kind == ProcedureKind.Method,
@@ -1424,7 +1421,7 @@ class StaticTearOff extends Expression {
       ),
       this.targetReference = getNonNullableMemberReferenceGetter(target);
 
-  StaticTearOff.byReference(this.targetReference);
+  new byReference(this.targetReference);
 
   Procedure get target => targetReference.asProcedure;
 
@@ -1473,10 +1470,10 @@ class StaticSet extends Expression {
   Reference targetReference;
   Expression value;
 
-  StaticSet(Member target, Expression value)
+  new(Member target, Expression value)
     : this.byReference(getNonNullableMemberReferenceSetter(target), value);
 
-  StaticSet.byReference(this.targetReference, this.value) {
+  new byReference(this.targetReference, this.value) {
     value.parent = this;
   }
 
@@ -1535,28 +1532,25 @@ class Arguments extends TreeNode {
   final List<Expression> positional;
   List<NamedExpression> named;
 
-  Arguments(
-    this.positional, {
-    List<DartType>? types,
-    List<NamedExpression>? named,
-  }) : this.types = types ?? <DartType>[],
-       this.named = named ?? <NamedExpression>[] {
+  new(this.positional, {List<DartType>? types, List<NamedExpression>? named})
+    : this.types = types ?? <DartType>[],
+      this.named = named ?? <NamedExpression>[] {
     setParents(this.positional, this);
     setParents(this.named, this);
   }
 
-  Arguments.empty()
+  new empty()
     : types = <DartType>[],
       positional = <Expression>[],
       named = <NamedExpression>[];
 
-  factory Arguments.forwarded(FunctionNode function, Library library) {
+  factory forwarded(FunctionNode function) {
     return new Arguments(
       function.positionalParameters
           .map<Expression>((p) => new VariableGet(p))
           .toList(),
       named: function.namedParameters
-          .map((p) => new NamedExpression(p.name!, new VariableGet(p)))
+          .map((p) => new NamedExpression(p.parameterName, new VariableGet(p)))
           .toList(),
       types: function.typeParameters
           .map<DartType>((p) => new TypeParameterType.withDefaultNullability(p))
@@ -1635,7 +1629,7 @@ class NamedExpression extends TreeNode {
   String name;
   Expression value;
 
-  NamedExpression(this.name, this.value) {
+  new(this.name, this.value) {
     value.parent = this;
   }
 
@@ -1713,7 +1707,7 @@ class DynamicInvocation extends InstanceInvocationExpression {
 
   int flags = 0;
 
-  DynamicInvocation(this.kind, this.receiver, this.name, this.arguments) {
+  new(this.kind, this.receiver, this.name, this.arguments) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -1882,15 +1876,40 @@ class InstanceInvocation extends InstanceInvocationExpression {
   ///
   FunctionType functionType;
 
+  /// The static type of the result of the invocation.
+  ///
+  /// This includes substituted type parameters from the static type of the
+  /// receiver and the generic type arguments.
+  ///
+  /// For instance
+  ///
+  ///    class A<T> {
+  ///      Map<T, S> map<S>(S s) { ... }
+  ///    }
+  ///    m(A<String> a) {
+  ///      a.map(0); // The result type is `Map<String, int>`.
+  ///    }
+  ///
+  /// Note that [resultType] can be overwritten with a more general type in case
+  /// the type parameters of either the class or the generic method occur in the
+  /// return type contravariantly, so that [resultType] is always a supertype of
+  /// the runtime type of the invocation value. In that case an as-check is
+  /// generated to make sure the runtime type of the value is the subtype of the
+  /// return type of the method.  If that happens, [resultType] and
+  /// [getStaticType] yield the type that might be different from the static
+  /// type of the expression as defined by the language specification.
+  DartType resultType;
+
   Reference interfaceTargetReference;
 
-  InstanceInvocation(
+  new(
     InstanceAccessKind kind,
     Expression receiver,
     Name name,
     Arguments arguments, {
     required Procedure interfaceTarget,
     required FunctionType functionType,
+    DartType? resultType,
   }) : this.byReference(
          kind,
          receiver,
@@ -1900,19 +1919,25 @@ class InstanceInvocation extends InstanceInvocationExpression {
            interfaceTarget,
          ),
          functionType: functionType,
+         resultType: resultType,
        );
 
-  InstanceInvocation.byReference(
+  new byReference(
     this.kind,
     this.receiver,
     this.name,
     this.arguments, {
     required this.interfaceTargetReference,
     required this.functionType,
-  }) : assert(functionType.typeParameters.isEmpty) {
+    DartType? resultType,
+  }) : resultType = resultType ?? functionType.returnType,
+       assert(functionType.typeParameters.isEmpty) {
     receiver.parent = this;
     arguments.parent = this;
   }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
 
   Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
@@ -1954,10 +1979,6 @@ class InstanceInvocation extends InstanceInvocationExpression {
   void set isBoundsSafe(bool value) {
     flags = value ? (flags | FlagBoundsSafe) : (flags & ~FlagBoundsSafe);
   }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) =>
-      functionType.returnType;
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceInvocation(this);
@@ -2055,7 +2076,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
 
   Reference interfaceTargetReference;
 
-  InstanceGetterInvocation(
+  new(
     InstanceAccessKind kind,
     Expression receiver,
     Name name,
@@ -2073,7 +2094,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
          functionType: functionType,
        );
 
-  InstanceGetterInvocation.byReference(
+  new byReference(
     this.kind,
     this.receiver,
     this.name,
@@ -2260,12 +2281,7 @@ class FunctionInvocation extends InstanceInvocationExpression {
   ///
   FunctionType? functionType;
 
-  FunctionInvocation(
-    this.kind,
-    this.receiver,
-    this.arguments, {
-    required this.functionType,
-  }) {
+  new(this.kind, this.receiver, this.arguments, {required this.functionType}) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -2335,7 +2351,7 @@ class FunctionInvocation extends InstanceInvocationExpression {
 /// An invocation of a local function declaration.
 class LocalFunctionInvocation extends InvocationExpression {
   /// The variable declaration for the function declaration.
-  VariableDeclaration variable;
+  LocalFunctionVariable variable;
 
   @override
   Arguments arguments;
@@ -2354,11 +2370,7 @@ class LocalFunctionInvocation extends InvocationExpression {
   ///
   FunctionType functionType;
 
-  LocalFunctionInvocation(
-    this.variable,
-    this.arguments, {
-    required this.functionType,
-  }) {
+  new(this.variable, this.arguments, {required this.functionType}) {
     arguments.parent = this;
   }
 
@@ -2420,7 +2432,7 @@ class EqualsNull extends Expression {
   /// The expression tested for nullness.
   Expression expression;
 
-  EqualsNull(this.expression) {
+  new(this.expression) {
     expression.parent = this;
   }
 
@@ -2489,7 +2501,7 @@ class EqualsCall extends Expression {
 
   Reference interfaceTargetReference;
 
-  EqualsCall(
+  new(
     Expression left,
     Expression right, {
     required FunctionType functionType,
@@ -2503,7 +2515,7 @@ class EqualsCall extends Expression {
          ),
        );
 
-  EqualsCall.byReference(
+  new byReference(
     this.left,
     this.right, {
     required this.functionType,
@@ -2608,7 +2620,7 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 
   Reference interfaceTargetReference;
 
-  AbstractSuperMethodInvocation(
+  new(
     Expression receiver,
     Name name,
     Arguments arguments,
@@ -2621,7 +2633,7 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
         getNonNullableMemberReferenceGetter(interfaceTarget),
       );
 
-  AbstractSuperMethodInvocation.byReference(
+  new byReference(
     this.receiver,
     this.name,
     this.arguments,
@@ -2712,7 +2724,7 @@ class SuperMethodInvocation extends InvocationExpression {
 
   Reference interfaceTargetReference;
 
-  SuperMethodInvocation(
+  new(
     Expression receiver,
     Name name,
     Arguments arguments,
@@ -2725,7 +2737,7 @@ class SuperMethodInvocation extends InvocationExpression {
         getNonNullableMemberReferenceGetter(interfaceTarget),
       );
 
-  SuperMethodInvocation.byReference(
+  new byReference(
     this.receiver,
     this.name,
     this.arguments,
@@ -2817,18 +2829,15 @@ class StaticInvocation extends InvocationExpression {
   @override
   Name get name => target.name;
 
-  StaticInvocation(
-    Procedure target,
-    Arguments arguments, {
-    bool isConst = false,
-  }) : this.byReference(
-         // An invocation doesn't refer to the setter.
-         getNonNullableMemberReferenceGetter(target),
-         arguments,
-         isConst: isConst,
-       );
+  new(Procedure target, Arguments arguments, {bool isConst = false})
+    : this.byReference(
+        // An invocation doesn't refer to the setter.
+        getNonNullableMemberReferenceGetter(target),
+        arguments,
+        isConst: isConst,
+      );
 
-  StaticInvocation.byReference(
+  new byReference(
     this.targetReference,
     this.arguments, {
     this.isConst = false,
@@ -2906,18 +2915,15 @@ class ConstructorInvocation extends InvocationExpression {
   @override
   Name get name => target.name;
 
-  ConstructorInvocation(
-    Constructor target,
-    Arguments arguments, {
-    bool isConst = false,
-  }) : this.byReference(
-         // A constructor doesn't refer to the setter.
-         getNonNullableMemberReferenceGetter(target),
-         arguments,
-         isConst: isConst,
-       );
+  new(Constructor target, Arguments arguments, {bool isConst = false})
+    : this.byReference(
+        // A constructor doesn't refer to the setter.
+        getNonNullableMemberReferenceGetter(target),
+        arguments,
+        isConst: isConst,
+      );
 
-  ConstructorInvocation.byReference(
+  new byReference(
     this.targetReference,
     this.arguments, {
     this.isConst = false,
@@ -3025,10 +3031,7 @@ class RedirectingFactoryInvocation extends Expression {
   /// The invocation of the effective target.
   InvocationExpression expression;
 
-  factory RedirectingFactoryInvocation(
-    Procedure redirectingFactoryTarget,
-    InvocationExpression expression,
-  ) {
+  factory(Procedure redirectingFactoryTarget, InvocationExpression expression) {
     assert(redirectingFactoryTarget.isRedirectingFactory);
     return new RedirectingFactoryInvocation.byReference(
       redirectingFactoryTarget.reference,
@@ -3036,10 +3039,7 @@ class RedirectingFactoryInvocation extends Expression {
     );
   }
 
-  RedirectingFactoryInvocation.byReference(
-    this.redirectingFactoryTargetReference,
-    this.expression,
-  ) {
+  new byReference(this.redirectingFactoryTargetReference, this.expression) {
     expression.parent = this;
   }
 
@@ -3101,7 +3101,7 @@ class Instantiation extends Expression {
   Expression expression;
   final List<DartType> typeArguments;
 
-  Instantiation(this.expression, this.typeArguments) {
+  new(this.expression, this.typeArguments) {
     expression.parent = this;
   }
 
@@ -3166,7 +3166,7 @@ class Instantiation extends Expression {
 class Not extends Expression {
   Expression operand;
 
-  Not(this.operand) {
+  new(this.operand) {
     operand.parent = this;
   }
 
@@ -3233,7 +3233,7 @@ class LogicalExpression extends Expression {
   LogicalExpressionOperator operatorEnum; // AND (&&) or OR (||).
   Expression right;
 
-  LogicalExpression(this.left, this.operatorEnum, this.right) {
+  new(this.left, this.operatorEnum, this.right) {
     left.parent = this;
     right.parent = this;
   }
@@ -3298,12 +3298,7 @@ class ConditionalExpression extends Expression {
   /// The static type of the expression.
   DartType staticType;
 
-  ConditionalExpression(
-    this.condition,
-    this.then,
-    this.otherwise,
-    this.staticType,
-  ) {
+  new(this.condition, this.then, this.otherwise, this.staticType) {
     condition.parent = this;
     then.parent = this;
     otherwise.parent = this;
@@ -3385,7 +3380,7 @@ class ConditionalExpression extends Expression {
 class StringConcatenation extends Expression {
   final List<Expression> expressions;
 
-  StringConcatenation(this.expressions) {
+  new(this.expressions) {
     setParents(expressions, this);
   }
 
@@ -3451,7 +3446,7 @@ class ListConcatenation extends Expression {
   DartType typeArgument;
   final List<Expression> lists;
 
-  ListConcatenation(this.lists, {this.typeArgument = const DynamicType()}) {
+  new(this.lists, {this.typeArgument = const DynamicType()}) {
     setParents(lists, this);
   }
 
@@ -3521,7 +3516,7 @@ class SetConcatenation extends Expression {
   DartType typeArgument;
   final List<Expression> sets;
 
-  SetConcatenation(this.sets, {this.typeArgument = const DynamicType()}) {
+  new(this.sets, {this.typeArgument = const DynamicType()}) {
     setParents(sets, this);
   }
 
@@ -3592,7 +3587,7 @@ class MapConcatenation extends Expression {
   DartType valueType;
   final List<Expression> maps;
 
-  MapConcatenation(
+  new(
     this.maps, {
     this.keyType = const DynamicType(),
     this.valueType = const DynamicType(),
@@ -3672,7 +3667,7 @@ class InstanceCreation extends Expression {
   final List<AssertStatement> asserts;
   final List<Expression> unusedArguments;
 
-  InstanceCreation(
+  new(
     this.classReference,
     this.typeArguments,
     this.fieldValues,
@@ -3805,7 +3800,7 @@ class FileUriExpression extends Expression implements FileUriNode {
 
   Expression expression;
 
-  FileUriExpression(this.expression, this.fileUri) {
+  new(this.expression, this.fileUri) {
     expression.parent = this;
   }
 
@@ -3870,7 +3865,7 @@ class IsExpression extends Expression {
   Expression operand;
   DartType type;
 
-  IsExpression(this.operand, this.type) {
+  new(this.operand, this.type) {
     operand.parent = this;
   }
 
@@ -3931,7 +3926,7 @@ class AsExpression extends Expression {
   Expression operand;
   DartType type;
 
-  AsExpression(this.operand, this.type) {
+  new(this.operand, this.type) {
     operand.parent = this;
   }
 
@@ -4072,7 +4067,7 @@ class AsExpression extends Expression {
 class NullCheck extends Expression {
   Expression operand;
 
-  NullCheck(this.operand) {
+  new(this.operand) {
     operand.parent = this;
   }
 
@@ -4141,7 +4136,7 @@ class StringLiteral extends BasicLiteral {
   @override
   String value;
 
-  StringLiteral(this.value);
+  new(this.value);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4179,7 +4174,7 @@ class IntLiteral extends BasicLiteral {
   @override
   int value;
 
-  IntLiteral(this.value);
+  new(this.value);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4211,7 +4206,7 @@ class DoubleLiteral extends BasicLiteral {
   @override
   double value;
 
-  DoubleLiteral(this.value);
+  new(this.value);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4243,7 +4238,7 @@ class BoolLiteral extends BasicLiteral {
   @override
   bool value;
 
-  BoolLiteral(this.value);
+  new(this.value);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4303,7 +4298,7 @@ class NullLiteral extends BasicLiteral {
 class SymbolLiteral extends Expression {
   String value; // Everything strictly after the '#'.
 
-  SymbolLiteral(this.value);
+  new(this.value);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4344,7 +4339,7 @@ class SymbolLiteral extends Expression {
 class TypeLiteral extends Expression {
   DartType type;
 
-  TypeLiteral(this.type);
+  new(this.type);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4463,7 +4458,7 @@ class Throw extends Expression {
   Expression expression;
   int flags = 0;
 
-  Throw(this.expression) {
+  new(this.expression) {
     expression.parent = this;
   }
 
@@ -4531,7 +4526,7 @@ class ListLiteral extends Expression {
   DartType typeArgument; // Not null, defaults to DynamicType.
   final List<Expression> expressions;
 
-  ListLiteral(
+  new(
     this.expressions, {
     this.typeArgument = const DynamicType(),
     this.isConst = false,
@@ -4596,7 +4591,7 @@ class SetLiteral extends Expression {
   DartType typeArgument; // Not null, defaults to DynamicType.
   final List<Expression> expressions;
 
-  SetLiteral(
+  new(
     this.expressions, {
     this.typeArgument = const DynamicType(),
     this.isConst = false,
@@ -4662,7 +4657,7 @@ class MapLiteral extends Expression {
   DartType valueType; // Not null, defaults to DynamicType.
   final List<MapLiteralEntry> entries;
 
-  MapLiteral(
+  new(
     this.entries, {
     this.keyType = const DynamicType(),
     this.valueType = const DynamicType(),
@@ -4741,7 +4736,7 @@ class MapLiteralEntry extends TreeNode {
   Expression key;
   Expression value;
 
-  MapLiteralEntry(this.key, this.value) {
+  new(this.key, this.value) {
     key.parent = this;
     value.parent = this;
   }
@@ -4801,32 +4796,28 @@ class RecordLiteral extends Expression {
   final List<NamedExpression> named;
   RecordType recordType;
 
-  RecordLiteral(
-    this.positional,
-    this.named,
-    this.recordType, {
-    this.isConst = false,
-  }) : assert(
-         positional.length == recordType.positional.length &&
-             named.length == recordType.named.length &&
-             recordType.named
-                 .map((f) => f.name)
-                 .toSet()
-                 .containsAll(named.map((f) => f.name)),
-       ),
-       assert(
-         () {
-           // Assert that the named fields are sorted.
-           for (int i = 1; i < named.length; i++) {
-             if (named[i].name.compareTo(named[i - 1].name) < 0) {
-               return false;
-             }
-           }
-           return true;
-         }(),
-         "Named fields of a RecordLiterals aren't sorted lexicographically: "
-         "${named.map((f) => f.name).join(", ")}",
-       ) {
+  new(this.positional, this.named, this.recordType, {this.isConst = false})
+    : assert(
+        positional.length == recordType.positional.length &&
+            named.length == recordType.named.length &&
+            recordType.named
+                .map((f) => f.name)
+                .toSet()
+                .containsAll(named.map((f) => f.name)),
+      ),
+      assert(
+        () {
+          // Assert that the named fields are sorted.
+          for (int i = 1; i < named.length; i++) {
+            if (named[i].name.compareTo(named[i - 1].name) < 0) {
+              return false;
+            }
+          }
+          return true;
+        }(),
+        "Named fields of a RecordLiterals aren't sorted lexicographically: "
+        "${named.map((f) => f.name).join(", ")}",
+      ) {
     setParents(positional, this);
     setParents(named, this);
   }
@@ -4871,7 +4862,7 @@ class RecordLiteral extends Expression {
 
   @override
   String toString() {
-    return "RecordType(${toStringInternal()})";
+    return "RecordLiteral(${toStringInternal()})";
   }
 
   @override
@@ -4933,7 +4924,7 @@ class AwaitExpression extends Expression {
   /// of which the check is needed.
   DartType? runtimeCheckType;
 
-  AwaitExpression(this.operand) {
+  new(this.operand) {
     operand.parent = this;
   }
 
@@ -5007,9 +4998,8 @@ extension type const LocalFunctionId(int _value) {
 class LocalFunctionIdGenerator {
   LocalFunctionId _counter;
 
-  LocalFunctionIdGenerator() : _counter = LocalFunctionId.first;
-  LocalFunctionIdGenerator.after(LocalFunctionId lastUsedId)
-    : _counter = lastUsedId + 1;
+  new() : _counter = LocalFunctionId.first;
+  new after(LocalFunctionId lastUsedId) : _counter = lastUsedId + 1;
 
   /// Generate a new id for a local function within a [Member].
   LocalFunctionId allocateId() => _counter++;
@@ -5030,7 +5020,7 @@ class FunctionExpression extends Expression implements LocalFunction {
   @override
   LocalFunctionId id = LocalFunctionId.invalid;
 
-  FunctionExpression(this.function) {
+  new(this.function) {
     function.parent = this;
   }
 
@@ -5081,7 +5071,7 @@ class ConstantExpression extends Expression {
   Constant constant;
   DartType type;
 
-  ConstantExpression(this.constant, [this.type = const DynamicType()]);
+  new(this.constant, [this.type = const DynamicType()]);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -5131,7 +5121,7 @@ class FileUriConstantExpression extends ConstantExpression
   @override
   Uri fileUri;
 
-  FileUriConstantExpression(
+  new(
     Constant constant, {
     DartType type = const DynamicType(),
     required this.fileUri,
@@ -5150,10 +5140,10 @@ class FileUriConstantExpression extends ConstantExpression
 
 /// Synthetic expression of form `let v = x in y`
 class Let extends Expression {
-  VariableDeclaration variable; // Must have an initializer.
+  SyntheticVariable variable; // Must have an initializer.
   Expression body;
 
-  Let(this.variable, this.body) {
+  new(this.variable, this.body) {
     variable.parent = this;
     body.parent = this;
   }
@@ -5215,7 +5205,7 @@ class BlockExpression extends Expression implements ScopeProvider {
   @override
   Scope? scope;
 
-  BlockExpression(this.body, this.value) {
+  new(this.body, this.value) {
     body.parent = this;
     value.parent = this;
   }
@@ -5287,7 +5277,7 @@ class LoadLibrary extends Expression {
   /// Reference to a deferred import in the enclosing library.
   LibraryDependency import;
 
-  LoadLibrary(this.import);
+  new(this.import);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -5334,7 +5324,7 @@ class CheckLibraryIsLoaded extends Expression {
   /// Reference to a deferred import in the enclosing library.
   LibraryDependency import;
 
-  CheckLibraryIsLoaded(this.import);
+  new(this.import);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -5378,14 +5368,14 @@ class ConstructorTearOff extends Expression {
   /// The reference to the constructor being torn off.
   Reference targetReference;
 
-  ConstructorTearOff(Member target)
+  new(Member target)
     : assert(
         target is Constructor || (target is Procedure && target.isFactory),
         "Unexpected constructor tear off target: $target",
       ),
       this.targetReference = getNonNullableMemberReferenceGetter(target);
 
-  ConstructorTearOff.byReference(this.targetReference);
+  new byReference(this.targetReference);
 
   Member get target => targetReference.asMember;
 
@@ -5438,11 +5428,11 @@ class RedirectingFactoryTearOff extends Expression {
   /// The reference to the redirecting factory constructor being torn off.
   Reference targetReference;
 
-  RedirectingFactoryTearOff(Procedure target)
+  new(Procedure target)
     : assert(target.isRedirectingFactory),
       this.targetReference = getNonNullableMemberReferenceGetter(target);
 
-  RedirectingFactoryTearOff.byReference(this.targetReference);
+  new byReference(this.targetReference);
 
   Procedure get target => targetReference.asProcedure;
 
@@ -5491,11 +5481,7 @@ class TypedefTearOff extends Expression {
   Expression expression;
   final List<DartType> typeArguments;
 
-  TypedefTearOff(
-    this.structuralParameters,
-    this.expression,
-    this.typeArguments,
-  ) {
+  new(this.structuralParameters, this.expression, this.typeArguments) {
     expression.parent = this;
   }
 
@@ -5504,11 +5490,9 @@ class TypedefTearOff extends Expression {
     FreshStructuralParameters freshTypeParameters =
         getFreshStructuralParameters(structuralParameters);
     FunctionType type = expression.getStaticType(context) as FunctionType;
-    type =
-        freshTypeParameters.substitute(
-              FunctionTypeInstantiator.instantiate(type, typeArguments),
-            )
-            as FunctionType;
+    type = freshTypeParameters.substitute(
+      FunctionTypeInstantiator.instantiate(type, typeArguments),
+    ) as FunctionType;
     return new FunctionType(
       type.positionalParameters,
       type.returnType,

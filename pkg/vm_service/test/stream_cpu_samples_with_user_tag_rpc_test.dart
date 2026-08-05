@@ -4,23 +4,18 @@
 
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'stream_cpu_samples_with_user_tag_rpc_lib.dart' as testee_lib;
 
-void testeeMain() {}
-
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    // We have deprecated `streamCpuSamplesWithUserTag` and made it always
-    // return `Success` when called with any string array as the `userTags`
-    // argument.
-    // ignore: deprecated_member_use_from_same_package
-    await service.streamCpuSamplesWithUserTag([]);
-  }
-];
-
-Future<void> main([args = const <String>[]]) => runIsolateTests(
+void main([List<String> args = const <String>[]]) => IsolateTestHarness(
+      'stream_cpu_samples_with_user_tag_rpc_lib.dart',
       args,
-      tests,
-      'stream_cpu_samples_with_user_tag_rpc_test.dart',
-      testeeBefore: testeeMain,
-    );
+    ).addCustomTest(
+      (VmService service, IsolateRef isolateRef) async {
+        // We have deprecated `streamCpuSamplesWithUserTag` and made it always
+        // return `Success` when called with any string array as the `userTags`
+        // argument.
+        // ignore: deprecated_member_use_from_same_package
+        await service.streamCpuSamplesWithUserTag([]);
+      },
+    ).run(testeeMain: testee_lib.main);

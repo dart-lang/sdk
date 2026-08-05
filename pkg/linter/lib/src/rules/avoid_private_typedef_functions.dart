@@ -16,10 +16,11 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid private typedef functions.';
 
 class AvoidPrivateTypedefFunctions extends AnalysisRule {
-  AvoidPrivateTypedefFunctions()
+  new()
     : super(
         name: LintNames.avoid_private_typedef_functions,
         description: _desc,
+        state: .deprecated(since: .new(3, 13, 0)),
       );
 
   @override
@@ -39,7 +40,7 @@ class AvoidPrivateTypedefFunctions extends AnalysisRule {
 class _CountVisitor extends RecursiveAstVisitor<void> {
   final String type;
   int count = 0;
-  _CountVisitor(this.type);
+  new(this.type);
 
   @override
   void visitNamedType(NamedType node) {
@@ -53,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {

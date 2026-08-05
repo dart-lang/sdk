@@ -7,29 +7,27 @@
 import '../dot_shorthand_helper.dart';
 
 class ConstConstructorAssert {
-  const ConstConstructorAssert.blue(Color color)
-      : assert(color == .blue);
+  const ConstConstructorAssert.blue(Color color) : assert(color == .blue);
 
-  const ConstConstructorAssert.notBlue(Color color)
-      : assert(color != .blue);
+  const ConstConstructorAssert.notBlue(Color color) : assert(color != .blue);
 
   const ConstConstructorAssert.one(Integer integer)
-      : assert(integer == .constOne);
+    : assert(integer == .constOne);
 
   const ConstConstructorAssert.notOne(Integer integer)
-      : assert(integer != .constOne);
+    : assert(integer != .constOne);
 
   const ConstConstructorAssert.oneExt(IntegerExt integer)
-      : assert(integer == .constOne);
+    : assert(integer == .constOne);
 
   const ConstConstructorAssert.notOneExt(IntegerExt integer)
-      : assert(integer != .constOne);
+    : assert(integer != .constOne);
 
   const ConstConstructorAssert.oneMixin(IntegerMixin integer)
-      : assert(integer == .mixinConstOne);
+    : assert(integer == .mixinConstOne);
 
   const ConstConstructorAssert.notOneMixin(IntegerMixin integer)
-      : assert(integer != .mixinConstOne);
+    : assert(integer != .mixinConstOne);
 }
 
 void main() {

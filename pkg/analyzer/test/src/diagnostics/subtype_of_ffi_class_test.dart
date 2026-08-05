@@ -2,116 +2,108 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SubtypeOfFfiClassInExtendsTest);
     defineReflectiveTests(SubtypeOfFfiClassInImplementsTest);
     defineReflectiveTests(SubtypeOfFfiClassInWithTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SubtypeOfFfiClassInExtendsTest extends PubPackageResolutionTest {
   test_Double() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Double {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 41, 6)],
-    );
+//                    ^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Double' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Double_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.19
 import 'dart:ffi';
 class C extends Double {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 49, 6)],
-    );
+//              ^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Double' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Finalizable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Finalizable {}
-''',
-      [error(diag.noGenerativeConstructorsInSuperclass, 35, 11)],
-    );
+//              ^^^^^^^^^^^
+// [diag.noGenerativeConstructorsInSuperclass] The class 'C' can't extend 'Finalizable' because 'Finalizable' only has factory constructors (no generative constructors), and 'C' has at least one generative constructor.
+''');
   }
 
   test_Float() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Float {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
-    );
+//              ^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Float' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Int16() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Int16 {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
-    );
+//              ^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Int16' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Int32() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Int32 {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
-    );
+//              ^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Int32' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Int64() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Int64 {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
-    );
+//              ^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Int64' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Int8() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Int8 {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 4)],
-    );
+//              ^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Int8' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Pointer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Pointer {
+//              ^^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Pointer' can't be extended outside of its library because it's a final class.
   external factory C();
 }
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 7)],
-    );
+''');
   }
 
   test_Struct() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Struct {
   external Pointer notEmpty;
@@ -120,47 +112,43 @@ final class C extends Struct {
   }
 
   test_Uint16() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Uint16 {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 6)],
-    );
+//              ^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Uint16' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Uint32() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Uint32 {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 6)],
-    );
+//              ^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Uint32' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Uint64() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Uint64 {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 6)],
-    );
+//              ^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Uint64' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Uint8() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Uint8 {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
-    );
+//              ^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Uint8' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_Union() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C extends Union {
   external Pointer notEmpty;
@@ -169,350 +157,316 @@ final class C extends Union {
   }
 
   test_Void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C extends Void {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 4)],
-    );
+//              ^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Void' can't be extended outside of its library because it's a final class.
+''');
   }
 }
 
 @reflectiveTest
 class SubtypeOfFfiClassInImplementsTest extends PubPackageResolutionTest {
   test_Double() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Double {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 6)],
-    );
+//                 ^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Double' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Double_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.19
 import 'dart:ffi';
 class C implements Double {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 52, 6)],
-    );
+//                 ^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Double' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Double_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi' as ffi;
 class C implements ffi.Double {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 45, 10)],
-    );
+//                 ^^^^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Double' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Finalizable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Finalizable {}
 ''');
   }
 
   test_Float() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Float {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
-    );
+//                 ^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Float' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Int16() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Int16 {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
-    );
+//                 ^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Int16' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Int32() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Int32 {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
-    );
+//                 ^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Int32' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Int64() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Int64 {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
-    );
+//                 ^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Int64' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Int8() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Int8 {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 4)],
-    );
+//                 ^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Int8' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Pointer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Pointer {}
-''',
-      [
-        error(diag.finalClassImplementedOutsideOfLibrary, 38, 7),
-        error(diag.nonAbstractClassInheritsAbstractMemberOne, 25, 1),
-      ],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'Pointer.cast'.
+//                 ^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Pointer' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Struct() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C implements Struct {}
-''',
-      [error(diag.baseClassImplementedOutsideOfLibrary, 44, 6)],
-    );
+//                       ^^^^^^
+// [diag.baseClassImplementedOutsideOfLibrary] The class 'Struct' can't be implemented outside of its library because it's a base class.
+''');
   }
 
   test_Uint16() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Uint16 {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 6)],
-    );
+//                 ^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Uint16' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Uint32() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Uint32 {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 6)],
-    );
+//                 ^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Uint32' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Uint64() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Uint64 {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 6)],
-    );
+//                 ^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Uint64' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Uint8() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Uint8 {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
-    );
+//                 ^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Uint8' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_Union() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C implements Union {}
-''',
-      [error(diag.baseClassImplementedOutsideOfLibrary, 44, 5)],
-    );
+//                       ^^^^^
+// [diag.baseClassImplementedOutsideOfLibrary] The class 'Union' can't be implemented outside of its library because it's a base class.
+''');
   }
 
   test_Void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C implements Void {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 4)],
-    );
+//                 ^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Void' can't be implemented outside of its library because it's a final class.
+''');
   }
 }
 
 @reflectiveTest
 class SubtypeOfFfiClassInWithTest extends PubPackageResolutionTest {
   test_Double() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Double {}
-''',
-      [error(diag.classUsedAsMixin, 32, 6)],
-    );
+//           ^^^^^^
+// [diag.classUsedAsMixin] The class 'Double' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Double_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.19
 import 'dart:ffi';
 class C with Double {}
-''',
-      [error(diag.classUsedAsMixin, 46, 6)],
-    );
+//           ^^^^^^
+// [diag.classUsedAsMixin] The class 'Double' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Double_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi' as ffi;
 class C with ffi.Double {}
-''',
-      [error(diag.classUsedAsMixin, 39, 10)],
-    );
+//           ^^^^^^^^^^
+// [diag.classUsedAsMixin] The class 'Double' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Float() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Float {}
-''',
-      [error(diag.classUsedAsMixin, 32, 5)],
-    );
+//           ^^^^^
+// [diag.classUsedAsMixin] The class 'Float' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Int16() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Int16 {}
-''',
-      [error(diag.classUsedAsMixin, 32, 5)],
-    );
+//           ^^^^^
+// [diag.classUsedAsMixin] The class 'Int16' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Int32() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Int32 {}
-''',
-      [error(diag.classUsedAsMixin, 32, 5)],
-    );
+//           ^^^^^
+// [diag.classUsedAsMixin] The class 'Int32' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Int64() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Int64 {}
-''',
-      [error(diag.classUsedAsMixin, 32, 5)],
-    );
+//           ^^^^^
+// [diag.classUsedAsMixin] The class 'Int64' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Int8() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Int8 {}
-''',
-      [error(diag.classUsedAsMixin, 32, 4)],
-    );
+//           ^^^^
+// [diag.classUsedAsMixin] The class 'Int8' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Pointer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Pointer {}
-''',
-      [error(diag.classUsedAsMixin, 32, 7)],
-    );
+//           ^^^^^^^
+// [diag.classUsedAsMixin] The class 'Pointer' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Struct() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C with Struct {}
-''',
-      [error(diag.classUsedAsMixin, 38, 6)],
-    );
+//                 ^^^^^^
+// [diag.classUsedAsMixin] The class 'Struct' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Uint16() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Uint16 {}
-''',
-      [error(diag.classUsedAsMixin, 32, 6)],
-    );
+//           ^^^^^^
+// [diag.classUsedAsMixin] The class 'Uint16' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Uint32() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Uint32 {}
-''',
-      [error(diag.classUsedAsMixin, 32, 6)],
-    );
+//           ^^^^^^
+// [diag.classUsedAsMixin] The class 'Uint32' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Uint64() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Uint64 {}
-''',
-      [error(diag.classUsedAsMixin, 32, 6)],
-    );
+//           ^^^^^^
+// [diag.classUsedAsMixin] The class 'Uint64' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Uint8() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Uint8 {}
-''',
-      [error(diag.classUsedAsMixin, 32, 5)],
-    );
+//           ^^^^^
+// [diag.classUsedAsMixin] The class 'Uint8' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Union() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 final class C with Union {}
-''',
-      [error(diag.classUsedAsMixin, 38, 5)],
-    );
+//                 ^^^^^
+// [diag.classUsedAsMixin] The class 'Union' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 
   test_Void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 class C with Void {}
-''',
-      [error(diag.classUsedAsMixin, 32, 4)],
-    );
+//           ^^^^
+// [diag.classUsedAsMixin] The class 'Void' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
   }
 }

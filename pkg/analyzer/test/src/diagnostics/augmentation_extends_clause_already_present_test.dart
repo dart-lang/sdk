@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(AugmentationExtendsClauseAlreadyPresentTest);
+    defineReflectiveTests(AugmentationExtendsClauseAlreadyPresentTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -18,76 +18,87 @@ main() {
 class AugmentationExtendsClauseAlreadyPresentTest
     extends PubPackageResolutionTest {
   test_alreadyPresent() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
-class B extends A {};
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
+class B extends A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment class B extends A {}
-''',
-      [
-        error(
-          diag.augmentationExtendsClauseAlreadyPresent,
-          35,
-          7,
-          contextMessages: [message(a, 37, 1)],
-        ),
-      ],
-    );
+//              ^^^^^^^
+// [diag.augmentationExtendsClauseAlreadyPresent][context 1] The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+''');
   }
 
   test_alreadyPresent2() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+class B extends A {}
+//    ^
+// [context 1] The declaration being augmented.
+augment class B {}
+augment class B extends A {}
+//              ^^^^^^^
+// [diag.augmentationExtendsClauseAlreadyPresent][context 1] The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+''');
+  }
+
+  test_alreadyPresent2_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-part 'test.dart';
 
 class A {}
 
-class B extends A {};
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+class B extends A {}
+//    ^
+// [context 1] The declaration being augmented.
 
 augment class B {}
-''');
-
-    await assertErrorsInCode(
-      r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class B extends A {}
+//              ^^^^^^^
+// [diag.augmentationExtendsClauseAlreadyPresent][context 1] The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
 ''',
-      [
-        error(
-          diag.augmentationExtendsClauseAlreadyPresent,
-          35,
-          7,
-          contextMessages: [message(a, 52, 1)],
-        ),
-      ],
-    );
+    });
   }
 
-  test_notPresent() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_alreadyPresent_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
 
 class A {}
 
-class B {};
-''');
-
-    await assertNoErrorsInCode(r'''
+class B extends A {}
+//    ^
+// [context 1] The declaration being augmented.
+''',
+      b: r'''
 part of 'a.dart';
 
+augment class B extends A {}
+//              ^^^^^^^
+// [diag.augmentationExtendsClauseAlreadyPresent][context 1] The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+''',
+    });
+  }
+
+  test_notPresent() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+class B {}
 augment class B extends A {}
 ''');
   }

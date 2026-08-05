@@ -20,7 +20,6 @@ abstract class AbstractA {
   abstract final dynamic fieldAbstractFinalDynamicOfAbstractA; // Ok.
 }
 
-
 // Class B has only factory constructors.
 class B {
   num fieldNonNullableOfB; // Error.

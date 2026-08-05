@@ -19,7 +19,7 @@ final residentServerShutdownCommand = jsonEncode(<String, Object>{
   commandString: shutdownString,
 });
 
-File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) =>
+File? getResidentCompilerInfoFileConsideringArgs(ArgResults args) =>
     getResidentCompilerInfoFileConsideringArgsImpl(
       args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
           args[CompilationServerCommand.legacyResidentServerInfoFileFlag],
@@ -56,7 +56,7 @@ Future<void> shutDownOrForgetResidentFrontendCompiler(File infoFile) async {
   cleanupResidentServerInfo(infoFile);
 }
 
-Future<bool> isFileKernelFile(final File file) async {
+Future<bool> isFileKernelFile(File file) async {
   final bytes = await file.openRead(0, 4).expand((i) => i).toList();
   if (bytes.length < 4) {
     return false;
@@ -68,7 +68,7 @@ Future<bool> isFileKernelFile(final File file) async {
       bytes[3] == 0xef;
 }
 
-Future<bool> isFileAppJitSnapshot(final File file) async {
+Future<bool> isFileAppJitSnapshot(File file) async {
   final bytes = await file.openRead(0, 8).expand((i) => i).toList();
   if (bytes.length < 8) {
     return false;
@@ -84,7 +84,7 @@ Future<bool> isFileAppJitSnapshot(final File file) async {
       bytes[7] == 0;
 }
 
-Future<bool> isFileAotSnapshot(final File file) async {
+Future<bool> isFileAotSnapshot(File file) async {
   // Check for any of the magic numbers that can be found at the start of an
   // AOT snapshot.
 

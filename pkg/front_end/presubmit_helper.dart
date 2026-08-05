@@ -428,7 +428,7 @@ Future<void> _run(String script, List<String> scriptArguments) async {
 // but we only want to actually run it once. To that end we - from the changed
 // files figure out which would call this script, and only if the caller is
 // the top one (just alphabetically sorted) we actually run.
-bool _shouldRun(final List<String> changedFiles, final String callerPath) {
+bool _shouldRun(List<String> changedFiles, String callerPath) {
   Uri pkgDir = _repoDir.resolve("pkg/");
   Uri callerUri = Uri.base.resolveUri(Uri.file(callerPath));
   int? endPathIndex = _getPathSegmentIndexIfSubEntry(pkgDir, callerUri);
@@ -479,7 +479,7 @@ bool _shouldRunGenerateFilesTest(List<String> changedFiles) {
 }
 
 class DepsTestWork extends Work {
-  DepsTestWork();
+  new();
 
   @override
   String get name => "Deps test";
@@ -499,7 +499,7 @@ class CompileAndLintWork extends Work {
   final Set<Uri> includedDirectoryUris;
   final Uri repoDir;
 
-  CompileAndLintWork({
+  new({
     required this.includedFiles,
     required this.includedDirectoryUris,
     required this.repoDir,
@@ -537,7 +537,7 @@ class LintWork extends Work {
   final List<String> filters;
   final Uri repoDir;
 
-  LintWork({required this.filters, required this.repoDir});
+  new({required this.filters, required this.repoDir});
 
   @override
   String get name => "Lint test";
@@ -563,7 +563,7 @@ class MessagesWork extends Work {
   final List<String> filters;
   final Uri repoDir;
 
-  MessagesWork({required this.filters, required this.repoDir});
+  new({required this.filters, required this.repoDir});
 
   @override
   String get name => "messages test";
@@ -624,7 +624,7 @@ class SpellNotSourceWork extends Work {
   final List<String> filters;
   final Uri repoDir;
 
-  SpellNotSourceWork({required this.filters, required this.repoDir});
+  new({required this.filters, required this.repoDir});
 
   @override
   String get name => "spell test not source";
@@ -650,7 +650,7 @@ class SpellSourceWork extends Work {
   final List<String> filters;
   final Uri repoDir;
 
-  SpellSourceWork({required this.filters, required this.repoDir});
+  new({required this.filters, required this.repoDir});
 
   @override
   String get name => "spell test source";

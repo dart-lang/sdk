@@ -2,25 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonTypeAsTypeArgumentTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonTypeAsTypeArgumentTest extends PubPackageResolutionTest {
   test_issue54388() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class Option<A> {}
 
 final class None implements Option<A> {
+//                                 ^
+// [diag.nonTypeAsTypeArgument] The name 'A' isn't a type, so it can't be used as a type argument.
   const None();
 }
 
@@ -33,29 +35,25 @@ A doOption<A>(
     },
   );
 }
-''',
-      [error(diag.nonTypeAsTypeArgument, 62, 1)],
-    );
+''');
   }
 
   test_notAType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int A = 0;
 class B<E> {}
 f(B<A> b) {}
-''',
-      [error(diag.nonTypeAsTypeArgument, 29, 1)],
-    );
+//  ^
+// [diag.nonTypeAsTypeArgument] The name 'A' isn't a type, so it can't be used as a type argument.
+''');
   }
 
   test_undefinedIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B<E> {}
 f(B<A> b) {}
-''',
-      [error(diag.nonTypeAsTypeArgument, 18, 1)],
-    );
+//  ^
+// [diag.nonTypeAsTypeArgument] The name 'A' isn't a type, so it can't be used as a type argument.
+''');
   }
 }

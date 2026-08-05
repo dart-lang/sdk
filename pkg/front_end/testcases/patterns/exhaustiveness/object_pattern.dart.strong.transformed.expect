@@ -20,7 +20,7 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::int field1;
   field core::num field2;
-  constructor •(core::int field1, core::num field2) → self::A
+  constructor •(initializing-formal core::int field1, initializing-formal core::num field2) → self::A
     : self::A::field1 = field1, self::A::field2 = field2, super core::Object::•()
     ;
 }

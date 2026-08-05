@@ -2,71 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:developer';
-import 'dart:io';
-
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'source_report_libraries_already_compiled_lib.dart' as testee_lib;
 
-// ignore_for_file: dead_code
+const ignoreHitsBelowThisLine = 35;
 
-class Class {
-  void method() {
-    print('hit');
-  }
-
-  void missed() {
-    print('miss');
-  }
-}
-
-void unusedFunction() {
-  print('miss');
-}
-
-void testFunction() {
-  if (true) {
-    print('hit');
-    Class().method();
-  } else {
-    print('miss');
-    unusedFunction();
-  }
-  debugger();
-}
-
-const ignoreHitsBelowThisLine = 39;
-
-const allHits = [17, 18, 30, 32, 33, 38];
-final tests = <IsolateTest>[
-  hasStoppedAtBreakpoint,
-  librariesAlreadyCompiledTest(false, [], allHits, [35, 36]),
-  librariesAlreadyCompiledTest(true, [target], allHits, [35, 36]),
-  librariesAlreadyCompiledTest(true, [], allHits, [21, 22, 26, 27, 35, 36]),
-  resumeIsolate,
-];
-
-final target = Platform.script.toString();
+const allHits = [12, 13, 25, 27, 28, 33];
 
 Future<void> Function(VmService service, IsolateRef isolateRef)
     librariesAlreadyCompiledTest(
   bool forceCompile,
-  List<String> librariesAlreadyCompiled,
+  bool includeTarget,
   List<int> expectedHits,
   List<int> expectedMisses,
 ) =>
         (VmService service, IsolateRef isolateRef) async {
           final isolateId = isolateRef.id!;
 
+          final scripts = await service.getScripts(isolateId);
+          final target = scripts.scripts!
+              .firstWhere(
+                (s) => s.uri!.endsWith(
+                  'source_report_libraries_already_compiled_lib.dart',
+                ),
+              )
+              .uri!;
+
           final report = await service.getSourceReport(
             isolateId,
             [SourceReportKind.kCoverage],
             forceCompile: forceCompile,
             reportLines: true,
-            librariesAlreadyCompiled: librariesAlreadyCompiled,
+            librariesAlreadyCompiled: includeTarget ? [target] : [],
           );
 
           void addLines(List<int>? lines, Set<int> out) {
@@ -90,9 +60,24 @@ Future<void> Function(VmService service, IsolateRef isolateRef)
           expect(misses, unorderedEquals(expectedMisses));
         };
 
-void main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'source_report_libraries_already_compiled_lib.dart',
       args,
-      tests,
-      target,
-      testeeConcurrent: testFunction,
-    );
+    )
+        .hasStoppedAtBreakpoint()
+        .addCustomTest(
+          librariesAlreadyCompiledTest(false, false, allHits, [30, 31]),
+        )
+        .addCustomTest(
+          librariesAlreadyCompiledTest(true, true, allHits, [30, 31]),
+        )
+        .addCustomTest(
+          librariesAlreadyCompiledTest(
+            true,
+            false,
+            allHits,
+            [16, 17, 21, 22, 30, 31],
+          ),
+        )
+        .resumeIsolate()
+        .run(testeeMain: testee_lib.main);

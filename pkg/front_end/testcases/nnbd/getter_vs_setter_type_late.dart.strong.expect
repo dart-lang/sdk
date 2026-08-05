@@ -25,7 +25,7 @@ abstract class A extends core::Object {
   late field core::int property4;
   late field core::int? property5;
   late covariant-by-declaration field core::int property6;
-  constructor •(core::int property4, core::int? property5, core::int property6) → self::A
+  constructor •(initializing-formal core::int property4, initializing-formal core::int? property5, initializing-formal core::int property6) → self::A
     : self::A::property4 = property4, self::A::property5 = property5, self::A::property6 = property6, super core::Object::•()
     ;
 }
@@ -33,7 +33,7 @@ abstract class B1 extends core::Object {
   late final [setter] field core::int property4;
   late final [setter] field core::int property5;
   late final [setter] field core::int? property6;
-  constructor •(core::int property4, core::int property5, core::int? property6) → self::B1
+  constructor •(initializing-formal core::int property4, initializing-formal core::int property5, initializing-formal core::int? property6) → self::B1
     : self::B1::property4 = property4, self::B1::property5 = property5, self::B1::property6 = property6, super core::Object::•()
     ;
 }
@@ -49,7 +49,7 @@ abstract class C1 extends core::Object {
   late field core::int property4;
   late field core::int property5;
   late field core::int property6;
-  constructor •(core::int property4, core::int property5, core::int property6) → self::C1
+  constructor •(initializing-formal core::int property4, initializing-formal core::int property5, initializing-formal core::int property6) → self::C1
     : self::C1::property4 = property4, self::C1::property5 = property5, self::C1::property6 = property6, super core::Object::•()
     ;
 }

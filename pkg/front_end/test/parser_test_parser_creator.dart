@@ -16,9 +16,8 @@ import 'utils/io_utils.dart' show computeRepoDirUri, getPackageVersionFor;
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateTestParser(repoDir);
-  new File.fromUri(
-    computeTestParserUri(repoDir),
-  ).writeAsStringSync(generated, flush: true);
+  new File.fromUri(computeTestParserUri(repoDir))
+      .writeAsStringSync(generated, flush: true);
 }
 
 Uri computeTestParserUri(Uri repoDir) {
@@ -73,7 +72,7 @@ class TestParser extends Parser {
   final bool trace;
   bool _inhibitPrinting = false;
 
-  TestParser(Listener listener, this.trace,
+  new(Listener listener, this.trace,
       {required ExperimentalFeatures experimentalFeatures})
       : super(listener,
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -123,9 +122,8 @@ class TestParser extends Parser {
 
   out.writeln("}");
 
-  return new DartFormatter(
-    languageVersion: getPackageVersionFor("front_end"),
-  ).format("$out");
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {
@@ -135,13 +133,12 @@ class ParserCreatorListener extends Listener {
   List<String> parameters = [];
   List<String?> parametersNamed = [];
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,

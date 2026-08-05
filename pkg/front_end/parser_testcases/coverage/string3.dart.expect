@@ -27,7 +27,8 @@ beginCompilationUnit(void)
         beginReturnStatement(return)
           beginLiteralString("""
 æbler""")
-          endLiteralString(0, })
+          endLiteralString(0, """
+æbler""")
           handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], """
 æbler""", """
 æbler""")

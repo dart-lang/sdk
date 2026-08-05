@@ -5,23 +5,25 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionTypeAliasResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FunctionTypeAliasResolutionTest extends PubPackageResolutionTest {
   test_type_element() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 G<int> g;
 
 typedef T G<T>();
 ''');
 
-    var node = findNode.namedType('G<int>');
+    var node = result.findNode.namedType('G<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: G

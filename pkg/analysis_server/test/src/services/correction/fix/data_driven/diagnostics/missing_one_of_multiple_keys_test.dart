@@ -59,7 +59,7 @@ transforms:
   changes:
     - kind: removeParameter
 ''',
-      [error(diag.missingOneOfMultipleKeys, 124, 22)],
+      [error(diag.missingOneOfMultipleKeys, 124, 21)],
     );
   }
 
@@ -74,7 +74,7 @@ transforms:
     uris: ['test.dart']
     function: 'f'
 ''',
-      [error(diag.missingOneOfMultipleKeys, 0, 107)],
+      [error(diag.missingOneOfMultipleKeys, 0, 106)],
     );
   }
 }

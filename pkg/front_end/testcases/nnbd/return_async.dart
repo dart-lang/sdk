@@ -27,12 +27,15 @@ Future<void> allYield3() async {
 
 Future<void> customErrorZone() async {
   final completer = Completer<void>();
-  runZonedGuarded(() async {
-    await allYield();
-    completer.complete(null);
-  }, (e, s) {
-    completer.completeError(e, s);
-  });
+  runZonedGuarded(
+    () async {
+      await allYield();
+      completer.complete(null);
+    },
+    (e, s) {
+      completer.completeError(e, s);
+    },
+  );
   return completer.future;
 }
 

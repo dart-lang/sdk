@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -18,8 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Missing deprecated annotation.';
 
 class DeprecatedConsistency extends MultiAnalysisRule {
-  DeprecatedConsistency()
-    : super(name: LintNames.deprecated_consistency, description: _desc);
+  new() : super(name: LintNames.deprecated_consistency, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
@@ -43,7 +41,7 @@ class DeprecatedConsistency extends MultiAnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

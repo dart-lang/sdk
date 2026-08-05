@@ -57,10 +57,16 @@ void main() async {
     ?.getSome(8): ?.getSome(8),
   };
   // dart format on
-  Expect.mapEquals(
-    {c1: c1, c2: c2, c3: c3, c4: c4, c5: c5, c6: c6, c7: c7, c8: c8},
-    cMap,
-  );
+  Expect.mapEquals({
+    c1: c1,
+    c2: c2,
+    c3: c3,
+    c4: c4,
+    c5: c5,
+    c6: c6,
+    c7: c7,
+    c8: c8,
+  }, cMap);
 
   // dart format off
   var eMap = <E, E>{
@@ -90,10 +96,16 @@ void main() async {
     ?.getSome(8): ?.getSome(8),
   };
   // dart format on
-  Expect.mapEquals(
-    {e1: e1, e2: e2, e3: e3, e4: e4, e5: e5, e6: e6, e7: e7, e8: e8},
-    cMap,
-  );
+  Expect.mapEquals({
+    e1: e1,
+    e2: e2,
+    e3: e3,
+    e4: e4,
+    e5: e5,
+    e6: e6,
+    e7: e7,
+    e8: e8,
+  }, cMap);
 
   // dart format off
   var cSet = <C>{
@@ -111,7 +123,6 @@ void main() async {
   };
   // dart format on
   Expect.setEquals({e1, e2, e3, e4, e5, e6}, eSet);
-
 
   // -- Constant collections.
 
@@ -193,7 +204,7 @@ void main() async {
     // dart format on
   ];
   Expect.listEquals([c1, c2, c3, c4, c5, c6, c7, c8], cNestList);
-  var cNestMap = <C,C>{
+  var cNestMap = <C, C>{
     // dart format off
     for (var i in [1]) ? .cn: c0, for (var i in [1]) ?.cn: c0,
     for (var i in [1]) c0: ? .cn, for (var i in [1]) c0: ?.cn,
@@ -220,7 +231,16 @@ void main() async {
     await for (var i in Stream.value(1)) ?.c8: ?.c8,
     // dart format on
   };
-  Expect.mapEquals({c1: c1, c2: c2, c3: c3, c4: c4, c5: c5, c6: c6, c7:c7, c8: c8}, cNestMap);
+  Expect.mapEquals({
+    c1: c1,
+    c2: c2,
+    c3: c3,
+    c4: c4,
+    c5: c5,
+    c6: c6,
+    c7: c7,
+    c8: c8,
+  }, cNestMap);
 
   var cNestSet = <C>{
     // dart format off

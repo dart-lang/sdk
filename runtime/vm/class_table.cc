@@ -23,31 +23,7 @@ ClassTable::ClassTable(ClassTableAllocator* allocator)
     : allocator_(allocator),
       classes_(allocator),
       top_level_classes_(allocator) {
-  if (Dart::vm_isolate() == nullptr) {
-    classes_.SetNumCidsAndCapacity(kNumPredefinedCids, kInitialCapacity);
-  } else {
-    // Duplicate the class table from the VM isolate.
-    ClassTable* vm_class_table = Dart::vm_isolate_group()->class_table();
-    classes_.SetNumCidsAndCapacity(kNumPredefinedCids,
-                                   vm_class_table->classes_.capacity());
-
-    const auto copy_info_for_cid = [&](intptr_t cid) {
-      classes_.At<kClassIndex>(cid) = vm_class_table->At(cid);
-      classes_.At<kSizeIndex>(cid) = vm_class_table->SizeAt(cid);
-    };
-
-    // The following cids don't have a corresponding class object in Dart code.
-    // We therefore need to initialize them eagerly.
-    COMPILE_ASSERT(kFirstInternalOnlyCid == kObjectCid + 1);
-    for (intptr_t i = kObjectCid; i <= kLastInternalOnlyCid; i++) {
-      copy_info_for_cid(i);
-    }
-    copy_info_for_cid(kTypeArgumentsCid);
-    copy_info_for_cid(kFreeListElement);
-    copy_info_for_cid(kForwardingCorpse);
-    copy_info_for_cid(kDynamicCid);
-    copy_info_for_cid(kVoidCid);
-  }
+  classes_.SetNumCidsAndCapacity(kNumPredefinedCids, kInitialCapacity);
   UpdateCachedAllocationTracingStateTablePointer();
 }
 

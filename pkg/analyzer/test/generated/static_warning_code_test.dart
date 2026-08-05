@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticWarningCodeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -20,7 +21,7 @@ class StaticWarningCodeTest extends PubPackageResolutionTest {
   //  they're testing.
   test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation() async {
     // 15028
-    await assertErrorsInCode(
+    await resolveTestCodeWithDiagnostics(
       '''
 class C {
   foo(int x) => x;
@@ -28,13 +29,14 @@ class C {
 abstract class D {
   foo(x, [y]);
 }
-class E extends C implements D {}''',
-      [error(diag.invalidImplementationOverride, 73, 1)],
+class E extends C implements D {}
+//    ^
+// [diag.invalidImplementationOverride] 'C.foo' ('dynamic Function(int)') isn't a valid concrete implementation of 'D.foo' ('dynamic Function(dynamic, [dynamic])').''',
     );
   }
 
   test_typePromotion_functionType_arg_InterToDyn() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef FuncDyn(x);
 typedef FuncA(A a);
 class A {}
@@ -47,7 +49,7 @@ f(FuncA f) {
   }
 
   test_voidReturnForGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class S {
   void get value {}
 }''');

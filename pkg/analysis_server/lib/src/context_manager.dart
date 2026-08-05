@@ -19,7 +19,7 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -270,7 +270,7 @@ class ContextManagerImpl implements ContextManager {
   /// rebuild and wait for it to terminate before starting the next.
   final _CancellingTaskQueue _currentContextRebuild = _CancellingTaskQueue();
 
-  ContextManagerImpl(
+  new(
     this.resourceProvider,
     this.sdkManager,
     this.packageConfigFile,
@@ -391,31 +391,31 @@ class ContextManagerImpl implements ContextManager {
   void _analyzeAnalysisOptionsYaml(
     AnalysisDriver driver,
     WorkspacePackageImpl? package,
-    String path,
-  ) {
+    String path, {
+    required AnalysisOptionsParseSession parseSession,
+  }) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
-      var analysisOptions = driver.getAnalysisOptionsForFile(file);
-      var content = file.readAsStringSync();
-      var lineInfo = LineInfo.fromContent(content);
       var sdkVersionConstraint = (package is PubPackage)
           ? package.sdkVersionConstraint
           : null;
-      var errors = AnalysisOptionsAnalyzer(
-        initialSource: FileSource(file),
+      var parseResult = parseSession.parse(
         sourceFactory: driver.sourceFactory,
-        contextRoot:
-            driver.currentSession.analysisContext.contextRoot.root.path,
+        contextRoot: driver.currentSession.analysisContext.contextRoot.root,
+        file: file,
         sdkVersionConstraint: sdkVersionConstraint,
-        resourceProvider: resourceProvider,
-      ).walkIncludes(content: content);
-      var converter = AnalyzerConverter();
-      convertedErrors = converter.convertAnalysisErrors(
-        errors,
-        lineInfo: lineInfo,
-        options: analysisOptions,
       );
+      var fileContent = parseResult.content;
+      if (fileContent != null) {
+        var lineInfo = fileContent.lineInfo;
+        var converter = AnalyzerConverter();
+        convertedErrors = converter.convertAnalysisErrors(
+          parseResult.diagnostics,
+          lineInfo: lineInfo,
+          options: parseResult.analysisOptions,
+        );
+      }
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -595,7 +595,6 @@ class ContextManagerImpl implements ContextManager {
         var watchers = <ResourceWatcher>[];
         var collection = _collection = AnalysisContextCollectionImpl(
           includedPaths: includedPaths,
-          excludedPaths: excludedPaths,
           byteStore: _byteStore,
           drainStreams: false,
           enableIndex: true,
@@ -610,6 +609,7 @@ class ContextManagerImpl implements ContextManager {
           withFineDependencies: withFineDependencies,
         );
 
+        var analysisOptionsParseSession = AnalysisOptionsParseSession();
         for (var analysisContext in collection.contexts) {
           var driver = analysisContext.driver;
 
@@ -635,7 +635,12 @@ class ContextManagerImpl implements ContextManager {
             if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
               var package = analysisContext.contextRoot.workspace
                   .findPackageFor(file);
-              _analyzeAnalysisOptionsYaml(driver, package, file);
+              _analyzeAnalysisOptionsYaml(
+                driver,
+                package,
+                file,
+                parseSession: analysisOptionsParseSession,
+              );
             } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);
             } else if (file_paths.isDart(pathContext, file)) {
@@ -647,15 +652,15 @@ class ContextManagerImpl implements ContextManager {
 
           var packageName = rootFolder.shortName;
           var fixDataYamlFile = rootFolder
-              .getChildAssumingFolder('lib')
-              .getChildAssumingFile(file_paths.fixDataYaml);
+              .getFolder('lib')
+              .getFile(file_paths.fixDataYaml);
           if (fixDataYamlFile.exists) {
             _analyzeFixDataYaml(driver, fixDataYamlFile, packageName);
           }
 
           var fixDataFolder = rootFolder
-              .getChildAssumingFolder('lib')
-              .getChildAssumingFolder(file_paths.fixDataYamlFolder);
+              .getFolder('lib')
+              .getFolder(file_paths.fixDataYamlFolder);
           if (fixDataFolder.exists) {
             _analyzeFixDataFolder(driver, fixDataFolder, packageName);
           }
@@ -1014,7 +1019,7 @@ class NoopContextManagerCallbacks implements ContextManagerCallbacks {
 class _BlazeWatchedFiles {
   final String workspace;
   final paths = <String>{};
-  _BlazeWatchedFiles(this.workspace);
+  new(this.workspace);
 }
 
 /// Handles a task queue of tasks that cannot run concurrently.

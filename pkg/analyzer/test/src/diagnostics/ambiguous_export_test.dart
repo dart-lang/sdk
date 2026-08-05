@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousExportTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,13 +23,12 @@ class N {}
     newFile('$testPackageLibPath/lib2.dart', r'''
 class N {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart';
 export 'lib2.dart';
-''',
-      [error(diag.ambiguousExport, 27, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.ambiguousExport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+''');
   }
 
   test_library_extensions_bothExported() async {
@@ -38,20 +38,19 @@ extension E on String {}
     newFile('$testPackageLibPath/lib2.dart', r'''
 extension E on String {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart';
 export 'lib2.dart';
-''',
-      [error(diag.ambiguousExport, 27, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.ambiguousExport] The name 'E' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+''');
   }
 
   test_library_extensions_localAndExported() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart';
 
 extension E on String {}
@@ -67,19 +66,21 @@ class N {}
 class N {}
 ''');
 
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 export 'lib1.dart';
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 export 'lib2.dart';
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.ambiguousExport, 25, 11)]);
+//     ^^^^^^^^^^^
+// [diag.ambiguousExport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+''',
+    });
   }
 
   test_part_part() async {
@@ -91,25 +92,25 @@ class N {}
 class N {}
 ''');
 
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 part 'c.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 export 'lib1.dart';
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
+''',
+      c: r'''
 part of 'a.dart';
 export 'lib2.dart';
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, []);
-
-    await assertErrorsInFile2(c, [error(diag.ambiguousExport, 25, 11)]);
+//     ^^^^^^^^^^^
+// [diag.ambiguousExport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+''',
+    });
   }
 }

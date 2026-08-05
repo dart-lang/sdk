@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 import 'dart:typed_data';
+
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 // Benchmark for polymorphic list copying.

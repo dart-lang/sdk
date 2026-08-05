@@ -72,6 +72,9 @@
       // since it's in .gitignore, but it doesn't seem to.
       "xcodebuild",
       "out",
+
+      // A VERY old benchmark that has not been updated for the latest SDK
+      "pkg/compiler/test/codesize/swarm",
     ],
   },
 }

@@ -25,8 +25,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   final Set<AstNode?> _enclosingBlockBreaksLabel = <AstNode?>{};
 
   @override
-  bool visitArgumentList(ArgumentList node) =>
-      _visitExpressions(node.arguments);
+  bool visitArgumentList(ArgumentList node) => _visitNodes(node.arguments);
 
   @override
   bool visitAsExpression(AsExpression node) => _nodeExits(node.expression);
@@ -112,7 +111,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitCascadeExpression(CascadeExpression node) =>
-      _nodeExits(node.target) || _visitExpressions(node.cascadeSections);
+      _nodeExits(node.target) || _visitNodes(node.cascadeSections);
 
   @override
   bool visitConditionalExpression(ConditionalExpression node) {
@@ -222,7 +221,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         if (conditionExpression != null && _nodeExits(conditionExpression)) {
           return true;
         }
-        if (_visitExpressions(forLoopParts.updaters)) {
+        if (_visitNodes(forLoopParts.updaters)) {
           return true;
         }
         bool blockReturns = _nodeExits(node.body);
@@ -294,7 +293,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (condition != null && _nodeExits(condition)) {
         return true;
       }
-      if (_visitExpressions(updaters)) {
+      if (_visitNodes(updaters)) {
         return true;
       }
       bool blockReturns = _nodeExits(node.body);
@@ -467,8 +466,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
-  bool visitNamedExpression(NamedExpression node) =>
-      node.expression.accept(this)!;
+  bool visitNamedArgument(NamedArgument node) =>
+      node.argumentExpression.accept(this)!;
 
   @override
   bool visitNamedType(NamedType node) => false;
@@ -705,9 +704,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     return node.accept(this)!;
   }
 
-  bool _visitExpressions(NodeList<Expression> expressions) {
-    for (int i = expressions.length - 1; i >= 0; i--) {
-      if (expressions[i].accept(this)!) {
+  bool _visitNodes(NodeList<AstNode> nodes) {
+    for (int i = nodes.length - 1; i >= 0; i--) {
+      if (nodes[i].accept(this)!) {
         return true;
       }
     }

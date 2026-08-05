@@ -2,69 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: unused_element
-
-import 'dart:developer';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'eval_named_args_anywhere_lib.dart' as testee_lib;
 
-int foo(int a, {required int b}) {
-  return a - b;
-}
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('eval_named_args_anywhere_lib.dart', args)
+        .hasStoppedAtBreakpoint()
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final isolate = await service.getIsolate(isolateId);
 
-class _MyClass {
-  int foo(int a, {required int b}) {
-    return a - b;
-  }
+      final rootLibId = isolate.libraries!
+          .firstWhere((l) => l.uri!.contains('eval_named_args_anywhere_lib'))
+          .id!;
 
-  static int baz(int a, {required int b}) {
-    return a - b;
-  }
-}
+      // Evaluate top-level function
+      var result = await service.evaluate(
+        isolateId,
+        rootLibId,
+        'foo(b: 10, 50)',
+      ) as InstanceRef;
+      expect(result.valueAsString, '40');
 
-void testFunction() {
-  debugger();
-}
+      // Evaluate class instance method
+      result = await service.evaluate(
+        isolateId,
+        rootLibId,
+        '_MyClass().foo(b: 10, 50)',
+      ) as InstanceRef;
+      expect(result.valueAsString, '40');
 
-final tests = <IsolateTest>[
-  hasStoppedAtBreakpoint,
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-
-    final rootLibId = isolate.rootLib!.id!;
-
-    // Evaluate top-level function
-    var result = await service.evaluate(
-      isolateId,
-      rootLibId,
-      'foo(b: 10, 50)',
-    ) as InstanceRef;
-    expect(result.valueAsString, '40');
-
-    // Evaluate class instance method
-    result = await service.evaluate(
-      isolateId,
-      rootLibId,
-      '_MyClass().foo(b: 10, 50)',
-    ) as InstanceRef;
-    expect(result.valueAsString, '40');
-
-    // Evaluate static method
-    result = await service.evaluate(
-      isolateId,
-      rootLibId,
-      '_MyClass.baz(b: 10, 50)',
-    ) as InstanceRef;
-    expect(result.valueAsString, '40');
-  },
-];
-
-Future<void> main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'eval_named_args_anywhere_test.dart',
-      testeeConcurrent: testFunction,
-    );
+      // Evaluate static method
+      result = await service.evaluate(
+        isolateId,
+        rootLibId,
+        '_MyClass.baz(b: 10, 50)',
+      ) as InstanceRef;
+      expect(result.valueAsString, '40');
+    }).run(testeeMain: testee_lib.main);

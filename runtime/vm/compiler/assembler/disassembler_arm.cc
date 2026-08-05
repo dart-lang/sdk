@@ -1356,6 +1356,16 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 5) == 7) &&
                (instr->Bits(16, 4) == 0)) {
       Format(instr, "vmvnq 'qd, 'qm");
+    } else if ((instr->Bits(8, 4) == 5) && (instr->Bit(4) == 0) &&
+               (instr->Bit(6) == 0) && (instr->Bit(7) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bits(16, 4) == 0)) {
+      Format(instr, "vcnt 'dd, 'dm");
+    } else if ((instr->Bits(8, 4) == 2) && (instr->Bit(4) == 0) &&
+               (instr->Bit(6) == 0) && (instr->Bit(7) == 1) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bits(16, 2) == 0)) {
+      Format(instr, "vpaddlu 'dd, 'dm");
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       Format(instr, "vminqs 'qd, 'qn, 'qm");

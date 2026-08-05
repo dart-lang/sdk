@@ -7,6 +7,7 @@
 // See http://dartbug.com/17325
 
 import "package:expect/expect.dart";
+
 import "dart:typed_data";
 
 confuse(x, [y = null]) => new DateTime.now().day == 42 ? y : x;

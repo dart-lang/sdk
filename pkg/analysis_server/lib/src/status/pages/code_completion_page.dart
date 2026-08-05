@@ -11,7 +11,7 @@ import 'package:path/path.dart' as path;
 
 class CodeCompletionPage extends DiagnosticPageWithNav
     with PerformanceChartMixin {
-  CodeCompletionPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'code-completion',

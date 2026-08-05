@@ -643,6 +643,7 @@ class BytecodeSizeStatistics {
   static int sourceFilesSize = 0;
   static int lineStartsSize = 0;
   static int localVariablesSize = 0;
+  static int recordedCoverageSize = 0;
   static int annotationsSize = 0;
   static int constantPoolSize = 0;
   static int instructionsSize = 0;
@@ -663,6 +664,7 @@ class BytecodeSizeStatistics {
     sourceFilesSize = 0;
     lineStartsSize = 0;
     localVariablesSize = 0;
+    recordedCoverageSize = 0;
     annotationsSize = 0;
     constantPoolSize = 0;
     instructionsSize = 0;
@@ -687,6 +689,7 @@ class BytecodeSizeStatistics {
     print("  Source files:        $sourceFilesSize");
     print("  Line starts:         $lineStartsSize");
     print("  Local variables:     $localVariablesSize");
+    print("  Recorded coverage:   $recordedCoverageSize");
     print("  Annotations:         $annotationsSize");
     print("  Code:                $codeSize");
     print("   - constant pool:    $constantPoolSize");

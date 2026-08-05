@@ -1,0 +1,66 @@
+import 'for_in.dart' deferred as defer hide Extension, IndexExtension;
+
+int intTopLevel = 0;
+
+final int finalTopLevel = 0;
+
+const int constTopLevel = 0;
+
+late int lateTopLevel;
+
+late final int lateFinalTopLevel;
+
+num numTopLevel = 0;
+
+String stringTopLevel = '';
+
+test() {}
+
+main() {}
+
+class Class {
+  int intField = 0;
+  num numField = 0;
+  String stringField = '';
+  final int finalField = 0;
+  late int lateField;
+  late final int lateFinalField;
+  static int intStaticField = 0;
+  static num numStaticField = 0;
+  static String stringStaticField = '';
+  static final int finalStaticField = 0;
+  static late int lateStaticField;
+  static late final int lateFinalStaticField;
+  operator []=(int index, int value) {}
+  int operator [](int index) => 0;
+  test() {}
+  method() {}
+}
+
+class Subclass extends Class {
+  test() {}
+}
+
+extension Extension on Class {
+  int get extensionIntProperty => 0;
+  void set extensionIntProperty(int value) {}
+  num get extensionNumProperty => 0;
+  void set extensionNumProperty(num value) {}
+  String get extensionStringProperty => '';
+  void set extensionStringProperty(String value) {}
+  int get extensionReadOnlyProperty => 0;
+  static int intStaticField = 0;
+  static num numStaticField = 0;
+  static String stringStaticField = '';
+  static final int finalStaticField = 0;
+  static late int lateStaticField;
+  static late final int lateFinalStaticField;
+  test() {}
+  extensionMethod() {}
+}
+
+extension IndexExtension on int {
+  operator []=(int index, int value) {}
+  int operator [](int index) => 0;
+  extensionMethod() {}
+}

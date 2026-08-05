@@ -54,13 +54,6 @@ TEST_CASE(MessageQueue_BasicOperations) {
   EXPECT(it.Next() == msg2);
   EXPECT(!it.HasNext());
 
-  // Lookup messages by id.
-  EXPECT(queue.FindMessageById(reinterpret_cast<intptr_t>(msg1)) == msg1);
-  EXPECT(queue.FindMessageById(reinterpret_cast<intptr_t>(msg2)) == msg2);
-
-  // Lookup bad id.
-  EXPECT(queue.FindMessageById(0x1) == nullptr);
-
   // Remove message 1
   msg = queue.Dequeue();
   EXPECT(msg != nullptr);

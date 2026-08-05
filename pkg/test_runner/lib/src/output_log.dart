@@ -99,7 +99,7 @@ class FileOutputLog extends OutputLog {
   Future<void> close() {
     return Future.wait([
       super.close(),
-      if (_sink != null) _sink!.flush().whenComplete(_sink!.close)
+      if (_sink != null) _sink!.flush().whenComplete(_sink!.close),
     ]);
   }
 
@@ -107,7 +107,7 @@ class FileOutputLog extends OutputLog {
   Future<void> cancel() {
     return Future.wait([
       super.cancel(),
-      if (_sink != null) _sink!.flush().whenComplete(_sink!.close)
+      if (_sink != null) _sink!.flush().whenComplete(_sink!.close),
     ]);
   }
 }

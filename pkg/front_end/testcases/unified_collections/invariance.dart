@@ -21,6 +21,6 @@ main() {
     ...map1,
     ...map2,
     ...map3,
-    if (true) 2: 'baz'
+    if (true) 2: 'baz',
   };
 }

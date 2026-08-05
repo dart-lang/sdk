@@ -32,7 +32,7 @@ class RequestData {
 
   /// Initialize a newly create data holder for requests with the given
   /// [method].
-  RequestData(this.method);
+  new(this.method);
 
   /// Record the occurrence of the enum constant with the given [enumName] for
   /// the field with the given [name].

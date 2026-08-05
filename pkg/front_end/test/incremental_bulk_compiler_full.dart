@@ -45,7 +45,7 @@ CompilerOptions getOptions() {
 }
 
 class RunTest extends Step<TestDescription, TestDescription, Context> {
-  const RunTest();
+  const new();
 
   @override
   String get name => "run test";

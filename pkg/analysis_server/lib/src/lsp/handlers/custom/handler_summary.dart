@@ -14,7 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 class SummaryHandler
     extends
         SharedMessageHandler<DartTextDocumentSummaryParams, DocumentSummary> {
-  SummaryHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.summary;
@@ -66,7 +66,7 @@ class SummaryWriter {
 
   final StringBuffer buffer = StringBuffer();
 
-  SummaryWriter(this.result);
+  new(this.result);
 
   String summarize() {
     var libraryElement = result.element;
@@ -291,9 +291,9 @@ class SummaryWriter {
     if (element.isRequiredNamed) {
       buffer.write('required ');
     }
-    if (element.isInitializingFormal) {
+    if (element is FieldFormalParameterElement) {
       buffer.write('this.');
-    } else if (element.isSuperFormal) {
+    } else if (element is SuperFormalParameterElement) {
       buffer.write('super.');
     } else {
       if (element.isFinal) {

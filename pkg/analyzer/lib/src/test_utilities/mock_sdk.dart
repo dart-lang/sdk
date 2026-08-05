@@ -1785,12 +1785,23 @@ extension type JSString._(String _) implements JSAny {}
 
 extension type JSNumber._(num _) implements JSAny {}
 
+@JS('Object')
 extension type JSObject._(Object _) implements JSAny {}
 
+@JS('Function')
+extension type JSFunction<T extends Function>._(JSObject _)
+    implements JSObject {}
+
+@JS('Function')
+extension type JSExportedDartFunction<T extends Function>._(JSObject _)
+    implements JSFunction<T> {}
+
+@JS('Array')
 extension type JSArray<T extends JSAny?>._(List _) implements JSObject {}
 
 extension type JSTypedArray._(TypedData _) implements JSObject {}
 
+@JS('Uint8Array')
 extension type JSUint8List._(Uint8List _) implements JSTypedArray {}
 
 extension JSAnyUtilityExtension on JSAny? {
@@ -1909,19 +1920,19 @@ void createMockSdk({
   required Folder root,
   @internal List<MockSdkLibrary> additionalLibraries = const [],
 }) {
-  var lib = root.getChildAssumingFolder('lib');
-  var libInternal = lib.getChildAssumingFolder('_internal');
+  var lib = root.getFolder('lib');
+  var libInternal = lib.getFolder('_internal');
 
   var currentVersion = ExperimentStatus.currentVersion;
   var currentVersionStr = '${currentVersion.major}.${currentVersion.minor}.0';
-  root.getChildAssumingFile('version').writeAsStringSync(currentVersionStr);
+  root.getFile('version').writeAsStringSync(currentVersionStr);
 
   var librariesBuffer = StringBuffer();
   librariesBuffer.writeln('const Map<String, LibraryInfo> libraries = const {');
 
   for (var library in [..._libraries, ...additionalLibraries]) {
     for (var unit in library.units) {
-      var file = lib.getChildAssumingFile(unit.path);
+      var file = lib.getFile(unit.path);
       file.writeAsStringSync(unit.content);
     }
     librariesBuffer.writeln(
@@ -1932,11 +1943,11 @@ void createMockSdk({
 
   librariesBuffer.writeln('};');
   libInternal
-      .getChildAssumingFile('sdk_library_metadata/lib/libraries.dart')
+      .getFile('sdk_library_metadata/lib/libraries.dart')
       .writeAsStringSync('$librariesBuffer');
 
   libInternal
-      .getChildAssumingFile('allowed_experiments.json')
+      .getFile('allowed_experiments.json')
       .writeAsStringSync(
         json.encode({
           'version': 1,

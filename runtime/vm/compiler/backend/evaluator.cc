@@ -60,6 +60,18 @@ static IntegerPtr UnaryIntegerEvaluateRaw(const Integer& value,
         return Integer::New(~value.Value(), Heap::kOld);
       }
       break;
+    case Token::kPOPCNT:
+      if (value.IsInteger()) {
+        return Integer::New(Utils::CountOneBits64(value.Value()), Heap::kOld);
+      }
+      break;
+    case Token::kCTZ:
+      if (value.IsInteger()) {
+        const int64_t v = value.Value();
+        return Integer::New(v == 0 ? 64 : Utils::CountTrailingZeros64(v),
+                            Heap::kOld);
+      }
+      break;
     default:
       UNREACHABLE();
   }

@@ -25,7 +25,7 @@ class DeprecatedRule extends AnalysisRule {
     uniqueName: 'LintCode.deprecated_rule',
   );
 
-  DeprecatedRule()
+  new()
     : super(
         name: 'deprecated_rule',
         description: '',

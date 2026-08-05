@@ -52,7 +52,7 @@ class NormalizeHelper {
 
     functionType = fresh.applyToFunctionType(functionType);
 
-    return FunctionTypeImpl.v2(
+    return FunctionTypeImpl(
       typeParameters: functionType.typeParameters,
       formalParameters: functionType.formalParameters.map((e) {
         return e.copyWith(type: _normalize(e.type));

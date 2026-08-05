@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A<T extends core::Object? = dynamic> extends core::Object {
   field (self::A::T%) → void f;
-  constructor •((self::A::T%) → void f) → self::A<self::A::T%>
+  constructor •(initializing-formal (self::A::T%) → void f) → self::A<self::A::T%>
     ;
   method foo(covariant-by-class self::A::T% x) → dynamic
     ;

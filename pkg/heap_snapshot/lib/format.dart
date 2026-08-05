@@ -45,8 +45,11 @@ String formatHeapStats(HeapStats stats, {int? maxLines, int? sizeCutoff}) {
 
     if (sizeCutoff == null || size >= sizeCutoff) {
       if (maxLines == null || i < maxLines) {
-        table.addRow(
-            [formatBytes(size), format(count), '${c.name} ${c.libraryUri}']);
+        table.addRow([
+          formatBytes(size),
+          format(count),
+          '${c.name} ${c.libraryUri}',
+        ]);
       }
     }
   }
@@ -94,7 +97,7 @@ String formatDataStats(HeapDataStats stats, {int? maxLines, int? sizeCutoff}) {
     table.addRow([
       formatBytes(totalUniqueSize),
       formatBytes(totalSize),
-      format(totalCount)
+      format(totalCount),
     ]);
   }
   return table.asString;
@@ -129,7 +132,9 @@ String formatDominatorPath(HeapSnapshotGraph graph, DedupedUint32List dpath) {
 }
 
 List<String> _stringifyRetainingPath(
-    HeapSnapshotGraph graph, DedupedUint32List rpath) {
+  HeapSnapshotGraph graph,
+  DedupedUint32List rpath,
+) {
   final path = rpath.path;
   final spath = <String>[];
   for (int i = 0; i < path.length; i += 2) {
@@ -149,16 +154,20 @@ List<String> _stringifyRetainingPath(
       prefix = (hasUniqueOwner ? '・' : '﹢');
     }
 
-    spath.add(prefix +
-        '${klass.name}' +
-        (fieldName != null ? '.$fieldName' : '') +
-        ' (${klass.libraryUri})');
+    spath.add(
+      prefix +
+          '${klass.name}' +
+          (fieldName != null ? '.$fieldName' : '') +
+          ' (${klass.libraryUri})',
+    );
   }
   return spath;
 }
 
 List<String> _stringifyDominatorPath(
-    HeapSnapshotGraph graph, DedupedUint32List rpath) {
+  HeapSnapshotGraph graph,
+  DedupedUint32List rpath,
+) {
   final path = rpath.path;
   final spath = <String>[];
   for (int i = 0; i < path.length; i++) {

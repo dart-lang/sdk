@@ -21,7 +21,7 @@ abstract class AbstractCodeLensProvider
   @override
   final AnalysisServer server;
 
-  AbstractCodeLensProvider(this.server);
+  new(this.server);
 
   /// Whether the client supports the `dart.goToLocation` command, as produced
   /// by [getNavigationCommand].

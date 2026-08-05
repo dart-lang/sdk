@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules/analyzer_public_api.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -58,9 +58,12 @@ class AnalyzerPublicApiTest extends LintRuleTest {
     super.setUp();
 
     var builder = PackageConfigFileBuilder()
-      ..add(name: 'analyzer', rootPath: testPackageRootPath)
-      ..add(name: 'nonAnalyzer', rootPath: nonAnalyzerPackageRootPath)
-      ..add(name: 'meta', rootPath: addMeta().parent.path);
+      ..add(name: 'analyzer', rootFolder: getFolder(testPackageRootPath))
+      ..add(
+        name: 'nonAnalyzer',
+        rootFolder: getFolder(nonAnalyzerPackageRootPath),
+      )
+      ..add(name: 'meta', rootFolder: addMeta().parent);
     newPackageConfigJsonFileFromBuilder(testPackageRootPath, builder);
   }
 

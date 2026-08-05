@@ -34,31 +34,32 @@ class C1(int x, Object? z) {
 
 class C2(int x, Object? z) {
   Record y;
-  this : y = (
-    ++x,
+  this
+    : y = (
+        ++x,
 
-    --x,
+        --x,
 
-    x++,
+        x++,
 
-    x--,
+        x--,
 
-    x = 2,
+        x = 2,
 
-    x += 2,
+        x += 2,
 
-    x -= 2,
+        x -= 2,
 
-    (x) = 2,
+        (x) = 2,
 
-    [x] = [2],
+        [x] = [2],
 
-    {null: x} = {null: 2},
+        {null: x} = {null: 2},
 
-    (x, name: _) = (2, name: true),
+        (x, name: _) = (2, name: true),
 
-    (x && z) = 2,
+        (x && z) = 2,
 
-    int(runtimeType: z) = 2,
-  );
+        int(runtimeType: z) = 2,
+      );
 }

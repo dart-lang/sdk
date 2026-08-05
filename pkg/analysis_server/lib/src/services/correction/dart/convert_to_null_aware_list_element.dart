@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToNullAwareListElement extends ResolvedCorrectionProducer {
-  ConvertToNullAwareListElement({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

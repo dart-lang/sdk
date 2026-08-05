@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,117 +18,87 @@ class EqualElementsInConstSetTest extends PubPackageResolutionTest
 
 mixin EqualElementsInConstSetTestCases on PubPackageResolutionTest {
   test_const_entry() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1, 2, 1};
-''',
-      [
-        error(
-          diag.equalElementsInConstSet,
-          21,
-          1,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+//             ^
+// [context 1] The first element with this value.
+//                   ^
+// [diag.equalElementsInConstSet][context 1] Two elements in a constant set literal can't be equal.
+''');
   }
 
   test_const_entry_extensionType_typeValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {int, E};
+//         ^^^
+// [context 1] The first element with this value.
+//              ^
+// [diag.equalElementsInConstSet][context 1] Two elements in a constant set literal can't be equal.
 extension type E(int it) {}
-''',
-      [
-        error(
-          diag.equalElementsInConstSet,
-          16,
-          1,
-          contextMessages: [message(testFile, 11, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1, if (1 < 0) 2 else 1};
-''',
-      [
-        error(
-          diag.equalElementsInConstSet,
-          36,
-          1,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+//             ^
+// [context 1] The first element with this value.
+//                                  ^
+// [diag.equalElementsInConstSet][context 1] Two elements in a constant set literal can't be equal.
+''');
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {if (0 < 1) 1 else 1};
 ''');
   }
 
   test_const_ifElement_thenElseTrue() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1, if (0 < 1) 2 else 1};
 ''');
   }
 
   test_const_ifElement_thenElseTrue_onlyThen() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {if (0 < 1) 1 else 1};
 ''');
   }
 
   test_const_ifElement_thenFalse() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {2, if (1 < 0) 2};
 ''');
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1, if (0 < 1) 1};
-''',
-      [
-        error(
-          diag.equalElementsInConstSet,
-          29,
-          1,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+//             ^
+// [context 1] The first element with this value.
+//                           ^
+// [diag.equalElementsInConstSet][context 1] Two elements in a constant set literal can't be equal.
+''');
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
 }
 
 var c = const {const A<int>(), const A<int>()};
-''',
-      [
-        error(
-          diag.equalElementsInConstSet,
-          60,
-          14,
-          contextMessages: [message(testFile, 44, 14)],
-        ),
-      ],
-    );
+//             ^^^^^^^^^^^^^^
+// [context 1] The first element with this value.
+//                             ^^^^^^^^^^^^^^
+// [diag.equalElementsInConstSet][context 1] Two elements in a constant set literal can't be equal.
+''');
   }
 
   test_const_instanceCreation_notEqualTypeArgs() async {
     // No error because A<int> and A<num> are different types.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
 }
@@ -139,78 +108,59 @@ var c = const {const A<int>(), const A<num>()};
   }
 
   test_const_list_hasEqual() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {[0], [0]};
-''',
-      [
-        error(
-          diag.equalElementsInConstSet,
-          16,
-          3,
-          contextMessages: [message(testFile, 11, 3)],
-        ),
-      ],
-    );
+//         ^^^
+// [context 1] The first element with this value.
+//              ^^^
+// [diag.equalElementsInConstSet][context 1] Two elements in a constant set literal can't be equal.
+''');
   }
 
   test_const_list_noEqual() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {[0], [1]};
 ''');
   }
 
   test_const_record_hasEqual() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {(0, 1), (0, 1)};
-''',
-      [
-        error(
-          diag.equalElementsInConstSet,
-          19,
-          6,
-          contextMessages: [message(testFile, 11, 6)],
-        ),
-      ],
-    );
+//         ^^^^^^
+// [context 1] The first element with this value.
+//                 ^^^^^^
+// [diag.equalElementsInConstSet][context 1] Two elements in a constant set literal can't be equal.
+''');
   }
 
   test_const_record_noEqual() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {(0, 1), (0, 2)};
 ''');
   }
 
   test_const_spread__noDuplicate() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1, ...{2}};
 ''');
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1, ...{1}};
-''',
-      [
-        error(
-          diag.equalElementsInConstSet,
-          21,
-          3,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+//             ^
+// [context 1] The first element with this value.
+//                   ^^^
+// [diag.equalElementsInConstSet][context 1] Two elements in a constant set literal can't be equal.
+''');
   }
 
   test_nonConst_entry() async {
     // No error, but there is a hint.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = {1, 2, 1};
-''',
-      [error(diag.equalElementsInSet, 15, 1)],
-    );
+//             ^
+// [diag.equalElementsInSet] Two elements in a set literal shouldn't be equal.
+''');
   }
 }

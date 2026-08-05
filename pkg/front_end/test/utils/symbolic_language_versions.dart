@@ -34,7 +34,7 @@ enum SymbolicLanguageVersion {
   final String marker;
   final Version version;
 
-  const SymbolicLanguageVersion(this.marker, this.version);
+  new(this.marker, this.version);
 }
 
 late final bool _validMarkers = _checkMarkers();

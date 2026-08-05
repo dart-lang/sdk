@@ -22,7 +22,7 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
 class Context extends ChainContext {
   final String suiteName;
 
-  Context(this.suiteName);
+  new(this.suiteName);
 
   @override
   final List<Step> steps = const <Step>[const DartDocTestStep()];
@@ -50,13 +50,13 @@ class DartDocTestTestDescription extends TestDescription {
   final Uri uri;
   final List<Test> tests;
 
-  DartDocTestTestDescription(this.shortName, this.uri, this.tests);
+  new(this.shortName, this.uri, this.tests);
 }
 
 class DartDocTestStep
     extends
         Step<DartDocTestTestDescription, DartDocTestTestDescription, Context> {
-  const DartDocTestStep();
+  const new();
 
   @override
   String get name => "DartDocTest";

@@ -7,6 +7,7 @@
 library typed_data_hierarchy_int64_test;
 
 import 'dart:typed_data';
+
 import 'package:expect/expect.dart';
 
 var inscrutable = null;

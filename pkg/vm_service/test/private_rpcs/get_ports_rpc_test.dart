@@ -2,20 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:isolate' hide Isolate;
-
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../common/test_helper.dart';
-
-late final RawReceivePort port1;
-late final RawReceivePort port2;
-
-void warmup() {
-  port1 = RawReceivePort(null);
-  port2 = RawReceivePort((_) {});
-}
+import '../common/service_test_common.dart';
+import 'get_ports_rpc_lib.dart' as testee_lib;
 
 int countHandlerMatches(
   List<Map<String, dynamic>> ports,
@@ -38,25 +29,25 @@ bool closureMatcher(InstanceRef handler) {
   return handler.kind == InstanceKind.kClosure;
 }
 
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final result =
-        (await service.callMethod('_getPorts', isolateId: isolateId)).json!;
-    expect(result['type'], equals('_Ports'));
-    expect(result['ports'], isList);
-    final ports = result['ports'].cast<Map<String, dynamic>>();
-    // There are at least two ports: the two created in warm up. Some OSes
-    // will have other ports open but we do not try and test for these.
-    expect(ports.length, greaterThanOrEqualTo(2));
-    expect(countHandlerMatches(ports, nullMatcher), greaterThanOrEqualTo(1));
-    expect(countHandlerMatches(ports, closureMatcher), greaterThanOrEqualTo(1));
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'get_ports_rpc_lib.dart',
       args,
-      tests,
-      'get_ports_rpc_test.dart',
-      testeeBefore: warmup,
-    );
+    ).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final result =
+          (await service.callMethod('_getPorts', isolateId: isolateId)).json!;
+      expect(result['type'], equals('_Ports'));
+      expect(result['ports'], isList);
+      final ports = result['ports'].cast<Map<String, dynamic>>();
+      // There are at least two ports: the two created in warm up. Some OSes
+      // will have other ports open but we do not try and test for these.
+      expect(ports.length, greaterThanOrEqualTo(2));
+      expect(
+        countHandlerMatches(ports, nullMatcher),
+        greaterThanOrEqualTo(1),
+      );
+      expect(
+        countHandlerMatches(ports, closureMatcher),
+        greaterThanOrEqualTo(1),
+      );
+    }).run(testeeMain: testee_lib.main);

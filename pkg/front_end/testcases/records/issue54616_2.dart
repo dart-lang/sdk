@@ -10,19 +10,25 @@ extension EIntIntCallInt on (int, int, {dynamic Function(dynamic) call}) {
   dynamic call(dynamic x) => x;
 }
 
-test<X1 extends (int,), X2 extends (int, {dynamic Function(dynamic) call}), X3 extends (int, int, {dynamic Function(dynamic) call}), X4 extends (String,)>(
-    (int,) r1,
-    (int, {dynamic Function(dynamic) call}) r2,
-    (int, int, {dynamic Function(dynamic) call}) r3,
-    (String,) r4,
-    X1 x1,
-    X2 x2,
-    X3 x3,
-    X4 x4,
-    X1? x1n,
-    X2? x2n,
-    X3? x3n,
-    X4? x4n) {
+test<
+  X1 extends (int,),
+  X2 extends (int, {dynamic Function(dynamic) call}),
+  X3 extends (int, int, {dynamic Function(dynamic) call}),
+  X4 extends (String,)
+>(
+  (int,) r1,
+  (int, {dynamic Function(dynamic) call}) r2,
+  (int, int, {dynamic Function(dynamic) call}) r3,
+  (String,) r4,
+  X1 x1,
+  X2 x2,
+  X3 x3,
+  X4 x4,
+  X1? x1n,
+  X2? x2n,
+  X3? x3n,
+  X4? x4n,
+) {
   r1(0); // Ok.
   r2(0); // Error.
   r3(0); // Error.

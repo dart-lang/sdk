@@ -14,9 +14,9 @@ abstract class Suite {
 
   final Uri? statusFile;
 
-  Suite(this.name, this.kind, this.statusFile);
+  new(this.name, this.kind, this.statusFile);
 
-  factory Suite.fromJsonMap(Uri base, Map json) {
+  factory fromJsonMap(Uri base, Map json) {
     String kind = json["kind"].toLowerCase();
     String name = json["name"];
     switch (kind) {

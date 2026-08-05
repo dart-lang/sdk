@@ -25,9 +25,9 @@ ThreadRegistry::~ThreadRegistry() {
   }
 }
 
-Thread* ThreadRegistry::GetFreeThreadLocked(bool is_vm_isolate) {
+Thread* ThreadRegistry::GetFreeThreadLocked(bool is_bootstrapping) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
-  Thread* thread = GetFromFreelistLocked(is_vm_isolate);
+  Thread* thread = GetFromFreelistLocked(is_bootstrapping);
   ASSERT(thread->api_top_scope() == nullptr);
   // Now add this Thread to the active list for the isolate.
   AddToActiveListLocked(thread);
@@ -158,12 +158,12 @@ void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
   }
 }
 
-Thread* ThreadRegistry::GetFromFreelistLocked(bool is_vm_isolate) {
+Thread* ThreadRegistry::GetFromFreelistLocked(bool is_bootstrapping) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   Thread* thread = nullptr;
   // Get thread structure from free list or create a new one.
   if (free_list_ == nullptr) {
-    thread = new Thread(is_vm_isolate);
+    thread = new Thread(is_bootstrapping);
   } else {
     thread = free_list_;
     free_list_ = thread->next_;

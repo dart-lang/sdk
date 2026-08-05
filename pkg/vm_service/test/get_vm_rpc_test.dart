@@ -8,7 +8,8 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'get_vm_rpc_lib.dart' as testee_lib;
 
 extension on VM {
   String get embedder => json!['_embedder'];
@@ -17,37 +18,31 @@ extension on VM {
   int get maxRSS => json!['_maxRSS'];
 }
 
-final tests = <VMTest>[
-  (VmService service) async {
-    final vm = await service.getVM();
-    expect(vm.name, 'Walter');
-    expect(vm.architectureBits, isPositive);
-    expect(vm.targetCPU, isA<String>());
-    expect(vm.hostCPU, isA<String>());
-    expect(vm.operatingSystem, Platform.operatingSystem);
-    expect(vm.version, isA<String>());
-    expect(vm.pid, isA<int>());
-    expect(vm.startTime, isPositive);
-    final isolates = vm.isolates!;
-    expect(isolates.length, isPositive);
-    expect(isolates[0].id, startsWith('isolates/'));
-    expect(isolates[0].isolateGroupId, startsWith('isolateGroups/'));
-    final isolateGroups = vm.isolateGroups!;
-    expect(isolateGroups.length, isPositive);
-    expect(isolateGroups[0].id, startsWith('isolateGroups/'));
+void main([args = const <String>[]]) =>
+    VMTestHarness('get_vm_rpc_lib.dart', args)
+        .addTest((VmService service) async {
+      final vm = await service.getVM();
+      expect(vm.name, 'Walter');
+      expect(vm.architectureBits, isPositive);
+      expect(vm.targetCPU, isA<String>());
+      expect(vm.hostCPU, isA<String>());
+      expect(vm.operatingSystem, Platform.operatingSystem);
+      expect(vm.version, isA<String>());
+      expect(vm.pid, isA<int>());
+      expect(vm.startTime, isPositive);
+      final isolates = vm.isolates!;
+      expect(isolates.length, isPositive);
+      expect(isolates[0].id, startsWith('isolates/'));
+      expect(isolates[0].isolateGroupId, startsWith('isolateGroups/'));
+      final isolateGroups = vm.isolateGroups!;
+      expect(isolateGroups.length, isPositive);
+      expect(isolateGroups[0].id, startsWith('isolateGroups/'));
 
-    // Private properties.
-    expect(vm.embedder, 'Dart VM');
-    expect(vm.currentMemory, greaterThan(0));
-    expect(vm.currentRSS, greaterThan(0));
-    expect(vm.maxRSS, greaterThan(0));
-    // Not guaranteed by the underlying system calls.
-    // expect(vm.maxRSS, greaterThanOrEqualTo(vm.currentRSS));
-  },
-];
-
-void main([args = const <String>[]]) => runVMTests(
-      args,
-      tests,
-      'get_vm_rpc_test.dart',
-    );
+      // Private properties.
+      expect(vm.embedder, 'Dart VM');
+      expect(vm.currentMemory, greaterThan(0));
+      expect(vm.currentRSS, greaterThan(0));
+      expect(vm.maxRSS, greaterThan(0));
+      // Not guaranteed by the underlying system calls.
+      // expect(vm.maxRSS, greaterThanOrEqualTo(vm.currentRSS));
+    }).run(testeeMain: testee_lib.main);

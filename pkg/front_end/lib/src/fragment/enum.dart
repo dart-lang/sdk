@@ -29,7 +29,7 @@ class EnumFragment extends DeclarationFragmentImpl implements Fragment {
     name.length,
   );
 
-  EnumFragment({
+  new({
     required this.name,
     required super.fileUri,
     required this.nameOffset,

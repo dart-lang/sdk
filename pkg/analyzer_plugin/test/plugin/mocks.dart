@@ -9,9 +9,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -159,21 +157,4 @@ class MockServerPlugin extends ServerPlugin {
     required AnalysisContext analysisContext,
     required String path,
   }) async {}
-}
-
-class MockSource implements Source {
-  @override
-  TimestampedData<String> get contents => TimestampedData(0, '');
-
-  @override
-  String get fullName => '/pkg/lib/test.dart';
-
-  @override
-  String get shortName => 'test.dart';
-
-  @override
-  Uri get uri => Uri.parse('package:test/test.dart');
-
-  @override
-  bool exists() => true;
 }

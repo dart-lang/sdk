@@ -27,9 +27,9 @@ class ClosureScopeModel {
 }
 
 class KernelScopeInfo {
-  final Set<ir.VariableDeclaration> localsUsedInTryOrSync;
+  final Set<ir.Variable> localsUsedInTryOrSync;
   final bool hasThisLocal;
-  final Set<ir.VariableDeclaration> boxedVariables;
+  final Set<ir.Variable> boxedVariables;
   // If boxedVariables is empty, this will be null, because no variables will
   // need to be boxed.
   final NodeBox? capturedVariablesAccessor;
@@ -61,8 +61,8 @@ class KernelScopeInfo {
   Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = <VariableUse>{};
 
   KernelScopeInfo(this.hasThisLocal)
-    : localsUsedInTryOrSync = <ir.VariableDeclaration>{},
-      boxedVariables = <ir.VariableDeclaration>{},
+    : localsUsedInTryOrSync = <ir.Variable>{},
+      boxedVariables = <ir.Variable>{},
       capturedVariablesAccessor = null;
 
   KernelScopeInfo.from(this.hasThisLocal, KernelScopeInfo info)
@@ -125,19 +125,19 @@ class KernelCapturedScope extends KernelScopeInfo {
       );
 
   // Silly hack because we don't have const sets.
-  static final Set<ir.VariableDeclaration> _empty = {};
+  static final Set<ir.Variable> _empty = {};
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
 
 class KernelCapturedLoopScope extends KernelCapturedScope {
-  final List<ir.VariableDeclaration> boxedLoopVariables;
+  final List<ir.Variable> boxedLoopVariables;
 
   KernelCapturedLoopScope(
-    Set<ir.VariableDeclaration> boxedVariables,
+    Set<ir.Variable> boxedVariables,
     NodeBox? capturedVariablesAccessor,
     this.boxedLoopVariables,
-    Set<ir.VariableDeclaration> localsUsedInTryOrSync,
+    Set<ir.Variable> localsUsedInTryOrSync,
     Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */>
     freeVariables,
     Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,

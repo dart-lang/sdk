@@ -217,7 +217,7 @@ class TopMergeHelper {
       R_parameters.add(T_parameter.copyWith(type: R_type, kind: R_kind));
     }
 
-    return FunctionTypeImpl.v2(
+    return FunctionTypeImpl(
       typeParameters: R_typeParameters.toFixedList(),
       formalParameters: R_parameters.toFixedList(),
       returnType: R_returnType,

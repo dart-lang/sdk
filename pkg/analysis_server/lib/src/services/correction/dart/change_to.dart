@@ -26,31 +26,30 @@ class ChangeTo extends ResolvedCorrectionProducer {
   String _proposedName = '';
 
   /// Initializes a newly created instance that will propose classes and mixins.
-  ChangeTo.annotation({required super.context})
+  new annotation({required super.context})
     : _kind = _ReplacementKind.annotation;
 
   /// Initializes a newly created instance that will propose classes and mixins.
-  ChangeTo.classOrMixin({required super.context})
+  new classOrMixin({required super.context})
     : _kind = _ReplacementKind.classOrMixin;
 
   /// Initializes a newly created instance that will propose fields.
-  ChangeTo.field({required super.context}) : _kind = _ReplacementKind.field;
+  new field({required super.context}) : _kind = _ReplacementKind.field;
 
   /// Initializes a newly created instance that will propose functions.
-  ChangeTo.function({required super.context})
-    : _kind = _ReplacementKind.function;
+  new function({required super.context}) : _kind = _ReplacementKind.function;
 
   /// Initializes a newly created instance that will propose getters and
   /// setters.
-  ChangeTo.getterOrSetter({required super.context})
+  new getterOrSetter({required super.context})
     : _kind = _ReplacementKind.getterOrSetter;
 
   /// Initializes a newly created instance that will propose methods.
-  ChangeTo.method({required super.context}) : _kind = _ReplacementKind.method;
+  new method({required super.context}) : _kind = _ReplacementKind.method;
 
   /// Initializes a newly created instance that will propose super formal
   /// parameters.
-  ChangeTo.superFormalParameter({required super.context})
+  new superFormalParameter({required super.context})
     : _kind = _ReplacementKind.superFormalParameter;
 
   @override
@@ -344,7 +343,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     if (constructorDeclaration == null) return;
 
     var formalParameters = constructorDeclaration.parameters.parameters
-        .whereType<DefaultFormalParameter>();
+        .whereType<SuperFormalParameter>();
 
     var finder = _ClosestElementFinder(superParameter.name.lexeme, (e) => true);
 
@@ -426,7 +425,7 @@ class _ClosestElementFinder {
 
   Element? _element;
 
-  _ClosestElementFinder(this._targetName, this._predicate);
+  new(this._targetName, this._predicate);
 
   void _update(Element element) {
     if (_predicate(element)) {

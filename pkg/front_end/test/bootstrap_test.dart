@@ -108,7 +108,7 @@ class ComparisonFailed {
   final Uri a;
   final Uri b;
 
-  ComparisonFailed(this.a, this.b);
+  new(this.a, this.b);
 
   @override
   String toString() => "Error: $a is different from $b";

@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class C1 extends core::Object {
-  constructor •([final dynamic v = #C1]) → self::C1
+  constructor •([dynamic v = #C1]) → self::C1
     : assert(v{dynamic}.checkDynamic as{TypeError,ForDynamic} core::bool), super core::Object::•()
     ;
 }
 class C2 extends core::Object {
-  constructor •({final dynamic v = #C2}) → self::C2
+  constructor •({dynamic v = #C2}) → self::C2
     : assert(v{dynamic}.checkDynamic as{TypeError,ForDynamic} core::bool), super core::Object::•()
     ;
 }

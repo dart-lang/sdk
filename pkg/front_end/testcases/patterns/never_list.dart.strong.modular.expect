@@ -4,10 +4,11 @@ import "dart:core" as core;
 
 static method main() → void {
   try {
-    has-declared-initializer core::Object? y;
+    hoisted has-declared-initializer core::Object? y;
     {
       final synthesized Never #0#0 = throw 42;
-      if(!#0#0)
+      final const synthesized core::int #0#2 = #C1;
+      if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = y = #0#0.{core::List::[]}(0){(core::int) → core::Object?} in true)))
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
   }
@@ -16,4 +17,8 @@ static method main() → void {
     return;
   }
   throw "Missing exception";
+}
+
+constants  {
+  #C1 = 1
 }

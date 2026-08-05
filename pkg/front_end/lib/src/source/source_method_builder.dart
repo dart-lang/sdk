@@ -67,7 +67,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   late final Procedure _invokeTarget;
   late final Procedure? _readTarget;
 
-  SourceMethodBuilder({
+  new({
     required this.fileUri,
     required this.fileOffset,
     required this.name,
@@ -313,7 +313,7 @@ class _MethodClassMember implements ClassMember {
   @override
   final UriOffsetLength uriOffset;
 
-  _MethodClassMember(this._builder, this.uriOffset);
+  new(this._builder, this.uriOffset);
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;

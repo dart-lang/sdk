@@ -590,9 +590,8 @@ class _SyncStarIterator<T> implements Iterator<T> {
       try {
         // Resume current sync* method in order to move to the next value.
         final bool hasMore = unsafeCast<bool>(
-          unsafeCast<_SuspendState>(
-            _state,
-          )._resume(null, pendingException, pendingStackTrace),
+          unsafeCast<_SuspendState>(_state)
+              ._resume(null, pendingException, pendingStackTrace),
         );
         pendingException = null;
         pendingStackTrace = null;
@@ -622,9 +621,9 @@ class _SyncStarIterator<T> implements Iterator<T> {
           // current _state for later resumption).
           final stack = (_stack ??= []);
           stack.add(_state!);
-          final nestedState = unsafeCast<_SyncStarIterable>(
-            iterable,
-          )._stateAtStart!._clone();
+          final nestedState = unsafeCast<_SyncStarIterable>(iterable)
+              ._stateAtStart!
+              ._clone();
           nestedState._functionData = this;
           _state = nestedState;
         } else {

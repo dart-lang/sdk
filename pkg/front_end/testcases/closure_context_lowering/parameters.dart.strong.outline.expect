@@ -1,11 +1,12 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method foo1(positional-parameter a) → dynamic
+static method foo1(positional-parameter outer1) → dynamic
   ;
-static method foo2(positional-parameter b) → dynamic
+static method foo2(positional-parameter outer2) → dynamic
   ;
-static method foo3({named-parameter required a}) → dynamic
+static method foo3({named-parameter required outer3}) → dynamic
   ;
-static method foo4(positional-parameter b) → dynamic
+static method foo4(positional-parameter outer4) → dynamic
   ;

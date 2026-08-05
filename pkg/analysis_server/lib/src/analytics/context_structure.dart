@@ -63,7 +63,7 @@ class ContextStructure {
   final PercentileCalculator libraryCycleLineCounts;
 
   /// Initialize a newly created data holder.
-  ContextStructure({
+  new({
     required this.numberOfContexts,
     required this.immediateFileCount,
     required this.immediateFileLineCount,

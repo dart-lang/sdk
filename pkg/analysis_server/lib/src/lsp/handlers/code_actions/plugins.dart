@@ -18,7 +18,7 @@ import 'package:collection/collection.dart';
 class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   final AnalysisDriver? _driver;
 
-  PluginCodeActionsProducer(
+  new(
     super.server,
     super.file,
     super.lineInfo, {

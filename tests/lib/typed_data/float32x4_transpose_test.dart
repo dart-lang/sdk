@@ -7,6 +7,7 @@
 library float32x4_transpose_test;
 
 import 'dart:typed_data';
+
 import 'package:expect/expect.dart';
 
 void transpose(Float32x4List m) {

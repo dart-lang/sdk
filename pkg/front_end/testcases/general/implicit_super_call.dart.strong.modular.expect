@@ -2,29 +2,29 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/implicit_super_call.dart:67:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
+// pkg/front_end/testcases/general/implicit_super_call.dart:68:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 //     super(0); // error
 //     ^
 //
-// pkg/front_end/testcases/general/implicit_super_call.dart:81:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
+// pkg/front_end/testcases/general/implicit_super_call.dart:82:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 //     super(0); // error
 //     ^
 //
-// pkg/front_end/testcases/general/implicit_super_call.dart:95:5: Error: Superclass has no method named 'call'.
+// pkg/front_end/testcases/general/implicit_super_call.dart:96:5: Error: Superclass has no method named 'call'.
 //     super(0); // error
 //     ^^^^
 //
-// pkg/front_end/testcases/general/implicit_super_call.dart:96:11: Error: Superclass has no method named 'call'.
+// pkg/front_end/testcases/general/implicit_super_call.dart:97:11: Error: Superclass has no method named 'call'.
 //     super.call(0); // error
 //           ^^^^
 //
-// pkg/front_end/testcases/general/implicit_super_call.dart:104:5: Error: Superclass has no method named 'call'.
+// pkg/front_end/testcases/general/implicit_super_call.dart:105:5: Error: Superclass has no method named 'call'.
 //     super(); // error
 //     ^^^^
 //
-// pkg/front_end/testcases/general/implicit_super_call.dart:105:11: Error: Superclass has no method named 'call'.
+// pkg/front_end/testcases/general/implicit_super_call.dart:106:11: Error: Superclass has no method named 'call'.
 //     super.call(); // error
 //           ^^^^
 //
@@ -118,7 +118,7 @@ class Class5 extends self::Super5 {
     : super self::Super5::•()
     ;
   method test() → void {
-    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:67:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:68:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
 Try changing 'call' to a method or explicitly invoke 'call'.
     super(0); // error
     ^";
@@ -138,7 +138,7 @@ class Class6 extends self::Super6 {
     : super self::Super6::•()
     ;
   method test() → void {
-    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:81:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:82:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
 Try changing 'call' to a method or explicitly invoke 'call'.
     super(0); // error
     ^";
@@ -158,10 +158,10 @@ class Class7 extends self::Super7 {
     : super self::Super7::•()
     ;
   method test() → void {
-    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:95:5: Error: Superclass has no method named 'call'.
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:96:5: Error: Superclass has no method named 'call'.
     super(0); // error
     ^^^^";
-    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:96:11: Error: Superclass has no method named 'call'.
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:97:11: Error: Superclass has no method named 'call'.
     super.call(0); // error
           ^^^^";
   }
@@ -176,10 +176,10 @@ class Class8 extends self::Super8 {
     : super self::Super8::•()
     ;
   method test() → void {
-    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:104:5: Error: Superclass has no method named 'call'.
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:105:5: Error: Superclass has no method named 'call'.
     super(); // error
     ^^^^";
-    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:105:11: Error: Superclass has no method named 'call'.
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:106:11: Error: Superclass has no method named 'call'.
     super.call(); // error
           ^^^^";
   }

@@ -229,6 +229,11 @@ void DirectoryListingEntry::ResetLink() {
 }
 
 namespace {
+
+inline bool IsDoesNotExistError(DWORD error) {
+  return error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND;
+}
+
 class RecursiveDeleter {
  public:
   RecursiveDeleter() : path_() {}
@@ -254,22 +259,25 @@ class RecursiveDeleter {
  private:
   const wchar_t* path() const { return path_.AsStringW(); }
 
-  bool DeleteDirectory() {
+  bool DeleteDirectory(bool fail_on_missing = true) {
     DWORD attributes = GetFileAttributesW(path());
     if (attributes == INVALID_FILE_ATTRIBUTES) {
-      return false;
+      return !fail_on_missing && IsDoesNotExistError(GetLastError());
     }
 
     // If the directory is a junction, it's pointing to some other place in the
     // filesystem that we do not want to recurse into.
     if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
       // Just delete the junction itself.
-      return RemoveDirectoryW(path()) != 0;
+      if (RemoveDirectoryW(path()) != 0) {
+        return true;
+      }
+      return !fail_on_missing && IsDoesNotExistError(GetLastError());
     }
 
     // If it's a file, remove it directly.
     if ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
-      return DeleteFile();
+      return DeleteFile(fail_on_missing);
     }
 
     if (!path_.AddW(L"\\*")) {
@@ -280,7 +288,7 @@ class RecursiveDeleter {
     HANDLE find_handle = FindFirstFileW(path(), &find_file_data);
 
     if (find_handle == INVALID_HANDLE_VALUE) {
-      return false;
+      return IsDoesNotExistError(GetLastError()) && !fail_on_missing;
     }
 
     // Adjust the path by removing the '*' used for the search.
@@ -305,7 +313,10 @@ class RecursiveDeleter {
     // All content deleted successfully, try to delete directory.
     // Drop the "\" from the end of the path.
     path_.Reset(path_length - 1);
-    return RemoveDirectoryW(path()) != 0;
+    if (RemoveDirectoryW(path()) != 0) {
+      return true;
+    }
+    return !fail_on_missing && IsDoesNotExistError(GetLastError());
   }
 
   bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data) {
@@ -320,21 +331,26 @@ class RecursiveDeleter {
 
     DWORD attributes = find_file_data->dwFileAttributes;
     if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-      return DeleteDirectory();
+      return DeleteDirectory(/*fail_on_missing=*/false);
     } else {
-      return DeleteFile();
+      return DeleteFile(/*fail_on_missing=*/false);
     }
   }
 
-  bool DeleteFile() {
+  bool DeleteFile(bool fail_on_missing = false) {
     if (DeleteFileW(path()) != 0) {
       return true;
+    }
+
+    DWORD error = GetLastError();
+    if (IsDoesNotExistError(error)) {
+      return !fail_on_missing;
     }
 
     // If we failed because the file is read-only, make it writeable and try
     // again. This mirrors Linux/Mac where a directory containing read-only
     // files can still be recursively deleted.
-    if (GetLastError() == ERROR_ACCESS_DENIED) {
+    if (error == ERROR_ACCESS_DENIED) {
       DWORD attributes = GetFileAttributesW(path());
       if (attributes == INVALID_FILE_ATTRIBUTES) {
         return false;
@@ -347,10 +363,14 @@ class RecursiveDeleter {
           return false;
         }
 
-        return DeleteFileW(path()) != 0;
+        if (DeleteFileW(path()) != 0) {
+          return true;
+        }
+        if (IsDoesNotExistError(GetLastError())) {
+          return !fail_on_missing;
+        }
       }
     }
-
     return false;
   }
 
@@ -361,9 +381,7 @@ class RecursiveDeleter {
 Directory::ExistsResult Directory::Exists(const wchar_t* dir_name) {
   DWORD attributes = GetFileAttributesW(dir_name);
   if (attributes == INVALID_FILE_ATTRIBUTES) {
-    DWORD last_error = GetLastError();
-    if ((last_error == ERROR_FILE_NOT_FOUND) ||
-        (last_error == ERROR_PATH_NOT_FOUND)) {
+    if (IsDoesNotExistError(GetLastError())) {
       return Directory::DOES_NOT_EXIST;
     } else {
       // We might not be able to get the file attributes for other

@@ -20,8 +20,13 @@ void checkDartWasmApiUseIfImported(
   Iterable<Library> libraries,
   CoreTypes coreTypes,
   DiagnosticReporter diagnosticReporter,
+  bool isStandalone,
 ) {
-  final checks = _DartWasmLibraryChecks(coreTypes, diagnosticReporter);
+  final checks = _DartWasmLibraryChecks(
+    coreTypes,
+    isStandalone,
+    diagnosticReporter,
+  );
   for (final library in libraries) {
     // Skip the check if the library doesn't import dart:_wasm.
     // TODO: This misses libraries importing dart:_wasm through an export.
@@ -44,9 +49,16 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
   final CoreTypes coreTypes;
 
   @override
+  final bool isStandalone;
+
+  @override
   LibraryIndex get index => coreTypes.index;
 
-  _DartWasmLibraryChecks(this.coreTypes, this._diagnosticReporter);
+  _DartWasmLibraryChecks(
+    this.coreTypes,
+    this.isStandalone,
+    this._diagnosticReporter,
+  );
 
   @override
   void visitLibrary(Library library) {
@@ -180,5 +192,56 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
   bool _isWasmMemoryRef(Expression expr) {
     return expr is StaticGet &&
         _categorizeWasmExtern(expr.target) == ExternType.memory;
+  }
+
+  @override
+  void visitConstantExpression(ConstantExpression node) {
+    final constant = node.constant;
+    if (constant is InstanceConstant) {
+      final klass = constant.classNode;
+      if (klass == wasmI8x16ImplClass) {
+        _validateLanes(constant, klass, -128, 127, "8-bit", node);
+      } else if (klass == wasmI16x8ImplClass) {
+        _validateLanes(constant, klass, -32768, 32767, "16-bit", node);
+      } else if (klass == wasmI32x4ImplClass) {
+        _validateLanes(
+          constant,
+          klass,
+          -2147483648,
+          2147483647,
+          "32-bit",
+          node,
+        );
+      }
+    }
+    node.visitChildren(this);
+  }
+
+  void _validateLanes(
+    InstanceConstant constant,
+    Class cls,
+    int min,
+    int max,
+    String size,
+    ConstantExpression node,
+  ) {
+    for (final field in cls.fields) {
+      final laneConstant = constant.fieldValues[field.fieldReference];
+      if (laneConstant is IntConstant) {
+        final value = laneConstant.value;
+        if (value < min || value > max) {
+          _diagnosticReporter.report(
+            diag.wasmConstantLaneOutOfRange.withArguments(
+              name: field.name.text,
+              value: value,
+              size: size,
+            ),
+            node.fileOffset,
+            1,
+            _currentMember?.fileUri,
+          );
+        }
+      }
+    }
   }
 }

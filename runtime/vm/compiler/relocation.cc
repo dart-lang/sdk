@@ -76,7 +76,7 @@ CodeRelocator::CodeRelocator(Thread* thread,
       target_(Object::Handle(thread->zone())),
       destination_(Code::Handle(thread->zone())) {}
 
-void CodeRelocator::Relocate(bool is_vm_isolate) {
+void CodeRelocator::Relocate() {
   Zone* zone = Thread::Current()->zone();
   auto& current_caller = Code::Handle(zone);
   auto& call_targets = Array::Handle(zone);
@@ -412,46 +412,10 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
   if (target_.IsAbstractType()) {
     target_ = AbstractType::Cast(target_).type_test_stub();
     destination_ = Code::Cast(target_).ptr();
-
-    // The AssertAssignableInstr will emit pc-relative calls to the TTS iff
-    // dst_type is instantiated. If we happened to not install an optimized
-    // TTS but rather a default one, it will live in the vm-isolate (to
-    // which we cannot make pc-relative calls).
-    // Though we have "equivalent" isolate-specific stubs we can use as
-    // targets instead.
-    //
-    // (We could make the AOT compiler install isolate-specific stubs
-    // into the types directly, but that does not work for types which
-    // live in the "vm-isolate" - such as `Type::dynamic_type()`).
-    if (destination_.InVMIsolateHeap()) {
-      auto object_store = thread_->isolate_group()->object_store();
-
-      if (destination_.ptr() == StubCode::DefaultTypeTest().ptr()) {
-        destination_ = object_store->default_tts_stub();
-      } else if (destination_.ptr() ==
-                 StubCode::DefaultNullableTypeTest().ptr()) {
-        destination_ = object_store->default_nullable_tts_stub();
-      } else if (destination_.ptr() == StubCode::TopTypeTypeTest().ptr()) {
-        destination_ = object_store->top_type_tts_stub();
-      } else if (destination_.ptr() == StubCode::UnreachableTypeTest().ptr()) {
-        destination_ = object_store->unreachable_tts_stub();
-      } else if (destination_.ptr() == StubCode::SlowTypeTest().ptr()) {
-        destination_ = object_store->slow_tts_stub();
-      } else if (destination_.ptr() ==
-                 StubCode::NullableTypeParameterTypeTest().ptr()) {
-        destination_ = object_store->nullable_type_parameter_tts_stub();
-      } else if (destination_.ptr() ==
-                 StubCode::TypeParameterTypeTest().ptr()) {
-        destination_ = object_store->type_parameter_tts_stub();
-      } else {
-        UNREACHABLE();
-      }
-    }
   } else {
     ASSERT(target_.IsCode());
     destination_ = Code::Cast(target_).ptr();
   }
-  ASSERT(!destination_.InVMIsolateHeap());
   return destination_.ptr();
 }
 

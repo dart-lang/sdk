@@ -64,11 +64,6 @@ bool CHA::IsGuardedClass(intptr_t cid) const {
 bool CHA::HasSubclasses(const Class& cls) {
   ASSERT(!cls.IsNull());
   ASSERT(!IsInternalOnlyClassId(cls.id()));
-  // Can't track dependencies for classes on the VM heap since those are
-  // read-only.
-  // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
-  // classes.
-  if (cls.InVMIsolateHeap()) return true;
 
   if (cls.IsObjectClass()) {
     // Class Object has subclasses, although we do not keep track of them.
@@ -92,7 +87,6 @@ bool CHA::HasSubclasses(intptr_t cid) const {
 
 bool CHA::ConcreteSubclasses(const Class& cls,
                              GrowableArray<intptr_t>* class_ids) {
-  if (cls.InVMIsolateHeap()) return false;
   if (cls.IsObjectClass()) return false;
   if (cls.has_dynamically_extendable_subtypes()) return false;
 
@@ -119,11 +113,6 @@ bool CHA::ConcreteSubclasses(const Class& cls,
 }
 
 bool CHA::IsImplemented(const Class& cls) {
-  // Can't track dependencies for classes on the VM heap since those are
-  // read-only.
-  // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
-  // classes.
-  if (cls.InVMIsolateHeap()) return true;
   if (cls.has_dynamically_extendable_subtypes()) return true;
 
   return cls.is_implemented();
@@ -227,12 +216,6 @@ bool CHA::IsConsistentWithCurrentHierarchy() const {
 bool CHA::HasOverride(const Class& cls,
                       const String& function_name,
                       intptr_t* subclasses_count) {
-  // Can't track dependencies for classes on the VM heap since those are
-  // read-only.
-  // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
-  // classes.
-  if (cls.InVMIsolateHeap()) return true;
-
   // Subclasses of Object are not tracked by CHA. Safely assume that overrides
   // exist.
   if (cls.IsObjectClass()) {

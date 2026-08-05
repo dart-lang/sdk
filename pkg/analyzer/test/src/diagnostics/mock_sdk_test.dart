@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -51,7 +52,7 @@ class MockSdkTest extends PubPackageResolutionTest {
               element.diagnosticCode.type != DiagnosticType.STATIC_WARNING,
         )
         .toList();
-    assertErrorsInList(notHints, []);
+    expect(notHints, isEmpty);
   }
 
   Future<ResolvedLibraryResult> _resolvedLibraryByUri(String uriStr) async {

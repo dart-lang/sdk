@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(
       NewWithUndefinedConstructorWithoutConstructorTearoffsTest,
     );
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,38 +23,29 @@ class NewWithUndefinedConstructorTest extends PubPackageResolutionTest
 
 mixin NewWithUndefinedConstructorTestCases on PubPackageResolutionTest {
   test_default() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A.name() {}
 }
 f() {
   new A();
+//    ^
+// [diag.newWithUndefinedConstructorDefault] The class 'A' doesn't have an unnamed constructor.
 }
-''',
-      [
-        error(
-          diag.newWithUndefinedConstructorDefault,
-          38,
-          1,
-          messageContains: ["'A'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_default_noKeyword() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A.name() {}
 }
 f() {
   A();
+//^
+// [diag.newWithUndefinedConstructorDefault] The class 'A' doesn't have an unnamed constructor.
 }
-''',
-      [error(diag.newWithUndefinedConstructorDefault, 34, 1)],
-    );
+''');
   }
 
   test_default_prefixed() async {
@@ -62,41 +54,32 @@ class A {
   A.name() {}
 }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart' as lib1;
 
 f() {
   new lib1.A();
+//    ^^^^^^
+// [diag.newWithUndefinedConstructorDefault] The class 'lib1.A' doesn't have an unnamed constructor.
 }
-''',
-      [
-        error(
-          diag.newWithUndefinedConstructorDefault,
-          41,
-          6,
-          messageContains: ["'lib1.A'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_default_unnamedViaNew() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A.name() {}
 }
 f() {
   A.new();
+//  ^^^
+// [diag.newWithUndefinedConstructorDefault] The class 'A' doesn't have an unnamed constructor.
 }
-''',
-      [error(diag.newWithUndefinedConstructorDefault, 36, 3)],
-    );
+''');
   }
 
   test_defaultViaNew() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A.new() {}
 }
@@ -107,7 +90,7 @@ f() {
   }
 
   test_defined_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.name() {}
 }
@@ -118,7 +101,7 @@ f() {
   }
 
   test_defined_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() {}
 }
@@ -129,24 +112,16 @@ f() {
   }
 
   test_named() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A() {}
 }
 f() {
   new A.name();
+//      ^^^^
+// [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named 'name'.
 }
-''',
-      [
-        error(
-          diag.newWithUndefinedConstructor,
-          35,
-          4,
-          messageContains: ["class 'A'", "named 'name'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_named_prefixed() async {
@@ -155,22 +130,14 @@ class A {
   A() {}
 }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart' as lib1;
 f() {
   new lib1.A.name();
+//           ^^^^
+// [diag.newWithUndefinedConstructor] The class 'lib1.A' doesn't have a constructor named 'name'.
 }
-''',
-      [
-        error(
-          diag.newWithUndefinedConstructor,
-          47,
-          4,
-          messageContains: ["class 'lib1.A'", "named 'name'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_private_named() async {
@@ -179,15 +146,14 @@ class A {
   A._named() {}
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void f() {
   new A._named();
+//      ^^^^^^
+// [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named '_named'.
 }
-''',
-      [error(diag.newWithUndefinedConstructor, 36, 6)],
-    );
+''');
   }
 
   test_private_named_genericClass_noTypeArguments() async {
@@ -196,15 +162,14 @@ class A<T> {
   A._named() {}
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void f() {
   new A._named();
+//      ^^^^^^
+// [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named '_named'.
 }
-''',
-      [error(diag.newWithUndefinedConstructor, 36, 6)],
-    );
+''');
   }
 
   test_private_named_genericClass_withTypeArguments() async {
@@ -213,15 +178,14 @@ class A<T> {
   A._named() {}
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void f() {
   new A<int>._named();
+//           ^^^^^^
+// [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named '_named'.
 }
-''',
-      [error(diag.newWithUndefinedConstructor, 41, 6)],
-    );
+''');
   }
 }
 
@@ -230,30 +194,28 @@ class NewWithUndefinedConstructorWithoutConstructorTearoffsTest
     extends PubPackageResolutionTest
     with WithoutConstructorTearoffsMixin {
   test_defaultViaNew() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A.new() {}
+//  ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
 }
 f() {
   A();
 }
-''',
-      [error(diag.experimentNotEnabled, 14, 3)],
-    );
+''');
   }
 
   test_unnamedViaNew() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   A.named() {}
 }
 f() {
   A.new();
+//  ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
 }
-''',
-      [error(diag.experimentNotEnabled, 37, 3)],
-    );
+''');
   }
 }

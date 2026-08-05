@@ -17,7 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid redundant argument values.';
 
 class AvoidRedundantArgumentValues extends AnalysisRule {
-  AvoidRedundantArgumentValues()
+  new()
     : super(
         name: LintNames.avoid_redundant_argument_values,
         description: _desc,
@@ -43,7 +43,7 @@ class AvoidRedundantArgumentValues extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void check(ArgumentList argumentList) {
     var arguments = argumentList.arguments;
@@ -54,10 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = arguments.length - 1; i >= 0; --i) {
       var arg = arguments[i];
       var param = arg.correspondingParameter;
-      if (arg is NamedExpression) {
-        arg = arg.expression;
-      }
-      checkArgument(arg, param);
+      checkArgument(arg.argumentExpression, param);
       if (param != null && param.isOptionalPositional) {
         // Redundant arguments may be necessary to specify, in order to specify
         // a non-redundant argument for the last optional positional parameter.
@@ -145,15 +142,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = arguments.length - 1; i >= 0; --i) {
       var arg = arguments[i];
       FormalParameterElement? param;
-      if (arg is NamedExpression) {
+      if (arg is NamedArgument) {
         param = parameters.firstWhereOrNull(
-          (p) => p.isNamed && p.name == arg.name.label.name,
+          (p) => p.isNamed && p.name == arg.name.lexeme,
         );
       } else {
         // Count which positional argument we're at.
         var positionalCount = arguments
             .take(i + 1)
-            .where((a) => a is! NamedExpression)
+            .where((a) => a is! NamedArgument)
             .length;
         var positionalIndex = positionalCount - 1;
         if (positionalIndex < parameters.length) {
@@ -162,7 +159,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           }
         }
       }
-      checkArgument(arg, param);
+      checkArgument(arg.argumentExpression, param);
       if (param != null && param.isOptionalPositional) {
         // Redundant arguments may be necessary to specify, in order to specify
         // a non-redundant argument for the last optional positional parameter.

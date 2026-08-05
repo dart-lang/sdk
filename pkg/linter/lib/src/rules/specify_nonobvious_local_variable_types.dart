@@ -19,7 +19,7 @@ import '../util/obvious_types.dart';
 const _desc = r'Specify non-obvious type annotations for local variables.';
 
 class SpecifyNonObviousLocalVariableTypes extends AnalysisRule {
-  SpecifyNonObviousLocalVariableTypes()
+  new()
     : super(
         name: LintNames.specify_nonobvious_local_variable_types,
         description: _desc,
@@ -51,7 +51,7 @@ class SpecifyNonObviousLocalVariableTypes extends AnalysisRule {
 class _PatternVisitor extends GeneralizingAstVisitor<void> {
   final AnalysisRule rule;
 
-  _PatternVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
@@ -68,7 +68,7 @@ class _PatternVisitor extends GeneralizingAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitForStatement(ForStatement node) {

@@ -17,80 +17,66 @@ class AvoidClassesWithOnlyStaticMembers extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_classes_with_only_static_members;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_nonStaticField() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {
-  static int f = 1;
-}
-''');
-
-    // The added field should prevent a lint above.
+    // The added field should prevent a lint in 'test.dart'.
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   int a = 1;
 }
 ''');
 
-    await assertNoDiagnosticsInFile(a.path);
+    await assertNoDiagnostics(r'''
+part 'b.dart';
+
+class A {
+  static int f = 1;
+}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_staticField() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   static int f = 1;
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(22, 1)]);
+    await assertDiagnosticsFromMarkup(r'''
+part 'b.dart';
 
+class [!A!] {}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_staticMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   static void m() {}
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(22, 1)]);
+    await assertDiagnosticsFromMarkup(r'''
+part 'b.dart';
 
+class [!A!] {}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_basicClass() async {
-    await assertDiagnostics(
-      r'''
-class C {
+    await assertDiagnosticsFromMarkup(r'''
+class [!C!] {
   static void f() {}
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_class_empty() async {
@@ -100,21 +86,17 @@ class C {}
   }
 
   test_class_empty_augmentation_empty() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
 
 augment class A {}
 ''');
 
-    await assertNoDiagnosticsInFile(a.path);
+    await assertNoDiagnostics(r'''
+part 'b.dart';
 
-    await assertNoDiagnosticsInFile(b.path);
+class A {}
+''');
   }
 
   test_class_extendingValidClass() async {
@@ -184,14 +166,11 @@ class C {
   }
 
   test_finalClass() async {
-    await assertDiagnostics(
-      r'''
-final class C {
+    await assertDiagnosticsFromMarkup(r'''
+final class [!C!] {
   static void f() {}
 }
-''',
-      [lint(12, 1)],
-    );
+''');
   }
 
   test_sealedClass() async {

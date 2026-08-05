@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C1 extends core::Object {
   final field core::int id;
-  constructor n1(core::int id, [core::String s = #C1]) → self::C1
+  constructor n1(initializing-formal core::int id, [core::String s = #C1]) → self::C1
     : self::C1::id = id, super core::Object::•() {
     self::log = s;
   }
@@ -17,13 +17,13 @@ extension type ET1(core::int id) {
   constructor tearoff n1 = self::ET1|constructor#_#n1#tearOff;
 }
 static field dynamic log;
-static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#(initializing-formal core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(id);
-static extension-type-member method ET1|constructor#n1(core::int id, [core::String s = #C2]) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#n1(initializing-formal core::int id, [core::String s = #C2]) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
   {
     self::log = s;

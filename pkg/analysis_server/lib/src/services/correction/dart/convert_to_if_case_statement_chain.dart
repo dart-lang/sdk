@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
-  ConvertToIfCaseStatementChain({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -153,27 +153,27 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
 }
 
 class _DefaultGroup extends _Group {
-  _DefaultGroup({required super.statements});
+  new({required super.statements});
 }
 
 sealed class _Group {
   final List<Statement> statements;
 
-  _Group({required this.statements});
+  new({required this.statements});
 }
 
 /// Joined [Pattern]s, without `when`, before statements.
 class _JoinedCaseGroup extends _Group {
   final List<DartPattern> patterns;
 
-  _JoinedCaseGroup({required this.patterns, required super.statements});
+  new({required this.patterns, required super.statements});
 }
 
 /// A single [GuardedPattern] before statements.
 class _SingleCaseGroup extends _Group {
   final GuardedPattern guardedPattern;
 
-  _SingleCaseGroup({required this.guardedPattern, required super.statements});
+  new({required this.guardedPattern, required super.statements});
 }
 
 extension on List<GuardedPattern> {

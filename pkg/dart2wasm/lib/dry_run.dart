@@ -5,10 +5,9 @@
 import 'dart:io' show Platform;
 
 import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:collection/collection.dart';
 import 'package:front_end/src/api_prototype/codes.dart'
     show Message, LocatedMessage;
@@ -208,20 +207,17 @@ class DryRunSummarizer {
     }
     if (pathUriMap.isEmpty) return [];
 
-    final collection = AnalysisContextCollection(
+    final collection = AnalysisContextCollectionImpl(
       includedPaths: pathUriMap.keys.toList(),
-    );
-    for (var context in collection.contexts) {
-      var allOptions =
-          (context as DriverBasedAnalysisContext).allAnalysisOptions;
-      for (var options in allOptions) {
-        options.lintRules = [
+      configureAnalysisOptionsBuilder: ({required analysisOptionsBuilder}) {
+        analysisOptionsBuilder.lintRules = [
           _avoidDoubleAndIntChecks,
           _invalidRuntimeCheckWithJSInteropTypes,
         ];
-        options.lint = true;
-      }
-
+        analysisOptionsBuilder.lint = true;
+      },
+    );
+    for (var context in collection.contexts) {
       for (var filePath in context.contextRoot.analyzedFiles()) {
         final uri = pathUriMap[filePath]!;
         var result = await context.currentSession.getErrors(filePath);

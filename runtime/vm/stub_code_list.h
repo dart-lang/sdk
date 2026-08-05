@@ -59,10 +59,10 @@ namespace dart {
   V(AllocateFloat64x2Array)                                                    \
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
-  V(AllocateClosure)                                                           \
-  V(AllocateClosureGeneric)                                                    \
-  V(AllocateClosureTA)                                                         \
-  V(AllocateClosureTAGeneric)                                                  \
+  V(AllocateClosure1)                                                          \
+  V(AllocateClosure2)                                                          \
+  V(AllocateClosure3)                                                          \
+  V(AllocateClosure4)                                                          \
   V(AllocateContext)                                                           \
   V(AllocateGrowableArray)                                                     \
   V(AllocateObject)                                                            \
@@ -118,7 +118,7 @@ namespace dart {
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(AssertSubtype)                                                             \
   V(AssertAssignable)                                                          \
-  V(TypeIsTopTypeForSubtyping)                                                 \
+  V(IsTopType)                                                                 \
   V(NullIsAssignableToType)                                                    \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \

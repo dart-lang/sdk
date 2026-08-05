@@ -2,39 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReferencedBeforeDeclarationTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ReferencedBeforeDeclarationTest extends PubPackageResolutionTest {
   test_block_patternVariable_after() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 void f() {
   v;
+//^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
   var [v] = [0];
+//     ^
+// [context 1] The declaration of 'v' is here.
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          24,
-          1,
-          contextMessages: [message(testFile, 34, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -44,7 +39,7 @@ SimpleIdentifier
   }
 
   test_block_patternVariable_before() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 void f() {
   var [v] = [0];
@@ -54,7 +49,7 @@ void f() {
   }
 
   test_cascade_after_declaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 testRequestHandler() {}
 
 main() {
@@ -68,145 +63,108 @@ main() {
   }
 
   test_forElement_forPartsWithDeclarations_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [for (var x = x;;) x];
+//          ^
+// [context 1] The declaration of 'x' is here.
+//              ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'x' can't be referenced before it is declared.
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          27,
-          1,
-          contextMessages: [message(testFile, 23, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_forStatement_forPartsWithDeclarations_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (var x = x;;) {
+//         ^
+// [context 1] The declaration of 'x' is here.
+//             ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'x' can't be referenced before it is declared.
     x;
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          26,
-          1,
-          contextMessages: [message(testFile, 22, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_hideInBlock_comment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   /// [v] is a variable.
   var v = 2;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
 print(x) {}
-''',
-      [error(diag.unusedLocalVariable, 40, 1)],
-    );
+''');
   }
 
   test_hideInBlock_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var v = 1;
 main() {
   print(v);
+//      ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
   v() {}
+//^
+// [context 1] The declaration of 'v' is here.
 }
 print(x) {}
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          28,
-          1,
-          contextMessages: [message(testFile, 34, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_hideInBlock_local() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var v = 1;
 main() {
   print(v);
+//      ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
   var v = 2;
+//    ^
+// [context 1] The declaration of 'v' is here.
 }
 print(x) {}
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          28,
-          1,
-          contextMessages: [message(testFile, 38, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_hideInBlock_local_subBlock() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var v = 1;
 main() {
   {
     print(v);
+//        ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
   }
   var v = 2;
+//    ^
+// [context 1] The declaration of 'v' is here.
 }
 print(x) {}
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          34,
-          1,
-          contextMessages: [message(testFile, 48, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_hideInSwitchCase_function() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 
 void f(int a) {
   switch (a) {
     case 0:
       v;
+//    ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
       void v() {}
+//         ^
+// [context 1] The declaration of 'v' is here.
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          61,
-          1,
-          contextMessages: [message(testFile, 75, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -216,8 +174,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_function_language219() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 var v = 0;
 
@@ -225,21 +182,16 @@ void f(int a) {
   switch (a) {
     case 0:
       v;
+//    ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
       void v() {}
+//         ^
+// [context 1] The declaration of 'v' is here.
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          77,
-          1,
-          contextMessages: [message(testFile, 91, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -249,29 +201,23 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_local() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 
 void f(int a) {
   switch (a) {
     case 0:
       v;
+//    ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
       var v = 1;
+//        ^
+// [context 1] The declaration of 'v' is here.
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          61,
-          1,
-          contextMessages: [message(testFile, 74, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -281,8 +227,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_local_language219() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 var v = 0;
 
@@ -290,21 +235,16 @@ void f(int a) {
   switch (a) {
     case 0:
       v;
+//    ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
       var v = 1;
+//        ^
+// [context 1] The declaration of 'v' is here.
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          77,
-          1,
-          contextMessages: [message(testFile, 90, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -314,29 +254,23 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_function() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 
 void f(int a) {
   switch (a) {
     default:
       v;
+//    ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
       void v() {}
+//         ^
+// [context 1] The declaration of 'v' is here.
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          62,
-          1,
-          contextMessages: [message(testFile, 76, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -346,8 +280,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_function_language219() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 var v = 0;
 
@@ -355,21 +288,16 @@ void f(int a) {
   switch (a) {
     default:
       v;
+//    ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
       void v() {}
+//         ^
+// [context 1] The declaration of 'v' is here.
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          78,
-          1,
-          contextMessages: [message(testFile, 92, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -379,29 +307,23 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_local() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 
 void f(int a) {
   switch (a) {
     default:
       v;
+//    ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
       var v = 1;
+//        ^
+// [context 1] The declaration of 'v' is here.
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          62,
-          1,
-          contextMessages: [message(testFile, 75, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -411,8 +333,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_local_language219() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 var v = 0;
 
@@ -420,21 +341,16 @@ void f(int a) {
   switch (a) {
     default:
       v;
+//    ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
       var v = 1;
+//        ^
+// [context 1] The declaration of 'v' is here.
   }
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          78,
-          1,
-          contextMessages: [message(testFile, 91, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -444,43 +360,31 @@ SimpleIdentifier
   }
 
   test_inInitializer_closure() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = () => v;
+//    ^
+// [context 1] The declaration of 'v' is here.
+//              ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          25,
-          1,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_inInitializer_directly() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = v;
+//    ^
+// [context 1] The declaration of 'v' is here.
+//        ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          19,
-          1,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_labeledStatement_function() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_label
   label: void v() {}
@@ -488,7 +392,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -498,7 +402,7 @@ SimpleIdentifier
   }
 
   test_labeledStatement_local() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_label
   label: var v = 0;
@@ -506,7 +410,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -516,42 +420,30 @@ SimpleIdentifier
   }
 
   test_type_localFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void testTypeRef() {
   String s = '';
+//^^^^^^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'String' can't be referenced before it is declared.
   int String(int x) => x + 1;
+//    ^^^^^^
+// [context 1] The declaration of 'String' is here.
   print(s + String);
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          23,
-          6,
-          contextMessages: [message(testFile, 44, 6)],
-        ),
-      ],
-    );
+''');
   }
 
   test_type_localVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void testTypeRef() {
   String s = '';
+//^^^^^^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'String' can't be referenced before it is declared.
   var String = '';
+//    ^^^^^^
+// [context 1] The declaration of 'String' is here.
   print(s + String);
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          23,
-          6,
-          contextMessages: [message(testFile, 44, 6)],
-        ),
-      ],
-    );
+''');
   }
 }

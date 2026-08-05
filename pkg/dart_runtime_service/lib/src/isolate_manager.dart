@@ -87,9 +87,19 @@ abstract base class IsolateManager {
   /// Used to support the `isolates/root` isolate ID.
   int? _rootIsolateId;
 
+  @protected
+  int? get rootIsolateId => _rootIsolateId;
+
+  @protected
+  set rootIsolateId(int? value) => _rootIsolateId = value;
+
   @mustCallSuper
   Future<void> shutdown() async {
     _logger.info('Shutting down.');
+    for (final isolate in isolates.values) {
+      isolate.shutdown();
+    }
+    isolates.clear();
   }
 
   /// Forwards the RPC request for [method] to be handled in the context of an
@@ -103,11 +113,17 @@ abstract base class IsolateManager {
   });
 
   /// Initializes state for a newly started isolate.
-  void isolateStarted({required RunningIsolate isolate}) {
-    _logger.info('Starting isolate: $isolate');
-    if (_rootIsolateId == null) {
-      // TODO(bkonyi): ensure this is a non-system isolate
-      _logger.info('$isolate is the root isolate.');
+  void isolateStarted({
+    required RunningIsolate isolate,
+    bool isSystemIsolate = false,
+  }) {
+    if (_logger.isLoggable(Level.FINE)) {
+      _logger.fine('Starting isolate: $isolate');
+    }
+    if (_rootIsolateId == null && !isSystemIsolate) {
+      if (_logger.isLoggable(Level.FINE)) {
+        _logger.fine('$isolate is the root isolate.');
+      }
       _rootIsolateId = isolate.id;
     }
     isolate.running();
@@ -124,7 +140,9 @@ abstract base class IsolateManager {
       );
       return;
     }
-    _logger.info('Isolate exited: $isolate');
+    if (_logger.isLoggable(Level.FINE)) {
+      _logger.fine('Isolate exited: $isolate');
+    }
     isolate.shutdown();
   }
 

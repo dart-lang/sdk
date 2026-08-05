@@ -8,6 +8,7 @@
 
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+
 import 'package:expect/expect.dart';
 
 import 'external_static_member_with_namespaces.dart' as namespace;

@@ -9,7 +9,7 @@ class LocatedError {
   final SourceSpan span;
   final String message;
 
-  LocatedError(this.message, {required this.span});
+  new(this.message, {required this.span});
 
   @override
   String toString() => '${span.location}: $message';

@@ -9,7 +9,7 @@ import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/utilities/report_data.dart';
 
 class CollectReportPage extends DiagnosticPage {
-  CollectReportPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'collect-report',

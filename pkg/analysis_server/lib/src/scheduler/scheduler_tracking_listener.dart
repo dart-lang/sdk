@@ -67,7 +67,7 @@ class MessageData {
   /// The id of the message that was completed, if any.
   lsp.Either2<int, String>? cancelledMessageId;
 
-  MessageData({
+  new({
     required this.message,
     required this.pendingOnPendingMessageCount,
     required this.pendingOnPendingMessages,
@@ -115,7 +115,7 @@ class SchedulerTrackingListener extends MessageSchedulerListener {
 
   /// Returns a newly created listener that will report to the
   /// [analyticsManager].
-  SchedulerTrackingListener(this.analyticsManager, this.performanceLogger);
+  new(this.analyticsManager, this.performanceLogger);
 
   @override
   void addActiveMessage(ScheduledMessage message) {

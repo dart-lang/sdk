@@ -7,6 +7,7 @@ import '../static_type_helper.dart';
 class A {} // Distance from the top type: 2 (Object? -> Object -> A).
 
 mixin M {} // Distance from the top type: 2.
+
 class AM = A with M; // Distance from the top type: 3.
 
 class B extends AM {} // Distance from the top type: 4.

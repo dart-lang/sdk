@@ -4,10 +4,13 @@ import "dart:core" as core;
 
 static method main() → void {
   try {
-    has-declared-initializer core::Object? b;
+    hoisted has-declared-initializer core::Object? b;
     {
       final synthesized Never #0#0 = throw <core::int, core::int>{42: 42};
-      if(!#0#0)
+      synthesized core::Object? #0#3;
+      synthesized core::bool #0#3#isSet = false;
+      final const synthesized core::int #0#1 = #C1;
+      if(!((!((#0#3#isSet ?{core::Object?} #0#3 : let final dynamic #t1 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object? && #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t2 = b = #0#3#isSet ?{core::Object?} #0#3 : let final dynamic #t3 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?} in true)))
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
   }
@@ -17,3 +20,11 @@ static method main() → void {
   }
   throw "Missing exception";
 }
+
+constants  {
+  #C1 = 42
+}
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///never_map.dart:7:12 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 34, effectively constant: 1

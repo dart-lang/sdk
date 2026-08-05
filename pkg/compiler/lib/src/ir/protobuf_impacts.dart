@@ -282,7 +282,7 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
 /// declaration is not in scope.
 class _CloneVisitorLenientVariables extends ir.CloneVisitorNotMembers {
   @override
-  ir.VariableDeclaration getVariableClone(ir.VariableDeclaration variable) {
+  ir.Variable getVariableClone(ir.Variable variable) {
     return super.getVariableClone(variable) ?? variable;
   }
 }

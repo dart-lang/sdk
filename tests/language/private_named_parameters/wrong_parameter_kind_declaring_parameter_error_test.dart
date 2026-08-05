@@ -5,7 +5,7 @@
 /// You can only use private named parameters on parameters that refer to
 /// instance fields.
 
-// SharedOptions=--enable-experiment=private-named-parameters,primary-constructors
+// SharedOptions=--enable-experiment=primary-constructors
 
 // In a primary constructor, but not a declaring parameter or initializing
 // formal.
@@ -16,10 +16,11 @@ class Primary({required String _notDeclaring});
 
 // In a primary constructor, but not a declaring parameter or initializing
 // formal.
-class SuperParameter({required super._superParam}) extends SuperBase;
+class SuperParameter({required super._superParam}) extends SuperBase
 //                                   ^^^^^^^^^^^
 // [analyzer] unspecified
 // [cfe] unspecified
+;
 
 class SuperBase {
   final String _superParam;

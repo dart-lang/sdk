@@ -8,7 +8,7 @@ import 'dart:async';
 class StreamStringSink implements StringSink {
   final StreamSink<String> _sink;
 
-  StreamStringSink(this._sink);
+  new(this._sink);
 
   @override
   void write(Object? obj) {

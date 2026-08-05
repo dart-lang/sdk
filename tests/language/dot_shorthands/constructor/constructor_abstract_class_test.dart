@@ -4,8 +4,6 @@
 
 // We allow shorthand syntax for factory constructors from abstract classes.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 abstract class Foo<T> {
   factory Foo.a() = _Foo;
   Foo();

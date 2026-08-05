@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/types.dart';
+
 import '../../test/simple_stats.dart';
 
 bool _collect = true;
@@ -16,7 +17,7 @@ class _SubtypeRelation {
   final DartType subtype;
   final DartType supertype;
 
-  _SubtypeRelation(this.types, this.subtype, this.supertype);
+  new(this.types, this.subtype, this.supertype);
 
   @override
   bool operator ==(Object other) =>

@@ -38,7 +38,7 @@ class SimpleTest extends TimingTest {
   late int cursorOffset;
 
   /// Initialize a newly created test.
-  SimpleTest();
+  new();
 
   @override
   Future<void> oneTimeSetUp() {

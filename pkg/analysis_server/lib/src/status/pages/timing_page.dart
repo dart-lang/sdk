@@ -12,7 +12,7 @@ import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:collection/collection.dart';
 
 class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
-  TimingPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(site, 'timing', 'Timing', description: 'Timing statistics.');
 
   @override

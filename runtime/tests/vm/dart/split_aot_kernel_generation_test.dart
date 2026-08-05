@@ -12,7 +12,7 @@ import 'package:path/path.dart' as path;
 import 'snapshot_test_helper.dart';
 
 Future<void> runSplitAOTKernelGenerationTest(Uri testScriptUri) async {
-  await withTempDir((String temp) async {
+  await withTempDir("split-test", (String temp) async {
     final intermediateDillPath = path.join(temp, 'intermediate.dill');
     final outputDillPath = path.join(temp, 'output.dill');
     final snapshotPath = path.join(temp, 'aot.snapshot');
@@ -33,8 +33,13 @@ Future<void> runSplitAOTKernelGenerationTest(Uri testScriptUri) async {
     ]);
 
     await runGenSnapshot('GENERATE SNAPSHOT', [
-      '--snapshot-kind=app-aot-elf',
-      '--elf=$snapshotPath',
+      if (Platform.isMacOS) ...[
+        '--snapshot-kind=app-aot-macho-dylib',
+        '--macho=$snapshotPath',
+      ] else ...[
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$snapshotPath',
+      ],
       outputDillPath,
     ]);
 

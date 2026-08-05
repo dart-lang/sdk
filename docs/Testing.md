@@ -346,6 +346,21 @@ is out of date even the tool is doing what it should.
 Eventually, this way of running tests should be removed, along with the status
 files.
 
+### Using build_test_fast.py (Developer Fast Path)
+
+For local development, building the entire SDK for a single test can be time-consuming. You can use the `build_test_fast.py` wrapper, which automatically infers the correct compiler and builds only the *minimal* required targets needed to run your tests:
+
+```sh
+# Infers dart2wasm and builds only its minimal targets (takes seconds instead of minutes)
+./tools/build_test_fast.py tests/web/wasm/simd/simd_test.dart
+```
+
+This script will:
+1. Infer the compiler from your test path (e.g., `tests/web/wasm` -> `dart2wasm`).
+2. Build only the minimal GN targets required for that compiler (e.g., `dart2wasm_platform.dill`, `dartaotruntime`).
+3. Automatically default to the headless `d8` runtime for web compilers to prevent noisy browser popups.
+4. Execute `tools/test.py` with the correct arguments.
+
 ### Using test.dart
 
 The new entrypoint is "test.dart":

@@ -12,6 +12,8 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  record_use,
+  primary_constructors,
   private_named_parameters,
   dot_shorthands,
   native_assets,

@@ -5,9 +5,9 @@ import "dart:core" as core;
 class Class1 extends core::Object {
   final field core::int field1;
   final field core::int field2;
-  constructor positional([core::int field1 = 1, core::int field2 = 2]) → self::Class1
+  constructor positional([initializing-formal core::int field1 = 1, initializing-formal core::int field2 = 2]) → self::Class1
     ;
-  constructor named({core::int field1 = 1, core::int field2 = 2}) → self::Class1
+  constructor named({initializing-formal core::int field1 = 1, initializing-formal core::int field2 = 2}) → self::Class1
     ;
   static synthetic method _#positional#tearOff([has-declared-initializer core::int field1, has-declared-initializer core::int field2]) → self::Class1
     return new self::Class1::positional(field1, field2);

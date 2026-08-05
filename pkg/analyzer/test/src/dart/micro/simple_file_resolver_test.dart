@@ -8,8 +8,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -423,13 +421,14 @@ byteStore
 class A {}
 ''');
 
-    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = getFile('/workspace/dart/test/lib/b.dart');
+
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 void f(A a, B b) {}
+//          ^
+// [diag.undefinedClass] Undefined class 'B'.
 ''');
-
-    result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, [error(diag.undefinedClass, 29, 1)]);
 
     newFile(a.path, r'''
 class A {}
@@ -437,8 +436,10 @@ class B {}
 ''');
     fileResolver.changeFiles([a.path]);
 
-    result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, []);
+    await resolveFileWithDiagnostics(b, r'''
+import 'a.dart';
+void f(A a, B b) {}
+''');
   }
 
   test_changeFile_resolution_flushInheritanceManager() async {
@@ -448,16 +449,17 @@ class A {
 }
 ''');
 
-    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = getFile('/workspace/dart/test/lib/b.dart');
+
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void f(A a) {
   a.foo = 1;
+//  ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
 }
 ''');
-
-    result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, [error(diag.assignmentToFinal, 36, 3)]);
 
     newFile(a.path, r'''
 class A {
@@ -466,23 +468,31 @@ class A {
 ''');
     fileResolver.changeFiles([a.path]);
 
-    result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, []);
+    await resolveFileWithDiagnostics(b, r'''
+import 'a.dart';
+
+void f(A a) {
+  a.foo = 1;
+}
+''');
   }
 
   test_changeFile_resolution_missingChangeFileForPart() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = getFile('/workspace/dart/test/lib/a.dart');
+    var b = getFile('/workspace/dart/test/lib/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 var b = B(0);
-''');
-
-    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
+//      ^
+// [diag.undefinedFunction] The function 'B' isn't defined.
+''',
+      b: r'''
 part of 'a.dart';
-''');
-
-    result = await resolveFile(a);
-    assertErrorsInResolvedUnit(result, [error(diag.undefinedFunction, 24, 1)]);
+''',
+    });
 
     // Update a.dart, and notify the resolver. We need this to have at least
     // one change, so that we decided to rebuild the library summary.
@@ -512,8 +522,20 @@ class B {
 
     // Notify the resolver about b.dart, it is OK now.
     fileResolver.changeFiles([b.path]);
-    result = await resolveFile(a);
-    assertErrorsInResolvedUnit(result, []);
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+var b = B(1);
+''',
+      b: r'''
+part of 'a.dart';
+
+class B {
+  B(int _);
+}
+''',
+    });
   }
 
   test_changePartFile_refreshedFiles() async {
@@ -846,13 +868,12 @@ analyzer:
     implicit-casts: false
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 num a = 0;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_analysisOptions_file_inPackage() async {
@@ -862,13 +883,12 @@ analyzer:
     implicit-casts: false
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 num a = 0;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_analysisOptions_file_inThirdParty() async {
@@ -884,15 +904,13 @@ analyzer:
     implicit-casts: true
 ''');
 
-    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
-    await assertErrorsInFile(
-      aPath,
-      r'''
+    var a = getFile('/workspace/third_party/dart/aaa/lib/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 num a = 0;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_analysisOptions_file_inThirdPartyDartLang() async {
@@ -908,15 +926,13 @@ analyzer:
     implicit-casts: true
 ''');
 
-    var aPath = convertPath('/workspace/third_party/dart_lang/aaa/lib/a.dart');
-    await assertErrorsInFile(
-      aPath,
-      r'''
+    var a = getFile('/workspace/third_party/dart_lang/aaa/lib/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 num a = 0;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_analysisOptions_lints() async {
@@ -926,26 +942,23 @@ linter:
     - omit_local_variable_types
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   int a = 0;
+//^^^
+// [diag.omitLocalVariableTypes] Unnecessary type annotation on a local variable.
   a;
 }
-''',
-      [error(diag.omitLocalVariableTypes, 11, 3)],
-    );
+''');
   }
 
   test_basic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 var b = 1 + 2;
 ''');
-    assertType(findElement2.topVar('a').type, 'int');
-    assertElement(findNode.namedType('int a').element, declaration: intElement);
-
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('a').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_dispose() async {
@@ -1025,28 +1038,20 @@ export 'dart:core' show dynamic;
 
     // Analyze, this will read the element model for `dart:core`.
     // There was a bug that `root::dart:core::dynamic` had no element set.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 p.dynamic f() {}
 ''');
   }
 
   Future<void> test_errors_hasNullSuffix() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 String f(Map<int, String> a) {
   return a[0];
+//       ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String?' can't be returned from the function 'f' because it has a return type of 'String'.
 }
-''',
-      [
-        error(
-          diag.returnOfInvalidTypeFromFunction,
-          40,
-          4,
-          messageContains: ["'String'", 'String?'],
-        ),
-      ],
-    );
+''');
   }
 
   test_findReferences_class() async {
@@ -1344,7 +1349,7 @@ void f(func o) {}
   }
 
   test_formalParameter_promotion() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   if (a != null) {
     a.isEven;
@@ -1352,45 +1357,39 @@ void f(int? a) {
 }
 ''');
 
-    assertType(findElement2.parameter('a').type, 'int?');
+    assertType(result.findElement.parameter('a').type, 'int?');
   }
 
   test_getErrors() async {
-    addTestFile(r'''
+    var result = await getErrorsWithDiagnostics(testFile, r'''
 var a = b;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 var foo = 0;
 ''');
 
-    var result = await getTestErrors();
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
-    assertErrorsInList(result.diagnostics, [
-      error(diag.undefinedIdentifier, 8, 1),
-    ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
 
   test_getErrors_docImports() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = getFile('$testPackageLibPath/b.dart');
+    await getErrorsWithDiagnostics(b, r'''
 /// @docImport 'a.dart';
 library;
 ''');
-
-    var errorsResult = await fileResolver.getErrors2(path: b.path);
-    assertErrorsInList(errorsResult.diagnostics, []);
   }
 
   test_getErrors_library() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await getErrorsWithDiagnostics(a, r'''
 var a = 42
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-
-    var errorsResult = await fileResolver.getErrors2(path: a.path);
-    assertErrorsInList(errorsResult.diagnostics, [
-      error(diag.expectedToken, 8, 2),
-    ]);
   }
 
   test_getErrors_part_hasLibrary() async {
@@ -1398,35 +1397,45 @@ var a = 42
 part 'b.dart';
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = getFile('$testPackageLibPath/b.dart');
+    await getErrorsWithDiagnostics(b, r'''
 part of 'a.dart';
 var a = 42
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-
-    var errorsResult = await fileResolver.getErrors2(path: b.path);
-    assertErrorsInList(errorsResult.diagnostics, [
-      error(diag.expectedToken, 26, 2),
-    ]);
   }
 
   test_getErrors_reuse() async {
-    addTestFile('var a = b;');
+    var unresolvedB = r'''
+var a = b;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
+''';
+
+    var unresolvedC = r'''
+var a = c;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'c'.
+''';
+
+    addTestFileWithDiagnosticExpectations(unresolvedB);
 
     // No resolved files yet.
     _assertResolvedFiles([]);
 
     // No cached, will resolve once.
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(unresolvedB);
     _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(unresolvedB);
     _assertResolvedFiles([]);
 
     // Change the file, will be resolved again.
-    addTestFile('var a = c;');
+    addTestFileWithDiagnosticExpectations(unresolvedC);
     fileResolver.changeFiles([testFile.path]);
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(unresolvedC);
     _assertResolvedFiles([testFile]);
   }
 
@@ -1435,20 +1444,31 @@ var a = 42
 var a = 0;
 ''');
 
-    addTestFile(r'''
+    var testCodeWhenAIsInt = r'''
 import 'a.dart';
 var b = a.foo;
-''');
+//        ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'int'.
+''';
+
+    var testCodeWhenAIsDouble = r'''
+import 'a.dart';
+var b = a.foo;
+//        ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'double'.
+''';
+
+    addTestFileWithDiagnosticExpectations(testCodeWhenAIsInt);
 
     // No resolved files yet.
     _assertResolvedFiles([]);
 
     // No cached, will resolve once.
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(testCodeWhenAIsInt);
     _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(testCodeWhenAIsInt);
     _assertResolvedFiles([]);
 
     // Change the dependency.
@@ -1458,12 +1478,12 @@ var b = a.foo;
 var a = 4.2;
 ''');
     fileResolver.changeFiles([a.path]);
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(testCodeWhenAIsDouble);
     _assertResolvedFiles([testFile]);
   }
 
   test_getFilesWithTopLevelDeclarations_cached() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 var b = 1 + 2;
 ''');
@@ -1522,11 +1542,10 @@ part of 'b.dart';
   }
 
   test_hint_in_third_party() async {
-    var a = newFile('/workspace/third_party/dart/aaa/lib/a.dart', r'''
+    var a = getFile('/workspace/third_party/dart/aaa/lib/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'dart:math';
 ''');
-    await resolveFile(a);
-    assertNoErrorsInResult();
   }
 
   test_linkLibraries() async {
@@ -1784,12 +1803,15 @@ byteStore
   1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
 
-    var result = await getTestErrors();
+    var result = await fileResolver.getErrors2(path: testFile.path);
     expect(result.path, testFile.path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
-    assertErrorsInList(result.diagnostics, [
-      error(diag.undefinedIdentifier, 8, 1),
-    ]);
+    assertDiagnosticsInCode(r'''
+var a = b;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
+var foo = 0;
+''', result.diagnostics);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
 
     // We created the library element for the test file, using the reader.
@@ -1843,18 +1865,18 @@ void f(A a) {
 }
 ''');
 
-    await resolveTestFile();
+    var result = await resolveTestFile();
     {
-      var element = findNode.simple('foo();').element!;
+      var element = result.findNode.simple('foo();').element!;
       expect(element.firstFragment.nameOffset, 17);
     }
 
     // New resolver.
     // Element models will be loaded from the cache.
     createFileResolver();
-    await resolveTestFile();
+    result = await resolveTestFile();
     {
-      var element = findNode.simple('foo();').element!;
+      var element = result.findNode.simple('foo();').element!;
       expect(element.firstFragment.nameOffset, 17);
     }
   }
@@ -1869,25 +1891,25 @@ import 'a.dart';
 var b = a;
 ''');
 
-    await resolveTestFile();
+    var result = await resolveTestFile();
     {
-      var element = findNode.simple('a;').element!;
+      var element = result.findNode.simple('a;').element!;
       expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
 
     // New resolver.
     // Element models will be loaded from the cache.
     createFileResolver();
-    await resolveTestFile();
+    result = await resolveTestFile();
     {
-      var element = findNode.simple('a;').element!;
+      var element = result.findNode.simple('a;').element!;
       expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
   }
 
   test_part_notInLibrary_libraryDoesNotExist() async {
     // TODO(scheglov): Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 ''');
   }
@@ -2399,7 +2421,7 @@ part of 'test.dart';
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 void f(A a) {}
@@ -2422,7 +2444,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of my.lib;
 
 void func() {
@@ -2447,7 +2469,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 
 void func() {
@@ -2469,8 +2491,8 @@ void func() {
     // No resolved files yet.
     _assertResolvedFiles([]);
 
-    await resolveFile2(testFile);
-    var result1 = result;
+    var result = await resolveFile2(testFile);
+    var result1 = result.analysisResult;
 
     // The file was resolved.
     _assertResolvedFiles([testFile]);
@@ -2479,22 +2501,22 @@ void func() {
     expect(fileResolver.cachedResults, contains(testFile.path));
 
     // Ask again, no changes, not resolved.
-    await resolveFile2(testFile);
+    result = await resolveFile2(testFile);
     _assertResolvedFiles([]);
 
     // The same result was returned.
-    expect(result, same(result1));
+    expect(result.analysisResult, same(result1));
 
     // Change a file.
     var a_path = convertPath('/workspace/dart/test/lib/a.dart');
     fileResolver.changeFiles([a_path]);
 
     // The was a change to a file, no matter which, resolve again.
-    await resolveFile2(testFile);
+    result = await resolveFile2(testFile);
     _assertResolvedFiles([testFile]);
 
     // Get should get a new result.
-    expect(result, isNot(same(result1)));
+    expect(result.analysisResult, isNot(same(result1)));
   }
 
   test_resolveLibrary() async {
@@ -2526,11 +2548,11 @@ void func() {
     newFile('/workspace/dart/aaa/BUILD', '');
     newFile('/workspace/dart/bbb/BUILD', '');
 
-    var aPath = '/workspace/dart/aaa/lib/a.dart';
-    var aResult = await assertErrorsInFile(aPath, '', []);
+    var a = getFile('/workspace/dart/aaa/lib/a.dart');
+    var aResult = await resolveFileWithDiagnostics(a, '');
 
-    var bPath = '/workspace/dart/bbb/lib/a.dart';
-    var bResult = await assertErrorsInFile(bPath, '', []);
+    var b = getFile('/workspace/dart/bbb/lib/a.dart');
+    var bResult = await resolveFileWithDiagnostics(b, '');
 
     // Both files use the same (default) analysis options.
     // So, when we resolve 'bbb', we can reuse the context after 'aaa'.
@@ -2541,7 +2563,7 @@ void func() {
   }
 
   test_switchCase_implementsEquals_enum() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum MyEnum {a, b, c}
 
 void f(MyEnum myEnum) {
@@ -2556,7 +2578,7 @@ void f(MyEnum myEnum) {
   }
 
   test_switchCase_implementsEquals_enum_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 enum MyEnum {a, b, c}
 
@@ -2572,21 +2594,19 @@ void f(MyEnum myEnum) {
   }
 
   test_unknown_uri() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo:bar';
-''',
-      [error(diag.uriDoesNotExist, 7, 9)],
-    );
+//     ^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'foo:bar'.
+''');
   }
 
   test_warning() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
-''',
-      [error(diag.unusedImport, 7, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+''');
   }
 
   void _assertResolvedFiles(List<File> expected, {bool andClear = true}) {

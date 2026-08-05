@@ -29,7 +29,7 @@ class _LibraryCollector extends RecursiveVisitor {
   final bool collectViaReferencesToo;
   Set<Library> allSeenLibraries = {};
 
-  _LibraryCollector({required this.collectViaReferencesToo});
+  new({required this.collectViaReferencesToo});
 
   @override
   void defaultNode(Node node) {

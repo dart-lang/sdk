@@ -35,17 +35,20 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
   virtual void VisitIsolate(Isolate* isolate) {
     isolate_ports_.Add(isolate->main_port());
     isolate_names_.Add(&String::Handle(zone_, String::New(isolate->name())));
+    isolate_is_system_.Add(Isolate::IsSystemIsolate(isolate));
     isolate->set_is_service_registered(true);
   }
 
   void RegisterIsolates() {
-    ServiceIsolate::RegisterRunningIsolates(isolate_ports_, isolate_names_);
+    ServiceIsolate::RegisterRunningIsolates(isolate_ports_, isolate_names_,
+                                            isolate_is_system_);
   }
 
  private:
   Zone* zone_;
   GrowableArray<Dart_Port> isolate_ports_;
   GrowableArray<const String*> isolate_names_;
+  GrowableArray<bool> isolate_is_system_;
   Function& register_function_;
   Isolate* service_isolate_;
 };
@@ -92,6 +95,13 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0, 0) {
   }
   Isolate::VisitIsolates(&register_isolates);
   register_isolates.RegisterIsolates();
+#endif
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(VMService_NotifyFinishedInitializing, 0, 0) {
+#ifndef PRODUCT
+  ServiceIsolate::NotifyFinishedInitializing();
 #endif
   return Object::null();
 }

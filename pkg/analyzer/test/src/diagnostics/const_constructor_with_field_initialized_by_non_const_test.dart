@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,7 +16,7 @@ main() {
 class ConstConstructorWithFieldInitializedByNonConstTest
     extends PubPackageResolutionTest {
   test_class_factoryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final List<int> list = f();
   const factory A() = B;
@@ -33,38 +32,35 @@ List<int> f() {
   }
 
   test_class_instanceField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int i = f();
+//              ^^^
+// [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
   const A();
+//^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'i' is initialized with a non-constant value.
 }
 int f() {
   return 3;
 }
-''',
-      [
-        error(diag.constEvalMethodInvocation, 26, 3),
-        error(diag.constConstructorWithFieldInitializedByNonConst, 33, 5),
-      ],
-    );
+''');
   }
 
   test_class_instanceField_asExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic y = 2;
 class A {
   const A();
+//^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'x' is initialized with a non-constant value.
   final x = y as num;
 }
-''',
-      [error(diag.constConstructorWithFieldInitializedByNonConst, 27, 5)],
-    );
+''');
   }
 
   test_class_staticField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static final int i = f();
   const A();
@@ -94,24 +90,22 @@ int f() {
   //   }
 
   test_enum_instanceField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final int i = f();
+//              ^^^
+// [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
   const E();
+//^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'i' is initialized with a non-constant value.
 }
 int f() => 0;
-''',
-      [
-        error(diag.constEvalMethodInvocation, 30, 3),
-        error(diag.constConstructorWithFieldInitializedByNonConst, 37, 5),
-      ],
-    );
+''');
   }
 
   test_enum_staticField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static final int i = f();
@@ -122,7 +116,7 @@ int f() => 0;
   }
 
   test_mixinClass_factory() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int e = 3;
 mixin class MixinClassFactory {
   final int foo = e;

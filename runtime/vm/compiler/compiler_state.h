@@ -127,7 +127,6 @@ class CompilerState : public ThreadStackResource {
   const Function& TypedListSetFloat64x2();
 
   const Class& ErrorClass();
-  const Class& TypedDataClass();
 
   const Field& ErrorStackTraceField();
 
@@ -174,7 +173,6 @@ class CompilerState : public ThreadStackResource {
   const Class* array_class_ = nullptr;
   const Class* compound_class_ = nullptr;
   const Class* struct_class_ = nullptr;
-  const Class* typed_data_class_ = nullptr;
   const Class* union_class_ = nullptr;
   const Field* compound_offset_in_bytes_field_ = nullptr;
   const Field* compound_typed_data_base_field_ = nullptr;

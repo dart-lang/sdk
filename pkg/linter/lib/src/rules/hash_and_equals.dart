@@ -18,7 +18,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
 class HashAndEquals extends AnalysisRule {
-  HashAndEquals() : super(name: LintNames.hash_and_equals, description: _desc);
+  new() : super(name: LintNames.hash_and_equals, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.hashAndEquals;
@@ -36,7 +36,7 @@ class HashAndEquals extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

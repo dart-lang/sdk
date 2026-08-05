@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/mixin_class_constructor.dart:14:3: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   Class4.named(); // Error
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/mixin_class_constructor.dart:18:3: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   Class5(); // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+mixin class Class1 extends core::Object {
+  constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+}
+mixin class Class2 extends core::Object {
+  constructor named() → self::Class2
+    : super core::Object::•()
+    ;
+}
+mixin class Class3 extends core::Object {
+  constructor •() → self::Class3
+    : super core::Object::•()
+    ;
+}
+mixin class Class4 extends core::Object {
+  constructor •() → self::Class4
+    : super core::Object::•()
+    ;
+  constructor named() → self::Class4
+    : super core::Object::•()
+    ;
+}
+mixin class Class5 extends core::Object {
+  constructor named() → self::Class5
+    : super core::Object::•()
+    ;
+  constructor •() → self::Class5
+    : super core::Object::•()
+    ;
+}

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,20 +18,19 @@ main() {
 class IllegalConcreteEnumMemberDeclarationClassTest
     extends PubPackageResolutionTest {
   test_hashCode_field_fromExtends() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int hashCode = 0;
 }
 
 abstract class B extends A implements Enum {}
-''',
-      [error(diag.illegalConcreteEnumMemberInheritance, 48, 1)],
-    );
+//             ^
+// [diag.illegalConcreteEnumMemberInheritance] A concrete instance member named 'hashCode' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_hashCode_field_fromImplements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int hashCode = 0;
 }
@@ -42,33 +40,31 @@ abstract class B implements A, Enum {}
   }
 
   test_hashCode_field_fromWith() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int hashCode = 0;
 }
 
 abstract class B with M implements Enum {}
-''',
-      [error(diag.illegalConcreteEnumMemberInheritance, 48, 1)],
-    );
+//             ^
+// [diag.illegalConcreteEnumMemberInheritance] A concrete instance member named 'hashCode' can't be inherited from 'M' in a class that implements 'Enum'.
+''');
   }
 
   test_hashCode_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get hashCode => 0;
 }
 
 abstract class B extends A implements Enum {}
-''',
-      [error(diag.illegalConcreteEnumMemberInheritance, 53, 1)],
-    );
+//             ^
+// [diag.illegalConcreteEnumMemberInheritance] A concrete instance member named 'hashCode' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_hashCode_getter_abstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get hashCode;
 }
@@ -78,7 +74,7 @@ abstract class B with M implements Enum {}
   }
 
   test_hashCode_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set hashCode(int _) {}
 }
@@ -88,20 +84,19 @@ abstract class B extends A implements Enum {}
   }
 
   test_operatorEqEq_fromExtends() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator ==(Object other) => false;
 }
 
 abstract class B extends A implements Enum {}
-''',
-      [error(diag.illegalConcreteEnumMemberInheritance, 71, 1)],
-    );
+//             ^
+// [diag.illegalConcreteEnumMemberInheritance] A concrete instance member named '==' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_operatorEqEq_fromImplements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator ==(Object other) => false;
 }
@@ -111,16 +106,15 @@ abstract class B implements A, Enum {}
   }
 
   test_operatorEqEq_fromWith() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   bool operator ==(Object other) => false;
 }
 
 abstract class B with M implements Enum {}
-''',
-      [error(diag.illegalConcreteEnumMemberInheritance, 71, 1)],
-    );
+//             ^
+// [diag.illegalConcreteEnumMemberInheritance] A concrete instance member named '==' can't be inherited from 'M' in a class that implements 'Enum'.
+''');
   }
 }
 
@@ -128,7 +122,7 @@ abstract class B with M implements Enum {}
 class IllegalConcreteEnumMemberDeclarationEnumTest
     extends PubPackageResolutionTest {
   test_hashCode_getter_fromImplements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get hashCode => 0;
 }
@@ -140,22 +134,21 @@ enum E implements A {
   }
 
   test_hashCode_getter_fromWith() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get hashCode => 0;
 }
 
 enum E with M {
+//   ^
+// [diag.illegalConcreteEnumMemberInheritance] A concrete instance member named 'hashCode' can't be inherited from 'M' in a class that implements 'Enum'.
   v;
 }
-''',
-      [error(diag.illegalConcreteEnumMemberInheritance, 43, 1)],
-    );
+''');
   }
 
   test_hashCode_setter_fromWith() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set hashCode(int _) {}
 }
@@ -167,7 +160,7 @@ enum E with M {
   }
 
   test_index_getter_fromImplements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get index => 0;
 }
@@ -179,22 +172,21 @@ enum E implements A {
   }
 
   test_index_getter_fromWith() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get index => 0;
 }
 
 enum E with M {
+//   ^
+// [diag.illegalConcreteEnumMemberInheritance] A concrete instance member named 'index' can't be inherited from 'M' in a class that implements 'Enum'.
   v;
 }
-''',
-      [error(diag.illegalConcreteEnumMemberInheritance, 40, 1)],
-    );
+''');
   }
 
   test_index_setter_fromWith() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set index(int _) {}
 }
@@ -206,7 +198,7 @@ enum E with M {
   }
 
   test_operatorEqEq_fromImplements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator ==(Object other) => false;
 }
@@ -218,18 +210,17 @@ enum E implements A {
   }
 
   test_operatorEqEq_fromWith() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   bool operator ==(Object other) => false;
 }
 
 enum E with M {
+//   ^
+// [diag.illegalConcreteEnumMemberInheritance] A concrete instance member named '==' can't be inherited from 'M' in a class that implements 'Enum'.
   v;
 }
-''',
-      [error(diag.illegalConcreteEnumMemberInheritance, 61, 1)],
-    );
+''');
   }
 }
 
@@ -237,7 +228,7 @@ enum E with M {
 class IllegalConcreteEnumMemberDeclarationMixinTest
     extends PubPackageResolutionTest {
   test_hashCode_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get hashCode => 0;
 }
@@ -247,7 +238,7 @@ mixin M on A implements Enum {}
   }
 
   test_hashCode_getter_abstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int get hashCode;
 }
@@ -257,7 +248,7 @@ mixin M on A implements Enum {}
   }
 
   test_hashCode_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set hashCode(int _) {}
 }
@@ -267,7 +258,7 @@ mixin M on A implements Enum {}
   }
 
   test_operatorEqEq() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator ==(Object other) => false;
 }

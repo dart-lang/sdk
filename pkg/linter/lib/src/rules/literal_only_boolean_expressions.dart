@@ -19,8 +19,8 @@ const _desc = r'Boolean expression composed only with literals.';
 bool _onlyLiterals(Expression? rawExpression) {
   var expression = rawExpression?.unParenthesized;
   if (expression is Literal) {
-    return expression is! StringLiteral ||
-        expression.computeConstantValue() != null;
+    if (expression is! StringLiteral) return true;
+    return expression.computeConstantValue()?.value != null;
   }
   if (expression is PrefixExpression) {
     return _onlyLiterals(expression.operand);
@@ -40,7 +40,7 @@ bool _onlyLiterals(Expression? rawExpression) {
 }
 
 class LiteralOnlyBooleanExpressions extends AnalysisRule {
-  LiteralOnlyBooleanExpressions()
+  new()
     : super(
         name: LintNames.literal_only_boolean_expressions,
         description: _desc,
@@ -66,7 +66,7 @@ class LiteralOnlyBooleanExpressions extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitDoStatement(DoStatement node) {

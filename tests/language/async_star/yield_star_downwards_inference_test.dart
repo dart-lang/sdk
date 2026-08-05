@@ -50,8 +50,28 @@ dynamic returnContextIsUnknown() {
   return g();
 }
 
+dynamic returnContextIsStreamUnknown() {
+  T f<T>(Stream<T> Function() g) => g() as T;
+  T h<T>() => A() as T;
+
+  var x = f(
+    // Context for `f(...)` is `_`, so context for this closure is
+    // `Stream<_> Function()`.
+    () async* {
+      // Downward inference context for the operand of `yield*` is `_`, so `h`
+      // is instantiated as `h<dynamic>`, hence the call to `..checkThisIsA()`
+      // is allowed (it's a dynamic invocation).
+      yield* h()..checkThisIsA();
+    },
+  );
+
+  // f() returns the yielded stream, so just return x.
+  return x;
+}
+
 main() async {
   await for (var _ in returnTypeIsDynamic()) {}
   await for (var _ in returnTypeIsStreamDynamic()) {}
   await for (var _ in returnContextIsUnknown()) {}
+  await for (var _ in returnContextIsStreamUnknown()) {}
 }

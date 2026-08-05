@@ -9,6 +9,8 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
 import '../builder/library_builder.dart';
+import '../source/stack_listener_impl.dart' show AsyncModifier;
+import 'external_ast_helper.dart' as extern;
 
 /// Data for clone default values for synthesized function nodes once the
 /// original default values have been computed.
@@ -45,7 +47,7 @@ class DelayedDefaultValueCloner {
   /// isn't performed twice.
   bool _hasCloned = false;
 
-  DelayedDefaultValueCloner(
+  new(
     this.original,
     this.synthesized, {
     this.identicalSignatures = true,
@@ -101,7 +103,7 @@ class DelayedDefaultValueCloner {
                  if (synthesized
                          .function!
                          .namedParameters[namedParameterIndex]
-                         .name ==
+                         .parameterName ==
                      namedSuperParameters[superParameterIndex]) {
                    ++superParameterIndex;
                  }
@@ -135,16 +137,16 @@ class DelayedDefaultValueCloner {
       List<int?>? positionalSuperParameters = _positionalSuperParameters;
       for (int i = 0; i < _original.positionalParameters.length; i++) {
         if (positionalSuperParameters == null) {
-          _cloneInitializer(
+          _cloneDefaultValue(
             _original.positionalParameters[i],
             _synthesized.positionalParameters[i],
           );
         } else if (i < positionalSuperParameters.length) {
           int? superParameterIndex = positionalSuperParameters[i];
           if (superParameterIndex != null) {
-            VariableDeclaration originalParameter =
+            PositionalParameter originalParameter =
                 _original.positionalParameters[i];
-            VariableDeclaration synthesizedParameter =
+            PositionalParameter synthesizedParameter =
                 _synthesized.positionalParameters[superParameterIndex];
             _cloneDefaultValueForSuperParameters(
               originalParameter,
@@ -166,25 +168,28 @@ class DelayedDefaultValueCloner {
       int superParameterNameIndex = 0;
       Map<String, int> originalNamedParameterIndices = {};
       for (int i = 0; i < _original.namedParameters.length; i++) {
-        originalNamedParameterIndices[_original.namedParameters[i].name!] = i;
+        originalNamedParameterIndices[_original
+                .namedParameters[i]
+                .parameterName] =
+            i;
       }
       for (int i = 0; i < _synthesized.namedParameters.length; i++) {
         if (namedSuperParameters == null) {
-          _cloneInitializer(
+          _cloneDefaultValue(
             _original.namedParameters[i],
             _synthesized.namedParameters[i],
           );
         } else if (superParameterNameIndex < namedSuperParameters.length &&
             namedSuperParameters[superParameterNameIndex] ==
-                _synthesized.namedParameters[i].name) {
+                _synthesized.namedParameters[i].parameterName) {
           String superParameterName =
               namedSuperParameters[superParameterNameIndex];
           int? originalNamedParameterIndex =
               originalNamedParameterIndices[superParameterName];
           if (originalNamedParameterIndex != null) {
-            VariableDeclaration originalParameter =
+            NamedParameter originalParameter =
                 _original.namedParameters[originalNamedParameterIndex];
-            VariableDeclaration synthesizedParameter =
+            NamedParameter synthesizedParameter =
                 _synthesized.namedParameters[i];
             _cloneDefaultValueForSuperParameters(
               originalParameter,
@@ -200,21 +205,22 @@ class DelayedDefaultValueCloner {
       }
     } else {
       for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
-        VariableDeclaration synthesizedParameter =
+        PositionalParameter synthesizedParameter =
             _synthesized.positionalParameters[i];
         if (i < _original.positionalParameters.length) {
           if (i >= _synthesized.requiredParameterCount) {
             if (i < _original.requiredParameterCount) {
               // Coverage-ignore-block(suite): Not run.
               // Error case: use `null` as initializer.
-              synthesizedParameter.initializer = new NullLiteral()
-                ..parent = synthesizedParameter;
+              synthesizedParameter.defaultValue = extern.createNullLiteral(
+                fileOffset: TreeNode.noOffset,
+              )..parent = synthesizedParameter;
               if (synthesizedParameter.type.nullability !=
                   Nullability.nullable) {
-                synthesizedParameter.isErroneouslyInitialized = true;
+                synthesizedParameter.hasErroneousDefaultValue = true;
               }
             } else {
-              _cloneInitializer(
+              _cloneDefaultValue(
                 _original.positionalParameters[i],
                 synthesizedParameter,
               );
@@ -223,39 +229,40 @@ class DelayedDefaultValueCloner {
         } else {
           if (i >= _synthesized.requiredParameterCount) {
             // Error case: use `null` as initializer.
-            synthesizedParameter.initializer = new NullLiteral()
-              ..parent = synthesizedParameter;
+            synthesizedParameter.defaultValue = extern.createNullLiteral(
+              fileOffset: TreeNode.noOffset,
+            )..parent = synthesizedParameter;
             if (synthesizedParameter.type.nullability != Nullability.nullable) {
               // Coverage-ignore-block(suite): Not run.
-              synthesizedParameter.isErroneouslyInitialized = true;
+              synthesizedParameter.hasErroneousDefaultValue = true;
             }
           }
         }
       }
       if (_synthesized.namedParameters.isNotEmpty) {
-        Map<String, VariableDeclaration> originalParameters = {};
+        Map<String, NamedParameter> originalParameters = {};
         for (int i = 0; i < _original.namedParameters.length; i++) {
-          originalParameters[_original.namedParameters[i].name!] =
+          originalParameters[_original.namedParameters[i].parameterName] =
               _original.namedParameters[i];
         }
         for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-          VariableDeclaration synthesizedParameter =
-              _synthesized.namedParameters[i];
-          VariableDeclaration? originalParameter =
-              originalParameters[synthesizedParameter.name!];
+          NamedParameter synthesizedParameter = _synthesized.namedParameters[i];
+          NamedParameter? originalParameter =
+              originalParameters[synthesizedParameter.parameterName];
           if (originalParameter != null) {
             if (!originalParameter.isRequired &&
                 !synthesizedParameter.isRequired) {
-              _cloneInitializer(originalParameter, synthesizedParameter);
+              _cloneDefaultValue(originalParameter, synthesizedParameter);
             }
           } else {
             if (!synthesizedParameter.isRequired) {
               // Error case: use `null` as initializer.
-              synthesizedParameter.initializer = new NullLiteral()
-                ..parent = synthesizedParameter;
+              synthesizedParameter.defaultValue = extern.createNullLiteral(
+                fileOffset: TreeNode.noOffset,
+              )..parent = synthesizedParameter;
               if (synthesizedParameter.type.nullability !=
                   Nullability.nullable) {
-                synthesizedParameter.isErroneouslyInitialized = true;
+                synthesizedParameter.hasErroneousDefaultValue = true;
               }
             }
           }
@@ -265,51 +272,53 @@ class DelayedDefaultValueCloner {
     _hasCloned = true;
   }
 
-  void _cloneInitializer(
-    VariableDeclaration originalParameter,
-    VariableDeclaration clonedParameter,
+  void _cloneDefaultValue(
+    FunctionParameter originalParameter,
+    FunctionParameter clonedParameter,
   ) {
-    if (originalParameter.initializer != null) {
+    if (originalParameter.defaultValue != null) {
       CloneVisitorNotMembers cloner = _cloner ??= new CloneVisitorNotMembers();
-      clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
-        ..parent = clonedParameter;
+      clonedParameter.defaultValue = cloner.clone(
+        originalParameter.defaultValue!,
+      )..parent = clonedParameter;
     }
-    clonedParameter.isErroneouslyInitialized |=
-        originalParameter.isErroneouslyInitialized;
+    clonedParameter.hasErroneousDefaultValue |=
+        originalParameter.hasErroneousDefaultValue;
   }
 
   void _cloneDefaultValueForSuperParameters(
-    VariableDeclaration originalParameter,
-    VariableDeclaration synthesizedParameter,
+    FunctionParameter originalParameter,
+    FunctionParameter synthesizedParameter,
     TypeEnvironment typeEnvironment, {
     required bool isOptional,
   }) {
-    Expression? originalParameterInitializer = originalParameter.initializer;
-    DartType? originalParameterInitializerType = originalParameterInitializer
+    Expression? originalParameterDefaultValue = originalParameter.defaultValue;
+    DartType? originalParameterDefaultValueType = originalParameterDefaultValue
         ?.getStaticType(new StaticTypeContext(synthesized, typeEnvironment));
     DartType synthesizedParameterType = synthesizedParameter.type;
-    if (originalParameterInitializerType != null &&
+    if (originalParameterDefaultValueType != null &&
         typeEnvironment.isSubtypeOf(
-          originalParameterInitializerType,
+          originalParameterDefaultValueType,
           synthesizedParameterType,
         )) {
-      _cloneInitializer(originalParameter, synthesizedParameter);
-    } else if (originalParameterInitializer == null && isOptional) {
-      synthesizedParameter.initializer = new NullLiteral()
-        ..parent = synthesizedParameter;
+      _cloneDefaultValue(originalParameter, synthesizedParameter);
+    } else if (originalParameterDefaultValue == null && isOptional) {
+      synthesizedParameter.defaultValue = extern.createNullLiteral(
+        fileOffset: TreeNode.noOffset,
+      )..parent = synthesizedParameter;
     } else {
-      synthesizedParameter.hasDeclaredInitializer = false;
+      synthesizedParameter.hasDeclaredDefaultValue = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
           diag.optionalSuperParameterWithoutInitializer.withArguments(
             superParameterType: synthesizedParameter.type,
-            superParameterName: synthesizedParameter.name!,
+            superParameterName: synthesizedParameter.cosmeticName!,
           ),
           synthesizedParameter.fileOffset,
-          synthesizedParameter.name?.length ?? 1,
+          synthesizedParameter.cosmeticName?.length ?? 1,
           synthesized.fileUri,
         );
-        synthesizedParameter.isErroneouslyInitialized = true;
+        synthesizedParameter.hasErroneousDefaultValue = true;
       }
     }
   }
@@ -328,7 +337,7 @@ class TypeDependency {
   final bool copyReturnType;
   bool _hasBeenInferred = false;
 
-  TypeDependency(
+  new(
     this.synthesized,
     this.original,
     this.substitution, {
@@ -338,29 +347,28 @@ class TypeDependency {
   void copyInferred() {
     if (_hasBeenInferred) return;
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
-      VariableDeclaration synthesizedParameter =
+      PositionalParameter synthesizedParameter =
           synthesized.function!.positionalParameters[i];
-      VariableDeclaration originalParameter =
+      PositionalParameter originalParameter =
           original.function!.positionalParameters[i];
       synthesizedParameter.type = substitution.substituteType(
         originalParameter.type,
       );
-      if (!synthesizedParameter.hasDeclaredInitializer) {
-        synthesizedParameter.hasDeclaredInitializer =
-            originalParameter.hasDeclaredInitializer;
+      if (!synthesizedParameter.hasDeclaredDefaultValue) {
+        synthesizedParameter.hasDeclaredDefaultValue =
+            originalParameter.hasDeclaredDefaultValue;
       }
     }
     for (int i = 0; i < original.function!.namedParameters.length; i++) {
-      VariableDeclaration synthesizedParameter =
+      NamedParameter synthesizedParameter =
           synthesized.function!.namedParameters[i];
-      VariableDeclaration originalParameter =
-          original.function!.namedParameters[i];
+      NamedParameter originalParameter = original.function!.namedParameters[i];
       synthesizedParameter.type = substitution.substituteType(
         originalParameter.type,
       );
-      if (!synthesizedParameter.hasDeclaredInitializer) {
-        synthesizedParameter.hasDeclaredInitializer =
-            originalParameter.hasDeclaredInitializer;
+      if (!synthesizedParameter.hasDeclaredDefaultValue) {
+        synthesizedParameter.hasDeclaredDefaultValue =
+            originalParameter.hasDeclaredDefaultValue;
       }
     }
     if (copyReturnType) {
@@ -390,20 +398,20 @@ void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {
 extension FunctionNodeExtension on FunctionNode {
   void registerFunctionBody(
     Statement body, {
-    AsyncMarker asyncMarker = AsyncMarker.Sync,
+    AsyncModifier asyncModifier = AsyncModifier.implicitSync,
     DartType? emittedValueType = null,
   }) {
     assert(
-      !(asyncMarker == AsyncMarker.Sync && emittedValueType != null),
+      !(asyncModifier.kind == AsyncMarker.Sync && emittedValueType != null),
       "Unexpected emitted value type for sync function.",
     );
     assert(
-      !(asyncMarker != AsyncMarker.Sync && emittedValueType == null),
+      !(asyncModifier.kind != AsyncMarker.Sync && emittedValueType == null),
       "Missing emitted value type for non-sync function.",
     );
     this.body = body..parent = this;
-    this.asyncMarker = asyncMarker;
-    this.dartAsyncMarker = asyncMarker;
+    this.asyncMarker = asyncModifier.kind;
+    this.dartAsyncMarker = asyncModifier.kind;
     this.emittedValueType = emittedValueType;
   }
 }

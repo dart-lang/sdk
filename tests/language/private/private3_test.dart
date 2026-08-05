@@ -6,6 +6,7 @@
 library Private3Test.dart;
 
 import "package:expect/expect.dart";
+
 import "lib.dart";
 
 part "main.dart";

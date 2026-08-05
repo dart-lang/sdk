@@ -10,8 +10,8 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 
 import '../../../../../abstract_single_unit.dart';
 import '../fix_processor.dart';
@@ -68,7 +68,7 @@ mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
   }
 

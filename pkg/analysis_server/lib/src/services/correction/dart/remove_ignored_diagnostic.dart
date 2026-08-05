@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class RemoveIgnoredDiagnostic extends ResolvedCorrectionProducer {
   String _diagnosticName = '';
-  RemoveIgnoredDiagnostic({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

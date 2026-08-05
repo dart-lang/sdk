@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:devtools_shared/devtools_test_utils.dart';
 import 'package:test/test.dart';
 
 import 'utils/server_driver.dart';
@@ -57,49 +56,6 @@ void main() {
         expect(serverResponse['clients'], hasLength(1));
       }, timeout: const Timeout.factor(20));
 
-      test('Server does not reuse DevTools instance if embedded', () async {
-        // Register the VM.
-        await testController.send(
-          'vm.register',
-          {'uri': testController.appFixture.serviceUri.toString()},
-        );
-
-        // Spawn an embedded version of DevTools in a browser.
-        final event = await testController.serverStartedEvent.future;
-        final devToolsUri =
-            'http://${event['params']['host']}:${event['params']['port']}';
-        final launchUrl = '$devToolsUri/?embed=true&page=logging'
-            '&uri=${Uri.encodeQueryComponent(testController.appFixture.serviceUri.toString())}';
-        final chrome = await Chrome.locate()!.start(url: launchUrl);
-        try {
-          {
-            final serverResponse = await testController.waitForClients(
-              requiredConnectionState: true,
-            );
-            expect(serverResponse['clients'], hasLength(1));
-          }
-
-          // Send a request to the server to launch and ensure it did
-          // not reuse the existing connection. Launch it on a different page
-          // so we can easily tell once this one has connected.
-          final launchResponse = await testController.sendLaunchDevToolsRequest(
-            useVmService: useVmService,
-            reuseWindows: true,
-            page: 'memory',
-          );
-          expect(launchResponse['reused'], isFalse);
-
-          // Ensure there's now two connections.
-          final serverResponse = await testController.waitForClients(
-            requiredConnectionState: true,
-            requiredPage: 'memory',
-          );
-          expect(serverResponse['clients'], hasLength(2));
-        } finally {
-          chrome.kill();
-        }
-      }, timeout: const Timeout.factor(20));
-
       test('does not reuse if browser was terminated (unresponsive ping)',
           () async {
         // Register the VM.
@@ -114,17 +70,19 @@ void main() {
             'http://${event['params']['host']}:${event['params']['port']}';
         final launchUrl = '$devToolsUri/?page=logging'
             '&uri=${Uri.encodeQueryComponent(testController.appFixture.serviceUri.toString())}';
-        final chrome = await Chrome.locate()!.start(url: launchUrl);
+        final chromeProcess = await testController.launchChrome(launchUrl);
         try {
           {
             final serverResponse = await testController.waitForClients(
               requiredConnectionState: true,
+              useLongTimeout: true,
             );
             expect(serverResponse['clients'], hasLength(1));
           }
 
           // Terminate the browser to prevent it responding to future pings.
-          chrome.kill();
+          chromeProcess.kill();
+          await chromeProcess.exitCode;
 
           // Send a request to the server to launch and ensure it did
           // not reuse the existing connection. Launch it on a different page
@@ -143,7 +101,7 @@ void main() {
           );
           expect(serverResponse['clients'], hasLength(2));
         } finally {
-          chrome.kill();
+          chromeProcess.kill();
         }
       }, timeout: const Timeout.factor(20));
 

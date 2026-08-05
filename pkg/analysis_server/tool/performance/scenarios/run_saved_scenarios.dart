@@ -19,11 +19,13 @@ void main(List<String> args) async {
     return;
   }
   var scenarioNames = parsed.multiOption('scenario');
+  var timeout = Duration(seconds: int.parse(parsed.option('timeout')!));
+  var verbose = parsed.wasParsed('verbose');
   for (var scenario in scenarios) {
     if (scenarioNames.isNotEmpty && !scenarioNames.contains(scenario.name)) {
       continue;
     }
-    await scenario.run(Duration(seconds: int.parse(parsed.option('timeout')!)));
+    await scenario.run(timeout, verbose: verbose);
   }
 }
 
@@ -44,6 +46,7 @@ final argParser = ArgParser()
     help: 'Number of seconds to wait for analyzer responses',
     defaultsTo: '30',
   )
+  ..addFlag('verbose', abbr: 'v')
   ..addFlag('help');
 
 final logsRoot = analysisServerRoot.resolve(

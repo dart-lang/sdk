@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Self extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Self
+    : super core::Object::•()
+    ;
+}
+class Base extends core::Object {
+  constructor •(core::int x) → self::Base
+    : super core::Object::•()
+    ;
+}
+class MyComponent extends self::Base {
+  @#C1
+  final field core::int? x;
+  constructor •(@#C1 final initializing-formal core::int? x) → self::MyComponent
+    : self::MyComponent::x = x, super self::Base::•(42)
+    ;
+}
+
+constants  {
+  #C1 = self::Self {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///parameter_annotation.dart:
+- Self. (from org-dartlang-testcase:///parameter_annotation.dart:5:17)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

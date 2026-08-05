@@ -15,7 +15,7 @@ class LegacyPluginsPage extends DiagnosticPageWithNav {
   @override
   AnalysisServer server;
 
-  LegacyPluginsPage(DiagnosticsSite site, this.server)
+  new(DiagnosticsSite site, this.server)
     : super(
         site,
         'legacy-plugins',

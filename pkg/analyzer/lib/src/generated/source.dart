@@ -5,30 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:path/path.dart' as path;
-
-/// Base class providing implementations for the methods in [Source] that don't
-/// require filesystem access.
-abstract class BasicSource extends Source {
-  @override
-  final Uri uri;
-
-  BasicSource(this.uri);
-
-  @override
-  String get fullName => '$uri';
-
-  @override
-  int get hashCode => uri.hashCode;
-
-  @override
-  String get shortName => path.basename(fullName);
-
-  @override
-  bool operator ==(Object other) => other is Source && other.uri == uri;
-}
 
 /// Instances of the class `DartUriResolver` resolve `dart` URI's.
 class DartUriResolver extends UriResolver {
@@ -67,47 +44,6 @@ class DartUriResolver extends UriResolver {
   static bool isDartUri(Uri uri) => uri.isScheme(DART_SCHEME);
 }
 
-/// An implementation of an non-existing [Source].
-class NonExistingSource extends Source {
-  static final unknown = NonExistingSource(
-    '/unknown.dart',
-    path.toUri('/unknown.dart'),
-  );
-
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  NonExistingSource(this.fullName, this.uri);
-
-  @override
-  TimestampedData<String> get contents {
-    throw UnsupportedError('$fullName does not exist.');
-  }
-
-  @override
-  int get hashCode => fullName.hashCode;
-
-  @override
-  String get shortName => path.basename(fullName);
-
-  @override
-  bool operator ==(Object other) {
-    if (other is NonExistingSource) {
-      return other.uri == uri && other.fullName == fullName;
-    }
-    return false;
-  }
-
-  @override
-  bool exists() => false;
-
-  @override
-  String toString() => 'NonExistingSource($uri, $fullName)';
-}
-
 /// Instances of the class `SourceFactory` resolve possibly relative URI's
 /// against an existing [Source].
 abstract class SourceFactory {
@@ -122,9 +58,9 @@ abstract class SourceFactory {
   ///         there is no such SDK
   DartSdk? get dartSdk;
 
-  /// A table mapping package names to paths of directories containing the
+  /// A table mapping package names to the path of the directory containing the
   /// package (or `null` if there is no registered package URI resolver).
-  Map<String, List<Folder>>? get packageMap;
+  Map<String, Folder>? get packageMap;
 
   /// Return a source object representing the given absolute URI, or `null` if
   /// the URI is not a valid URI or if it is not an absolute URI.

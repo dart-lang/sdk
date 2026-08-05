@@ -12,7 +12,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 class FlutterWidgetPreviewsHandler
     extends
         SharedMessageHandler<TextDocumentIdentifier, FlutterWidgetPreviews?> {
-  FlutterWidgetPreviewsHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.getFlutterWidgetPreviews;
@@ -95,7 +95,7 @@ class FlutterWidgetPreviewsHandler
 
 class WorkspaceFlutterWidgetPreviewsHandler
     extends SharedMessageHandler<void, FlutterWidgetPreviews?> {
-  WorkspaceFlutterWidgetPreviewsHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.getWorkspaceFlutterWidgetPreviews;

@@ -19,6 +19,8 @@
 
 namespace dart {
 
+class Zone;
+
 #if defined(DART_PRECOMPILER) || defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
 
 class OffsetsTable : public ZoneObject {

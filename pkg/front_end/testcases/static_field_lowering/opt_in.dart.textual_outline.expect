@@ -22,15 +22,15 @@ int nonNullableFinalTopLevelFieldWithInitializer2Init = 0;
 
 final int nonNullableFinalTopLevelFieldWithInitializer2 =
     nonNullableFinalTopLevelFieldWithInitializer2Init++ == 0
-        ? nonNullableFinalTopLevelFieldWithInitializer2 + 1
-        : 87;
+    ? nonNullableFinalTopLevelFieldWithInitializer2 + 1
+    : 87;
 
 int nullableFinalTopLevelFieldWithInitializer2Init = 0;
 
 final int? nullableFinalTopLevelFieldWithInitializer2 =
     nullableFinalTopLevelFieldWithInitializer2Init++ == 0
-        ? nullableFinalTopLevelFieldWithInitializer2! + 1
-        : 32;
+    ? nullableFinalTopLevelFieldWithInitializer2! + 1
+    : 32;
 
 class Class {
   static const int staticConstField = 123;
@@ -46,13 +46,13 @@ class Class {
   static int nonNullableStaticFinalFieldWithInitializer2Init = 0;
   static final int nonNullableStaticFinalFieldWithInitializer2 =
       nonNullableStaticFinalFieldWithInitializer2Init++ == 0
-          ? nonNullableStaticFinalFieldWithInitializer2 + 1
-          : 87;
+      ? nonNullableStaticFinalFieldWithInitializer2 + 1
+      : 87;
   static int nullableStaticFinalFieldWithInitializer2Init = 0;
   static final int? nullableStaticFinalFieldWithInitializer2 =
       nullableStaticFinalFieldWithInitializer2Init++ == 0
-          ? nullableStaticFinalFieldWithInitializer2! + 1
-          : 32;
+      ? nullableStaticFinalFieldWithInitializer2! + 1
+      : 32;
 }
 
 main() {}

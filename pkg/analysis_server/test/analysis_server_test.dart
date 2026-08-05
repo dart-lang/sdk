@@ -15,8 +15,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -162,10 +162,10 @@ class X extends A with M {}
 
     // Write both packages, in two events so that the first one will trigger
     // a rebuild.
-    config.add(name: 'foo', rootPath: fooLibFolder.parent.path);
+    config.add(name: 'foo', rootFolder: fooLibFolder.parent);
     writePackageConfig(projectPackageConfigFile, config);
     await pumpEventQueue(times: 1); // Allow server to begin processing.
-    config.add(name: 'bar', rootPath: barLibFolder.parent.path);
+    config.add(name: 'bar', rootFolder: barLibFolder.parent);
     writePackageConfig(projectPackageConfigFile, config);
 
     // Eventually the errors are gone.
@@ -351,7 +351,7 @@ analyzer:
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(pathContext: pathContext));
+    newFile(path, config.toContent());
   }
 
   /// Creates a simple package named [name] with [content] in the file at

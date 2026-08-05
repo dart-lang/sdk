@@ -7,7 +7,7 @@
 /// error for a duplicate field, but we test it explicitly to make sure
 /// implementations are checking that for private named parameters.)
 
-// SharedOptions=--enable-experiment=private-named-parameters,primary-constructors
+// SharedOptions=--enable-experiment=primary-constructors
 
 import 'package:expect/expect.dart';
 
@@ -20,44 +20,50 @@ class C1({required final String _foo}) {
 }
 
 /// Collide with previous private declaring parameter.
-class C2({required final String _foo, required final String _foo}) {}
-//                                                          ^^^^
-// [analyzer] unspecified
-// [cfe] '_foo' is already declared in this scope.
-// [cfe] Duplicated parameter name '_foo'.
+class C2({required final String _foo, required final String _foo}) {
+  //                                                        ^^^^
+  // [analyzer] unspecified
+  // [cfe] '_foo' is already declared in this scope.
+  // [cfe] Duplicated parameter name '_foo'.
+}
 
 /// Collide with previous public declaring parameter.
-class C3({required final String foo, required final String _foo}) {}
-//                                                         ^^^^
-// [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME
-// [cfe] The corresponding public name 'foo' is already the name of another parameter.
+class C3({required final String foo, required final String _foo}) {
+  //                                                       ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME
+  // [cfe] The corresponding public name 'foo' is already the name of another parameter.
+}
 
 /// Collide with previous private named parameter.
-class C4({String? _foo, required final String _foo}) {}
-//                ^^^^
-// [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
-// [cfe] A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
-//                                            ^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] Duplicated parameter name '_foo'.
+class C4({String? _foo, required final String _foo}) {
+  //              ^^^^
+  // [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
+  // [cfe] A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+  //                                          ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] Duplicated parameter name '_foo'.
+}
 
 /// Collide with previous public named parameter.
-class C5({String? foo, required final String _foo}) {}
-//                                           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME
-// [cfe] The corresponding public name 'foo' is already the name of another parameter.
+class C5({String? foo, required final String _foo}) {
+  //                                         ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME
+  // [cfe] The corresponding public name 'foo' is already the name of another parameter.
+}
 
 /// Collide with previous private positional parameter.
-class C6(String _foo, {required final String _foo}) {}
-//                                           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] Duplicated parameter name '_foo'.
+class C6(String _foo, {required final String _foo}) {
+  //                                         ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] Duplicated parameter name '_foo'.
+}
 
 /// Collide with previous public positional parameter.
-class C7(String? foo, {required final String _foo}) {}
-//                                           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME
-// [cfe] The corresponding public name 'foo' is already the name of another parameter.
+class C7(String? foo, {required final String _foo}) {
+  //                                         ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME
+  // [cfe] The corresponding public name 'foo' is already the name of another parameter.
+}
 
 /// Collide with previous private initializing formal.
 class C8(this._foo, {required final String _foo}) {
@@ -79,18 +85,20 @@ class C9(this.foo, {required final String _foo}) {
 }
 
 /// Collide with later private named parameter.
-class C10({required final String _foo, String? _foo}) {}
-//                                             ^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
-// [cfe] A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
-// [cfe] Duplicated parameter name '_foo'.
+class C10({required final String _foo, String? _foo}) {
+  //                                           ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
+  // [cfe] A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+  // [cfe] Duplicated parameter name '_foo'.
+}
 
 /// Collide with later public named parameter.
-class C11({required final String _foo, String? foo}) {}
-//                               ^^^^
-// [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME
-// [cfe] The corresponding public name 'foo' is already the name of another parameter.
+class C11({required final String _foo, String? foo}) {
+  //                             ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME
+  // [cfe] The corresponding public name 'foo' is already the name of another parameter.
+}
 
 /// Collide with later private initializing formal.
 class C12({required final String _foo, required this._foo}) {

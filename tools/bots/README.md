@@ -8,6 +8,16 @@ integration and testing infrastructure.
 The file `test_matrix.json` defines the test configurations run by Dart's CI
 infrastructure. Changes to the test matrix affect all builds that include them.
 
+The `test_matrix.json` is mainly used by:
+
+* recipes find out which build & test steps to run on CI for a builder, see
+  [recipes]
+* actual test runner to find out information about a test configurations, see
+  [test_runner]
+
+[recipes] https://dart.googlesource.com/recipes/+/refs/heads/main/recipe_modules/dart/api.py
+[test_runner] pkg/test_runner/lib/
+
 ### Structure
 
 The test matrix is a JSON document and consists of the `"filesets"` object, the

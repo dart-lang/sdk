@@ -473,21 +473,110 @@ File* File::OpenStdio(int fd) {
   return new File(new FileHandle(stdio_fd));
 }
 
-static bool StatHelper(const wchar_t* path, struct __stat64* st) {
-  int stat_status = _wstat64(path, st);
-  if (stat_status != 0) {
+static BOOL GetReparsePointTag(const wchar_t* path, DWORD* tag) {
+  WIN32_FIND_DATA data;
+  HANDLE result = FindFirstFileW(path, &data);
+  if (result == INVALID_HANDLE_VALUE) {
+    return FALSE;
+  }
+  FindClose(result);
+
+  if ((data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    // The meaning of |dwReserved0| is documented in
+    // https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-point-tags
+    *tag = data.dwReserved0;
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+static bool ResolveReparsePoint(
+    const wchar_t* path,
+    WIN32_FILE_ATTRIBUTE_DATA* attr_data,
+    std::unique_ptr<wchar_t[]>* resolved_path = nullptr) {
+  HANDLE target_handle = CreateFileW(
+      path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+      OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+  if (target_handle == INVALID_HANDLE_VALUE) {
     return false;
   }
-  if ((st->st_mode & S_IFMT) != S_IFREG) {
-    SetLastError(ERROR_NOT_SUPPORTED);
+  BY_HANDLE_FILE_INFORMATION info;
+  bool success = GetFileInformationByHandle(target_handle, &info);
+  if (success) {
+    attr_data->dwFileAttributes = info.dwFileAttributes;
+    attr_data->ftCreationTime = info.ftCreationTime;
+    attr_data->ftLastAccessTime = info.ftLastAccessTime;
+    attr_data->ftLastWriteTime = info.ftLastWriteTime;
+    attr_data->nFileSizeHigh = info.nFileSizeHigh;
+    attr_data->nFileSizeLow = info.nFileSizeLow;
+
+    if (resolved_path != nullptr) {
+      wchar_t dummy_buffer[1];
+      int required_size = GetFinalPathNameByHandle(target_handle, dummy_buffer,
+                                                   0, VOLUME_NAME_DOS);
+      if (required_size > 0) {
+        auto target_path = std::make_unique<wchar_t[]>(required_size);
+        int result_size = GetFinalPathNameByHandle(
+            target_handle, target_path.get(), required_size, VOLUME_NAME_DOS);
+        if (result_size > 0 && result_size < required_size) {
+          *resolved_path = std::move(target_path);
+        }
+      }
+    }
+  }
+  CloseHandle(target_handle);
+  return success;
+}
+
+static File::Type GetTypeAndAttributes(
+    const wchar_t* path,
+    bool follow_links,
+    WIN32_FILE_ATTRIBUTE_DATA* attr_data,
+    std::unique_ptr<wchar_t[]>* resolved_path = nullptr) {
+  if (!GetFileAttributesExW(path, GetFileExInfoStandard, attr_data)) {
+    return File::kDoesNotExist;
+  }
+  if ((attr_data->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    DWORD tag;
+    if (!GetReparsePointTag(path, &tag)) {
+      return File::kDoesNotExist;
+    }
+    if (tag == IO_REPARSE_TAG_AF_UNIX) {
+      return File::kIsSock;
+    }
+    if (follow_links) {
+      if (!ResolveReparsePoint(path, attr_data, resolved_path)) {
+        return File::kDoesNotExist;
+      }
+      return ((attr_data->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+                 ? File::kIsDirectory
+                 : File::kIsFile;
+    } else {
+      return File::kIsLink;
+    }
+  }
+  return ((attr_data->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+             ? File::kIsDirectory
+             : File::kIsFile;
+}
+
+static bool StatHelper(const wchar_t* path,
+                       WIN32_FILE_ATTRIBUTE_DATA* attr_data) {
+  File::Type type =
+      GetTypeAndAttributes(path, /*follow_links=*/true, attr_data);
+  if (type == File::kDoesNotExist || type == File::kIsDirectory) {
+    if (type == File::kIsDirectory) {
+      SetLastError(ERROR_NOT_SUPPORTED);
+    }
     return false;
   }
   return true;
 }
 
 static bool FileExists(const wchar_t* path) {
-  struct __stat64 st;
-  return StatHelper(path, &st);
+  WIN32_FILE_ATTRIBUTE_DATA attr_data;
+  return StatHelper(path, &attr_data);
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
@@ -858,12 +947,13 @@ bool File::Copy(Namespace* namespc,
 }
 
 int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
-  struct __stat64 st;
+  WIN32_FILE_ATTRIBUTE_DATA attr_data;
   const auto path = ToWinAPIPath(name);
-  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
+  if (path.get() == nullptr || !StatHelper(path.get(), &attr_data)) {
     return -1;
   }
-  return st.st_size;
+  return (static_cast<int64_t>(attr_data.nFileSizeHigh) << 32) |
+         attr_data.nFileSizeLow;
 }
 
 const char* File::LinkTarget(Namespace* namespc,
@@ -959,90 +1049,117 @@ const char* File::LinkTarget(Namespace* namespc,
   return dest;
 }
 
+static int AttributesToStatMode(DWORD attributes, const wchar_t* path) {
+  int mode = 0;
+  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+    mode |= S_IFDIR | S_IREAD | S_IEXEC;
+    if ((attributes & FILE_ATTRIBUTE_READONLY) == 0) {
+      mode |= S_IWRITE;
+    }
+  } else {
+    mode |= S_IFREG | S_IREAD;
+    if ((attributes & FILE_ATTRIBUTE_READONLY) == 0) {
+      mode |= S_IWRITE;
+    }
+    if (path != nullptr) {
+      size_t len = wcslen(path);
+      if (len >= 4) {
+        // Replicating _stat behavior: mark executable if the file
+        // has an executable extension.
+        const wchar_t* ext = path + len - 4;
+        if (_wcsicmp(ext, L".exe") == 0 || _wcsicmp(ext, L".com") == 0 ||
+            _wcsicmp(ext, L".bat") == 0 || _wcsicmp(ext, L".cmd") == 0) {
+          mode |= S_IEXEC;
+        }
+      }
+    }
+  }
+  // Replicate the owner's read, write, and execute permissions to replicate
+  // POSIX stat(2) behavior, as WindowsACL is not supported.
+  mode |= (mode & 0700) >> 3;
+  mode |= (mode & 0700) >> 6;
+  return mode;
+}
+
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
   const auto path = ToWinAPIPath(name);
   if (path.get() == nullptr) {
     data[kType] = File::kDoesNotExist;
     return;
   }
-  File::Type type = GetType(path.get(), /*follow_links=*/true);
+  WIN32_FILE_ATTRIBUTE_DATA attr_data;
+  std::unique_ptr<wchar_t[]> resolved_path;
+  File::Type type = GetTypeAndAttributes(path.get(), /*follow_links=*/true,
+                                         &attr_data, &resolved_path);
   data[kType] = type;
-  if (type != kDoesNotExist) {
-    struct _stat64 st;
-    int stat_status = _wstat64(path.get(), &st);
-    if (stat_status == 0) {
-      data[kCreatedTime] = st.st_ctime * 1000;
-      data[kModifiedTime] = st.st_mtime * 1000;
-      data[kAccessedTime] = st.st_atime * 1000;
-      data[kMode] = st.st_mode;
-      data[kSize] = st.st_size;
-    } else {
-      data[kType] = File::kDoesNotExist;
-    }
+  if (type != File::kDoesNotExist) {
+    data[kCreatedTime] = FileTimeToMicroseconds(attr_data.ftCreationTime);
+    data[kModifiedTime] = FileTimeToMicroseconds(attr_data.ftLastWriteTime);
+    data[kAccessedTime] = FileTimeToMicroseconds(attr_data.ftLastAccessTime);
+    const wchar_t* stat_path =
+        (resolved_path != nullptr) ? resolved_path.get() : path.get();
+    data[kMode] = AttributesToStatMode(attr_data.dwFileAttributes, stat_path);
+    data[kSize] = (static_cast<int64_t>(attr_data.nFileSizeHigh) << 32) |
+                  attr_data.nFileSizeLow;
   }
 }
 
-time_t File::LastAccessed(Namespace* namespc, const char* name) {
-  struct __stat64 st;
+int64_t File::LastAccessed(Namespace* namespc, const char* name) {
+  WIN32_FILE_ATTRIBUTE_DATA attr_data;
   const auto path = ToWinAPIPath(name);
-  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
+  if (path.get() == nullptr || !StatHelper(path.get(), &attr_data)) {
     return -1;
   }
-  return st.st_atime;
+  return FileTimeToMicroseconds(attr_data.ftLastAccessTime);
 }
 
-time_t File::LastModified(Namespace* namespc, const char* name) {
-  struct __stat64 st;
+int64_t File::LastModified(Namespace* namespc, const char* name) {
+  WIN32_FILE_ATTRIBUTE_DATA attr_data;
   const auto path = ToWinAPIPath(name);
-  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
+  if (path.get() == nullptr || !StatHelper(path.get(), &attr_data)) {
     return -1;
   }
-  return st.st_mtime;
+  return FileTimeToMicroseconds(attr_data.ftLastWriteTime);
 }
 
-bool File::SetLastAccessed(Namespace* namespc,
-                           const char* name,
-                           int64_t millis) {
-  struct __stat64 st;
-  const auto path = ToWinAPIPath(name);
-  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
-    return false;
-  }
-
-  // _utime and related functions set the access and modification times of the
-  // affected file. Even if the specified modification time is not changed
-  // from the current value, _utime will trigger a file modification event
-  // (e.g. ReadDirectoryChangesW will report the file as modified).
-  //
-  // So set the file access time directly using SetFileTime.
-  FILETIME at = GetFiletimeFromMillis(millis);
+static bool SetFileTimeHelper(const wchar_t* path,
+                              const FILETIME* lpLastAccessTime,
+                              const FILETIME* lpLastWriteTime) {
   HANDLE file_handle =
-      CreateFileW(path.get(), FILE_WRITE_ATTRIBUTES,
+      CreateFileW(path, FILE_WRITE_ATTRIBUTES,
                   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                   nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
   if (file_handle == INVALID_HANDLE_VALUE) {
     return false;
   }
-  bool result = SetFileTime(file_handle, nullptr, &at, nullptr);
+  bool result =
+      SetFileTime(file_handle, nullptr, lpLastAccessTime, lpLastWriteTime);
   CloseHandle(file_handle);
   return result;
 }
 
-bool File::SetLastModified(Namespace* namespc,
+bool File::SetLastAccessed(Namespace* namespc,
                            const char* name,
-                           int64_t millis) {
-  // First get the current times.
-  struct __stat64 st;
+                           int64_t micros) {
+  WIN32_FILE_ATTRIBUTE_DATA attr_data;
   const auto path = ToWinAPIPath(name);
-  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
+  if (path.get() == nullptr || !StatHelper(path.get(), &attr_data)) {
     return false;
   }
+  FILETIME at = GetFiletimeFromMicros(micros);
+  return SetFileTimeHelper(path.get(), &at, nullptr);
+}
 
-  // Set the new time:
-  struct __utimbuf64 times;
-  times.actime = st.st_atime;
-  times.modtime = millis / kMillisecondsPerSecond;
-  return _wutime64(path.get(), &times) == 0;
+bool File::SetLastModified(Namespace* namespc,
+                           const char* name,
+                           int64_t micros) {
+  WIN32_FILE_ATTRIBUTE_DATA attr_data;
+  const auto path = ToWinAPIPath(name);
+  if (path.get() == nullptr || !StatHelper(path.get(), &attr_data)) {
+    return false;
+  }
+  FILETIME mt = GetFiletimeFromMicros(micros);
+  return SetFileTimeHelper(path.get(), nullptr, &mt);
 }
 
 // Keep this function synchronized with the behavior
@@ -1134,65 +1251,9 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kPipe;
 }
 
-static BOOL GetReparsePointTag(const wchar_t* path, DWORD* tag) {
-  WIN32_FIND_DATA data;
-  HANDLE result = FindFirstFileW(path, &data);
-  if (result == INVALID_HANDLE_VALUE) {
-    return FALSE;
-  }
-  FindClose(result);
-
-  if ((data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    // The meaning of |dwReserved0| is documented in
-    // https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-point-tags
-    *tag = data.dwReserved0;
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
 File::Type File::GetType(const wchar_t* path, bool follow_links) {
-  DWORD attributes = GetFileAttributesW(path);
-  if (attributes == INVALID_FILE_ATTRIBUTES) {
-    return File::kDoesNotExist;
-  } else if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    DWORD tag;
-    if (!GetReparsePointTag(path, &tag)) {
-      return File::kDoesNotExist;
-    }
-
-    // We treat only Unix domain sockets specially - all other reparse points
-    // we treat as links, even though there are many other types of them. See:
-    // https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-point-tags
-    if (tag == IO_REPARSE_TAG_AF_UNIX) {
-      return File::kIsSock;
-    }
-
-    if (follow_links) {
-      HANDLE target_handle = CreateFileW(
-          path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-          nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
-      if (target_handle == INVALID_HANDLE_VALUE) {
-        return File::kDoesNotExist;
-      } else {
-        BY_HANDLE_FILE_INFORMATION info;
-        if (!GetFileInformationByHandle(target_handle, &info)) {
-          CloseHandle(target_handle);
-          return File::kDoesNotExist;
-        }
-        CloseHandle(target_handle);
-        return ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-                   ? File::kIsDirectory
-                   : File::kIsFile;
-      }
-    } else {
-      return File::kIsLink;
-    }
-  } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-    return File::kIsDirectory;
-  }
-  return File::kIsFile;
+  WIN32_FILE_ATTRIBUTE_DATA attr_data;
+  return GetTypeAndAttributes(path, follow_links, &attr_data, nullptr);
 }
 
 File::Type File::GetType(Namespace* namespc,

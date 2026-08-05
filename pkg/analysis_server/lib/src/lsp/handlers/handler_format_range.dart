@@ -15,7 +15,7 @@ typedef StaticOptions = Either2<bool, DocumentRangeFormattingOptions>;
 class FormatRangeHandler
     extends
         SharedMessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
-  FormatRangeHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_rangeFormatting;
@@ -74,7 +74,7 @@ class FormatRangeHandler
 
 class FormatRangeRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  FormatRangeRegistrations(super.info);
+  new(super.info);
 
   bool get enableFormatter => clientConfiguration.global.enableSdkFormatter;
 

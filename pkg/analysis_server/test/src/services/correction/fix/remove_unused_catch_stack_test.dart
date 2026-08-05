@@ -53,16 +53,31 @@ class RemoveUnusedCatchStackTest extends FixProcessorTest {
 void f() {
   try {
     throw 42;
-  } catch (e, stack) {
-  }
+  } catch (e, stack) {}
 }
 ''');
     await assertHasFix('''
 void f() {
   try {
     throw 42;
-  } catch (e) {
+  } catch (e) {}
+}
+''');
   }
+
+  Future<void> test_removeUnusedCatchStack_wildcard() async {
+    await resolveTestCode('''
+void f() {
+  try {
+    throw 42;
+  } catch (e, _) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  try {
+    throw 42;
+  } catch (e) {}
 }
 ''');
   }

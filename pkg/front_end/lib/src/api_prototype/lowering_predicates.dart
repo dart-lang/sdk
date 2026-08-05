@@ -339,7 +339,7 @@ Expression? getLateFieldInitializer(Member node) {
             return staticSet.value;
           }
         } else if (block.statements.isNotEmpty &&
-            block.statements.first is VariableDeclaration) {
+            block.statements.first is VariableStatement) {
           // We have
           //
           //    get field {
@@ -353,9 +353,9 @@ Expression? getLateFieldInitializer(Member node) {
           //    }
           //
           // in case `<init>` is the initializer.
-          VariableDeclaration variableDeclaration =
-              block.statements.first as VariableDeclaration;
-          return variableDeclaration.initializer;
+          VariableStatement variableStatement =
+              block.statements.first as VariableStatement;
+          return variableStatement.declaration.variable.initializer;
         }
       }
       return null;
@@ -532,8 +532,8 @@ Field? getLateFieldTarget(Member node) {
 /// where '#local' is the local variable holding that value.
 ///
 /// The default value of this variable is `null`.
-bool isLateLoweredLocal(VariableDeclaration node) {
-  return node.isLowered && isLateLoweredLocalName(node.name!);
+bool isLateLoweredLocal(Variable node) {
+  return node.isLowered && isLateLoweredLocalName(node.cosmeticName!);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -578,8 +578,8 @@ String extractLocalNameFromLateLoweredLocal(String name) {
 /// where '#local#isSet' is the local variable holding the marker.
 ///
 /// The default value of this variable is `false`.
-bool isLateLoweredIsSetLocal(VariableDeclaration node) {
-  return node.isLowered && isLateLoweredIsSetLocalName(node.name!);
+bool isLateLoweredIsSetLocal(Variable node) {
+  return node.isLowered && isLateLoweredIsSetLocalName(node.cosmeticName!);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -619,8 +619,8 @@ String extractLocalNameFromLateLoweredIsSet(String name) {
 ///    }
 ///
 /// where '#local#get' is the local function for reading the variable.
-bool isLateLoweredLocalGetter(VariableDeclaration node) {
-  return node.isLowered && isLateLoweredLocalGetterName(node.name!);
+bool isLateLoweredLocalGetter(Variable node) {
+  return node.isLowered && isLateLoweredLocalGetterName(node.cosmeticName!);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -662,8 +662,8 @@ String extractLocalNameFromLateLoweredGetter(String name) {
 ///
 /// where '#local#set' is the local function for setting the value of the
 /// variable.
-bool isLateLoweredLocalSetter(VariableDeclaration node) {
-  return node.isLowered && isLateLoweredLocalSetterName(node.name!);
+bool isLateLoweredLocalSetter(Variable node) {
+  return node.isLowered && isLateLoweredLocalSetterName(node.cosmeticName!);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -701,7 +701,7 @@ String extractLocalNameFromLateLoweredSetter(String name) {
 ///     int Extension|method(int #this) => #this;
 ///
 /// where '#this' is the synthetic "extension this" parameter.
-bool isExtensionThis(VariableDeclaration node) {
+bool isExtensionThis(Variable node) {
   assert(
     node.isLowered ||
         node.cosmeticName == null ||
@@ -732,8 +732,8 @@ bool hasUnnamedExtensionNamePrefix(String? name) {
 // Coverage-ignore(suite): Not run.
 /// Return `true` if [node] is the synthetic parameter holding the `this` value
 /// in the encoding of extension type instance members and constructors.
-bool isExtensionTypeThis(VariableDeclaration node) {
-  return node.isLowered && isExtensionTypeThisName(node.name);
+bool isExtensionTypeThis(Variable node) {
+  return node.isLowered && isExtensionTypeThisName(node.cosmeticName);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -762,15 +762,15 @@ String extractLocalNameForExtensionThis(String name) {
 ///
 /// Note that the name can be `null` in case of a synthetic variable created
 /// for instance for encoding of `?.`.
-String? extractLocalNameFromVariable(VariableDeclaration node) {
+String? extractLocalNameFromVariable(Variable node) {
   if (node.isLowered) {
-    String? name = _extractLocalName(node.name!);
+    String? name = _extractLocalName(node.cosmeticName!);
     if (name == null) {
       throw new UnsupportedError("Unrecognized lowered local $node");
     }
     return name;
   }
-  return node.name;
+  return node.cosmeticName;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -814,10 +814,10 @@ const String joinedIntermediateInfix = "#case#";
 /// Returns `true` if [node] is a joined intermediate variable.
 ///
 /// See [isJoinedIntermediateName] for details.
-bool isJoinedIntermediateVariable(VariableDeclaration node) {
+bool isJoinedIntermediateVariable(Variable node) {
   return node.isLowered &&
-      node.name != null &&
-      isJoinedIntermediateName(node.name!);
+      node.cosmeticName != null &&
+      isJoinedIntermediateName(node.cosmeticName!);
 }
 
 // Coverage-ignore(suite): Not run.

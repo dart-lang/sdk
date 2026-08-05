@@ -17,8 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't import implementation files from another package.";
 
 class ImplementationImports extends AnalysisRule {
-  ImplementationImports()
-    : super(name: LintNames.implementation_imports, description: _desc);
+  new() : super(name: LintNames.implementation_imports, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.implementationImports;
@@ -43,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final Uri sourceUri;
 
-  _Visitor(this.rule, this.sourceUri);
+  new(this.rule, this.sourceUri);
 
   @override
   void visitImportDirective(ImportDirective node) {

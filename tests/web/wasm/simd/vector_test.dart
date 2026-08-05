@@ -146,8 +146,7 @@ final class Size extends OffsetBase {
       .extractLane(0)
       .toDouble();
 
-  Size get center =>
-      Size._(_storage * WasmF64x2.splat(WasmF64.fromDouble(0.5)));
+  Size get center => Size._(_storage * _halfF64x2);
 
   bool contains(Offset offset) {
     return WasmI64x2(
@@ -219,4 +218,5 @@ void main() {
   Expect.equals(0.0, zeroWidth.aspectRatio); // 0.0 / 100.0 = 0.0
 }
 
-WasmF64x2 get _zeroF64x2 => WasmF64x2.splat(WasmF64.fromDouble(0.0));
+const _zeroF64x2 = WasmF64x2(WasmV128.f64x2(0.0, 0.0));
+const _halfF64x2 = WasmF64x2(WasmV128.f64x2(0.5, 0.5));

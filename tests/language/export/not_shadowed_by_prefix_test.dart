@@ -6,6 +6,7 @@
 // names re-exported by that library.
 
 import "package:expect/expect.dart";
+
 import "not_shadowed_by_prefix_helper.dart";
 
 main() {

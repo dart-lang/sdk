@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
     show ArgumentsTrailingComma;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:collection/collection.dart';
-import 'package:language_server_protocol/protocol_custom_generated.dart';
 
 /// The refactoring that move selected formal parameters one position left
 /// in the list of formal parameters.
@@ -18,13 +17,10 @@ class MoveSelectedFormalParametersLeft extends RefactoringProducer {
 
   static const String constTitle = 'Move selected formal parameter(s) left';
 
-  MoveSelectedFormalParametersLeft(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => true;
-
-  @override
-  List<CommandParameter> get parameters => const <CommandParameter>[];
 
   @override
   String get title => constTitle;

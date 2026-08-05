@@ -4,11 +4,18 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/analysis/analyzer_diagnostic_expectations.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// Compute the set of external names referenced in the [unit].
-Set<String> computeReferencedNames(CompilationUnit unit) {
-  _ReferencedNamesComputer computer = _ReferencedNamesComputer();
+Set<String> computeReferencedNames(
+  CompilationUnit unit, {
+  bool includeAnalyzerDiagnosticExpectations = false,
+}) {
+  _ReferencedNamesComputer computer = _ReferencedNamesComputer(
+    includeAnalyzerDiagnosticExpectations:
+        includeAnalyzerDiagnosticExpectations,
+  );
   unit.accept(computer);
   return computer.names;
 }
@@ -109,7 +116,7 @@ class _LocalNameScope {
     ExtensionTypeDeclarationImpl node,
   ) {
     var scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.primaryConstructor.typeParameters);
+    scope.addTypeParameters(node.namePart.typeParameters);
     for (ClassMember member in node.body.members) {
       if (member is FieldDeclaration) {
         scope.addVariableNames(member.fields);
@@ -160,7 +167,7 @@ class _LocalNameScope {
         case ExtensionDeclaration():
           scope.add(declaration.name);
         case ExtensionTypeDeclaration():
-          scope.add(declaration.primaryConstructor.typeName);
+          scope.add(declaration.namePart.typeName);
         case FunctionDeclaration():
           scope.add(declaration.name);
         case MixinDeclaration():
@@ -183,9 +190,7 @@ class _LocalNameScope {
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
       for (var p in parameterList.parameters) {
-        if (p is NormalFormalParameter) {
-          add(p.name);
-        }
+        add(p.name);
       }
     }
   }
@@ -214,10 +219,15 @@ class _LocalNameScope {
 }
 
 class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
+  final bool includeAnalyzerDiagnosticExpectations;
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
 
   _LocalNameScope localScope = _LocalNameScope(null);
+
+  _ReferencedNamesComputer({
+    required this.includeAnalyzerDiagnosticExpectations,
+  });
 
   @override
   void visitBlock(Block node) {
@@ -332,6 +342,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedArgument(NamedArgument node) {
+    names.add(node.name.lexeme);
+    super.visitNamedArgument(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (node.importPrefix case var prefix?) {
       // The parser doesn't know whether the prefix is an actual import prefix
@@ -357,7 +373,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     // Prepare name.
     String name = node.name;
     // Ignore names shadowed by local elements.
-    if (node.isQualified || _isNameExpressionLabel(parent)) {
+    if (node.isQualified) {
       // Cannot be local.
     } else {
       if (localScope.contains(name)) {
@@ -369,6 +385,23 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     }
     // Do add the name.
     names.add(name);
+  }
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    if (includeAnalyzerDiagnosticExpectations) {
+      var lexeme = node.literal.lexeme;
+      for (var reference in analyzerDiagnosticExpectationReferences(lexeme)) {
+        names.add(reference.name);
+      }
+    }
+    super.visitSimpleStringLiteral(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    names.add(node.name.lexeme);
+    super.visitSuperFormalParameter(node);
   }
 
   /// Adds [token] if it is not shadowed by a local element.
@@ -384,13 +417,5 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     }
 
     names.add(name);
-  }
-
-  static bool _isNameExpressionLabel(AstNode parent) {
-    if (parent is Label) {
-      var parent2 = parent.parent;
-      return parent2 is NamedExpression && parent2.name == parent;
-    }
-    return false;
   }
 }

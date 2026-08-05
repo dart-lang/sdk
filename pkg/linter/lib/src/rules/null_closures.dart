@@ -170,7 +170,7 @@ class NonNullableFunction {
   final List<int> positional;
   final List<String> named;
 
-  NonNullableFunction(
+  new(
     this.library,
     this.type,
     this.name, {
@@ -191,7 +191,7 @@ class NonNullableFunction {
 }
 
 class NullClosures extends AnalysisRule {
-  NullClosures() : super(name: LintNames.null_closures, description: _desc);
+  new() : super(name: LintNames.null_closures, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.nullClosures;
@@ -210,7 +210,7 @@ class NullClosures extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -270,9 +270,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < args.length; i++) {
       var arg = args[i];
 
-      if (arg is NamedExpression) {
-        if (arg.expression is NullLiteral &&
-            names.contains(arg.name.label.name)) {
+      if (arg is NamedArgument) {
+        if (arg.argumentExpression is NullLiteral &&
+            names.contains(arg.name.lexeme)) {
           rule.reportAtNode(arg);
         }
       } else {

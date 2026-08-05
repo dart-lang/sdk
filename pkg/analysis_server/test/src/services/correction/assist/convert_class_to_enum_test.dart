@@ -900,6 +900,81 @@ enum E {
 ''');
   }
 
+  Future<void> test_withClassModifier_base() async {
+    await resolveTestCode('''
+base class ^_E {
+  static const _E c = _E();
+
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c
+}
+''');
+  }
+
+  Future<void> test_withClassModifier_baseMixin() async {
+    await resolveTestCode('''
+base mixin class ^_E {
+  static const _E c = _E();
+
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c
+}
+''');
+  }
+
+  Future<void> test_withClassModifier_final() async {
+    await resolveTestCode('''
+final class ^_E {
+  static const _E c = _E();
+
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c
+}
+''');
+  }
+
+  Future<void> test_withClassModifier_interface() async {
+    await resolveTestCode('''
+interface class ^_E {
+  static const _E c = _E();
+
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c
+}
+''');
+  }
+
+  Future<void> test_withClassModifier_mixin() async {
+    await resolveTestCode('''
+mixin class ^_E {
+  static const _E c = _E();
+
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c
+}
+''');
+  }
+
   Future<void> test_withReferencedFactoryConstructor() async {
     await resolveTestCode('''
 class _^E {

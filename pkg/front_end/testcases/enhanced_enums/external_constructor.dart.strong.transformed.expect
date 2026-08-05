@@ -24,7 +24,7 @@ class E extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E a = invalid-expression "External constructors can't be evaluated in constant expressions.";
   final field core::int x;
   static const field core::List<self::E> values = invalid-expression "External constructors can't be evaluated in constant expressions.";
-  external const constructor •(core::int #index, core::String #name, core::int x) → self::E;
+  external const constructor •(core::int #index, core::String #name, initializing-formal core::int x) → self::E;
   method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }

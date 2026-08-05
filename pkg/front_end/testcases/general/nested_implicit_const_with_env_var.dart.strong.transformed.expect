@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field core::int bar;
-  const constructor •(core::int bar) → self::A
+  const constructor •(initializing-formal core::int bar) → self::A
     : self::A::bar = bar, super core::Object::•()
     ;
 }
 class B extends core::Object /*hasConstConstructor*/  {
   final field self::A baz;
-  const constructor •(self::A baz) → self::B
+  const constructor •(initializing-formal self::A baz) → self::B
     : self::B::baz = baz, super core::Object::•()
     ;
 }

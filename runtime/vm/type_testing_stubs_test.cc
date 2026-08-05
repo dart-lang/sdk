@@ -2683,6 +2683,34 @@ TEST_CASE(TTS_STC_Capped) {
   EXPECT(results.cache_capped);
 }
 
+// Check that TypeTestingStubNamer does not use dangling references.
+ISOLATE_UNIT_TEST_CASE(TTS_Namer_Dangling_Reference) {
+  Zone* zone = thread->zone();
+  const auto& list_class = Class::Handle(
+      zone, thread->isolate_group()->object_store()->list_class());
+  const auto& int_type = Type::Handle(zone, Type::IntType());
+  const auto& type_args = TypeArguments::Handle(zone, TypeArguments::New(1));
+  type_args.SetTypeAt(0, int_type);
+  auto& type = Type::Handle(zone, Type::New(list_class, type_args));
+  FinalizeAndCanonicalize(&type);
+
+  TypeTestingStubNamer* namer = nullptr;
+  {
+    HandleScope scope(thread);
+    namer = new TypeTestingStubNamer();
+  }
+  // The HandleScope is now out of scope and its handles are invalidated.
+  // If the bug is present, namer's references now point to invalidated
+  // handles. Calling StubNameForType will attempt to write to and read
+  // from these handles. This should crash or cause memory corruption if
+  // unfixed.
+  const char* name = namer->StubNameForType(type);
+  EXPECT(name != nullptr);
+  EXPECT(strstr(name, "List") != nullptr);
+
+  delete namer;
+}
+
 }  // namespace dart
 
 #endif  // !defined(TARGET_ARCH_IA32)

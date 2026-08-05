@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateClass extends MultiCorrectionProducer {
-  CreateClass({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -48,9 +48,8 @@ class CreateClass extends MultiCorrectionProducer {
       withKeyword = node.parent is WithClause;
       className = targetNode.name.lexeme;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
-    } else if (targetNode case SimpleIdentifier(
-      :var parent,
-    ) when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
+    } else if (targetNode case SimpleIdentifier(:var parent)
+        when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
       if (parent case MethodInvocation(:var target)) {
         if (target case SimpleIdentifier(:PrefixElement element)) {
           prefixElement = element;
@@ -60,9 +59,9 @@ class CreateClass extends MultiCorrectionProducer {
       }
       className = targetNode.nameOfType ?? targetNode.name;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
-    } else if (targetNode case SimpleIdentifier(
-      parent: PrefixedIdentifier(:var identifier),
-    ) when targetNode != identifier) {
+    } else if (targetNode
+        case SimpleIdentifier(parent: PrefixedIdentifier(:var identifier))
+        when targetNode != identifier) {
       className = targetNode.nameOfType ?? targetNode.name;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {
@@ -136,7 +135,7 @@ class _CreateClass extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
 
-  _CreateClass.lowercase({
+  new lowercase({
     required super.context,
     required this._arguments,
     required this._requiresConstConstructor,
@@ -148,7 +147,7 @@ class _CreateClass extends ResolvedCorrectionProducer {
            ? DartFixKind.createClassLowercaseWith
            : DartFixKind.createClassLowercase;
 
-  _CreateClass.uppercase({
+  new uppercase({
     required super.context,
     required this._arguments,
     required this._requiresConstConstructor,

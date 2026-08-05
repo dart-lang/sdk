@@ -43,35 +43,51 @@ int method(Map<int, String?> m) {
   return 2;
 }
 
-test(Map<int, String> map,
-    {required int expectedValue,
-    required int expectedContainsKeyCount,
-    required int expectedIndexGetCount}) {
+test(
+  Map<int, String> map, {
+  required int expectedValue,
+  required int expectedContainsKeyCount,
+  required int expectedIndexGetCount,
+}) {
   MyMap<int, String> myMap = new MyMap(map);
   expect(expectedValue, method(myMap), 'Unexpected value for $map.');
-  expect(expectedContainsKeyCount, myMap.containsKeyCount,
-      'Unexpected containsKey count for $map.');
-  expect(expectedIndexGetCount, myMap.indexGetCount,
-      'Unexpected indexGet count for $map.');
+  expect(
+    expectedContainsKeyCount,
+    myMap.containsKeyCount,
+    'Unexpected containsKey count for $map.',
+  );
+  expect(
+    expectedIndexGetCount,
+    myMap.indexGetCount,
+    'Unexpected indexGet count for $map.',
+  );
 }
 
 main() {
-  test({0: 'foo'},
-      expectedValue: 2,
-      expectedContainsKeyCount: 1,
-      expectedIndexGetCount: hasUnsoundNullSafety ? 0 : 1);
-  test({1: 'foo'},
-      expectedValue: 0,
-      expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
-      expectedIndexGetCount: 1);
-  test({1: 'bar'},
-      expectedValue: 1,
-      expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
-      expectedIndexGetCount: 1);
-  test({1: 'baz'},
-      expectedValue: 2,
-      expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
-      expectedIndexGetCount: 1);
+  test(
+    {0: 'foo'},
+    expectedValue: 2,
+    expectedContainsKeyCount: 1,
+    expectedIndexGetCount: hasUnsoundNullSafety ? 0 : 1,
+  );
+  test(
+    {1: 'foo'},
+    expectedValue: 0,
+    expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
+    expectedIndexGetCount: 1,
+  );
+  test(
+    {1: 'bar'},
+    expectedValue: 1,
+    expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
+    expectedIndexGetCount: 1,
+  );
+  test(
+    {1: 'baz'},
+    expectedValue: 2,
+    expectedContainsKeyCount: hasUnsoundNullSafety ? 1 : 0,
+    expectedIndexGetCount: 1,
+  );
 }
 
 expect(expected, actual, message) {

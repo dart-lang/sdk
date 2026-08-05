@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,24 +15,19 @@ main() {
 @reflectiveTest
 class DuplicateVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a && var a) {
+//               ^
+// [context 1] The first definition of this name.
+//                        ^
+// [diag.duplicateVariablePattern][context 1] The variable 'a' is already defined in this pattern.
     a;
   }
 }
-''',
-      [
-        error(
-          diag.duplicateVariablePattern,
-          42,
-          1,
-          contextMessages: [message(testFile, 33, 1)],
-        ),
-      ],
-    );
-    var node = findNode.singleIfStatement;
+''');
+
+    var node = result.findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -77,25 +71,20 @@ IfStatement
   }
 
   test_switchStatement() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   switch (x) {
     case var a && var a:
+//           ^
+// [context 1] The first definition of this name.
+//                    ^
+// [diag.duplicateVariablePattern][context 1] The variable 'a' is already defined in this pattern.
       a;
   }
 }
-''',
-      [
-        error(
-          diag.duplicateVariablePattern,
-          53,
-          1,
-          contextMessages: [message(testFile, 44, 1)],
-        ),
-      ],
-    );
-    var node = findNode.singleSwitchPatternCase;
+''');
+
+    var node = result.findNode.singleSwitchPatternCase;
     assertResolvedNodeText(node, r'''
 SwitchPatternCase
   keyword: case
@@ -129,24 +118,18 @@ SwitchPatternCase
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var [a, a] = [0, 1];
+//     ^
+// [context 1] The first definition of this name.
+//        ^
+// [diag.duplicateVariablePattern][context 1] The variable 'a' is already defined in this pattern.
   a;
 }
-''',
-      [
-        error(
-          diag.duplicateVariablePattern,
-          21,
-          1,
-          contextMessages: [message(testFile, 18, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.singleBlock;
+    var node = result.findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {

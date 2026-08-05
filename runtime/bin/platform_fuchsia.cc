@@ -167,6 +167,13 @@ void Platform::SetCoreDumpResourceLimit(int value) {
   // Not supported.
 }
 
+bool Platform::SetEnvironmentVariable(const char* name, const char* value) {
+  if (value == nullptr) {
+    return unsetenv(name) == 0;
+  }
+  return setenv(name, value, 0) == 0;
+}
+
 }  // namespace bin
 }  // namespace dart
 

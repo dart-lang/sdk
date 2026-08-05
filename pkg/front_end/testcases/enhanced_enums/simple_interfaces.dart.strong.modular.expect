@@ -2,12 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:21:20: Error: Can't implement 'I?' because it's nullable.
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:24:20: Error: Can't implement 'I?' because it's nullable.
 // Try removing the question mark.
 // enum E3 implements I? { // Error.
 //                    ^^
 //
-// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:16:6: Error: The non-abstract class 'E2' is missing implementations for these members:
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:19:6: Error: The non-abstract class 'E2' is missing implementations for these members:
 //  - I.foo
 // Try to either
 //  - provide an implementation,
@@ -16,11 +16,11 @@ library;
 //  - provide a 'noSuchMethod' implementation.
 // enum E2 implements I { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:6:8: Context: 'I.foo' is defined here.
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:9:8: Context: 'I.foo' is defined here.
 //   void foo();
 //        ^^^
 //
-// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:41:7: Error: The argument type 'E4' can't be assigned to the parameter type 'I'.
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:44:7: Error: The argument type 'E4' can't be assigned to the parameter type 'I'.
 //  - 'E4' is from 'pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart'.
 //  - 'I' is from 'pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart'.
 //   bar(e4); // Error.
@@ -83,7 +83,7 @@ static method test(self::E1 e1, self::E2 e2, self::E3 e3, self::E4 e4) → dynam
   self::bar(e1);
   self::bar(e2);
   self::bar(e3);
-  self::bar(invalid-expression "pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:41:7: Error: The argument type 'E4' can't be assigned to the parameter type 'I'.
+  self::bar(invalid-expression "pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:44:7: Error: The argument type 'E4' can't be assigned to the parameter type 'I'.
  - 'E4' is from 'pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart'.
  - 'I' is from 'pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart'.
   bar(e4); // Error.
@@ -113,9 +113,9 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///simple_interfaces.dart:
-- E1. (from org-dartlang-testcase:///simple_interfaces.dart:9:6)
+- E1. (from org-dartlang-testcase:///simple_interfaces.dart:12:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E2. (from org-dartlang-testcase:///simple_interfaces.dart:16:6)
-- E3. (from org-dartlang-testcase:///simple_interfaces.dart:21:6)
-- E4. (from org-dartlang-testcase:///simple_interfaces.dart:28:6)
+- E2. (from org-dartlang-testcase:///simple_interfaces.dart:19:6)
+- E3. (from org-dartlang-testcase:///simple_interfaces.dart:24:6)
+- E4. (from org-dartlang-testcase:///simple_interfaces.dart:31:6)

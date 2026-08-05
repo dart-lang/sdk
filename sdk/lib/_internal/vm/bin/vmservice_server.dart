@@ -186,23 +186,24 @@ class _DebuggingSession {
             FileSystemEntityType.notFound) {
       executable = dart;
     }
-    var process = await Process.start(executable, [
-      script,
-      '--vm-service-uri=$serverAddress',
-      '--bind-address=$host',
-      '--bind-port=$port',
-      if (disableServiceAuthCodes) '--disable-service-auth-codes',
-      if (enableDevTools) '--serve-devtools',
-      if (_enableServicePortFallback) '--enable-service-port-fallback',
-    ], mode: ProcessStartMode.detachedWithStdio);
-    if (process == null) {
+    var process;
+    try {
+      _process = process = await Process.start(executable, [
+        script,
+        '--vm-service-uri=$serverAddress',
+        '--bind-address=$host',
+        '--bind-port=$port',
+        if (disableServiceAuthCodes) '--disable-service-auth-codes',
+        if (enableDevTools) '--serve-devtools',
+        if (_enableServicePortFallback) '--enable-service-port-fallback',
+      ], mode: ProcessStartMode.detachedWithStdio);
+    } catch (e) {
       stderr.writeln('Could not start the VM service: Process.start failed\n');
       return false;
     }
-    _process = process;
 
     // DDS will close stderr once it's finished launching.
-    final launchResultStderr = await _process.stderr
+    final launchResultStderr = await process.stderr
         .transform(utf8.decoder)
         .join();
 
@@ -235,9 +236,9 @@ class _DebuggingSession {
     return true;
   }
 
-  void shutdown() => _process.kill();
+  void shutdown() => _process?.kill();
 
-  late Process _process;
+  Process? _process;
 }
 
 class Server {

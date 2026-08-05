@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 class Class1<T extends core::Function> extends core::Object {
   covariant-by-class field self::Class1::T field;
-  constructor •(self::Class1::T field) → self::Class1<self::Class1::T>
+  constructor •(initializing-formal self::Class1::T field) → self::Class1<self::Class1::T>
     ;
   method method() → dynamic
     ;
 }
 class Class2<T extends (core::int) → core::String> extends core::Object {
   covariant-by-class field self::Class2::T field;
-  constructor •(self::Class2::T field) → self::Class2<self::Class2::T>
+  constructor •(initializing-formal self::Class2::T field) → self::Class2<self::Class2::T>
     ;
   method method() → dynamic
     ;

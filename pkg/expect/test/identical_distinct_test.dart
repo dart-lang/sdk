@@ -26,7 +26,7 @@ void main() {
     o2,
     c1,
     c2,
-    [1]
+    [1],
   ], "msg");
   Expect.allDistinct(List.generate(100, (_) => Object()));
 
@@ -87,7 +87,7 @@ void main() {
 
 class C {
   final Object x;
-  const C(this.x);
+  const new(this.x);
   @override
   int get hashCode => x.hashCode;
   @override

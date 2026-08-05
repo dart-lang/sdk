@@ -23,7 +23,7 @@ static const field core::List<(core::int) → self::ET% /* erasure=core::int, de
 static const field core::List<(core::int) → core::int> f = const <(core::int) → core::int>[invalid-expression "pkg/front_end/testcases/extension_types/const_collection.dart:15:31: Error: A value of type 'ET Function(int)' can't be assigned to a variable of type 'int Function(int)'.
 const f = <int Function(int)>[ET.new]; // Error
                               ^" in self::ET|constructor#_#new#tearOff as{TypeError} (core::int) → core::int];
-static extension-type-member method ET|constructor#(core::int i) → self::ET% /* erasure=core::int, declared=! */
+static extension-type-member method ET|constructor#(initializing-formal core::int i) → self::ET% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int i) → self::ET% /* erasure=core::int, declared=! */
   return self::ET|constructor#(i);

@@ -22,7 +22,7 @@ import "dart:core" as core;
 abstract class A extends core::Object /*hasConstConstructor*/  {
   final field core::double d;
   final field core::String s;
-  const constructor •({core::double d = #C4, core::String s = #C2}) → con::A
+  const constructor •({initializing-formal core::double d = #C4, initializing-formal core::String s = #C2}) → con::A
     : con::A::d = d, con::A::s = s, super core::Object::•()
     ;
 }
@@ -51,7 +51,7 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///main.dart:
-- B. (from org-dartlang-testcase:///const_lib.dart:16:9)
-- _B&A&M. (from org-dartlang-testcase:///const_lib.dart:15:7)
+- B. (from org-dartlang-testcase:///const_lib.dart:13:9)
+- _B&A&M. (from org-dartlang-testcase:///const_lib.dart:12:7)
 - A. (from org-dartlang-testcase:///const_lib.dart:6:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

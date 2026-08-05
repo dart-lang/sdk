@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 abstract class B extends core::Object /*hasConstConstructor*/  {
   final field core::bool autofocus;
-  const constructor •({required core::bool autofocus}) → self::B
+  const constructor •({required initializing-formal core::bool autofocus}) → self::B
     : self::B::autofocus = autofocus, super core::Object::•()
     ;
 }
@@ -16,7 +16,7 @@ class O1 extends self::B /*hasConstConstructor*/  {
     return new self::O1::•(autofocus: autofocus);
 }
 class O2 extends self::B /*hasConstConstructor*/  {
-  const constructor •({core::bool autofocus = #C1}) → self::O2
+  const constructor •({super-initializing-formal core::bool autofocus = #C1}) → self::O2
     : super self::B::•(autofocus: autofocus)
     ;
   static synthetic method _#new#tearOff({core::bool autofocus = #C1}) → self::O2
@@ -25,20 +25,20 @@ class O2 extends self::B /*hasConstConstructor*/  {
 abstract class C extends core::Object /*hasConstConstructor*/  {
   final field core::bool a;
   final field core::bool b;
-  const constructor •({core::bool a = #C1, core::bool b = #C2}) → self::C
+  const constructor •({initializing-formal core::bool a = #C1, initializing-formal core::bool b = #C2}) → self::C
     : self::C::a = a, self::C::b = b, super core::Object::•()
     ;
 }
 class P1 extends self::C /*hasConstConstructor*/  {
   final field core::int c;
-  const constructor •(core::int c, {core::bool a = #C1, core::bool b = #C2}) → self::P1
+  const constructor •(initializing-formal core::int c, {super-initializing-formal core::bool a = #C1, super-initializing-formal core::bool b = #C2}) → self::P1
     : self::P1::c = c, super self::C::•(a: a, b: b)
     ;
   static synthetic method _#new#tearOff(core::int c, {core::bool a = #C1, core::bool b = #C2}) → self::P1
     return new self::P1::•(c, a: a, b: b);
 }
 class P2 extends self::C /*hasConstConstructor*/  {
-  const constructor •({core::bool b = #C2, core::bool a = #C1}) → self::P2
+  const constructor •({super-initializing-formal core::bool b = #C2, super-initializing-formal core::bool a = #C1}) → self::P2
     : super self::C::•(b: b, a: a)
     ;
   static synthetic method _#new#tearOff({core::bool b = #C2, core::bool a = #C1}) → self::P2

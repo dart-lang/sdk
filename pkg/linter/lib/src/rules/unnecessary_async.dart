@@ -19,7 +19,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'No await no async.';
 
 class UnnecessaryAsync extends AnalysisRule {
-  UnnecessaryAsync()
+  new()
     : super(
         name: LintNames.unnecessary_async,
         description: _desc,
@@ -100,7 +100,7 @@ class _HasAwaitVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
@@ -172,6 +172,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     // It is OK to return values into `FutureOr`.
     // So, wrapping values into `Future` is not necessary.
     if (returnType.isDartAsyncFutureOr) {
+      rule.reportAtToken(asyncKeyword);
+      return;
+    }
+
+    if (returnType is DynamicType) {
+      rule.reportAtToken(asyncKeyword);
+      return;
+    }
+
+    if (returnType is InterfaceType && returnType.isDartCoreObject) {
       rule.reportAtToken(asyncKeyword);
       return;
     }

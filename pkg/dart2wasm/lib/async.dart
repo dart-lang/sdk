@@ -106,7 +106,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
             translator.topType,
           ],
         ),
-        "${function.functionName} inner",
+        "$functionName inner",
       );
 }
 
@@ -116,20 +116,16 @@ class AsyncProcedureCodeGenerator
     with AsyncCodeGeneratorMixin {
   AsyncProcedureCodeGenerator(
     super.translator,
-    super.function,
     super.enclosingMember,
+    super.signature,
+    super.functionName,
   );
 }
 
 /// Generates code for async closures.
 class AsyncLambdaCodeGenerator extends LambdaStateMachineEntryCodeGenerator
     with AsyncCodeGeneratorMixin {
-  AsyncLambdaCodeGenerator(
-    super.translator,
-    super.enclosingMember,
-    super.lambda,
-    super.closures,
-  );
+  AsyncLambdaCodeGenerator(super.translator, super.lambda);
 }
 
 class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
@@ -328,20 +324,22 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.local_set(exceptionLocal);
     callCompleteError();
 
-    // Handle JS exceptions.
-    b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
+    if (!translator.options.standalone) {
+      // Handle JS exceptions.
+      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
 
-    final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
-    b.local_tee(jsExceptionLocal);
+      final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
+      b.local_tee(jsExceptionLocal);
 
-    call(translator.boxJsException.reference);
-    b.local_tee(exceptionLocal); // ref null #Top
+      call(translator.boxJsException.reference);
+      b.local_tee(exceptionLocal); // ref null #Top
 
-    b.local_get(jsExceptionLocal);
-    call(translator.jsExceptionStackTrace.reference);
-    b.local_set(stackTraceLocal);
+      b.local_get(jsExceptionLocal);
+      call(translator.jsExceptionStackTrace.reference);
+      b.local_set(stackTraceLocal);
 
-    callCompleteError();
+      callCompleteError();
+    }
 
     b.end(); // try
 
@@ -366,7 +364,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     super.visitExpressionStatement(node);
   }
 
-  void _generateAwait(AwaitExpression node, VariableDeclaration awaitValueVar) {
+  void _generateAwait(AwaitExpression node, Variable awaitValueVar) {
     // Find the current context.
     Context? context;
     TreeNode contextOwner = node;

@@ -2,43 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnqualifiedReferenceToNonLocalStaticMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnqualifiedReferenceToNonLocalStaticMemberTest
     extends PubPackageResolutionTest {
-  DiagnosticCode get _errorCode =>
-      diag.unqualifiedReferenceToNonLocalStaticMember;
-
   test_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get a => 0;
 }
 class B extends A {
   int b() {
     return a;
+//         ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
   }
 }
-''',
-      [error(_errorCode, 80, 1)],
-    );
+''');
   }
 
   test_getter_invoke() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void Function() get a => () {};
 }
@@ -46,16 +41,15 @@ class A {
 class B extends A {
   void b() {
     a();
+//  ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
   }
 }
-''',
-      [error(_errorCode, 91, 1)],
-    );
+''');
   }
 
   test_getter_invokeTarget() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int foo = 1;
 }
@@ -63,48 +57,45 @@ class A {
 class B extends A {
   static bar() {
     foo.abs();
+//  ^^^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
   }
 }
-''',
-      [error(_errorCode, 76, 3)],
-    );
+''');
   }
 
   test_methodTearoff() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void a<T>() {}
 }
 class B extends A {
   void b() {
     a<int>;
+//  ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
   }
 }
-''',
-      [error(_errorCode, 73, 1)],
-    );
+''');
   }
 
   test_methodTearoff_noTypeArguments() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   static void a() {}
 }
 class B extends A {
   void b() {
     a;
+//  ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
   }
 }
-''',
-      [error(_errorCode, 70, 1)],
-    );
+''');
   }
 
   test_readWrite() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get x => 0;
   static set x(int _) {}
@@ -112,18 +103,19 @@ class A {
 class B extends A {
   void f() {
     x = 0;
+//  ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
     x += 1;
+//  ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
     ++x;
+//    ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
     x++;
+//  ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
   }
 }
-''',
-      [
-        error(_errorCode, 99, 1),
-        error(_errorCode, 110, 1),
-        error(_errorCode, 124, 1),
-        error(_errorCode, 131, 1),
-      ],
-    );
+''');
   }
 }

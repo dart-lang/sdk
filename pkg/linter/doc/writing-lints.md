@@ -295,22 +295,17 @@ To add a lint, roughly follow these steps:
    in the [`lib/src/rules.dart`][] file.
 1. Reference other lint implementations in the [`lib/src/rules`][] directory
    for guidelines on implementing the new lint.
-
-   **Note** that `'package:analyzer/dart/element/element2.dart'` should
-   be used instead of `'package:analyzer/dart/element/element.dart'`.
 1. Corresponding tests for the rule should live in a file with the same name,
    but with a `_test` suffix, in the [`test/rules`][] directory.
    For example: `test/rules/control_flow_in_finally_test.dart`.
    For help writing tests, check out the [analyzer's test docs][] and
    reference the reflective tests of other lints.
 1. Call your new tests in the [`test/rules/all.dart`][] file.
-1. Add the lint name in alphabetical order to the [`example/all.yaml`][] file.
 1. Finish the docs and details in the [`messages.yaml`][] file
    and [regenerate the resulting documentation](#generating-docs) files.
 
 [`lib/src/rules.dart`]: ../lib/src/rules.dart
 [`test/rules/all.dart`]: ../test/rules/all.dart
-[`example/all.yaml`]: ../example/all.yaml
 [analyzer's test docs]: ../../analyzer/doc/implementation/tests.md
 
 ### Internal analyzer APIs

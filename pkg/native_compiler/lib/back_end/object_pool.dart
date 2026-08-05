@@ -30,28 +30,21 @@ class ObjectPool {
 
 /// Base class for specialized object pool entries which are not just
 /// object references.
-sealed class SpecializedEntry {
-  const SpecializedEntry();
-
+sealed class const SpecializedEntry() {
   /// Number of object pool entries reserved after this entry.
   int get numReservedEntries => 0;
 }
 
 /// Base class for specialized object pool entries which
 /// occupy 2 slots in the object pool.
-sealed class PairSpecializedEntry extends SpecializedEntry {
-  const PairSpecializedEntry();
-
+sealed class const PairSpecializedEntry() extends SpecializedEntry {
   /// Number of object pool entries reserved after this entry.
   @override
   int get numReservedEntries => 1;
 }
 
 /// Object pool entry representing tags for the new objects of the given class.
-final class NewObjectTags extends SpecializedEntry {
-  final ast.Class cls;
-  NewObjectTags(this.cls);
-
+final class NewObjectTags(final ast.Class cls) extends SpecializedEntry {
   @override
   int get hashCode => cls.hashCode + 19;
 
@@ -61,13 +54,11 @@ final class NewObjectTags extends SpecializedEntry {
 }
 
 /// ICData call object pool entries occupies 2 slots: ICData, dispatcher code.
-sealed class ICDataCallEntry extends PairSpecializedEntry {
-  final CFunction owner;
-  final ArgumentsShape argumentsShape;
-  final Name selector;
-
-  ICDataCallEntry(this.owner, this.argumentsShape, {required this.selector});
-
+sealed class ICDataCallEntry(
+  final CFunction owner,
+  final ArgumentsShape argumentsShape, {
+  required final Name selector,
+}) extends PairSpecializedEntry {
   @override
   int get hashCode =>
       finalizeHash(combineHash(selector.hashCode, argumentsShape.hashCode));
@@ -102,19 +93,14 @@ final class DynamicCallEntry extends ICDataCallEntry {
 
 /// Reserved entry, filled from a preceeding [SpecializedEntry]
 /// with a non-zero [numReservedEntries].
-final class ReservedEntry extends SpecializedEntry {
-  const ReservedEntry();
-
+final class const ReservedEntry() extends SpecializedEntry {
   @override
   int get numReservedEntries => 0;
 }
 
 /// Object pool entry representing offset of the static field
 /// relative to static field table.
-final class StaticFieldOffset extends SpecializedEntry {
-  final CField field;
-  StaticFieldOffset(this.field);
-
+final class StaticFieldOffset(final CField field) extends SpecializedEntry {
   @override
   int get hashCode => field.hashCode + 13;
 
@@ -125,10 +111,26 @@ final class StaticFieldOffset extends SpecializedEntry {
 
 /// Object pool entry representing a subtype test cache.
 /// This is not a specialized entry, it is encoded as a regular object reference.
-final class SubtypeTestCache {
-  final int numInputs;
-  SubtypeTestCache(this.numInputs);
-
+final class SubtypeTestCache(final int numInputs) {
   // Use identity hashCode and == as separate subtype test caches are
   // used for each type check.
+}
+
+/// A pair (subtype test cache, name). VM decodes type testing stub
+/// calling sequence and reads name from object pool immediately
+/// after subtype test cache when throwing type errors.
+final class SubtypeTestCacheWithName extends PairSpecializedEntry {
+  final SubtypeTestCache stc;
+  final Name name;
+
+  SubtypeTestCacheWithName(this.stc, this.name);
+
+  @override
+  int get hashCode => finalizeHash(combineHash(stc.hashCode, name.hashCode));
+
+  @override
+  bool operator ==(Object other) =>
+      other is SubtypeTestCacheWithName &&
+      this.stc == other.stc &&
+      this.name == other.name;
 }

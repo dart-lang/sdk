@@ -17,7 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Attach library doc comments to library directives.';
 
 class DanglingLibraryDocComments extends AnalysisRule {
-  DanglingLibraryDocComments()
+  new()
     : super(name: LintNames.dangling_library_doc_comments, description: _desc);
 
   @override
@@ -36,7 +36,7 @@ class DanglingLibraryDocComments extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final DanglingLibraryDocComments rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

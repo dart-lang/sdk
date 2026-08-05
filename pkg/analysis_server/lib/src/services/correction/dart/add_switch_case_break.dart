@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 
 class AddSwitchCaseBreak extends ResolvedCorrectionProducer {
-  AddSwitchCaseBreak({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

@@ -11,7 +11,7 @@ import 'package:analyzer_cli/src/driver.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class CommandLineStarter {
   /// Initialize a newly created starter to start up a command-line analysis.
-  factory CommandLineStarter() = Driver;
+  factory() = Driver;
 
   /// Use the given command-line [arguments] to start this analyzer.
   Future<void> start(List<String> arguments);

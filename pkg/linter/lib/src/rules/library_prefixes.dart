@@ -18,8 +18,7 @@ const _desc =
     r'Use `lowercase_with_underscores` when specifying a library prefix.';
 
 class LibraryPrefixes extends AnalysisRule {
-  LibraryPrefixes()
-    : super(name: LintNames.library_prefixes, description: _desc);
+  new() : super(name: LintNames.library_prefixes, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.libraryPrefixes;
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final AnalysisRule rule;
 
-  _Visitor(this.rule, RuleContext context)
+  new(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );

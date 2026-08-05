@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -30,9 +29,15 @@ import 'support/configuration_files.dart';
 
 class AbstractContextTest
     with MockPackagesMixin, ConfigurationFilesMixin, ResourceProviderMixin {
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
   static bool _lintRulesAreRegistered = false;
 
-  static final ByteStore _byteStore = MemoryByteStore();
+  final ByteStore byteStore = _sharedByteStore;
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -54,8 +59,6 @@ class AbstractContextTest
   String get analysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
 
-  List<String> get collectionIncludedPaths => [workspaceRootPath];
-
   @override
   String get dartSdkPath => sdkRoot.path;
 
@@ -74,10 +77,6 @@ class AbstractContextTest
 
   Future<AnalysisSession> get session => sessionFor(testFile);
 
-  /// The path for `analysis_options.yaml` in [testPackageRootPath].
-  String get testAnalysisOptionsPath =>
-      convertPath('$testPackageRootPath/analysis_options.yaml');
-
   File get testFile => getFile(testFilePath);
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
@@ -92,6 +91,8 @@ class AbstractContextTest
       convertPath('$testPackageRootPath/pubspec.yaml');
 
   String get workspaceRootPath => '/home';
+
+  List<String> get _collectionIncludedPaths => [workspaceRootPath];
 
   Future<void> analyzeTestPackageFiles() async {
     var analysisContext = contextFor(testFile);
@@ -108,16 +109,12 @@ class AbstractContextTest
     _assertTextExpectation(buffer.toString(), expected);
   }
 
-  void changeFile(File file) {
-    var path = file.path;
-    driverFor(file).changeFile(path);
-  }
-
   /// Returns the existing analysis context that should be used to analyze the
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
-  AnalysisContext contextFor(File file) {
-    return _contextFor(file);
+  DriverBasedAnalysisContext contextFor(File file) {
+    _createAnalysisContexts();
+    return _analysisContextCollection!.contextFor(file.path);
   }
 
   /// Create an analysis options file based on the given arguments.
@@ -153,14 +150,7 @@ class AbstractContextTest
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver driverFor(File file) {
-    return _contextFor(file).driver;
-  }
-
-  Future<ParsedUnitResult> getParsedUnit(File file) async {
-    var path = file.path;
-    var session = await sessionFor(fileForContextSelection ?? file);
-    var result = session.getParsedUnit(path);
-    return result as ParsedUnitResult;
+    return contextFor(file).driver;
   }
 
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
@@ -168,10 +158,6 @@ class AbstractContextTest
     var session = await sessionFor(fileForContextSelection ?? file);
     var result = await session.getResolvedUnit(path);
     return result as ResolvedUnitResult;
-  }
-
-  void makeFilePriority(File file) {
-    driverFor(file).priorityFiles2 = [file];
   }
 
   @override
@@ -190,7 +176,7 @@ class AbstractContextTest
   String normalizeSource(String code) => normalizeNewlinesForPlatform(code);
 
   Future<AnalysisSession> sessionFor(File file) async {
-    var analysisContext = _contextFor(file);
+    var analysisContext = contextFor(file);
     await analysisContext.applyPendingFileChanges();
     return analysisContext.currentSession;
   }
@@ -204,16 +190,12 @@ class AbstractContextTest
       registerBuiltInFixGenerators();
     }
 
-    setupResourceProvider();
-
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     writeTestPackageConfig();
 
     createAnalysisOptionsFile(experiments: experiments);
   }
-
-  void setupResourceProvider() {}
 
   @mustCallSuper
   Future<void> tearDown() async {
@@ -264,22 +246,17 @@ class AbstractContextTest
     expect(actual, expected);
   }
 
-  DriverBasedAnalysisContext _contextFor(File file) {
-    _createAnalysisContexts();
-    return _analysisContextCollection!.contextFor(file.path);
-  }
-
-  /// Create all analysis contexts in [collectionIncludedPaths].
+  /// Create all analysis contexts in [_collectionIncludedPaths].
   void _createAnalysisContexts() {
     if (_analysisContextCollection != null) {
       return;
     }
 
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: _byteStore,
+      byteStore: byteStore,
       declaredVariables: _declaredVariables,
       enableIndex: true,
-      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       withFineDependencies: true,

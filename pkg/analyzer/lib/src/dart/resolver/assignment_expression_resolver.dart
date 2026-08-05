@@ -92,14 +92,16 @@ class AssignmentExpressionResolver {
     var flow = _resolver.flowAnalysis.flow;
     if (flow != null && isIfNull) {
       flow.ifNullExpression_rightBegin(
-        flow.getExpressionInfo(left),
+        _resolver.flowAnalysis.getExpressionInfo(left),
         SharedTypeView(node.readType!),
       );
     }
 
     _resolver.analyzeExpression(right, SharedTypeSchemaView(rhsContext));
     right = _resolver.popRewrite()!;
-    var whyNotPromoted = flow?.whyNotPromoted(flow.getExpressionInfo(right));
+    var whyNotPromoted = flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(right),
+    );
 
     _resolveTypes(
       node,
@@ -109,13 +111,13 @@ class AssignmentExpressionResolver {
 
     if (flow != null) {
       if (writeElement2 is PromotableElementImpl) {
-        flow.storeExpressionInfo(
+        _resolver.flowAnalysis.storeExpressionInfo(
           node,
           flow.write(
             node,
             writeElement2,
             SharedTypeView(node.typeOrThrow),
-            hasRead ? null : flow.getExpressionInfo(right),
+            hasRead ? null : _resolver.flowAnalysis.getExpressionInfo(right),
           ),
         );
       }

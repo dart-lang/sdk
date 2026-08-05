@@ -6,7 +6,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Options (keys) that can be specified in an analysis options file.
-final class AnalysisOptionsFile {
+final class AnalysisOptionsFileKeys {
   // Top-level options.
   static const String analyzer = 'analyzer';
   static const String codeStyle = 'code-style';
@@ -60,17 +60,26 @@ final class AnalysisOptionsFile {
 
   // Plugins options.
   static const String diagnostics = 'diagnostics';
+  static const String git = 'git';
   static const String path = 'path';
+  static const String ref = 'ref';
+  static const String tagPattern = 'tag_pattern';
+  static const String url = 'url';
   static const String version = 'version';
   static const String hosted = 'hosted';
+  static const String dependencyOverrides = 'dependency_overrides';
 
   /// Supported 'plugins' options.
   static const Set<String> pluginsOptions = {
     diagnostics,
+    git,
     path,
     version,
     hosted,
   };
+
+  /// Supported 'git' options.
+  static const Set<String> gitOptions = {url, ref, path, tagPattern};
 
   static const String propagateLinterExceptions = 'propagate-linter-exceptions';
 
@@ -116,5 +125,5 @@ final class AnalysisOptionsFile {
 
   /// Proposed values for a `true` or `false` option.
   static String get trueOrFalseProposal =>
-      AnalysisOptionsFile.trueOrFalse.quotedAndCommaSeparatedWithAnd;
+      AnalysisOptionsFileKeys.trueOrFalse.quotedAndCommaSeparatedWithAnd;
 }

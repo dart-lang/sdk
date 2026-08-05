@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PlatformsFieldTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PlatformsFieldTest extends PubspecDiagnosticTest {
   test_empty_platforms_is_allowed() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms: {} # I don't think you should ever do this!
@@ -24,54 +25,49 @@ platforms: {} # I don't think you should ever do this!
   }
 
   test_invalid_platforms_field() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   - android
+// [diag.invalidPlatformsField][column 3][length 25] The 'platforms' field must be a map with platforms as keys.
   - ios
   - web
-''',
-      [diag.invalidPlatformsField],
-    );
+''');
   }
 
   test_invalid_platforms_field_bool() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms: true
-''',
-      [diag.invalidPlatformsField],
-    );
+//         ^^^^
+// [diag.invalidPlatformsField] The 'platforms' field must be a map with platforms as keys.
+''');
   }
 
   test_invalid_platforms_field_empty_list() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms: []
-''',
-      [diag.invalidPlatformsField],
-    );
+//         ^^
+// [diag.invalidPlatformsField] The 'platforms' field must be a map with platforms as keys.
+''');
   }
 
   test_invalid_platforms_field_num() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms: 42
-''',
-      [diag.invalidPlatformsField],
-    );
+//         ^^
+// [diag.invalidPlatformsField] The 'platforms' field must be a map with platforms as keys.
+''');
   }
 
   test_subset_of_supported_platforms_is_allowed() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
@@ -82,7 +78,7 @@ platforms:
   }
 
   test_supported_platforms_are_allowed() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
@@ -96,26 +92,24 @@ platforms:
   }
 
   test_unknown_platform() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   windåse:
-''',
-      [diag.unknownPlatform],
-    );
+//^^^^^^^
+// [diag.unknownPlatform] The platform 'windåse' is not a recognized platform.
+''');
   }
 
   test_unknown_platform_capitalization() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   Windows:
-''',
-      [diag.unknownPlatform],
-    );
+//^^^^^^^
+// [diag.unknownPlatform] The platform 'Windows' is not a recognized platform.
+''');
   }
 }

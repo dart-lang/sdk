@@ -24,6 +24,5 @@ linter:
     no_adjacent_strings_in_list: true
     prefer_final_locals: true
     prefer_void_to_null: true
-    require_trailing_commas: true
     unnecessary_parenthesis: true
     unnecessary_raw_strings: true

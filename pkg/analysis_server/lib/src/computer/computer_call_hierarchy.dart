@@ -55,7 +55,7 @@ class CallHierarchyCalls {
   final CallHierarchyItem item;
   final List<SourceRange> ranges = [];
 
-  CallHierarchyCalls(this.item);
+  new(this.item);
 }
 
 /// An item that can appear in a Call Hierarchy.
@@ -92,7 +92,7 @@ class CallHierarchyItem {
   /// The range of the code for the declaration of this item.
   final SourceRange codeRange;
 
-  CallHierarchyItem({
+  new({
     required this.displayName,
     required this.containerName,
     required this.kind,
@@ -101,7 +101,7 @@ class CallHierarchyItem {
     required this.codeRange,
   });
 
-  CallHierarchyItem.forElement(Element element)
+  new forElement(Element element)
     : displayName = _getDisplayName(element),
       nameRange = _nameRangeForElement(element),
       codeRange = _codeRangeForElement(element),
@@ -210,7 +210,7 @@ enum CallHierarchyKind {
 class DartCallHierarchyComputer {
   final ResolvedUnitResult _result;
 
-  DartCallHierarchyComputer(this._result);
+  new(this._result);
 
   /// Finds incoming calls to [target], returning the elements that call them
   /// and ranges of those calls within.
@@ -483,7 +483,7 @@ class _OutboundCallVisitor extends RecursiveAstVisitor<void> {
   final AstNode root;
   final void Function(AstNode) collect;
 
-  _OutboundCallVisitor(this.root, this.collect);
+  new(this.root, this.collect);
 
   @override
   void visitConstructorName(ConstructorName node) {

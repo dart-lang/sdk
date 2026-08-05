@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateOperator extends ResolvedCorrectionProducer {
   String _operator = '';
 
-  CreateOperator({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability {
@@ -53,10 +53,9 @@ class CreateOperator extends ResolvedCorrectionProducer {
         if (parameterType == null) {
           return;
         }
-        if (parent case AssignmentExpression(
-          :var leftHandSide,
-          :var rightHandSide,
-        ) when leftHandSide == node) {
+        if (parent
+            case AssignmentExpression(:var leftHandSide, :var rightHandSide)
+            when leftHandSide == node) {
           assigningType = rightHandSide.staticType;
           indexSetter = true;
           _operator = TokenType.INDEX_EQ.lexeme;
@@ -122,9 +121,8 @@ class CreateOperator extends ResolvedCorrectionProducer {
     var targetSource = targetFragment.libraryFragment!.source;
     var targetFile = targetSource.fullName;
 
-    var writeReturnType = getCodeStyleOptions(
-      unitResult.file,
-    ).specifyReturnTypes;
+    var writeReturnType = getCodeStyleOptions(unitResult.file)
+        .specifyReturnTypes;
 
     if (returnType is TypeParameterType) {
       returnType = returnType.bound;

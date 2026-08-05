@@ -118,7 +118,7 @@ class AnnotatedTest {
   final String testName;
   final Uri issueUri;
 
-  AnnotatedTest(this.file, this.testName, this.issueUri);
+  new(this.file, this.testName, this.issueUri);
 }
 
 /// A [RecursiveAstVisitor] that tracks nodes annotated with [FailingTest] or
@@ -127,16 +127,16 @@ class FailingTestAnnotationTracker extends RecursiveAstVisitor<void> {
   final annotatedTests = <AnnotatedTest>[];
   final File file;
 
-  FailingTestAnnotationTracker(this.file);
+  new(this.file);
 
   @override
   void visitAnnotation(Annotation node) {
     if (node.name.name == 'FailingTest' || node.name.name == 'SkippedTest') {
       var issue = node.arguments?.arguments
-          .whereType<NamedExpression>()
-          .where((arg) => arg.name.label.name == 'issue')
+          .whereType<NamedArgument>()
+          .where((arg) => arg.name.lexeme == 'issue')
           .firstOrNull;
-      var issueUrl = (issue?.expression as SimpleStringLiteral?)?.value;
+      var issueUrl = (issue?.argumentExpression as SimpleStringLiteral?)?.value;
       if (issueUrl != null && issueUrl.startsWith('https://github.com/')) {
         var issueUri = Uri.parse(issueUrl);
         var apiUri = issueUri.replace(

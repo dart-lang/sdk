@@ -50,7 +50,7 @@ final class ServerIsolateChannel implements ServerCommunicationChannel {
   /// The port used to receive notification when the plugin isolate has exited.
   ReceivePort? _exitPort;
 
-  ServerIsolateChannel(
+  new(
     this._pluginUri,
     this._packageConfigUri,
     this.instrumentationService,

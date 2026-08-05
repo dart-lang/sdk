@@ -12,7 +12,7 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
   // A prod reporter, for analysis server crashes.
   final CrashReportSender serverReporter;
 
-  CrashReportingInstrumentation(this.serverReporter);
+  new(this.serverReporter);
 
   @override
   void logException(

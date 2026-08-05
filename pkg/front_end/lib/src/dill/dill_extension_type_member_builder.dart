@@ -18,7 +18,7 @@ import 'dill_member_builder.dart';
 abstract class DillExtensionTypeMemberBuilder extends DillMemberBuilder {
   final ExtensionTypeMemberDescriptor _descriptor;
 
-  DillExtensionTypeMemberBuilder(
+  new(
     this._descriptor,
     super.libraryBuilder,
     DillExtensionTypeDeclarationBuilder super.declarationBuilder,
@@ -39,7 +39,7 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder
     implements PropertyBuilder {
   final Field _field;
 
-  DillExtensionTypeFieldBuilder(
+  new(
     this._field,
     super.descriptor,
     super.libraryBuilder,
@@ -112,7 +112,7 @@ class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder
     implements PropertyBuilder {
   final Procedure _procedure;
 
-  DillExtensionTypeSetterBuilder(
+  new(
     this._procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -156,7 +156,7 @@ class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder
     implements PropertyBuilder {
   final Procedure _procedure;
 
-  DillExtensionTypeGetterBuilder(
+  new(
     this._procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -207,7 +207,7 @@ class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder
     implements MethodBuilder {
   final Procedure _procedure;
 
-  DillExtensionTypeOperatorBuilder(
+  new(
     this._procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -246,7 +246,7 @@ class DillExtensionTypeStaticMethodBuilder
     implements MethodBuilder {
   final Procedure procedure;
 
-  DillExtensionTypeStaticMethodBuilder(
+  new(
     this.procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -292,7 +292,7 @@ class DillExtensionTypeInstanceMethodBuilder
 
   final Procedure _extensionTearOff;
 
-  DillExtensionTypeInstanceMethodBuilder(
+  new(
     this._procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -340,7 +340,7 @@ class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
   final Procedure _constructor;
   final Procedure? _constructorTearOff;
 
-  DillExtensionTypeConstructorBuilder(
+  new(
     this._constructor,
     this._constructorTearOff,
     super.descriptor,
@@ -388,7 +388,7 @@ class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder
   final Procedure _procedure;
   final Procedure? _factoryTearOff;
 
-  DillExtensionTypeFactoryBuilder(
+  new(
     this._procedure,
     this._factoryTearOff,
     super.descriptor,

@@ -205,7 +205,10 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   void writeAsBytesSync(List<int> bytes) {
-    writeAsStringSync(String.fromCharCodes(bytes));
+    if (provider.hasOverlay(path)) {
+      throw FileSystemException(path, 'Cannot write a file with an overlay');
+    }
+    _file.writeAsBytesSync(bytes);
   }
 
   @override
@@ -259,7 +262,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
 
   @override
   Folder copyTo(Folder parentFolder) {
-    Folder destination = parentFolder.getChildAssumingFolder(shortName);
+    Folder destination = parentFolder.getFolder(shortName);
     destination.create();
     for (Resource child in getChildren()) {
       child.copyTo(destination);
@@ -276,13 +279,17 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   Resource getChild(String relPath) =>
       _OverlayResource._from(provider, _folder.getChild(relPath));
 
+  @Deprecated('Use getFile instead.')
   @override
-  File getChildAssumingFile(String relPath) =>
-      _OverlayFile(provider, _folder.getChildAssumingFile(relPath));
+  File getChildAssumingFile(String relPath) {
+    return getFile(relPath);
+  }
 
+  @Deprecated('Use getFolder instead.')
   @override
-  Folder getChildAssumingFolder(String relPath) =>
-      _OverlayFolder(provider, _folder.getChildAssumingFolder(relPath));
+  Folder getChildAssumingFolder(String relPath) {
+    return getFolder(relPath);
+  }
 
   @override
   List<Resource> getChildren() {
@@ -309,6 +316,14 @@ class _OverlayFolder extends _OverlayResource implements Folder {
     }
     return children.values.toList();
   }
+
+  @override
+  File getFile(String relPath) =>
+      _OverlayFile(provider, _folder.getFile(relPath));
+
+  @override
+  Folder getFolder(String relPath) =>
+      _OverlayFolder(provider, _folder.getFolder(relPath));
 
   @override
   ResourceWatcher watch() => _folder.watch();

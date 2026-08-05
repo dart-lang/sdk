@@ -40,7 +40,7 @@ class CiderCompletionComputer {
   @visibleForTesting
   final List<String> computedImportedLibraries = [];
 
-  CiderCompletionComputer(this._logger, this._cache, this._fileResolver);
+  new(this._logger, this._cache, this._fileResolver);
 
   /// Return completion suggestions for the file and position.
   ///
@@ -232,7 +232,7 @@ class CiderCompletionPerformance {
   /// The tree of operation performances.
   final OperationPerformance operations;
 
-  CiderCompletionPerformance._({required this.operations});
+  new _({required this.operations});
 }
 
 class CiderCompletionResult {
@@ -245,7 +245,7 @@ class CiderCompletionResult {
   /// completion request.
   final CiderPosition prefixStart;
 
-  CiderCompletionResult._({
+  new _({
     required this.suggestions,
     required this.performance,
     required this.prefixStart,
@@ -256,12 +256,12 @@ class CiderPosition {
   final int line;
   final int column;
 
-  CiderPosition(this.line, this.column);
+  new(this.line, this.column);
 }
 
 class _CiderImportedLibrarySuggestions {
   final String signature;
   final List<CompletionSuggestionBuilder> suggestionBuilders;
 
-  _CiderImportedLibrarySuggestions(this.signature, this.suggestionBuilders);
+  new(this.signature, this.suggestionBuilders);
 }

@@ -7,7 +7,7 @@ import '../ast.dart';
 /// Replacement visitor to clone a Constant if a subnode is replaced, and
 /// otherwise returns `null`.
 class ConstantReplacer implements ConstantVisitor<Constant?> {
-  ConstantReplacer();
+  new();
   final Map<Constant, Constant?> cache = {};
 
   /// Like with Constants, `null` is used to signal that the [type] has not

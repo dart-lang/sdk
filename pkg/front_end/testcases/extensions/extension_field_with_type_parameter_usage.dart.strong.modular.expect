@@ -9,35 +9,35 @@ library;
 //
 // pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:7:8: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
-//   int? field2 = () { U x = null; return null; }();
+//   int? field2 = () {
 //        ^^^^^^
 //
-// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:8:12: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:11:12: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   List<U>? field3 = null;
 //            ^^^^^^
 //
-// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:9:18: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:12:18: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   U Function(U)? field4 = null;
 //                  ^^^^^^
 //
-// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:10:30: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:13:30: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   List<U> Function(List<U>)? field5 = null;
 //                              ^^^^^^
 //
-// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:11:8: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:14:8: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
-//   int? field6 = <E>() { E? x = null; return null; }<String>();
+//   int? field6 = <E>() {
 //        ^^^^^^
 //
-// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:12:8: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:18:8: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
-//   int? field7 = <E>() { E? x = null; return null; }<U>();
+//   int? field7 = <E>() {
 //        ^^^^^^
 //
-// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:13:8: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:22:8: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   Type field8 = U;
 //        ^^^^^^

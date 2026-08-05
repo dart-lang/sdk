@@ -2,131 +2,132 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalNoSetterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AssignmentToFinalNoSetterTest extends PubPackageResolutionTest {
   test_prefixedIdentifier_class_instanceGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
 }
 
 void f(A a) {
   a.x = 0;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
   a.x += 0;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
   ++a.x;
+//    ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
   a.x++;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
 }
-''',
-      [
-        error(diag.assignmentToFinalNoSetter, 49, 1),
-        error(diag.assignmentToFinalNoSetter, 60, 1),
-        error(diag.assignmentToFinalNoSetter, 74, 1),
-        error(diag.assignmentToFinalNoSetter, 81, 1),
-      ],
-    );
+''');
   }
 
   test_propertyAccess_class_instanceGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
 }
 
 void f(A a) {
   (a).x = 0;
+//    ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
   (a).x += 0;
+//    ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
   ++(a).x;
+//      ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
   (a).x++;
+//    ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
 }
-''',
-      [
-        error(diag.assignmentToFinalNoSetter, 51, 1),
-        error(diag.assignmentToFinalNoSetter, 64, 1),
-        error(diag.assignmentToFinalNoSetter, 80, 1),
-        error(diag.assignmentToFinalNoSetter, 89, 1),
-      ],
-    );
+''');
   }
 
   test_propertyAccess_extension_instanceGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get x => 0;
 }
 
 void f() {
   0.x = 0;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'E'.
   0.x += 0;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'E'.
   ++0.x;
+//    ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'E'.
   0.x++;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'E'.
 }
-''',
-      [
-        error(diag.assignmentToFinalNoSetter, 57, 1),
-        error(diag.assignmentToFinalNoSetter, 68, 1),
-        error(diag.assignmentToFinalNoSetter, 82, 1),
-        error(diag.assignmentToFinalNoSetter, 89, 1),
-      ],
-    );
+''');
   }
 
   test_simpleIdentifier_class_instanceGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
 
   void f() {
     x = 0;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
     x += 0;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
     ++x;
+//    ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
     x++;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
   }
 }
-''',
-      [
-        error(diag.assignmentToFinalNoSetter, 46, 1),
-        error(diag.assignmentToFinalNoSetter, 57, 1),
-        error(diag.assignmentToFinalNoSetter, 71, 1),
-        error(diag.assignmentToFinalNoSetter, 78, 1),
-      ],
-    );
+''');
   }
 
   test_simpleIdentifier_class_staticGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get x => 0;
 
   void f() {
     x = 0;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
     x += 0;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
     ++x;
+//    ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
     x++;
+//  ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
   }
 }
-''',
-      [
-        error(diag.assignmentToFinalNoSetter, 53, 1),
-        error(diag.assignmentToFinalNoSetter, 64, 1),
-        error(diag.assignmentToFinalNoSetter, 78, 1),
-        error(diag.assignmentToFinalNoSetter, 85, 1),
-      ],
-    );
+''');
   }
 }

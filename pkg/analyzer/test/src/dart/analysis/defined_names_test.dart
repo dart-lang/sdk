@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
@@ -19,7 +18,7 @@ main() {
 @reflectiveTest
 class DefinedNamesTest extends ParserDiagnosticsTest {
   test_classMemberNames_class() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 class A {
   int a, b;
   A();
@@ -40,7 +39,7 @@ class B {
   }
 
   test_classMemberNames_class_primaryConstructor_named() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 class A.named(final int a1, int a2, var a3);
 ''');
     expect(names.topLevelNames, unorderedEquals(['A']));
@@ -48,7 +47,7 @@ class A.named(final int a1, int a2, var a3);
   }
 
   test_classMemberNames_class_primaryConstructor_unnamed() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 class A(final int a1, int a2, var a3);
 ''');
     expect(names.topLevelNames, unorderedEquals(['A']));
@@ -56,7 +55,7 @@ class A(final int a1, int a2, var a3);
   }
 
   test_classMemberNames_enum() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 enum E {
   v1, v2;
   final int d = 0;
@@ -68,7 +67,7 @@ enum E {
   }
 
   test_classMemberNames_enum_empty() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 enum E;
 ''');
     expect(names.topLevelNames, unorderedEquals(['E']));
@@ -76,7 +75,7 @@ enum E;
   }
 
   test_classMemberNames_enum_primaryConstructor_named() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 enum E.named(final int a1, int a2, var a3) {
   v1.named(1, 2, 3), v2.named(4, 5, 6);
 }
@@ -86,7 +85,7 @@ enum E.named(final int a1, int a2, var a3) {
   }
 
   test_classMemberNames_enum_primaryConstructor_unnamed() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 enum E(final int a1, int a2, var a3) {
   v1(1, 2, 3), v2(4, 5, 6);
 }
@@ -96,7 +95,7 @@ enum E(final int a1, int a2, var a3) {
   }
 
   test_classMemberNames_extension() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 extension E on int {
   int a;
   void b() {}
@@ -109,7 +108,7 @@ extension E on int {
   }
 
   test_classMemberNames_extension_empty() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 extension E on int;
 ''');
     expect(names.topLevelNames, unorderedEquals(['E']));
@@ -117,7 +116,7 @@ extension E on int;
   }
 
   test_classMemberNames_extensionType_primaryConstructor_multipleFormalParameters() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 extension type A(int it1, final int it2, int it3) {
   void foo() {}
 }
@@ -127,7 +126,7 @@ extension type A(int it1, final int it2, int it3) {
   }
 
   test_classMemberNames_extensionType_primaryConstructor_named() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 extension type A.named(int it) {
   int a, b;
   A();
@@ -145,7 +144,7 @@ extension type A.named(int it) {
   }
 
   test_classMemberNames_extensionType_primaryConstructor_unnamed() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 extension type A(int it) {
   void foo() {}
 }
@@ -155,7 +154,7 @@ extension type A(int it) {
   }
 
   test_classMemberNames_mixin() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 mixin A {
   int a, b;
   d() {}
@@ -174,7 +173,7 @@ mixin B {
   }
 
   test_classMemberNames_mixin_empty() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 mixin M;
 ''');
     expect(names.topLevelNames, unorderedEquals(['M']));
@@ -182,7 +181,7 @@ mixin M;
   }
 
   test_topLevelNames() {
-    DefinedNames names = _computeDefinedNames('''
+    var names = _computeDefinedNames('''
 class A {}
 class B = Object with A;
 typedef C();
@@ -199,8 +198,8 @@ mixin M {}
     expect(names.classMemberNames, isEmpty);
   }
 
-  DefinedNames _computeDefinedNames(String code, {FeatureSet? featureSet}) {
-    var parseResult = parseStringWithErrors(code, featureSet: featureSet);
+  DefinedNames _computeDefinedNames(String code) {
+    var parseResult = parseTestCodeWithDiagnostics(code);
     var unit = parseResult.unit as CompilationUnitImpl;
     return computeDefinedNames(unit);
   }

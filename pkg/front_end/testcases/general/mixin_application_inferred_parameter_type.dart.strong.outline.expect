@@ -6,7 +6,7 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
 }
 class Super extends core::Object {
   field core::int field;
-  constructor •(core::int field) → self::Super
+  constructor •(initializing-formal core::int field) → self::Super
     ;
 }
 class Class = self::Super with self::Mixin {

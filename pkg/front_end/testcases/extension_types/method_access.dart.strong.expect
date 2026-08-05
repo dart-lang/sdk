@@ -61,7 +61,7 @@ extension type InlineClass(core::int it) {
 static extension-member method _extension#0|get#setter(lowered final core::Object #this) → core::int
   return 42;
 static extension-member method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void {}
-static extension-type-member method InlineClass|constructor#(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */ {
+static extension-type-member method InlineClass|constructor#(initializing-formal core::int it) → self::InlineClass% /* erasure=core::int, declared=! */ {
   lowered final self::InlineClass% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }

@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DuplicateExportTest);
     defineReflectiveTests(DuplicateImportTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -21,13 +22,12 @@ class DuplicateExportTest extends PubPackageResolutionTest {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart';
 export 'lib1.dart';
-''',
-      [error(diag.duplicateExport, 27, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.duplicateExport] Duplicate export.
+''');
   }
 
   test_library_duplicateExport_differentShow() async {
@@ -35,7 +35,7 @@ export 'lib1.dart';
 class A {}
 class B {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart' show A;
 export 'lib1.dart' show B;
 ''');
@@ -46,29 +46,30 @@ export 'lib1.dart' show B;
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart' show A;
 export 'lib1.dart' show A;
-''',
-      [error(diag.duplicateExport, 34, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.duplicateExport] Duplicate export.
+''');
   }
 
   test_part_duplicateExport() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 export 'dart:math';
 export 'dart:math';
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.duplicateExport, 45, 11)]);
+//     ^^^^^^^^^^^
+// [diag.duplicateExport] Duplicate export.
+''',
+    });
   }
 }
 
@@ -79,15 +80,14 @@ class DuplicateImportTest extends PubPackageResolutionTest {
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:test/a.dart';
 import 'package:test/a.dart';
+//     ^^^^^^^^^^^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 
 final a = A();
-''',
-      [error(diag.duplicateImport, 37, 21)],
-    );
+''');
   }
 
   test_library_duplicateImport_relative_absolute() async {
@@ -95,15 +95,14 @@ final a = A();
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'package:test/a.dart';
+//     ^^^^^^^^^^^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 
 final a = A();
-''',
-      [error(diag.duplicateImport, 24, 21)],
-    );
+''');
   }
 
   test_library_duplicateImport_relative_relative() async {
@@ -111,126 +110,130 @@ final a = A();
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'a.dart';
+//     ^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 
 final a = A();
-''',
-      [error(diag.duplicateImport, 24, 8)],
-    );
+''');
   }
 
   test_library_importsHaveIdenticalShowHide() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    var lib2 = getFile('$testPackageLibPath/lib2.dart');
+
+    await resolveFileWithDiagnostics(lib1, r'''
 library lib1;
 class A {}
 class B {}
 ''');
 
-    var lib2 = newFile('$testPackageLibPath/lib2.dart', r'''
+    await resolveFileWithDiagnostics(lib2, r'''
 library L;
 import 'lib1.dart' as M show A hide B;
+//                      ^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
 import 'lib1.dart' as M show A hide B;
+//     ^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
+//                      ^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
 M.A a = M.A();
 ''');
-
-    await assertErrorsInFile2(lib1, []);
-    await assertErrorsInFile2(lib2, [
-      error(diag.multipleCombinators, 35, 13),
-      error(diag.duplicateImport, 57, 11),
-      error(diag.multipleCombinators, 74, 13),
-    ]);
   }
 
   test_library_oneImportHasHide() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    var lib2 = getFile('$testPackageLibPath/lib2.dart');
+
+    await resolveFileWithDiagnostics(lib1, r'''
 library lib1;
 class A {}
 class B {}''');
 
-    var lib2 = newFile('$testPackageLibPath/lib2.dart', r'''
+    await resolveFileWithDiagnostics(lib2, r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' hide A;
 B b = B();
 ''');
-
-    await assertErrorsInFile2(lib1, []);
-    await assertErrorsInFile2(lib2, []);
   }
 
   test_library_oneImportHasShow() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    var lib2 = getFile('$testPackageLibPath/lib2.dart');
+
+    await resolveFileWithDiagnostics(lib1, r'''
 library lib1;
 class A {}
 class B {}
 ''');
 
-    var lib2 = newFile('$testPackageLibPath/lib2.dart', r'''
+    await resolveFileWithDiagnostics(lib2, r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' show A; // ignore: unnecessary_import
 A a = A();
 B b = B();
 ''');
-
-    await assertErrorsInFile2(lib1, []);
-    await assertErrorsInFile2(lib2, []);
   }
 
   test_library_oneImportUsesAs() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    var lib2 = getFile('$testPackageLibPath/lib2.dart');
+
+    await resolveFileWithDiagnostics(lib1, r'''
 library lib1;
 class A {}''');
 
-    var lib2 = newFile('$testPackageLibPath/lib2.dart', r'''
+    await resolveFileWithDiagnostics(lib2, r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart' as one;
 A a = A();
 one.A a2 = one.A();
 ''');
-
-    await assertErrorsInFile2(lib1, []);
-    await assertErrorsInFile2(lib2, []);
   }
 
   test_library_twoDuplicateImports() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    var lib2 = getFile('$testPackageLibPath/lib2.dart');
+
+    await resolveFileWithDiagnostics(lib1, r'''
 library lib1;
 class A {}''');
 
-    var lib2 = newFile('$testPackageLibPath/lib2.dart', r'''
+    await resolveFileWithDiagnostics(lib2, r'''
 library L;
 import 'lib1.dart';
 import 'lib1.dart';
+//     ^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 import 'lib1.dart';
+//     ^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 A a = A();
 ''');
-
-    await assertErrorsInFile2(lib1, []);
-    await assertErrorsInFile2(lib2, [
-      error(diag.duplicateImport, 38, 11),
-      error(diag.duplicateImport, 58, 11),
-    ]);
   }
 
   test_part_duplicateImport() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'dart:math';
 import 'dart:math';
+//     ^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
 void f(Random _) {}
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.duplicateImport, 45, 11)]);
+''',
+    });
   }
 }

@@ -5,14 +5,15 @@
 /// @docImport 'simple_parser_test.dart';
 library;
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/node_text_expectations.dart';
 import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ComplexParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -25,12 +26,11 @@ main() {
 @reflectiveTest
 class ComplexParserTest extends ParserDiagnosticsTest {
   void test_additiveExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x + y - z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -48,12 +48,11 @@ BinaryExpression
   }
 
   void test_additiveExpression_noSpaces() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   i+1;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -67,12 +66,11 @@ BinaryExpression
   }
 
   void test_additiveExpression_precedence_multiplicative_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x * y + z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -90,14 +88,13 @@ BinaryExpression
   }
 
   void test_additiveExpression_precedence_multiplicative_left_withSuper() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super * y - z;
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -115,12 +112,11 @@ BinaryExpression
   }
 
   void test_additiveExpression_precedence_multiplicative_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x + y * z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -138,14 +134,13 @@ BinaryExpression
   }
 
   void test_additiveExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super + y - z;
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -163,12 +158,11 @@ BinaryExpression
   }
 
   void test_assignableExpression_arguments_normal_chain() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a(b)(c).d(e).f;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -206,12 +200,11 @@ PropertyAccess
   }
 
   void test_assignableExpression_arguments_normal_chain_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a<E>(b)<F>(c).d<G>(e).f;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -267,12 +260,11 @@ PropertyAccess
   }
 
   void test_assignmentExpression_compound() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x = y = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -290,12 +282,11 @@ AssignmentExpression
   }
 
   void test_assignmentExpression_indexExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x[1] = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -314,12 +305,11 @@ AssignmentExpression
   }
 
   void test_assignmentExpression_prefixedIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x.y = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -337,14 +327,13 @@ AssignmentExpression
   }
 
   void test_assignmentExpression_propertyAccess() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super.y = 0;
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -362,12 +351,13 @@ AssignmentExpression
   }
 
   void test_binary_operator_written_out_expression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x xor y;
+//  ^^^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 15, 3)]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
@@ -392,12 +382,13 @@ Block
 
   void test_binary_operator_written_out_expression_logical() {
     // Report `and` and recover with a synthetic `&&` in the parsed AST.
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x > 0 and y > 1;
+//      ^^^
+// [diag.binaryOperatorWrittenOut] Binary operator 'and' is written as '&&' instead of the written out word.
 }
 ''');
-    parseResult.assertErrors([error(diag.binaryOperatorWrittenOut, 19, 3)]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
@@ -425,12 +416,11 @@ Block
   }
 
   void test_bitwiseAndExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x & y & z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -448,12 +438,11 @@ BinaryExpression
   }
 
   void test_bitwiseAndExpression_precedence_equality_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x == y && z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -471,12 +460,11 @@ BinaryExpression
   }
 
   void test_bitwiseAndExpression_precedence_equality_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x && y == z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -494,14 +482,13 @@ BinaryExpression
   }
 
   void test_bitwiseAndExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super & y & z;
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -519,12 +506,11 @@ BinaryExpression
   }
 
   void test_bitwiseOrExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x | y | z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -542,12 +528,11 @@ BinaryExpression
   }
 
   void test_bitwiseOrExpression_precedence_xor_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x ^ y | z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -565,12 +550,11 @@ BinaryExpression
   }
 
   void test_bitwiseOrExpression_precedence_xor_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x | y ^ z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -588,14 +572,13 @@ BinaryExpression
   }
 
   void test_bitwiseOrExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super | y | z;
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -613,12 +596,11 @@ BinaryExpression
   }
 
   void test_bitwiseXorExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x ^ y ^ z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -636,12 +618,11 @@ BinaryExpression
   }
 
   void test_bitwiseXorExpression_precedence_and_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x & y ^ z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -659,12 +640,11 @@ BinaryExpression
   }
 
   void test_bitwiseXorExpression_precedence_and_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x ^ y & z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -682,14 +662,13 @@ BinaryExpression
   }
 
   void test_bitwiseXorExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super ^ y ^ z;
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -707,12 +686,11 @@ BinaryExpression
   }
 
   void test_cascade_withAssignment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   new Map()..[3] = 4 ..[0] = 11;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -750,12 +728,11 @@ CascadeExpression
   }
 
   void test_conditionalExpression_precedence_ifNullExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a ?? b ? y : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -776,12 +753,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_logicalOrExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a | b ? y : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -802,12 +778,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableType_as() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x as bool ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -835,12 +810,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableType_as2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x as bool? ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -869,12 +843,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableType_as3() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (x as bool?) ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -906,12 +879,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableType_is() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x is String ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -939,12 +911,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableType_is2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x is String? ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -973,12 +944,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableType_is3() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (x is String?) ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1010,12 +980,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg1_is() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x is String<S> ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1049,12 +1018,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg1GFT_is() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x is String<S> Function() ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1093,12 +1061,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg2_is() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x is String<S,T> ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1134,12 +1101,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_prefixedNullableType_is() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x is p.A ? (x + y) : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1170,12 +1136,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_withAssignment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   b ? c = true : g();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1200,12 +1165,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_precedence_withAssignment2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   b.x ? c = true : g();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1234,12 +1198,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_prefixedValue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a.b ? y : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1260,12 +1223,11 @@ ConditionalExpression
   }
 
   void test_conditionalExpression_prefixedValue2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a.b ? x.y : z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1290,12 +1252,11 @@ ConditionalExpression
   }
 
   void test_constructor_initializer_withParenthesizedExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   C() : this.a = (b == null ? c : d);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorFieldInitializer;
     assertParsedNodeText(node, r'''
@@ -1325,14 +1286,13 @@ ConstructorFieldInitializer
   }
 
   void test_equalityExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x == y != z;
+//       ^^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.equalityCannotBeEqualityOperand, 20, 2),
-    ]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
@@ -1356,12 +1316,11 @@ Block
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x is y == z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1379,12 +1338,11 @@ BinaryExpression
   }
 
   void test_equalityExpression_precedence_relational_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x == y is z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1402,16 +1360,15 @@ BinaryExpression
   }
 
   void test_equalityExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super == y != z;
+//             ^^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
   }
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.equalityCannotBeEqualityOperand, 38, 2),
-    ]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
@@ -1435,12 +1392,11 @@ Block
   }
 
   void test_ifNullExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x ?? y ?? z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1458,12 +1414,11 @@ BinaryExpression
   }
 
   void test_ifNullExpression_precedence_logicalOr_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x || y ?? z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1481,12 +1436,11 @@ BinaryExpression
   }
 
   void test_ifNullExpression_precedence_logicalOr_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x ?? y || z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1504,12 +1458,11 @@ BinaryExpression
   }
 
   void test_logicalAndExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x && y && z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1527,12 +1480,11 @@ BinaryExpression
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x | y < z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1550,12 +1502,11 @@ BinaryExpression
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x < y | z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1574,12 +1525,11 @@ BinaryExpression
 
   void test_logicalAndExpressionStatement() {
     // Ensure `<` and `>` are parsed as operators, not type arguments.
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   C<T && T>U;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1601,12 +1551,11 @@ BinaryExpression
   }
 
   void test_logicalOrExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x || y || z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1624,12 +1573,11 @@ BinaryExpression
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x && y || z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1647,12 +1595,11 @@ BinaryExpression
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x || y && z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1671,12 +1618,11 @@ BinaryExpression
 
   void test_methodInvocation1() {
     // Ensure `<` and `>` in arguments are parsed as operators, not type args.
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   f(a < b, c > 3);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1704,12 +1650,11 @@ MethodInvocation
 
   void test_methodInvocation2() {
     // Ensure `<` and `>` in arguments are parsed as operators, not type args.
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   f(a < b, c >> 3);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1737,12 +1682,11 @@ MethodInvocation
 
   void test_methodInvocation3() {
     // Ensure `<` and `>` in arguments are parsed as operators, not type args.
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   f(a < b, c < d >> 3);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1773,28 +1717,24 @@ MethodInvocation
   }
 
   void test_multipleLabels_statement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a: b: c: return x;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleLabeledStatement;
     assertParsedNodeText(node, r'''
 LabeledStatement
   labels
     Label
-      label: SimpleIdentifier
-        token: a
+      name: a
       colon: :
     Label
-      label: SimpleIdentifier
-        token: b
+      name: b
       colon: :
     Label
-      label: SimpleIdentifier
-        token: c
+      name: c
       colon: :
   statement: ReturnStatement
     returnKeyword: return
@@ -1805,12 +1745,11 @@ LabeledStatement
   }
 
   void test_multiplicativeExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x * y / z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1828,12 +1767,11 @@ BinaryExpression
   }
 
   void test_multiplicativeExpression_precedence_unary_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   -x * y;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1849,12 +1787,11 @@ BinaryExpression
   }
 
   void test_multiplicativeExpression_precedence_unary_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x * -y;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1870,14 +1807,13 @@ BinaryExpression
   }
 
   void test_multiplicativeExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super * y / z;
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1895,12 +1831,11 @@ BinaryExpression
   }
 
   void test_relationalExpression_precedence_shift_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x << y is z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1918,12 +1853,11 @@ IsExpression
   }
 
   void test_shiftExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x >> 4 << 3;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1941,12 +1875,11 @@ BinaryExpression
   }
 
   void test_shiftExpression_precedence_additive_left() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x + y << z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1964,12 +1897,11 @@ BinaryExpression
   }
 
   void test_shiftExpression_precedence_additive_right() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   x << y + z;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -1987,14 +1919,13 @@ BinaryExpression
   }
 
   void test_shiftExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super >> 4 << 3;
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExpressionStatement.expression;
     assertParsedNodeText(node, r'''
@@ -2012,13 +1943,12 @@ BinaryExpression
   }
 
   void test_topLevelFunction_nestedGenericFunction() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>() {
   }
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult
         .findNode

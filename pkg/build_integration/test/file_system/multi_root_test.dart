@@ -31,58 +31,76 @@ void main() {
       multiRoot.entityForUri(Uri.parse(uri)).exists();
 
   Future<String> effectiveUriOf(String uri) async =>
-      (await (multiRoot.entityForUri(Uri.parse(uri))
-                  as MultiRootFileSystemEntity)
-              .delegate)
-          .uri
-          .toString();
+      (await (multiRoot.entityForUri(
+        Uri.parse(uri),
+      ) as MultiRootFileSystemEntity).delegate).uri.toString();
 
   setUp(() {
     memoryFs = MemoryFileSystem(root);
-    final rootUris =
-        ['r1', 'r2/', 'A/B/', ''].map((r) => root.resolve(r)).toList();
+    final rootUris = [
+      'r1',
+      'r2/',
+      'A/B/',
+      '',
+    ].map((r) => root.resolve(r)).toList();
     multiRoot = MultiRootFileSystem('multi-root', rootUris, memoryFs);
   });
 
   test('roots are normalized', () async {
-    expect(multiRoot.roots.map((x) => x.path).toList(),
-        ['/r1/', '/r2/', '/A/B/', '/']);
+    expect(multiRoot.roots.map((x) => x.path).toList(), [
+      '/r1/',
+      '/r2/',
+      '/A/B/',
+      '/',
+    ]);
   });
 
   test('file URIs are not converted', () async {
     write('r1', 'a/b/1.dart');
     write('', 'a/b/1.dart');
-    expect(await effectiveUriOf('org-dartlang-test:///a/b/1.dart'),
-        'org-dartlang-test:///a/b/1.dart');
+    expect(
+      await effectiveUriOf('org-dartlang-test:///a/b/1.dart'),
+      'org-dartlang-test:///a/b/1.dart',
+    );
   });
 
   test('only URIs with the marker scheme are converted', () async {
     write('r1', 'a/b/2.dart');
-    expect(await effectiveUriOf('multi-root:///a/b/2.dart'),
-        'org-dartlang-test:///r1/a/b/2.dart');
-    expect(await effectiveUriOf('foo-root:///a/b/2.dart'),
-        'foo-root:///a/b/2.dart');
+    expect(
+      await effectiveUriOf('multi-root:///a/b/2.dart'),
+      'org-dartlang-test:///r1/a/b/2.dart',
+    );
+    expect(
+      await effectiveUriOf('foo-root:///a/b/2.dart'),
+      'foo-root:///a/b/2.dart',
+    );
   });
 
   test('roots are visited in declaration order (match first root)', () async {
     write('r1', 'a/3.dart');
     write('r2', 'a/3.dart');
     write('', 'a/3.dart');
-    expect(await effectiveUriOf('multi-root:///a/3.dart'),
-        'org-dartlang-test:///r1/a/3.dart');
+    expect(
+      await effectiveUriOf('multi-root:///a/3.dart'),
+      'org-dartlang-test:///r1/a/3.dart',
+    );
   });
 
   test('roots are visited in declaration order (match second root)', () async {
     write('r2', 'a/4.dart');
     write('', 'a/4.dart');
-    expect(await effectiveUriOf('multi-root:///a/4.dart'),
-        'org-dartlang-test:///r2/a/4.dart');
+    expect(
+      await effectiveUriOf('multi-root:///a/4.dart'),
+      'org-dartlang-test:///r2/a/4.dart',
+    );
   });
 
   test('roots are visited in declaration order (match last root)', () async {
     write('', 'a/5.dart');
-    expect(await effectiveUriOf('multi-root:///a/5.dart'),
-        'org-dartlang-test:///a/5.dart');
+    expect(
+      await effectiveUriOf('multi-root:///a/5.dart'),
+      'org-dartlang-test:///a/5.dart',
+    );
   });
 
   test('operations are forwarded to the correct target', () async {
@@ -91,15 +109,21 @@ void main() {
     write('r2', 'a/7.dart');
 
     expect(await exists('multi-root:///a/6.dart'), isTrue);
-    expect(await read('multi-root:///a/6.dart'),
-        'org-dartlang-test:///r1/a/6.dart');
+    expect(
+      await read('multi-root:///a/6.dart'),
+      'org-dartlang-test:///r1/a/6.dart',
+    );
 
     expect(await exists('multi-root:///a/7.dart'), isTrue);
-    expect(await read('multi-root:///a/7.dart'),
-        'org-dartlang-test:///r2/a/7.dart');
+    expect(
+      await read('multi-root:///a/7.dart'),
+      'org-dartlang-test:///r2/a/7.dart',
+    );
     expect(await exists('org-dartlang-test:///r2/a/7.dart'), isTrue);
-    expect(await read('org-dartlang-test:///r2/a/7.dart'),
-        'org-dartlang-test:///r2/a/7.dart');
+    expect(
+      await read('org-dartlang-test:///r2/a/7.dart'),
+      'org-dartlang-test:///r2/a/7.dart',
+    );
 
     expect(await exists('multi-root:///a/8.dart'), isFalse);
   });
@@ -107,37 +131,60 @@ void main() {
   test('multi-root expects absolute paths', () async {
     write('A/B', 'a/8.dart');
 
-    expect(await effectiveUriOf('multi-root:///a/8.dart'),
-        'org-dartlang-test:///A/B/a/8.dart');
-    expect(await effectiveUriOf('multi-root:///../B/a/8.dart'),
-        'multi-root:///B/a/8.dart');
+    expect(
+      await effectiveUriOf('multi-root:///a/8.dart'),
+      'org-dartlang-test:///A/B/a/8.dart',
+    );
+    expect(
+      await effectiveUriOf('multi-root:///../B/a/8.dart'),
+      'multi-root:///B/a/8.dart',
+    );
 
     // Embedding the full absolute path after a few `..` gets resolved because
     // we have also included '' as a root.
-    expect(await effectiveUriOf('multi-root:///../A/B/a/8.dart'),
-        'org-dartlang-test:///A/B/a/8.dart');
-    expect(await effectiveUriOf('multi-root:///../../A/B/a/8.dart'),
-        'org-dartlang-test:///A/B/a/8.dart');
+    expect(
+      await effectiveUriOf('multi-root:///../A/B/a/8.dart'),
+      'org-dartlang-test:///A/B/a/8.dart',
+    );
+    expect(
+      await effectiveUriOf('multi-root:///../../A/B/a/8.dart'),
+      'org-dartlang-test:///A/B/a/8.dart',
+    );
 
     // If we remove '' as a root, those URIs are not resolved.
-    multiRoot =
-        MultiRootFileSystem('multi-root', [root.resolve('A/B/')], memoryFs);
-    expect(await effectiveUriOf('multi-root:///../A/B/a/8.dart'),
-        'multi-root:///A/B/a/8.dart');
-    expect(await effectiveUriOf('multi-root:///../../A/B/a/8.dart'),
-        'multi-root:///A/B/a/8.dart');
+    multiRoot = MultiRootFileSystem('multi-root', [
+      root.resolve('A/B/'),
+    ], memoryFs);
+    expect(
+      await effectiveUriOf('multi-root:///../A/B/a/8.dart'),
+      'multi-root:///A/B/a/8.dart',
+    );
+    expect(
+      await effectiveUriOf('multi-root:///../../A/B/a/8.dart'),
+      'multi-root:///A/B/a/8.dart',
+    );
   });
 
-  test('multi-root handles all multi-root scheme uris, even if missing',
-      () async {
-    expect(await effectiveUriOf('multi-root:///doesnt/exist.dart'),
-        'multi-root:///doesnt/exist.dart');
-    expect(await exists('multi-root:///doesnt/exist.dart'), isFalse);
-    expect(
+  test(
+    'multi-root handles all multi-root scheme uris, even if missing',
+    () async {
+      expect(
+        await effectiveUriOf('multi-root:///doesnt/exist.dart'),
+        'multi-root:///doesnt/exist.dart',
+      );
+      expect(await exists('multi-root:///doesnt/exist.dart'), isFalse);
+      expect(
         read('multi-root:///doesnt/exist.dart'),
-        throwsA(const TypeMatcher<FileSystemException>()
-            .having((e) => e.message, 'message', 'File not found')
-            .having((e) => e.uri, 'uri',
-                equals(Uri.parse('multi-root:///doesnt/exist.dart')))));
-  });
+        throwsA(
+          const TypeMatcher<FileSystemException>()
+              .having((e) => e.message, 'message', 'File not found')
+              .having(
+                (e) => e.uri,
+                'uri',
+                equals(Uri.parse('multi-root:///doesnt/exist.dart')),
+              ),
+        ),
+      );
+    },
+  );
 }

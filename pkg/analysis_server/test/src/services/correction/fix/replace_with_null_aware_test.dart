@@ -60,7 +60,7 @@ void f(List<int>? l) {
 }
 ''',
       filter: (error) => error.length == 6,
-      matchFixMessage: "Replace the '..' with a '?..' in the invocation",
+      matchFixMessage: "Replace '..' with '?..' in invocation",
     );
   }
 
@@ -77,7 +77,7 @@ void f(int? i) {
 }
 ''',
       filter: (error) => error.length == 3,
-      matchFixMessage: "Replace the '..' with a '?..' in the invocation",
+      matchFixMessage: "Replace '..' with '?..' in invocation",
     );
   }
 
@@ -94,7 +94,7 @@ void f(int? i) {
 }
 ''',
       filter: (error) => error.length == 3,
-      matchFixMessage: "Replace the '..' with a '?..' in the invocation",
+      matchFixMessage: "Replace '..' with '?..' in invocation",
     );
   }
 
@@ -111,7 +111,7 @@ void f(List<int>? l) {
 }
 ''',
       filter: (error) => error.length == 1,
-      matchFixMessage: "Replace the '..' with a '?..' in the invocation",
+      matchFixMessage: "Replace '..' with '?..' in invocation",
     );
   }
 }

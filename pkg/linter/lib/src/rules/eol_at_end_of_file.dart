@@ -14,12 +14,14 @@ import '../diagnostic.dart' as diag;
 
 const _desc = r'Put a single newline at end of file.';
 
-class EolAtEndOfFile extends AnalysisRule {
-  EolAtEndOfFile()
-    : super(name: LintNames.eol_at_end_of_file, description: _desc);
+class EolAtEndOfFile extends MultiAnalysisRule {
+  new() : super(name: LintNames.eol_at_end_of_file, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => diag.eolAtEndOfFile;
+  List<DiagnosticCode> get diagnosticCodes => [
+    diag.eolAtEndOfFileMissing,
+    diag.eolAtEndOfFileTooMany,
+  ];
 
   @override
   void registerNodeProcessors(
@@ -32,21 +34,29 @@ class EolAtEndOfFile extends AnalysisRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
+  final MultiAnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
     assert(context.currentUnit?.unit == node);
     var content = context.currentUnit?.content;
-    if (content != null &&
-        content.isNotEmpty &&
-        // TODO(srawlins): Re-implement this check without iterating over
-        // various lists of strings.
-        (!content.endsWithNewline || content.endsWithMultipleNewlines)) {
-      rule.reportAtOffset(content.trimRight().length, 1);
+    if (content != null && content.isNotEmpty) {
+      if (content.endsWithMultipleNewlines) {
+        rule.reportAtOffset(
+          content.trimRight().length,
+          1,
+          diagnosticCode: diag.eolAtEndOfFileTooMany,
+        );
+      } else if (!content.endsWithNewline) {
+        rule.reportAtOffset(
+          content.trimRight().length,
+          1,
+          diagnosticCode: diag.eolAtEndOfFileMissing,
+        );
+      }
     }
   }
 }

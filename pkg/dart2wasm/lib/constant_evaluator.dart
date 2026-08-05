@@ -17,13 +17,13 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     implements VMConstantEvaluator {
   final bool _checkBounds;
   final bool _minify;
-  final bool _hasDynamicModuleSupport;
+  final bool _omitErrorDetails;
   final bool _deferredLoadingEnabled;
   final bool _deferredLoadingViaEmbedderLoadId;
 
   final Procedure? _dartInternalCheckBoundsGetter;
   final Procedure? _dartInternalMinifyGetter;
-  final Procedure? _dartInternalHasDynamicModuleSupportGetter;
+  final Procedure? _dartInternalOmitErrorDetailsGetter;
   final Procedure? _dartInternalDeferredLoadingEnabled;
   final Procedure? _dartInternalDeferredLoadingViaEmbedderLoadId;
 
@@ -36,11 +36,11 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     LibraryIndex libraryIndex,
   ) : _checkBounds = !options.translatorOptions.omitBoundsChecks,
       _minify = options.translatorOptions.minify,
-      _hasDynamicModuleSupport = options.enableDynamicModules,
+      _omitErrorDetails = options.translatorOptions.omitErrorDetails,
       _deferredLoadingEnabled =
           options.translatorOptions.enableDeferredLoading ||
           options.translatorOptions.enableMultiModuleStressTestMode,
-      _deferredLoadingViaEmbedderLoadId = options.loadsIdsUri != null,
+      _deferredLoadingViaEmbedderLoadId = options.useLoadIds,
       _dartInternalCheckBoundsGetter = libraryIndex.tryGetProcedure(
         "dart:_internal",
         LibraryIndex.topLevel,
@@ -51,10 +51,10 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
         LibraryIndex.topLevel,
         "get:minify",
       ),
-      _dartInternalHasDynamicModuleSupportGetter = libraryIndex.tryGetProcedure(
+      _dartInternalOmitErrorDetailsGetter = libraryIndex.tryGetProcedure(
         "dart:_internal",
         LibraryIndex.topLevel,
-        "get:hasDynamicModuleSupport",
+        "get:omitErrorDetails",
       ),
       _dartInternalDeferredLoadingEnabled = libraryIndex.tryGetProcedure(
         "dart:_internal",
@@ -88,8 +88,8 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     if (target == _dartInternalMinifyGetter) {
       return canonicalize(BoolConstant(_minify));
     }
-    if (target == _dartInternalHasDynamicModuleSupportGetter) {
-      return canonicalize(BoolConstant(_hasDynamicModuleSupport));
+    if (target == _dartInternalOmitErrorDetailsGetter) {
+      return canonicalize(BoolConstant(_omitErrorDetails));
     }
     if (target == _dartInternalDeferredLoadingEnabled) {
       return canonicalize(BoolConstant(_deferredLoadingEnabled));
@@ -108,7 +108,7 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
   bool shouldEvaluateMember(Member node) =>
       node == _dartInternalCheckBoundsGetter ||
       node == _dartInternalMinifyGetter ||
-      node == _dartInternalHasDynamicModuleSupportGetter ||
+      node == _dartInternalOmitErrorDetailsGetter ||
       node == _dartInternalDeferredLoadingEnabled ||
       node == _dartInternalDeferredLoadingViaEmbedderLoadId;
 }

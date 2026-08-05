@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:convert";
 import "dart:io";
 
@@ -15,7 +16,7 @@ class VMServiceHelper {
   late vmService.VmService _serviceClient;
   vmService.VmService get serviceClient => _serviceClient;
 
-  VMServiceHelper();
+  new();
 
   Future connect(Uri observatoryUri) async {
     String path = observatoryUri.path;
@@ -182,7 +183,7 @@ class VMServiceHelper {
 }
 
 class StdOutLog implements vmService.Log {
-  const StdOutLog();
+  const new();
 
   @override
   void severe(String message) {
@@ -200,6 +201,8 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
   Process get process => _process;
 
   bool _started = false;
+
+  Completer? get completerForError => null;
 
   Future<void> start(
     List<String> scriptAndArgs, {
@@ -228,8 +231,12 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
               // Manually kill the process or it will leak,
               // see http://dartbug.com/42918
               killProcess();
-              // This seems to rethrow.
-              throw e;
+              if (completerForError != null) {
+                completerForError!.completeError(e, st);
+              } else {
+                // This seems to rethrow.
+                throw e;
+              }
             });
           }
           if (stdoutReceiver != null) {

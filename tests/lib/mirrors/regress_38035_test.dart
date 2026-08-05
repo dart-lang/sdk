@@ -7,6 +7,7 @@
 // Verifies that static tear-off has correct information about argument types.
 
 import 'package:expect/expect.dart';
+
 import 'dart:mirrors';
 
 class A {

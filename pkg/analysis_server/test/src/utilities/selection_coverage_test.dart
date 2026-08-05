@@ -21,7 +21,7 @@ void main() {
 class AstImplData {
   final List<ClassElement> instantiableInterfaces = [];
 
-  AstImplData();
+  new();
 }
 
 class AstInterfaceData {
@@ -33,7 +33,7 @@ class AstInterfaceData {
   /// in that class that return a `NodeList`.
   final Map<ClassElement, List<ExecutableElement>> declaredLists = {};
 
-  AstInterfaceData();
+  new();
 
   List<ExecutableElement> nodeListsFor(ClassElement class_) {
     var lists = <ExecutableElement>[];
@@ -269,13 +269,13 @@ class SelectionCoverageTest {
 class SelectionData {
   final Map<ClassElement, List<ExecutableElement>> visitedLists = {};
 
-  SelectionData();
+  new();
 }
 
 class VisitMethodVisitor extends RecursiveAstVisitor<void> {
   List<ExecutableElement> visitedLists = [];
 
-  VisitMethodVisitor();
+  new();
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

@@ -114,10 +114,46 @@ class ListExtensionTest {
     expect(elements.nextOrNull(3), null);
   }
 
+  test_removeFirstOrNull() {
+    var elements = [0, 1, 2];
+    expect(elements.removeFirstOrNull(), 0);
+    expect(elements, [1, 2]);
+
+    expect([0].removeFirstOrNull(), 0);
+    expect(<int>[].removeFirstOrNull(), isNull);
+  }
+
   test_removeLastOrNull() {
     expect([0, 1, 2].removeLastOrNull(), 2);
     expect([0].removeLastOrNull(), 0);
     expect(<int>[].removeLastOrNull(), isNull);
+  }
+
+  test_splitAt() {
+    var elements = [0, 1, 2, 3];
+
+    var result0 = elements.splitAt(0);
+    expect(result0.$1, <int>[]);
+    expect(result0.$2, [0, 1, 2, 3]);
+
+    var result2 = elements.splitAt(2);
+    expect(result2.$1, [0, 1]);
+    expect(result2.$2, [2, 3]);
+
+    var result4 = elements.splitAt(4);
+    expect(result4.$1, [0, 1, 2, 3]);
+    expect(result4.$2, <int>[]);
+  }
+
+  test_splitAt_empty() {
+    var result = <int>[].splitAt(0);
+    expect(result.$1, <int>[]);
+    expect(result.$2, <int>[]);
+  }
+
+  test_splitAt_outOfBounds() {
+    expect(() => [0, 1].splitAt(-1), throwsRangeError);
+    expect(() => [0, 1].splitAt(3), throwsRangeError);
   }
 
   test_stablePartition() {

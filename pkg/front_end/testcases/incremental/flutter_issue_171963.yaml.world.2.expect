@@ -21,7 +21,7 @@ library from "org-dartlang-test:///b.dart" as b {
   class MyInstance<C extends b::MyClassB, A extends a::MyClassA<b::MyClassB>> extends dart.core::Object /*hasConstConstructor*/  {
     final field b::MyInstance::C? myClassC;
     final field b::MyInstance::A? myClassA;
-    const constructor •(b::MyInstance::C? myClassC, b::MyInstance::A? myClassA) → b::MyInstance<b::MyInstance::C, b::MyInstance::A>
+    const constructor •(initializing-formal b::MyInstance::C? myClassC, initializing-formal b::MyInstance::A? myClassA) → b::MyInstance<b::MyInstance::C, b::MyInstance::A>
       : b::MyInstance::myClassC = myClassC, b::MyInstance::myClassA = myClassA, super dart.core::Object::•()
       ;
   }

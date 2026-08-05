@@ -5,6 +5,7 @@
 // In strong mode, `FutureOr` should be a valid type in most locations.
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart' show checkedImplicitDowncasts;
 

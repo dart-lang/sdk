@@ -26,7 +26,7 @@ class DocumentColorPresentationHandler
   /// from numbers formatted for code.
   final _trailingZerosAndPeriodPattern = RegExp(r'\.?0+$');
 
-  DocumentColorPresentationHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_colorPresentation;

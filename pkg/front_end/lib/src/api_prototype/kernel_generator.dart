@@ -102,10 +102,10 @@ Future<CompilerResult?> kernelForProgramInternal(
 /// must be acyclic.
 ///
 /// This API is intended for modular compilation. Dependencies to other modules
-/// are specified using [CompilerOptions.additionalDills]. Any dependency
-/// of [sources] that is not listed in [CompilerOptions.additionalDills] and
-/// [CompilerOptions.sdkSummary] is treated as an additional source file for the
-/// module.
+/// are specified using [CompilerOptions.additionalDillModules]. Any dependency
+/// of [sources] that is not listed in [CompilerOptions.additionalDillModules]
+/// or [CompilerOptions.sdkSummary] is treated as an additional source file for
+/// the module being compiled.
 ///
 /// Any `part` declarations found in [sources] must refer to part files which
 /// are also listed in the module sources, otherwise an error results.  (It

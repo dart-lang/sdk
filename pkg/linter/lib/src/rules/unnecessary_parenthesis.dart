@@ -20,8 +20,7 @@ import '../extensions.dart';
 const _desc = r'Unnecessary parentheses can be removed.';
 
 class UnnecessaryParenthesis extends AnalysisRule {
-  UnnecessaryParenthesis()
-    : super(name: LintNames.unnecessary_parenthesis, description: _desc);
+  new() : super(name: LintNames.unnecessary_parenthesis, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryParenthesis;
@@ -56,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, this.typeSystem);
+  new(this.rule, this.typeSystem);
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -85,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // `g(i: (3)); => g({required (int,) i}) { }` is OK.
-    if (parent is NamedExpression &&
+    if (parent is NamedArgument &&
         parent.correspondingParameter?.type is RecordType) {
       if (expression is! RecordLiteral) return;
     }
@@ -176,9 +175,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // `a..b = (c..d)` is OK.
     if (expression is CascadeExpression ||
         node.thisOrAncestorMatching(
-              (n) => n is Statement || n is CascadeExpression,
-            )
-            is CascadeExpression) {
+          (n) => n is Statement || n is CascadeExpression,
+        ) is CascadeExpression) {
       return;
     }
 
@@ -350,7 +348,7 @@ extension on Expression {
   /// expression of a named argument.
   bool get isArgument =>
       parent is ArgumentList ||
-      (parent is NamedExpression && parent?.parent is ArgumentList);
+      (parent is NamedArgument && parent?.parent is ArgumentList);
 
   /// Whether this expression is a sigle token.
   ///

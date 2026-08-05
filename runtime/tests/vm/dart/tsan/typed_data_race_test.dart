@@ -11,7 +11,7 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 @pragma("vm:shared")
-Uint8List box = Uint8List(1);
+final box = Uint8List(1);
 
 @pragma("vm:never-inline")
 dataRaceFromMain() {
@@ -51,7 +51,7 @@ main(List<String> arguments) {
   if (arguments.contains("--testee")) {
     // Avoid synchronizing via lazy compilation and initialization.
     usleep(0);
-    box![0] += 0;
+    box[0] += 0;
 
     var port = new RawReceivePort();
     port.handler = (_) => port.close();

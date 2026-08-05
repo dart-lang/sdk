@@ -126,7 +126,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   File copyTo(Folder parentFolder) {
     parentFolder.create();
-    File destination = parentFolder.getChildAssumingFile(shortName);
+    File destination = parentFolder.getFile(shortName);
     destination.writeAsBytesSync(readAsBytesSync());
     return destination;
   }
@@ -231,7 +231,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Folder copyTo(Folder parentFolder) {
-    Folder destination = parentFolder.getChildAssumingFolder(shortName);
+    Folder destination = parentFolder.getFolder(shortName);
     destination.create();
     for (Resource child in getChildren()) {
       child.copyTo(destination);
@@ -250,18 +250,16 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     return PhysicalResourceProvider.INSTANCE.getResource(canonicalPath);
   }
 
+  @Deprecated('Use getFile instead.')
   @override
   _PhysicalFile getChildAssumingFile(String relPath) {
-    String canonicalPath = canonicalizePath(relPath);
-    io.File file = io.File(canonicalPath);
-    return _PhysicalFile(file);
+    return getFile(relPath);
   }
 
+  @Deprecated('Use getFolder instead.')
   @override
   _PhysicalFolder getChildAssumingFolder(String relPath) {
-    String canonicalPath = canonicalizePath(relPath);
-    io.Directory directory = io.Directory(canonicalPath);
-    return _PhysicalFolder(directory);
+    return getFolder(relPath);
   }
 
   @override
@@ -283,6 +281,20 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     } on io.FileSystemException catch (exception) {
       throw _wrapException(exception);
     }
+  }
+
+  @override
+  _PhysicalFile getFile(String relPath) {
+    String canonicalPath = canonicalizePath(relPath);
+    io.File file = io.File(canonicalPath);
+    return _PhysicalFile(file);
+  }
+
+  @override
+  _PhysicalFolder getFolder(String relPath) {
+    String canonicalPath = canonicalizePath(relPath);
+    io.Directory directory = io.Directory(canonicalPath);
+    return _PhysicalFolder(directory);
   }
 
   @override

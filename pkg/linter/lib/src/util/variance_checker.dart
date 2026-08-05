@@ -125,20 +125,14 @@ abstract class VarianceChecker {
     switch (formalParameter) {
       case SuperFormalParameter(:var type):
       case FieldFormalParameter(:var type):
-      case SimpleFormalParameter(:var type):
+      case RegularFormalParameter(:var type, functionTypedSuffix: null):
         check(variance, type);
-      case FunctionTypedFormalParameter(
-        :var returnType,
-        :var parameters,
-        :var typeParameters,
-      ):
-        check(variance, returnType);
-        typeParameters?.typeParameters.forEach(checkBound);
-        for (var parameter in parameters.parameters) {
+      case FormalParameter(:var type, :var functionTypedSuffix?):
+        check(variance, type);
+        functionTypedSuffix.typeParameters?.typeParameters.forEach(checkBound);
+        for (var parameter in functionTypedSuffix.formalParameters.parameters) {
           checkFormalParameter(variance.inverse, parameter);
         }
-      case DefaultFormalParameter():
-        checkFormalParameter(variance, formalParameter.parameter);
     }
   }
 

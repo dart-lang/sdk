@@ -22,7 +22,7 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
 
   final _Replacement? _replacement;
 
-  factory ReplaceWithIsEmpty({required CorrectionProducerContext context}) {
+  factory({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
       return ReplaceWithIsEmpty._(
         context: context,
@@ -53,7 +53,7 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
     );
   }
 
-  ReplaceWithIsEmpty._({
+  new _({
     required super.context,
     required this.fixKind,
     required this.multiFixKind,
@@ -178,7 +178,7 @@ class _Replacement {
   final String getter;
   final Expression lengthTarget;
 
-  _Replacement.isEmpty(Expression lengthTarget)
+  new isEmpty(Expression lengthTarget)
     : this._(
         fixKind: DartFixKind.replaceWithIsEmpty,
         multiFixKind: DartFixKind.replaceWithIsEmptyMulti,
@@ -186,7 +186,7 @@ class _Replacement {
         lengthTarget: lengthTarget,
       );
 
-  _Replacement.isNotEmpty(Expression lengthTarget)
+  new isNotEmpty(Expression lengthTarget)
     : this._(
         fixKind: DartFixKind.replaceWithIsNotEmpty,
         multiFixKind: DartFixKind.replaceWithIsNotEmptyMulti,
@@ -194,7 +194,7 @@ class _Replacement {
         lengthTarget: lengthTarget,
       );
 
-  _Replacement._({
+  new _({
     required this.fixKind,
     required this.multiFixKind,
     required this.getter,

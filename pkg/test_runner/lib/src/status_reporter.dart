@@ -11,25 +11,25 @@ final _combinations = {
       'runtimes': ['none'],
       'modes': ['release'],
       'archs': ['x64'],
-      'compiler': 'dart2analyzer'
+      'compiler': 'dart2analyzer',
     },
     {
       'runtimes': ['none'],
       'modes': ['release'],
       'archs': ['x64'],
-      'compiler': 'compare_analyzer_cfe'
+      'compiler': 'compare_analyzer_cfe',
     },
     {
       'runtimes': ['vm'],
       'modes': ['debug', 'release'],
       'archs': ['ia32', 'x64', 'simarm'],
-      'compiler': 'none'
+      'compiler': 'none',
     },
     {
       'runtimes': ['d8', 'jsshell', 'chrome', 'ff'],
       'modes': ['release'],
       'archs': ['ia32'],
-      'compiler': 'dart2js'
+      'compiler': 'dart2js',
     },
   ],
   'windows': [
@@ -37,13 +37,13 @@ final _combinations = {
       'runtimes': ['vm'],
       'modes': ['debug', 'release'],
       'archs': ['ia32', 'x64'],
-      'compiler': 'none'
+      'compiler': 'none',
     },
     {
       'runtimes': ['chrome', 'ff'],
       'modes': ['release'],
       'archs': ['ia32'],
-      'compiler': 'dart2js'
+      'compiler': 'dart2js',
     },
   ],
   'macos': [
@@ -51,15 +51,15 @@ final _combinations = {
       'runtimes': ['vm'],
       'modes': ['debug', 'release'],
       'archs': ['ia32', 'x64'],
-      'compiler': 'none'
+      'compiler': 'none',
     },
     {
       'runtimes': ['safari'],
       'modes': ['release'],
       'archs': ['ia32'],
-      'compiler': 'dart2js'
+      'compiler': 'dart2js',
     },
-  ]
+  ],
 };
 
 void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
@@ -74,7 +74,7 @@ void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
     archString,
     'create_sdk',
     // We build runtime to be able to list cc tests.
-    'runtime'
+    'runtime',
   ];
 
   print('Running: python3 ${args.join(" ")}');
@@ -143,7 +143,7 @@ void main(List<String> args) {
             '-r$runtime',
             '-a$arch',
             '--report-in-json',
-            '--use-sdk'
+            '--use-sdk',
           ];
           var result = Process.runSync('python3', args);
           if (result.exitCode != 0) {

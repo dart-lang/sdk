@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  late field () → self::A f;
+  synthetic constructor •() → self::A
+    ;
+}

@@ -24,7 +24,7 @@ extension type C(self::A point) implements self::A {
   constructor • = self::C|constructor#;
   constructor tearoff • = self::C|constructor#_#new#tearOff;
 }
-static extension-type-member method C|constructor#_(self::A point) → self::C /* erasure=self::A */ {
+static extension-type-member method C|constructor#_(initializing-formal self::A point) → self::C /* erasure=self::A */ {
   lowered final self::C /* erasure=self::A */ #this = point;
   return #this;
 }

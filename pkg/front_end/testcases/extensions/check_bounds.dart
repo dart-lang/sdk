@@ -16,8 +16,8 @@ extension Extension<T extends B> on Class<T> {
   method() {}
   genericMethod<S extends B>(S s) {}
   genericMethod2<S extends B>() {}
-  operator[](_) {}
-  operator[]=(_,_) {}
+  operator [](_) {}
+  operator []=(_, _) {}
 }
 
 main() {}
@@ -66,7 +66,6 @@ test(A a) {
   Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
   Extension<A>(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
   Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
-
 
   classB.method();
   classB.method;
@@ -126,18 +125,22 @@ final field1 = classA.method(); // Error: Expect method not found.
 final field2 = Extension(classA).method(); // Error: Expect bounds mismatch.
 final field3 = Extension<A>(classA).method(); // Error: Expect bounds mismatch.
 final field4 = Extension<B>(classA).method();
-final field5 = Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
-final field6 = Extension(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
-final field7 = Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
-final field8 = Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
-final field9 =
-    Extension<A>(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
-final field10 =
-    Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
-final field11 =
-    Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
-final field12 =
-    Extension<B>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field5 = Extension(classA)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field6 = Extension(classA)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field7 = Extension(classA)
+    .genericMethod<B>(a); // Error: Expect bounds mismatch.
+final field8 = Extension<A>(classA)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field9 = Extension<A>(classA)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field10 = Extension<A>(classA)
+    .genericMethod<B>(a); // Error: Expect bounds mismatch.
+final field11 = Extension<B>(classB)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field12 = Extension<B>(classB)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
 final field13 = Extension<B>(classB).genericMethod<B>(a);
 
 final field14 = classB.method();
@@ -148,18 +151,19 @@ final field17 = Extension<B>(classB).method();
 final field18 = classB.genericMethod(a); // Error: Expect bounds mismatch.
 final field19 = classB.genericMethod<A>(a); // Error: Expect bounds mismatch.
 final field20 = classB.genericMethod<B>(a);
-final field21 = Extension(classB).genericMethod(a); // Error: Expect bounds mismatch.
-final field22 =
-    Extension(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field21 = Extension(classB)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field22 = Extension(classB)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
 final field23 = Extension(classB).genericMethod<B>(a);
-final field24 =
-    Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
-final field25 =
-    Extension<A>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
-final field26 =
-    Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
-final field27 =
-    Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
-final field28 =
-    Extension<B>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field24 = Extension<A>(classB)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field25 = Extension<A>(classB)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field26 = Extension<A>(classB)
+    .genericMethod<B>(a); // Error: Expect bounds mismatch.
+final field27 = Extension<B>(classB)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field28 = Extension<B>(classB)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
 final field29 = Extension<B>(classB).genericMethod<B>(a);

@@ -7,7 +7,7 @@
 typedef ClassAlias = A<int>;
 typedef AliasAlias = ClassAlias;
 typedef ExtensionAlias = AExt<int>;
-typedef ExtensionAliasAlias = ExtensionAlias; 
+typedef ExtensionAliasAlias = ExtensionAlias;
 
 class A<T> {
   static ClassAlias get alias => A(1);
@@ -36,7 +36,6 @@ extension type AExt<T>(T t) {
 
   ExtensionAlias get aliasGetter => AExt(1);
 }
-
 
 void main() {
   // Class

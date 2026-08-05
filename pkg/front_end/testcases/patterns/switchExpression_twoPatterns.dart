@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-f(x) => switch(x) {
+f(x) => switch (x) {
   int _ => 0,
-  _ => 1
+  _ => 1,
 };

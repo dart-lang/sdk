@@ -5,6 +5,7 @@
 library uriTest;
 
 import "package:expect/expect.dart";
+
 import 'dart:convert';
 
 void testUri(String uriText, bool isAbsolute) {

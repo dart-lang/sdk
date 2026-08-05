@@ -16,7 +16,7 @@ import '../util/leak_detector_visitor.dart';
 const _desc = r'Close instances of `dart:core` `Sink`.';
 
 class CloseSinks extends AnalysisRule {
-  CloseSinks() : super(name: LintNames.close_sinks, description: _desc);
+  new() : super(name: LintNames.close_sinks, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.closeSinks;
@@ -39,7 +39,7 @@ class _Visitor extends LeakDetectorProcessors {
     _isSocket: 'destroy',
   };
 
-  _Visitor(super.rule);
+  new(super.rule);
 
   @override
   Map<DartTypePredicate, String> get predicates => _predicates;

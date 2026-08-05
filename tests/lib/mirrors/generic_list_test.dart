@@ -5,6 +5,7 @@
 library test.superclass;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class Foo<T> {

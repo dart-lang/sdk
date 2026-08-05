@@ -21,10 +21,12 @@ class FrontendServerClient {
   _ClientState _state;
 
   FrontendServerClient._(
-      this._entrypoint, this._feServer, this._feServerStdoutLines,
-      {bool? verbose})
-      : _verbose = verbose ?? false,
-        _state = _ClientState.waitingForFirstCompile {
+    this._entrypoint,
+    this._feServer,
+    this._feServerStdoutLines, {
+    bool? verbose,
+  }) : _verbose = verbose ?? false,
+       _state = _ClientState.waitingForFirstCompile {
     _feServer.stderr.transform(utf8.decoder).listen(stderr.write);
   }
 
@@ -89,49 +91,39 @@ class FrontendServerClient {
       if (enabledExperiments != null)
         for (final experiment in enabledExperiments)
           '--enable-experiment=$experiment',
-      for (final source in additionalSources) ...[
-        '--source',
-        source,
-      ],
-      if (nativeAssets != null) ...[
-        '--native-assets',
-        nativeAssets,
-      ],
+      for (final source in additionalSources) ...['--source', source],
+      if (nativeAssets != null) ...['--native-assets', nativeAssets],
     ];
     late final Process feServer;
     if (frontendServerPath != null) {
-      feServer = await Process.start(
-        Platform.resolvedExecutable,
-        <String>[
-          if (debug) '--observe',
-          frontendServerPath,
-          ...commonArguments,
-        ],
-      );
+      feServer = await Process.start(Platform.resolvedExecutable, <String>[
+        if (debug) '--observe',
+        frontendServerPath,
+        ...commonArguments,
+      ]);
     } else if (File(_feServerAotSnapshotPath).existsSync()) {
       if (debug) {
-        throw ArgumentError('The debug argument cannot be set to true when the '
-            'frontendServerPath argument is omitted.');
+        throw ArgumentError(
+          'The debug argument cannot be set to true when the '
+          'frontendServerPath argument is omitted.',
+        );
       }
-      feServer = await Process.start(
-        _dartAotRuntimePath,
-        <String>[_feServerAotSnapshotPath, ...commonArguments],
-      );
+      feServer = await Process.start(_dartAotRuntimePath, <String>[
+        _feServerAotSnapshotPath,
+        ...commonArguments,
+      ]);
     } else {
       // AOT snapshots cannot be generated on IA32, so we need this fallback
       // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      feServer = await Process.start(
-        Platform.resolvedExecutable,
-        <String>[
-          if (debug) '--observe',
-          _feServerAppJitSnapshotPath,
-          ...commonArguments,
-        ],
-      );
+      feServer = await Process.start(Platform.resolvedExecutable, <String>[
+        if (debug) '--observe',
+        _feServerAppJitSnapshotPath,
+        ...commonArguments,
+      ]);
     }
-    final feServerStdoutLines = StreamQueue(feServer.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter()));
+    final feServerStdoutLines = StreamQueue(
+      feServer.stdout.transform(utf8.decoder).transform(const LineSplitter()),
+    );
 
     // The frontend_server doesn't appear to recursively create files, so we
     //  need to make sure the output dir already exists.
@@ -162,16 +154,20 @@ class FrontendServerClient {
         break;
       case _ClientState.waitingForAcceptOrReject:
         throw StateError(
-            'Previous `CompileResult` must be accepted or rejected by '
-            'calling `accept` or `reject`.');
+          'Previous `CompileResult` must be accepted or rejected by '
+          'calling `accept` or `reject`.',
+        );
       case _ClientState.compiling:
         throw StateError(
-            'App is already being compiled, you must wait for that to '
-            'complete and `accept` or `reject` the result before compiling '
-            'again.');
+          'App is already being compiled, you must wait for that to '
+          'complete and `accept` or `reject` the result before compiling '
+          'again.',
+        );
       case _ClientState.rejecting:
-        throw StateError('Still waiting for previous `reject` call to finish. '
-            'You must await that before compiling again.');
+        throw StateError(
+          'Still waiting for previous `reject` call to finish. '
+          'You must await that before compiling again.',
+        );
     }
     _state = _ClientState.compiling;
 
@@ -180,8 +176,9 @@ class FrontendServerClient {
       if (action == 'recompile') {
         if (invalidatedUris == null || invalidatedUris.isEmpty) {
           throw StateError(
-              'Subsequent compile invocations must provide a non-empty list '
-              'of invalidated uris.');
+            'Subsequent compile invocations must provide a non-empty list '
+            'of invalidated uris.',
+          );
         }
         final boundaryKey = generateUuidV4();
         command.writeln(' $boundaryKey');
@@ -199,8 +196,8 @@ class FrontendServerClient {
       final compilerOutputLines = <String>[];
       var errorCount = 0;
       String? outputDillPath;
-      while (
-          state != _CompileState.done && await _feServerStdoutLines.hasNext) {
+      while (state != _CompileState.done &&
+          await _feServerStdoutLines.hasNext) {
         final line = await _nextInputLine();
         switch (state) {
           case _CompileState.started:
@@ -230,8 +227,9 @@ class FrontendServerClient {
               removedSources.add(diffUri);
             } else {
               throw StateError(
-                  'unrecognized diff line, should start with a + or - '
-                  'but got: $line');
+                'unrecognized diff line, should start with a + or - '
+                'but got: $line',
+              );
             }
             continue;
           case _CompileState.done:
@@ -240,11 +238,12 @@ class FrontendServerClient {
       }
 
       return CompileResult._(
-          dillOutput: outputDillPath,
-          errorCount: errorCount,
-          newSources: newSources,
-          removedSources: removedSources,
-          compilerOutputLines: compilerOutputLines);
+        dillOutput: outputDillPath,
+        errorCount: errorCount,
+        newSources: newSources,
+        removedSources: removedSources,
+        compilerOutputLines: compilerOutputLines,
+      );
     } finally {
       _state = _ClientState.waitingForAcceptOrReject;
     }
@@ -258,8 +257,7 @@ class FrontendServerClient {
     required String klass,
     required String libraryUri,
     required List<String> typeDefinitions,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   /// TODO: Document
   Future<CompileResult> compileExpressionToJs({
@@ -270,8 +268,7 @@ class FrontendServerClient {
     required String libraryUri,
     required int line,
     required String moduleName,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   /// Should be invoked when results of compilation are accepted by the client.
   ///
@@ -279,7 +276,8 @@ class FrontendServerClient {
   void accept() {
     if (_state != _ClientState.waitingForAcceptOrReject) {
       throw StateError(
-          'Called `accept` but there was no previous compile to accept.');
+        'Called `accept` but there was no previous compile to accept.',
+      );
     }
     _sendCommand('accept');
     _state = _ClientState.waitingForRecompile;
@@ -294,7 +292,8 @@ class FrontendServerClient {
   Future<void> reject() async {
     if (_state != _ClientState.waitingForAcceptOrReject) {
       throw StateError(
-          'Called `reject` but there was no previous compile to reject.');
+        'Called `reject` but there was no previous compile to reject.',
+      );
     }
     _state = _ClientState.rejecting;
     _sendCommand('reject');
@@ -307,8 +306,9 @@ class FrontendServerClient {
         case _RejectState.started:
           if (!line.startsWith('result')) {
             throw StateError(
-                'Expected a line like `result <boundary-key>` after a `reject` '
-                'command, but got:\n$line');
+              'Expected a line like `result <boundary-key>` after a `reject` '
+              'command, but got:\n$line',
+            );
           }
           boundaryKey = line.split(' ').last;
           rejectState = _RejectState.waitingForKey;
@@ -332,8 +332,9 @@ class FrontendServerClient {
   void reset() {
     if (_state == _ClientState.compiling) {
       throw StateError(
-          'Called `reset` during an active compile, you must wait for that to '
-          'complete first.');
+        'Called `reset` during an active compile, you must wait for that to '
+        'complete first.',
+      );
     }
     _sendCommand('reset');
     _state = _ClientState.waitingForRecompile;
@@ -377,12 +378,13 @@ class FrontendServerClient {
 
 /// The result of a compile call.
 class CompileResult {
-  const CompileResult._(
-      {required this.dillOutput,
-      required this.compilerOutputLines,
-      required this.errorCount,
-      required this.newSources,
-      required this.removedSources});
+  const CompileResult._({
+    required this.dillOutput,
+    required this.compilerOutputLines,
+    required this.errorCount,
+    required this.newSources,
+    required this.removedSources,
+  });
 
   /// The produced dill output file, this will either be a full dill file, an
   /// incremental dill file, or `null` if no file was produced.
@@ -432,24 +434,23 @@ enum _ClientState {
 }
 
 /// Frontend server interaction states for a `compile` call.
-enum _CompileState {
-  started,
-  waitingForKey,
-  gettingSourceDiffs,
-  done,
-}
+enum _CompileState { started, waitingForKey, gettingSourceDiffs, done }
 
 /// Frontend server interaction states for a `reject` call.
-enum _RejectState {
-  started,
-  waitingForKey,
-  done,
-}
+enum _RejectState { started, waitingForKey, done }
 
 final _dartAotRuntimePath = p.join(sdkDir, 'bin', 'dartaotruntime');
 
-final _feServerAppJitSnapshotPath =
-    p.join(sdkDir, 'bin', 'snapshots', 'frontend_server.dart.snapshot');
+final _feServerAppJitSnapshotPath = p.join(
+  sdkDir,
+  'bin',
+  'snapshots',
+  'frontend_server.dart.snapshot',
+);
 
-final _feServerAotSnapshotPath =
-    p.join(sdkDir, 'bin', 'snapshots', 'frontend_server_aot.dart.snapshot');
+final _feServerAotSnapshotPath = p.join(
+  sdkDir,
+  'bin',
+  'snapshots',
+  'frontend_server_aot.dart.snapshot',
+);

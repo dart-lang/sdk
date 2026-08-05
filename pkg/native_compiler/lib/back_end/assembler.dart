@@ -21,9 +21,11 @@ enum OperandSize {
   s64,
   simd128;
 
+  bool get is16 => (this == u16) || (this == s16);
   bool get is32 => (this == u32) || (this == s32);
   bool get is64 => (this == u64) || (this == s64);
   bool get is32or64 => is32 || is64;
+  bool get is16or32or64 => is16 || is32 || is64;
   bool get is128 => (this == simd128);
 
   bool get isSigned =>
@@ -55,27 +57,19 @@ enum OperandSize {
 }
 
 /// Immediate operand.
-class Immediate implements Operand {
-  final int value;
-  const Immediate(this.value);
-}
+class const Immediate(final int value) implements Operand;
 
 /// Address operand.
-abstract interface class Address implements Operand {}
+abstract interface class Address implements Operand;
 
 /// [base + offset] address operand.
-class RegOffsetAddress implements Address {
-  final Register base;
-  final int offset;
-  RegOffsetAddress(this.base, this.offset);
-}
+class RegOffsetAddress(final Register base, final int offset)
+    implements Address;
 
 /// Destination of a branch.
 class Label {
   int _offset = -1;
   final branchOffsets = <int>[];
-
-  Label();
 
   bool get isBound => _offset >= 0;
 
@@ -124,10 +118,14 @@ enum Condition {
 abstract base class Assembler {
   final VMOffsets vmOffsets;
   final ObjectPool objectPool = ObjectPool();
+  final void Function()? addCallSiteMetadata;
 
-  Assembler(this.vmOffsets);
+  Assembler(this.vmOffsets, this.addCallSiteMetadata);
 
   Uint8List get bytes;
+
+  /// Offset of the current position from the beginning of the generated code, in bytes.
+  int get currentPcOffset;
 
   /// Create a [base + offset] address for arbitrary offset,
   /// generating extra code if necessary.
@@ -152,11 +150,17 @@ abstract base class Assembler {
   void jump(Label label);
   void branchIf(Condition condition, Label label);
 
+  /// Jump to [label] if Dart `bool` value in [left] matches [right].
+  void branchIfBoolIs(Register left, bool right, Label label);
+
   void loadFromPool(Register reg, Object obj);
   void loadConstant(Register reg, ConstantValue value);
 
   /// Load arbitrary integer [value] into register.
   void loadImmediate(Register reg, int value);
+
+  /// Load arbitrary double [value] into a floating-point register.
+  void loadDoubleImmediate(FPRegister reg, double v);
 
   /// [dst] = [src] + arbitrary integer [value].
   void addImmediate(
@@ -194,6 +198,7 @@ abstract base class Assembler {
   void callStub(Code stub);
 
   void unimplemented(String message);
+  void breakpoint();
 }
 
 /// Assembler output buffer holding 32-bit instructions.

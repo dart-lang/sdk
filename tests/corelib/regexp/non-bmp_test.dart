@@ -23,6 +23,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'v8_regexp_utils.dart';
+
 import 'package:expect/expect.dart';
 
 void main() {
@@ -43,9 +44,9 @@ void main() {
   assertEquals(new RegExp(r"[^x]").firstMatch(surrogatePair)![0]!.length, 1);
 
   assertEquals(
-    new RegExp(
-      r".{1,2}",
-    ).firstMatch("!!" + new String.fromCharCode(0xA1))![0]!.length,
+    new RegExp(r".{1,2}")
+        .firstMatch("!!" + new String.fromCharCode(0xA1))![0]!
+        .length,
     2,
   );
   shouldBeNull(new RegExp(r".").firstMatch(""));

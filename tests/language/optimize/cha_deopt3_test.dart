@@ -7,6 +7,7 @@
 // Test lazy deoptimization at type checks with interface implementation.
 
 import "package:expect/expect.dart";
+
 import "cha_deopt3_lib.dart";
 import "cha_deopt3_deferred_lib.dart" deferred as d;
 

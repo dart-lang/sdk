@@ -20,7 +20,7 @@ class RequestOperation extends Operation {
   final CommonInputConverter converter;
   final Map<String, dynamic> json;
 
-  RequestOperation(this.converter, this.json);
+  new(this.converter, this.json);
 
   @override
   Future<void>? perform(Driver driver) {
@@ -71,7 +71,7 @@ class ResponseOperation extends Operation {
   final Completer<void> completer = Completer();
   late Driver driver;
 
-  ResponseOperation(this.converter, this.requestJson, this.responseJson) {
+  new(this.converter, this.requestJson, this.responseJson) {
     completer.future.then(_processResult).timeout(responseTimeout);
   }
 
@@ -86,8 +86,7 @@ class ResponseOperation extends Operation {
     if (expectedResult is Map && actualResult is Map) {
       if (expectedResult.length == actualResult.length) {
         return expectedResult.keys.every((key) {
-          return key ==
-                  'fileStamp' || // fileStamp values will not be the same across runs
+          return key == 'fileStamp' || // fileStamp values will not be the same across runs
               _equal(expectedResult[key], actualResult[key]);
         });
       }

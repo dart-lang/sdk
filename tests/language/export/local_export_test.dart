@@ -5,6 +5,7 @@
 library localExportTest;
 
 import "package:expect/expect.dart";
+
 import 'local_a.dart';
 
 void main() {

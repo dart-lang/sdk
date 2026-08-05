@@ -36,11 +36,10 @@ import 'package:foo/foo.dart';
     newFile('$testPackageLibPath/lib.dart', r'''
 class C {}
 ''');
-    var test = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertDiagnosticsInTestDirFromMarkup(r'''
 /// This provides [C].
-import '../lib/lib.dart';
+import [!'../lib/lib.dart'!];
 ''');
-    await assertDiagnosticsInFile(test.path, [lint(30, 17)]);
   }
 
   test_samePackage_relativeUri_inPart() async {
@@ -52,12 +51,11 @@ class C {}
 part 'test.dart';
 ''');
 
-    var test = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertDiagnosticsInTestDirFromMarkup(r'''
 part of 'a.dart';
 
 /// This provides [C].
-import '../lib/lib.dart';
+import [!'../lib/lib.dart'!];
 ''');
-    await assertDiagnosticsInFile(test.path, [lint(49, 17)]);
   }
 }

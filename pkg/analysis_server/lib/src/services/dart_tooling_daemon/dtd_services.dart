@@ -54,11 +54,7 @@ class DtdServices {
   /// Whether to register experimental LSP handlers over DTD.
   final bool registerExperimentalHandlers;
 
-  DtdServices._(
-    this._server,
-    this.dtdUri, {
-    this.registerExperimentalHandlers = false,
-  });
+  new _(this._server, this.dtdUri, {this.registerExperimentalHandlers = false});
 
   DtdConnectionState get state => _state;
 

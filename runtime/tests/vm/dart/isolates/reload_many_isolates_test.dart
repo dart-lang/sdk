@@ -12,7 +12,7 @@ const N = 250;
 main() async {
   if (!currentVmSupportsReload) return;
 
-  await withTempDir((String tempDir) async {
+  await withTempDir("reload-many", (String tempDir) async {
     final dills = await generateDills(tempDir, dartTestFile(N));
     final reloader = await launchOn(dills[0]);
 

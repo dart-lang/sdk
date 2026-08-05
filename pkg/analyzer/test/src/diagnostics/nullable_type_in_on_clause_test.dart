@@ -2,55 +2,53 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NullableTypeInOnClauseTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NullableTypeInOnClauseTest extends PubPackageResolutionTest {
   test_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 mixin B on A {}
 ''');
   }
 
   test_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 mixin B on A? {}
-''',
-      [error(diag.nullableTypeInOnClause, 22, 2)],
-    );
+//         ^^
+// [diag.nullableTypeInOnClause] Nullable types can't be used as a superclass constraint.
+''');
   }
 
   test_nullable_alias() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 typedef B = A;
 mixin C on B? {}
-''',
-      [error(diag.nullableTypeInOnClause, 37, 2)],
-    );
+//         ^^
+// [diag.nullableTypeInOnClause] Nullable types can't be used as a superclass constraint.
+''');
   }
 
   test_nullable_alias2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 typedef B = A?;
 mixin C on B {}
-''',
-      [error(diag.nullableTypeInOnClause, 38, 1)],
-    );
+//         ^
+// [diag.nullableTypeInOnClause] Nullable types can't be used as a superclass constraint.
+''');
   }
 }

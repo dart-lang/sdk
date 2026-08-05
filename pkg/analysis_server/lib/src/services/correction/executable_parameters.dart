@@ -17,11 +17,7 @@ class ExecutableParameters {
   final List<FormalParameterElement> optionalPositional = [];
   final List<FormalParameterElement> named = [];
 
-  ExecutableParameters._(
-    this.sessionHelper,
-    this.executable,
-    this.firstFragment,
-  ) {
+  new _(this.sessionHelper, this.executable, this.firstFragment) {
     for (var parameter in executable.formalParameters) {
       if (parameter.isRequiredPositional) {
         required.add(parameter);

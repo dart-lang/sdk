@@ -34,15 +34,14 @@ void main() {
   });
 }
 
-typedef RunSyncHandler =
-    io.ProcessResult Function(
-      String executable,
-      List<String> arguments, {
-      String? workingDirectory,
-      Map<String, String>? environment,
-      Encoding? stderrEncoding,
-      Encoding? stdoutEncoding,
-    });
+typedef RunSyncHandler = io.ProcessResult Function(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+  Map<String, String>? environment,
+  Encoding? stderrEncoding,
+  Encoding? stdoutEncoding,
+});
 
 @reflectiveTest
 class PluginManagerFromDiskTest extends PluginTestSupport {
@@ -457,6 +456,10 @@ class PluginManagerLegacyTest with ResourceProviderMixin, _ContextRoot {
     var cRootPath = newPackage('c', ['d']);
     var dRootPath = newPackage('d');
     var pluginFile = newFile('$pluginDirPath/bin/plugin.dart', '');
+    var bRootUri = getFolder(bRootPath).toUri();
+    var cRootUri = getFolder(cRootPath).toUri();
+    var dRootUri = getFolder(dRootPath).toUri();
+    var pluginRootUri = getFolder(pluginDirPath).toUri();
     //
     // Test path computation.
     //
@@ -472,22 +475,22 @@ class PluginManagerLegacyTest with ResourceProviderMixin, _ContextRoot {
   "packages": [
     {
       "name": "b",
-      "rootUri": "${toUriStr(bRootPath)}",
+      "rootUri": "$bRootUri",
       "packageUri": "lib/"
     },
     {
       "name": "c",
-      "rootUri": "${toUriStr(cRootPath)}",
+      "rootUri": "$cRootUri",
       "packageUri": "lib/"
     },
     {
       "name": "d",
-      "rootUri": "${toUriStr(dRootPath)}",
+      "rootUri": "$dRootUri",
       "packageUri": "lib/"
     },
     {
       "name": "plugin",
-      "rootUri": "${toUriStr(pluginDirPath)}",
+      "rootUri": "$pluginRootUri",
       "packageUri": "lib/"
     }
   ]

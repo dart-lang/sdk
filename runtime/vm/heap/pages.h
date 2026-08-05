@@ -313,6 +313,8 @@ class PageSpace {
   void AcquireLock(FreeList* freelist);
   void ReleaseLock(FreeList* freelist);
 
+  void Freeze(Page* page);
+
   void PauseConcurrentMarking();
   void ResumeConcurrentMarking();
   void YieldConcurrentMarking();

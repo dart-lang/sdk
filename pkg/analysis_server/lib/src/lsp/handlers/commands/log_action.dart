@@ -10,7 +10,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 
 class LogActionCommandHandler
     extends CommandHandler<ExecuteCommandParams, Object, AnalysisServer> {
-  LogActionCommandHandler(super.server);
+  new(super.server);
 
   @override
   bool get recordsOwnAnalytics => true;

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class1 extends core::Object {
   final field core::int field;
-  constructor _(core::int field) → self::Class1
+  constructor _(initializing-formal core::int field) → self::Class1
     ;
   static synthetic method _#_#tearOff(core::int field) → self::Class1
     return new self::Class1::_(field);
@@ -15,7 +15,7 @@ class Class1 extends core::Object {
 }
 class Class2 extends core::Object {
   final field core::int field;
-  constructor _(core::int field) → self::Class2
+  constructor _(initializing-formal core::int field) → self::Class2
     ;
   static synthetic method _#_#tearOff(core::int field) → self::Class2
     return new self::Class2::_(field);

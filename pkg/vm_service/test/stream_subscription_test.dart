@@ -5,37 +5,34 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'stream_subscription_lib.dart' as testee_lib;
 
 const kEchoStream = '_Echo';
 
-final tests = <VMTest>[
-  // Check double subscription fails.
-  (VmService service) async {
-    await service.streamListen(kEchoStream);
-    try {
-      await service.streamListen(kEchoStream);
-      fail('Subscribed to stream twice');
-    } on RPCError catch (e) {
-      expect(e.code, RPCErrorKind.kStreamAlreadySubscribed.code);
-      expect(e.message, contains('Stream already subscribed'));
-    }
-  },
-  // Check double cancellation fails.
-  (VmService service) async {
-    await service.streamCancel(kEchoStream);
-    try {
-      await service.streamCancel(kEchoStream);
-      fail('Double cancellation of stream successful');
-    } on RPCError catch (e) {
-      expect(e.code, RPCErrorKind.kStreamNotSubscribed.code);
-      expect(e.message, contains('Stream not subscribed'));
-    }
-  },
-];
-
-void main([args = const <String>[]]) => runVMTests(
-      args,
-      tests,
-      'stream_subscription_test.dart',
-    );
+void main([args = const <String>[]]) =>
+    VMTestHarness('stream_subscription_lib.dart', args).addTest(
+      // Check double subscription fails.
+      (VmService service) async {
+        await service.streamListen(kEchoStream);
+        try {
+          await service.streamListen(kEchoStream);
+          fail('Subscribed to stream twice');
+        } on RPCError catch (e) {
+          expect(e.code, RPCErrorKind.kStreamAlreadySubscribed.code);
+          expect(e.message, contains('Stream already subscribed'));
+        }
+      },
+    ).addTest(
+      // Check double cancellation fails.
+      (VmService service) async {
+        await service.streamCancel(kEchoStream);
+        try {
+          await service.streamCancel(kEchoStream);
+          fail('Double cancellation of stream successful');
+        } on RPCError catch (e) {
+          expect(e.code, RPCErrorKind.kStreamNotSubscribed.code);
+          expect(e.message, contains('Stream not subscribed'));
+        }
+      },
+    ).run(testeeMain: testee_lib.main);

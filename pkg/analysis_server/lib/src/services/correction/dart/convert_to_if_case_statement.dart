@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
-  ConvertToIfCaseStatement({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -182,7 +182,7 @@ class _DeclaredVariable {
   final LocalVariableElement element;
   final Expression initializer;
 
-  _DeclaredVariable({
+  new({
     required this.statement,
     required this.declaration,
     required this.element,
@@ -198,7 +198,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   final LocalVariableElement element;
   bool hasReference = false;
 
-  _ReferenceVisitor(this.element);
+  new(this.element);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -212,7 +212,7 @@ class _StatementLocation {
   final Statement? previous;
   final Iterable<Statement> following;
 
-  _StatementLocation({required this.previous, required this.following});
+  new({required this.previous, required this.following});
 }
 
 extension on Statement {

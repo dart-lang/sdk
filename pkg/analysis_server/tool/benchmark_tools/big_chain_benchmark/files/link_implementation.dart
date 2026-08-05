@@ -16,7 +16,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   @override
   int length = 0;
 
-  LinkBuilderImplementation();
+  new();
 
   @override
   T get first {
@@ -83,7 +83,7 @@ class LinkEntry<T> extends Link<T> {
   @override
   Link<T> tail;
 
-  LinkEntry(this.head, [Link<T>? tail]) : tail = tail ?? const Link<Never>();
+  new(this.head, [Link<T>? tail]) : tail = tail ?? const Link<Never>();
 
   @override
   int get hashCode => throw new UnsupportedError('LinkEntry.hashCode');
@@ -185,7 +185,7 @@ class LinkIterator<T> implements Iterator<T> {
   T? _current;
   Link<T> _link;
 
-  LinkIterator(this._link);
+  new(this._link);
 
   @override
   T get current => _current!;
@@ -206,7 +206,7 @@ class MappedLinkIterable<S, T> extends IterableBase<T> {
   Transformation<S, T> _transformation;
   Link<S> _link;
 
-  MappedLinkIterable(this._link, this._transformation);
+  new(this._link, this._transformation);
 
   @override
   Iterator<T> get iterator {
@@ -219,7 +219,7 @@ class MappedLinkIterator<S, T> implements Iterator<T> {
   Link<S> _link;
   T? _current;
 
-  MappedLinkIterator(this._link, this._transformation);
+  new(this._link, this._transformation);
 
   @override
   T get current => _current!;

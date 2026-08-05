@@ -457,7 +457,7 @@ class CachedTokenSetup {
   final Token? next;
   final Token? precedingComments;
 
-  CachedTokenSetup(this.token)
+  new(this.token)
     : prev = token.previous,
       next = token.next,
       precedingComments = token.precedingComments;

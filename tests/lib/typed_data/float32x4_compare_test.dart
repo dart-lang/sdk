@@ -6,6 +6,7 @@
 // VMOptions=--no-intrinsify
 
 import "dart:typed_data";
+
 import "package:expect/expect.dart";
 
 testEqual() {

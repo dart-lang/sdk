@@ -23,7 +23,7 @@ library from "org-dartlang-test:///main.dart" as main {
     @#C1
     final field dynamic message;
     @#C1
-    constructor •(@#C1 dynamic message) → main::Foo
+    constructor •(@#C1 initializing-formal dynamic message) → main::Foo
       : main::Foo::message = message, super main::Bar::•(42)
       ;
     @#C2

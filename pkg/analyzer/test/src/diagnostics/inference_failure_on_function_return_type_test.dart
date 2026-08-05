@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,29 +27,27 @@ class InferenceFailureOnFunctionReturnTypeTest
   }
 
   test_classInstanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   get f => 7;
+//    ^
+// [diag.inferenceFailureOnFunctionReturnType] The return type of 'f' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 16, 1)],
-    );
+''');
   }
 
   test_classInstanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   f() => 7;
+//^
+// [diag.inferenceFailureOnFunctionReturnType] The return type of 'f' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 12, 1)],
-    );
+''');
   }
 
   test_classInstanceMethod_overriding() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class C {
   int f() => 7;
 }
@@ -82,7 +79,7 @@ class G with N {
   }
 
   test_classInstanceMethod_withReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   Object f() => 7;
 }
@@ -90,18 +87,17 @@ class C {
   }
 
   test_classInstanceOperator() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   operator +(int x) => print(x);
+//         ^
+// [diag.inferenceFailureOnFunctionReturnType] The return type of '+' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 21, 1)],
-    );
+''');
   }
 
   test_classInstanceSetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   set f(int x) => print(x);
 }
@@ -109,18 +105,17 @@ class C {
   }
 
   test_classStaticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static f() => 7;
+//       ^
+// [diag.inferenceFailureOnFunctionReturnType] The return type of 'f' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 19, 1)],
-    );
+''');
   }
 
   test_classStaticMethod_withType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static int f() => 7;
 }
@@ -128,42 +123,39 @@ class C {
   }
 
   test_extensionMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on List {
   e() {
+//^
+// [diag.inferenceFailureOnFunctionReturnType] The return type of 'e' can't be inferred.
     return 7;
   }
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 24, 1)],
-    );
+''');
   }
 
   test_functionTypedParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(callback()) {
+//     ^^^^^^^^^^
+// [diag.inferenceFailureOnFunctionReturnType] The return type of 'callback' can't be inferred.
   callback();
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 7, 10)],
-    );
+''');
   }
 
   test_functionTypedParameter_nested() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void callback(callback2())) {
+//                   ^^^^^^^^^^^
+// [diag.inferenceFailureOnFunctionReturnType] The return type of 'callback2' can't be inferred.
   callback(() => print('hey'));
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 21, 11)],
-    );
+''');
   }
 
   test_functionTypedParameter_withReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int callback()) {
   callback();
 }
@@ -171,18 +163,16 @@ void f(int callback()) {
   }
 
   test_genericFunctionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Function(int) f = (int n) {
+// [diag.inferenceFailureOnFunctionReturnType][column 1][length 13] The return type of ' Function(int)' can't be inferred.
   print(n);
 };
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 0, 13)],
-    );
+''');
   }
 
   test_genericFunctionType_withReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void Function(int) f = (int n) {
   print(n);
 };
@@ -190,98 +180,86 @@ void Function(int) f = (int n) {
   }
 
   test_localFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void f() {
     g() => 7;
+//  ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
   }
 }
-''',
-      [error(diag.unusedElement, 27, 1)],
-    );
+''');
   }
 
   test_mixinInstanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin C {
   f() => 7;
+//^
+// [diag.inferenceFailureOnFunctionReturnType] The return type of 'f' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 12, 1)],
-    );
+''');
   }
 
   test_setter_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 set f(int x) => print(x);
 ''');
   }
 
   test_topLevelArrowFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() => 7;
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 0, 1)],
-    );
+// [diag.inferenceFailureOnFunctionReturnType][column 1][length 1] The return type of 'f' can't be inferred.
+''');
   }
 
   test_topLevelFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
+// [diag.inferenceFailureOnFunctionReturnType][column 1][length 1] The return type of 'f' can't be inferred.
   return 7;
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 0, 1)],
-    );
+''');
   }
 
   test_topLevelFunction_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
+// [diag.inferenceFailureOnFunctionReturnType][column 1][length 1] The return type of 'f' can't be inferred.
   return 7;
 }
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 0, 1)],
-    );
+''');
   }
 
   test_topLevelFunction_withReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f() => 7;
 ''');
   }
 
   test_typedef_classic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Callback(int i);
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 0, 24)],
-    );
+// [diag.inferenceFailureOnFunctionReturnType][column 1][length 24] The return type of 'Callback' can't be inferred.
+''');
   }
 
   test_typedef_classic_withReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef void Callback(int i);
 ''');
   }
 
   test_typedef_modern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Callback = Function(int i);
-''',
-      [error(diag.inferenceFailureOnFunctionReturnType, 0, 35)],
-    );
+// [diag.inferenceFailureOnFunctionReturnType][column 1][length 35] The return type of 'Callback' can't be inferred.
+''');
   }
 
   test_typedef_modern_withReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Callback = void Function(int i);
 ''');
   }

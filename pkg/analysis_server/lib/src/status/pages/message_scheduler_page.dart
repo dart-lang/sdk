@@ -10,7 +10,7 @@ import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 
 class MessageSchedulerPage extends DiagnosticPageWithNav {
-  MessageSchedulerPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'messageScheduler',

@@ -5,6 +5,7 @@
 // This file should be standalone (ignoring packages) because it is copied
 // with // OtherResources and used for compiling snapshots.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -134,7 +135,9 @@ enum KernelCombine { source, concatenation }
 
 enum Runtime { aot, appjit, jit }
 
-enum AotCompile { assembly, elf }
+enum AotCompile { assembly, elf, macho }
+
+final defaultAotCompile = Platform.isMacOS ? AotCompile.macho : AotCompile.elf;
 
 Future<void> runGenKernel({
   required Runtime runtime,
@@ -232,6 +235,16 @@ Future<void> runGenSnapshot({
         arguments: [
           '--snapshot-kind=app-aot-elf',
           '--elf=${outputUri.toFilePath()}',
+          '--strip',
+          dillUri.toFilePath(),
+        ],
+      );
+    case AotCompile.macho:
+      await runProcess(
+        executable: genSnapshotUri.toFilePath(),
+        arguments: [
+          '--snapshot-kind=app-aot-macho-dylib',
+          '--macho=${outputUri.toFilePath()}',
           '--strip',
           dillUri.toFilePath(),
         ],
@@ -349,7 +362,7 @@ Future<void> compileAndRun({
   required Runtime runtime,
   required KernelCombine kernelCombine,
   required bool protobufAwareTreeshaking,
-  AotCompile aotCompile = AotCompile.elf,
+  AotCompile? aotCompile,
   required List<String> runArguments,
   bool useSymlink = false,
 }) async {
@@ -374,7 +387,7 @@ Future<void> compileAndRun({
         tempUri: tempUri,
         dillUri: outDillUri,
         outputUri: snapshotUri,
-        aotCompile: aotCompile,
+        aotCompile: aotCompile ?? defaultAotCompile,
       );
       if (useSymlink) {
         await withTempDir(prefix: 'link dir', (tempDir) async {
@@ -454,7 +467,7 @@ Future<void> invokeSelf({
   required String nativeAssetsYaml,
   Runtime runtime = Runtime.jit,
   KernelCombine kernelCombine = KernelCombine.source,
-  AotCompile aotCompile = AotCompile.elf,
+  AotCompile? aotCompile,
   bool protobufAwareTreeshaking = false,
 }) async {
   await withTempDir((Uri tempUri) async {
@@ -465,7 +478,7 @@ Future<void> invokeSelf({
       runtime: runtime,
       kernelCombine: kernelCombine,
       protobufAwareTreeshaking: protobufAwareTreeshaking,
-      aotCompile: aotCompile,
+      aotCompile: aotCompile ?? defaultAotCompile,
       runArguments: arguments,
     );
     print([selfSourceUri.toFilePath(), runtime.name, 'done'].join(' '));
@@ -595,4 +608,102 @@ void testNonExistingFunction() {
     'Attempted to fallback to process lookup.',
     addressOfError.message,
   );
+}
+
+void testOpenFfiTestFunctionsAsset(String assetId) {
+  final sumPlus42 = DynamicLibrary.codeAsset(assetId)
+      .lookupFunction<Int32 Function(Int32, Int32), int Function(int, int)>(
+        'SumPlus42',
+      );
+  Expect.equals(2 + 3 + 42, sumPlus42(2, 3));
+}
+
+void testOpenFfiTestFunctionsAssetCanClose(String assetId) {
+  final library = DynamicLibrary.codeAsset(assetId);
+  final sumPlus42 = library
+      .lookupFunction<Int32 Function(Int32, Int32), int Function(int, int)>(
+        'SumPlus42',
+      );
+  Expect.equals(2 + 3 + 42, sumPlus42(2, 3));
+
+  library.close();
+  Expect.throwsStateError(() {
+    library.lookup<NativeFunction<Int32 Function(Int32, Int32)>>('SumPlus42');
+  });
+  library.close();
+}
+
+void testOpenProcessOrSystemAsset(String assetId) {
+  final library = DynamicLibrary.codeAsset(assetId);
+  if (Platform.isWindows) {
+    final memAlloc = library
+        .lookupFunction<Pointer Function(Size), Pointer Function(int)>(
+          'CoTaskMemAlloc',
+        );
+    final memFree = library
+        .lookupFunction<Void Function(Pointer), void Function(Pointer)>(
+          'CoTaskMemFree',
+        );
+
+    final pointer = memAlloc(8);
+    Expect.notEquals(nullptr, pointer);
+    memFree(pointer);
+  } else {
+    final malloc = library
+        .lookupFunction<Pointer Function(IntPtr), Pointer Function(int)>(
+          'malloc',
+        );
+    final free = library
+        .lookupFunction<Void Function(Pointer), void Function(Pointer)>('free');
+
+    final pointer = malloc(8);
+    Expect.notEquals(nullptr, pointer);
+    free(pointer);
+  }
+}
+
+void testCodeAssetUnclosable(String assetId) {
+  final library = DynamicLibrary.codeAsset(assetId);
+  Expect.throwsStateError(library.close);
+}
+
+void testOpenSystemAssetCanClose(String assetId) {
+  final library = DynamicLibrary.codeAsset(assetId);
+  final symbol = Platform.isWindows ? 'CoTaskMemAlloc' : 'malloc';
+  library.lookup<NativeFunction<Void Function()>>(symbol);
+
+  library.close();
+  Expect.throwsStateError(() {
+    library.lookup<NativeFunction<Void Function()>>(symbol);
+  });
+  library.close();
+}
+
+Future<void> testOpenExecutableAsset(String assetId) async {
+  final postInteger = DynamicLibrary.codeAsset(assetId)
+      .lookupFunction<Bool Function(Int64, Int64), bool Function(int, int)>(
+        'Dart_PostInteger',
+      );
+
+  const int message = 1337 * 42;
+  final completer = Completer();
+  final receivePort = ReceivePort()
+    ..listen((receivedMessage) => completer.complete(receivedMessage));
+
+  final success = postInteger(receivePort.sendPort.nativePort, message);
+  Expect.isTrue(success);
+
+  final postedMessage = await completer.future;
+  Expect.equals(message, postedMessage);
+
+  receivePort.close();
+}
+
+void testCodeAssetNotFound(String availableAssetId) {
+  final argumentError = Expect.throws<ArgumentError>(() {
+    DynamicLibrary.codeAsset(doesNotExistName);
+  });
+  Expect.contains(doesNotExistName, argumentError.message);
+  Expect.contains('No asset with id', argumentError.message);
+  Expect.contains(availableAssetId, argumentError.message);
 }

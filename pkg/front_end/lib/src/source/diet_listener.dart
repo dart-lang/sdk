@@ -66,7 +66,7 @@ class DietListener extends StackListenerImpl {
 
   final OffsetMap _offsetMap;
 
-  DietListener({
+  new({
     required this.libraryBuilder,
     required this.outermostScope,
     required this.extensionScope,
@@ -416,6 +416,7 @@ class DietListener extends StackListenerImpl {
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -601,7 +602,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     debugEvent("Import");
     Object? name = pop(NullValues.Prefix);
 
@@ -611,11 +612,7 @@ class DietListener extends StackListenerImpl {
 
     // Native imports must be skipped because they aren't assigned corresponding
     // LibraryDependency nodes.
-    Token importUriToken =
-        augmentToken
-            // Coverage-ignore(suite): Not run.
-            ?.next ??
-        importKeyword.next!;
+    Token importUriToken = importKeyword.next!;
     String importUri = unescapeString(
       importUriToken.lexeme,
       importUriToken,
@@ -1079,7 +1076,6 @@ class DietListener extends StackListenerImpl {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1171,6 +1167,7 @@ class DietListener extends StackListenerImpl {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {

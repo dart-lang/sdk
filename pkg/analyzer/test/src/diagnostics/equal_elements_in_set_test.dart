@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,32 +15,29 @@ main() {
 @reflectiveTest
 class EqualElementsInSetTest extends PubPackageResolutionTest {
   test_constant_constant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 1;
 const b = 1;
 var s = {a, b};
-''',
-      [error(diag.equalElementsInSet, 38, 1)],
-    );
+//          ^
+// [diag.equalElementsInSet] Two elements in a set literal shouldn't be equal.
+''');
   }
 
   test_literal_constant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const one = 1;
 var s = {1, one};
-''',
-      [error(diag.equalElementsInSet, 27, 3)],
-    );
+//          ^^^
+// [diag.equalElementsInSet] Two elements in a set literal shouldn't be equal.
+''');
   }
 
   test_literal_literal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var s = {1, 1};
-''',
-      [error(diag.equalElementsInSet, 12, 1)],
-    );
+//          ^
+// [diag.equalElementsInSet] Two elements in a set literal shouldn't be equal.
+''');
   }
 }

@@ -25,5 +25,5 @@ extension type ET3(num id) {
 
 extension type ET4(covariant num id) {}
 //                 ^^^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR
-// [cfe] Can't have modifier 'covariant' in a primary constructor.
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.

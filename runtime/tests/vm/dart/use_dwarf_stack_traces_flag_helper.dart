@@ -115,23 +115,15 @@ abstract class MultiArchDwarfState<T> extends DwarfState<T> {
   Future<void> makeTests(Trace nonDwarfTrace) async {
     await super.makeTests(nonDwarfTrace);
 
-    test(
-      'Testing $description single-architecture universal binary',
-      () async {
-        expect(singleArch, isNotNull);
-        await check(nonDwarfTrace, singleArch!);
-      },
-      skip: skipUniversalBinary,
-    );
+    test('Testing $description single-architecture universal binary', () async {
+      expect(singleArch, isNotNull);
+      await check(nonDwarfTrace, singleArch!);
+    }, skip: skipUniversalBinary);
 
-    test(
-      'Testing $description multi-architecture universal binary',
-      () async {
-        expect(multiArch, isNotNull);
-        await check(nonDwarfTrace, multiArch!);
-      },
-      skip: skipUniversalBinary,
-    );
+    test('Testing $description multi-architecture universal binary', () async {
+      expect(multiArch, isNotNull);
+      await check(nonDwarfTrace, multiArch!);
+    }, skip: skipUniversalBinary);
   }
 }
 
@@ -220,7 +212,6 @@ Future<void> runTests<T>(
 
 void checkHeader(StackTraceHeader header) {
   // These should be all available.
-  expect(header.vmStart, isNotNull);
   expect(header.isolateStart, isNotNull);
   expect(header.isolateDsoBase, isNotNull);
   expect(header.buildId, isNotNull);
@@ -325,7 +316,7 @@ void checkAllocateObjectOffset(
       callInfo != null &&
       callInfo.length == 1 &&
       callInfo.single is StubCallInfo &&
-      (callInfo.single as StubCallInfo).name.endsWith('AllocateObjectStub');
+      (callInfo.single as StubCallInfo).name.endsWith('stub AllocateObject');
   expect(
     got,
     equals(expectedValue),

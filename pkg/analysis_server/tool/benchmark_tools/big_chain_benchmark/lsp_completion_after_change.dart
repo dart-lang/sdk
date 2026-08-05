@@ -28,12 +28,8 @@ class LspCompletionAfterChange extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LspCompletionAfterChange(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: true);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: true);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;
@@ -46,9 +42,9 @@ class LspCompletionAfterChange extends DartLanguageServerBenchmark {
 
     Future<void> openFile(Uri uri, String content) async {
       await send(LspMessages.open(uri, 1, content));
-      await (await send(
-        LspMessages.documentColor(uri, largestIdSeen + 1),
-      ))?.completer.future;
+      await (await send(LspMessages.documentColor(uri, largestIdSeen + 1)))
+          ?.completer
+          .future;
       await (await send(
         LspMessages.documentSymbol(
           runDetails.orderedFileCopies.last.uri,

@@ -27,7 +27,7 @@ class MixinFragment extends DeclarationFragmentImpl implements Fragment {
     name.length,
   );
 
-  MixinFragment({
+  new({
     required this.name,
     required super.fileUri,
     required this.nameOffset,
@@ -57,7 +57,6 @@ class MixinFragment extends DeclarationFragmentImpl implements Fragment {
       modifiers.isAugment;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
 
   @override

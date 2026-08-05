@@ -55,7 +55,7 @@ class DirtifyingList<E> extends ListBase<E> {
   final Class dirtifyClass;
   final List<E> wrapped;
 
-  DirtifyingList(this.dirtifyClass, this.wrapped);
+  new(this.dirtifyClass, this.wrapped);
 
   @override
   int get length {
@@ -102,7 +102,7 @@ class _ChildReplacer extends Transformer {
   final TreeNode child;
   final TreeNode replacement;
 
-  _ChildReplacer(this.child, this.replacement);
+  new(this.child, this.replacement);
 
   @override
   TreeNode defaultTreeNode(TreeNode node) {

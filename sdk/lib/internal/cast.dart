@@ -50,10 +50,9 @@ abstract class _CastIterableBase<S, T> extends Iterable<T> {
   // so use the _source's implementation.
   T lastWhere(bool test(T element), {T Function()? orElse}) =>
       _source.lastWhere(
-            (S element) => test(element as T),
-            orElse: (orElse == null) ? null : () => orElse() as S,
-          )
-          as T;
+        (S element) => test(element as T),
+        orElse: (orElse == null) ? null : () => orElse() as S,
+      ) as T;
 
   String toString() => _source.toString();
 }
@@ -252,7 +251,7 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
 
   Set<T> toSet() => _clone();
 
-  T lookup(Object? key) => _source.lookup(key) as T;
+  T? lookup(Object? key) => _source.lookup(key) as T?;
 }
 
 class CastMap<SK, SV, K, V> extends MapBase<K, V> {
@@ -303,11 +302,10 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
 
   V update(K key, V update(V value), {V Function()? ifAbsent}) {
     return _source.update(
-          key as SK,
-          (SV value) => update(value as V) as SV,
-          ifAbsent: (ifAbsent == null) ? null : () => ifAbsent() as SV,
-        )
-        as V;
+      key as SK,
+      (SV value) => update(value as V) as SV,
+      ifAbsent: (ifAbsent == null) ? null : () => ifAbsent() as SV,
+    ) as V;
   }
 
   void updateAll(V update(K key, V value)) {

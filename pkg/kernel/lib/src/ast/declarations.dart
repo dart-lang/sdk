@@ -321,7 +321,7 @@ class Class extends NamedNode implements TypeDeclaration {
     _proceduresView = null;
   }
 
-  Class({
+  new({
     required this.name,
     bool isAbstract = false,
     bool isAnonymousMixin = false,
@@ -659,7 +659,7 @@ class Extension extends NamedNode
     node.parent = this;
   }
 
-  Extension({
+  new({
     required this.name,
     List<TypeParameter>? typeParameters,
     DartType? onType,
@@ -789,7 +789,7 @@ class ExtensionMemberDescriptor {
   /// off, if any.
   final Reference? tearOffReference;
 
-  ExtensionMemberDescriptor({
+  new({
     required this.name,
     required this.kind,
     bool isStatic = false,
@@ -900,7 +900,7 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
     node.parent = this;
   }
 
-  ExtensionTypeDeclaration({
+  new({
     required this.name,
     List<TypeParameter>? typeParameters,
     DartType? declaredRepresentationType,
@@ -1104,7 +1104,7 @@ class ExtensionTypeMemberDescriptor {
   /// declaration member tear off, if any.
   final Reference? tearOffReference;
 
-  ExtensionTypeMemberDescriptor({
+  new({
     required this.name,
     required this.kind,
     bool isStatic = false,

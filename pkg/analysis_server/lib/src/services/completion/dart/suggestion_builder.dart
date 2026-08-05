@@ -106,7 +106,7 @@ class SuggestionBuilder {
 
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
-  SuggestionBuilder(this.request, {this.listener, required this.useFilter})
+  new(this.request, {this.listener, required this.useFilter})
     : relevanceComputer = RelevanceComputer(
         request,
         listener,
@@ -525,7 +525,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion for a [label].
   void suggestLabel(Label label) {
-    var completion = label.label.name;
+    var completion = label.name.lexeme;
     // TODO(brianwilkerson): Figure out why we're excluding labels consisting of
     //  a single underscore.
     if (completion.isNotEmpty && completion != '_') {
@@ -538,10 +538,10 @@ class SuggestionBuilder {
         false,
         false,
       );
-      suggestion.element = createLocalElement(
+      suggestion.element = createLocalElementFromToken(
         request.source,
         protocol.ElementKind.LABEL,
-        label.label,
+        label.name,
       );
       _addSuggestion(suggestion);
     }
@@ -1621,10 +1621,7 @@ class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
 
   final String? _textToMatchOverride;
 
-  ValueCompletionSuggestionBuilder(
-    this._suggestion, {
-    this._textToMatchOverride,
-  });
+  new(this._suggestion, {this._textToMatchOverride});
 
   @override
   String get completion => _suggestion.completion;
@@ -1669,7 +1666,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
   final List<Uri> requiredImports;
   final bool isNotImported;
 
-  _CompletionSuggestionBuilderImpl({
+  new({
     required this.orgElement,
     required this.suggestionBuilder,
     required this.kind,
@@ -1744,7 +1741,7 @@ class _ElementCompletionData {
   final protocol.Element element;
   final String? colorHex;
 
-  _ElementCompletionData({
+  new({
     required this.isDeprecated,
     required this.declaringType,
     required this.returnType,
@@ -1763,5 +1760,5 @@ class _ElementDocumentation {
   final String full;
   final String? summary;
 
-  _ElementDocumentation({required this.full, required this.summary});
+  new({required this.full, required this.summary});
 }

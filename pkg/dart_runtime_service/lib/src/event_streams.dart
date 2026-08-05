@@ -14,19 +14,14 @@ import 'dart_runtime_service_backend.dart';
 import 'rpc_exceptions.dart';
 import 'utils.dart';
 
-/// A base class for events to be sent on [streamId] with a given [kind].
-abstract base class StreamEvent {
-  StreamEvent({required this.streamId, required this.kind});
-
-  static const kStreamId = 'streamId';
-  static const kEvent = 'event';
+/// A base class for events to be sent on [streamId].
+abstract base class StreamEventBase {
+  const StreamEventBase({required this.streamId});
 
   final String streamId;
-  final String kind;
-  final int timestamp = DateTime.now().millisecondsSinceEpoch;
 
   void send({
-    required EventStreamManager eventStreamMethods,
+    required EventStreamMethods eventStreamMethods,
     Client? excludedClient,
   }) {
     eventStreamMethods.streamNotify(
@@ -35,9 +30,28 @@ abstract base class StreamEvent {
       excludedClient: excludedClient,
     );
   }
+}
+
+/// A base class for JSON-RPC compliant events to be sent on [streamId] with a
+/// given [kind].
+abstract base class StreamEvent extends StreamEventBase {
+  StreamEvent({required super.streamId, required this.kind});
+
+  static const kStreamId = 'streamId';
+  static const kEvent = 'event';
+
+  final String kind;
+  final int timestamp = DateTime.now().millisecondsSinceEpoch;
 
   @mustCallSuper
   Map<String, Object?> toJson();
+}
+
+/// A class for sending non-JSON-RPC compliant binary events on [streamId].
+final class BinaryStreamEvent extends StreamEventBase {
+  const BinaryStreamEvent({required super.streamId, required this.data});
+
+  final Uint8List data;
 }
 
 /// Base class for service registration events which are sent on the Service
@@ -161,28 +175,34 @@ class EventStreamManager implements EventStreamMethods {
     final streamLogger = Logger('${_logger.name} ($streamId)');
     if (streamListeners.containsKey(streamId)) {
       final listeners = streamListeners[streamId]!;
-      String eventString;
-      if (data is Uint8List) {
-        eventString = '<binary data>';
-      } else if (data is StreamEvent) {
-        eventString = data.toJson().toString();
-      } else {
-        eventString = '<unknown>';
+      // Don't log event string for streams known to send large amounts of
+      // data.
+      if (!const {
+        EventStreams.kStdout,
+        EventStreams.kStderr,
+        EventStreams.kHeapSnapshot,
+        EventStreams.kLogging,
+      }.contains(streamId)) {
+        String eventString;
+        if (data is Uint8List) {
+          eventString = '<binary data>';
+        } else if (data is StreamEvent) {
+          eventString = data.toJson().toString();
+        } else {
+          eventString = '<unknown>';
+        }
+        streamLogger.info(
+          'Sending event to ${listeners.length} clients: $eventString.',
+        );
       }
-      streamLogger.info(
-        'Sending event to ${listeners.length} clients: $eventString',
-      );
 
       for (final listener in listeners) {
         if (listener == excludedClient) {
           continue;
         }
         switch (data) {
-          case Uint8List():
-            // TODO(bkonyi): support sending binary events (e.g., for heap
-            // snapshots).
-            // listener.connection.sink.add(data);
-            throw StateError('Cannot send binary data');
+          case BinaryStreamEvent(data: final binaryData):
+            listener.sendBinaryData(data: binaryData);
           case StreamEvent():
             listener.sendNotification(
               method: kStreamNotify,
@@ -248,7 +268,15 @@ class EventStreamManager implements EventStreamMethods {
     // Tell the backend to start sending events for this stream if this is the
     // first listener.
     if (listeners.length == 1) {
-      _backend.onStreamListen(streamId: streamId, params: params);
+      if (!_backend.onStreamListen(streamId: streamId, params: params)) {
+        client.logger.warning(
+          'Attempted to subscribe to an invalid stream ID: $streamId.',
+        );
+        streamListeners.remove(streamId);
+        RpcException.invalidParams.throwExceptionWithDetails(
+          details: "streamListen: invalid 'streamId' parameter: $streamId",
+        );
+      }
     }
     if (streamId == EventStreams.kService) {
       // Send all previously registered service extensions when a client

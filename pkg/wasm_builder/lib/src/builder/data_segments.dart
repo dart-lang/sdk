@@ -21,15 +21,25 @@ class DataSegmentsBuilder with Builder<ir.DataSegments> {
   ///
   /// If [initialContent] is specified, it defines the initial content of the
   /// segment. The content can be extended later.
-  DataSegmentBuilder define(
-      [Uint8List? initialContent, ir.Memory? memory, int? offset]) {
+  DataSegmentBuilder define([
+    Uint8List? initialContent,
+    ir.Memory? memory,
+    int? offset,
+  ]) {
     initialContent ??= Uint8List(0);
     assert((memory != null) == (offset != null));
-    assert(memory == null ||
-        offset! >= 0 &&
-            offset + initialContent.length <= memory.minSize * memoryBlockSize);
+    assert(
+      memory == null ||
+          offset! >= 0 &&
+              offset + initialContent.length <=
+                  memory.minSize * memoryBlockSize,
+    );
     final builder = DataSegmentBuilder(
-        _dataSegmentBuilders.length, initialContent, memory, offset);
+      _dataSegmentBuilders.length,
+      initialContent,
+      memory,
+      offset,
+    );
     _dataSegmentBuilders.add(builder);
     return builder;
   }

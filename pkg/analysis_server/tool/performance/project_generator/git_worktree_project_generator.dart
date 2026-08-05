@@ -23,16 +23,19 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
   /// up a bit differently.
   final bool isSdkRepo;
 
-  /// Relative paths to the sub-directories of the repo that should be open in
-  /// this workspace.
+  /// Relative paths (using the current platforms separators) to the
+  /// sub-directories of the repo to open in the workspace.
   final Iterable<String>? openSubdirs;
 
-  GitWorktreeProjectGenerator(
+  new(
     this.originalRepo,
     this.ref, {
     this.isSdkRepo = false,
-    this.openSubdirs,
-  });
+    Iterable<String>? openSubdirs,
+  }) : // Normalize any path separators to match the current platform.
+       openSubdirs = openSubdirs?.map(
+         (openSubdir) => openSubdir.replaceAll(RegExp(r'\/'), p.separator),
+       );
 
   @override
   String get description =>

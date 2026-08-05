@@ -4,7 +4,7 @@
 
 extension type V1(Future<int> id) implements Future<int> {}
 
-extension type V2<T extends Future<Object>>(T id) implements Future<Object>{}
+extension type V2<T extends Future<Object>>(T id) implements Future<Object> {}
 
 main() async {
   V1 v1 = V1(Future<int>.value(42));

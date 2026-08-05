@@ -9,7 +9,7 @@ class MessageType extends core::Object /*hasConstConstructor*/  {
   static const field self::MessageType print = #C2;
   static const field self::MessageType skip = #C4;
   final field core::String name;
-  const constructor _(core::String name) → self::MessageType
+  const constructor _(initializing-formal core::String name) → self::MessageType
     : self::MessageType::name = name, super core::Object::•()
     ;
   static const factory parse(core::String name) → self::MessageType {

@@ -177,23 +177,11 @@ Zone _rootFork(
   if (zone is! _Zone) {
     throw ArgumentError.value(zone, "zone", "Can only fork a platform zone");
   }
-  // TODO(floitsch): it would be nice if we could get rid of this hack.
-  // Change the static zoneOrDirectPrint function to go through zones
-  // from now on.
-  printToZone = _printToZone;
 
-  if (specification == null) {
-    specification = const ZoneSpecification();
-  } else if (specification is! _ZoneSpecification) {
-    specification = ZoneSpecification.from(specification);
+  Map<Object?, Object?>? valueMap;
+  if (zoneValues != null) {
+    // Makes sure to own the map.
+    valueMap = HashMap<Object?, Object?>.of(zoneValues);
   }
-  Map<Object?, Object?> valueMap;
-  if (zoneValues == null) {
-    valueMap = zone._map;
-  } else {
-    valueMap = HashMap<Object?, Object?>.from(zoneValues);
-  }
-  if (specification == null)
-    throw "unreachable"; // TODO(lrn): Remove when type promotion works.
   return _CustomZone(zone, specification, valueMap);
 }

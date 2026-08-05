@@ -25,7 +25,7 @@ class C extends self::B {
 class Base extends core::Object {
   field self::B member;
   field self::B? member2;
-  constructor •(self::B member) → self::Base
+  constructor •(initializing-formal self::B member) → self::Base
     ;
 }
 class Test extends self::Base {

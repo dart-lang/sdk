@@ -1,9 +1,11 @@
-macro class Class {}
-abstract macro class Class {}
-macro class Class = Object with Mixin;
-abstract macro class Class = Object with Mixin;
+NOTICE: Stream was rewritten by parser!
 
-macro[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
-abstract[KeywordToken] macro[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
-macro[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken]
-abstract[KeywordToken] macro[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken][SimpleToken]
+macro ;class Class {}
+abstract macro ;class Class {}
+macro ;class Class = Object with Mixin;
+abstract macro ;class Class = Object with Mixin;
+
+macro[StringToken] ;[SyntheticToken]class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+abstract[KeywordToken] macro[StringToken] ;[SyntheticToken]class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+macro[StringToken] ;[SyntheticToken]class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken]
+abstract[KeywordToken] macro[StringToken] ;[SyntheticToken]class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken][SimpleToken]

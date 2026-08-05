@@ -18,7 +18,7 @@ abstract class MyMixin<T extends core::Object? = dynamic, W extends self::Statef
 }
 class MyModel<T extends core::Object? = dynamic> extends core::Object {
   final field self::MyModel::T% data;
-  constructor •(self::MyModel::T% data) → self::MyModel<self::MyModel::T%>
+  constructor •(initializing-formal self::MyModel::T% data) → self::MyModel<self::MyModel::T%>
     ;
 }
 class MyWidget extends self::StatefulWidget {

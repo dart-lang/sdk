@@ -19,7 +19,6 @@ class BinaryPrinter
     with
         TreeVisitorExperimentExclusionMixin<void>,
         DartTypeVisitorExperimentExclusionMixin<void>,
-        StatementVisitorExperimentExclusionMixin<void>,
         ExpressionVisitorExperimentExclusionMixin<void>
     implements Visitor<void>, BinarySink {
   final VariableIndexer Function() _newVariableIndexer;
@@ -30,6 +29,8 @@ class BinaryPrinter
   final StringIndexer stringIndexer;
   final ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
+  final VariableContextIndexer _variableContextIndexer =
+      new VariableContextIndexer();
   bool _currentlyInNonimplementation = false;
   final List<bool?> _sourcesFromRealImplementation = <bool?>[];
   final List<bool?> _sourcesUsedInLibrary = <bool?>[];
@@ -67,7 +68,7 @@ class BinaryPrinter
   ///
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
   /// one.
-  BinaryPrinter(
+  new(
     Sink<List<int>> sink, {
     this.libraryFilter,
     StringIndexer? stringIndexer,
@@ -88,7 +89,7 @@ class BinaryPrinter
     _sink.flushAndDestroy();
   }
 
-  int _getVariableIndex(VariableDeclaration variable) {
+  int _getVariableIndex(Variable variable) {
     int? index = (_variableIndexer ??= _newVariableIndexer())[variable];
     assert(index != null, "No index found for ${variable}");
     return index!;
@@ -651,6 +652,29 @@ class BinaryPrinter
         outputStringViaBuffer(s, new Uint8List(s.length * 3));
       }
     }
+  }
+
+  void writeOptionalScope(Scope? scope) {
+    if (scope == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeList(scope.contexts, _writeVariableContext);
+    }
+  }
+
+  void writeScopeSize(Scope? scope) {
+    writeUInt30(scope?.contexts.length ?? 0);
+  }
+
+  void _writeVariableContext(VariableContext variableContext) {
+    writeByte(variableContext.captureKind.index);
+    // TODO(63494): Remove the cast when function type variables are
+    // supported.
+    writeList<Variable>(
+      variableContext.variables.cast<Variable>(),
+      _writeVariableReference,
+    );
   }
 
   /// Collect metadata repositories associated with the component.
@@ -1346,11 +1370,17 @@ class BinaryPrinter
     writeFunctionNode(node.function);
     // Parameters are in scope in the initializers.
     _variableIndexer ??= _newVariableIndexer();
+
+    // Account for `ThisVariable`.
+    int thisVariableCount = node.function.thisVariable == null ? 0 : 1;
     _variableIndexer!.restoreScope(
       node.function.positionalParameters.length +
-          node.function.namedParameters.length,
+          node.function.namedParameters.length +
+          thisVariableCount,
     );
+    _variableContextIndexer.restoreScope(node.function.scope);
     writeNodeList(node.initializers);
+    _variableContextIndexer.leaveRestoredScope(node.function.scope);
 
     leaveScope(memberScope: true);
   }
@@ -1499,6 +1529,7 @@ class BinaryPrinter
       }
     }
     enterScope(memberScope: true);
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeByte(Tag.Field);
     _writeNonNullCanonicalName(fieldCanonicalName);
     _writeNonNullCanonicalName(getterCanonicalName);
@@ -1508,9 +1539,15 @@ class BinaryPrinter
     writeOffset(node.fileEndOffset);
     writeUInt30(node.flags);
     writeName(node.name);
+    writeScopeSize(node.scope);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
+    // TODO(63493): Don't serialize `thisVariable` separately when the scopes
+    // are serialized before function bodies.
+    writeOptionalVariable(node.thisVariable);
     writeOptionalNode(node.initializer);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     leaveScope(memberScope: true);
   }
 
@@ -1552,7 +1589,7 @@ class BinaryPrinter
   void visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
     writeOffset(node.fileOffset);
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
   }
 
   @override
@@ -1566,6 +1603,7 @@ class BinaryPrinter
   void visitFunctionNode(FunctionNode node) {
     writeByte(Tag.FunctionNode);
     enterScope(typeParameters: node.typeParameters, variableScope: true);
+    _variableContextIndexer.enterOptionalScope(node.scope);
     LabelIndexer? oldLabels = _labelIndexer;
     _labelIndexer = null;
     SwitchCaseIndexer? oldCases = _switchCaseIndexer;
@@ -1575,11 +1613,15 @@ class BinaryPrinter
     writeOffset(node.fileEndOffset);
     writeByte(node.asyncMarker.index);
     writeByte(node.dartAsyncMarker.index);
+    writeScopeSize(node.scope);
     writeNodeList(node.typeParameters);
+    // TODO(63493): Don't serialize `thisVariable` separately when the scopes
+    // are serialized before function bodies.
+    writeOptionalVariable(node.thisVariable);
     writeUInt30(node.positionalParameters.length + node.namedParameters.length);
     writeUInt30(node.requiredParameterCount);
-    writeVariableDeclarationList(node.positionalParameters);
-    writeVariableDeclarationList(node.namedParameters);
+    writePositionalParameterList(node.positionalParameters);
+    writeNamedParameterList(node.namedParameters);
     writeNode(node.returnType);
     writeOptionalNode(node.emittedValueType);
     RedirectingFactoryTarget? redirectingFactoryTarget =
@@ -1605,8 +1647,11 @@ class BinaryPrinter
       }
     }
     writeOptionalNode(node.body);
+    writeOptionalScope(node.scope);
+    writeOptionalCapturedContexts(node.capturedContexts);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
+    _variableContextIndexer.exitOptionalScope(node.scope);
     leaveScope(typeParameters: node.typeParameters, variableScope: true);
   }
 
@@ -1856,6 +1901,7 @@ class BinaryPrinter
     writeName(node.name);
     writeArgumentsNode(node.arguments);
     writeDartType(node.functionType);
+    writeDartType(node.resultType);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
@@ -2213,7 +2259,7 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
     writeNode(node.body);
     variableIndexer.popScope();
   }
@@ -2225,8 +2271,12 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
+    writeScopeSize(node.scope);
     writeNodeList(node.body.statements);
     writeNode(node.value);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2271,10 +2321,14 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeByte(Tag.Block);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
+    writeScopeSize(node.scope);
     writeNodeList(node.statements);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2339,8 +2393,12 @@ class BinaryPrinter
   void visitWhileStatement(WhileStatement node) {
     writeByte(Tag.WhileStatement);
     writeOffset(node.fileOffset);
+    _variableContextIndexer.enterOptionalScope(node.scope);
+    writeScopeSize(node.scope);
     writeNode(node.condition);
     writeNode(node.body);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
   }
 
   @override
@@ -2356,12 +2414,16 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeByte(Tag.ForStatement);
     writeOffset(node.fileOffset);
+    writeScopeSize(node.scope);
     writeVariableDeclarationList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
     writeNode(node.body);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2370,12 +2432,16 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
     writeOffset(node.bodyOffset);
-    writeVariableDeclaration(node.variable);
+    writeScopeSize(node.scope);
+    writeVariable(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2450,11 +2516,15 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeOffset(node.fileOffset);
+    writeScopeSize(node.scope);
     writeNode(node.guard);
-    writeOptionalVariableDeclaration(node.exception);
-    writeOptionalVariableDeclaration(node.stackTrace);
+    writeOptionalVariable(node.exception);
+    writeOptionalVariable(node.stackTrace);
     writeNode(node.body);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2475,38 +2545,145 @@ class BinaryPrinter
   }
 
   @override
+  void visitCatchVariable(CatchVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitLateVariable(LateVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitNamedParameter(NamedParameter node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitPositionalParameter(PositionalParameter node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitThisVariable(ThisVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitVariableStatement(VariableStatement node) {
+    writeByte(Tag.VariableStatement);
+    writeOffset(node.fileOffset);
+    writeNode(node.declaration);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    writeByte(Tag.VariableDeclaration);
     writeVariableDeclaration(node);
   }
 
   void writeVariableDeclaration(VariableDeclaration node) {
+    writeByte(Tag.VariableDeclaration);
+    writeOffset(node.fileOffset);
+    writeOptionalCapturedContexts(node.capturedContexts);
+    writeVariable(node.variable);
+  }
+
+  void writeVariable(Variable node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
     node.binaryOffsetNoTag = getBufferOffset();
+    switch (node) {
+      case LocalVariable():
+        writeByte(Tag.LocalVariable);
+      case LocalFunctionVariable():
+        writeByte(Tag.LocalFunctionVariable);
+      case LateVariable():
+        writeByte(Tag.LateVariable);
+      case ConstVariable():
+        writeByte(Tag.ConstVariable);
+      case CatchVariable():
+        writeByte(Tag.CatchVariable);
+      case ThisVariable():
+        writeByte(Tag.ThisVariable);
+      case SyntheticVariable():
+        writeByte(Tag.SyntheticVariable);
+      case PositionalParameter():
+        writeByte(Tag.PositionalParameter);
+      case NamedParameter():
+        writeByte(Tag.NamedParameter);
+    }
     writeOffset(node.fileOffset);
     writeOffset(node.fileEqualsOffset);
     writeAnnotationList(node.annotations);
     writeUInt30(node.flags);
-    writeStringReference(node.name ?? '');
+    writeStringReference(node.cosmeticName ?? '');
     writeNode(node.type);
-    writeOptionalNode(node.initializer);
+
+    writeOptionalNode(node is ThisVariable ? null : node.initializer);
     // Declare the variable after its initializer. It is not in scope in its
     // own initializer.
     (_variableIndexer ??= _newVariableIndexer()).declare(node);
+  }
+
+  void writeOptionalCapturedContexts(List<VariableContext>? capturedContexts) {
+    if (capturedContexts == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeUInt30(capturedContexts.length);
+      for (VariableContext variableContext in capturedContexts) {
+        writeVariableContextReference(variableContext);
+      }
+    }
+  }
+
+  void writeVariableContextReference(VariableContext variableContext) {
+    writeUInt30(_variableContextIndexer[variableContext]);
   }
 
   void writeVariableDeclarationList(List<VariableDeclaration> nodes) {
     writeList(nodes, writeVariableDeclaration);
   }
 
-  void writeOptionalVariableDeclaration(VariableDeclaration? node) {
+  void writePositionalParameterList(List<PositionalParameter> nodes) {
+    writeList(nodes, writeVariable);
+  }
+
+  void writeNamedParameterList(List<NamedParameter> nodes) {
+    writeList(nodes, writeVariable);
+  }
+
+  void writeVariableList(List<Variable> nodes) {
+    writeList(nodes, writeVariable);
+  }
+
+  void writeOptionalVariable(Variable? node) {
     if (node == null) {
       writeByte(Tag.Nothing);
     } else {
       writeByte(Tag.Something);
-      writeVariableDeclaration(node);
+      writeVariable(node);
     }
   }
 
@@ -2514,7 +2691,7 @@ class BinaryPrinter
   void visitFunctionDeclaration(FunctionDeclaration node) {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
     writeUInt30(node.id.toInt());
     writeFunctionNode(node.function);
   }
@@ -2791,7 +2968,16 @@ class BinaryPrinter
     writeNode(node.receiver);
   }
 
-  void _writeVariableReference(VariableDeclaration variable) {
+  void _writeVariableReferenceOption(Variable? variable) {
+    if (variable == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      _writeVariableReference(variable);
+    }
+  }
+
+  void _writeVariableReference(Variable variable) {
     int index = _getVariableIndex(variable);
     writeUInt30(variable.binaryOffsetNoTag);
     writeUInt30(index);
@@ -2810,6 +2996,7 @@ class BinaryPrinter
     writeByte(Tag.AssignedVariablePattern);
     writeOffset(node.fileOffset);
     _writeVariableReference(node.variable);
+    _writeVariableReferenceOption(node.setter);
     writeOptionalNode(node.matchedValueType);
     writeByte(node.needsCast ? 1 : 0);
   }
@@ -2837,7 +3024,7 @@ class BinaryPrinter
     writeByte(Tag.InvalidPattern);
     writeOffset(node.fileOffset);
     writeNode(node.invalidExpression);
-    writeVariableDeclarationList(node.declaredVariables);
+    writeVariableList(node.declaredVariables);
   }
 
   @override
@@ -2958,7 +3145,7 @@ class BinaryPrinter
 
   @override
   void visitPatternSwitchCase(PatternSwitchCase node) {
-    writeVariableDeclarationList(node.jointVariables);
+    writeVariableList(node.jointVariables);
     int length = node.patternGuards.length;
     writeUInt30(length);
     for (int i = 0; i < length; ++i) {
@@ -3042,7 +3229,7 @@ class BinaryPrinter
     writeByte(Tag.VariablePattern);
     writeOffset(node.fileOffset);
     writeOptionalNode(node.type);
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
     writeOptionalNode(node.matchedValueType);
   }
 
@@ -3112,6 +3299,13 @@ class BinaryPrinter
   void visitAuxiliaryStatement(AuxiliaryStatement node) {
     throw new UnsupportedError(
       'serialization of auxiliary Statement: ${node} (${node.runtimeType})',
+    );
+  }
+
+  @override
+  void visitAuxiliaryPattern(AuxiliaryPattern node) {
+    throw new UnsupportedError(
+      'serialization of auxiliary Pattern: ${node} (${node.runtimeType})',
     );
   }
 
@@ -3399,12 +3593,12 @@ class BinaryPrinter
 typedef bool LibraryFilter(Library _);
 
 class VariableIndexer {
-  Map<VariableDeclaration, int>? index;
+  Map<Variable, int>? index;
   List<int>? scopes;
   int stackHeight = 0;
 
-  void declare(VariableDeclaration node) {
-    (index ??= <VariableDeclaration, int>{})[node] = stackHeight++;
+  void declare(Variable node) {
+    (index ??= <Variable, int>{})[node] = stackHeight++;
   }
 
   void pushScope() {
@@ -3419,8 +3613,13 @@ class VariableIndexer {
     stackHeight += numberOfVariables;
   }
 
-  int? operator [](VariableDeclaration node) {
+  int? operator [](Variable node) {
     return index == null ? null : index![node];
+  }
+
+  @override
+  String toString() {
+    return '{${index?.keys.join(',') ?? ''}}';
   }
 }
 
@@ -3524,11 +3723,47 @@ class TypeParameterIndexer {
   }
 }
 
+class VariableContextIndexer {
+  final Map<VariableContext, int> index = new Map<VariableContext, int>();
+  int stackHeight = 0;
+
+  void enterOptionalScope(Scope? scope) {
+    if (scope != null) {
+      for (VariableContext variableContext in scope.contexts) {
+        index[variableContext] = stackHeight;
+        stackHeight++;
+      }
+    }
+  }
+
+  void exitOptionalScope(Scope? scope) {
+    if (scope != null) {
+      stackHeight -= scope.contexts.length;
+      for (VariableContext variableContext in scope.contexts) {
+        index.remove(variableContext);
+      }
+    }
+  }
+
+  void restoreScope(Scope? scope) {
+    enterOptionalScope(scope);
+  }
+
+  void leaveRestoredScope(Scope? scope) {
+    exitOptionalScope(scope);
+  }
+
+  int operator [](VariableContext variableContext) {
+    return index[variableContext] ??
+        (throw new ArgumentError("Variable context is not indexed."));
+  }
+}
+
 class StringIndexer {
   // Note that the iteration order is important.
   final Map<String, int> index = new Map<String, int>();
 
-  StringIndexer() {
+  new() {
     put('');
   }
 
@@ -3546,7 +3781,7 @@ class UriIndexer {
   // Note that the iteration order is important.
   final Map<Uri, int> index = new Map<Uri, int>();
 
-  UriIndexer();
+  new();
 
   int put(Uri uri) {
     int? result = index[uri];
@@ -3573,7 +3808,7 @@ class BufferedSink {
 
   int get offset => length + flushedLength;
 
-  BufferedSink(this._sink);
+  new(this._sink);
 
   void addDouble(double d) {
     Uint8List doubleBufferUint8 = _doubleBufferUint8 ??= _doubleBuffer.buffer
@@ -3678,7 +3913,7 @@ class _MetadataSubsection {
   /// (nodeOffset) in ascending order.
   final List<int> metadataMapping = <int>[];
 
-  _MetadataSubsection(this.repository);
+  new(this.repository);
 }
 
 /// A [Sink] that directly writes data into a byte builder.

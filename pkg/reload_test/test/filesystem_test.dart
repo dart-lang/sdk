@@ -43,7 +43,8 @@ void main() {
     final sourcemapFile = File.fromUri(testDirectory.uri.resolve('test.map'))
       ..writeAsBytesSync(sourcemap);
 
-    final manifest = '''
+    final manifest =
+        '''
       {
         "/file1.ext": {
           "code": [0, ${source1.codeUnits.length}],
@@ -61,50 +62,59 @@ void main() {
         }
       }
       '''
-        .codeUnits;
+            .codeUnits;
     final manifestFile = File.fromUri(testDirectory.uri.resolve('test.json'))
       ..writeAsBytesSync(manifest);
 
-    var updatedFiles = filesystem
-        .update(sourcesFile, manifestFile, sourcemapFile, generation: "0");
-
-    expect(updatedFiles, equals(['file1.ext', 'file2.ext']),
-        reason: 'Updated files are correctly reported.');
-
-    expect(
-        filesystem.files,
-        equals(
-            {'file1.ext': source1.codeUnits, 'file2.ext': source2.codeUnits}),
-        reason: 'Filesystem source files are correctly stored.');
+    var updatedFiles = filesystem.update(
+      sourcesFile,
+      manifestFile,
+      sourcemapFile,
+      generation: "0",
+    );
 
     expect(
-        filesystem.sourcemaps,
-        equals({
-          'file1.ext.map': sourcemap1.codeUnits,
-          'file2.ext.map': sourcemap2.codeUnits,
-        }),
-        reason: 'Filesystem sourcemaps are correctly stored.');
+      updatedFiles,
+      equals(['file1.ext', 'file2.ext']),
+      reason: 'Updated files are correctly reported.',
+    );
 
     expect(
-        filesystem.generationsToModifiedFilePaths,
-        equals({
-          '0': [
-            [
-              'hot-reload-test:///file1.ext',
-              jsOutputUri.resolve('generation0/file1.ext').toFilePath()
-            ],
-            [
-              'hot-reload-test:///file2.ext',
-              jsOutputUri.resolve('generation0/file2.ext').toFilePath()
-            ]
-          ]
-        }),
-        reason:
-            'Filesystem emits correct generation to modfied files mapping.');
+      filesystem.files,
+      equals({'file1.ext': source1.codeUnits, 'file2.ext': source2.codeUnits}),
+      reason: 'Filesystem source files are correctly stored.',
+    );
+
+    expect(
+      filesystem.sourcemaps,
+      equals({
+        'file1.ext.map': sourcemap1.codeUnits,
+        'file2.ext.map': sourcemap2.codeUnits,
+      }),
+      reason: 'Filesystem sourcemaps are correctly stored.',
+    );
+
+    expect(
+      filesystem.generationsToModifiedFilePaths,
+      equals({
+        '0': [
+          [
+            'hot-reload-test:///file1.ext',
+            jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
+          ],
+          [
+            'hot-reload-test:///file2.ext',
+            jsOutputUri.resolve('generation0/file2.ext').toFilePath(),
+          ],
+        ],
+      }),
+      reason: 'Filesystem emits correct generation to modfied files mapping.',
+    );
 
     // Update the filesystem with two more files in the next generation.
 
-    final manifest2 = '''
+    final manifest2 =
+        '''
       {
         "/file3.ext": {
           "code": [0, ${source1.codeUnits.length}],
@@ -122,140 +132,184 @@ void main() {
         }
       }
       '''
-        .codeUnits;
+            .codeUnits;
     manifestFile.writeAsBytesSync(manifest2);
 
-    updatedFiles = filesystem.update(sourcesFile, manifestFile, sourcemapFile,
-        generation: "1");
-
-    expect(updatedFiles, equals(['file3.ext', 'file4.ext']),
-        reason: 'Updated files are correctly reported.');
-
-    expect(
-        filesystem.files,
-        equals({
-          'file1.ext': source1.codeUnits,
-          'file2.ext': source2.codeUnits,
-          'file3.ext': source1.codeUnits,
-          'file4.ext': source2.codeUnits,
-        }),
-        reason: 'Filesystem source files are correctly stored.');
+    updatedFiles = filesystem.update(
+      sourcesFile,
+      manifestFile,
+      sourcemapFile,
+      generation: "1",
+    );
 
     expect(
-        filesystem.sourcemaps,
-        equals({
-          'file1.ext.map': sourcemap1.codeUnits,
-          'file2.ext.map': sourcemap2.codeUnits,
-          'file3.ext.map': sourcemap1.codeUnits,
-          'file4.ext.map': sourcemap2.codeUnits,
-        }),
-        reason: 'Filesystem sourcemaps are correctly stored.');
+      updatedFiles,
+      equals(['file3.ext', 'file4.ext']),
+      reason: 'Updated files are correctly reported.',
+    );
 
     expect(
-        filesystem.generationsToModifiedFilePaths,
-        equals({
-          '0': [
-            [
-              'hot-reload-test:///file1.ext',
-              jsOutputUri.resolve('generation0/file1.ext').toFilePath()
-            ],
-            [
-              'hot-reload-test:///file2.ext',
-              jsOutputUri.resolve('generation0/file2.ext').toFilePath()
-            ]
+      filesystem.files,
+      equals({
+        'file1.ext': source1.codeUnits,
+        'file2.ext': source2.codeUnits,
+        'file3.ext': source1.codeUnits,
+        'file4.ext': source2.codeUnits,
+      }),
+      reason: 'Filesystem source files are correctly stored.',
+    );
+
+    expect(
+      filesystem.sourcemaps,
+      equals({
+        'file1.ext.map': sourcemap1.codeUnits,
+        'file2.ext.map': sourcemap2.codeUnits,
+        'file3.ext.map': sourcemap1.codeUnits,
+        'file4.ext.map': sourcemap2.codeUnits,
+      }),
+      reason: 'Filesystem sourcemaps are correctly stored.',
+    );
+
+    expect(
+      filesystem.generationsToModifiedFilePaths,
+      equals({
+        '0': [
+          [
+            'hot-reload-test:///file1.ext',
+            jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
           ],
-          '1': [
-            [
-              'hot-reload-test:///file3.ext',
-              jsOutputUri.resolve('generation1/file3.ext').toFilePath()
-            ],
-            [
-              'hot-reload-test:///file4.ext',
-              jsOutputUri.resolve('generation1/file4.ext').toFilePath()
-            ],
+          [
+            'hot-reload-test:///file2.ext',
+            jsOutputUri.resolve('generation0/file2.ext').toFilePath(),
           ],
-        }),
-        reason:
-            'Filesystem emits correct generation to modfied files mapping.');
+        ],
+        '1': [
+          [
+            'hot-reload-test:///file3.ext',
+            jsOutputUri.resolve('generation1/file3.ext').toFilePath(),
+          ],
+          [
+            'hot-reload-test:///file4.ext',
+            jsOutputUri.resolve('generation1/file4.ext').toFilePath(),
+          ],
+        ],
+      }),
+      reason: 'Filesystem emits correct generation to modfied files mapping.',
+    );
 
     expect(
-        filesystem.scriptDescriptorForBootstrap,
-        equals([
-          {
-            'id': 'hot-reload-test:///file1.ext',
-            'src': jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
-          },
-          {
-            'id': 'hot-reload-test:///file2.ext',
-            'src': jsOutputUri.resolve('generation0/file2.ext').toFilePath(),
-          },
-        ]),
-        reason: 'Filesystem emits correct script descriptors.');
+      filesystem.scriptDescriptorForBootstrap,
+      equals([
+        {
+          'id': 'hot-reload-test:///file1.ext',
+          'src': jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
+        },
+        {
+          'id': 'hot-reload-test:///file2.ext',
+          'src': jsOutputUri.resolve('generation0/file2.ext').toFilePath(),
+        },
+      ]),
+      reason: 'Filesystem emits correct script descriptors.',
+    );
 
     // Write files and check that the filesystem's state is properly cleared.
     expect(
-        File(jsOutputUri.resolve('generation3/file1.ext').toFilePath())
-            .existsSync(),
-        isFalse);
+      File(
+        jsOutputUri.resolve('generation3/file1.ext').toFilePath(),
+      ).existsSync(),
+      isFalse,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file2.ext').toFilePath())
-            .existsSync(),
-        isFalse);
+      File(
+        jsOutputUri.resolve('generation3/file2.ext').toFilePath(),
+      ).existsSync(),
+      isFalse,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file3.ext').toFilePath())
-            .existsSync(),
-        isFalse);
+      File(
+        jsOutputUri.resolve('generation3/file3.ext').toFilePath(),
+      ).existsSync(),
+      isFalse,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file4.ext').toFilePath())
-            .existsSync(),
-        isFalse);
+      File(
+        jsOutputUri.resolve('generation3/file4.ext').toFilePath(),
+      ).existsSync(),
+      isFalse,
+    );
     filesystem.writeToDisk(jsOutputUri, generation: "3");
     expect(
-        File(jsOutputUri.resolve('generation3/file1.ext').toFilePath())
-            .existsSync(),
-        isTrue);
+      File(
+        jsOutputUri.resolve('generation3/file1.ext').toFilePath(),
+      ).existsSync(),
+      isTrue,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file2.ext').toFilePath())
-            .existsSync(),
-        isTrue);
+      File(
+        jsOutputUri.resolve('generation3/file2.ext').toFilePath(),
+      ).existsSync(),
+      isTrue,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file3.ext').toFilePath())
-            .existsSync(),
-        isTrue);
+      File(
+        jsOutputUri.resolve('generation3/file3.ext').toFilePath(),
+      ).existsSync(),
+      isTrue,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file4.ext').toFilePath())
-            .existsSync(),
-        isTrue);
-    expect(filesystem.files, isEmpty,
-        reason: 'Filesystem clears files after writing to disk.');
-    expect(filesystem.sourcemaps, isEmpty,
-        reason: 'Filesystem clears sourcemaps after writing to disk.');
+      File(
+        jsOutputUri.resolve('generation3/file4.ext').toFilePath(),
+      ).existsSync(),
+      isTrue,
+    );
+    expect(
+      filesystem.files,
+      isEmpty,
+      reason: 'Filesystem clears files after writing to disk.',
+    );
+    expect(
+      filesystem.sourcemaps,
+      isEmpty,
+      reason: 'Filesystem clears sourcemaps after writing to disk.',
+    );
 
     // Check that subsequent writes don't emit already-emitted files.
-    File(jsOutputUri.resolve('generation3/file1.ext').toFilePath())
-        .deleteSync();
-    File(jsOutputUri.resolve('generation3/file2.ext').toFilePath())
-        .deleteSync();
-    File(jsOutputUri.resolve('generation3/file3.ext').toFilePath())
-        .deleteSync();
-    File(jsOutputUri.resolve('generation3/file4.ext').toFilePath())
-        .deleteSync();
+    File(
+      jsOutputUri.resolve('generation3/file1.ext').toFilePath(),
+    ).deleteSync();
+    File(
+      jsOutputUri.resolve('generation3/file2.ext').toFilePath(),
+    ).deleteSync();
+    File(
+      jsOutputUri.resolve('generation3/file3.ext').toFilePath(),
+    ).deleteSync();
+    File(
+      jsOutputUri.resolve('generation3/file4.ext').toFilePath(),
+    ).deleteSync();
     filesystem.writeToDisk(jsOutputUri, generation: "3");
     expect(
-        File(jsOutputUri.resolve('generation3/file1.ext').toFilePath())
-            .existsSync(),
-        isFalse);
+      File(
+        jsOutputUri.resolve('generation3/file1.ext').toFilePath(),
+      ).existsSync(),
+      isFalse,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file2.ext').toFilePath())
-            .existsSync(),
-        isFalse);
+      File(
+        jsOutputUri.resolve('generation3/file2.ext').toFilePath(),
+      ).existsSync(),
+      isFalse,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file3.ext').toFilePath())
-            .existsSync(),
-        isFalse);
+      File(
+        jsOutputUri.resolve('generation3/file3.ext').toFilePath(),
+      ).existsSync(),
+      isFalse,
+    );
     expect(
-        File(jsOutputUri.resolve('generation3/file4.ext').toFilePath())
-            .existsSync(),
-        isFalse);
+      File(
+        jsOutputUri.resolve('generation3/file4.ext').toFilePath(),
+      ).existsSync(),
+      isFalse,
+    );
   });
 }

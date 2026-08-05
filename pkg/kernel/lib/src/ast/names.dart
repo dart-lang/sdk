@@ -27,12 +27,12 @@ abstract class Name extends Node {
   Library? get library;
   bool get isPrivate;
 
-  Name._internal(this.hashCode, this.text);
+  new _internal(this.hashCode, this.text);
 
-  factory Name(String text, [Library? library]) =>
+  factory(String text, [Library? library]) =>
       new Name.byReference(text, library?.reference);
 
-  factory Name.byReference(String text, Reference? libraryName) {
+  factory byReference(String text, Reference? libraryName) {
     /// Use separate subclasses for the public and private case to save memory
     /// for public names.
     if (text.startsWith('_')) {
@@ -85,7 +85,7 @@ class _PrivateName extends Name {
   @override
   bool get isPrivate => true;
 
-  _PrivateName(String text, Reference libraryReference)
+  new(String text, Reference libraryReference)
     : this.libraryReference = libraryReference,
       super._internal(_computeHashCode(text, libraryReference), text);
 
@@ -117,7 +117,7 @@ class _PublicName extends Name {
   @override
   bool get isPrivate => false;
 
-  _PublicName(String text) : super._internal(text.hashCode, text);
+  new(String text) : super._internal(text.hashCode, text);
 
   @override
   String toString() => toStringInternal();

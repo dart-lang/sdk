@@ -17,7 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Tighten type of initializing formal.';
 
 class TightenTypeOfInitializingFormals extends AnalysisRule {
-  TightenTypeOfInitializingFormals()
+  new()
     : super(
         name: LintNames.tighten_type_of_initializing_formals,
         description: _desc,
@@ -41,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
   final RuleContext context;
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

@@ -5,6 +5,7 @@
 // Test the IterableBase/IterableMixin toString method.
 
 import "package:expect/expect.dart";
+
 import "dart:collection";
 
 String mkIt(int len, [func]) {

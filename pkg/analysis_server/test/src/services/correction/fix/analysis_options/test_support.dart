@@ -6,14 +6,12 @@ import 'package:analysis_server/src/services/correction/fix/analysis_options/fix
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 /// A base class providing utility methods for tests of fixes associated with
 /// errors in analysis options files.
@@ -46,13 +44,13 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
   }) {
     var optionsFile = newFile('/analysis_options.yaml', content);
     var sourceFactory = SourceFactory([]);
-    var errors = AnalysisOptionsAnalyzer(
-      initialSource: FileSource(optionsFile),
+    var parseResult = AnalysisOptionsParseSession().parse(
       sourceFactory: sourceFactory,
-      contextRoot: '/',
+      contextRoot: getFolder('/'),
+      file: optionsFile,
       sdkVersionConstraint: dart2_12,
-      resourceProvider: resourceProvider,
-    ).walkIncludes(content: content);
+    );
+    var errors = parseResult.diagnostics;
     if (diagnosticFilter != null) {
       if (errors.length == 1) {
         fail('Unnecessary error filter');
@@ -61,21 +59,17 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     }
     expect(errors, hasLength(1));
     var error = errors[0];
-    var options = _parseYaml(content);
+    var fileContent = parseResult.content;
+    var yamlMap = fileContent?.yamlMap;
+    if (fileContent == null || yamlMap == null) {
+      fail('Expected readable analysis_options.yaml with a YAML map.');
+    }
     var generator = AnalysisOptionsFixGenerator(
       resourceProvider,
       error,
-      content,
-      options,
+      fileContent.text,
+      yamlMap,
     );
     return generator.computeFixes();
-  }
-
-  YamlMap _parseYaml(String content) {
-    var doc = loadYamlNode(content);
-    if (doc is YamlMap) {
-      return doc;
-    }
-    return YamlMap();
   }
 }

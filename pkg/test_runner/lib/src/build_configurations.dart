@@ -16,6 +16,7 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
   final modes = <Mode>{};
   final architectures = <Architecture>{};
   final systems = <System>{};
+  final sanitizers = <Sanitizer>{};
   for (final configuration in configurations) {
     if (!configuration.build) {
       continue;
@@ -25,6 +26,7 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
     modes.add(inner.mode);
     architectures.add(inner.architecture);
     systems.add(inner.system);
+    sanitizers.add(inner.sanitizer);
   }
 
   if (buildTargets.isEmpty) {
@@ -53,12 +55,14 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
 
   final command = [
     'tools/build.py',
-    '-m',
+    '--mode',
     modes.join(','),
-    '-a',
+    '--arch',
     architectures.join(','),
+    '--sanitizer',
+    sanitizers.join(','),
     ...osFlags,
-    ...buildTargets
+    ...buildTargets,
   ];
   print('Running command: python3 ${command.join(' ')}');
 
@@ -82,17 +86,21 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.dartk: ['runtime'],
     Compiler.dartkp: ['runtime', 'runtime_precompiled'],
     Compiler.appJitk: ['runtime'],
-    Compiler.fasta: ['create_sdk', 'ddc_stable_test', 'kernel_platform_files'],
+    Compiler.fasta: ['front-end_bot'],
     Compiler.ddc: ['ddc_stable_test'],
-    Compiler.dart2js: ['create_sdk'],
-    Compiler.dart2analyzer: ['create_sdk', 'utils/dartanalyzer'],
+    Compiler.dart2js: ['dart2js_bot'],
+    Compiler.dart2wasm: ['dart2wasm_bot'],
+    Compiler.dart2analyzer: ['analyzer_bot'],
     Compiler.specParser: <String>[],
   };
   final result = [...targetsForCompilers[compiler]!];
 
   if (compiler == Compiler.dartkp &&
-      [Architecture.arm, Architecture.arm64, Architecture.arm_x64]
-          .contains(inner.architecture)) {
+      [
+        Architecture.arm,
+        Architecture.arm64,
+        Architecture.arm_x64,
+      ].contains(inner.architecture)) {
     result.add('gen_snapshot');
   }
   if ([Mode.release, Mode.product].contains(inner.mode) &&
@@ -103,10 +111,14 @@ List<String> _selectBuildTargets(Configuration inner) {
         Architecture.arm64c,
         Architecture.x64c,
         Architecture.simarm64,
-        Architecture.simarm64c
+        Architecture.simarm64c,
       ].contains(inner.architecture) &&
       [System.linux, System.android].contains(inner.system)) {
     result.add('analyze_snapshot');
+  }
+
+  if (compiler == Compiler.dart2wasm && inner.useSdk) {
+    result.add('create_sdk');
   }
 
   if (compiler == Compiler.ddc) {

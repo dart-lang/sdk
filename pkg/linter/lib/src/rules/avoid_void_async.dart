@@ -18,8 +18,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid `async` functions that return `void`.';
 
 class AvoidVoidAsync extends AnalysisRule {
-  AvoidVoidAsync()
-    : super(name: LintNames.avoid_void_async, description: _desc);
+  new() : super(name: LintNames.avoid_void_async, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.avoidVoidAsync;
@@ -38,7 +37,7 @@ class AvoidVoidAsync extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {

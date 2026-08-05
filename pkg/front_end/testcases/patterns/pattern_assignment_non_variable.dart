@@ -14,12 +14,13 @@ class Class extends Super {
 
   method(o, parameter) {
     var local;
-    (local, // Ok
-        parameter, // Ok
-        global, // Error
-        superField, // Error
-        instanceField, // Error
-        staticField // Error
+    (
+      local, // Ok
+      parameter, // Ok
+      global, // Error
+      superField, // Error
+      instanceField, // Error
+      staticField, // Error
     ) = o;
   }
 }

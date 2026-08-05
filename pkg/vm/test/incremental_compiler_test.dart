@@ -29,16 +29,14 @@ import 'package:vm/modular/target/vm.dart';
 import 'common_test_utils.dart';
 
 main() {
-  final platformKernel = computePlatformBinariesLocation().resolve(
-    'vm_platform.dill',
-  );
   final sdkRoot = computePlatformBinariesLocation();
+  final platformKernel = sdkRoot.resolve('vm_platform.dill');
 
   CompilerOptions getFreshOptions() {
     return new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..target = new VmTarget(new TargetFlags())
-      ..additionalDills = <Uri>[platformKernel]
+      ..sdkSummary = platformKernel
       ..onDiagnostic = (CfeDiagnosticMessage message) {
         fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
       }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,18 +28,17 @@ class InferenceFailureOnFunctionInvocationTest
   }
 
   test_functionType_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function<T>() m) {
   m();
+//^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'm' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 33, 1)],
-    );
+''');
   }
 
   test_functionType_notGeneric() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function() m) {
   m();
 }
@@ -48,7 +46,7 @@ void f(void Function() m) {
   }
 
   test_genericFunctionExpression_explicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function<T>()? m, void Function<T>() n) {
   (m ?? n)<int>();
 }
@@ -56,7 +54,7 @@ void f(void Function<T>()? m, void Function<T>() n) {
   }
 
   test_genericMethod_downwardsInference() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   T m<T>();
 }
@@ -68,7 +66,7 @@ int f(C c) {
   }
 
   test_genericMethod_explicitTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   void m<T>();
 }
@@ -80,7 +78,7 @@ void f(C c) {
   }
 
   test_genericMethod_immediatelyCast() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   T m<T>();
 }
@@ -92,22 +90,21 @@ void f(C c) {
   }
 
   test_genericMethod_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   void m<T>();
 }
 
 void f(C c) {
   c.m();
+//  ^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'm' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 55, 1)],
-    );
+''');
   }
 
   test_genericMethod_optionalTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 abstract class C {
   @optionalTypeArgs
@@ -121,7 +118,7 @@ void f(C c) {
   }
 
   test_genericMethod_upwardsInference() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   void m<T>(T a);
 }
@@ -133,22 +130,21 @@ void f(C c) {
   }
 
   test_genericMethodDotShorthand_downwardsInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C m<T>() => C();
 }
 
 C f() {
   return .m();
+//        ^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'm' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 57, 1)],
-    );
+''');
   }
 
   test_genericMethodDotShorthand_explicitTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C m<T>() => C();
 }
@@ -160,34 +156,32 @@ C f() {
   }
 
   test_genericStaticMethod_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static void m<T>() {}
 }
 
 void f() {
   C.m();
+//  ^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'm' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 52, 1)],
-    );
+''');
   }
 
   test_genericTypedef_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Fn = void Function<T>();
 void g(Fn fn) {
   fn();
+//^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'fn' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 51, 2)],
-    );
+''');
   }
 
   test_genericTypedef_optionalTypeArgs() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 typedef Fn = void Function<T>();
@@ -198,31 +192,29 @@ void g(Fn fn) {
   }
 
   test_localFunction_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>() {}
   g();
+//^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'g' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 30, 1)],
-    );
+''');
   }
 
   test_localFunctionVariable_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var m = <T>() {};
   m();
+//^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'm' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 33, 1)],
-    );
+''');
   }
 
   test_nonGenericMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   void m();
 }
@@ -234,31 +226,29 @@ void f(C c) {
   }
 
   test_topLevelFunction_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {}
 
 void g() {
   f();
+//^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'f' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 29, 1)],
-    );
+''');
   }
 
   test_topLevelFunction_withImportPrefix_noInference() async {
     newFile('$testPackageLibPath/a.dart', '''
 void f<T>() {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as a;
 void g() {
   a.f();
+//  ^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'f' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnFunctionInvocation, 37, 1)],
-    );
+''');
   }
 
   test_topLevelFunction_withImportPrefix_optionalTypeArgs() async {
@@ -267,7 +257,7 @@ import 'package:meta/meta.dart';
 @optionalTypeArgs
 void f<T>() {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as a;
 void g() {
   a.f();

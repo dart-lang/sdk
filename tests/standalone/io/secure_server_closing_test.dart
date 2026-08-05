@@ -35,13 +35,10 @@ void testCloseOneEnd(String toClose) {
   Completer serverDone = new Completer();
   Completer serverEndDone = new Completer();
   Completer clientEndDone = new Completer();
-  Future.wait([
-    serverDone.future,
-    serverEndDone.future,
-    clientEndDone.future,
-  ]).then((_) {
-    asyncEnd();
-  });
+  Future.wait([serverDone.future, serverEndDone.future, clientEndDone.future])
+      .then((_) {
+        asyncEnd();
+      });
   SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen(
       (serverConnection) {

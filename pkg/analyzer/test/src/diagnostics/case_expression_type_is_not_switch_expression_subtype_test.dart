@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -39,20 +38,37 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
   _Variant get _variant;
 
   test_notSubtype_hasEqEq() async {
-    List<ExpectedDiagnostic> expectedDiagnosticss;
-    switch (_variant) {
-      case _Variant.nullSafe:
-        expectedDiagnosticss = [
-          error(diag.caseExpressionTypeIsNotSwitchExpressionSubtype, 180, 2),
-          error(diag.caseExpressionTypeImplementsEquals, 180, 2),
-          error(diag.caseExpressionTypeIsNotSwitchExpressionSubtype, 206, 10),
-          error(diag.caseExpressionTypeImplementsEquals, 206, 10),
-        ];
-      case _Variant.patterns:
-        expectedDiagnosticss = [];
-    }
+    if (_variant == _Variant.nullSafe) {
+      await resolveTestCodeWithDiagnostics('''
+class A {
+  const A();
+}
 
-    await assertErrorsInCode('''
+class B {
+  final int value;
+  const B(this.value);
+  bool operator ==(other) => true;
+}
+
+const dynamic B0 = B(0);
+
+void f(A e) {
+  switch (e) {
+    case B0:
+//       ^^
+// [diag.caseExpressionTypeIsNotSwitchExpressionSubtype] The switch case expression type 'dynamic' must be a subtype of the switch expression type 'A'.
+// [diag.caseExpressionTypeImplementsEquals] The switch case expression type 'B' can't override the '==' operator.
+      break;
+    case const B(1):
+//       ^^^^^^^^^^
+// [diag.caseExpressionTypeIsNotSwitchExpressionSubtype] The switch case expression type 'B' must be a subtype of the switch expression type 'A'.
+// [diag.caseExpressionTypeImplementsEquals] The switch case expression type 'B' can't override the '==' operator.
+      break;
+  }
+}
+''');
+    } else {
+      await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -73,25 +89,13 @@ void f(A e) {
       break;
   }
 }
-''', expectedDiagnosticss);
+''');
+    }
   }
 
   test_notSubtype_primitiveEquality() async {
-    List<ExpectedDiagnostic> expectedDiagnostics;
-    switch (_variant) {
-      case _Variant.nullSafe:
-        expectedDiagnostics = [
-          error(diag.caseExpressionTypeIsNotSwitchExpressionSubtype, 145, 2),
-          error(diag.caseExpressionTypeIsNotSwitchExpressionSubtype, 171, 10),
-        ];
-      case _Variant.patterns:
-        expectedDiagnostics = [
-          error(diag.constantPatternNeverMatchesValueType, 145, 2),
-          error(diag.constantPatternNeverMatchesValueType, 171, 10),
-        ];
-    }
-
-    await assertErrorsInCode('''
+    if (_variant == _Variant.nullSafe) {
+      await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -106,16 +110,47 @@ const dynamic B0 = B(0);
 void f(A e) {
   switch (e) {
     case B0:
+//       ^^
+// [diag.caseExpressionTypeIsNotSwitchExpressionSubtype] The switch case expression type 'dynamic' must be a subtype of the switch expression type 'A'.
       break;
     case const B(1):
+//       ^^^^^^^^^^
+// [diag.caseExpressionTypeIsNotSwitchExpressionSubtype] The switch case expression type 'B' must be a subtype of the switch expression type 'A'.
       break;
   }
 }
-''', expectedDiagnostics);
+''');
+    } else {
+      await resolveTestCodeWithDiagnostics('''
+class A {
+  const A();
+}
+
+class B {
+  final int value;
+  const B(this.value);
+}
+
+const dynamic B0 = B(0);
+
+void f(A e) {
+  switch (e) {
+    case B0:
+//       ^^
+// [diag.constantPatternNeverMatchesValueType] The matched value type 'A' can never be equal to this constant of type 'B'.
+      break;
+    case const B(1):
+//       ^^^^^^^^^^
+// [diag.constantPatternNeverMatchesValueType] The matched value type 'A' can never be equal to this constant of type 'B'.
+      break;
+  }
+}
+''');
+    }
   }
 
   test_subtype() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   final int value;
   const A(this.value);

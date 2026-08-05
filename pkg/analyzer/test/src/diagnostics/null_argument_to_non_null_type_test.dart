@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NullArgumentToNonNullCompleterCompleteTest);
     defineReflectiveTests(NullArgumentToNonNullFutureValueTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -18,17 +19,16 @@ void main() {
 class NullArgumentToNonNullCompleterCompleteTest
     extends PubPackageResolutionTest {
   test_absent() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 void f() => Completer<int>().complete();
-''',
-      [error(diag.nullArgumentToNonNullType, 33, 27)],
-    );
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nullArgumentToNonNullType] 'Completer.complete' shouldn't be called with a 'null' argument for the non-nullable type argument 'int'.
+''');
   }
 
   test_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 void f() {
   Completer<int>().complete(null as dynamic);
@@ -37,17 +37,16 @@ void f() {
   }
 
   test_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 void f() => Completer<int>().complete(null);
-''',
-      [error(diag.nullArgumentToNonNullType, 59, 4)],
-    );
+//                                    ^^^^
+// [diag.nullArgumentToNonNullType] 'Completer.complete' shouldn't be called with a 'null' argument for the non-nullable type argument 'int'.
+''');
   }
 
   test_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 void f() {
   final c = Completer<int?>();
@@ -58,29 +57,27 @@ void f() {
   }
 
   test_nullType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 void f(Null a) => Completer<int>().complete(a);
-''',
-      [error(diag.nullArgumentToNonNullType, 65, 1)],
-    );
+//                                          ^
+// [diag.nullArgumentToNonNullType] 'Completer.complete' shouldn't be called with a 'null' argument for the non-nullable type argument 'int'.
+''');
   }
 }
 
 @reflectiveTest
 class NullArgumentToNonNullFutureValueTest extends PubPackageResolutionTest {
   test_absent() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void foo() => Future<int>.value();
-''',
-      [error(diag.nullArgumentToNonNullType, 14, 19)],
-    );
+//            ^^^^^^^^^^^^^^^^^^^
+// [diag.nullArgumentToNonNullType] 'Future.value' shouldn't be called with a 'null' argument for the non-nullable type argument 'int'.
+''');
   }
 
   test_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 void f() {
   Future<int>.value(null as dynamic);
@@ -89,16 +86,15 @@ void f() {
   }
 
   test_null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void foo() => Future<int>.value(null);
-''',
-      [error(diag.nullArgumentToNonNullType, 32, 4)],
-    );
+//                              ^^^^
+// [diag.nullArgumentToNonNullType] 'Future.value' shouldn't be called with a 'null' argument for the non-nullable type argument 'int'.
+''');
   }
 
   test_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   Future<int?>.value();
   Future<int?>.value(null);
@@ -107,11 +103,10 @@ void f() {
   }
 
   test_nullType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void foo(Null a) => Future<int>.value(a);
-''',
-      [error(diag.nullArgumentToNonNullType, 38, 1)],
-    );
+//                                    ^
+// [diag.nullArgumentToNonNullType] 'Future.value' shouldn't be called with a 'null' argument for the non-nullable type argument 'int'.
+''');
   }
 }

@@ -6,8 +6,8 @@ import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 typedef TodoDiagnosticCode =
-    DiagnosticWithArguments<
-      LocatableDiagnostic Function({required String message})
+    diag.DiagnosticWithArguments<
+      diag.LocatableDiagnostic Function({required String message})
     >;
 
 /// Static helper methods and properties for working with [DiagnosticType.TODO]

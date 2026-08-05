@@ -16,8 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer using `??` operators.';
 
 class PreferIfNullOperators extends AnalysisRule {
-  PreferIfNullOperators()
-    : super(name: LintNames.prefer_if_null_operators, description: _desc);
+  new() : super(name: LintNames.prefer_if_null_operators, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferIfNullOperators;
@@ -35,7 +34,7 @@ class PreferIfNullOperators extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {

@@ -361,7 +361,7 @@ class GreatestLowerBoundHelper {
 
     var returnType = getGreatestLowerBound(f.returnType, g.returnType);
 
-    return FunctionTypeImpl.v2(
+    return FunctionTypeImpl(
       typeParameters: fresh.typeParameters,
       formalParameters: parameters,
       returnType: returnType,

@@ -24,8 +24,11 @@ int32_t TokenPosition::Serialize() const {
 intptr_t TokenPosition::EncodeCoveragePosition(bool is_branch_coverage) {
   // Normal coverage positions are encoded as 2 * pos, and branch coverage are
   // encoded as 2 * pos + 1.
-  intptr_t encoded_position = 2 * static_cast<intptr_t>(value_);
-  return is_branch_coverage ? encoded_position + 1 : encoded_position;
+  intptr_t encoded_position =
+      2 * static_cast<intptr_t>(value_) + (is_branch_coverage ? 1 : 0);
+  // Coverage arrays are Uint32Arrays, so ensure the result fits.
+  ASSERT(Utils::IsUint(32, encoded_position));
+  return encoded_position;
 }
 
 TokenPosition TokenPosition::DecodeCoveragePosition(intptr_t encoded_position,

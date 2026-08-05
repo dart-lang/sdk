@@ -12,8 +12,8 @@
 #include "platform/mach_o.h"
 #include "platform/unwinding_records.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/debug_info_stream.h"
 #include "vm/dwarf.h"
-#include "vm/dwarf_so_writer.h"
 #include "vm/flags.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
@@ -262,8 +262,11 @@ class NonHashingMachOWriteStream
   void WriteBytes(const void* bytes, intptr_t len) override {
     SharedObjectWriter::DelegatingWriteStream::WriteBytes(bytes, len);
   }
-  intptr_t Align(intptr_t alignment, intptr_t offset = 0) override {
-    return SharedObjectWriter::DelegatingWriteStream::Align(alignment, offset);
+  intptr_t Align(intptr_t alignment,
+                 intptr_t offset = 0,
+                 uint8_t fill_byte = 0) override {
+    return SharedObjectWriter::DelegatingWriteStream::Align(alignment, offset,
+                                                            fill_byte);
   }
   bool HasValueForLabel(intptr_t label, intptr_t* value) const override {
     return MachOWriteStream::HasValueForLabel(label, value);
@@ -318,10 +321,12 @@ class HashingMachOWriteStream : public BaseWriteStream,
   void WriteBytes(const void* bytes, intptr_t len) override {
     BaseWriteStream::WriteBytes(bytes, len);
   }
-  intptr_t Align(intptr_t alignment, intptr_t offset = 0) override {
+  intptr_t Align(intptr_t alignment,
+                 intptr_t offset = 0,
+                 uint8_t fill_byte = 0) override {
     ASSERT(Utils::IsPowerOfTwo(alignment));
     ASSERT(alignment <= macho_.page_size());
-    return BaseWriteStream::Align(alignment, offset);
+    return BaseWriteStream::Align(alignment, offset, fill_byte);
   }
 
   bool HasHashes() const override { return true; }
@@ -1932,7 +1937,7 @@ class MachOHeader : public MachOContents {
   uint32_t flags() const {
     if (type_ == SnapshotType::Snapshot) {
       return mach_o::MH_NOUNDEFS | mach_o::MH_DYLDLINK |
-             mach_o::MH_NO_REEXPORTED_DYLIBS;
+             mach_o::MH_NO_REEXPORTED_DYLIBS | mach_o::MH_TWOLEVEL;
     }
     ASSERT(type_ == SnapshotType::DebugInfo || type_ == SnapshotType::Object);
     return 0;
@@ -2127,7 +2132,7 @@ class MachOHeader : public MachOContents {
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
   void GenerateCompactUnwindingInformation(
-      DwarfSharedObjectStream& stream,
+      DebugInfoStream& stream,
       const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes);
 #endif
 
@@ -2455,20 +2460,17 @@ void MachOWriter::AssertConsistency(const MachOWriter* snapshot,
 #endif
 }
 
-static uint32_t HashPortion(const MachOSection::Portion& portion) {
+static uint64_t HashPortion(const MachOSection::Portion& portion) {
   if (portion.bytes == nullptr) return 0;
-  const uint32_t hash = Utils::StringHash(portion.bytes, portion.size);
+  const uint64_t hash = Utils::StringHash64(portion.bytes, portion.size);
   // Ensure a non-zero return.
   return hash == 0 ? 1 : hash;
 }
 
-// For the UUID, we generate a 128-bit hash, where each 32 bits is a
+// For the UUID, we generate a 128-bit hash, where each 64 bits is a
 // hash of the contents of the following segments in order:
 //
-// .text(VM) | .text(Isolate) | .rodata(VM) | .rodata(Isolate)
-//
-// Any component of the build ID which does not have an associated section
-// in the output is kept as 0.
+// .text(Isolate) | .rodata(Isolate)
 void MachOHeader::GenerateUuid() {
   // Don't create a UUID for a relocatable object.
   if (type_ == SnapshotType::Object) return;
@@ -2484,30 +2486,21 @@ void MachOHeader::GenerateUuid() {
   // used to symbolicize non-symbolic stack traces.
   if (text_section == nullptr) return;
 
-  auto* const vm_instructions =
-      text_section->FindPortion(kVmSnapshotInstructionsAsmSymbol);
   auto* const isolate_instructions =
-      text_section->FindPortion(kIsolateSnapshotInstructionsAsmSymbol);
-  // All MachO snapshots have at least one of the two instruction sections.
-  ASSERT(vm_instructions != nullptr || isolate_instructions != nullptr);
+      text_section->FindPortion(kSnapshotTextAsmSymbol);
+  ASSERT(isolate_instructions != nullptr);
 
   auto* const data_section =
       text_segment_->FindSection(mach_o::SECT_CONST, mach_o::SEG_TEXT);
-  auto* const vm_data =
-      data_section == nullptr
-          ? nullptr
-          : data_section->FindPortion(kVmSnapshotDataAsmSymbol);
   auto* const isolate_data =
       data_section == nullptr
           ? nullptr
-          : data_section->FindPortion(kIsolateSnapshotDataAsmSymbol);
+          : data_section->FindPortion(kSnapshotDataAsmSymbol);
 
-  uint32_t hashes[4];
-  hashes[0] = vm_instructions == nullptr ? 0 : HashPortion(*vm_instructions);
-  hashes[1] =
-      isolate_instructions == nullptr ? 0 : HashPortion(*isolate_instructions);
-  hashes[2] = vm_data == nullptr ? 0 : HashPortion(*vm_data);
-  hashes[3] = isolate_data == nullptr ? 0 : HashPortion(*isolate_data);
+  uint64_t hashes[2];
+  COMPILE_ASSERT(sizeof(hashes) == 16);  // 128-bit UUID
+  hashes[0] = HashPortion(*isolate_instructions);
+  hashes[1] = HashPortion(*isolate_data);
 
   auto* const uuid_command = new (zone()) MachOUuid(hashes, sizeof(hashes));
   commands_.Add(uuid_command);
@@ -2542,39 +2535,22 @@ void MachOHeader::CreateBSS() {
       mach_o::S_NO_ATTRIBUTES, /*has_contents=*/false);
   data_segment->AddContents(bss_section);
 
-  for (const auto& portion : text_section->portions()) {
-    size_t size;
-    const char* symbol_name;
-    intptr_t label;
-    // First determine whether this is the VM's text portion or the isolate's.
-    if (strcmp(portion.symbol_name, kVmSnapshotInstructionsAsmSymbol) == 0) {
-      size = BSS::kVmEntryCount * compiler::target::kWordSize;
-      symbol_name = kVmSnapshotBssAsmSymbol;
-      label = SharedObjectWriter::kVmBssLabel;
-    } else if (strcmp(portion.symbol_name,
-                      kIsolateSnapshotInstructionsAsmSymbol) == 0) {
-      size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
-      symbol_name = kIsolateSnapshotBssAsmSymbol;
-      label = SharedObjectWriter::kIsolateBssLabel;
-    } else {
-      // Not VM or isolate text.
-      UNREACHABLE();
-    }
-
-    // For the BSS section, we add the section symbols as local symbols in the
-    // static symbol table, as these addresses are only used for relocation.
-    // (This matches the behavior in the assembly output.)
-    auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 1);
-    symbols->Add({symbol_name, SharedObjectWriter::SymbolData::Type::Section, 0,
-                  size, label});
-    bss_section->AddPortion(/*bytes=*/nullptr, size, /*relocations=*/nullptr,
-                            symbols);
-  }
+  const size_t size =
+      BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
+  // For the BSS section, we add the section symbols as local symbols in the
+  // static symbol table, as these addresses are only used for relocation.
+  // (This matches the behavior in the assembly output.)
+  auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 1);
+  symbols->Add({kSnapshotBssAsmSymbol,
+                SharedObjectWriter::SymbolData::Type::Section, 0, size,
+                SharedObjectWriter::kIsolateBssLabel});
+  bss_section->AddPortion(/*bytes=*/nullptr, size, /*relocations=*/nullptr,
+                          symbols);
 }
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
 void MachOHeader::GenerateCompactUnwindingInformation(
-    DwarfSharedObjectStream& stream,
+    DebugInfoStream& stream,
     const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes) {
   // Each instructions image starts with the Image header and the
   // InstructionsSection header.
@@ -2772,8 +2748,8 @@ void MachOHeader::GenerateUnwindingInformation() {
 
     // Even if the unwinding information is not written to the output, it is
     // generated so a zerofill section of the appropriate size can be created.
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone(), &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone(), &stream);
 
     SharedObjectWriter::SymbolDataArray* symbols = nullptr;
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
@@ -2949,8 +2925,7 @@ void MachOHeader::FinalizeDwarfSections() {
   }
 
   const intptr_t alignment = 1;  // No extra padding.
-  auto add_debug = [&](const char* name,
-                       const DwarfSharedObjectStream& stream) {
+  auto add_debug = [&](const char* name, const DebugInfoStream& stream) {
     ASSERT(!dwarf_segment->FindSection(name, mach_o::SEG_DWARF));
     auto* const section =
         new (zone()) MachOSection(zone(), name, mach_o::SEG_DWARF, alignment,
@@ -2961,22 +2936,22 @@ void MachOHeader::FinalizeDwarfSections() {
   };
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteAbbreviations(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_ABBREV, dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteDebugInfo(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_INFO, dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_LINE, dwarf_stream);
   }

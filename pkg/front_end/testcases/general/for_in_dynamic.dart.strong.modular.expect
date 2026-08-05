@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method makeList(core::List<dynamic> list) → core::List<dynamic>
+  return list;
+static method makeStream(core::List<dynamic> list) → asy::Stream<dynamic> async* /* emittedValueType= dynamic */ {
+  for (dynamic e in list) {
+    yield e;
+  }
+}
+static method test() → dynamic async /* emittedValueType= dynamic */ {
+  for (final dynamic #t1 in self::makeList(<dynamic>[1, 2, 3])) {
+    core::String i = #t1 as{TypeError,ForDynamic} core::String;
+    core::print(i);
+  }
+  await for (final dynamic #t2 in self::makeStream(<dynamic>[1, 2, 3])) {
+    core::String i = #t2 as{TypeError,ForDynamic} core::String;
+    core::print(i);
+  }
+}
+static method main() → dynamic async /* emittedValueType= dynamic */ {
+  for (final dynamic #t3 in self::makeList(<dynamic>[1, 2, 3])) {
+    core::int i = #t3 as{TypeError,ForDynamic} core::int;
+    core::print(i);
+  }
+  await for (final dynamic #t4 in self::makeStream(<dynamic>[1, 2, 3])) {
+    core::int i = #t4 as{TypeError,ForDynamic} core::int;
+    core::print(i);
+  }
+}

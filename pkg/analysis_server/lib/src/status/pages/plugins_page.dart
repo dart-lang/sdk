@@ -17,7 +17,7 @@ class PluginsPage extends DiagnosticPageWithNav {
   @override
   AnalysisServer server;
 
-  PluginsPage(DiagnosticsSite site, this.server)
+  new(DiagnosticsSite site, this.server)
     : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
 
   @override

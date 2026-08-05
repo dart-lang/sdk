@@ -49,7 +49,7 @@ class Class2 extends core::Object {
   erroneous constructor constructor1() → test::Class2
     : test::Class2::_field = null, super core::Object::•()
     ;
-  constructor /* from org-dartlang-testcase:///patch_lib2.dart */ constructor2(core::int _field) → test::Class2
+  constructor /* from org-dartlang-testcase:///patch_lib2.dart */ constructor2(initializing-formal core::int _field) → test::Class2
     : test::Class2::_field = _field, super core::Object::•()
     ;
 }

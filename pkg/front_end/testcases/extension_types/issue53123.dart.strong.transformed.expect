@@ -15,7 +15,7 @@ extension type V<T extends invalid-type = self::V<dynamic>% /* erasure=dynamic, 
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }
-static extension-type-member method V|constructor#<T extends invalid-type = self::V<dynamic>% /* erasure=dynamic, declared=! */>(self::V|constructor#::T% id) → self::V<self::V|constructor#::T%>% /* erasure=self::V|constructor#::T%, declared=! */ {
+static extension-type-member method V|constructor#<T extends invalid-type = self::V<dynamic>% /* erasure=dynamic, declared=! */>(initializing-formal self::V|constructor#::T% id) → self::V<self::V|constructor#::T%>% /* erasure=self::V|constructor#::T%, declared=! */ {
   lowered final self::V<self::V|constructor#::T%>% /* erasure=self::V|constructor#::T%, declared=! */ #this = id;
   return #this;
 }

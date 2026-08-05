@@ -46,11 +46,7 @@ extension type Name._(Object /*String|PrivateName*/ raw) implements Object {
 
 /// Private name in a [library].
 /// VM mangles such names with a library key (`@nnnn`).
-final class PrivateName {
-  final String text;
-  final ast.Library library;
-  PrivateName(this.text, this.library);
-
+final class PrivateName(final String text, final ast.Library library) {
   @override
   bool operator ==(Object other) =>
       other is PrivateName && text == other.text && library == other.library;

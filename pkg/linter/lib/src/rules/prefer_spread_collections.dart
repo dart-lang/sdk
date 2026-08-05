@@ -5,9 +5,9 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use spread collections when possible.';
 
 class PreferSpreadCollections extends AnalysisRule {
-  PreferSpreadCollections()
-    : super(name: LintNames.prefer_spread_collections, description: _desc);
+  new() : super(name: LintNames.prefer_spread_collections, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferSpreadCollections;
@@ -34,7 +33,7 @@ class PreferSpreadCollections extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodInvocation(MethodInvocation invocation) {
@@ -46,17 +45,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
     var sections = cascade?.cascadeSections;
+    if (sections != null && sections.first != invocation) return;
     var target = cascade?.target;
-    // TODO(pq): add support for Set literals.
-    if (target is! ListLiteral ||
-        (target is ListLiteralImpl && target.inConstantContext) ||
-        (sections != null && sections.first != invocation)) {
+    // TODO(pq): add support for Set literals and Map literals.
+    if (target is! ListLiteral || target.inConstantContext) {
       return;
     }
 
     var argument = invocation.argumentList.arguments.first;
     if (argument is ListLiteral) {
-      // Handled by: prefer_inlined_adds
+      // The `prefer_inlined_adds` lint rule is reported here.
       return;
     }
 

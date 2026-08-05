@@ -280,7 +280,7 @@ abstract class Visitor8<R, A> {
 }
 
 class CounterVisitor8 implements Visitor8<void, Counter> {
-  const CounterVisitor8();
+  const new();
 
   @override
   void visitSub0(Sub0 sub, Counter counter) {

@@ -15,17 +15,16 @@ Bytecode {
   EntryOptional        1, 2, 0
   LoadConstant         r1, CP#0
   LoadConstant         r2, CP#1
-  Frame                1
+  Frame                0
   CheckStack           0
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r3
-  Push                 r3
+  Dup
   PushInt              0
   PushConstant         CP#2
   StoreIndexedTOS
-  Push                 r3
+  Dup
   PushInt              1
   Push                 r0
   StoreIndexedTOS
@@ -35,12 +34,11 @@ Bytecode {
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r3
-  Push                 r3
+  Dup
   PushInt              0
   PushConstant         CP#7
   StoreIndexedTOS
-  Push                 r3
+  Dup
   PushInt              1
   Push                 r1
   StoreIndexedTOS
@@ -50,12 +48,11 @@ Bytecode {
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r3
-  Push                 r3
+  Dup
   PushInt              0
   PushConstant         CP#8
   StoreIndexedTOS
-  Push                 r3
+  Dup
   PushInt              1
   Push                 r2
   StoreIndexedTOS
@@ -90,17 +87,16 @@ Bytecode {
   LoadConstant         r3, CP#3
   LoadConstant         r4, CP#4
   LoadConstant         r4, CP#5
-  Frame                1
+  Frame                0
   CheckStack           0
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
+  Dup
   PushInt              0
   PushConstant         CP#6
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              1
   Push                 r0
   StoreIndexedTOS
@@ -110,12 +106,11 @@ Bytecode {
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
+  Dup
   PushInt              0
   PushConstant         CP#11
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              1
   Push                 r1
   StoreIndexedTOS
@@ -125,12 +120,11 @@ Bytecode {
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
+  Dup
   PushInt              0
   PushConstant         CP#12
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              1
   Push                 r2
   StoreIndexedTOS
@@ -140,12 +134,11 @@ Bytecode {
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
+  Dup
   PushInt              0
   PushConstant         CP#13
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              1
   Push                 r3
   StoreIndexedTOS
@@ -155,12 +148,11 @@ Bytecode {
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
+  Dup
   PushInt              0
   PushConstant         CP#14
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              1
   Push                 r4
   StoreIndexedTOS

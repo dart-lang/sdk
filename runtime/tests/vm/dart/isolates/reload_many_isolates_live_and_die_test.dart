@@ -10,12 +10,16 @@ import 'package:expect/expect.dart';
 
 import 'reload_utils.dart';
 
-final N = runningInSimulator ? 2 : math.min(20, Platform.numberOfProcessors);
+final N = runningInSimulator
+    ? 2
+    : Platform.isWindows
+    ? math.min(8, Platform.numberOfProcessors)
+    : math.min(20, Platform.numberOfProcessors);
 
 main() async {
   if (!currentVmSupportsReload) return;
 
-  await withTempDir((String tempDir) async {
+  await withTempDir("reload-many-isolates", (String tempDir) async {
     final dills = await generateDills(tempDir, dartTestFile(N));
     final reloader = await launchOn(dills[0] /*, verbose: true*/);
 

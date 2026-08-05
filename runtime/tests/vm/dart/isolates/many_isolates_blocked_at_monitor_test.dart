@@ -6,26 +6,26 @@
 
 import "dart:concurrent";
 import "dart:isolate";
-import "dart:io";
+import "dart:typed_data";
 
 @pragma("vm:shared")
-int pending = 0;
+final pending = Uint8List(1);
 @pragma("vm:shared")
-late Mutex mutex;
+final mutex = Mutex();
 @pragma("vm:shared")
-late ConditionVariable condition;
+final condition = ConditionVariable();
 
 waitForAllToCheckIn() {
   mutex.runLocked(() {
-    pending--;
+    pending[0]--;
     if (pending == 0) {
       print("notifyAll $pending");
       condition.notifyAll();
     } else {
-      while (pending > 0) {
-        print("wait $pending");
+      while (pending[0] > 0) {
+        print("wait ${pending[0]}");
         condition.wait(mutex);
-        print("notified $pending");
+        print("notified ${pending[0]}");
       }
     }
     condition.notifyAll();
@@ -37,9 +37,7 @@ child(_) {
 }
 
 main() async {
-  mutex = new Mutex();
-  condition = new ConditionVariable();
-  pending = 21;
+  pending[0] = 21;
   for (var i = 0; i < 20; i++) {
     Isolate.spawn(child, null);
   }

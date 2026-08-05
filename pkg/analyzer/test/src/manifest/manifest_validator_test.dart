@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
+import '../../util/diff.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -435,40 +434,43 @@ Text
 
 @reflectiveTest
 class ManifestValidatorTest with ResourceProviderMixin {
-  late final ManifestValidator validator;
+  /// Assert that validator diagnostics match the inline diagnostic markers in
+  /// [content].
+  void assertDiagnostics(String content) {
+    var cleanContent = removeDiagnosticExpectations(content);
 
-  /// Assert that when the validator is used on the given [content] the
-  /// [expectedCodes] are produced.
-  void assertDiagnostics(String content, List<DiagnosticCode> expectedCodes) {
-    List<Diagnostic> diagnostics = validator.validate(content, true);
-    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    listener.addAll(diagnostics);
-    listener.assertErrorsWithCodes(expectedCodes);
+    var source = FileSource(getFile('/sample/Manifest.xml'));
+    var validator = ManifestValidator(source);
+    var diagnostics = validator.validate(cleanContent, true);
+    var actual = updateExpectedDiagnostics(
+      content: cleanContent,
+      actualDiagnostics: diagnostics,
+    );
+    if (actual != content) {
+      NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(content, actual);
+      }
+      fail('See the difference above.');
+    }
   }
 
   /// Assert that when the validator is used on the given [content] no errors
   /// are produced.
   void assertNoErrors(String content) {
-    assertDiagnostics(content, []);
-  }
-
-  void setUp() {
-    var file = getFile('/sample/Manifest.xml');
-    var source = FileSource(file);
-    validator = ManifestValidator(source);
+    assertDiagnostics(content);
   }
 
   test_cameraPermissions_error() {
-    assertDiagnostics(
-      '''
+    assertDiagnostics('''
 <manifest
-     xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <uses-permission android:name="android.permission.CAMERA" />
+   xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+  <uses-permission android:name="android.permission.CAMERA" />
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.cameraPermissionsIncompatible] Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
 </manifest>
-''',
-      [diag.cameraPermissionsIncompatible],
-    );
+''');
   }
 
   test_cameraPermissions_ok() {
@@ -484,28 +486,26 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_featureNotSupported_error() {
-    assertDiagnostics(
-      '''
+    assertDiagnostics('''
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-feature android:name="android.hardware.touchscreen" />
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-feature android:name="android.hardware.touchscreen" />
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unsupportedChromeOsHardware] The feature android.hardware.touchscreen isn't supported on Chrome OS, consider making it optional.
 </manifest>
-''',
-      [diag.unsupportedChromeOsHardware],
-    );
+''');
   }
 
   test_hardwareNotSupported_error() {
-    assertDiagnostics(
-      '''
+    assertDiagnostics('''
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <uses-feature android:name="android.software.home_screen" />
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+  <uses-feature android:name="android.software.home_screen" />
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unsupportedChromeOsHardware] The feature android.software.home_screen isn't supported on Chrome OS, consider making it optional.
 </manifest>
-''',
-      [diag.unsupportedChromeOsHardware],
-    );
+''');
   }
 
   test_no_errors() {
@@ -518,65 +518,60 @@ class ManifestValidatorTest with ResourceProviderMixin {
     android:exported="false">
   </activity>
 </manifest>
-''', []);
+''');
   }
 
   test_noTouchScreen_error() {
-    assertDiagnostics(
-      '''
+    assertDiagnostics('''
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
+// [diag.noTouchscreenFeature][column 1][length 83] The default "android.hardware.touchscreen" needs to be optional for Chrome OS.
+  xmlns:android="http://schemas.android.com/apk/res/android">
 </manifest>
-''',
-      [diag.noTouchscreenFeature],
-    );
+''');
   }
 
   test_resizeableactivity_error() {
-    assertDiagnostics(
-      '''
+    assertDiagnostics('''
 <manifest
-     xmlns:android="http://schemas.android.com/apk/res/android">
+   xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
   <application android:label="@string/app_name">
     <activity android:name="testActivity"
       android:resizeableActivity="false"
-      android:exported="false">
-    </activity>
-  </application>
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonResizableActivity] The `<activity>` element should be allowed to be resized to allow users to take advantage of the multi-window environment on Chrome OS
+    android:exported="false">
+  </activity>
+</application>
 </manifest>
-''',
-      [diag.nonResizableActivity],
-    );
+''');
   }
 
   test_screenOrientation_error() {
-    assertDiagnostics(
-      '''
+    assertDiagnostics('''
 <manifest
-     xmlns:android="http://schemas.android.com/apk/res/android">
+   xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
   <application android:label="@string/app_name">
     <activity android:name="testActivity"
       android:screenOrientation="landscape"
-      android:exported="false">
-    </activity>
-  </application>
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.settingOrientationOnActivity] The `<activity>` element should not be locked to any orientation so that users can take advantage of the multi-window environments and larger screens on Chrome OS
+    android:exported="false">
+  </activity>
+</application>
 </manifest>
-''',
-      [diag.settingOrientationOnActivity],
-    );
+''');
   }
 
   test_touchScreenNotSupported_error() {
-    assertDiagnostics(
-      '''
+    assertDiagnostics('''
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-feature android:name="android.hardware.touchscreen" android:required="true"/>
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-feature android:name="android.hardware.touchscreen" android:required="true"/>
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unsupportedChromeOsFeature] The feature android.hardware.touchscreen isn't supported on Chrome OS, consider making it optional.
 </manifest>
-''',
-      [diag.unsupportedChromeOsFeature],
-    );
+''');
   }
 }

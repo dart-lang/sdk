@@ -17,7 +17,7 @@ abstract class A extends core::Object {
   field core::int property4;
   field core::int? property5;
   covariant-by-declaration field core::int property6;
-  constructor •(core::int property4, core::int? property5, core::int property6) → self::A
+  constructor •(initializing-formal core::int property4, initializing-formal core::int? property5, initializing-formal core::int property6) → self::A
     ;
   abstract get property1() → core::int;
   abstract set property1(core::int i) → void;
@@ -42,7 +42,7 @@ abstract class B1 extends core::Object {
   final field core::int property4;
   final field core::int property5;
   final field core::int? property6;
-  constructor •(core::int property4, core::int property5, core::int? property6) → self::B1
+  constructor •(initializing-formal core::int property4, initializing-formal core::int property5, initializing-formal core::int? property6) → self::B1
     ;
   abstract get property1() → core::int;
   abstract get property2() → core::int;
@@ -62,7 +62,7 @@ abstract class C1 extends core::Object {
   field core::int property4;
   field core::int? property5;
   field core::int property6;
-  constructor •(core::int property4, core::int? property5, core::int property6) → self::C1
+  constructor •(initializing-formal core::int property4, initializing-formal core::int? property5, initializing-formal core::int property6) → self::C1
     ;
   abstract set property1(core::int i) → void;
   abstract set property2(core::int? i) → void;

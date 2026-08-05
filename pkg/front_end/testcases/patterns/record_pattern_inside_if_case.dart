@@ -12,5 +12,4 @@ test(dynamic x) {
   } else {
     return 1;
   }
-
 }

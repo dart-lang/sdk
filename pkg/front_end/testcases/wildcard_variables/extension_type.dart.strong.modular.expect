@@ -8,7 +8,7 @@ extension type Id(core::int _) {
   constructor • = self::Id|constructor#;
   constructor tearoff • = self::Id|constructor#_#new#tearOff;
 }
-static extension-type-member method Id|constructor#(wildcard core::int _#wc0#formal) → self::Id% /* erasure=core::int, declared=! */ {
+static extension-type-member method Id|constructor#(wildcard initializing-formal core::int _#wc0#formal) → self::Id% /* erasure=core::int, declared=! */ {
   lowered final self::Id% /* erasure=core::int, declared=! */ #this = _#wc0#formal;
   return #this;
 }

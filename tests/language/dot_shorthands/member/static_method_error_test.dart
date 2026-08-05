@@ -4,8 +4,6 @@
 
 // Using dot shorthand syntax on an instance method.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 class C {
   C foo() => C();
 }

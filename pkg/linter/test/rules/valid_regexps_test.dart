@@ -34,12 +34,9 @@ var s = RegExp('( $r');
   }
 
   test_invalid() async {
-    await assertDiagnostics(
-      r'''
-var s = RegExp('(');
-''',
-      [lint(15, 3)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+var s = RegExp([!'('!]);
+''');
   }
 
   test_valid() async {

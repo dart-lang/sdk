@@ -2,26 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterFieldNotMapTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FlutterFieldNotMapTest extends PubspecDiagnosticTest {
   test_flutterField_empty_noError() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 flutter:
 ''');
 
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 flutter:
 
@@ -29,18 +30,17 @@ flutter:
   }
 
   test_flutterFieldNotMap_error_bool() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 flutter: true
-''',
-      [diag.flutterFieldNotMap],
-    );
+//       ^^^^
+// [diag.flutterFieldNotMap] The value of the 'flutter' field is expected to be a map.
+''');
   }
 
   test_flutterFieldNotMap_noError() {
     newFile('/sample/assets/my_icon.png', '');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 flutter:
   assets:

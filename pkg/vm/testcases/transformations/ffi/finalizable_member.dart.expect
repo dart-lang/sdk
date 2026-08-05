@@ -19,7 +19,7 @@ class A extends core::Object implements ffi::Finalizable {
 }
 class B extends core::Object implements ffi::Finalizable {
   final field self::A a;
-  constructor •(self::A a) → self::B
+  constructor •(initializing-formal self::A a) → self::B
     : self::B::a = a, super core::Object::•() {
     ;
     _in::reachabilityFence(this);

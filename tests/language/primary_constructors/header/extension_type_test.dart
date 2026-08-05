@@ -6,8 +6,6 @@
 // primary constructor can be specified or omitted.
 // So can type, in which case the representation type is `Object?`.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 import 'package:expect/static_type_helper.dart';
 

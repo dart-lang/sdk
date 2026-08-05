@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by b
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't move the "Error" comments.
+// dart format off
+
 class Class<X> {}
 extension type ExtensionType<X>(Object? foo) {}
 

@@ -14,7 +14,7 @@ class ReplaceWithIs extends ResolvedCorrectionProducer {
 
   late String exclamationText;
 
-  ReplaceWithIs({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

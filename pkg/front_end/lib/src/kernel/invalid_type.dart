@@ -20,7 +20,7 @@ bool containsInvalidType(DartType type) {
 class _InvalidTypeFinder
     with DartTypeVisitor1ExperimentExclusionMixin<bool, Set<TypedefType>>
     implements DartTypeVisitor1<bool, Set<TypedefType>> {
-  const _InvalidTypeFinder();
+  const new();
 
   @override
   // Coverage-ignore(suite): Not run.

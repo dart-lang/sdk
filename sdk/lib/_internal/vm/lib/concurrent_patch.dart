@@ -24,7 +24,7 @@ final class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
   external void _initialize();
 
   @Native<Handle Function(Handle, Handle)>(symbol: "Mutex_RunLocked")
-  external Object _runLocked(Object action);
+  external Object? _runLocked(Object action);
 
   R runLocked<R>(R Function() action) {
     return _runLocked(action) as R;

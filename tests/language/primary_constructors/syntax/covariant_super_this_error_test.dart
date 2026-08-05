@@ -6,37 +6,35 @@
 // form `this.v`, or `super.v` where `v` is an identifier, and the parameter has
 // the modifier `covariant`.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 // `covariant` with `this.x`
 
 // In-header declaring constructor
 class C1(covariant this.x) {
-  //      ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //     ^^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+  // [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
   int x;
 }
 
 
 class C2({covariant this.x}) {
-  //      ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //      ^^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+  // [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
   int? x;
 }
 
 class C3({required covariant this.x}) {
-  //      ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //               ^^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+  // [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
   int x;
 }
 
 class C4([covariant this.x]) {
-  //      ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //      ^^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+  // [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
   int? x;
 }
 
@@ -46,21 +44,31 @@ class A(final int? x);
 
 // In-header declaring constructor
 class C9(covariant super.x) extends A;
-//                 ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//       ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 class C10({covariant super.x}) extends A;
-//                        ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//    ^^^
+// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
+//         ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
+//                         ^
+// [analyzer] COMPILE_TIME_ERROR.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED
+// [cfe] The super constructor has no corresponding named parameter.
 
 class C11({required covariant super.x}) extends A;
-//                                ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//    ^^^
+// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
+//                  ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
+//                                  ^
+// [analyzer] COMPILE_TIME_ERROR.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED
+// [cfe] The super constructor has no corresponding named parameter.
 
 class C12([covariant super.x]) extends A;
-//                           ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//         ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.

@@ -185,30 +185,7 @@ config("nominmax") {
 # Relative paths --------------------------------------------------------------
 
 config("relative_paths") {
-  # Make builds independent of absolute file path.  The file names
-  # embedded in debugging information will be expressed as relative to
-  # the build directory, e.g. "../.." for an "out/subdir" under //.
-  # This is consistent with the file names in __FILE__ expansions
-  # (e.g. in assertion messages), which the compiler doesn't provide a
-  # way to remap.  That way source file names in logging and
-  # symbolization can all be treated the same way.  This won't go well
-  # if root_build_dir is not a subdirectory //, but there isn't a better
-  # option to keep all source file name references uniformly relative to
-  # a single root.
-  if (use_rbe) {
-    absolute_path = "/b/f/w/"
-  } else {
-    absolute_path = rebase_path("//")
-  }
-  relative_path = ""
   cflags = [
-    # This makes sure that debug information uses relative paths.
-    "-fdebug-prefix-map=$absolute_path=$relative_path",
-
-    # Remove absolute paths from the debug information.
-    "-fdebug-compilation-dir=",
-    "-fcoverage-compilation-dir=",
-
     # This makes sure that include directories in the toolchain are
     # represented as relative to the build directory (because that's how
     # we invoke the compiler), rather than absolute.  This can affect
@@ -219,6 +196,9 @@ config("relative_paths") {
     # in the debugging information, so this should actually be
     # superfluous for purposes of the debugging information.
     "-no-canonical-prefixes",
+
+    # Remove absolute paths from the debug information.
+    "-ffile-compilation-dir=.",
   ]
 }
 
@@ -247,5 +227,8 @@ config("deterministic_builds") {
     # Use a fake fixed base directory for paths in the pdb to make the pdb
     # output fully deterministic and independent of the build directory.
     ldflags += [ "/PDBSourcePath:o:\fake\prefix" ]
+
+    # Don't include absolute path to PDB file.
+    ldflags += [ "/pdbaltpath:%_PDB%" ]
   }
 }

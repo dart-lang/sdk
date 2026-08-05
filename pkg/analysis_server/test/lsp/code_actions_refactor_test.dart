@@ -9,7 +9,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../shared/shared_code_actions_refactor_tests.dart';
 import 'code_actions_mixin.dart';
-import 'request_helpers_mixin.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -39,7 +38,6 @@ class ConvertMethodToGetterCodeActionsTest extends RefactorCodeActionsTest
 @reflectiveTest
 class ExtractMethodRefactorCodeActionsTest extends RefactorCodeActionsTest
     with
-        LspProgressNotificationsMixin,
         // Most tests are defined in a shared mixin.
         SharedExtractMethodRefactorCodeActionsTests {
   Future<void> test_progress_clientProvided() async {
@@ -199,7 +197,43 @@ class InlineMethodRefactorCodeActionsTest extends RefactorCodeActionsTest
         SharedInlineMethodRefactorCodeActionsTests {}
 
 abstract class RefactorCodeActionsTest extends AbstractLspAnalysisServerTest
-    with LspSharedTestMixin, CodeActionsTestMixin {
+    with
+        LspSharedTestMixin,
+        CodeActionsTestMixin,
+        SharedRefactorCodeActionsTests {
+  @override
+  Future<T> handleRefactorAnywayPrompt<T>(
+    Future<T> Function() f, {
+    required String expectedMessage,
+    required List<String> expectedActions,
+    String? selectAction,
+  }) async {
+    return await handleExpectedRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams.fromJson,
+      f,
+      handler: (ShowMessageRequestParams params) async {
+        // Ensure the warning prompt is as expected.
+        expect(params.type, equals(MessageType.Warning));
+        expect(params.message, equals(expectedMessage));
+        expect(params.actions, hasLength(2));
+        expect(
+          params.actions![0],
+          equals(MessageActionItem(title: UserPromptActions.refactorAnyway)),
+        );
+        expect(
+          params.actions![1],
+          equals(MessageActionItem(title: UserPromptActions.cancel)),
+        );
+
+        // Respond to the request with the required action.
+        return selectAction != null
+            ? MessageActionItem(title: selectAction)
+            : null;
+      },
+    );
+  }
+
   @override
   void setUp() {
     super.setUp();

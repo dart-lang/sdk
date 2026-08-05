@@ -50,16 +50,25 @@ Future<Never> resumer(_) async {
     // Wait for the main isolate and children to all be paused at exit.
     final paused = <String>[];
     do {
-      paused.clear();
-      final vm = (await get('getVM', {}))['result'];
-      for (Map<String, dynamic> isolate in vm['isolates']) {
-        final id = isolate['id'];
-        isolate = (await get('getIsolate', {'isolateId': id}))['result'];
-        if ((isolate['pauseEvent'] != null) &&
-            (isolate['pauseEvent']['kind'] == 'PauseExit')) {
-          paused.add(id);
+      try {
+        paused.clear();
+        final vmResult = await get('getVM', {});
+        final vm = vmResult['result'];
+        if (vm != null) {
+          for (Map<String, dynamic> isolate in vm['isolates']) {
+            final id = isolate['id'];
+            final isolateResult = await get('getIsolate', {'isolateId': id});
+            isolate = isolateResult['result'] ?? {};
+            if ((isolate['pauseEvent'] != null) &&
+                (isolate['pauseEvent']['kind'] == 'PauseExit')) {
+              paused.add(id);
+            }
+          }
         }
+      } catch (e) {
+        print('Transient error in resumer: $e');
       }
+      await Future.delayed(const Duration(milliseconds: 10));
     } while (paused.length != childCount + 1);
 
     // Resume the main isolate and children. When the main isolate resumes, it

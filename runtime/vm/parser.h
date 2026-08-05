@@ -256,7 +256,10 @@ class ParsedFunction : public ZoneObject {
   V(current_num_processed, Smi, CurrentNumProcessed)                           \
   V(current_param_index, Smi, CurrentParamIndex)                               \
   V(current_type_param, Dynamic, CurrentTypeParam)                             \
-  V(function_type_args, Dynamic, FunctionTypeArgs)
+  V(function_type_args, Dynamic, FunctionTypeArgs)                             \
+  V(instantiator_type_args, Dynamic, InstantiatorTypeArgs)                     \
+  V(parent_function_type_args, Dynamic, ParentFunctionTypeArgs)                \
+  V(delayed_type_args, Dynamic, DelayedTypeArgs)
 
 #define DEFINE_FIELD(Name, _, __) LocalVariable* Name = nullptr;
     FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(DEFINE_FIELD)

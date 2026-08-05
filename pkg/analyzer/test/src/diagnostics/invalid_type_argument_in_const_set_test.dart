@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class InvalidTypeArgumentInConstSetTest extends PubPackageResolutionTest {
   test_nonConst() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   void m() {
     <E>{};
@@ -26,22 +25,14 @@ class A<E> {
   }
 
   test_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   void m() {
     const <E>{};
+//         ^
+// [diag.invalidTypeArgumentInConstSet] Constant set literals can't use a type parameter in a type argument, such as 'E'.
   }
 }
-''',
-      [
-        error(
-          diag.invalidTypeArgumentInConstSet,
-          37,
-          1,
-          messageContains: ["'E'"],
-        ),
-      ],
-    );
+''');
   }
 }

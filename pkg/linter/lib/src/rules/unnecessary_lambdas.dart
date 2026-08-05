@@ -27,8 +27,7 @@ Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
 class UnnecessaryLambdas extends AnalysisRule {
-  UnnecessaryLambdas()
-    : super(name: LintNames.unnecessary_lambdas, description: _desc);
+  new() : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryLambdas;
@@ -46,7 +45,7 @@ class UnnecessaryLambdas extends AnalysisRule {
 class _FinalExpressionChecker {
   final Set<FormalParameterElement?> parameters;
 
-  _FinalExpressionChecker(this.parameters);
+  new(this.parameters);
 
   bool isFinalNode(Expression? node_) {
     if (node_ == null) {
@@ -83,7 +82,7 @@ class _FinalExpressionChecker {
 class _IdentifierVisitor extends RecursiveAstVisitor<void> {
   final _elements = <Element?>{};
 
-  _IdentifierVisitor();
+  new();
 
   Set<Element?> extractElements(AstNode node) {
     node.accept(this);
@@ -102,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, RuleContext context)
+  new(this.rule, RuleContext context)
     : constructorTearOffsEnabled = context.isFeatureEnabled(
         Feature.constructor_tearoffs,
       ),
@@ -271,8 +270,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (tearoffType == null) return;
 
       var parent = nodeToLint.parent;
-      if (parent is NamedExpression) {
-        var argType = parent.staticType;
+      if (parent is NamedArgument) {
+        var argType = parent.argumentExpression.staticType;
         if (argType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, argType)) return;
       } else if (parent is VariableDeclaration) {

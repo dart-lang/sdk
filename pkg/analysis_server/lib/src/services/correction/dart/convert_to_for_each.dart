@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToForEach extends ResolvedCorrectionProducer {
-  ConvertToForEach({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

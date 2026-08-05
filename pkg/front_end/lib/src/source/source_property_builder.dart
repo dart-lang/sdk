@@ -23,6 +23,7 @@ import '../fragment/getter/declaration.dart';
 import '../fragment/setter/declaration.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
@@ -71,7 +72,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   final MemberName _memberName;
 
-  SourcePropertyBuilder({
+  new({
     required this.fileUri,
     required this.fileOffset,
     required this.name,
@@ -584,7 +585,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   /// field value.
   ///
   /// This is only used for instance fields.
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
@@ -657,7 +658,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 class GetterClassMember implements ClassMember {
   final SourcePropertyBuilder _builder;
 
-  GetterClassMember(this._builder);
+  new(this._builder);
 
   @override
   UriOffsetLength get uriOffset => _builder.getterUriOffset!;
@@ -803,7 +804,7 @@ class SetterClassMember implements ClassMember {
     _builder.writeTarget as Procedure,
   );
 
-  SetterClassMember(this._builder);
+  new(this._builder);
 
   @override
   UriOffsetLength get uriOffset => _builder.setterUriOffset!;
@@ -955,7 +956,7 @@ class PropertyReferences {
   /// For initial/one-off compilations these are `null`, but for subsequent
   /// compilations during an incremental compilation, these are the references
   /// used for the same field, getter, and setter in the previous compilation.
-  PropertyReferences._({
+  new _({
     required Reference? preExistingFieldReference,
     required Reference? preExistingGetterReference,
     required Reference? preExistingSetterReference,
@@ -965,7 +966,7 @@ class PropertyReferences {
 
   /// Creates a [PropertyReferences] object preloaded with the pre-existing
   /// references from [indexedContainer], if available.
-  factory PropertyReferences(
+  factory(
     String name,
     NameScheme nameScheme,
     IndexedContainer? indexedContainer, {

@@ -52,30 +52,41 @@ class CrashReportSender {
   int _reportsSent = 0;
   int _skippedReports = 0;
 
-  CrashReportSender._(
+  new _(
     this.crashProductId,
     this.shouldSend, {
     http.Client? httpClient,
     String endpointPath = _crashEndpointPathStaging,
-  })  : _httpClient = httpClient ?? http.Client(),
-        _baseUri =
-            Uri(scheme: 'https', host: _crashServerHost, path: endpointPath);
+  }) : _httpClient = httpClient ?? http.Client(),
+       _baseUri = Uri(
+         scheme: 'https',
+         host: _crashServerHost,
+         path: endpointPath,
+       );
 
   /// Create a new [CrashReportSender] connected to the staging endpoint.
-  CrashReportSender.staging(
+  new staging(
     String crashProductId,
     EnablementCallback shouldSend, {
     http.Client? httpClient,
-  }) : this._(crashProductId, shouldSend,
-            httpClient: httpClient, endpointPath: _crashEndpointPathStaging);
+  }) : this._(
+         crashProductId,
+         shouldSend,
+         httpClient: httpClient,
+         endpointPath: _crashEndpointPathStaging,
+       );
 
   /// Create a new [CrashReportSender] connected to the prod endpoint.
-  CrashReportSender.prod(
+  new prod(
     String crashProductId,
     EnablementCallback shouldSend, {
     http.Client? httpClient,
-  }) : this._(crashProductId, shouldSend,
-            httpClient: httpClient, endpointPath: _crashEndpointPathProd);
+  }) : this._(
+         crashProductId,
+         shouldSend,
+         httpClient: httpClient,
+         endpointPath: _crashEndpointPathProd,
+       );
 
   /// Sends one crash report.
   ///
@@ -192,10 +203,7 @@ class CrashReportAttachment {
   final String _field;
   final String _value;
 
-  CrashReportAttachment.string({
-    required this._field,
-    required this._value,
-  });
+  new string({required this._field, required this._value});
 }
 
 /// A typedef to allow crash reporting to query as to whether it should send a

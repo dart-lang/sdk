@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage, DiagnosticMessageHandler;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library, TreeNode;
-import 'package:kernel/dart_scope_calculator.dart';
 
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
@@ -140,20 +139,6 @@ class ExpressionCompiler {
       // currently, need to extend to cases where js variable names are
       // different from dart.
       // See [issue 40273](https://github.com/dart-lang/sdk/issues/40273)
-
-      // Work around mismatched names and lowered representation for late local
-      // variables.
-      // Replace the existing entries with a name that matches the named
-      // extracted from the lowering.
-      // See https://github.com/dart-lang/sdk/issues/55918
-      var dartLateLocals = [
-        for (var name in dartScope.variables.keys)
-          if (isLateLoweredLocalName(name)) name,
-      ];
-      for (var localName in dartLateLocals) {
-        dartScope.variables[extractLocalName(localName)] = dartScope.variables
-            .remove(localName)!;
-      }
 
       // Create a mapping from Dart variable names in scope to the corresponding
       // JS values. The Dart variable may have had a suffix of the

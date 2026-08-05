@@ -1114,7 +1114,7 @@ class ExpectedError {
   final int start;
   final int length;
 
-  ExpectedError(this.code, this.start, this.length);
+  new(this.code, this.start, this.length);
 
   @override
   bool operator ==(other) =>

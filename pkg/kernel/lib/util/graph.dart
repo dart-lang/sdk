@@ -22,7 +22,7 @@ class LibraryGraph implements Graph<Library> {
   final Iterable<Library> libraries;
   final Library? coreLibrary;
 
-  LibraryGraph(this.libraries, {this.coreLibrary});
+  new(this.libraries, {this.coreLibrary});
 
   @override
   Iterable<Library> get vertices => libraries;
@@ -116,7 +116,7 @@ class StrongComponentGraph<T> implements Graph<List<T>> {
   final Map<T, List<T>> _elementToComponentMap = {};
   final Map<List<T>, Set<List<T>>> _neighborsMap = {};
 
-  StrongComponentGraph(this.subgraph, this.components) {
+  new(this.subgraph, this.components) {
     for (List<T> component in components) {
       for (T element in component) {
         _elementToComponentMap[element] = component;

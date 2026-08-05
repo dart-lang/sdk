@@ -4,13 +4,11 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_options_provider_test.dart' as analysis_options_provider_test;
 import 'error_processor_test.dart' as error_processor_test;
 import 'file_source_test.dart' as file_source;
 
 main() {
   defineReflectiveSuite(() {
-    analysis_options_provider_test.main();
     error_processor_test.main();
     file_source.main();
   }, name: 'source');

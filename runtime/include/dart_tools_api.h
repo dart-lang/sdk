@@ -5,6 +5,8 @@
 #ifndef RUNTIME_INCLUDE_DART_TOOLS_API_H_
 #define RUNTIME_INCLUDE_DART_TOOLS_API_H_
 
+#include <stdint.h>
+
 #include "dart_api.h" /* NOLINT */
 
 /** \mainpage Dart Tools Embedding API Reference
@@ -266,8 +268,8 @@ DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
 
 /**
  * A callback which determines whether the file at some url has been
- * modified since some time.  If the file cannot be found, true should
- * be returned.
+ * modified since some time (in microseconds since epoch).  If the file cannot
+ * be found, true should be returned.
  */
 typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
 

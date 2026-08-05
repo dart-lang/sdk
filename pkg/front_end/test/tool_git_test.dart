@@ -17,7 +17,6 @@ const List<String> subtools = const <String>[
   "compile",
   "compile-platform",
   "log",
-  "logd",
   "outline",
   "parser",
   "scanner",
@@ -34,10 +33,6 @@ const List<String> unsafeTools = const <String>[
   // messages.yaml.
   "generate-messages",
 
-  // This is a daemon process that never terminates. It's not currently tested
-  // directly.
-  "logd",
-
   // This would eventually run this test again, recursively, and never
   // finish. As this tool is part of the workflow for testing Fasta, we assume
   // is exercised sufficiently.
@@ -49,9 +44,8 @@ void main() {
     // The tool is a shell script and only works on Mac and Linux.
     return;
   }
-  Set<String> testedSubtools = new Set<String>.from(
-    subtools,
-  ).difference(new Set<String>.from(unsafeTools));
+  Set<String> testedSubtools = new Set<String>.from(subtools)
+      .difference(new Set<String>.from(unsafeTools));
   String usage = diag.fastaUsageShort.problemMessage;
   Map expectations = {
     "abcompile": {

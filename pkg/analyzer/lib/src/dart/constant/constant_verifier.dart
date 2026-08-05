@@ -27,7 +27,6 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -47,9 +46,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// The type operations.
   final TypeSystemImpl _typeSystem;
-
-  /// The type provider used to access the known types.
-  final TypeProviderImpl _typeProvider;
 
   /// The current library that is being analyzed.
   final LibraryElementImpl _currentLibrary;
@@ -82,7 +78,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
          diagnosticReporter,
          currentLibrary,
          currentLibrary.typeSystem,
-         currentLibrary.typeProvider,
          declaredVariables,
          AnalyzerExhaustivenessCache(currentLibrary.typeSystem, currentLibrary),
          retainDataForTesting: retainDataForTesting,
@@ -92,7 +87,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._diagnosticReporter,
     this._currentLibrary,
     this._typeSystem,
-    this._typeProvider,
     DeclaredVariables declaredVariables,
     this._exhaustivenessCache, {
     required bool retainDataForTesting,
@@ -401,7 +395,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     if (node.isConst) {
       for (var field in node.fields) {
-        _evaluateAndReportError(field, diag.nonConstantRecordField);
+        _evaluateAndReportError(
+          field.fieldExpression,
+          diag.nonConstantRecordField,
+        );
       }
     }
   }
@@ -644,9 +641,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         );
       }
       for (var parameter in type.parameters.parameters) {
-        // In a generic function type, [parameter] can only be a
-        // [SimpleFormalParameter].
-        if (parameter is SimpleFormalParameter) {
+        // In a generic function type, [parameter] can only be a non
+        // function-typed regular formal parameter.
+        if (parameter is RegularFormalParameter &&
+            parameter.functionTypedSuffix == null) {
           var parameterType = parameter.type;
           if (parameterType != null) {
             _checkForConstWithTypeParameters(
@@ -805,8 +803,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Validates that all arguments in the [argumentList] are potentially
   /// constant expressions.
   void _reportNotPotentialConstantsArguments(ArgumentList argumentList) {
-    for (Expression argument in argumentList.arguments) {
-      _reportNotPotentialConstants(argument);
+    for (var argument in argumentList.arguments) {
+      _reportNotPotentialConstants(argument.argumentExpression);
     }
   }
 
@@ -818,10 +816,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// Validates that the arguments in [argumentList] are constant expressions.
   void _validateConstantArguments(ArgumentList argumentList) {
-    for (Expression argument in argumentList.arguments) {
-      Expression realArgument = argument is NamedExpression
-          ? argument.expression
-          : argument;
+    for (var argument in argumentList.arguments) {
+      var realArgument = argument.argumentExpression;
       _evaluateAndReportError(realArgument, diag.constWithNonConstantArgument);
     }
   }
@@ -890,16 +886,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     for (var parameter in parameters.parameters) {
-      if (parameter is DefaultFormalParameterImpl) {
-        var defaultValue = parameter.defaultValue;
+      if (parameter.defaultClause case var defaultClause?) {
+        var defaultValue = defaultClause.value;
         Constant? result;
-        if (defaultValue == null) {
-          result = DartObjectImpl(
-            _typeSystem,
-            _typeProvider.nullType,
-            NullState.NULL_STATE,
-          );
-        } else if (defaultValue.typeOrThrow is InvalidType) {
+        if (defaultValue.typeOrThrow is InvalidType) {
           // We have already reported an error.
         } else {
           result = _evaluateAndReportError(
@@ -1675,7 +1665,7 @@ extension on Expression {
     AstNode child = this;
     var parent = child.parent;
     while (parent != null) {
-      if (parent is DefaultFormalParameter && child == parent.defaultValue) {
+      if (parent is FormalParameterDefaultClause && child == parent.value) {
         // A parameter default value does not constitute a constant context, but
         // must be a constant expression.
         return true;

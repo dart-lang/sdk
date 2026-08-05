@@ -47,14 +47,14 @@ class LinterNameInScopeResolutionResult {
   /// The state of the result.
   final _LinterNameInScopeResolutionResultState _state;
 
-  const LinterNameInScopeResolutionResult._differentName(this.element)
+  const new _differentName(this.element)
     : _state = _LinterNameInScopeResolutionResultState.differentName;
 
-  const LinterNameInScopeResolutionResult._none()
+  const new _none()
     : element = null,
       _state = _LinterNameInScopeResolutionResultState.none;
 
-  const LinterNameInScopeResolutionResult._requestedName(this.element)
+  const new _requestedName(this.element)
     : _state = _LinterNameInScopeResolutionResultState.requestedName;
 
   bool get isDifferentName =>

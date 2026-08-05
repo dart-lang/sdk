@@ -25,7 +25,7 @@ class Metadata {
 
   Member? get member => _memberRef?.asMember;
 
-  Metadata.forNode(TreeNode n)
+  new forNode(TreeNode n)
     : this(
         n.leakingDebugToString(),
         // Refers to the member, not about the function => use getter.
@@ -33,7 +33,7 @@ class Metadata {
         getTypeForMetadata(n),
       );
 
-  Metadata(this.string, this._memberRef, this.type);
+  new(this.string, this._memberRef, this.type);
 }
 
 Member? getMemberForMetadata(TreeNode node) {
@@ -107,7 +107,7 @@ class Visitor extends RecursiveVisitor {
   final NodePredicate predicate;
   final void Function(TreeNode) handle;
 
-  Visitor(this.predicate, this.handle);
+  new(this.predicate, this.handle);
 
   @override
   void defaultTreeNode(TreeNode node) {
@@ -169,12 +169,10 @@ void main() async {
       node.kind == ProcedureKind.Method &&
       node.enclosingClass != null;
 
-  final Uri platform = computePlatformBinariesLocation(
-    forceBuildDir: true,
-  ).resolve("vm_platform.dill");
-  final Uint8List platformBinary = await new File(
-    platform.toFilePath(),
-  ).readAsBytes();
+  final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
+      .resolve("vm_platform.dill");
+  final Uint8List platformBinary = await new File(platform.toFilePath())
+      .readAsBytes();
 
   Future<void> testRoundTrip(
     Uint8List Function(Uint8List) binaryTransformer,

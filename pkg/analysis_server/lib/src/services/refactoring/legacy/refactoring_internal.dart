@@ -64,7 +64,7 @@ abstract class RefactoringImpl implements Refactoring {
 class SourceReference {
   final SearchMatch _match;
 
-  SourceReference(this._match);
+  new(this._match);
 
   Element get element => _match.element;
 

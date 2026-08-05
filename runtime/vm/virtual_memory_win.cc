@@ -19,7 +19,6 @@ namespace dart {
 DECLARE_FLAG(bool, write_protect_code);
 
 uword VirtualMemory::page_size_ = 0;
-VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
 
 static intptr_t allocation_granule = 0;
 typedef PVOID(__stdcall* VirtualAlloc2_t)(HANDLE,
@@ -101,36 +100,15 @@ void VirtualMemory::Init() {
   allocation_granule = info.dwAllocationGranularity;
   DynamicVirtualAlloc2 = reinterpret_cast<VirtualAlloc2_t>(
       GetProcAddress(GetModuleHandle(L"kernelbase.dll"), "VirtualAlloc2"));
-
-#if defined(DART_COMPRESSED_POINTERS)
-  ASSERT(compressed_heap_ == nullptr);
-  compressed_heap_ = Reserve(kGuardRegionSize * 2 + kCompressedHeapSize,
-                             kCompressedHeapAlignment);
-  if (compressed_heap_ == nullptr) {
-    int error = GetLastError();
-    FATAL("Failed to reserve region for compressed heap: %d", error);
-  }
-  VirtualMemoryCompressedHeap::Init(
-      reinterpret_cast<void*>(compressed_heap_->start() + kGuardRegionSize),
-      kCompressedHeapSize);
-#endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
 void VirtualMemory::Cleanup() {
-#if defined(DART_COMPRESSED_POINTERS)
-  delete compressed_heap_;
-#endif  // defined(DART_COMPRESSED_POINTERS)
   page_size_ = 0;
-#if defined(DART_COMPRESSED_POINTERS)
-  compressed_heap_ = nullptr;
-  VirtualMemoryCompressedHeap::Cleanup();
-#endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
-                                              bool is_compressed,
                                               const char* name) {
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
@@ -139,18 +117,11 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, PageSize()));
 
-#if defined(DART_COMPRESSED_POINTERS)
-  if (is_compressed) {
-    RELEASE_ASSERT(!is_executable);
-    MemoryRegion region =
-        VirtualMemoryCompressedHeap::Allocate(size, alignment);
-    if (region.pointer() == nullptr) {
-      return nullptr;
-    }
-    Commit(region.pointer(), region.size());
-    return new VirtualMemory(region, region);
+  // Ignore executable for gen_snapshot/simulator, but still let the heap
+  // track code and data pages separately.
+  if (!VirtualMemory::ExecutesGeneratedCode()) {
+    is_executable = false;
   }
-#endif  // defined(DART_COMPRESSED_POINTERS)
 
   int prot = (is_executable && !FLAG_write_protect_code)
                  ? PAGE_EXECUTE_READWRITE
@@ -210,10 +181,8 @@ VirtualMemory::~VirtualMemory() {
   // itself. The only way to release the mapping is to invoke VirtualFree
   // with original base pointer and MEM_RELEASE.
 #if defined(DART_COMPRESSED_POINTERS)
-  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer()) &&
-      (this != compressed_heap_)) {
-    Decommit(reserved_.pointer(), reserved_.size());
-    VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
+  if (cage_ != nullptr) {
+    cage_->Free(reserved_.pointer(), reserved_.size());
     return;
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
@@ -226,12 +195,6 @@ VirtualMemory::~VirtualMemory() {
 }
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
-#if defined(DART_COMPRESSED_POINTERS)
-  // Don't free the sub segment if it's managed by the compressed pointer heap.
-  if (VirtualMemoryCompressedHeap::Contains(address)) {
-    return false;
-  }
-#endif  // defined(DART_COMPRESSED_POINTERS)
   if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
     FATAL("VirtualFree failed: Error code %d\n", GetLastError());
   }

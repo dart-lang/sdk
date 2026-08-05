@@ -223,7 +223,7 @@ abstract class DartEditBuilder implements EditBuilder {
     void Function() bodyWriter,
     bool isStatic = false,
     String nameGroupName,
-    DartType returnType,
+    DartType? returnType,
     String returnTypeGroupName,
     bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
@@ -373,6 +373,7 @@ abstract class DartEditBuilder implements EditBuilder {
     void Function()? bodyWriter,
     bool isStatic = false,
     String? nameGroupName,
+    String parameterName = 'value',
     DartType? parameterType,
     String? parameterTypeGroupName,
     bool alwaysWriteType = false,
@@ -516,6 +517,12 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     required TypeProvider typeProvider,
   });
 
+  /// Deletes the given [member] from its declaring class or enum.
+  ///
+  /// Throws a [StateError] if the parent of the [member] is neither a
+  /// [ClassBody] nor an [EnumBody].
+  void deleteClassMember(ClassMember member);
+
   /// Formats the code covered by the [range].
   ///
   /// If there are any edits that are in the [range], these edits are applied
@@ -588,14 +595,17 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   ///
   /// The constructor is inserted after the last existing field or constructor,
   /// or if the `sort_constructors_first` lint rule is enabled, after the last
-  /// existing constructor.
+  /// existing constructor, or if the `sort_unnamed_constructors_first` lint
+  /// rule is enabled and [isNamed] is `false`, after the last existing unnamed
+  /// constructor or field.
   ///
   /// Throws an exception if [container] is not a [CompilationUnitMember] which
   /// can have constructor declarations.
   void insertConstructor(
     CompilationUnitMember container,
-    void Function(DartEditBuilder builder) buildEdit,
-  );
+    void Function(DartEditBuilder builder) buildEdit, {
+    bool isNamed = false,
+  });
 
   /// Inserts the code for a field.
   ///
@@ -632,6 +642,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit, {
     bool Function(ClassMember existingMember)? lastMemberFilter,
+    bool indent = true,
   });
 
   /// Inserts the code for a method.

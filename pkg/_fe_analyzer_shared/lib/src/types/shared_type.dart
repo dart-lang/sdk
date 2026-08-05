@@ -249,6 +249,48 @@ abstract interface class SharedTypeParameter {
 /// [SharedUnknownType] from appearing in type views.
 abstract interface class SharedUnknownType implements SharedType {}
 
+/// Base class for all structural context schemas.
+sealed class SharedStructuralContextSchema implements SharedType {}
+
+/// Structural context schema describing an invocation.
+///
+/// Invocation structural context schemas describe partially known static types
+/// of expressions `e` that are encountered in the structural context of the
+/// form `e()` and the downwards context [returnType].
+///
+/// For example, in `List<num> list = [1, 2, 3].map((x) => x + 1).toList()`, if
+/// `e` is `[1, 2, 3].map((x) => x + 1).toList` then the
+/// [SharedInvocationStructuralContextSchema] describing `e` is the one with
+/// [returnType] set to `List<num>`.  For simplicity we'll denote such
+/// structural context schemas as `(...) -> returnType`. In the example, the
+/// partially known static type of `e` is described by `(...) -> List<num>`.
+///
+/// See also [SharedLookupStructuralContextSchema].
+abstract interface class SharedInvocationStructuralContextSchema
+    implements SharedStructuralContextSchema {
+  SharedType get returnType;
+}
+
+/// Structural context schema describing member access.
+///
+/// Lookup structural context schemas describe partially known static types of
+/// expressions `e` that are encountered in the structural context of the form
+/// `e.lookupName` and the downwards context [lookupType].
+///
+/// For example, in `List<num> list = [1, 2, 3].map((x) => x + 1).toList()`, if
+/// `e` is `[1, 2, 3].map((x) => x + 1)` then the
+/// [SharedLookupStructuralContextSchema] describing `e` is the one with
+/// [lookupName] set to `toList` and [lookupType] set to `(...) -> List<num>`
+/// (see [SharedInvocationStructuralContextSchema] for the explanation of the
+/// notation).  For simplicity we'll denote such structural context schema as
+/// `{lookupName: lookupType}`.  In the example, the partially known static type
+/// of `e` is described by `{toList: (...) -> List<num>}`.
+abstract interface class SharedLookupStructuralContextSchema
+    implements SharedStructuralContextSchema {
+  String get lookupName;
+  SharedType get lookupType;
+}
+
 /// Common interface for data structures used by the implementations to
 /// represent the type `void`.
 abstract interface class SharedVoidType implements SharedType {}

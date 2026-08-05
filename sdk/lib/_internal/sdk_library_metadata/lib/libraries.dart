@@ -337,6 +337,11 @@ const Map<String, LibraryInfo> libraries = const {
     categories: '',
     documented: false,
   ),
+  '_js_interop_wasm': const LibraryInfo(
+    '_js_interop_wasm/js_interop_wasm.dart',
+    categories: '',
+    documented: false,
+  ),
 };
 
 /// Information about a "dart:" library.

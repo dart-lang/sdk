@@ -434,28 +434,6 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
   __ Breakpoint();  // See ffi_trampolines_arm64.S
 }
 
-void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
-                                            Register dst,
-                                            Register tmp) {
-  compiler::Label skip_reloc;
-  __ b(&skip_reloc);
-  InsertBSSRelocation(relocation);
-  __ Bind(&skip_reloc);
-
-  __ adr(tmp, compiler::Immediate(-compiler::target::kWordSize));
-
-  // tmp holds the address of the relocation.
-  __ ldr(dst, compiler::Address(tmp));
-
-  // dst holds the relocation itself: tmp - bss_start.
-  // tmp = tmp + (bss_start - tmp) = bss_start
-  __ add(tmp, tmp, compiler::Operand(dst));
-
-  // tmp holds the start of the BSS section.
-  // Load the "get-thread" routine: *bss_start.
-  __ ldr(dst, compiler::Address(tmp));
-}
-
 void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
     uword function_index,
     Register dst) {
@@ -495,13 +473,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR (callee-saved) and LR on the real C stack (CSP). Keeps it
-  // aligned.
-  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
+  // Save THR, R20, R21, R22 (callee-saved) and LR on the real C stack (CSP).
+  // Keeps it aligned.
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 6);
   SPILLS_LR_TO_FRAME(__ stp(
       FP, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
   __ mov(FP, CSP);
   __ stp(R20, THR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  __ stp(R22, R21, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
 
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
@@ -517,27 +496,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   {
     __ mov(SP, CSP);
     // This saves too much: we only need the D half of Q registers.
-    __ PushRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ PushRegistersAligned(argument_registers, 5 * target::kWordSize);
     __ mov(R0, R9);
     __ mov(R1, SP);
 
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_GetFfiCallbackMetadata, R4,
-                           R9);
-    } else {
-      Label call;
-      __ ldr(R4, Address::PC(2 * Instr::kInstrSize));
-      __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_GetFfiCallbackMetadata));
-      __ Bind(&call);
-    }
-#else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
     __ mov(CSP, SP);
     __ blr(R4);  // DLRT_GetFfiCallbackMetadata
     __ mov(SP, CSP);
@@ -549,8 +513,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ ldr(R11, Address(CSP, 1 * target::kWordSize));  // is_tail
     COMPILE_ASSERT(IsCalleeSavedRegister(R20));
     __ ldr(R20, Address(CSP, 2 * target::kWordSize));  // epilogue
+    COMPILE_ASSERT(IsCalleeSavedRegister(R21));
+    __ ldr(R21, Address(CSP, 3 * target::kWordSize));  // isolate
+    COMPILE_ASSERT(IsCalleeSavedRegister(R22));
+    __ ldr(R22, Address(CSP, 4 * target::kWordSize));  // isolate_group
 
-    __ PopRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ PopRegistersAligned(argument_registers, 5 * target::kWordSize);
     __ mov(CSP, SP);
   }
 
@@ -563,6 +531,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ fstp(V0, V1, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
     __ fstp(V2, V3, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
     __ mov(R0, THR);
+    __ mov(R1, R21);
+    __ mov(R2, R22);
     __ blr(R20);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ blr(R0);  // dart_msan_unpoison_retval
@@ -570,6 +540,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ fldp(V2, V3, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ fldp(V0, V1, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ ldp(R0, R1, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+    __ ldp(R22, R21,
+           Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     __ ldp(R20, THR,
            Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     RESTORES_LR_FROM_FRAME(__ ldp(
@@ -583,6 +555,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blr(R10);
     __ mov(R0, THR);
     __ mov(R1, R20);
+    __ ldp(R22, R21,
+           Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     __ ldp(R20, THR,
            Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     RESTORES_LR_FROM_FRAME(__ ldp(
@@ -3787,9 +3761,9 @@ void StubCodeCompiler::GenerateSingleTargetCallStub() {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
   __ ldr(R2, FieldAddress(R5, target::SingleTargetCache::lower_limit_offset()),
-         kUnsignedTwoBytes);
+         kFourBytes);
   __ ldr(R3, FieldAddress(R5, target::SingleTargetCache::upper_limit_offset()),
-         kUnsignedTwoBytes);
+         kFourBytes);
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);

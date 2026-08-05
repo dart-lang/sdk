@@ -70,8 +70,13 @@ class ImportedTag extends Tag implements Import {
   @override
   final String name;
 
-  ImportedTag(super.enclosingModule, this.module, this.name,
-      super.finalizableIndex, super.type);
+  ImportedTag(
+    super.enclosingModule,
+    this.module,
+    this.name,
+    super.finalizableIndex,
+    super.type,
+  );
 
   @override
   void serialize(Serializer s) {

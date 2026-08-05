@@ -6,6 +6,7 @@
 // a power of 2.
 
 import "package:expect/expect.dart";
+
 import 'dart:math';
 
 void main() {

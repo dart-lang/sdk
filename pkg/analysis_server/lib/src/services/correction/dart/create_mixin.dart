@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMixin extends MultiCorrectionProducer {
-  CreateMixin({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -46,7 +45,7 @@ class CreateMixin extends MultiCorrectionProducer {
             return const [];
           }
       }
-      expression = stepUpNamedExpression(node);
+      expression = node;
       mixinName = node.name;
     } else if (node is PrefixedIdentifier) {
       if (node.parent is InstanceCreationExpression) {
@@ -56,7 +55,7 @@ class CreateMixin extends MultiCorrectionProducer {
       if (prefixElement == null) {
         return const [];
       }
-      expression = stepUpNamedExpression(node);
+      expression = node;
       mixinName = node.identifier.name;
     } else {
       return const [];
@@ -95,7 +94,7 @@ class _CreateMixin extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
 
-  _CreateMixin.lowercase(
+  new lowercase(
     this._mixinName,
     this._expression,
     this.prefixElement, {
@@ -105,7 +104,7 @@ class _CreateMixin extends ResolvedCorrectionProducer {
            ? DartFixKind.createMixinLowercaseWith
            : DartFixKind.createMixinLowercase;
 
-  _CreateMixin.uppercase(
+  new uppercase(
     this._mixinName,
     this._expression,
     this.prefixElement, {

@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   final field core::int x;
   final field core::int y;
-  constructor •(core::int y) → self::A
+  constructor •(initializing-formal core::int y) → self::A
     : self::A::y = y, self::A::x = 42, super core::Object::•()
     ;
   method method() → dynamic {

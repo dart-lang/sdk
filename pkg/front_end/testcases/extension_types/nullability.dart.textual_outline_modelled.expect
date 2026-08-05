@@ -23,22 +23,29 @@ extension type E4(E1<int> foo) {}
 
 extension type E5(E2 foo) {}
 
-testNamedNotRequired(
-    {E1<num?> e1numNullableNNR,
-    E1<double> e1doubleNNR,
-    E2 e2NNR,
-    E3 e3NNR,
-    E4 e4NNR,
-    E5 e5NNR,
-    E1<num?>? e1numNullableNNRNullable,
-    E1<double>? e1doubleNNRNullable,
-    E2? e2NNRNullable,
-    E3? e3NNRNullable,
-    E4? e4NNRNullable,
-    E5? e5NNRNullable}) {}
+testNamedNotRequired({
+  E1<num?> e1numNullableNNR,
+  E1<double> e1doubleNNR,
+  E2 e2NNR,
+  E3 e3NNR,
+  E4 e4NNR,
+  E5 e5NNR,
+  E1<num?>? e1numNullableNNRNullable,
+  E1<double>? e1doubleNNRNullable,
+  E2? e2NNRNullable,
+  E3? e3NNRNullable,
+  E4? e4NNRNullable,
+  E5? e5NNRNullable,
+}) {}
 
-testNotNonNullable(E1<num?> e1numNullableNNN, E1<double> e1doubleNNN, E2 e2NNN,
-    E3 e3NNN, E4 e4NNN, E5 e5NNN) {}
+testNotNonNullable(
+  E1<num?> e1numNullableNNN,
+  E1<double> e1doubleNNN,
+  E2 e2NNN,
+  E3 e3NNN,
+  E4 e4NNN,
+  E5 e5NNN,
+) {}
 
 testNotNullable(
   E1<num?> e1numNullableNN,
@@ -55,16 +62,17 @@ testNotNullable(
   E5? e5NNNullable,
 ) {}
 
-testOptionalPositional(
-    [E1<num?> e1numNullableOP,
-    E1<double> e1doubleOP,
-    E2 e2OP,
-    E3 e3OP,
-    E4 e4OP,
-    E5 e5OP,
-    E1<num?>? e1numNullableOPNullable,
-    E1<double>? e1doubleOPNullable,
-    E2? e2OPNullable,
-    E3? e3OPNullable,
-    E4? e4OPNullable,
-    E5? e5OPNullable]) {}
+testOptionalPositional([
+  E1<num?> e1numNullableOP,
+  E1<double> e1doubleOP,
+  E2 e2OP,
+  E3 e3OP,
+  E4 e4OP,
+  E5 e5OP,
+  E1<num?>? e1numNullableOPNullable,
+  E1<double>? e1doubleOPNullable,
+  E2? e2OPNullable,
+  E3? e3OPNullable,
+  E4? e4OPNullable,
+  E5? e5OPNullable,
+]) {}

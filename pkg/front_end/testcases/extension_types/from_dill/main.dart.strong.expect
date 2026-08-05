@@ -71,7 +71,7 @@ extension type ExtensionType(core::int it) {
   static redirecting-factory tearoff redirectingFactory = mai2::ExtensionType|constructor#_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField = 123;
-static extension-type-member method ExtensionType|constructor#(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */ {
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */ {
   lowered final mai2::ExtensionType% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }

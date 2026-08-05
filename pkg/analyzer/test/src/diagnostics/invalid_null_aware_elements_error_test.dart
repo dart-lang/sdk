@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,42 +15,38 @@ main() {
 @reflectiveTest
 class InvalidNullAwareElementsErrorTest extends PubPackageResolutionTest {
   test_invalid_null_aware_element_in_list() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const stringConst = "";
 const list = [0, ?stringConst];
-''',
-      [error(diag.invalidNullAwareElement, 41, 1)],
-    );
+//               ^
+// [diag.invalidNullAwareElement] The element can't be null, so the null-aware operator '?' is unnecessary.
+''');
   }
 
   test_invalid_null_aware_element_in_set() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const stringConst = "";
 const set = {0, ?stringConst};
-''',
-      [error(diag.invalidNullAwareElement, 40, 1)],
-    );
+//              ^
+// [diag.invalidNullAwareElement] The element can't be null, so the null-aware operator '?' is unnecessary.
+''');
   }
 
   test_invalid_null_aware_key_in_map() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const intConst = 0;
 const map = {?0: intConst};
-''',
-      [error(diag.invalidNullAwareMapEntryKey, 33, 1)],
-    );
+//           ^
+// [diag.invalidNullAwareMapEntryKey] The map entry key can't be null, so the null-aware operator '?' is unnecessary.
+''');
   }
 
   test_invalid_null_aware_value_in_map() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const intConst = 0;
 const map = {0: ?intConst};
-''',
-      [error(diag.invalidNullAwareMapEntryValue, 36, 1)],
-    );
+//              ^
+// [diag.invalidNullAwareMapEntryValue] The map entry value can't be null, so the null-aware operator '?' is unnecessary.
+''');
   }
 }

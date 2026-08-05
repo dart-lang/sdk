@@ -28,7 +28,7 @@ class SemanticTokenLegendLookup {
   /// server and client.
   late List<SemanticTokenTypes> _usedTokenTypes;
 
-  SemanticTokenLegendLookup() {
+  new() {
     // Build lists of all tokens and modifiers that exist in our mappings or that
     // we have added as custom types. These will be used to determine the indexes used for communication.
     _usedTokenTypes = Set.of(

@@ -58,12 +58,10 @@ class _Finder {
   }
 
   void _formalParameter(FormalParameter node) {
-    if (node is DefaultFormalParameter) {
-      _formalParameter(node.parameter);
-    } else if (node is FunctionTypedFormalParameter) {
-      _visit(node.returnType);
-      _formalParameterList(node.parameters);
-    } else if (node is SimpleFormalParameter) {
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      _visit(node.type);
+      _formalParameterList(functionTypedSuffix.formalParameters);
+    } else {
       _visit(node.type);
     }
   }
@@ -93,7 +91,7 @@ class _Finder {
       }
 
       if (linker.isLinkingElement(element)) {
-        var typeNode = linker.getLinkingNode2(element.firstFragment);
+        var typeNode = linker.getLinkingNode(element.firstFragment);
         if (typeNode != null) {
           if (typeNode == self) {
             hasSelfReference = true;

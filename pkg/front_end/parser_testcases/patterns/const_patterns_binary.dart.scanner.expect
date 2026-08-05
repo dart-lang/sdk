@@ -33,6 +33,10 @@ case 1 >>> 2:
 case 1 + 2 + 3:
 case prefix.value as T:
 case prefix.Class.value as T:
+case value + 1:
+case Class.value + 1:
+case prefix.value + 1:
+case prefix.Class.value + 1:
 case const 1 as int:
 case const 1 + 2:
 case const 1 - 2:
@@ -82,6 +86,7 @@ case --o:
 }
 }
 
+
 import[KeywordToken] 'const_patterns_binary.dart'[StringToken] as[KeywordToken] prefix[StringToken];[SimpleToken]
 
 const[KeywordToken] value[StringToken] =[SimpleToken] 1[StringToken];[SimpleToken]
@@ -117,6 +122,10 @@ case[KeywordToken] 1[StringToken] >>>[SimpleToken] 2[StringToken]:[SimpleToken]
 case[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken] +[SimpleToken] 3[StringToken]:[SimpleToken]
 case[KeywordToken] prefix[StringToken].[SimpleToken]value[StringToken] as[KeywordToken] T[StringToken]:[SimpleToken]
 case[KeywordToken] prefix[StringToken].[SimpleToken]Class[StringToken].[SimpleToken]value[StringToken] as[KeywordToken] T[StringToken]:[SimpleToken]
+case[KeywordToken] value[StringToken] +[SimpleToken] 1[StringToken]:[SimpleToken]
+case[KeywordToken] Class[StringToken].[SimpleToken]value[StringToken] +[SimpleToken] 1[StringToken]:[SimpleToken]
+case[KeywordToken] prefix[StringToken].[SimpleToken]value[StringToken] +[SimpleToken] 1[StringToken]:[SimpleToken]
+case[KeywordToken] prefix[StringToken].[SimpleToken]Class[StringToken].[SimpleToken]value[StringToken] +[SimpleToken] 1[StringToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] 1[StringToken] as[KeywordToken] int[StringToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] 1[StringToken] +[SimpleToken] 2[StringToken]:[SimpleToken]
 case[KeywordToken] const[KeywordToken] 1[StringToken] -[SimpleToken] 2[StringToken]:[SimpleToken]
@@ -164,4 +173,5 @@ case[KeywordToken] o[StringToken]--[SimpleToken]:[SimpleToken]
 case[KeywordToken] ++[SimpleToken]o[StringToken]:[SimpleToken]
 case[KeywordToken] --[SimpleToken]o[StringToken]:[SimpleToken]
 }[SimpleToken]
-}[SimpleToken][SimpleToken]
+}[SimpleToken]
+[SimpleToken]

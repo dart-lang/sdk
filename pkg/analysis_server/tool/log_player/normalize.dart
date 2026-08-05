@@ -4,6 +4,7 @@
 
 import 'dart:io' show Directory, exit;
 
+import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:args/args.dart';
@@ -120,39 +121,29 @@ final argParser = ArgParser()
 // TODO(somebody): Don't take a package config, instead infer them from the
 // workspace directories.
 String normalizeLog(File input, List<ContextRoot> contextRoots) {
-  var content = input.readAsStringSync();
+  var normalizer = LogNormalizer();
 
-  // First, replace the workspace folder paths.
-  var original = Log.fromString(content, {});
+  var content = input.readAsStringSync();
+  var original = Log.fromString(content);
   var initializeMessage = original.entries.firstWhere(
     (log) => log.isMessage && log.message.isInitializeRequest,
   );
-  var workspaceFolders =
-      ((initializeMessage.message.map['params']
-                  as Map<String, Object?>)['workspaceFolders']
-              as List)
-          .cast<Map<String, Object?>>();
-  for (var i = 0; i < workspaceFolders.length; i++) {
-    var folder = workspaceFolders[i];
-    var uri = Uri.parse(folder['uri'] as String);
-    content = content.replaceAll(uri.path, '{{workspaceFolder-$i}}');
-  }
 
-  // Next, replace the Dart SDK path.
-  content = content.replaceAll(sdkPath, '{{dartSdkRoot}}');
+  // Add all the workspace + root paths from the initialize message.
+  normalizer.addLspWorkspaceReplacements(initializeMessage.message);
 
-  // TODO(somebody): Replace the Flutter SDK path with '{{flutterSdkRoot}}'.
-
-  // Finally, replace the package roots.
+  // Additionally add SDKs and packages.
+  normalizer.addReplacementsForPath(sdkPath, 'dartSdkRoot');
+  // TODO(somebody): replace {{flutterSdkRoot}} with the flutter SDK path
   for (var i = 0; i < contextRoots.length; i++) {
-    var contextRoot = contextRoots[i];
-
-    for (var package in contextRoot.packageConfig.packages) {
-      content = content.replaceAll(
-        package.root.toString(),
-        '{{context-$i:package-root:${package.name}}}',
+    for (var package in contextRoots[i].packageConfig.packages) {
+      normalizer.addReplacementsForUri(
+        package.root,
+        'context-$i:package-root:${package.name}',
       );
     }
   }
-  return content;
+
+  // Normalize each entry in the log.
+  return '${original.entries.map((entry) => normalizer.normalize(entry.map)).join('\n')}\n';
 }

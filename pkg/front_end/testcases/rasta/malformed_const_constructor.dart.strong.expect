@@ -20,23 +20,27 @@ library;
 //     : x = 'foo'
 //       ^
 //
-// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:13:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
+// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:6:9: Error: Constructor is marked 'const' so all fields must be final.
+//   const A()
+//         ^
+// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:8:7: Context: Field isn't final, but constructor is 'const'.
+//     : x = 'foo'
+//       ^
+//
+// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:13:9: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
 //   const A();
 //         ^
 //
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
+class A extends core::Object /*hasConstConstructor*/  {
   field core::String x = "foo";
-  constructor •() → self::A
+  const constructor •() → self::A
     : self::A::x = "foo", super core::Object::•() {}
 }
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/rasta/malformed_const_constructor.dart:13:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  const A();
-        ^";
+  invalid-expression "A const constructor can't have a body.";
   new self::A::•();
 }

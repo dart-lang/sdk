@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateFile extends ResolvedCorrectionProducer {
   String _fileName = '';
 
-  CreateFile({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

@@ -96,6 +96,9 @@ class FlowAnalysisHelper {
   >?
   flow;
 
+  /// The mapping from expressions to their [ExpressionInfo]s.
+  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
+
   FlowAnalysisHelper(
     bool retainDataForTesting, {
     required TypeSystemOperations typeSystemOperations,
@@ -112,6 +115,9 @@ class FlowAnalysisHelper {
     required this.typeAnalyzerOptions,
   });
 
+  /// Whether flow analysis is currently available.
+  bool get isActive => flow != null;
+
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
   }
@@ -123,7 +129,7 @@ class FlowAnalysisHelper {
     var typeAnnotation = node.type;
 
     flow!.asExpression_end(
-      flow!.getExpressionInfo(expression),
+      getExpressionInfo(expression),
       subExpressionType: SharedTypeView(expression.typeOrThrow),
       castType: SharedTypeView(typeAnnotation.typeOrThrow),
     );
@@ -257,7 +263,7 @@ class FlowAnalysisHelper {
       node is StatementImpl ? node : null,
       switch (condition) {
         null => flow?.booleanLiteral(true),
-        var condition => flow?.getExpressionInfo(condition),
+        var condition => getExpressionInfo(condition),
       },
     );
   }
@@ -265,6 +271,13 @@ class FlowAnalysisHelper {
   void for_conditionBegin(AstNodeImpl node) {
     flow?.for_conditionBegin(node);
   }
+
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
+  ExpressionInfo? getExpressionInfo(Expression? expression) =>
+      _expressionInfoMap[expression];
 
   bool isDefinitelyAssigned(
     SimpleIdentifier node,
@@ -302,10 +315,10 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.storeExpressionInfo(
+    storeExpressionInfo(
       node,
       flow!.isExpression_end(
-        flow!.getExpressionInfo(expression),
+        getExpressionInfo(expression),
         node.notOperator != null,
         subExpressionType: SharedTypeView(expression.typeOrThrow),
         checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
@@ -323,6 +336,15 @@ class FlowAnalysisHelper {
     if (flow == null) return;
 
     flow!.labeledStatement_end();
+  }
+
+  /// Associates [expression] with the given [expressionInfo] object, for later
+  /// retrieval by [getExpressionInfo].
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  ) {
+    _expressionInfoMap[expression] = expressionInfo;
   }
 
   /// Transfers any test data that was recorded for [oldNode] so that it is now
@@ -352,6 +374,28 @@ class FlowAnalysisHelper {
           initialized: variable.initializer != null,
         );
       }
+    }
+  }
+
+  /// Runs [operation] with flow analysis available for [node].
+  ///
+  /// If flow analysis is already active, reuses it. Otherwise this method
+  /// creates a body-or-initializer flow context and closes it after
+  /// [operation].
+  T withFlowAnalysis<T>({
+    required AstNodeImpl node,
+    required List<FormalParameterElementImpl>? formalParameters,
+    required T Function() operation,
+  }) {
+    if (isActive) {
+      return operation();
+    }
+
+    bodyOrInitializer_enter(node, formalParameters);
+    try {
+      return operation();
+    } finally {
+      bodyOrInitializer_exit();
     }
   }
 
@@ -408,13 +452,14 @@ class FlowAnalysisHelper {
             // switch statements, while the LabeledStatement is returned
             // for the other known targets. This could be possibly changed
             // so that the inner statement is always returned.
-            if (statement is Block ||
-                statement is BreakStatement ||
-                statement is IfStatement ||
-                statement is TryStatement) {
+            if (statement is ForStatement ||
+                statement is SwitchStatement ||
+                statement is WhileStatement ||
+                statement is DoStatement) {
+              return statement;
+            } else {
               return node;
             }
-            return statement;
           }
         }
         if (node is SwitchStatementImpl) {
@@ -431,7 +476,7 @@ class FlowAnalysisHelper {
 
   static bool _hasLabel(List<Label> labels, Element element) {
     for (var nodeLabel in labels) {
-      if (identical(nodeLabel.label.element, element)) {
+      if (identical(nodeLabel.declaredFragment!.element, element)) {
         return true;
       }
     }
@@ -774,6 +819,15 @@ class TypeSystemOperations
   @override
   TypeImpl listTypeInternal(TypeImpl elementType) {
     return typeSystem.typeProvider.listType(elementType);
+  }
+
+  @override
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  ) {
+    // TODO(cstefantsova): Implement lookupMemberTypeInternal.
+    throw UnimplementedError();
   }
 
   @override
@@ -1347,7 +1401,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       if (isRead) {
         ExpressionInfo expressionInfo;
         (promotedType, expressionInfo) = flow.variableRead(variable);
-        flow.storeExpressionInfo(node, expressionInfo);
+        _manager.storeExpressionInfo(node, expressionInfo);
       } else {
         promotedType = flow.promotedType(variable);
       }

@@ -1770,6 +1770,27 @@ class TypeSystemImpl implements TypeSystem {
     return null;
   }
 
+  /// Returns the union-free type derived from [type].
+  ///
+  /// If `T` is of the form `S?` or `FutureOr<S>`, then the union-free type
+  /// derived from `T` is the union-free type derived from `S`. Otherwise, it
+  /// is `T`.
+  TypeImpl unionFreeType(TypeImpl type) {
+    if (identical(type, UnknownInferredType.instance)) {
+      return type;
+    }
+
+    if (type.nullabilitySuffix != NullabilitySuffix.none) {
+      return unionFreeType(type.withNullability(NullabilitySuffix.none));
+    }
+
+    if (type is InterfaceTypeImpl && type.isDartAsyncFutureOr) {
+      return unionFreeType(type.typeArguments[0]);
+    }
+
+    return type;
+  }
+
   /// Optimistically estimates, if type arguments of [left] can be equal to
   /// the type arguments of [right]. Both types must be instantiations of the
   /// same element.

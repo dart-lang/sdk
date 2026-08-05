@@ -10,32 +10,23 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:path/path.dart' as pathos;
 
 /// A [UriResolver] implementation for the `package:` scheme that uses a map of
-/// package names to their directories.
+/// package names to their directory.
 class PackageMapUriResolver extends UriResolver {
   /// The name of the `package` scheme.
   static const String _packageScheme = "package";
 
-  /// A table mapping package names to the path of the directories containing
+  /// A table mapping package names to the path of the directory containing
   /// the package.
-  final Map<String, List<Folder>> packageMap;
+  final Map<String, Folder> packageMap;
 
   /// The [ResourceProvider] for this resolver.
   final ResourceProvider resourceProvider;
 
   /// Create a new [PackageMapUriResolver].
   ///
-  /// [packageMap] is a table mapping package names to the paths of the
-  /// directories containing the package
-  PackageMapUriResolver(this.resourceProvider, this.packageMap) {
-    packageMap.forEach((name, folders) {
-      if (folders.length != 1) {
-        throw ArgumentError(
-          'Exactly one folder must be specified for a package. '
-          'Found $name = $folders',
-        );
-      }
-    });
-  }
+  /// [packageMap] is a table mapping package names to the path of the
+  /// directory containing the package.
+  PackageMapUriResolver(this.resourceProvider, this.packageMap);
 
   @override
   Uri? pathToUri(String path) {
@@ -50,7 +41,7 @@ class PackageMapUriResolver extends UriResolver {
     int bestLength = -1;
     for (var packageEntry in packageMap.entries) {
       String pkgName = packageEntry.key;
-      Folder pkgFolder = packageEntry.value[0];
+      Folder pkgFolder = packageEntry.value;
       String pkgFolderPath = pkgFolder.path;
       if (path.length >= pkgFolderPath.length + pathContext.separator.length &&
           path.startsWith(pkgFolderPath) &&
@@ -82,11 +73,10 @@ class PackageMapUriResolver extends UriResolver {
     String pkgName = pathSegments[0];
 
     // If the package is known, return the corresponding file.
-    var packageDirs = packageMap[pkgName];
-    if (packageDirs != null) {
-      Folder packageDir = packageDirs.single;
+    var packageDir = packageMap[pkgName];
+    if (packageDir != null) {
       String relPath = pathSegments.skip(1).join('/');
-      File file = packageDir.getChildAssumingFile(relPath);
+      File file = packageDir.getFile(relPath);
       return FileSource(file, uri);
     }
     return null;

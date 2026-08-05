@@ -6,7 +6,7 @@ import 'package:cfg/ir/constant_value.dart' show ConstantValue;
 import 'package:cfg/ir/instructions.dart' show MoveOp;
 
 /// A generic operand of a machine instruction.
-abstract interface class Operand {}
+abstract interface class Operand;
 
 /// Kind of physical register.
 enum RegisterClass {
@@ -37,11 +37,8 @@ abstract base class PhysicalRegister implements Constraint, Location, Operand {
 }
 
 /// General-purpose register.
-final class Register extends PhysicalRegister {
-  final int index;
-  final String name;
-  const Register(this.index, this.name);
-
+final class const Register(final int index, final String name)
+    extends PhysicalRegister {
   @override
   RegisterClass get registerClass => RegisterClass.cpu;
 
@@ -52,11 +49,8 @@ final class Register extends PhysicalRegister {
 const Register invalidReg = Register(-1, 'INVALID');
 
 /// Floating-point register.
-final class FPRegister extends PhysicalRegister {
-  final int index;
-  final String name;
-  const FPRegister(this.index, this.name);
-
+final class const FPRegister(final int index, final String name)
+    extends PhysicalRegister {
   @override
   RegisterClass get registerClass => RegisterClass.fpu;
 
@@ -67,9 +61,7 @@ final class FPRegister extends PhysicalRegister {
 const FPRegister invalidFPReg = FPRegister(-1, 'INVALID');
 
 /// Base class for all stack locations.
-sealed class StackLocation implements Location {
-  const StackLocation();
-
+sealed class const StackLocation() implements Location {
   @override
   Location get physicalLocation => this;
 }
@@ -164,21 +156,14 @@ class Locations {
 }
 
 /// Location->location move, part of ParallelMove instruction.
-final class Move extends MoveOp {
-  Location from;
-  Location to;
-  Move(this.from, this.to);
-
+final class Move(var Location from, var Location to) extends MoveOp {
   @override
   String toString() => '$from -> $to';
 }
 
 /// Constant->location move, part of ParallelMove instruction.
-final class LoadConstant extends MoveOp {
-  ConstantValue value;
-  Location to;
-  LoadConstant(this.value, this.to);
-
+final class LoadConstant(var ConstantValue value, var Location to)
+    extends MoveOp {
   @override
   String toString() => '$value -> $to';
 }

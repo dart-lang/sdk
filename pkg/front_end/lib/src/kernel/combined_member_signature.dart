@@ -14,6 +14,7 @@ import 'package:kernel/type_algebra.dart';
 import '../base/problems.dart' show unhandled;
 import '../builder/declaration_builders.dart';
 import '../source/source_class_builder.dart';
+import 'external_ast_helper.dart' as extern;
 import 'hierarchy/class_member.dart';
 import 'hierarchy/hierarchy_builder.dart';
 import 'hierarchy/members_builder.dart';
@@ -91,7 +92,7 @@ abstract class CombinedMemberSignatureBase {
 
   /// Creates a [CombinedMemberSignatureBase] whose canonical member is already
   /// defined.
-  CombinedMemberSignatureBase.internal(
+  new internal(
     this.membersBuilder,
     this._canonicalMemberIndex,
     this.members, {
@@ -104,11 +105,7 @@ abstract class CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedMemberSignatureBase(
-    this.membersBuilder,
-    this.members, {
-    required this.forSetter,
-  }) {
+  new(this.membersBuilder, this.members, {required this.forSetter}) {
     int? bestSoFarIndex;
     if (members.length == 1) {
       bestSoFarIndex = 0;
@@ -418,7 +415,7 @@ abstract class CombinedMemberSignatureBase {
           );
           break;
         case ProcedureKind.Setter:
-          VariableDeclaration parameter =
+          PositionalParameter parameter =
               member.function.positionalParameters.first;
           combinedMemberSignature = _createSetterMemberSignature(
             declarationNode,
@@ -488,33 +485,37 @@ abstract class CombinedMemberSignatureBase {
     Reference? reference = indexedContainer?.lookupGetterReference(member.name);
 
     Uri fileUri;
-    int startFileOffset;
+    int fileStartOffset;
     int fileOffset;
+    int fileEndOffset;
     if (copyLocation) {
       // Coverage-ignore-block(suite): Not run.
       fileUri = member.fileUri;
-      startFileOffset = member is Procedure
+      fileStartOffset = member is Procedure
           ? member.fileStartOffset
           : member.fileOffset;
       fileOffset = member.fileOffset;
+      fileEndOffset = member is Procedure
+          ? member.fileEndOffset
+          : member.fileOffset;
     } else {
       fileUri = declarationNode.fileUri;
-      fileOffset = startFileOffset = declarationNode.fileOffset;
+      fileOffset = fileStartOffset = fileEndOffset = declarationNode.fileOffset;
     }
-    return new Procedure(
-        member.name,
-        ProcedureKind.Getter,
-        new FunctionNode(null, returnType: type),
-        isAbstract: true,
-        fileUri: fileUri,
-        reference: reference,
-        isSynthetic: true,
-        stubKind: ProcedureStubKind.MemberSignature,
-        stubTarget: member.memberSignatureOrigin ?? member,
-      )
-      ..fileStartOffset = startFileOffset
-      ..fileOffset = fileOffset
-      ..parent = declarationNode;
+    return extern.createProcedure(
+      member.name,
+      ProcedureKind.Getter,
+      extern.createFunctionNode(null, returnType: type, fileOffset: fileOffset),
+      isAbstract: true,
+      fileUri: fileUri,
+      reference: reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: member.memberSignatureOrigin ?? member,
+      fileStartOffset: fileStartOffset,
+      fileOffset: fileOffset,
+      fileEndOffset: fileEndOffset,
+    )..parent = declarationNode;
   }
 
   /// Creates a setter member signature for [member] with the given
@@ -528,54 +529,58 @@ abstract class CombinedMemberSignatureBase {
     DartType type, {
     required bool isCovariantByDeclaration,
     required bool isCovariantByClass,
-    VariableDeclaration? parameter,
+    Variable? parameter,
     required bool copyLocation,
   }) {
     Reference? reference = indexedContainer?.lookupSetterReference(member.name);
     Uri fileUri;
-    int startFileOffset;
+    int fileStartOffset;
     int fileOffset;
+    int fileEndOffset;
     if (copyLocation) {
       // Coverage-ignore-block(suite): Not run.
       fileUri = member.fileUri;
-      startFileOffset = member is Procedure
+      fileStartOffset = member is Procedure
           ? member.fileStartOffset
           : member.fileOffset;
       fileOffset = member.fileOffset;
+      fileEndOffset = member is Procedure
+          ? member.fileEndOffset
+          : member.fileOffset;
     } else {
       fileUri = declarationNode.fileUri;
-      fileOffset = startFileOffset = declarationNode.fileOffset;
+      fileOffset = fileStartOffset = fileEndOffset = declarationNode.fileOffset;
     }
-    return new Procedure(
-        member.name,
-        ProcedureKind.Setter,
-        new FunctionNode(
-          null,
-          returnType: const VoidType(),
-          positionalParameters: [
-            new VariableDeclaration(
-                parameter?.name ?? 'value',
-                type: type,
-                isCovariantByDeclaration: isCovariantByDeclaration,
-              )
-              ..isCovariantByClass = isCovariantByClass
-              ..fileOffset = copyLocation
-                  ?
-                    // Coverage-ignore(suite): Not run.
-                    parameter?.fileOffset ?? fileOffset
-                  : fileOffset,
-          ],
-        ),
-        isAbstract: true,
-        fileUri: fileUri,
-        reference: reference,
-        isSynthetic: true,
-        stubKind: ProcedureStubKind.MemberSignature,
-        stubTarget: member.memberSignatureOrigin ?? member,
-      )
-      ..fileStartOffset = startFileOffset
-      ..fileOffset = fileOffset
-      ..parent = declarationNode;
+    PositionalParameter setterParameter =
+        new PositionalParameter(
+            cosmeticName: parameter?.cosmeticName ?? 'value',
+            type: type,
+            isCovariantByDeclaration: isCovariantByDeclaration,
+          )
+          ..isCovariantByClass = isCovariantByClass
+          ..fileOffset = copyLocation
+              ?
+                // Coverage-ignore(suite): Not run.
+                parameter?.fileOffset ?? fileOffset
+              : fileOffset;
+    return extern.createProcedure(
+      member.name,
+      ProcedureKind.Setter,
+      new FunctionNode(
+        null,
+        returnType: const VoidType(),
+        positionalParameters: [setterParameter],
+      ),
+      isAbstract: true,
+      fileUri: fileUri,
+      reference: reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: member.memberSignatureOrigin ?? member,
+      fileStartOffset: fileStartOffset,
+      fileOffset: fileOffset,
+      fileEndOffset: fileEndOffset,
+    )..parent = declarationNode;
   }
 
   Procedure _createMethodSignature(
@@ -589,113 +594,107 @@ abstract class CombinedMemberSignatureBase {
       procedure.name,
     );
     Uri fileUri;
-    int startFileOffset;
+    int fileStartOffset;
     int fileOffset;
+    int fileEndOffset;
     if (copyLocation) {
       // Coverage-ignore-block(suite): Not run.
       fileUri = procedure.fileUri;
-      startFileOffset = procedure.fileStartOffset;
+      fileStartOffset = procedure.fileStartOffset;
       fileOffset = procedure.fileOffset;
+      fileEndOffset = procedure.fileEndOffset;
     } else {
       fileUri = declarationNode.fileUri;
-      fileOffset = startFileOffset = declarationNode.fileOffset;
+      fileOffset = fileStartOffset = fileEndOffset = declarationNode.fileOffset;
     }
     FunctionNode function = procedure.function;
-    List<VariableDeclaration> positionalParameters = [];
+    List<PositionalParameter> positionalParameters = [];
     FreshTypeParametersFromStructuralParameters freshTypeParameters =
         getFreshTypeParametersFromStructuralParameters(
           functionType.typeParameters,
         );
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (int i = 0; i < function.positionalParameters.length; i++) {
-      VariableDeclaration parameter = function.positionalParameters[i];
+      PositionalParameter parameter = function.positionalParameters[i];
       DartType parameterType = freshTypeParameters.substitute(
         functionType.positionalParameters[i],
       );
-      positionalParameters.add(
-        new VariableDeclaration(
-            parameter.name,
+      PositionalParameter positionalParameter = extern
+          .createPositionalParameter(
+            cosmeticName: parameter.cosmeticName,
             type: parameterType,
             isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-            initializer: cloner.cloneOptional(parameter.initializer),
-          )
-          ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
-          ..isCovariantByClass = parameter.isCovariantByClass
-          ..fileOffset = copyLocation
-              ?
-                // Coverage-ignore(suite): Not run.
-                parameter.fileOffset
-              : fileOffset,
+            defaultValue: cloner.cloneOptional(parameter.defaultValue),
+            hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
+            isCovariantByClass: parameter.isCovariantByClass,
+            fileOffset: copyLocation
+                ?
+                  // Coverage-ignore(suite): Not run.
+                  parameter.fileOffset
+                : fileOffset,
+          );
+      positionalParameters.add(positionalParameter);
+    }
+
+    NamedParameter cloneNamedParameter(
+      NamedParameter parameter,
+      NamedType namedType,
+    ) {
+      return extern.createNamedParameter(
+        parameterName: parameter.parameterName,
+        type: freshTypeParameters.substitute(namedType.type),
+        isRequired: namedType.isRequired,
+        isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+        defaultValue: cloner.cloneOptional(parameter.defaultValue),
+        hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
+        isCovariantByClass: parameter.isCovariantByClass,
+        fileOffset: copyLocation
+            ?
+              // Coverage-ignore(suite): Not run.
+              parameter.fileOffset
+            : fileOffset,
       );
     }
-    List<VariableDeclaration> namedParameters = [];
+
+    List<NamedParameter> namedParameters = [];
     int namedParameterCount = function.namedParameters.length;
     if (namedParameterCount == 1) {
       NamedType namedType = functionType.namedParameters.first;
-      VariableDeclaration parameter = function.namedParameters.first;
-      namedParameters.add(
-        new VariableDeclaration(
-            parameter.name,
-            type: freshTypeParameters.substitute(namedType.type),
-            isRequired: namedType.isRequired,
-            isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-            initializer: cloner.cloneOptional(parameter.initializer),
-          )
-          ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
-          ..isCovariantByClass = parameter.isCovariantByClass
-          ..fileOffset = copyLocation
-              ?
-                // Coverage-ignore(suite): Not run.
-                parameter.fileOffset
-              : fileOffset,
-      );
+      NamedParameter parameter = function.namedParameters.first;
+      namedParameters.add(cloneNamedParameter(parameter, namedType));
     } else if (namedParameterCount > 1) {
       Map<String, NamedType> namedTypes = {};
       for (NamedType namedType in functionType.namedParameters) {
         namedTypes[namedType.name] = namedType;
       }
       for (int i = 0; i < namedParameterCount; i++) {
-        VariableDeclaration parameter = function.namedParameters[i];
-        NamedType namedParameterType = namedTypes[parameter.name]!;
-        namedParameters.add(
-          new VariableDeclaration(
-              parameter.name,
-              type: freshTypeParameters.substitute(namedParameterType.type),
-              isRequired: namedParameterType.isRequired,
-              isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-              initializer: cloner.cloneOptional(parameter.initializer),
-            )
-            ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
-            ..isCovariantByClass = parameter.isCovariantByClass
-            ..fileOffset = copyLocation
-                ?
-                  // Coverage-ignore(suite): Not run.
-                  parameter.fileOffset
-                : fileOffset,
-        );
+        NamedParameter parameter = function.namedParameters[i];
+        NamedType namedParameterType = namedTypes[parameter.parameterName]!;
+        namedParameters.add(cloneNamedParameter(parameter, namedParameterType));
       }
     }
-    return new Procedure(
-        procedure.name,
-        procedure.kind,
-        new FunctionNode(
-          null,
-          typeParameters: freshTypeParameters.freshTypeParameters,
-          returnType: freshTypeParameters.substitute(functionType.returnType),
-          positionalParameters: positionalParameters,
-          namedParameters: namedParameters,
-          requiredParameterCount: function.requiredParameterCount,
-        ),
-        isAbstract: true,
-        fileUri: fileUri,
-        reference: reference,
-        isSynthetic: true,
-        stubKind: ProcedureStubKind.MemberSignature,
-        stubTarget: procedure.memberSignatureOrigin ?? procedure,
-      )
-      ..fileStartOffset = startFileOffset
-      ..fileOffset = fileOffset
-      ..parent = declarationNode;
+    return extern.createProcedure(
+      procedure.name,
+      procedure.kind,
+      extern.createFunctionNode(
+        null,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        returnType: freshTypeParameters.substitute(functionType.returnType),
+        positionalParameters: positionalParameters,
+        namedParameters: namedParameters,
+        requiredParameterCount: function.requiredParameterCount,
+        fileOffset: fileOffset,
+      ),
+      isAbstract: true,
+      fileUri: fileUri,
+      reference: reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: procedure.memberSignatureOrigin ?? procedure,
+      fileStartOffset: fileStartOffset,
+      fileOffset: fileOffset,
+      fileEndOffset: fileEndOffset,
+    )..parent = declarationNode;
   }
 
   DartType _computeMemberType(Member member) {
@@ -748,7 +747,7 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
   /// defined.
-  CombinedClassMemberSignature.internal(
+  new internal(
     ClassMembersBuilder membersBuilder,
     this.classBuilder,
     int? canonicalMemberIndex,
@@ -767,7 +766,7 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedClassMemberSignature(
+  new(
     ClassMembersBuilder membersBuilder,
     this.classBuilder,
     List<ClassMember> members, {
@@ -807,7 +806,7 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedExtensionTypeMemberSignature(
+  new(
     ClassMembersBuilder membersBuilder,
     this.extensionTypeDeclarationBuilder,
     List<ClassMember> members, {

@@ -51,10 +51,6 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
       bytes_length_(0),
       milliseconds_overdue_(0),
       timestamp_(OS::GetCurrentTimeMillis()) {
-  // We should never generate events for the vm isolate as it is never reported
-  // over the service.
-  ASSERT(isolate_ != Dart::vm_isolate());
-
   // VM-internal isolates should never post service events outside of the
   // following cases:
   //   - The `Isolate` service object uses a service event to represent the

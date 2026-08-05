@@ -50,6 +50,8 @@ EXECUTABLE_NAMES = {
         'run_vm_tests': 'run_vm_tests',
         'flutter_tester': 'flutter_tester',
         'git': 'git',
+        'qemu': 'qemu-system-x86_64-headless',
+        'emulator': 'emulator',
     },
     'macos': {
         'chrome': 'Chrome',
@@ -107,6 +109,11 @@ def GetOptions():
         type='choice',
         choices=true_or_false,
         help="Kill all browser processes")
+    parser.add_option("--kill_android",
+                      default='True',
+                      type='choice',
+                      choices=true_or_false,
+                      help="Kill all android processes")
     (options, args) = parser.parse_args()
     return options
 
@@ -291,6 +298,12 @@ def KillDart():
     return status
 
 
+def KillAndroidEmulator():
+    status = Kill('qemu')
+    status += Kill('emulator')
+    return status
+
+
 def Main():
     options = GetOptions()
     status = 0
@@ -306,6 +319,8 @@ def Main():
         status += KillVSBuild()
     if options.kill_browsers == 'True':
         status += KillBrowsers()
+    if options.kill_android == 'True':
+        status += KillAndroidEmulator()
     return status
 
 

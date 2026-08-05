@@ -32,7 +32,7 @@ Future<void> main(List<String> args) async {
 }
 
 class InferredTypeArgumentDataComputer extends CfeDataComputer<List<DartType>> {
-  const InferredTypeArgumentDataComputer();
+  const new();
 
   @override
   DataInterpreter<List<DartType>> get dataValidator =>
@@ -51,9 +51,10 @@ class InferredTypeArgumentDataComputer extends CfeDataComputer<List<DartType>> {
     Map<Id, ActualData<List<DartType>>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
     member.accept(
       new InferredTypeArgumentDataExtractor(
         testResultData.compilerResult,
@@ -70,7 +71,7 @@ class InferredTypeArgumentDataExtractor
   final Map<Node, Node> externalToInternalNodeMap;
   final TypeInferenceResultForTesting typeInferenceResult;
 
-  InferredTypeArgumentDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     this.externalToInternalNodeMap,
     this.typeInferenceResult,
@@ -92,7 +93,7 @@ class InferredTypeArgumentDataExtractor
 
 class _InferredTypeArgumentsDataInterpreter
     implements DataInterpreter<List<DartType>> {
-  const _InferredTypeArgumentsDataInterpreter();
+  const new();
 
   @override
   String getText(List<DartType> actualData, [String? indentation]) {

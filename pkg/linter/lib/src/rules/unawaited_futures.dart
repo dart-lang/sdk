@@ -19,8 +19,7 @@ const _desc =
     '`await`ed or marked `unawaited` using `dart:async`.';
 
 class UnawaitedFutures extends AnalysisRule {
-  UnawaitedFutures()
-    : super(name: LintNames.unawaited_futures, description: _desc);
+  new() : super(name: LintNames.unawaited_futures, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unawaitedFutures;
@@ -32,6 +31,7 @@ class UnawaitedFutures extends AnalysisRule {
   ) {
     var visitor = UnusedFuturesVisitor(
       rule: this,
+      typeProvider: context.typeProvider,
       isInteresting: (node) {
         var type = node.staticType;
         // This rule is not currently concerned with `FutureOr`.

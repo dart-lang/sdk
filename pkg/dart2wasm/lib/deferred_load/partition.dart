@@ -81,7 +81,12 @@ Partitioning partitionAppplication(
     loadingMap,
     assertsEnabled,
   );
-  final algorithm = _Algorithm(component, depsCollector, constraints);
+  final algorithm = _Algorithm(
+    component,
+    loadingMap.rootImport,
+    depsCollector,
+    constraints,
+  );
   return algorithm.run(roots, selectorRoots);
 }
 
@@ -91,6 +96,12 @@ class Partitioning {
   final Map<Reference, Part> referenceToPart;
   final Map<Constant, Part> constantToPart;
   final Map<LibraryDependency, Set<Part>> deferredImportToParts;
+  // Maps each deferred import to a dedicated [Part] which is only used for that
+  // import.
+  //
+  // NOTE: Only non-leaves in the dominator tree are guaranteed to have one.
+  final Map<LibraryDependency, Part> deferredImportPart;
+  final Dominators dominators;
 
   Partitioning(
     this.root,
@@ -98,6 +109,8 @@ class Partitioning {
     this.referenceToPart,
     this.constantToPart,
     this.deferredImportToParts,
+    this.deferredImportPart,
+    this.dominators,
   );
 
   String toText(Uri baseUri, {bool includeRoot = false}) {
@@ -191,6 +204,7 @@ class Partitioning {
 
 class _Algorithm {
   final Component component;
+  final LibraryDependency rootImport;
   final DependenciesCollector depsCollector;
   final ConstraintData? userConstraints;
 
@@ -211,18 +225,17 @@ class _Algorithm {
   final Map<Reference, ImportSet> referenceToImportSet = {};
   final Map<Constant, ImportSet> constantToImportSet = {};
 
-  _Algorithm(this.component, this.depsCollector, this.userConstraints);
+  _Algorithm(
+    this.component,
+    this.rootImport,
+    this.depsCollector,
+    this.userConstraints,
+  );
 
   Partitioning run(Set<Reference> roots, Set<int> selectorRoots) {
     collectDependencies(roots);
 
     // Sentinel used to represent the artificial import of all roots.
-    final rootLibrary = Library(Uri.parse(r'root'), fileUri: Uri());
-    final rootImport = LibraryDependency.import(
-      Library(Uri(), fileUri: Uri()),
-      name: r'$root',
-    )..parent = rootLibrary;
-
     deferSelectors(rootImport, roots, selectorRoots);
 
     final dominators = deferSelectors(rootImport, roots, selectorRoots);
@@ -255,17 +268,22 @@ class _Algorithm {
     final namedNodes = ProgramSplitBuilder();
     final orderNodes = <OrderNode>[];
 
+    final filteredUserConstraints = _filterUserConstraints(
+      userConstraints,
+      allDeferredImportsIncludingRoot,
+    );
+
     // If user provided constraints, initialize from them.
     final existingNames = <String, NamedNode>{};
-    if (userConstraints != null) {
-      for (final named in userConstraints!.named) {
+    if (filteredUserConstraints != null) {
+      for (final named in filteredUserConstraints.named) {
         if (named is ReferenceNode) {
           final import = UriAndPrefix(named.uri, named.prefix).toString();
           existingNames[import] = named;
         }
         namedNodes.namedNodes[named.name] = named;
       }
-      for (final ordered in userConstraints!.ordered) {
+      for (final ordered in filteredUserConstraints.ordered) {
         orderNodes.add(ordered);
       }
     }
@@ -296,6 +314,94 @@ class _Algorithm {
     return psc.KernelBuilder(
       allConstraints,
     ).build(allDeferredImportsIncludingRoot);
+  }
+
+  ConstraintData? _filterUserConstraints(
+    ConstraintData? userConstraints,
+    Set<LibraryDependency> allDeferredImportsIncludingRoot,
+  ) {
+    if (userConstraints == null) return null;
+
+    /// The set of all prefixes (even unreachable ones).
+    final allPrefixNames = <String>{
+      for (final library in component.libraries)
+        for (final import in library.dependencies)
+          if (import.isDeferred) import.uriPrefix,
+    };
+
+    /// The set of reachable prefixes.
+    final validImportPrefixes = allDeferredImportsIncludingRoot
+        .map((d) => d.uriPrefix)
+        .toSet();
+
+    final newNamedNodes = <NamedNode, NamedNode>{};
+
+    // Find [ReferenceNode]s that exist.
+    for (final NamedNode node in userConstraints.named) {
+      if (node is ReferenceNode) {
+        final importPrefix = UriAndPrefix(node.uri, node.prefix).toString();
+        if (validImportPrefixes.contains(importPrefix)) {
+          newNamedNodes[node] = node;
+          continue;
+        }
+        if (!allPrefixNames.contains(importPrefix)) {
+          throw StateError('The library $importPrefix is not known.');
+        }
+        // The [importPrefix] is in the Kernel AST but unreachable. This can
+        // happen due to RTA+TFA leaving unreachable code behind. We therefore
+        // prune this node and simplify or remove depending constraint nodes
+        // below.
+      }
+    }
+
+    // Prune or remove [CombinerNode]s.
+    for (final NamedNode node in userConstraints.named) {
+      if (node is CombinerNode) {
+        final Set<ReferenceNode> remaining = node.nodes
+            .where(newNamedNodes.containsKey)
+            .toSet();
+        if (remaining.isEmpty) continue;
+        if (node.type == CombinerType.and &&
+            remaining.length < node.nodes.length) {
+          continue;
+        }
+        if (remaining.length == 1) {
+          newNamedNodes[node] = remaining.first;
+        } else {
+          newNamedNodes[node] = CombinerNode(node.name, node.type, remaining);
+        }
+      }
+    }
+
+    // Filter/prune [OrderNode]s.
+    final newOrderNodes = <OrderNode>[];
+    for (final node in userConstraints.ordered) {
+      if (node is RelativeOrderNode) {
+        final predecessor = newNamedNodes[node.predecessor];
+        final successor = newNamedNodes[node.successor];
+        if (predecessor != null && successor != null) {
+          newOrderNodes.add(
+            RelativeOrderNode(predecessor: predecessor, successor: successor),
+          );
+        }
+        continue;
+      }
+      if (node is FuseNode) {
+        final newNodes = <NamedNode>{};
+        for (final node in node.nodes) {
+          final newNode = newNamedNodes[node];
+          if (newNode == null) continue;
+          newNodes.add(newNode);
+        }
+        if (newNodes.length >= 2) {
+          newOrderNodes.add(FuseNode(newNodes));
+        }
+        continue;
+      }
+      throw StateError('Unknown order node $node.');
+    }
+
+    return ConstraintData(newNamedNodes.values.toList(), newOrderNodes);
   }
 
   void collectDependencies(Set<Reference> roots) {
@@ -499,6 +605,7 @@ class _Algorithm {
     final destinationUsages = prefixDominatorUsages.usages[destination.prefix]!;
     if (destinationUsages.selectorIds.contains(selectorId) ||
         destinationUsages.selectorNames.contains(selectorName)) {
+      assert(destination.prefix != rootImport);
       deferredUses.add(destination.prefix);
       return;
     }
@@ -583,6 +690,16 @@ class _Algorithm {
       }
     }
 
+    final deferredImportPart = <LibraryDependency, Part>{};
+    dominators.root.visitDFS((node) {
+      if (node.children.isEmpty) return;
+
+      final prefix = node.prefix;
+      final importSet = importSets.initialSets[prefix]!;
+      final part = importSet.part ??= Part(false, importSet.toSet());
+      deferredImportPart[prefix] = part;
+    });
+
     // Now we can prune the load lists: If a parent is guaranteed to have loaded
     // a part, then there's no need to include that part in a child's load list.
     final alreadyLoaded = <LibraryDependency, Set<Part>>{};
@@ -603,6 +720,8 @@ class _Algorithm {
       referenceToPart,
       constantToPart,
       deferredInputLoadingList,
+      deferredImportPart,
+      dominators,
     );
   }
 

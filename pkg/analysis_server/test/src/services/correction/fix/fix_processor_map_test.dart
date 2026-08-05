@@ -20,12 +20,14 @@ class FixProcessorMapTest {
   static const List<String> lintsAllowedToHaveMultipleBulkFixes = [
     'avoid_types_on_closure_parameters',
     'empty_statements',
-    'prefer_collection_literals',
-    'prefer_const_constructors',
-    'prefer_inlined_adds',
     'omit_local_variable_types',
     'omit_obvious_local_variable_types',
     'omit_obvious_property_types',
+    'prefer_collection_literals',
+    'prefer_const_constructors',
+    'prefer_inlined_adds',
+    // This is safe because the two fixes are mutually exclusive.
+    'use_primary_constructors',
   ];
 
   static const List<String> warningsAllowedToHaveMultipleBulkFixes = [

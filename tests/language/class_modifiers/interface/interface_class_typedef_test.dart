@@ -6,6 +6,7 @@
 // multiple classes in the same library.
 
 import 'package:expect/expect.dart';
+
 import 'interface_class_typedef_lib.dart';
 
 main() {

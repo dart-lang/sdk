@@ -2,49 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSuperGetterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UndefinedSuperGetterTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {
   get g {
     return super.g;
+//               ^
+// [diag.undefinedSuperGetter] The getter 'g' isn't defined in a superclass of 'B'.
   }
 }
-''',
-      [error(diag.undefinedSuperGetter, 58, 1)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   void f() {
     super.foo;
+//        ^^^
+// [diag.undefinedSuperGetter] The getter 'foo' isn't defined in a superclass of 'E'.
   }
 }
-''',
-      [error(diag.undefinedSuperGetter, 37, 3)],
-    );
+''');
   }
 
   test_enum_OK() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
 }

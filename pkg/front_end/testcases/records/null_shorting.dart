@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-test((int, String, {double d, void Function() f, Class c})? record,
-      List<(int, String, {double d, void Function() f, Class c})>? list) {
+test(
+  (int, String, {double d, void Function() f, Class c})? record,
+  List<(int, String, {double d, void Function() f, Class c})>? list,
+) {
   record.$1; // Error
   record.$2; // Error
   record.d; // Error

@@ -18,7 +18,7 @@ import '../extensions.dart';
 const _desc = r'Avoid catches without on clauses.';
 
 class AvoidCatchesWithoutOnClauses extends AnalysisRule {
-  AvoidCatchesWithoutOnClauses()
+  new()
     : super(
         name: LintNames.avoid_catches_without_on_clauses,
         description: _desc,
@@ -42,7 +42,7 @@ class _CaughtExceptionUseVisitor extends RecursiveAstVisitor<void> {
 
   var exceptionWasUsed = false;
 
-  _CaughtExceptionUseVisitor(this.caughtException);
+  new(this.caughtException);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -59,7 +59,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 
   var _canRethrow = true;
 
-  _ValidUseVisitor(this.caughtException);
+  new(this.caughtException);
 
   @override
   void visitCatchClause(CatchClause node) {
@@ -137,7 +137,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCatchClause(CatchClause node) {

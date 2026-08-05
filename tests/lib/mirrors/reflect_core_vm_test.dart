@@ -5,6 +5,7 @@
 // Test reflection of private functions in core classes.
 
 import "package:expect/expect.dart";
+
 import "dart:mirrors";
 
 main() {

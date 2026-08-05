@@ -9,7 +9,7 @@ import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/src/util/platform_info.dart';
 
 class FeedbackPage extends DiagnosticPage {
-  FeedbackPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'feedback',

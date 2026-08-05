@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperFormalParameterWithoutAssociatedNamedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,54 +18,50 @@ main() {
 class SuperFormalParameterWithoutAssociatedNamedTest
     extends PubPackageResolutionTest {
   test_explicit_optional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
   B({super.a}) : super();
+//         ^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterWithoutAssociatedNamed, 43, 1)],
-    );
+''');
   }
 
   test_explicit_required() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
   B({required super.a}) : super();
+//                  ^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterWithoutAssociatedNamed, 52, 1)],
-    );
+''');
   }
 
   test_implicit_optional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
   B({super.a});
+//         ^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterWithoutAssociatedNamed, 43, 1)],
-    );
+''');
   }
 
   test_implicit_required() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
   B({required super.a});
+//                  ^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterWithoutAssociatedNamed, 52, 1)],
-    );
+''');
   }
 }

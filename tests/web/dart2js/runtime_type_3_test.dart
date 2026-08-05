@@ -5,6 +5,7 @@
 // dart2jsOptions=--no-minify
 
 import "package:expect/expect.dart";
+
 import "dart:_foreign_helper" show JS;
 
 main() {

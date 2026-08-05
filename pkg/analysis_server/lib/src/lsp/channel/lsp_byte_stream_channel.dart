@@ -25,7 +25,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   final InstrumentationService _instrumentationService;
 
   /// The session logger.
-  final SessionLogger _sessionLogger;
+  final SessionLogger? _sessionLogger;
 
   /// Completer that will be signalled when the input stream is closed.
   final Completer<void> _closed = Completer();
@@ -33,12 +33,12 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   /// True if [close] has been called.
   bool _closeRequested = false;
 
-  LspByteStreamServerChannel(
+  new(
     this._input,
     this._output,
     this._instrumentationService, {
-    SessionLogger? sessionLogger,
-  }) : _sessionLogger = sessionLogger ?? SessionLogger();
+    this._sessionLogger,
+  });
 
   /// Future that will be completed when the input stream is closed.
   @override
@@ -94,7 +94,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     }
     _instrumentationService.logRequest(data);
     var json = jsonDecode(data) as Map<String, Object?>;
-    _sessionLogger.logMessage(
+    _sessionLogger?.logMessage(
       from: ProcessId.ide,
       to: ProcessId.server,
       message: json,
@@ -129,7 +129,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     _write(utf8EncodedBody);
 
     _instrumentationService.logResponse(jsonEncodedBody);
-    _sessionLogger.logMessage(
+    _sessionLogger?.logMessage(
       from: ProcessId.server,
       to: ProcessId.ide,
       message: json,

@@ -18,7 +18,7 @@ const String F = 'F';
 class TestGraph implements Graph<String> {
   final Map<String, List<String>> graph;
 
-  TestGraph(this.graph);
+  new(this.graph);
 
   @override
   Iterable<String> get vertices => graph.keys;

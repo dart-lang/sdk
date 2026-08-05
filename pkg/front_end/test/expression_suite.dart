@@ -41,7 +41,7 @@ import "package:kernel/ast.dart"
         Procedure,
         TreeNode,
         TypeParameter,
-        VariableDeclaration;
+        PositionalParameter;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 import "package:testing/src/log.dart" show splitLines;
@@ -50,10 +50,10 @@ import "package:testing/testing.dart"
 import 'package:vm/modular/target/vm.dart' show VmTarget;
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
+import 'testing/environment_keys.dart';
 import 'testing_utils.dart' show checkEnvironment;
 import 'utils/kernel_chain.dart' show runDiff, openWrite;
 import 'utils/suite_utils.dart';
-import 'testing/environment_keys.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
@@ -66,7 +66,7 @@ class Context extends ChainContext {
   final Set<Uri> fuzzedLibraries = {};
   int fuzzCompiles = 0;
 
-  Context(this.compilerContext, this.errors, bool updateExpectations, this.fuzz)
+  new(this.compilerContext, this.errors, bool updateExpectations, this.fuzz)
     : steps = <Step>[
         const ReadTest(),
         const CompileExpression(),
@@ -103,11 +103,7 @@ class CompilationResult {
   Procedure? compiledProcedure;
   List<CfeDiagnosticMessage> errors;
 
-  CompilationResult(
-    this.compiledInLibrary,
-    this.compiledProcedure,
-    this.errors,
-  );
+  new(this.compiledInLibrary, this.compiledProcedure, this.errors);
 
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
@@ -170,7 +166,7 @@ class TestCase {
 
   List<CompilationResult> results = [];
 
-  TestCase(
+  new(
     this.description,
     this.sources,
     this.entryPoint,
@@ -206,7 +202,7 @@ class TestCase {
 
 class OutputParametersMatches
     extends Step<List<TestCase>, List<TestCase>, Context> {
-  const OutputParametersMatches();
+  const new();
 
   @override
   String get name => "output parameters matches";
@@ -222,7 +218,7 @@ class OutputParametersMatches
             fail(tests, "Compiled expression contains named parameters."),
           );
         }
-        List<VariableDeclaration> positionals =
+        List<PositionalParameter> positionals =
             compiledProcedure.function.positionalParameters;
         if (positionals.length != test.definitions.length) {
           return Future.value(
@@ -232,17 +228,25 @@ class OutputParametersMatches
               "positional parameters: Expected ${test.definitions.length} "
               "(${test.definitions.join(", ")}) "
               "but had ${positionals.length} "
-              "(${positionals.map((p) => p.name).join(", ")}).",
+              "(${positionals.map((p) => p.cosmeticName).join(", ")}).",
             ),
           );
         }
         for (int i = 0; i < positionals.length; i++) {
-          if (positionals[i].name != test.definitions[i]) {
+          String? positionalName = positionals[i].cosmeticName;
+          if (positionalName != test.definitions[i]) {
+            if (positionalName != null &&
+                positionalName.startsWith("_") &&
+                positionalName.substring(1) == test.definitions[i]) {
+              // Probably a renamed private named variable.
+              continue;
+            }
             return Future.value(
               fail(
                 tests,
                 "Compiled expression doesn't contain '${test.definitions[i]}' "
-                "but '${positionals[i].name}' as positional parameter $i.",
+                "but '${positionals[i].cosmeticName}' as positional parameter "
+                "$i.",
               ),
             );
           }
@@ -259,10 +263,7 @@ class MatchProcedureExpectations
   final String suffix;
   final bool updateExpectations;
 
-  const MatchProcedureExpectations(
-    this.suffix, {
-    this.updateExpectations = false,
-  });
+  const new(this.suffix, {this.updateExpectations = false});
 
   @override
   String get name => "match expectations";
@@ -322,7 +323,7 @@ $actual""");
 }
 
 class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
-  const ReadTest();
+  const new();
 
   @override
   String get name => "read test";
@@ -432,7 +433,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
 }
 
 class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
-  const CompileExpression();
+  const new();
 
   @override
   String get name => "compile expression";
@@ -445,10 +446,12 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     IncrementalCompilerResult compilerResult,
     Context context,
   ) async {
+    Set<String> definitionsAddedByUser = {};
     Map<String, DartType>? definitions = createDefinitionsWithTypes(
       compilerResult.classHierarchy.knownLibraries,
       test.definitionTypes,
       test.definitions,
+      definitionsAddedByUser,
     );
 
     if (definitions == null) {
@@ -485,6 +488,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       typeParams,
       "debugExpr",
       test.library,
+      definitionsAddedByUser: definitionsAddedByUser,
       className: test.className,
       methodName: test.methodName,
       isStatic: test.isStaticMethod,

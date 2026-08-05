@@ -9,15 +9,16 @@ import "package:expect/expect.dart";
 const printString = "print";
 const var1 = Simple(printString);
 //           ^
-// [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+// [cfe] A const constructor can't have a body.
+
 class Simple {
   final String name;
 
   const Simple(this.name) {
-//^
-// [cfe] A const constructor can't have a body.
-//                        ^
-// [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
+    // [error column 3]
+    // [cfe] A const constructor can't have a body.
+    //                    ^
+    // [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
     assert(this.name == printString);
   }
 }

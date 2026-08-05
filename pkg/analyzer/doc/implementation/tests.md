@@ -132,7 +132,7 @@ a separate line. For example:
 
 ```dart
   Future<void> test_final_noInitializer() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   abstract final int x;
 }

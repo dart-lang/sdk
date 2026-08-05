@@ -32,7 +32,7 @@ class LinkedElementFactory {
 
   final AnalysisContextImpl analysisContext;
   AnalysisSessionImpl analysisSession;
-  final Reference rootReference;
+  final RootReference rootReference;
   final Map<Uri, LibraryReader> _libraryReaders = {};
   bool isApplyingInformativeData = false;
   final Map<Uri, LibraryManifestHandle> libraryManifests = {};
@@ -54,8 +54,8 @@ class LinkedElementFactory {
     return libraryOfUri2(_dartCoreUri);
   }
 
-  Reference get dynamicRef {
-    return rootReference.getChild('dart:core').getChild('dynamic');
+  BuiltInReference get dynamicRef {
+    return rootReference.getOrCreateLibrary(_dartCoreUri).dynamicRef;
   }
 
   /// Returns URIs for which [LibraryElementImpl] is ready.
@@ -82,15 +82,12 @@ class LinkedElementFactory {
     _libraryReaders.addAll(libraries);
   }
 
-  Namespace buildExportNamespace(
-    Uri uri,
-    List<ExportedReference> exportedReferences,
-  ) {
+  Namespace buildExportNamespace(Uri uri, List<ExportEntry> exportEntries) {
     var exportedNames = <String, Element>{};
 
-    for (var exportedReference in exportedReferences) {
-      var element = elementOfReference3(exportedReference.reference);
-      exportedNames[element.lookupName!] = element;
+    for (var entry in exportEntries) {
+      var element = elementOfReference3(entry.reference);
+      exportedNames[entry.name] = element;
     }
 
     return Namespace(exportedNames);
@@ -138,28 +135,21 @@ class LinkedElementFactory {
       return element;
     }
 
-    if (reference.isLibrary) {
-      var uri = uriCache.parse(reference.name);
+    if (reference case LibraryReference(:var uri)) {
       var result = _createLibraryElementForReading(uri);
       result ?? _reportMissingLibrary(uri);
       return result;
     }
 
-    var parentRef = reference.parentNotContainer;
-    var parentElement = elementOfReference3(parentRef);
+    var enclosingRef = reference.enclosingReference;
+    if (enclosingRef == null) {
+      throw StateError('Expected an enclosing declaration: $reference');
+    }
+    var enclosingElement = elementOfReference3(enclosingRef);
 
     // Read lazy children.
-    switch (parentElement) {
-      case ClassElementImpl():
-        parentElement.ensureReadMembers();
-      case EnumElementImpl():
-        parentElement.ensureReadMembers();
-      case ExtensionElementImpl():
-        parentElement.ensureReadMembers();
-      case ExtensionTypeElementImpl():
-        parentElement.ensureReadMembers();
-      case MixinElementImpl():
-        parentElement.ensureReadMembers();
+    if (enclosingElement is InstanceElementImpl) {
+      enclosingElement.ensureReadMembers();
     }
 
     var element = reference.element;
@@ -174,7 +164,7 @@ class LinkedElementFactory {
   }
 
   LibraryElementImpl? libraryOfUri(Uri uri) {
-    var reference = rootReference.getChild('$uri');
+    var reference = rootReference.getOrCreateLibrary(uri);
     if (reference.element case LibraryElementImpl element) {
       return element;
     }
@@ -200,7 +190,7 @@ class LinkedElementFactory {
     for (var uri in uriSet) {
       _libraryReaders.remove(uri);
       libraryManifests.remove(uri);
-      var libraryReference = rootReference.removeChild('$uri');
+      var libraryReference = rootReference.removeLibrary(uri);
       _disposeLibrary(libraryReference?.element);
     }
 
@@ -273,7 +263,7 @@ class LinkedElementFactory {
   void _disposeLibrary(ElementImpl? libraryElement) {}
 
   Never _reportMissingLibrary(Uri uri) {
-    var rootChildren = rootReference.children.map((e) => e.name).toList();
+    var rootChildren = rootReference.children.map((e) => e.uriString).toList();
     if (rootChildren.length > 50) {
       rootChildren = [
         ...rootChildren.take(50),

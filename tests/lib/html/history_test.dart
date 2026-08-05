@@ -5,8 +5,13 @@
 library HistoryTest;
 
 import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+
 import 'dart:html';
 import 'dart:async';
+
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
+confuse(f) => f;
 
 main() {
   var expectation = History.supportsState ? returnsNormally : throws;
@@ -69,7 +74,7 @@ main() {
 
   test('popstatevent', () {
     expect(() {
-      var event = new Event.eventType('PopStateEvent', 'popstate');
+      var event = confuse(PopStateEvent('popstate'));
       expect(event is PopStateEvent, true);
     }, expectation);
   });

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,51 +17,34 @@ class InitializerForNonExistentFieldTest extends PubPackageResolutionTest {
   test_const() async {
     // Check that the absence of a matching field doesn't cause a
     // crash during constant evaluation.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A() : x = 'foo';
+//            ^^^^^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
 }
 A a = const A();
-''',
-      [
-        error(
-          diag.initializerForNonExistentField,
-          24,
-          9,
-          messageContains: ["'x'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   A() : x = 0;
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
 }
-''',
-      [
-        error(
-          diag.initializerForNonExistentField,
-          36,
-          5,
-          messageContains: ["'x'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() : x = 0 {}
+//      ^^^^^
+// [diag.initializerForNonExistentField] 'x' isn't a field in the enclosing class.
 }
-''',
-      [error(diag.initializerForNonExistentField, 18, 5)],
-    );
+''');
   }
 }

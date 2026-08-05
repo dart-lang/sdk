@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,22 +15,21 @@ main() {
 @reflectiveTest
 class InvalidExtensionArgumentCountTest extends PubPackageResolutionTest {
   test_many() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   void m() {}
 }
 f() {
   E('a', 'b', 'c').m();
+// ^^^^^^^^^^^^^^^
+// [diag.invalidExtensionArgumentCount] Extension overrides must have exactly one argument: the value of 'this' in the extension method.
 }
-''',
-      [error(diag.invalidExtensionArgumentCount, 49, 15)],
-    );
-    assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
+''');
+    assertTypeDynamic(result.findNode.extensionOverride('E(').extendedType);
   }
 
   test_one() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   void m() {}
 }
@@ -42,17 +40,16 @@ f() {
   }
 
   test_zero() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   void m() {}
 }
 f() {
   E().m();
+// ^^
+// [diag.invalidExtensionArgumentCount] Extension overrides must have exactly one argument: the value of 'this' in the extension method.
 }
-''',
-      [error(diag.invalidExtensionArgumentCount, 49, 2)],
-    );
-    assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
+''');
+    assertTypeDynamic(result.findNode.extensionOverride('E(').extendedType);
   }
 }

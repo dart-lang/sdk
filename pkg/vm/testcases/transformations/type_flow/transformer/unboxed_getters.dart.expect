@@ -14,7 +14,7 @@ class BI1A extends core::Object implements self::BI1 {
   final field core::int? value;
 
   [@vm.unboxing-info.metadata=(i)->b]
-  constructor •([@vm.inferred-arg-type.metadata=int] core::int? value) → self::BI1A
+  constructor •([@vm.inferred-arg-type.metadata=int] initializing-formal core::int? value) → self::BI1A
     : self::BI1A::value = value, super core::Object::•()
     ;
 }
@@ -67,7 +67,7 @@ class BI3A extends core::Object implements self::BI3 {
   field core::int? value;
 
   [@vm.unboxing-info.metadata=(i)->b]
-  constructor •([@vm.inferred-arg-type.metadata=int] core::int? value) → self::BI3A
+  constructor •([@vm.inferred-arg-type.metadata=int] initializing-formal core::int? value) → self::BI3A
     : self::BI3A::value = value, super core::Object::•()
     ;
 }
@@ -98,7 +98,7 @@ class UBIA extends core::Object implements self::UBI {
   field core::int? value;
 
   [@vm.unboxing-info.metadata=(i)->b]
-  constructor •([@vm.inferred-arg-type.metadata=int] core::int? value) → self::UBIA
+  constructor •([@vm.inferred-arg-type.metadata=int] initializing-formal core::int? value) → self::UBIA
     : self::UBIA::value = value, super core::Object::•()
     ;
 }

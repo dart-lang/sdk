@@ -11,7 +11,7 @@ extension type ET3<T extends core::num>(core::int id) {
   static redirecting-factory f1 = self::ET3|constructor#f1;
   static redirecting-factory tearoff f1 = self::ET3|constructor#_#f1#tearOff;
 }
-static extension-type-member const method ET3|constructor#<T extends core::num>(core::int id) → self::ET3<self::ET3|constructor#::T>% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ET3|constructor#<T extends core::num>(initializing-formal core::int id) → self::ET3<self::ET3|constructor#::T>% /* erasure=core::int, declared=! */ {
   lowered final self::ET3<self::ET3|constructor#::T>% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }

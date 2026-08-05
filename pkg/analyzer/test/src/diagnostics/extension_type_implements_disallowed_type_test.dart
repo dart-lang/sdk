@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,92 +16,84 @@ main() {
 class ExtensionTypeImplementsDisallowedTypeTest
     extends PubPackageResolutionTest {
   test_dynamicType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements X {}
+//                                  ^
+// [diag.extensionTypeImplementsDisallowedType] Extension types can't implement 'dynamic'.
 typedef X = dynamic;
-''',
-      [error(diag.extensionTypeImplementsDisallowedType, 36, 1)],
-    );
+''');
   }
 
   test_functionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements X {}
+//                                  ^
+// [diag.extensionTypeImplementsDisallowedType] Extension types can't implement 'X'.
 typedef X = void Function();
-''',
-      [error(diag.extensionTypeImplementsDisallowedType, 36, 1)],
-    );
+''');
   }
 
   test_interfaceType_extensionTyp() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements X {}
 extension type X(num it) {}
 ''');
   }
 
   test_interfaceType_function() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements Function {}
-''',
-      [error(diag.extensionTypeImplementsDisallowedType, 36, 8)],
-    );
+//                                  ^^^^^^^^
+// [diag.extensionTypeImplementsDisallowedType] Extension types can't implement 'Function'.
+''');
   }
 
   test_interfaceType_futureOr() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements FutureOr<int> {}
-''',
-      [error(diag.extensionTypeImplementsDisallowedType, 36, 13)],
-    );
+//                                  ^^^^^^^^^^^^^
+// [diag.extensionTypeImplementsDisallowedType] Extension types can't implement 'InvalidType'.
+''');
   }
 
   test_interfaceType_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements X {}
+//                                  ^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
 typedef X = num?;
-''',
-      [error(diag.nullableTypeInImplementsClause, 36, 1)],
-    );
+''');
   }
 
   test_interfaceType_num() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements num {}
 ''');
   }
 
   test_recordType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements X {}
+//                                  ^
+// [diag.extensionTypeImplementsDisallowedType] Extension types can't implement 'X'.
 typedef X = (int, String);
-''',
-      [error(diag.extensionTypeImplementsDisallowedType, 36, 1)],
-    );
+''');
   }
 
   test_typeParameterType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) implements T {}
-''',
-      [error(diag.extensionTypeImplementsDisallowedType, 39, 1)],
-    );
+//                                     ^
+// [diag.extensionTypeImplementsDisallowedType] Extension types can't implement 'T'.
+''');
   }
 
   test_voidType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements X {}
+//                                  ^
+// [diag.extensionTypeImplementsDisallowedType] Extension types can't implement 'void'.
 typedef X = void;
-''',
-      [error(diag.extensionTypeImplementsDisallowedType, 36, 1)],
-    );
+''');
   }
 }

@@ -104,6 +104,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     codeGeneratorSettings.languageName = 'dart';
   }
 
+  @override
+  String get regenScript => 'pkg/analyzer_plugin/tool/spec/generate_all.dart';
+
   /// Compute the code necessary to compare two objects for equality.
   String compareEqualsCode(TypeDecl type, String thisVar, String otherVar) {
     var resolvedType = resolveTypeReferenceChain(type);

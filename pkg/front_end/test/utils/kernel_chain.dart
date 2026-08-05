@@ -6,8 +6,6 @@ import 'dart:async';
 import 'dart:io' show Directory, File, IOSink, Platform;
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
-    show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
@@ -50,8 +48,8 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
-import '../testing/suite.dart' show CompilationSetup, CompileMode;
 import '../test_utils.dart';
+import '../testing/suite.dart' show CompilationSetup, CompileMode;
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
 
@@ -141,7 +139,7 @@ $actual""", autoFixCommand: updateExpectationsOption);
 class ErrorCommentChecker
     extends Step<ComponentResult, ComponentResult, ChainContext> {
   final CompileMode compileMode;
-  const ErrorCommentChecker(this.compileMode);
+  const new(this.compileMode);
   static const bool throwOnNoMatch = false;
 
   @override
@@ -357,7 +355,6 @@ class ErrorCommentChecker
     Uint8List rawBytes = f.readAsBytesSync();
     Utf8BytesScanner scanner = new Utf8BytesScanner(
       rawBytes,
-      configuration: const ScannerConfiguration(enableTripleShift: true),
       includeComments: true,
       languageVersionChanged: (scanner, languageVersion) {
         // Nothing - but don't overwrite the previous settings.
@@ -409,7 +406,7 @@ class ErrorCommentChecker
 }
 
 class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
-  const Print();
+  const new();
 
   @override
   String get name => "print";
@@ -425,6 +422,11 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
       Printer printer = new Printer(
         sb,
         showOffsets: result.compilationSetup.folderOptions.showOffsets,
+        isClosureContextLoweringEnabled: result
+            .sourceTarget
+            .backendTarget
+            .flags
+            .isClosureContextLoweringEnabled,
       );
       for (Library library in component.libraries) {
         if (result.userLibraries.contains(library.importUri)) {
@@ -439,7 +441,7 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
 }
 
 class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
-  const TypeCheck();
+  const new();
 
   @override
   String get name => "typeCheck";
@@ -483,7 +485,7 @@ class MatchExpectation
   /// located at [suffix]. If [serializeFirst] is true, the input component will
   /// be serialized, deserialized, and the textual representation of that is
   /// compared. It is still the original component that is returned though.
-  const MatchExpectation(
+  const new(
     this.suffix, {
     this.serializeFirst = false,
     required this.isLastMatchStep,
@@ -586,6 +588,11 @@ class MatchExpectation
         new Printer(
           buffer,
           showOffsets: result.compilationSetup.folderOptions.showOffsets,
+          isClosureContextLoweringEnabled: result
+              .sourceTarget
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled,
         )..writeProblemsAsJson(
           "Problems in component",
           componentToText.problemsAsJson,
@@ -630,7 +637,7 @@ class MatchExpectation
 class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   final bool skipVm;
 
-  const WriteDill({required this.skipVm});
+  const new({required this.skipVm});
 
   @override
   String get name => "write .dill";
@@ -730,7 +737,7 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
 }
 
 class ReadDill extends Step<Uri, Uri, ChainContext> {
-  const ReadDill();
+  const new();
 
   @override
   String get name => "read .dill";
@@ -794,7 +801,7 @@ class ComponentResult {
   final KernelTarget sourceTarget;
   final List<String> extraConstantStrings = [];
 
-  ComponentResult(
+  new(
     this.description,
     this.component,
     this.userLibraries,

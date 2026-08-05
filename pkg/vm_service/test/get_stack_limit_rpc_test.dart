@@ -2,34 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:developer';
-
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
-
-Future<void> bar(int depth) async {
-  if (depth == 21) {
-    debugger();
-    return;
-  }
-  await foo(depth + 1);
-}
-
-Future<void> foo(int depth) async {
-  if (depth == 10) {
-    // Yield once to force the rest to run async.
-    // ignore: await_only_futures
-    await 0;
-  }
-  await bar(depth + 1);
-}
-
-Future<void> testMain() async {
-  await foo(0);
-}
+import 'get_stack_limit_rpc_lib.dart' as testee_lib;
 
 void verifyStack(List<Frame> frames, List<String> expectedNames) {
   for (int i = 0; i < frames.length && i < expectedNames.length; ++i) {
@@ -37,10 +14,14 @@ void verifyStack(List<Frame> frames, List<String> expectedNames) {
   }
 }
 
-final tests = <IsolateTest>[
-  hasStoppedAtBreakpoint,
-  // Get stack
-  (VmService service, IsolateRef isolateRef) async {
+void main([args = const <String>[]]) {
+  IsolateTestHarness(
+    'get_stack_limit_rpc_lib.dart',
+    args,
+  )
+      .hasStoppedAtBreakpoint()
+      // Get stack
+      .addCustomTest((VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     var stack = await service.getStack(isolateId);
 
@@ -112,9 +93,9 @@ final tests = <IsolateTest>[
       'bar',
       'foo',
     ]);
-  },
-  // Invalid limit
-  (VmService service, IsolateRef isolateRef) async {
+  })
+      // Invalid limit
+      .addCustomTest((VmService service, IsolateRef isolateRef) async {
     bool caughtException = false;
     try {
       await service.getStack(isolateRef.id!, limit: -1);
@@ -124,12 +105,5 @@ final tests = <IsolateTest>[
       caughtException = true;
     }
     expect(caughtException, true);
-  }
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'get_stack_limit_rpc_test.dart',
-      testeeConcurrent: testMain,
-    );
+  }).run(testeeMain: testee_lib.main);
+}

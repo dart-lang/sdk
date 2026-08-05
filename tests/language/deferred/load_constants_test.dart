@@ -7,6 +7,7 @@ library deferred_load_constants;
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
+
 import "load_constants.dart" deferred as foo;
 import "load_constants.dart";
 

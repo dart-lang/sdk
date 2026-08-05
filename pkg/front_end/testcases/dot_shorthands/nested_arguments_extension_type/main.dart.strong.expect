@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///main_lib.dart";
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field mai::BExt% /* erasure=mai::C, declared=! */ bExt;
-  const constructor •({required mai::BExt% /* erasure=mai::C, declared=! */ bExt}) → self::A
+  const constructor •({required initializing-formal mai::BExt% /* erasure=mai::C, declared=! */ bExt}) → self::A
     : self::A::bExt = bExt, super core::Object::•()
     ;
 }
@@ -29,7 +29,7 @@ extension type BExt(mai::C c) {
   constructor f = mai::BExt|constructor#f;
   constructor tearoff f = mai::BExt|constructor#_#f#tearOff;
 }
-static extension-type-member method BExt|constructor#(mai::C c) → mai::BExt% /* erasure=mai::C, declared=! */ {
+static extension-type-member method BExt|constructor#(initializing-formal mai::C c) → mai::BExt% /* erasure=mai::C, declared=! */ {
   lowered final mai::BExt% /* erasure=mai::C, declared=! */ #this = c;
   return #this;
 }

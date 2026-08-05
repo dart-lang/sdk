@@ -88,8 +88,7 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   }
   if (memory == nullptr) {
     bool executable = false;
-    bool compressed = false;
-    memory = VirtualMemory::Allocate(size, executable, compressed, "dart-zone");
+    memory = VirtualMemory::Allocate(size, executable, "dart-zone");
     total_size_.fetch_add(size);
   }
   if (memory == nullptr) {

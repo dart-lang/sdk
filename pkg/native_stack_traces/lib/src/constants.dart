@@ -9,17 +9,23 @@ const int buildIdNoteType = 3;
 // The name of a build ID note.
 const String buildIdNoteName = 'GNU';
 
-// The dynamic symbol name for the VM instructions section.
-const String vmSymbolName = '_kDartVmSnapshotInstructions';
-
-// The dynamic symbol name for the VM data section.
-const String vmDataSymbolName = '_kDartVmSnapshotData';
-
 // The dynamic symbol name for the isolate instructions section.
-const String isolateSymbolName = '_kDartIsolateSnapshotInstructions';
+const String textSymbolName = '_kDartSnapshotText';
 
 // The dynamic symbol name for the isolate data section.
-const String isolateDataSymbolName = '_kDartIsolateSnapshotData';
+const String dataSymbolName = '_kDartSnapshotData';
 
 // The ID for the root loading unit.
 const int rootLoadingUnitId = 1;
+
+// The dynamic symbol name for the VM instructions section.
+const String oldVmSymbolName = '_kDartVmSnapshotInstructions';
+
+// The dynamic symbol name for the VM data section.
+const String oldVmDataSymbolName = '_kDartVmSnapshotData';
+
+// The dynamic symbol name for the isolate instructions section.
+const String oldIsolateSymbolName = '_kDartIsolateSnapshotInstructions';
+
+// The dynamic symbol name for the isolate data section.
+const String oldIsolateDataSymbolName = '_kDartIsolateSnapshotData';

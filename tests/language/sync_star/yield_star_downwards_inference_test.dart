@@ -42,8 +42,28 @@ dynamic returnContextIsUnknown() {
   return g();
 }
 
+dynamic returnContextIsIterableUnknown() {
+  T f<T>(Iterable<T> Function() g) => g() as T;
+  T h<T>() => A() as T;
+
+  var x = f(
+    // Context for `f(...)` is `_`, so context for this closure is
+    // `Iterable<_> Function()`.
+    () sync* {
+      // Downward inference context for the operand of `yield*` is `_`, so `h`
+      // is instantiated as `h<dynamic>`, hence the call to `..checkThisIsA()`
+      // is allowed (it's a dynamic invocation).
+      yield* h()..checkThisIsA();
+    },
+  );
+
+  // f() returns the yielded iterable, so just return x.
+  return x;
+}
+
 main() {
   for (var _ in returnTypeIsDynamic()) {}
   for (var _ in returnTypeIsIterableDynamic()) {}
   for (var _ in returnContextIsUnknown()) {}
+  for (var _ in returnContextIsIterableUnknown()) {}
 }

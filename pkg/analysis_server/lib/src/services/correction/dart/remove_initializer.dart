@@ -18,18 +18,18 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveInitializer({required super.context})
+  new({required super.context})
     : applicability = CorrectionApplicability.singleLocation,
       _removeLate = true;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
-  RemoveInitializer.bulkFixable({required super.context})
+  new bulkFixable({required super.context})
     : applicability = CorrectionApplicability.automatically,
       _removeLate = true;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes and will not remove the `late` keyword if present.
-  RemoveInitializer.notLate({required super.context})
+  new notLate({required super.context})
     : applicability = CorrectionApplicability.singleLocation,
       _removeLate = false;
 
@@ -41,11 +41,11 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
+    var parameter = node.thisOrAncestorOfType<FormalParameter>();
     if (parameter != null) {
       // Handle formal parameters with default values.
       var identifier = parameter.name;
-      var defaultValue = parameter.defaultValue;
+      var defaultValue = parameter.defaultClause?.value;
       if (identifier != null && defaultValue != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addDeletion(range.endEnd(identifier, defaultValue));

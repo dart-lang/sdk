@@ -262,10 +262,8 @@ main() {
 }
 
 class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
-  DeleteTempFilesIncrementalCompiler(
-    CompilerContext context, [
-    Uri? initializeFromDillUri,
-  ]) : super(context, initializeFromDillUri);
+  new(CompilerContext context, [Uri? initializeFromDillUri])
+    : super(context, initializeFromDillUri);
 
   @override
   final RecorderForTesting recorderForTesting =
@@ -273,7 +271,7 @@ class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
 }
 
 class DeleteTempFilesRecorderForTesting extends RecorderForTesting {
-  const DeleteTempFilesRecorderForTesting();
+  const new();
 
   @override
   void recordTemporaryFile(Uri uri) {

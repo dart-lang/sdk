@@ -33,7 +33,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 class DartLazyTypeHierarchyComputer {
   final ResolvedUnitResult _result;
 
-  DartLazyTypeHierarchyComputer(this._result);
+  new(this._result);
 
   /// Finds subtypes for the [Element] at [location].
   Future<List<TypeHierarchyRelatedItem>?> findSubtypes(
@@ -117,10 +117,7 @@ class DartLazyTypeHierarchyComputer {
       }
     }
 
-    var matches = await searchEngine.searchSubtypes(
-      target,
-      SearchEngineCache(),
-    );
+    var matches = await searchEngine.searchSubtypes(target);
     var seenElements = <Element>{};
     return matches
         .where((match) => seenElements.add(match.element))
@@ -166,7 +163,7 @@ class TypeHierarchyAnchor {
   /// The supertype path from [location] to the target element.
   final List<int> path;
 
-  TypeHierarchyAnchor({required this.location, required this.path});
+  new({required this.location, required this.path});
 }
 
 /// An item that can appear in a Type Hierarchy.
@@ -194,7 +191,7 @@ class TypeHierarchyItem {
   /// The range of the code for the declaration of this item.
   final SourceRange codeRange;
 
-  TypeHierarchyItem({
+  new({
     required this.displayName,
     required this.location,
     required this.file,
@@ -203,14 +200,12 @@ class TypeHierarchyItem {
     required this.codeRange,
   });
 
-  TypeHierarchyItem._forElement({
-    required InterfaceElement element,
-    required this.location,
-  }) : displayName = _displayNameForElement(element),
-       nameRange = _nameRangeForElement(element),
-       codeRange = _codeRangeForElement(element),
-       file = element.firstFragment.libraryFragment.source.fullName,
-       lineInfo = element.firstFragment.libraryFragment.lineInfo;
+  new _forElement({required InterfaceElement element, required this.location})
+    : displayName = _displayNameForElement(element),
+      nameRange = _nameRangeForElement(element),
+      codeRange = _codeRangeForElement(element),
+      file = element.firstFragment.libraryFragment.source.fullName,
+      lineInfo = element.firstFragment.libraryFragment.lineInfo;
 
   static TypeHierarchyItem? forElement(InterfaceElement element) {
     var location = ElementLocation.forElement(element);
@@ -257,7 +252,7 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
   /// The relationship this item has with the target item.
   final TypeHierarchyItemRelationship relationship;
 
-  TypeHierarchyRelatedItem.forElement({
+  new forElement({
     required super.element,
     required this.relationship,
     required super.location,

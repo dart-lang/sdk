@@ -1,9 +1,11 @@
 #!/usr/bin/env dart
+
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/command_line_util.dart';
 

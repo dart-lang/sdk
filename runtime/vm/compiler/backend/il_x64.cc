@@ -1885,7 +1885,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     ASSERT(rep == kTagged);
     ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid) ||
-           (class_id() == kTypeArgumentsCid) || (class_id() == kRecordCid));
+           (class_id() == kTypeArgumentsCid) || (class_id() == kClosureCid) ||
+           (class_id() == kRecordCid));
     Register result = locs()->out(0).reg();
     __ LoadCompressed(result, element_address);
   }
@@ -2721,10 +2722,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& allocate_array_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
-  compiler->GenerateStubCall(source(), allocate_array_stub,
+  compiler->GenerateStubCall(source(), StubCode::AllocateArray(),
                              UntaggedPcDescriptors::kOther, locs(), deopt_id(),
                              env());
   __ Bind(&done);
@@ -2764,13 +2762,10 @@ class AllocateContextSlowPath
         instruction(), /*num_slow_path_args=*/0);
     ASSERT(slow_path_env != nullptr);
 
-    auto object_store = compiler->isolate_group()->object_store();
-    const auto& allocate_context_stub = Code::ZoneHandle(
-        compiler->zone(), object_store->allocate_context_stub());
-
     __ LoadImmediate(
         R10, compiler::Immediate(instruction()->num_context_variables()));
-    compiler->GenerateStubCall(instruction()->source(), allocate_context_stub,
+    compiler->GenerateStubCall(instruction()->source(),
+                               StubCode::AllocateContext(),
                                UntaggedPcDescriptors::kOther, locs,
                                instruction()->deopt_id(), slow_path_env);
     ASSERT(instruction()->locs()->out(0).reg() == RAX);
@@ -2822,12 +2817,8 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == R10);
   ASSERT(locs()->out(0).reg() == RAX);
 
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& allocate_context_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
-
   __ LoadImmediate(R10, compiler::Immediate(num_context_variables()));
-  compiler->GenerateStubCall(source(), allocate_context_stub,
+  compiler->GenerateStubCall(source(), StubCode::AllocateContext(),
                              UntaggedPcDescriptors::kOther, locs(), deopt_id(),
                              env());
 }
@@ -2847,10 +2838,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R9);
   ASSERT(locs()->out(0).reg() == RAX);
 
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& clone_context_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
-  compiler->GenerateStubCall(source(), clone_context_stub,
+  compiler->GenerateStubCall(source(), StubCode::CloneContext(),
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
                              deopt_id(), env());
 }
@@ -4017,19 +4005,7 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
-  // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // precompiled mode and only after VM isolate stubs where
-  // replaced with isolate-specific stubs.
-  auto object_store = IsolateGroup::Current()->object_store();
-  const bool stubs_in_vm_isolate =
-      object_store->allocate_mint_with_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap() ||
-      object_store->allocate_mint_without_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap();
-  const bool shared_slow_path_call =
-      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
+  const bool shared_slow_path_call = SlowPathSharingSupported(opt);
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()
@@ -4092,12 +4068,10 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ TsanFuncEntry();
       }
     }
-    auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
-    const auto& stub = Code::ZoneHandle(
-        compiler->zone(),
-        live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
-                      : object_store->allocate_mint_without_fpu_regs_stub());
+    const auto& stub = live_fpu_regs
+                           ? StubCode::AllocateMintSharedWithFPURegs()
+                           : StubCode::AllocateMintSharedWithoutFPURegs();
 
     ASSERT(!locs()->live_registers()->ContainsRegister(
         AllocateMintABI::kResultReg));
@@ -4480,21 +4454,43 @@ static void EmitToBoolean(FlowGraphCompiler* compiler, Register out) {
           compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
 }
 
-DEFINE_EMIT(Int32x4GetFlagZorW,
-            (Register out, XmmRegister value, Temp<XmmRegister> temp)) {
-  __ movhlps(temp, value);  // extract upper half.
-  __ MoveFpuRegisterToRegister(out, temp);
-  if (instr->kind() == SimdOpInstr::kInt32x4GetFlagW) {
-    __ shrq(out, compiler::Immediate(32));  // extract upper 32bits.
+// Extracts the [lane_index]th lane of [value] into [result] without going
+// through memory.
+static void EmitInt32x4GetLane(FlowGraphCompiler* compiler,
+                               Register result,
+                               XmmRegister value,
+                               intptr_t lane_index,
+                               bool sign_extend) {
+  ASSERT(0 <= lane_index && lane_index < 4);
+  XmmRegister half = value;
+  if (lane_index >= 2) {
+    __ movhlps(FpuTMP, value);  // Extract the upper half.
+    half = FpuTMP;
   }
-  EmitToBoolean(compiler, out);
+  __ MoveFpuRegisterToRegister(result, half);
+  if ((lane_index & 1) == 1) {
+    __ shrq(result, compiler::Immediate(32));  // Extract the upper 32 bits.
+  }
+  if (sign_extend) {
+    __ movsxd(result, result);
+  }
 }
 
-DEFINE_EMIT(Int32x4GetFlagXorY, (Register out, XmmRegister value)) {
-  __ MoveFpuRegisterToRegister(out, value);
-  if (instr->kind() == SimdOpInstr::kInt32x4GetFlagY) {
-    __ shrq(out, compiler::Immediate(32));  // extract upper 32bits.
-  }
+DEFINE_EMIT(Int32x4GetLane, (Register result, XmmRegister value)) {
+  COMPILE_ASSERT(SimdOpInstr::kInt32x4GetY == (SimdOpInstr::kInt32x4GetX + 1) &&
+                 SimdOpInstr::kInt32x4GetZ == (SimdOpInstr::kInt32x4GetX + 2) &&
+                 SimdOpInstr::kInt32x4GetW == (SimdOpInstr::kInt32x4GetX + 3));
+  EmitInt32x4GetLane(compiler, result, value,
+                     instr->kind() - SimdOpInstr::kInt32x4GetX, true);
+}
+
+DEFINE_EMIT(Int32x4GetFlag, (Register out, XmmRegister value)) {
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4GetFlagY == (SimdOpInstr::kInt32x4GetFlagX + 1) &&
+      SimdOpInstr::kInt32x4GetFlagZ == (SimdOpInstr::kInt32x4GetFlagX + 2) &&
+      SimdOpInstr::kInt32x4GetFlagW == (SimdOpInstr::kInt32x4GetFlagX + 3));
+  EmitInt32x4GetLane(compiler, out, value,
+                     instr->kind() - SimdOpInstr::kInt32x4GetFlagX, false);
   EmitToBoolean(compiler, out);
 }
 
@@ -4587,12 +4583,16 @@ DEFINE_EMIT(Int32x4Select,
   SIMPLE(Float64x2Zero)                                                        \
   SIMPLE(Float32x4Clamp)                                                       \
   SIMPLE(Float64x2Clamp)                                                       \
+  CASE(Int32x4GetX)                                                            \
+  CASE(Int32x4GetY)                                                            \
+  CASE(Int32x4GetZ)                                                            \
+  CASE(Int32x4GetW)                                                            \
+  ____(Int32x4GetLane)                                                         \
   CASE(Int32x4GetFlagX)                                                        \
   CASE(Int32x4GetFlagY)                                                        \
-  ____(Int32x4GetFlagXorY)                                                     \
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
-  ____(Int32x4GetFlagZorW)                                                     \
+  ____(Int32x4GetFlag)                                                         \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \
@@ -6002,11 +6002,14 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = (op_kind() == Token::kCTZ) ? 1 : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_out(0, Location::SameAsFirstInput());
+  if (op_kind() == Token::kCTZ) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   return summary;
 }
 
@@ -6021,6 +6024,28 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kNEGATE:
       __ negq(left);
       break;
+    case Token::kPOPCNT:
+      __ popcntq(out, left);
+      break;
+    case Token::kCTZ: {
+      // Intel Software Development Manual documents BSF behavior with zero
+      // input as undefined. However in reality all modern CPUs instead leave
+      // out unmodified - and compilers like LLVM rely on this behavior, so
+      // it makes sense for us to rely on it as well. This has an additional
+      // benefit of breaking false-data dependency on output register which
+      // can cause performance issues on some microarchitectures.
+      //
+      // |out| aliases |left| (SameAsFirstInput), so we stage through |tmp|
+      // to keep |left| readable as the BSF source.
+      const Register tmp = locs()->temp(0).reg();
+      __ LoadImmediate(tmp, compiler::Immediate(64));
+      // On CPUs supporting BMI2 extensions `rep bsf` will be interpreted as
+      // tzcnt, which is a faster instruction. On older CPUs rep-prefix will
+      // be ignored.
+      __ rep_bsfq(tmp, left);
+      __ movq(out, tmp);
+      break;
+    }
     default:
       UNREACHABLE();
   }

@@ -25,10 +25,7 @@ class FlutterStatefulWidgetWithAnimationController
   late ClassElement? classAnimationController;
   late MixinElement? classSingleTickerProviderStateMixin;
 
-  FlutterStatefulWidgetWithAnimationController(
-    super.request, {
-    required super.elementImportCache,
-  });
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

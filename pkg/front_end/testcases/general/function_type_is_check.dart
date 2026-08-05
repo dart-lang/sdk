@@ -12,8 +12,9 @@ test(f) {
 
 main() {
   Expect.equals(
-      111,
-      test(() => null) +
-          test((Object o) => null) +
-          test((Object o, StackTrace t) => null));
+    111,
+    test(() => null) +
+        test((Object o) => null) +
+        test((Object o, StackTrace t) => null),
+  );
 }

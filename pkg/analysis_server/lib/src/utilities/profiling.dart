@@ -10,7 +10,7 @@ import 'package:analyzer/src/util/platform_info.dart';
 /// A class that can return memory and cpu usage information for a given
 /// process.
 abstract class ProcessProfiler {
-  ProcessProfiler._();
+  new _();
 
   Future<UsageInfo?> getProcessUsage(int processId);
 
@@ -39,7 +39,7 @@ class UsageInfo {
   /// The process memory usage in kilobytes.
   final int memoryKB;
 
-  UsageInfo(this.cpuPercentage, this.memoryKB);
+  new(this.cpuPercentage, this.memoryKB);
 
   double get memoryMB => memoryKB / 1024;
 
@@ -55,7 +55,7 @@ class UsageInfo {
 class _PosixProcessProfiler extends ProcessProfiler {
   static final RegExp stringSplitRegExp = RegExp(r'\s+');
 
-  _PosixProcessProfiler() : super._();
+  new() : super._();
 
   @override
   Future<UsageInfo?> getProcessUsage(int processId) {
@@ -91,7 +91,7 @@ class _PosixProcessProfiler extends ProcessProfiler {
 }
 
 class _WindowsProcessProfiler extends ProcessProfiler {
-  _WindowsProcessProfiler() : super._();
+  new() : super._();
 
   @override
   Future<UsageInfo?> getProcessUsage(int processId) async {
@@ -105,10 +105,10 @@ class _WindowsProcessProfiler extends ProcessProfiler {
       ]);
 
       if (result.exitCode != 0) {
-        return Future.value();
+        return await Future.value();
       }
 
-      return Future.value(_parse(result.stdout as String));
+      return await Future.value(_parse(result.stdout as String));
     } catch (e) {
       return Future.error(e);
     }

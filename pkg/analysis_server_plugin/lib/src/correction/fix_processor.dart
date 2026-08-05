@@ -10,6 +10,7 @@ import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -20,6 +21,7 @@ Future<List<Fix>> computeFixes(
   DartFixContext context, {
   FixPerformance? performance,
   Set<String>? skipAlreadyCalculatedIfNonNull,
+  Iterable<Diagnostic>? diagnostics,
 }) async {
   return [
     ...await FixProcessor(
@@ -30,7 +32,7 @@ Future<List<Fix>> computeFixes(
     ...await FixInFileProcessor(
       context,
       alreadyCalculated: skipAlreadyCalculatedIfNonNull,
-    ).compute(),
+    ).compute(diagnostics: diagnostics),
   ];
 }
 

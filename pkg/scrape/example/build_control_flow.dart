@@ -56,7 +56,7 @@ class ControlFlowVisitor extends ScrapeVisitor {
 
     if (!isInFlutterBuildMethod) return;
 
-    if (node.parent is NamedExpression) {
+    if (node.parent is NamedArgument) {
       _controlFlow.add('conditional named arg');
     } else if (node.parent is ArgumentList) {
       _controlFlow.add('conditional positional arg');

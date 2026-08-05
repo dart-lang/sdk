@@ -17,12 +17,12 @@ void main() {
       'scheme2': fs2,
     });
 
-    MockFileSystemEntity e1 =
-        fileSystem.entityForUri(Uri.parse('scheme1:a.dart'))
-            as MockFileSystemEntity;
-    MockFileSystemEntity e2 =
-        fileSystem.entityForUri(Uri.parse('scheme2:a.dart'))
-            as MockFileSystemEntity;
+    MockFileSystemEntity e1 = fileSystem.entityForUri(
+      Uri.parse('scheme1:a.dart'),
+    ) as MockFileSystemEntity;
+    MockFileSystemEntity e2 = fileSystem.entityForUri(
+      Uri.parse('scheme2:a.dart'),
+    ) as MockFileSystemEntity;
     expect(e1.fileSystem, fs1);
     expect(e2.fileSystem, fs2);
   });

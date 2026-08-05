@@ -37,7 +37,6 @@ class IOHandle : public ReferenceCounted<IOHandle> {
         read_events_enabled_(true),
         close_events_enabled_(true),
         fd_(fd),
-        handle_(ZX_HANDLE_INVALID),
         wait_key_(0),
         fdio_(fdio_unsafe_fd_to_io(fd)) {}
 
@@ -83,7 +82,6 @@ class IOHandle : public ReferenceCounted<IOHandle> {
 
   // TODO(zra): Add flag to enable/disable peer closed signal?
   intptr_t fd_;
-  zx_handle_t handle_;
   zx_handle_t port_;
   uint64_t wait_key_;
   fdio_t* fdio_;

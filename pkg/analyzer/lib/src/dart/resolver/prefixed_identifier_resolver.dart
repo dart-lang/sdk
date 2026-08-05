@@ -173,9 +173,9 @@ class PrefixedIdentifierResolver {
     }
 
     if (parent is CommentReference ||
-        parent is MethodInvocation && parent.target == node ||
+        parent is MethodInvocationImpl && parent.target == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
-        parent is PropertyAccess && parent.target == node) {
+        parent is PropertyAccessImpl && parent.target == node) {
       inferenceLogWriter?.recordExpressionWithNoType(node);
       return;
     }

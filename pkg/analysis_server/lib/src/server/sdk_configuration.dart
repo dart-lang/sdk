@@ -16,7 +16,7 @@ import 'package:path/path.dart' as path;
 class SdkConfiguration {
   final Map<String, Object?> _values = {};
 
-  SdkConfiguration.readFromFile(File file) {
+  new readFromFile(File file) {
     if (!file.existsSync()) {
       throw '$file not found';
     }
@@ -29,7 +29,7 @@ class SdkConfiguration {
   ///
   /// This constructor will still create an object even if a configuration file
   /// is not found.
-  SdkConfiguration.readFromSdk() {
+  new readFromSdk() {
     // <dart-sdk>/config/settings.json:
     var sdkDir = Directory(
       path.dirname(path.dirname(platform.resolvedExecutable)),

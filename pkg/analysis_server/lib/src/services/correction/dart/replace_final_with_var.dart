@@ -19,7 +19,7 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
 
   final bool _canBeBulkApplied;
 
-  factory ReplaceFinalWithVar({required CorrectionProducerContext context}) {
+  factory({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
       return ReplaceFinalWithVar._(
         context: context,
@@ -35,7 +35,11 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
       DeclaredIdentifier node => (node.keyword, node.type != null, true),
       DeclaredVariablePattern node => (node.keyword, node.type != null, true),
       ForEachPartsWithPattern node => (node.keyword, false, true),
-      SimpleFormalParameter node => (node.keyword, node.type != null, false),
+      RegularFormalParameter node => (
+        node.finalKeyword,
+        node.type != null,
+        false,
+      ),
       _ => (null, true, false),
     };
 
@@ -47,7 +51,7 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
     );
   }
 
-  ReplaceFinalWithVar._({
+  new _({
     required super.context,
     required this._finalKeyword,
     required this._removeFinal,

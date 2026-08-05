@@ -13,7 +13,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 class CiderSignatureHelpComputer {
   final FileResolver _fileResolver;
 
-  CiderSignatureHelpComputer(this._fileResolver);
+  new(this._fileResolver);
 
   Future<SignatureHelpResponse?> compute2(
     String filePath,
@@ -30,7 +30,8 @@ class CiderSignatureHelpComputer {
       dartDocInfo,
       resolvedUnit.unit,
       offset,
-      formats,
+      preferredFormats: formats,
+      clientSupportsNullActiveParameter: false,
     );
     if (typeArgsComputer.offsetIsValid) {
       var typeSignature = typeArgsComputer.compute();
@@ -52,7 +53,11 @@ class CiderSignatureHelpComputer {
       var signature = computer.compute();
       if (signature != null) {
         return SignatureHelpResponse(
-          toSignatureHelp(formats, signature),
+          toSignatureHelp(
+            signature,
+            preferredFormats: formats,
+            clientSupportsNullActiveParameter: false,
+          ),
           lineInfo.getLocation(signature.argumentList.offset + 1),
         );
       }
@@ -67,5 +72,5 @@ class SignatureHelpResponse {
   /// The location of the left parenthesis.
   final CharacterLocation callStart;
 
-  SignatureHelpResponse(this.signatureHelp, this.callStart);
+  new(this.signatureHelp, this.callStart);
 }

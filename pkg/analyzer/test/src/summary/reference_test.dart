@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,262 +16,308 @@ main() {
 
 @reflectiveTest
 class ReferenceTest {
-  final _IdMap idMap = _IdMap();
+  void test_builtIn_dartCore() {
+    var root = RootReference();
+    var library = root.getOrCreateLibrary(Uri.parse('dart:core'));
 
-  void assertReferenceText(Reference reference, String expected) {
-    var buffer = StringBuffer();
-    _ReferenceWriter(
-      sink: TreeStringSink(sink: buffer, indent: ''),
-      idMap: idMap,
-    ).write(reference);
-    var actual = buffer.toString();
+    var dynamic0 = library.dynamicRef;
+    var dynamic1 = library.dynamicRef;
+    var never_ = library.neverRef;
 
-    if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
-      NodeTextExpectationsCollector.add(actual);
+    expect(dynamic1, same(dynamic0));
+    expect(dynamic0.library, same(library));
+    expect(dynamic0.enclosingReference, same(library));
+    expect(dynamic0.debugString(), 'dart:core::dynamic');
+
+    expect(never_.library, same(library));
+    expect(never_.debugString(), 'dart:core::Never');
+    expect(library.children, [dynamic0, never_]);
+  }
+
+  void test_debugString() {
+    var root = RootReference();
+    var library = root.getOrCreateLibrary(Uri.parse('package:test/a.dart'));
+    var classReference = library.declareClass('A');
+    var methodReference = classReference.declareMethod('foo');
+
+    expect(root.debugString(), 'root');
+    expect(library.debugString(), 'package:test/a.dart');
+    expect(classReference.debugString(), 'package:test/a.dart::@class::A');
+    expect(
+      methodReference.debugString(),
+      'package:test/a.dart::@class::A::@method::foo',
+    );
+    expect(
+      methodReference.debugString(formatLibraryUri: (_) => '<library>'),
+      '<library>::@class::A::@method::foo',
+    );
+    expect(
+      methodReference.toString(),
+      'package:test/a.dart::@class::A::@method::foo',
+    );
+  }
+
+  void test_declare_duplicateKey() {
+    var root = RootReference();
+    var library = root.getOrCreateLibrary(Uri.parse('package:test/a.dart'));
+
+    library.declareClass('A');
+    library.declareTopLevelFunction('f');
+    expect(() => library.declareClass('A'), throwsStateError);
+    expect(() => library.declareTopLevelFunction('f'), throwsStateError);
+
+    var classReference = library.getOrCreateClass('A');
+    classReference.declareConstructor('new');
+    classReference.declareMethod('m');
+    expect(() => classReference.declareConstructor('new'), throwsStateError);
+    expect(() => classReference.declareMethod('m'), throwsStateError);
+  }
+
+  void test_direct_memberReferences() {
+    var root = RootReference();
+    var library = root.getOrCreateLibrary(Uri.parse('package:test/a.dart'));
+    var classReference = library.declareClass('A');
+
+    const constructorName = 'new';
+    const fieldName = 'field';
+    const propertyName = 'property';
+    const methodName = 'method';
+
+    var methodReference = classReference.declareMethod(methodName);
+    var setterReference = classReference.declareSetter(propertyName);
+    var constructorReference = classReference.declareConstructor(
+      constructorName,
+    );
+    var getterReference = classReference.declareGetter(propertyName);
+    var fieldReference = classReference.declareField(fieldName);
+
+    expect(
+      classReference.getOrCreateConstructor(constructorName),
+      same(constructorReference),
+    );
+    expect(classReference.getOrCreateField(fieldName), same(fieldReference));
+    expect(
+      classReference.getOrCreateGetter(propertyName),
+      same(getterReference),
+    );
+    expect(
+      classReference.getOrCreateSetter(propertyName),
+      same(setterReference),
+    );
+    expect(classReference.getOrCreateMethod(methodName), same(methodReference));
+
+    expect(classReference.children, [
+      constructorReference,
+      fieldReference,
+      getterReference,
+      setterReference,
+      methodReference,
+    ]);
+
+    for (var reference in classReference.children) {
+      expect(reference, isA<MemberReference>());
+      expect(reference.enclosingReference, same(classReference));
     }
-    expect(actual, expected);
   }
 
-  void test_addChild() {
-    var root = Reference.root();
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-''');
+  void test_direct_topLevelReferences() {
+    var root = RootReference();
+    var library = root.getOrCreateLibrary(Uri.parse('package:test/a.dart'));
 
-    var foo1 = root.addChild('foo');
-    expect(foo1.elementName, 'foo');
-    expect(idMap[foo1], 'r1');
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-  childrenUnion: r1
-  children
-    foo
-      id: r1
-''');
+    const propertyName = 'property';
 
-    var foo2 = root.addChild('foo');
-    expect(foo2.elementName, 'foo');
-    expect(idMap[foo1], 'r1');
-    expect(idMap[foo2], 'r2');
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-  childrenUnion: r3
-  children
-    foo
-      id: r3
-      childrenUnion: r4
-      children
-        @def
-          id: r4
-          childrenUnion: {0: r1, 1: r2}
-          children
-            0
-              id: r1
-            1
-              id: r2
-''');
+    var topLevelVariable = library.declareTopLevelVariable('v');
+    var setter = library.declareSetter(propertyName);
+    var getter = library.declareGetter(propertyName);
+    var topLevelFunction = library.declareTopLevelFunction('f');
+    var typeAlias = library.declareTypeAlias('T');
+    var mixin = library.declareMixin('M');
+    var extensionType = library.declareExtensionType('ET');
+    var extension = library.declareExtension('E');
+    var enum_ = library.declareEnum('Enum');
+    var class_ = library.declareClass('A');
 
-    var foo3 = root.addChild('foo');
-    expect(foo3.elementName, 'foo');
-    expect(idMap[foo1], 'r1');
-    expect(idMap[foo2], 'r2');
-    expect(idMap[foo3], 'r5');
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-  childrenUnion: r3
-  children
-    foo
-      id: r3
-      childrenUnion: r4
-      children
-        @def
-          id: r4
-          childrenUnion: {0: r1, 1: r2, 2: r5}
-          children
-            0
-              id: r1
-            1
-              id: r2
-            2
-              id: r5
-''');
-  }
+    expect(library.getOrCreateClass('A'), same(class_));
+    expect(library.getOrCreateEnum('Enum'), same(enum_));
+    expect(library.getOrCreateExtension('E'), same(extension));
+    expect(library.getOrCreateExtensionType('ET'), same(extensionType));
+    expect(library.getOrCreateMixin('M'), same(mixin));
+    expect(library.getOrCreateTypeAlias('T'), same(typeAlias));
+    expect(library.getOrCreateTopLevelFunction('f'), same(topLevelFunction));
+    expect(library.getOrCreateGetter(propertyName), same(getter));
+    expect(library.getOrCreateSetter(propertyName), same(setter));
+    expect(library.getOrCreateTopLevelVariable('v'), same(topLevelVariable));
 
-  void test_getChild() {
-    var root = Reference.root();
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-''');
+    expect(library.children, [
+      class_,
+      enum_,
+      extension,
+      extensionType,
+      mixin,
+      typeAlias,
+      topLevelFunction,
+      getter,
+      setter,
+      topLevelVariable,
+    ]);
 
-    // 0 -> 1
-    {
-      var first = root.getChild('foo');
-      var second = root.getChild('foo');
-      var third = root['foo'];
-      expect(second, same(first));
-      expect(third, same(first));
-      expect(idMap[first], 'r1');
+    for (var reference in [class_, enum_, extension, extensionType, mixin]) {
+      expect(reference, isA<MemberContainerReference>());
+      expect(reference.enclosingReference, same(library));
     }
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-  childrenUnion: r1
-  children
-    foo
-      id: r1
-''');
-
-    // 1 -> 2
-    {
-      var first = root.getChild('bar');
-      var second = root.getChild('bar');
-      var third = root['bar'];
-      expect(second, same(first));
-      expect(third, same(first));
-      expect(idMap[first], 'r2');
+    for (var reference in [
+      typeAlias,
+      topLevelFunction,
+      getter,
+      setter,
+      topLevelVariable,
+    ]) {
+      expect(reference, isA<LeafTopLevelReference>());
+      expect(reference.enclosingReference, same(library));
     }
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-  childrenUnion: {foo: r1, bar: r2}
-  children
-    foo
-      id: r1
-    bar
-      id: r2
-''');
   }
 
-  void test_indexRead() {
-    var root = Reference.root();
-    expect(root['foo'], isNull);
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-''');
+  void test_libraryReferenceBuilder_memberKeys() {
+    var root = RootReference();
+    var library = root.getOrCreateLibrary(Uri.parse('package:test/a.dart'));
+    var builder = LibraryReferenceBuilder(library);
+    var classA = builder.declareClass('A');
+    var classB = builder.declareClass('B');
+
+    var method = builder.declareMemberMethod(container: classA, name: 'foo');
+    var duplicateMethod = builder.declareMemberMethod(
+      container: classA,
+      name: 'foo',
+    );
+    var getter = builder.declareMemberGetter(container: classA, name: 'foo');
+    var methodInClassB = builder.declareMemberMethod(
+      container: classB,
+      name: 'foo',
+    );
+    var unnamedField = builder.declareMemberField(
+      container: classA,
+      name: null,
+    );
+    var unnamedGetter = builder.declareMemberGetter(
+      container: classA,
+      name: null,
+    );
+
+    expect(classA.getOrCreateMethod('foo'), same(method));
+    expect(classA.getOrCreateMethod('foo#1'), same(duplicateMethod));
+    expect(classA.getOrCreateGetter('foo'), same(getter));
+    expect(classB.getOrCreateMethod('foo'), same(methodInClassB));
+    expect(classA.getOrCreateField('#0'), same(unnamedField));
+    expect(classA.getOrCreateGetter('#1'), same(unnamedGetter));
   }
 
-  void test_remove() {
-    var root = Reference.root();
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-''');
+  void test_libraryReferenceBuilder_topLevelKeys() {
+    var root = RootReference();
+    var library = root.getOrCreateLibrary(Uri.parse('package:test/a.dart'));
+    var builder = LibraryReferenceBuilder(library);
 
-    var foo = root.getChild('foo');
-    var bar = root.getChild('bar');
-    var baz = root.getChild('baz');
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-  childrenUnion: {foo: r1, bar: r2, baz: r3}
-  children
-    foo
-      id: r1
-    bar
-      id: r2
-    baz
-      id: r3
-''');
+    var classA = builder.declareClass('A');
+    var duplicateClassA = builder.declareClass('A');
+    var enumA = builder.declareEnum('A');
+    var unnamedGetter = builder.declareGetter(null);
+    var unnamedSetter = builder.declareSetter(null);
+    var getterX = builder.declareGetter('x');
+    var duplicateGetterX = builder.declareGetter('x');
+    var setterX = builder.declareSetter('x');
 
-    // 3 -> 2
-    var bar2 = root.removeChild('bar');
-    expect(bar2, same(bar));
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-  childrenUnion: {foo: r1, baz: r3}
-  children
-    foo
-      id: r1
-    baz
-      id: r3
-''');
-
-    // 2 -> 1
-    var baz2 = root.removeChild('baz');
-    expect(baz2, same(baz));
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-  childrenUnion: r1
-  children
-    foo
-      id: r1
-''');
-
-    // 1 -> 0
-    var foo2 = root.removeChild('foo');
-    expect(foo2, same(foo));
-    assertReferenceText(root, r'''
-<root>
-  id: r0
-''');
-
-    var foo3 = root.removeChild('foo');
-    expect(foo3, isNull);
+    expect(library.getOrCreateClass('A'), same(classA));
+    expect(library.getOrCreateClass('A#1'), same(duplicateClassA));
+    expect(library.getOrCreateEnum('A'), same(enumA));
+    expect(library.getOrCreateGetter('#0'), same(unnamedGetter));
+    expect(library.getOrCreateSetter('#1'), same(unnamedSetter));
+    expect(library.getOrCreateGetter('x'), same(getterX));
+    expect(library.getOrCreateGetter('x#1'), same(duplicateGetterX));
+    expect(library.getOrCreateSetter('x'), same(setterX));
   }
-}
 
-class _IdMap {
-  final Map<Reference, String> map = Map.identity();
+  void test_referenceTable_roundTrip() {
+    var writeRoot = RootReference();
+    var packageUri = Uri.parse('package:test/a.dart');
+    var packageLibrary = writeRoot.getOrCreateLibrary(packageUri);
+    var classReference = packageLibrary.declareClass('A');
+    var functionReference = packageLibrary.declareTopLevelFunction('f');
+    var methodReference = classReference.declareMethod('m');
+    var dartCore = writeRoot.getOrCreateLibrary(Uri.parse('dart:core'));
+    var dynamicReference = dartCore.dynamicRef;
 
-  String operator [](Reference reference) {
-    return map[reference] ??= 'r${map.length}';
+    var sink = BinaryWriter();
+    var tableWriter = ReferenceTableWriter();
+    tableWriter.writeReference(sink, writeRoot);
+    tableWriter.writeReference(sink, packageLibrary);
+    tableWriter.writeReference(sink, classReference);
+    tableWriter.writeReference(sink, functionReference);
+    tableWriter.writeReference(sink, methodReference);
+    tableWriter.writeReference(sink, dynamicReference);
+    tableWriter.writeReference(sink, classReference);
+    var tableOffset = sink.offset;
+    tableWriter.write(sink);
+    sink.writeTableTrailer();
+
+    var reader = BinaryReader(sink.takeBytes());
+    reader.initFromTableTrailer();
+    var readRoot = RootReference();
+    reader.offset = tableOffset;
+    var tableReader = ReferenceTableReader(
+      reader: reader,
+      rootReference: readRoot,
+    );
+
+    reader.offset = 0;
+    expect(tableReader.readReference(reader), same(readRoot));
+
+    var readPackageLibrary = tableReader.readLibraryReference(reader);
+    expect(readPackageLibrary.uriString, '$packageUri');
+    expect(readRoot.getOrCreateLibrary(packageUri), same(readPackageLibrary));
+
+    var readClass = tableReader.readMemberContainerReference(reader);
+    expect(readClass, same(readPackageLibrary.getOrCreateClass('A')));
+
+    var readFunction = tableReader.readTopLevelReference(reader);
+    expect(
+      readFunction,
+      same(readPackageLibrary.getOrCreateTopLevelFunction('f')),
+    );
+
+    var readMethod = tableReader.readMemberReference(reader);
+    expect(readMethod, same(readClass.getOrCreateMethod('m')));
+
+    var readDynamic = tableReader.readExportableReference(reader);
+    expect(
+      readDynamic,
+      same(readRoot.getOrCreateLibrary(Uri.parse('dart:core')).dynamicRef),
+    );
+
+    expect(tableReader.readDeclarationReference(reader), same(readClass));
+    expect(readPackageLibrary.children, [readClass, readFunction]);
   }
-}
 
-class _ReferenceWriter {
-  final TreeStringSink sink;
-  final _IdMap idMap;
+  void test_root_libraries() {
+    var root = RootReference();
+    var a = Uri.parse('package:test/a.dart');
+    var b = Uri.parse('package:test/b.dart');
 
-  _ReferenceWriter({required this.sink, required this.idMap});
+    expect(root.children, isEmpty);
+    expect(root.libraryIfExists(a), isNull);
+    expect(root.removeLibrary(a), isNull);
 
-  void write(Reference reference) {
-    if (reference.isRoot) {
-      sink.writelnWithIndent('<root>');
-    } else {
-      sink.writelnWithIndent(reference.name);
-    }
+    var libraryA = root.getOrCreateLibrary(a);
+    expect(libraryA.uriString, '$a');
+    expect(libraryA.uri, a);
+    expect(libraryA.enclosingReference, isNull);
+    expect(root.getOrCreateLibrary(a), same(libraryA));
+    expect(root.libraryIfExists(a), same(libraryA));
+    expect(root.children, [libraryA]);
 
-    sink.withIndent(() {
-      sink.writelnWithIndent('id: ${idMap[reference]}');
+    var libraryB = root.getOrCreateLibrary(b);
+    expect(root.children, [libraryA, libraryB]);
 
-      var union = reference.childrenUnionForTesting;
-      if (union != null) {
-        sink.writeIndentedLine(() {
-          sink.write('childrenUnion: ');
-          switch (union) {
-            case Reference child:
-              expect(reference.children, hasLength(1));
-              sink.write(idMap[child]);
-            case Map<String, Reference> map:
-              expect(reference.children, hasLength(greaterThanOrEqualTo(2)));
-              var entriesStr = map.entries
-                  .map((e) {
-                    return '${e.key}: ${idMap[e.value]}';
-                  })
-                  .join(', ');
-              sink.write('{$entriesStr}');
-            default:
-              throw UnimplementedError('(${union.runtimeType}) $union');
-          }
-        });
-      }
-
-      // Sanity check.
-      for (var child in reference.children) {
-        expect(child.parent, same(reference));
-      }
-
-      sink.writeElements('children', reference.children.toList(), write);
-    });
+    expect(root.removeLibrary(a), same(libraryA));
+    expect(root.children, [libraryB]);
+    expect(root.removeLibrary(a), isNull);
   }
 }

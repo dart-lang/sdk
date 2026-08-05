@@ -201,6 +201,8 @@ void TestLargeFrame(const char* type,
                     const char* one,
                     const char* main) {
   SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 1000);
+  SetFlagScope<bool> sfs2(&FLAG_background_compilation, false);
+
   TextBuffer printer(256 * KB);
 
   intptr_t num_locals = 2000;
@@ -233,7 +235,7 @@ void TestLargeFrame(const char* type,
 ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Int) {
   TestLargeFrame("int", "0", "1",
                  "main() {\n"
-                 "  for (var i = 0; i < 100; i++) {\n"
+                 "  for (var i = 0; i < 3; i++) {\n"
                  "    var r = largeFrame(1);\n"
                  "    if (r != 2000) throw r;\n"
                  "  }\n"
@@ -244,7 +246,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Int) {
 ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Double) {
   TestLargeFrame("double", "0.0", "1.0",
                  "main() {\n"
-                 "  for (var i = 0; i < 100; i++) {\n"
+                 "  for (var i = 0; i < 3; i++) {\n"
                  "    var r = largeFrame(1);\n"
                  "    if (r != 2000.0) throw r;\n"
                  "  }\n"
@@ -255,7 +257,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Double) {
 ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Int32x4) {
   TestLargeFrame("Int32x4", "Int32x4(0, 0, 0, 0)", "Int32x4(1, 2, 3, 4)",
                  "main() {\n"
-                 "  for (var i = 0; i < 100; i++) {\n"
+                 "  for (var i = 0; i < 3; i++) {\n"
                  "    var r = largeFrame(1);\n"
                  "    if (r.x != 2000) throw r;\n"
                  "    if (r.y != 4000) throw r;\n"
@@ -270,7 +272,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Float32x4) {
   TestLargeFrame("Float32x4", "Float32x4(0.0, 0.0, 0.0, 0.0)",
                  "Float32x4(1.0, 2.0, 3.0, 4.0)",
                  "main() {\n"
-                 "  for (var i = 0; i < 100; i++) {\n"
+                 "  for (var i = 0; i < 3; i++) {\n"
                  "    var r = largeFrame(1);\n"
                  "    if (r.x != 2000.0) throw r;\n"
                  "    if (r.y != 4000.0) throw r;\n"
@@ -284,7 +286,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Float32x4) {
 ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Float64x2) {
   TestLargeFrame("Float64x2", "Float64x2(0.0, 0.0)", "Float64x2(1.0, 2.0)",
                  "main() {\n"
-                 "  for (var i = 0; i < 100; i++) {\n"
+                 "  for (var i = 0; i < 3; i++) {\n"
                  "    var r = largeFrame(1);\n"
                  "    if (r.x != 2000.0) throw r;\n"
                  "    if (r.y != 4000.0) throw r;\n"

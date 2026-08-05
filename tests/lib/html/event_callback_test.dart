@@ -5,6 +5,7 @@
 // Regression test for issue 33627.
 
 import 'dart:html';
+
 import 'package:expect/expect.dart';
 
 void main() {

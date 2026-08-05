@@ -16,9 +16,9 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(String_fromEnvironment, 0, 3) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(String, default_value, arguments->NativeArgAt(2));
+DEFINE_NATIVE_ENTRY(String_fromEnvironment, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(String, default_value, arguments->NativeArgAt(1));
   // Call the embedder to supply us with the environment.
   const String& env_value =
       String::Handle(Api::GetEnvironmentValue(thread, name));

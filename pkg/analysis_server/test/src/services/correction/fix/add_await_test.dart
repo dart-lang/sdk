@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -13,6 +14,8 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAwaitTest);
     defineReflectiveTests(AddAwaitTestArgumentAndAssignment);
+    defineReflectiveTests(AsyncReturnWithNoAwaitTest);
+    defineReflectiveTests(UnawaitedReturnInTryBlockTest);
   });
 }
 
@@ -348,5 +351,76 @@ Future<void> baz() async {
   String variable = await bar();
 }
 ''', filter: (error) => error.diagnosticCode == diag.invalidAssignment);
+  }
+}
+
+@reflectiveTest
+class AsyncReturnWithNoAwaitTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.addAwait;
+
+  @override
+  String get lintCode => LintNames.async_return_with_no_await;
+
+  Future<void> test_blockBody() async {
+    await resolveTestCode('''
+class A {
+  Future<int> foo() async {
+    return Future.value(42);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<int> foo() async {
+    return await Future.value(42);
+  }
+}
+''');
+  }
+
+  Future<void> test_functionExpression() async {
+    await resolveTestCode('''
+class A {
+  Future<int> foo() async => Future.value(42);
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<int> foo() async => await Future.value(42);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class UnawaitedReturnInTryBlockTest extends FixProcessorErrorCodeTest {
+  @override
+  DiagnosticCode get diagnosticCode => diag.unawaitedReturnInTryBlock;
+
+  @override
+  FixKind get kind => DartFixKind.addAwait;
+
+  Future<void> test_unawaitedReturnInTryBlock() async {
+    await resolveTestCode('''
+Future<int> fetchValue() async {
+  try {
+    return Future.value(42);
+  } catch (e) {
+    print('Error: \$e');
+    return -1;
+  }
+}
+''');
+    await assertHasFix('''
+Future<int> fetchValue() async {
+  try {
+    return await Future.value(42);
+  } catch (e) {
+    print('Error: \$e');
+    return -1;
+  }
+}
+''');
   }
 }

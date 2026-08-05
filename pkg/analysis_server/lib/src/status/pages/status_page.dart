@@ -12,7 +12,7 @@ import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analyzer/src/util/platform_info.dart';
 
 class StatusPage extends DiagnosticPageWithNav {
-  StatusPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'status',

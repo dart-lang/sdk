@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
@@ -37,8 +39,12 @@ abstract mixin class Instruction implements Serializable {
   }
 
   static Instruction deserializeConst(
-      Deserializer d, Types types, Functions functions, Globals globals,
-      {bool isConstOnlyUse = true}) {
+    Deserializer d,
+    Types types,
+    Functions functions,
+    Globals globals, {
+    bool isConstOnlyUse = true,
+  }) {
     final byte = d.readByte();
     switch (byte) {
       case 0x0B:
@@ -70,7 +76,7 @@ abstract mixin class Instruction implements Serializable {
             0x1B => ExternExternalize.deserialize(d),
             0x1C => I31New.deserialize(d),
             _ =>
-              throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte $byte2"
+              throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte $byte2",
           };
         }
       default:
@@ -96,19 +102,39 @@ abstract mixin class Instruction implements Serializable {
       case 0x01:
         return Nop.deserialize(d);
       case 0x02:
-        return d.deserializeBlock(types, tags, BeginNoEffectBlock.deserialize,
-            BeginOneOutputBlock.deserialize, BeginFunctionBlock.deserialize);
+        return d.deserializeBlock(
+          types,
+          tags,
+          BeginNoEffectBlock.deserialize,
+          BeginOneOutputBlock.deserialize,
+          BeginFunctionBlock.deserialize,
+        );
       case 0x03:
-        return d.deserializeBlock(types, tags, BeginNoEffectLoop.deserialize,
-            BeginOneOutputLoop.deserialize, BeginFunctionLoop.deserialize);
+        return d.deserializeBlock(
+          types,
+          tags,
+          BeginNoEffectLoop.deserialize,
+          BeginOneOutputLoop.deserialize,
+          BeginFunctionLoop.deserialize,
+        );
       case 0x04:
-        return d.deserializeBlock(types, tags, BeginNoEffectIf.deserialize,
-            BeginOneOutputIf.deserialize, BeginFunctionIf.deserialize);
+        return d.deserializeBlock(
+          types,
+          tags,
+          BeginNoEffectIf.deserialize,
+          BeginOneOutputIf.deserialize,
+          BeginFunctionIf.deserialize,
+        );
       case 0x05:
         return Else.deserialize(d);
       case 0x06:
-        return d.deserializeBlock(types, tags, BeginNoEffectTry.deserialize,
-            BeginOneOutputTry.deserialize, BeginFunctionTry.deserialize);
+        return d.deserializeBlock(
+          types,
+          tags,
+          BeginNoEffectTry.deserialize,
+          BeginOneOutputTry.deserialize,
+          BeginFunctionTry.deserialize,
+        );
       case 0x07:
         return CatchLegacy.deserialize(d, tags);
       case 0x08:
@@ -141,11 +167,12 @@ abstract mixin class Instruction implements Serializable {
         return SelectWithType.deserialize(d, types);
       case 0x1F:
         return d.deserializeBlock(
-            types,
-            tags,
-            BeginNoEffectTryTable.deserialize,
-            BeginOneOutputTryTable.deserialize,
-            BeginFunctionTryTable.deserialize);
+          types,
+          tags,
+          BeginNoEffectTryTable.deserialize,
+          BeginOneOutputTryTable.deserialize,
+          BeginFunctionTryTable.deserialize,
+        );
       case 0x20:
         return LocalGet.deserialize(d);
       case 0x21:
@@ -520,8 +547,13 @@ abstract mixin class Instruction implements Serializable {
               return I31GetU.deserialize(d);
             default:
               d.offset = instructionStart;
-              return deserializeConst(d, types, functions, globals,
-                  isConstOnlyUse: false);
+              return deserializeConst(
+                d,
+                types,
+                functions,
+                globals,
+                isConstOnlyUse: false,
+              );
           }
         }
       case 0xFC:
@@ -539,7 +571,7 @@ abstract mixin class Instruction implements Serializable {
             0x0B => MemoryFill.deserialize(d, memories),
             0x10 => TableSize.deserialize(d, tables),
             0x11 => TableFill.deserialize(d, tables),
-            _ => throw "Invalid instruction byte: 0xFC $opcode"
+            _ => throw "Invalid instruction byte: 0xFC $opcode",
           };
         }
       case 0xFD:
@@ -548,6 +580,7 @@ abstract mixin class Instruction implements Serializable {
           final instruction = V128Instruction.fromOpcode(opcode);
           if (instruction != null) return instruction;
           return switch (opcode) {
+            0x0C => V128Const.deserialize(d),
             0x0D => I8x16Shuffle.deserialize(d),
             0x15 => I8x16ExtractLaneS.deserialize(d),
             0x16 => I8x16ExtractLaneU.deserialize(d),
@@ -563,13 +596,18 @@ abstract mixin class Instruction implements Serializable {
             0x20 => F32x4ReplaceLane.deserialize(d),
             0x21 => F64x2ExtractLane.deserialize(d),
             0x22 => F64x2ReplaceLane.deserialize(d),
-            _ => throw "Invalid instruction byte: 0xFD $opcode"
+            _ => throw "Invalid instruction byte: 0xFD $opcode",
           };
         }
       default:
         d.offset = instructionStart;
-        return deserializeConst(d, types, functions, globals,
-            isConstOnlyUse: false);
+        return deserializeConst(
+          d,
+          types,
+          functions,
+          globals,
+          isConstOnlyUse: false,
+        );
     }
   }
 }
@@ -1568,8 +1606,11 @@ class MemoryOffsetAlign implements Serializable {
     final align = alignAndMemory & 0x3F;
     final offset = d.readUnsigned();
     final memoryIndex = (alignAndMemory & 0x40) != 0 ? d.readUnsigned() : 0;
-    return MemoryOffsetAlign(memories[memoryIndex],
-        offset: offset, align: align);
+    return MemoryOffsetAlign(
+      memories[memoryIndex],
+      offset: offset,
+      align: align,
+    );
   }
 
   void printTo(IrPrinter p) {
@@ -2220,7 +2261,9 @@ class StructGet extends Instruction {
 
   static StructGet deserialize(Deserializer d, Types types) {
     return StructGet(
-        types.defined[d.readTypeIndex()] as StructType, d.readUnsigned());
+      types.defined[d.readTypeIndex()] as StructType,
+      d.readUnsigned(),
+    );
   }
 
   @override
@@ -2253,7 +2296,9 @@ class StructGetS extends Instruction {
 
   static StructGetS deserialize(Deserializer d, Types types) {
     return StructGetS(
-        types.defined[d.readTypeIndex()] as StructType, d.readUnsigned());
+      types.defined[d.readTypeIndex()] as StructType,
+      d.readUnsigned(),
+    );
   }
 
   @override
@@ -2286,7 +2331,9 @@ class StructGetU extends Instruction {
 
   static StructGetU deserialize(Deserializer d, Types types) {
     return StructGetU(
-        types.defined[d.readTypeIndex()] as StructType, d.readUnsigned());
+      types.defined[d.readTypeIndex()] as StructType,
+      d.readUnsigned(),
+    );
   }
 
   @override
@@ -2319,7 +2366,9 @@ class StructSet extends Instruction {
 
   static StructSet deserialize(Deserializer d, Types types) {
     return StructSet(
-        types.defined[d.readTypeIndex()] as StructType, d.readUnsigned());
+      types.defined[d.readTypeIndex()] as StructType,
+      d.readUnsigned(),
+    );
   }
 
   @override
@@ -2553,7 +2602,9 @@ class ArrayNewFixed extends Instruction {
 
   static ArrayNewFixed deserialize(Deserializer d, Types types) {
     return ArrayNewFixed(
-        types.defined[d.readTypeIndex()] as ArrayType, d.readUnsigned());
+      types.defined[d.readTypeIndex()] as ArrayType,
+      d.readUnsigned(),
+    );
   }
 
   @override
@@ -2655,9 +2706,14 @@ class ArrayNewData extends Instruction {
   ArrayNewData(this.arrayType, this.data);
 
   static ArrayNewData deserialize(
-      Deserializer d, Types types, DataSegments dataSegments) {
-    return ArrayNewData(types.defined[d.readTypeIndex()] as ArrayType,
-        dataSegments.defined[d.readUnsigned()]);
+    Deserializer d,
+    Types types,
+    DataSegments dataSegments,
+  ) {
+    return ArrayNewData(
+      types.defined[d.readTypeIndex()] as ArrayType,
+      dataSegments.defined[d.readUnsigned()],
+    );
   }
 
   @override
@@ -2691,8 +2747,9 @@ class ArrayCopy extends Instruction {
 
   static ArrayCopy deserialize(Deserializer d, Types types) {
     return ArrayCopy(
-        destArrayType: types.defined[d.readTypeIndex()] as ArrayType,
-        sourceArrayType: types.defined[d.readTypeIndex()] as ArrayType);
+      destArrayType: types.defined[d.readTypeIndex()] as ArrayType,
+      sourceArrayType: types.defined[d.readTypeIndex()] as ArrayType,
+    );
   }
 
   @override
@@ -2801,7 +2858,8 @@ class RefTest extends Instruction {
 
   static RefTest deserialize(Deserializer d, Types types, bool nullable) {
     return RefTest(
-        RefType(HeapType.deserialize(d, types.defined), nullable: nullable));
+      RefType(HeapType.deserialize(d, types.defined), nullable: nullable),
+    );
   }
 
   @override
@@ -2832,7 +2890,8 @@ class RefCast extends Instruction {
 
   static RefCast deserialize(Deserializer d, Types types, bool nullable) {
     return RefCast(
-        RefType(HeapType.deserialize(d, types.defined), nullable: nullable));
+      RefType(HeapType.deserialize(d, types.defined), nullable: nullable),
+    );
   }
 
   @override
@@ -2875,7 +2934,8 @@ class BrOnCast extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    int flags = (inputType.nullable ? 0x01 : 0x00) |
+    int flags =
+        (inputType.nullable ? 0x01 : 0x00) |
         (targetType.nullable ? 0x02 : 0x00);
     s.writeByte(0xFB);
     s.writeByte(0x18);
@@ -2924,7 +2984,8 @@ class BrOnCastFail extends Instruction {
 
   @override
   void serialize(Serializer s) {
-    int flags = (inputType.nullable ? 0x01 : 0x00) |
+    int flags =
+        (inputType.nullable ? 0x01 : 0x00) |
         (targetType.nullable ? 0x02 : 0x00);
     s.writeByte(0xFB);
     s.writeByte(0x19);
@@ -3075,6 +3136,30 @@ class F64Const extends Instruction {
 
   @override
   String get name => 'f64.const $value';
+}
+
+class V128Const extends Instruction {
+  final Uint8List bytes;
+
+  V128Const(this.bytes) : assert(bytes.length == 16);
+
+  static V128Const deserialize(Deserializer d) {
+    return V128Const(d.readBytes(16));
+  }
+
+  @override
+  bool get isConstant => true;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x0C);
+    s.writeBytes(bytes);
+  }
+
+  @override
+  String get name =>
+      'v128.const 0x${bytes.map((b) => b.toRadixString(16).padLeft(2, "0")).join()}';
 }
 
 class I32Eqz extends SingleByteInstruction {
@@ -4782,7 +4867,10 @@ class BeginOneOutputTryTable extends Instruction {
   BeginOneOutputTryTable(this.type, this.catches);
 
   static BeginOneOutputTryTable deserialize(
-      Deserializer d, Tags tags, Types types) {
+    Deserializer d,
+    Tags tags,
+    Types types,
+  ) {
     final type = ValueType.deserialize(d, types.defined);
     final catches = d.readList((d) => TryTableCatch.deserialize(d, tags));
     return BeginOneOutputTryTable(type, catches);
@@ -4809,7 +4897,10 @@ class BeginFunctionTryTable extends Instruction {
   BeginFunctionTryTable(this.type, this.catches);
 
   static BeginFunctionTryTable deserialize(
-      Deserializer d, Tags tags, Types types) {
+    Deserializer d,
+    Tags tags,
+    Types types,
+  ) {
     final type = types.defined[d.readSigned()] as FunctionType;
     final catches = d.readList((d) => TryTableCatch.deserialize(d, tags));
     return BeginFunctionTryTable(type, catches);
@@ -4916,11 +5007,12 @@ extension on Deserializer {
   int readTypeIndex() => readUnsigned();
 
   Instruction deserializeBlock(
-      Types types,
-      Tags tags,
-      Instruction Function(Deserializer, Tags) deserializeNoInputNoOutput,
-      Instruction Function(Deserializer, Tags, Types) deserializeOneOutput,
-      Instruction Function(Deserializer, Tags, Types) deserializeGeneral) {
+    Types types,
+    Tags tags,
+    Instruction Function(Deserializer, Tags) deserializeNoInputNoOutput,
+    Instruction Function(Deserializer, Tags, Types) deserializeOneOutput,
+    Instruction Function(Deserializer, Tags, Types) deserializeGeneral,
+  ) {
     if (peekByte() == 0x40) {
       // 0x40 means empty type, the block has neither inputs nor outputs.
       return deserializeNoInputNoOutput(this, tags);

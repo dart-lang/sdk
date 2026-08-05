@@ -51,7 +51,7 @@ class Context extends ChainContext {
 
   final IncrementalKernelGenerator compiler;
 
-  Context(this.compilerContext, this.errors)
+  new(this.compilerContext, this.errors)
     : compiler = new IncrementalCompiler(compilerContext);
 
   ProcessedOptions get options => compilerContext.options;
@@ -76,7 +76,7 @@ class Context extends ChainContext {
 }
 
 class ReadTest extends Step<TestDescription, TestCase, Context> {
-  const ReadTest();
+  const new();
 
   @override
   String get name => "read test";
@@ -113,7 +113,7 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
 }
 
 class RunCompilations extends Step<TestCase, TestCase, Context> {
-  const RunCompilations();
+  const new();
 
   @override
   String get name => "run compilations";
@@ -169,7 +169,7 @@ class TestCase {
 
   final List<IncrementalExpectation>? expectations;
 
-  TestCase(this.description, this.sources, this.expectations);
+  new(this.description, this.sources, this.expectations);
 
   @override
   String toString() {

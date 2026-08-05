@@ -28,7 +28,7 @@ class TransformSetManager {
   TransformSet? _sdkCache;
 
   /// Initialize a newly created transform set manager.
-  TransformSetManager._();
+  new _();
 
   /// Clear the internal cache.
   @visibleForTesting
@@ -57,7 +57,7 @@ class TransformSetManager {
     } else {
       var sdkRoot = analysisContext.sdkRoot;
       if (sdkRoot != null) {
-        var file = sdkRoot.getChildAssumingFile('lib/_internal/$dataFileName');
+        var file = sdkRoot.getFile('lib/_internal/$dataFileName');
         var transformSet = _loadTransformSet(file, null);
         if (transformSet != null) {
           transformSets.add(transformSet);
@@ -74,12 +74,12 @@ class TransformSetManager {
 
     packageName ??= folder.parent.shortName;
     var transformSets = <TransformSet>[];
-    var file = folder.getChildAssumingFile(dataFileName);
+    var file = folder.getFile(dataFileName);
     var transformSet = _loadTransformSet(file, packageName);
     if (transformSet != null) {
       transformSets.add(transformSet);
     }
-    var childFolder = folder.getChildAssumingFolder(dataFolderName);
+    var childFolder = folder.getFolder(dataFolderName);
     if (childFolder.exists) {
       _loadTransforms(transformSets, childFolder, packageName);
     }

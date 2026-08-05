@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+
 import 'binary/utils.dart';
 
 void main() {

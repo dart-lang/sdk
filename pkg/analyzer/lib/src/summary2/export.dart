@@ -19,42 +19,28 @@ class Export {
     required this.combinators,
   });
 
-  bool addToExportScope(String name, ExportedReference exported) {
-    if (combinators.allows(name)) {
-      return exporter.exportScope.export(location, name, exported);
+  bool addToExportScope(ExportEntry entry) {
+    if (combinators.allows(entry.name)) {
+      return exporter.exportScope.export(location, entry);
     }
     return false;
   }
 }
 
-sealed class ExportedReference {
-  final Reference reference;
-
-  ExportedReference({required this.reference});
-
-  /// We are done updating this object, returns the immutable version.
-  ExportedReference toFinalized() => this;
-
-  @override
-  String toString() {
-    return '$reference';
-  }
-}
-
-/// [ExportedReference] for a public element declared in the library.
-class ExportedReferenceDeclared extends ExportedReference {
-  ExportedReferenceDeclared({required super.reference});
-}
-
-/// [ExportedReference] for an element that is re-exported.
-class ExportedReferenceExported extends ExportedReference {
-  /// The locations of `export` (at least one) that export the element.
+final class ExportEntry {
+  final String name;
+  final ExportableReference reference;
   final List<ExportLocation> locations;
 
-  ExportedReferenceExported({
-    required super.reference,
+  ExportEntry({
+    required this.name,
+    required this.reference,
     required this.locations,
   });
+
+  bool get isDeclared => locations.isEmpty;
+
+  bool get isReExported => locations.isNotEmpty;
 
   void addLocation(ExportLocation location) {
     // This list is very small, contains on it is probably ok.
@@ -63,12 +49,21 @@ class ExportedReferenceExported extends ExportedReference {
     }
   }
 
-  @override
-  ExportedReference toFinalized() {
-    return ExportedReferenceExported(
+  /// We are done updating this object, returns the immutable version.
+  ExportEntry toFinalized() {
+    if (isDeclared) {
+      return this;
+    }
+    return ExportEntry(
+      name: name,
       reference: reference,
       locations: locations.toFixedList(),
     );
+  }
+
+  @override
+  String toString() {
+    return '$reference';
   }
 }
 
@@ -96,20 +91,21 @@ class ExportLocation {
 }
 
 class ExportScope {
-  final Map<String, ExportedReference> map = {};
+  final Map<String, ExportEntry> entriesByName = {};
 
-  void declare(String name, Reference reference) {
-    map[name] = ExportedReferenceDeclared(reference: reference);
+  void declare(String name, ExportableReference reference) {
+    entriesByName[name] = ExportEntry(
+      name: name,
+      reference: reference,
+      locations: const [],
+    );
   }
 
-  bool export(
-    ExportLocation location,
-    String name,
-    ExportedReference exported,
-  ) {
-    var existing = map[name];
-    if (existing?.reference == exported.reference) {
-      if (existing is ExportedReferenceExported) {
+  bool export(ExportLocation location, ExportEntry entry) {
+    var name = entry.name;
+    var existing = entriesByName[name];
+    if (existing?.reference == entry.reference) {
+      if (existing != null && existing.isReExported) {
         existing.addLocation(location);
       }
       return false;
@@ -118,20 +114,23 @@ class ExportScope {
     // Ambiguous declaration detected.
     if (existing != null) return false;
 
-    map[name] = ExportedReferenceExported(
-      reference: exported.reference,
+    entriesByName[name] = ExportEntry(
+      name: name,
+      reference: entry.reference,
       locations: [location],
     );
     return true;
   }
 
-  void forEach(void Function(String name, ExportedReference reference) f) {
-    map.forEach(f);
+  void forEach(void Function(ExportEntry entry) f) {
+    entriesByName.forEach((_, entry) {
+      f(entry);
+    });
   }
 
-  List<ExportedReference> toReferences() {
-    return map.values.map((reference) {
-      return reference.toFinalized();
+  List<ExportEntry> toExportEntries() {
+    return entriesByName.values.map((entry) {
+      return entry.toFinalized();
     }).toFixedList();
   }
 }

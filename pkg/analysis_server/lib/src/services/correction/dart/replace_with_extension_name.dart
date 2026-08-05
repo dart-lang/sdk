@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceWithExtensionName extends ResolvedCorrectionProducer {
   String _extensionName = '';
 
-  ReplaceWithExtensionName({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

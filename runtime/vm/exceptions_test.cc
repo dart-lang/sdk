@@ -90,7 +90,7 @@ TEST_CASE(UnhandledExceptions) {
       R"(
       class UnhandledExceptions {
         @pragma('vm:external-name', 'Unhandled_equals')
-        external static equals(var obj1, var obj2);
+        external static equals(obj1, obj2);
 
         @pragma('vm:external-name', 'Unhandled_invoke')
         external static invoke();

@@ -190,9 +190,10 @@ class LspMetaModelCleaner {
       comment: _cleanComment(namespace.comment),
       isProposed: namespace.isProposed,
       typeOfValues: namespace.typeOfValues,
-      members: namespace.members
+      flags: namespace.flags,
+      constants: namespace.constants
           .where(_includeEntityInOutput)
-          .map((member) => _cleanMember(namespace.name, member))
+          .map(_cleanConst)
           .toList(),
     );
   }
@@ -271,7 +272,7 @@ class LspMetaModelCleaner {
   TypeBase? _getImprovedType(String interfaceName, String? fieldName) {
     const improvedTypeMappings = <String, Map<String, String>>{
       'Diagnostic': {'code': 'String'},
-      'CompletionItem': {'data': 'CompletionItemResolutionInfo'},
+      'CompletionItem': {'data': 'CompletionResolutionInfo'},
       'ParameterInformation': {'label': 'String'},
       'TextDocumentEdit': {'edits': 'TextDocumentEditEdits'},
       'TypeHierarchyItem': {'data': 'TypeHierarchyItemInfo'},
@@ -385,7 +386,8 @@ class LspMetaModelCleaner {
         comment: comment,
         isProposed: dest.isProposed,
         typeOfValues: dest.typeOfValues,
-        members: [...dest.members, ...source.members],
+        flags: dest.flags || source.flags,
+        constants: [...dest.constants, ...source.constants],
       );
     } else if (source is Interface && dest is Interface) {
       return Interface(
@@ -438,34 +440,6 @@ class LspMetaModelCleaner {
       // `CodeActionLiteral` and use the term `CodeAction` to mean either of
       // those types.
       'CodeAction': 'CodeActionLiteral',
-      // In LSP 3.18, many types that were previously inline and got generated
-      // names have been extracted to their own definitions with hand-written
-      // names.
-      // To reduce the size of the upcoming diff when this happens, these
-      // renames change our 3.17 generated names to those that will be used
-      // for 3.18.
-      // TODO(dantup): Remove these once LSP 3.18 release and we regenerate
-      // using it.
-      'TextDocumentFilter2': 'TextDocumentFilterScheme',
-      'PrepareRenameResult1': 'PrepareRenamePlaceholder',
-      'TextDocumentContentChangeEvent1': 'TextDocumentContentChangePartial',
-      'TextDocumentContentChangeEvent2':
-          'TextDocumentContentChangeWholeDocument',
-      'CompletionListItemDefaults': 'CompletionItemDefaults',
-      'InitializeParamsClientInfo': 'ClientInfo',
-      'SemanticTokensClientCapabilitiesRequests':
-          'ClientSemanticTokensRequestOptions',
-      'TraceValues': 'TraceValue',
-      'SemanticTokensOptionsFull': 'SemanticTokensFullDelta',
-      'CompletionListItemDefaultsEditRange': 'EditRangeWithInsertReplace',
-      'ServerCapabilitiesWorkspace': 'WorkspaceOptions',
-      'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
-          'ClientCodeActionKindOptions',
-      'CompletionClientCapabilitiesCompletionItemKind':
-          'ClientCompletionItemOptionsKind',
-      'CompletionOptionsCompletionItem': 'ServerCompletionItemOptions',
-      'InitializeResultServerInfo': 'ServerInfo',
-      // End of temporary renames
     };
 
     // Temporary aliases for old names used in g3
@@ -530,7 +504,8 @@ class LspMetaModelCleaner {
           comment: type.comment,
           isProposed: type.isProposed,
           typeOfValues: type.typeOfValues,
-          members: type.members,
+          flags: type.flags,
+          constants: type.constants,
         );
       } else {
         throw 'Renaming ${type.runtimeType} is not implemented';

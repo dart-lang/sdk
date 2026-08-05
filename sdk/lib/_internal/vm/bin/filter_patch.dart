@@ -7,7 +7,12 @@ part of "common_patch.dart";
 base class _FilterImpl extends NativeFieldWrapperClass1
     implements RawZLibFilter {
   @pragma("vm:external-name", "Filter_Process")
-  external void process(List<int> data, int start, int end);
+  external void _process(List<int> data, int start, int end);
+
+  void process(List<int> data, int start, int end) {
+    RangeError.checkValidRange(start, end, data.length);
+    _process(data, start, end);
+  }
 
   @pragma("vm:external-name", "Filter_Processed")
   external List<int>? processed({bool flush = true, bool end = false});

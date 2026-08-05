@@ -20,12 +20,8 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
   @override
   final Uri fileUri;
 
-  BuiltinTypeDeclarationBuilder(
-    this.name,
-    this.type,
-    this.parent,
-    this.fileOffset,
-  ) : fileUri = parent.fileUri;
+  new(this.name, this.type, this.parent, this.fileOffset)
+    : fileUri = parent.fileUri;
 
   @override
   int get typeParametersCount => 0;

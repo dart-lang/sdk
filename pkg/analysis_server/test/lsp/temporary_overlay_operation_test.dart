@@ -125,7 +125,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
 class _TestTemporaryOverlayOperation extends TemporaryOverlayOperation {
   final Future<void> Function() operation;
 
-  _TestTemporaryOverlayOperation(super.server, this.operation);
+  new(super.server, this.operation);
 
   Future<void> doWork() => pauseSchedulerWithTemporaryOverlays(operation);
 }

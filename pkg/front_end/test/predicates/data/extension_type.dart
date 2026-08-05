@@ -8,7 +8,7 @@ extension type ExtensionType(
  extensionThis,
  name=this
 */
-  it
+  it,
 ) {
   /*member: ExtensionType|constructor#constructor:extensionName=ExtensionType.constructor*/
   ExtensionType.constructor(

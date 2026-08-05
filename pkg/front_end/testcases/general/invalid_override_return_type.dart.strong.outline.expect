@@ -2,13 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/invalid_override_return_type.dart:13:5: Error: The return type of the method 'Sub.foo' is 'A', which does not match the return type, 'B', of the overridden method, 'Super.foo'.
+// pkg/front_end/testcases/general/invalid_override_return_type.dart:14:5: Error: The return type of the method 'Sub.foo' is 'A', which does not match the return type, 'B', of the overridden method, 'Super.foo'.
 //  - 'A' is from 'pkg/front_end/testcases/general/invalid_override_return_type.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/general/invalid_override_return_type.dart'.
 // Change to a subtype of 'B'.
 //   A foo() => new A();
 //     ^
-// pkg/front_end/testcases/general/invalid_override_return_type.dart:9:5: Context: This is the overridden method ('foo').
+// pkg/front_end/testcases/general/invalid_override_return_type.dart:10:5: Context: This is the overridden method ('foo').
 //   B foo() => new B();
 //     ^
 //

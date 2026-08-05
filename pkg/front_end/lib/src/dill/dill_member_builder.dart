@@ -37,7 +37,7 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override
   final DeclarationBuilder? declarationBuilder;
 
-  DillMemberBuilder(this.libraryBuilder, this.declarationBuilder);
+  new(this.libraryBuilder, this.declarationBuilder);
 
   Member get member;
 
@@ -77,11 +77,7 @@ class DillFieldBuilder extends DillMemberBuilder
     implements PropertyBuilder {
   final Field field;
 
-  DillFieldBuilder(
-    this.field,
-    super.libraryBuilder, [
-    super.declarationBuilder,
-  ]);
+  new(this.field, super.libraryBuilder, [super.declarationBuilder]);
 
   @override
   Member get member => field;
@@ -137,11 +133,7 @@ class DillFieldBuilder extends DillMemberBuilder
 abstract class _DillProcedureBuilder extends DillMemberBuilder {
   final Procedure _procedure;
 
-  _DillProcedureBuilder(
-    this._procedure,
-    super.libraryBuilder, [
-    super.declarationBuilder,
-  ]);
+  new(this._procedure, super.libraryBuilder, [super.declarationBuilder]);
 
   @override
   bool get isStatic => _procedure.isStatic;
@@ -153,11 +145,8 @@ abstract class _DillProcedureBuilder extends DillMemberBuilder {
 class DillGetterBuilder extends _DillProcedureBuilder
     with DillGetterBuilderMixin
     implements PropertyBuilder {
-  DillGetterBuilder(
-    super.procedure,
-    super.libraryBuilder, [
-    super.declarationBuilder,
-  ]) : assert(procedure.kind == ProcedureKind.Getter);
+  new(super.procedure, super.libraryBuilder, [super.declarationBuilder])
+    : assert(procedure.kind == ProcedureKind.Getter);
 
   @override
   Member get member => _procedure;
@@ -196,11 +185,8 @@ class DillGetterBuilder extends _DillProcedureBuilder
 class DillSetterBuilder extends _DillProcedureBuilder
     with DillSetterBuilderMixin
     implements PropertyBuilder {
-  DillSetterBuilder(
-    super.procedure,
-    super.libraryBuilder, [
-    super.declarationBuilder,
-  ]) : assert(procedure.kind == ProcedureKind.Setter);
+  new(super.procedure, super.libraryBuilder, [super.declarationBuilder])
+    : assert(procedure.kind == ProcedureKind.Setter);
 
   @override
   Member get member => _procedure;
@@ -233,11 +219,8 @@ class DillSetterBuilder extends _DillProcedureBuilder
 class DillMethodBuilder extends _DillProcedureBuilder
     with DillMethodBuilderMixin
     implements MethodBuilder {
-  DillMethodBuilder(
-    super.procedure,
-    super.libraryBuilder, [
-    super.declarationBuilder,
-  ]) : assert(procedure.kind == ProcedureKind.Method);
+  new(super.procedure, super.libraryBuilder, [super.declarationBuilder])
+    : assert(procedure.kind == ProcedureKind.Method);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -266,11 +249,8 @@ class DillMethodBuilder extends _DillProcedureBuilder
 class DillOperatorBuilder extends _DillProcedureBuilder
     with DillOperatorBuilderMixin
     implements MethodBuilder {
-  DillOperatorBuilder(
-    super.procedure,
-    super.libraryBuilder, [
-    super.declarationBuilder,
-  ]) : assert(procedure.kind == ProcedureKind.Operator);
+  new(super.procedure, super.libraryBuilder, [super.declarationBuilder])
+    : assert(procedure.kind == ProcedureKind.Operator);
 
   @override
   bool get isAbstract => _procedure.isAbstract;
@@ -299,7 +279,7 @@ class DillFactoryBuilder extends _DillProcedureBuilder
     implements FactoryBuilder {
   final Procedure? _factoryTearOff;
 
-  DillFactoryBuilder(
+  new(
     super.procedure,
     this._factoryTearOff,
     super.libraryBuilder,
@@ -339,7 +319,7 @@ class DillConstructorBuilder extends DillMemberBuilder
   final Constructor _constructor;
   final Procedure? _constructorTearOff;
 
-  DillConstructorBuilder(
+  new(
     this._constructor,
     this._constructorTearOff,
     super.libraryBuilder,
@@ -388,7 +368,7 @@ class DillClassMember extends BuilderClassMember {
   @override
   final ClassMemberKind memberKind;
 
-  DillClassMember(this.memberBuilder, this.memberKind, this.uriOffset)
+  new(this.memberBuilder, this.memberKind, this.uriOffset)
     : assert(
         !memberBuilder.member.isInternalImplementation,
         "ClassMember should not be created for internal implementation "

@@ -6,6 +6,7 @@
 // promoted in a code path where it is known to be non-null.
 
 import 'package:expect/expect.dart';
+
 import '../static_type_helper.dart';
 
 class A {

@@ -2,22 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(YieldOfInvalidTypeTest);
     defineReflectiveTests(YieldOfInvalidTypeWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class YieldOfInvalidTypeTest extends PubPackageResolutionTest {
   test_none_asyncStar_dynamic_to_streamInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f(dynamic a) async* {
   yield a;
 }
@@ -25,18 +26,16 @@ Stream<int> f(dynamic a) async* {
   }
 
   test_none_asyncStar_int_to_basic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int f() async* {
+// [diag.illegalAsyncGeneratorReturnType][column 1][length 3] Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'.
   yield 0;
 }
-''',
-      [error(diag.illegalAsyncGeneratorReturnType, 0, 3)],
-    );
+''');
   }
 
   test_none_asyncStar_int_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 dynamic f() async* {
   yield 0;
 }
@@ -44,18 +43,16 @@ dynamic f() async* {
   }
 
   test_none_asyncStar_int_to_iterableDynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() async* {
+// [diag.illegalAsyncGeneratorReturnType][column 1][length 13] Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'.
   yield 0;
 }
-''',
-      [error(diag.illegalAsyncGeneratorReturnType, 0, 13)],
-    );
+''');
   }
 
   test_none_asyncStar_int_to_streamDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Stream f() async* {
   yield 0;
 }
@@ -63,7 +60,7 @@ Stream f() async* {
   }
 
   test_none_asyncStar_int_to_streamInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
   yield 0;
 }
@@ -71,32 +68,30 @@ Stream<int> f() async* {
   }
 
   test_none_asyncStar_int_to_streamString() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Stream<String> f() async* {
   yield 0;
+//      ^
+// [diag.yieldOfInvalidType] A yielded value of type 'int' must be assignable to 'String'.
 }
-''',
-      [error(diag.yieldOfInvalidType, 36, 1)],
-    );
+''');
   }
 
   test_none_asyncStar_int_to_streamString_functionExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   // ignore:unused_local_variable
   Stream<String> Function() v = () async* {
     yield 1;
+//        ^
+// [diag.yieldOfInvalidType] A yielded value of type 'int' must be assignable to 'String'.
   };
 }
-''',
-      [error(diag.yieldOfInvalidType, 99, 1)],
-    );
+''');
   }
 
   test_none_asyncStar_int_to_untyped() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async* {
   yield 0;
 }
@@ -104,18 +99,35 @@ f() async* {
   }
 
   test_none_asyncStar_null_to_streamInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
   yield null;
+//      ^^^^
+// [diag.yieldOfInvalidType] A yielded value of type 'Null' must be assignable to 'int'.
 }
-''',
-      [error(diag.yieldOfInvalidType, 33, 4)],
-    );
+''');
+  }
+
+  test_none_asyncStar_to_futureOrNullableStream() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:async';
+
+FutureOr<Stream<int>?> f() async* {
+  yield 3.14;
+//      ^^^^
+// [diag.yieldOfInvalidType] A yielded value of type 'double' must be assignable to 'int'.
+  yield '2';
+//      ^^^
+// [diag.yieldOfInvalidType] A yielded value of type 'String' must be assignable to 'int'.
+  yield Future<int>.value(0);
+//      ^^^^^^^^^^^^^^^^^^^^
+// [diag.yieldOfInvalidType] A yielded value of type 'Future<int>' must be assignable to 'int'.
+}
+''');
   }
 
   test_none_syncStar_dynamic_to_iterableInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<int> f(dynamic a) sync* {
   yield a;
 }
@@ -123,18 +135,16 @@ Iterable<int> f(dynamic a) sync* {
   }
 
   test_none_syncStar_int_to_basic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int f() sync* {
+// [diag.illegalSyncGeneratorReturnType][column 1][length 3] Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'.
   yield 0;
 }
-''',
-      [error(diag.illegalSyncGeneratorReturnType, 0, 3)],
-    );
+''');
   }
 
   test_none_syncStar_int_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 dynamic f() sync* {
   yield 0;
 }
@@ -142,7 +152,7 @@ dynamic f() sync* {
   }
 
   test_none_syncStar_int_to_iterableDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Iterable f() sync* {
   yield 0;
 }
@@ -150,7 +160,7 @@ Iterable f() sync* {
   }
 
   test_none_syncStar_int_to_iterableInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {
   yield 0;
 }
@@ -158,51 +168,65 @@ Iterable<int> f() sync* {
   }
 
   test_none_syncStar_int_to_iterableString() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<String> f() sync* {
   yield 0;
+//      ^
+// [diag.yieldOfInvalidType] A yielded value of type 'int' must be assignable to 'String'.
 }
-''',
-      [error(diag.yieldOfInvalidType, 37, 1)],
-    );
+''');
   }
 
   test_none_syncStar_int_to_iterableString_functionExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   // ignore:unused_local_variable
   Iterable<String> Function() v = () sync* {
     yield 1;
+//        ^
+// [diag.yieldOfInvalidType] A yielded value of type 'int' must be assignable to 'String'.
   };
 }
-''',
-      [error(diag.yieldOfInvalidType, 100, 1)],
-    );
+''');
   }
 
   test_none_syncStar_int_to_stream() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() sync* {
+// [diag.illegalSyncGeneratorReturnType][column 1][length 11] Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'.
   yield 0;
 }
-''',
-      [error(diag.illegalSyncGeneratorReturnType, 0, 11)],
-    );
+''');
   }
 
   test_none_syncStar_int_to_untyped() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() sync* {
   yield 0;
 }
 ''');
   }
 
+  test_none_syncStar_to_futureOrNullableIterable() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:async';
+
+FutureOr<Iterable<int>?> f() sync* {
+  yield 3.14;
+//      ^^^^
+// [diag.yieldOfInvalidType] A yielded value of type 'double' must be assignable to 'int'.
+  yield '2';
+//      ^^^
+// [diag.yieldOfInvalidType] A yielded value of type 'String' must be assignable to 'int'.
+  yield Future<int>.value(0);
+//      ^^^^^^^^^^^^^^^^^^^^
+// [diag.yieldOfInvalidType] A yielded value of type 'Future<int>' must be assignable to 'int'.
+}
+''');
+  }
+
   test_star_asyncStar_dynamic_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async* {
   yield* g();
 }
@@ -212,7 +236,7 @@ g() => throw 0;
   }
 
   test_star_asyncStar_dynamic_to_streamDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Stream f() async* {
   yield* g();
 }
@@ -222,7 +246,7 @@ g() => throw 0;
   }
 
   test_star_asyncStar_dynamic_to_streamInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
   yield* g();
 }
@@ -232,54 +256,50 @@ g() => throw 0;
   }
 
   test_star_asyncStar_int_to_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() async* {
   yield* 0;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'int' implied by the 'yield*' expression must be assignable to 'Stream<dynamic>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 22, 1)],
-    );
+''');
   }
 
   test_star_asyncStar_iterableInt_to_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() async* {
   var a = <int>[];
   yield* a;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'List<int>' implied by the 'yield*' expression must be assignable to 'Stream<dynamic>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 41, 1)],
-    );
+''');
   }
 
   test_star_asyncStar_iterableInt_to_streamInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
   var a = <int>[];
   yield* a;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'List<int>' implied by the 'yield*' expression must be assignable to 'Stream<int>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 53, 1)],
-    );
+''');
   }
 
   test_star_asyncStar_iterableString_to_streamInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
   var a = <String>[];
   yield* a;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'List<String>' implied by the 'yield*' expression must be assignable to 'Stream<int>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 56, 1)],
-    );
+''');
   }
 
   test_star_asyncStar_streamDynamic_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async* {
   yield* g();
 }
@@ -289,20 +309,19 @@ Stream g() => throw 0;
   }
 
   test_star_asyncStar_streamDynamic_to_streamInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
   yield* g();
+//       ^^^
+// [diag.yieldEachOfInvalidType] The type 'Stream<dynamic>' implied by the 'yield*' expression must be assignable to 'Stream<int>'.
 }
 
 Stream g() => throw 0;
-''',
-      [error(diag.yieldEachOfInvalidType, 34, 3)],
-    );
+''');
   }
 
   test_star_asyncStar_streamInt_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async* {
   yield* g();
 }
@@ -312,7 +331,7 @@ Stream<int> g() => throw 0;
   }
 
   test_star_asyncStar_streamInt_to_streamInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
   yield* g();
 }
@@ -322,20 +341,19 @@ Stream<int> g() => throw 0;
   }
 
   test_star_asyncStar_streamString_to_streamInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
   yield* g();
+//       ^^^
+// [diag.yieldEachOfInvalidType] The type 'Stream<String>' implied by the 'yield*' expression must be assignable to 'Stream<int>'.
 }
 
 Stream<String> g() => throw 0;
-''',
-      [error(diag.yieldEachOfInvalidType, 34, 3)],
-    );
+''');
   }
 
   test_star_syncStar_dynamic_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() sync* {
   yield* g();
 }
@@ -345,7 +363,7 @@ g() => throw 0;
   }
 
   test_star_syncStar_dynamic_to_iterableDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Iterable f() sync* {
   yield* g();
 }
@@ -355,7 +373,7 @@ g() => throw 0;
   }
 
   test_star_syncStar_dynamic_to_iterableInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {
   yield* g();
 }
@@ -365,32 +383,30 @@ g() => throw 0;
   }
 
   test_star_syncStar_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() sync* {
   yield* 0;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'int' implied by the 'yield*' expression must be assignable to 'Iterable<dynamic>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 21, 1)],
-    );
+''');
   }
 
   test_star_syncStar_int_closure() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   var f = () sync* {
     yield* 0;
+//         ^
+// [diag.yieldEachOfInvalidType] The type 'int' implied by the 'yield*' expression must be assignable to 'Iterable<dynamic>'.
   };
   f;
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 41, 1)],
-    );
+''');
   }
 
   test_star_syncStar_iterableDynamic_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() sync* {
   yield* g();
 }
@@ -400,20 +416,19 @@ Iterable g() => throw 0;
   }
 
   test_star_syncStar_iterableDynamic_to_iterableInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {
   yield* g();
+//       ^^^
+// [diag.yieldEachOfInvalidType] The type 'Iterable<dynamic>' implied by the 'yield*' expression must be assignable to 'Iterable<int>'.
 }
 
 Iterable g() => throw 0;
-''',
-      [error(diag.yieldEachOfInvalidType, 35, 3)],
-    );
+''');
   }
 
   test_star_syncStar_iterableInt_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() sync* {
   yield* g();
 }
@@ -423,7 +438,7 @@ Iterable<int> g() => throw 0;
   }
 
   test_star_syncStar_iterableInt_to_iterableInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {
   yield* g();
 }
@@ -433,16 +448,15 @@ Iterable<int> g() => throw 0;
   }
 
   test_star_syncStar_iterableString_to_iterableInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {
   yield* g();
+//       ^^^
+// [diag.yieldEachOfInvalidType] The type 'Iterable<String>' implied by the 'yield*' expression must be assignable to 'Iterable<int>'.
 }
 
 Iterable<String> g() => throw 0;
-''',
-      [error(diag.yieldEachOfInvalidType, 35, 3)],
-    );
+''');
   }
 }
 
@@ -450,24 +464,22 @@ Iterable<String> g() => throw 0;
 class YieldOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_yieldEach_asyncStar() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 f(dynamic a) async* {
   yield* a;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'dynamic' implied by the 'yield*' expression must be assignable to 'Stream<dynamic>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 31, 1)],
-    );
+''');
   }
 
   test_yieldEach_syncStar() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 f(dynamic a) sync* {
   yield* a;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'dynamic' implied by the 'yield*' expression must be assignable to 'Iterable<dynamic>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 30, 1)],
-    );
+''');
   }
 }

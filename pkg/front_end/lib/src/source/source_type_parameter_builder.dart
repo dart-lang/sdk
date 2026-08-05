@@ -26,19 +26,16 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
   @override
   final TypeParameter parameter;
 
-  SourceNominalParameterBuilder(
-    this._declaration, {
-    this.bound,
-    super.variableVariance,
-  }) : parameter =
-           new TypeParameter(
-               _declaration.name == NominalParameterBuilder.noNameSentinel
-                   ? null
-                   : _declaration.name,
-               null,
-             )
-             ..fileOffset = _declaration.fileOffset
-             ..variance = variableVariance;
+  new(this._declaration, {this.bound, super.variableVariance})
+    : parameter =
+          new TypeParameter(
+              _declaration.name == NominalParameterBuilder.noNameSentinel
+                  ? null
+                  : _declaration.name,
+              null,
+            )
+            ..fileOffset = _declaration.fileOffset
+            ..variance = variableVariance;
 
   @override
   int get fileOffset => _declaration.fileOffset;
@@ -121,7 +118,7 @@ class RegularNominalParameterDeclaration
     implements NominalParameterDeclaration {
   final TypeParameterFragment _fragment;
 
-  RegularNominalParameterDeclaration(this._fragment);
+  new(this._fragment);
 
   @override
   int get fileOffset => _fragment.nameOffset;
@@ -175,7 +172,7 @@ class DirectNominalParameterDeclaration implements NominalParameterDeclaration {
   @override
   final Uri fileUri;
 
-  DirectNominalParameterDeclaration({
+  new({
     required this.name,
     required this.kind,
     required this.isWildcard,
@@ -207,7 +204,7 @@ class SyntheticNominalParameterDeclaration
   @override
   final TypeParameterKind kind;
 
-  SyntheticNominalParameterDeclaration(
+  new(
     this._builder, {
     required this.kind,
     required this.fileOffset,
@@ -245,19 +242,16 @@ class SourceStructuralParameterBuilder extends StructuralParameterBuilder {
   @override
   final StructuralParameter parameter;
 
-  SourceStructuralParameterBuilder(
-    this._declaration, {
-    Variance? parameterVariance,
-    this.metadata,
-  }) : parameter =
-           new StructuralParameter(
-               _declaration.name == StructuralParameterBuilder.noNameSentinel
-                   ? null
-                   : _declaration.name,
-               null,
-             )
-             ..fileOffset = _declaration.fileOffset
-             ..variance = parameterVariance;
+  new(this._declaration, {Variance? parameterVariance, this.metadata})
+    : parameter =
+          new StructuralParameter(
+              _declaration.name == StructuralParameterBuilder.noNameSentinel
+                  ? null
+                  : _declaration.name,
+              null,
+            )
+            ..fileOffset = _declaration.fileOffset
+            ..variance = parameterVariance;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -302,7 +296,7 @@ class RegularStructuralParameterDeclaration
   @override
   final bool isWildcard;
 
-  RegularStructuralParameterDeclaration({
+  new({
     required this.metadata,
     required this.name,
     required this.fileOffset,
@@ -315,7 +309,7 @@ class SyntheticStructuralParameterDeclaration
     implements StructuralParameterDeclaration {
   final StructuralParameterBuilder _builder;
 
-  SyntheticStructuralParameterDeclaration(this._builder);
+  new(this._builder);
 
   @override
   int get fileOffset => _builder.fileOffset;

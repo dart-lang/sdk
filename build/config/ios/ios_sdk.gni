@@ -33,7 +33,7 @@ declare_args() {
   # The path to the watchOS simulator SDK.
   watchos_simulator_sdk_path = ""
 
-  ios_enable_relative_sdk_path = use_rbe
+  ios_enable_relative_sdk_path = true
 }
 
 if (ios_sdk_path == "") {
@@ -46,7 +46,7 @@ if (ios_sdk_path == "") {
     ios_sdk_min,
   ]
 
-  if (use_rbe) {
+  if (ios_enable_relative_sdk_path) {
     _find_sdk_args += [
       "--create_symlink_at",
 

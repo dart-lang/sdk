@@ -19,7 +19,7 @@ import '../extensions.dart';
 const _desc = r'Avoid positional boolean parameters.';
 
 class AvoidPositionalBooleanParameters extends AnalysisRule {
-  AvoidPositionalBooleanParameters()
+  new()
     : super(
         name: LintNames.avoid_positional_boolean_parameters,
         description: _desc,
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   void checkParams(List<FormalParameter>? parameters) {
     var parameterToLint = parameters?.firstWhereOrNull(_isBoolean);

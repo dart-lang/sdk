@@ -36,7 +36,7 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   List<TypeBuilder>? _interfaceBuilders;
 
-  DillClassBuilder(this.cls, this.parent) {
+  new(this.cls, this.parent) {
     Map<String, MemberLookupResult> constructors = {};
     Map<String, MemberLookupResult> content = {};
     Map<String, Procedure> tearOffs = {};

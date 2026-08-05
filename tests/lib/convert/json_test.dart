@@ -7,6 +7,7 @@
 library json_test;
 
 import "package:expect/expect.dart";
+
 import "dart:convert";
 
 void testJson(jsonText, expected) {

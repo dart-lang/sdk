@@ -11,7 +11,7 @@ class TryCatchStatement extends DartSnippetProducer {
   static const prefix = 'try';
   static const label = 'try';
 
-  TryCatchStatement(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

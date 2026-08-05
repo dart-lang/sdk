@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveNonNullAssertion extends ResolvedCorrectionProducer {
-  RemoveNonNullAssertion({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

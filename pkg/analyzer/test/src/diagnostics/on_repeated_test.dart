@@ -2,57 +2,67 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OnRepeatedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class OnRepeatedTest extends PubPackageResolutionTest {
   test_2times() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M on A, A {}
-''',
-      [error(diag.onRepeated, 25, 1)],
-    );
+//            ^
+// [diag.onRepeated] The type 'A' can be included in the superclass constraints only once.
+''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+mixin M on A {}
+augment mixin M on A {}
+//                 ^
+// [diag.onRepeated] The type 'A' can be included in the superclass constraints only once.
+''');
+  }
+
+  test_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 class A {}
 mixin M on A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment mixin M on A {}
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.onRepeated, 38, 1)]);
+//                 ^
+// [diag.onRepeated] The type 'A' can be included in the superclass constraints only once.
+''',
+    });
   }
 
   test_2times_viaTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef B = A;
 mixin M on A, B {}
-''',
-      [error(diag.onRepeated, 40, 1)],
-    );
+//            ^
+// [diag.onRepeated] The type 'A' can be included in the superclass constraints only once.
+''');
   }
 }

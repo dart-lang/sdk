@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
@@ -22,7 +21,7 @@ void workspaceValidator(PubspecValidationContext ctx) {
 
   for (var directoryField in workspaceField.nodes) {
     if (directoryField is YamlScalar) {
-      var entry = directoryField.valueOrThrow;
+      Object? entry = directoryField.value;
       if (entry is! String) {
         ctx.reportErrorForNode(directoryField, diag.workspaceValueNotString);
         return;

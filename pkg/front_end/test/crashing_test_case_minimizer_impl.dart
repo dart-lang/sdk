@@ -68,7 +68,7 @@ class TestMinimizerSettings {
   bool invalidateAllAtOnce = false;
   bool experimentalInvalidation = false;
   bool serialize = false;
-  bool widgetTransformation = false;
+  bool trackCreationLocations = false;
   final List<Uri> invalidate = [];
   String targetString = "vm";
   bool noTryToDeleteEmptyFilesUpFront = false;
@@ -103,7 +103,7 @@ class TestMinimizerSettings {
       'initialOnlyOutline': initialOnlyOutline,
       'experimentalInvalidation': experimentalInvalidation,
       'serialize': serialize,
-      'widgetTransformation': widgetTransformation,
+      'trackCreationLocations': trackCreationLocations,
       'invalidate': invalidate.map((uri) => uri.toString()).toList(),
       'targetString': targetString,
       'noTryToDeleteEmptyFilesUpFront': noTryToDeleteEmptyFilesUpFront,
@@ -134,7 +134,7 @@ class TestMinimizerSettings {
     initialOnlyOutline = json["initialOnlyOutline"];
     experimentalInvalidation = json["experimentalInvalidation"];
     serialize = json["serialize"];
-    widgetTransformation = json["widgetTransformation"];
+    trackCreationLocations = json["trackCreationLocations"];
     invalidate.clear();
     invalidate.addAll(
       (json["invalidate"] as List).map((uriString) => Uri.parse(uriString)),
@@ -185,7 +185,7 @@ class TestMinimizer {
 
   static const int _$LF = 10;
 
-  TestMinimizer(this._settings);
+  new(this._settings);
 
   bool? _oldEchoMode;
   bool? _oldLineMode;
@@ -802,8 +802,8 @@ class TestMinimizer {
 # Reproduce a crash.
 
 type: newworld""");
-    if (_settings.widgetTransformation) {
-      print("trackWidgetCreation: true");
+    if (_settings.trackCreationLocations) {
+      print("trackCreationLocations: true");
       print("target: dartdevc # needed for widget creation to be run");
     }
     print("""
@@ -1120,12 +1120,12 @@ worlds:
       // instead.
       if (uri.toString().endsWith(".dart")) {
         Version languageVersion = _getLanguageVersion(uri, crashOnFail: false);
+        ExperimentalFeatures experimentalFeatures =
+            new ExperimentalFeaturesFromVersion(languageVersion);
         String? textualOutlined = textualOutline(
           data!,
-          _getScannerConfiguration(languageVersion),
-          experimentalFeatures: new ExperimentalFeaturesFromVersion(
-            languageVersion,
-          ),
+          experimentalFeatures.buildScannerConfiguration(),
+          experimentalFeatures: experimentalFeatures,
         )?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
@@ -1326,7 +1326,7 @@ worlds:
     _fs.data[uri] = latestCrashData;
   }
 
-  Future<void> _deleteBlocks(final Uri uri, Component initialComponent) async {
+  Future<void> _deleteBlocks(Uri uri, Component initialComponent) async {
     if (uri.toString().endsWith(".json")) {
       // Try to find annoying
       //
@@ -1747,7 +1747,7 @@ worlds:
   Future<void> _deleteBlocksHelper(
     ClassOrMixinOrExtensionBodyEnd body,
     _CompilationHelperClass helper,
-    final Uri uri,
+    Uri uri,
     Component initialComponent,
   ) async {
     for (ParserAstNode child in body.children!) {
@@ -2031,18 +2031,11 @@ worlds:
     return false;
   }
 
-  ScannerConfiguration _getScannerConfiguration(Version languageVersion) {
-    return new ScannerConfiguration(
-      enableTripleShift:
-          languageVersion >= ExperimentalFlag.tripleShift.enabledVersion,
-    );
-  }
-
   Version _getLanguageVersion(Uri uri, {bool crashOnFail = true}) {
     if (_latestCrashingKnownInitialBuilders == null) {
       // It crashed on the first compile so we have no builders.
       // We'll just return something.
-      return ExperimentalFlag.nonNullable.enabledVersion;
+      return ExperimentalFlag.nonNullable.experimentEnabledVersion;
     }
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder =
@@ -2266,7 +2259,7 @@ worlds:
     }
 
     TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: _settings.widgetTransformation,
+      trackCreationLocations: _settings.trackCreationLocations,
     );
     Target target;
     switch (_settings.targetString) {
@@ -2350,9 +2343,8 @@ worlds:
     return !parserErrorListener.gotError;
   }
 
-  ScannerConfiguration _scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-  );
+  ScannerConfiguration _scannerConfiguration =
+      const DefaultExperimentalFeatures().buildScannerConfiguration();
 
   List<int>? _dataCache;
   String? _dataCacheString;
@@ -2416,7 +2408,7 @@ class _CompilationHelperClass {
   Uint8List latestCrashData;
   final Uint8List originalData;
 
-  _CompilationHelperClass(this.originalData) : latestCrashData = originalData;
+  new(this.originalData) : latestCrashData = originalData;
 }
 
 class _Replacement implements Comparable<_Replacement> {
@@ -2424,7 +2416,7 @@ class _Replacement implements Comparable<_Replacement> {
   final int to;
   final String? nullOrReplacement;
 
-  _Replacement(this.from, this.to, {this.nullOrReplacement});
+  new(this.from, this.to, {this.nullOrReplacement});
 
   @override
   int compareTo(_Replacement other) {
@@ -2483,7 +2475,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   final _FakeFileSystem fs;
   @override
   final Uri uri;
-  _FakeFileSystemEntity(this.fs, this.uri);
+  new(this.fs, this.uri);
 
   void _ensureCachedIfOk() {
     if (fs.data.containsKey(uri)) return;
@@ -2531,5 +2523,5 @@ class _FakeFileSystemEntity extends FileSystemEntity {
 }
 
 class _DoesntCrashOnInput {
-  _DoesntCrashOnInput();
+  new();
 }

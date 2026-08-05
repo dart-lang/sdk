@@ -19,6 +19,7 @@ void help() {
   List<String> commandsNotTested = <String>[
     'help', // `dart help help` is redundant
     'test', // `dart help test` does not call `test:test --help`.
+    'mcp-server', // `dart help mcp-server` does not call `dart_mcp_server --help`.
   ];
   DartdevRunner(['--suppress-analytics']).commands.forEach((
     String commandKey,

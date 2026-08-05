@@ -25,7 +25,7 @@ const List<String> barWithIntDynamicSpread = [...foo, ...fortyTwoAsDynamic];
 const List<String> barWithMapSpread = [...foo, ...quux];
 const List<String> barWithCustomIterableSpread1 = [
   ...bar,
-  ...const CustomIterable()
+  ...const CustomIterable(),
 ];
 const List<String> barWithCustomIterableSpread2 = [...bar, ...CustomIterable()];
 const customIterable = const CustomIterable();
@@ -42,7 +42,7 @@ const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
 const Set<String> quxWithMapSpread = {...baz, ...quux};
 const Set<String> quxWithCustomIterableSpread1 = {
   ...baz,
-  ...const CustomIterable()
+  ...const CustomIterable(),
 };
 const Set<String> quxWithCustomIterableSpread2 = {...baz, ...CustomIterable()};
 const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
@@ -63,7 +63,7 @@ const Map<String, String> mapWithCustomMap2 = {...CustomMap()};
 const Map<String, String> customMap = const CustomMap();
 const Map<String, String> mapWithCustomMap3 = {...customMap};
 const Map<dynamic, int> mapWithNonPrimitiveEqualsKey = {
-  const WithEquals(42): 42
+  const WithEquals(42): 42,
 };
 const Map<int, int> mapWithDuplicates = {42: 42, 42: 42};
 
@@ -145,9 +145,11 @@ class CustomMap implements Map<String, String> {
   void removeWhere(bool predicate(String key, String value)) =>
       throw new UnimplementedError();
 
-  String update(String key, String update(String value),
-          {String ifAbsent()?}) =>
-      throw new UnimplementedError();
+  String update(
+    String key,
+    String update(String value), {
+    String ifAbsent()?,
+  }) => throw new UnimplementedError();
 
   Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> f(String key, String value)) =>
       throw new UnimplementedError();

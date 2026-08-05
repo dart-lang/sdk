@@ -22,8 +22,11 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
     const String& function_name,
     bool allow_add,
     std::function<FunctionPtr(Class&, const String&)> lookup) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // No methods can be added in the precompiled runtime.
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
+  // No methods can be added in the precompiled runtime unless dynamic
+  // modules are enabled. In this case, calls from dynamic modules may
+  // necessitate the creation of (interpreted) forwarders, even for
+  // compiled code.
   ASSERT(!allow_add);
 #endif
 
@@ -66,9 +69,10 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
       SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
       function = lookup(cls, *demangled_name);
     }
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
     if (allow_add && is_dyn_call && !function.IsNull()) {
-      // In JIT mode, lazily create a dyn:* forwarder if one is required.
+      // In JIT mode or if dynamic modules are enabled, lazily create a dyn:*
+      // forwarder if one is required.
       function = function.GetDynamicInvocationForwarder(dispatcher_name);
     }
 #endif

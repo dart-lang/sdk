@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToNamedArguments extends ResolvedCorrectionProducer {
-  ConvertToNamedArguments({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -62,17 +62,17 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
       }
 
       // Find named parameters for extra arguments.
-      var argumentToParameter = <Expression, FormalParameterElement>{};
+      var argumentToParameter = <Argument, FormalParameterElement>{};
       var extraArguments = argumentList.arguments.skip(
         numberOfPositionalParameters,
       );
       for (var argument in extraArguments) {
-        if (argument is! NamedExpression) {
+        if (argument is! NamedArgument) {
           FormalParameterElement? uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
             var namedParameterName = namedParameter.name;
             if (typeSystem.isSubtypeOf(
-                  argument.typeOrThrow,
+                  argument.argumentExpression.typeOrThrow,
                   namedParameter.type,
                 ) &&
                 namedParameterName != null &&
@@ -106,10 +106,10 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
   }
 
   /// Check if the argument with the [name] exists in the list of [arguments]
-  bool _namedArgumentExists(Iterable<Expression> arguments, String name) {
+  bool _namedArgumentExists(Iterable<Argument> arguments, String name) {
     for (var argument in arguments) {
-      if (argument is NamedExpression) {
-        if (argument.name.label.name == name) {
+      if (argument is NamedArgument) {
+        if (argument.name.lexeme == name) {
           return true;
         }
       }

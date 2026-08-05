@@ -6,6 +6,8 @@ analyzer:
 
 linter:
   rules:
+    - unnecessary_type_name_in_constructor
+    - unnecessary_const_in_enum_constructor
     - collection_methods_unrelated_type
     - curly_braces_in_flow_control_structures
     - prefer_adjacent_string_concatenation
@@ -18,4 +20,5 @@ linter:
     - unrelated_type_equality_checks
     - annotate_overrides
     - always_declare_return_types
+    - deprecated_member_use_from_same_package
     # - always_specify_types

@@ -107,6 +107,13 @@ class Merger {
 }
 
 extension YamlMapExtensions on YamlMap {
+  /// Return [nodes] as entries with [YamlNode] keys and values.
+  Iterable<({YamlNode keyNode, YamlNode valueNode})> get nodeEntries sync* {
+    for (var MapEntry(:key, :value) in nodeMap.entries) {
+      yield (keyNode: key, valueNode: value);
+    }
+  }
+
   /// Return [nodes] as a Map with [YamlNode] keys.
   Map<YamlNode, YamlNode> get nodeMap => nodes.cast<YamlNode, YamlNode>();
 
@@ -144,6 +151,28 @@ extension YamlMapExtensions on YamlMap {
   }
 }
 
-extension YamlNodeExtension on YamlNode {
-  Object get valueOrThrow => value as Object;
+extension YamlScalarExtension on YamlScalar {
+  /// Returns the value as a bool, or `null` if it cannot be converted.
+  bool? toBool() {
+    switch (value) {
+      case bool value:
+        return value;
+      case String value:
+        var map = const {'true': true, 'false': false};
+        return map[value.toLowerCase()];
+    }
+    return null;
+  }
+
+  /// Returns the value in lower case, or `null` if it is not a string.
+  String? toLowerCase() {
+    Object? value = this.value;
+    return value is String ? value.toLowerCase() : null;
+  }
+
+  /// Returns the value in upper case, or `null` if it is not a string.
+  String? toUpperCase() {
+    Object? value = this.value;
+    return value is String ? value.toUpperCase() : null;
+  }
 }

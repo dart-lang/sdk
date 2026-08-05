@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class SortCombinators extends ResolvedCorrectionProducer {
-  SortCombinators({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

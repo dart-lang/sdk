@@ -70,6 +70,9 @@ abstract class Feature {
   /// Feature information for inference-update-4.
   static final inference_update_4 = ExperimentalFeatures.inference_update_4;
 
+  /// Feature information for type promotion of 'this'.
+  static final this_promotion = ExperimentalFeatures.this_promotion;
+
   /// Feature information for inline classes.
   static final inline_class = ExperimentalFeatures.inline_class;
 

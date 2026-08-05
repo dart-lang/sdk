@@ -13,7 +13,7 @@ import 'isolates/reload_utils.dart';
 Future main() async {
   if (!currentVmSupportsReload) return;
 
-  await withTempDir((String tempDir) async {
+  await withTempDir("flutter-regress-93676", (String tempDir) async {
     final filename = path.join(tempDir, 'testee.dart');
     File(filename).writeAsStringSync(dartTestFile('AA', 'BB'));
 

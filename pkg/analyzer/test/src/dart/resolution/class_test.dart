@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -22,7 +21,7 @@ main() {
 @reflectiveTest
 class ClassDeclarationResolutionTest extends PubPackageResolutionTest {
   test_element_allSupertypes() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin B {}
 mixin C {}
@@ -36,26 +35,26 @@ class X4 extends A with B implements C {}
 class X5 extends A with B, C implements D, E {}
 ''');
 
-    assertElementTypes(findElement2.class_('X1').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X1').allSupertypes, [
       'Object',
       'A',
     ]);
-    assertElementTypes(findElement2.class_('X2').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X2').allSupertypes, [
       'Object',
       'B',
     ]);
-    assertElementTypes(findElement2.class_('X3').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X3').allSupertypes, [
       'Object',
       'A',
       'B',
     ]);
-    assertElementTypes(findElement2.class_('X4').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X4').allSupertypes, [
       'Object',
       'A',
       'B',
       'C',
     ]);
-    assertElementTypes(findElement2.class_('X5').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X5').allSupertypes, [
       'Object',
       'A',
       'B',
@@ -66,7 +65,7 @@ class X5 extends A with B, C implements D, E {}
   }
 
   test_element_allSupertypes_generic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 class B<T, U> {}
 class C<T> extends B<int, T> {}
@@ -76,15 +75,15 @@ class X2 extends B<String, List<int>> {}
 class X3 extends C<double> {}
 ''');
 
-    assertElementTypes(findElement2.class_('X1').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X1').allSupertypes, [
       'Object',
       'A<String>',
     ]);
-    assertElementTypes(findElement2.class_('X2').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X2').allSupertypes, [
       'Object',
       'B<String, List<int>>',
     ]);
-    assertElementTypes(findElement2.class_('X3').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X3').allSupertypes, [
       'Object',
       'B<int, double>',
       'C<double>',
@@ -92,103 +91,158 @@ class X3 extends C<double> {}
   }
 
   test_element_allSupertypes_recursive() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends B {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: C, B, A.
 class B extends C {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: C, B, A.
 class C extends A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'C' can't be a superinterface of itself: C, B, A.
 
 class X extends A {}
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveInterfaceInheritance, 27, 1),
-        error(diag.recursiveInterfaceInheritance, 48, 1),
-      ],
-    );
+''');
 
-    assertElementTypes(findElement2.class_('X').allSupertypes, ['A', 'Object']);
+    assertElementTypes(result.findElement.class_('X').allSupertypes, [
+      'A',
+      'Object',
+    ]);
   }
 
   test_element_typeFunction_extends() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends Function {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 16, 8)],
-    );
-    var a = findElement2.class_('A');
+//              ^^^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Function' can't be extended outside of its library because it's a final class.
+''');
+    var a = result.findElement.class_('A');
     assertType(a.supertype, 'Object');
   }
 
   test_element_typeFunction_extends_language219() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class A extends Function {}
-''',
-      [error(diag.deprecatedExtendsFunction, 32, 8)],
-    );
-    var a = findElement2.class_('A');
+//              ^^^^^^^^
+// [diag.deprecatedExtendsFunction] Extending 'Function' is deprecated.
+''');
+    var a = result.findElement.class_('A');
     assertType(a.supertype, 'Object');
   }
 
   test_element_typeFunction_with() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
-''',
-      [error(diag.classUsedAsMixin, 53, 8)],
-    );
+//                             ^^^^^^^^
+// [diag.classUsedAsMixin] The class 'Function' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
 
-    assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
+    assertElementTypes(result.findElement.class_('C').mixins, ['A', 'B']);
   }
 
   test_element_typeFunction_with_language219() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
-''',
-      [error(diag.deprecatedMixinFunction, 69, 8)],
-    );
+//                             ^^^^^^^^
+// [diag.deprecatedMixinFunction] Mixing in 'Function' is deprecated.
+''');
 
-    assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
+    assertElementTypes(result.findElement.class_('C').mixins, ['A', 'B']);
+  }
+
+  test_field_static_typeParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  static T? foo;
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
+}
+''');
+
+    var node = result.findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    type: NamedType
+      name: T
+      question: ?
+      element: #E0 T
+      type: InvalidType
+    variables
+      VariableDeclaration
+        name: foo
+        declaredFragment: <testLibraryFragment> foo@25
+  semicolon: ;
+  declaredFragment: <null>
+''');
   }
 
   test_issue32815() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> extends B<T> {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
 class B<T> extends A<T> {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
 class C<T> extends B<T> implements I<T> {}
 
 abstract class I<T> {}
 
 main() {
   Iterable<I<int>> x = [new C()];
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 6, 1),
-        error(diag.recursiveInterfaceInheritance, 33, 1),
-        error(diag.unusedLocalVariable, 150, 1),
-      ],
-    );
+''');
+  }
+
+  test_method_static_typeParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  static T? foo() {}
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
+}
+''');
+
+    var node = result.findNode.singleMethodDeclaration;
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: T
+    question: ?
+    element: #E0 T
+    type: InvalidType
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@25
+    element: <testLibrary>::@class::A::@method::foo
+      type: InvalidType Function()
+''');
   }
 
   test_nameWithTypeParameters_hasTypeParameters() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T extends int> {}
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -215,13 +269,11 @@ ClassDeclaration
   }
 
   test_nameWithTypeParameters_noTypeParameters() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -235,11 +287,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedOptional_final() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A({final int a = 0});
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -276,11 +328,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A({required final int a});
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -313,11 +365,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_final() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a(String x));
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -360,11 +412,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -395,11 +447,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_var() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(var int a) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -430,14 +482,14 @@ ClassDeclaration
   }
 
   test_primaryConstructor_field_staticConst() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final String a, final bool b) {
   static const int foo = 0;
   static const int bar = 1;
 }
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -516,13 +568,13 @@ ClassDeclaration
   }
 
   test_primaryConstructor_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int this.a) {
   final int a;
 }
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -568,14 +620,14 @@ ClassDeclaration
   }
 
   test_primaryConstructor_formalParameters_bodyScope_metadata() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 class A(@foo int x) {
   static const foo = 1;
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -606,16 +658,15 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_formalParameters_bodyScope_type() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int x) {
+//      ^^^
+// [diag.notAType] int isn't a type.
   static const String int = '';
 }
-''',
-      [error(diag.notAType, 8, 3)],
-    );
+''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -638,11 +689,11 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T>.named(T t) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -682,11 +733,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T>(T t) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -723,11 +774,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A.named(int a) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -759,11 +810,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int a) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -792,14 +843,14 @@ ClassDeclaration
   }
 
   test_primaryConstructor_scopes() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 class A<@foo T>([@foo int x = foo]) {
   static const foo = 1;
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -854,12 +905,12 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_superFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a);
 class B(super.a) extends A;
 ''');
 
-    var node = findNode.classDeclaration('class B');
+    var node = result.findNode.classDeclaration('class B');
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -891,11 +942,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class D<T extends U, U extends num>(T t, U u);
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -954,21 +1005,20 @@ ClassDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(bool x, bool y) {
   this : assert(x) {
     y;
   }
   this : assert(!x) {
+//^^^^
+// [diag.multiplePrimaryConstructorBodyDeclarations] Only one primary constructor body declaration is allowed.
     !y;
   }
 }
-''',
-      [error(diag.multiplePrimaryConstructorBodyDeclarations, 60, 4)],
-    );
+''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -1061,14 +1111,14 @@ ClassDeclaration
   }
 
   test_primaryConstructorBody_metadata() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A() {
   @deprecated
   this;
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   metadata
@@ -1086,17 +1136,16 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_metadata_noDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   @deprecated
   this;
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
 }
-''',
-      [error(diag.primaryConstructorBodyWithoutDeclaration, 26, 4)],
-    );
+''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   metadata
@@ -1114,22 +1163,21 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_noDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   this : assert(x) {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+//              ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
     y;
+//  ^
+// [diag.undefinedIdentifier] Undefined name 'y'.
   }
 }
-''',
-      [
-        error(diag.primaryConstructorBodyWithoutDeclaration, 12, 4),
-        error(diag.undefinedIdentifier, 26, 1),
-        error(diag.undefinedIdentifier, 35, 1),
-      ],
-    );
+''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1158,13 +1206,13 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final bool a) {
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1184,13 +1232,13 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter_shadowedClassName() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int A()) {
   this : assert(A() > 0);
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -1207,14 +1255,14 @@ FunctionExpressionInvocation
   }
 
   test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(this.a) {
   final bool a;
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1234,7 +1282,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter_shadowedClassName() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int _);
 }
@@ -1245,7 +1293,7 @@ class B(this.A) {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -1262,13 +1310,13 @@ FunctionExpressionInvocation
   }
 
   test_primaryConstructorBody_primaryInitializerScope_simpleFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(bool a) {
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1288,14 +1336,14 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_superFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final bool a);
 class B(super.a) extends A {
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1315,14 +1363,14 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_superFormalParameter_shadowedClassName() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int Function() A);
 class B(super.A) extends A {
   this : assert(A() > 0);
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -1339,7 +1387,7 @@ FunctionExpressionInvocation
   }
 
   test_primaryConstructorBody_primaryParameterScope_declaringFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a) {
   this {
     a;
@@ -1349,7 +1397,7 @@ class A(final int a) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1374,7 +1422,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryParameterScope_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(this.a) {
   final int a;
   this {
@@ -1385,7 +1433,7 @@ class A(this.a) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1410,7 +1458,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryParameterScope_simpleFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int a) {
   this {
     a;
@@ -1421,7 +1469,7 @@ class A(int a) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1471,7 +1519,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryParameterScope_superFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a);
 class B(super.a) extends A {
   this {
@@ -1482,7 +1530,7 @@ class B(super.a) extends A {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1507,13 +1555,13 @@ PrimaryConstructorBody
   }
 
   test_primaryInitializerScope_fieldInitializer_instance() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int foo) {
   var bar = foo;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1533,13 +1581,13 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int foo) {
   var bar = foo;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1559,16 +1607,15 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_late() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int foo) {
   late var bar = foo;
+//               ^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
 }
-''',
-      [error(diag.undefinedIdentifier, 36, 3)],
-    );
+''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1589,16 +1636,15 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_static() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int foo) {
   static var bar = foo;
+//                 ^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
 }
-''',
-      [error(diag.undefinedIdentifier, 38, 3)],
-    );
+''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   staticKeyword: static
@@ -1619,13 +1665,13 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldTypeAnnotation_shadowedClassName() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int A) {
   A? field;
 }
 ''');
 
-    var node = findNode.namedType('A? field');
+    var node = result.findNode.namedType('A? field');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -1645,35 +1691,33 @@ NamedType
 class ClassDeclarationResolutionTest_constructor_super
     extends PubPackageResolutionTest {
   test_named_N1_superFormals_N1_hasSuper_N1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named({required int n1});
 }
 class B extends A {
   B.named({required super.n1}) : super.named(n1: 0);
+//                                           ^^
+// [diag.duplicateNamedArgument] The argument for the named parameter 'n1' was already specified.
 }
-''',
-      [error(diag.duplicateNamedArgument, 107, 2)],
-    );
+''');
   }
 
   test_named_P_N1_n2_superFormals_P_hasSuper_n2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int p1, {required int n1, int? n2});
 }
 class B extends A {
   B.named(super.p1) : super.named(n2: 1);
+//                    ^^^^^^^^^^^^^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'n1' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 101, 18)],
-    );
+''');
   }
 
   test_named_P_n1_superFormals_P_hasSuper_n1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int p1, {int? n1});
 }
@@ -1684,7 +1728,7 @@ class B extends A {
   }
 
   test_named_P_N1_superFormals_P_N1_hasSuper_none() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int p1, {required int n1});
 }
@@ -1695,21 +1739,20 @@ class B extends A {
   }
 
   test_named_PP_superFormals_P_hasSuper_P() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int p1, int p2);
 }
 class B extends A {
   B.named(super.p1) : super.named(0);
+//              ^^
+// [diag.positionalSuperFormalParameterWithPositionalArgument] Positional super parameters can't be used when the super constructor invocation has a positional argument.
 }
-''',
-      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 75, 2)],
-    );
+''');
   }
 
   test_unnamed_n1_n2_n3_superFormals_n1_n2_hasSuper_n3() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1, int? n2, int? n3});
 }
@@ -1720,21 +1763,20 @@ class B extends A {
   }
 
   test_unnamed_N1_N2_superFormals_N1_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1, required int n2});
 }
 class B extends A {
   B({required super.n1});
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
 }
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 75, 1)],
-    );
+''');
   }
 
   test_unnamed_N1_N2_superFormals_N1_hasSuper_N2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1, required int n2});
 }
@@ -1745,7 +1787,7 @@ class B extends A {
   }
 
   test_unnamed_n1_n2_superFormals_n1_hasSuper_n2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1, int? n2});
 }
@@ -1756,21 +1798,20 @@ class B extends A {
   }
 
   test_unnamed_N1_N2_superFormals_N1_hasSuper_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1, required int n2});
 }
 class B extends A {
   B({required super.n1}) : super();
+//                         ^^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'n2' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 100, 7)],
-    );
+''');
   }
 
   test_unnamed_n1_N2_superFormals_n1_N2_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1, required int n2});
 }
@@ -1781,7 +1822,7 @@ class B extends A {
   }
 
   test_unnamed_N1_superFormals_n1_default_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
@@ -1792,24 +1833,22 @@ class B extends A {
   }
 
   test_unnamed_N1_superFormals_N1_hasConstructor_N2_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n2});
 }
 class B extends A {
   B({required super.n1});
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+//                  ^^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
 }
-''',
-      [
-        error(diag.implicitSuperInitializerMissingArguments, 58, 1),
-        error(diag.superFormalParameterWithoutAssociatedNamed, 76, 2),
-      ],
-    );
+''');
   }
 
   test_unnamed_N1_superFormals_N1_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
@@ -1820,7 +1859,7 @@ class B extends A {
   }
 
   test_unnamed_n1_superFormals_n1_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1});
 }
@@ -1831,35 +1870,33 @@ class B extends A {
   }
 
   test_unnamed_N1_superFormals_N1_hasSuper_N1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
 class B extends A {
   B({required super.n1}) : super(n1: 0);
+//                               ^^
+// [diag.duplicateNamedArgument] The argument for the named parameter 'n1' was already specified.
 }
-''',
-      [error(diag.duplicateNamedArgument, 89, 2)],
-    );
+''');
   }
 
   test_unnamed_n1_superFormals_n1_hasSuper_n1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1});
 }
 class B extends A {
   B({super.n1}) : super(n1: 1);
+//                      ^^
+// [diag.duplicateNamedArgument] The argument for the named parameter 'n1' was already specified.
 }
-''',
-      [error(diag.duplicateNamedArgument, 72, 2)],
-    );
+''');
   }
 
   test_unnamed_N1_superFormals_none_hasSuper_N1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
@@ -1870,7 +1907,7 @@ class B extends A {
   }
 
   test_unnamed_n1_superFormals_none_hasSuper_n1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1});
 }
@@ -1881,38 +1918,35 @@ class B extends A {
   }
 
   test_unnamed_N1_superFormals_P_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
 class B extends A {
   B(super.n1);
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+//        ^^
+// [diag.superFormalParameterWithoutAssociatedPositional] No associated positional super constructor parameter.
 }
-''',
-      [
-        error(diag.implicitSuperInitializerMissingArguments, 58, 1),
-        error(diag.superFormalParameterWithoutAssociatedPositional, 66, 2),
-      ],
-    );
+''');
   }
 
   test_unnamed_n1_superFormals_P_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1});
 }
 class B extends A {
   B(super.p1);
+//        ^^
+// [diag.superFormalParameterWithoutAssociatedPositional] No associated positional super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterWithoutAssociatedPositional, 58, 2)],
-    );
+''');
   }
 
   test_unnamed_P_n1_n2_superFormals_P_hasSuper_n1_n2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1, int? n2});
 }
@@ -1923,21 +1957,20 @@ class B extends A {
   }
 
   test_unnamed_P_N1_n2_superFormals_P_hasSuper_n2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1, int? n2});
 }
 class B extends A {
   B(super.p1) : super(n2: 1);
+//              ^^^^^^^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'n1' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 89, 12)],
-    );
+''');
   }
 
   test_unnamed_P_n1_n2_superFormals_P_n1_hasSuper_n2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1, int? n2});
 }
@@ -1948,7 +1981,7 @@ class B extends A {
   }
 
   test_unnamed_P_n1_N2_superFormals_P_n1_N2_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1, required int n2});
 }
@@ -1959,7 +1992,7 @@ class B extends A {
   }
 
   test_unnamed_P_N1_n2_superFormals_P_n2_hasSuper_N1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1, int? n2});
 }
@@ -1970,7 +2003,7 @@ class B extends A {
   }
 
   test_unnamed_P_N1_superFormals_N1_hasSuper_P() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1});
 }
@@ -1981,7 +2014,7 @@ class B extends A {
   }
 
   test_unnamed_P_n1_superFormals_n1_hasSuper_P() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1});
 }
@@ -1992,21 +2025,20 @@ class B extends A {
   }
 
   test_unnamed_P_N1_superFormals_P_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1});
 }
 class B extends A {
   B(super.p1);
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
 }
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 66, 1)],
-    );
+''');
   }
 
   test_unnamed_P_n1_superFormals_P_hasSuper_n1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1});
 }
@@ -2017,7 +2049,7 @@ class B extends A {
   }
 
   test_unnamed_P_N1_superFormals_P_N1_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1});
 }
@@ -2028,7 +2060,7 @@ class B extends A {
   }
 
   test_unnamed_P_n1_superFormals_P_n1_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1});
 }
@@ -2039,66 +2071,61 @@ class B extends A {
   }
 
   test_unnamed_P_superFormals_N1_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B extends A {
   B({required super.p1});
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+//                  ^^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
 }
-''',
-      [
-        error(diag.implicitSuperInitializerMissingArguments, 47, 1),
-        error(diag.superFormalParameterWithoutAssociatedNamed, 65, 2),
-      ],
-    );
+''');
   }
 
   test_unnamed_p_superFormals_n1_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? p1]);
 }
 class B extends A {
   B({super.n1});
+//         ^^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterWithoutAssociatedNamed, 59, 2)],
-    );
+''');
   }
 
   test_unnamed_P_superFormals_none_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B extends A {
   B();
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
 }
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 47, 1)],
-    );
+''');
   }
 
   test_unnamed_P_superFormals_none_hasSuper_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B extends A {
   B() : super();
+//            ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
 }
-''',
-      [error(diag.notEnoughPositionalArgumentsNameSingular, 59, 1)],
-    );
+''');
   }
 
   test_unnamed_P_superFormals_none_hasSuper_p() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
@@ -2109,7 +2136,7 @@ class B extends A {
   }
 
   test_unnamed_p_superFormals_none_hasSuper_p() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? p1]);
 }
@@ -2120,19 +2147,18 @@ class B extends A {
   }
 
   test_unnamed_P_superFormals_none_noConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B extends A {}
-''',
-      [error(diag.noDefaultSuperConstructorImplicit, 31, 1)],
-    );
+//    ^
+// [diag.noDefaultSuperConstructorImplicit] The superclass 'A' doesn't have a zero argument constructor.
+''');
   }
 
   test_unnamed_P_superFormals_p_default_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
@@ -2143,7 +2169,7 @@ class B extends A {
   }
 
   test_unnamed_p_superFormals_p_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? p1]);
 }
@@ -2154,21 +2180,20 @@ class B extends A {
   }
 
   test_unnamed_P_superFormals_P_hasConstructor_noSuper_wrongType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B extends A {
   B(String super.p1);
+//               ^^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'String' of this parameter isn't a subtype of the type 'int' of the associated super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 62, 2)],
-    );
+''');
   }
 
   test_unnamed_P_superFormals_P_hasSuper_none() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
@@ -2179,91 +2204,85 @@ class B extends A {
   }
 
   test_unnamed_P_superFormals_p_hasSuper_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B extends A {
   B([super.p1]) : super();
+//         ^^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'p1' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
 }
-''',
-      [error(diag.missingDefaultValueForParameterPositional, 56, 2)],
-    );
+''');
   }
 
   test_unnamed_p_superFormals_p_hasSuper_p() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? p1]);
 }
 class B extends A {
   B(super.p1) : super(1);
+//        ^^
+// [diag.positionalSuperFormalParameterWithPositionalArgument] Positional super parameters can't be used when the super constructor invocation has a positional argument.
 }
-''',
-      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 58, 2)],
-    );
+''');
   }
 
   test_unnamed_P_superFormals_PP_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B extends A {
   B(super.p1, super.p2);
+//                  ^^
+// [diag.superFormalParameterWithoutAssociatedPositional] No associated positional super constructor parameter.
 }
-''',
-      [error(diag.superFormalParameterWithoutAssociatedPositional, 65, 2)],
-    );
+''');
   }
 
   test_unnamed_PP_superFormals_P_hasConstructor_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, int p2);
 }
 class B extends A {
   B(super.p1);
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
 }
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 55, 1)],
-    );
+''');
   }
 
   test_unnamed_PP_superFormals_P_hasSuper_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, int p2);
 }
 class B extends A {
   B(super.p1) : super();
+//                    ^
+// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'A.new', but 1 found.
 }
-''',
-      [error(diag.notEnoughPositionalArgumentsNamePlural, 75, 1)],
-    );
+''');
   }
 
   test_unnamed_PP_superFormals_P_hasSuper_P() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, int p2);
 }
 class B extends A {
   B(super.p1) : super(0);
+//        ^^
+// [diag.positionalSuperFormalParameterWithPositionalArgument] Positional super parameters can't be used when the super constructor invocation has a positional argument.
 }
-''',
-      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 63, 2)],
-    );
+''');
   }
 
   test_unnamed_Pp_superFormals_Pp_hasConstructor_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, [int? p2]);
 }
@@ -2283,35 +2302,33 @@ class B extends A {
 class ClassDeclarationResolutionTest_primaryConstructor_super
     extends PubPackageResolutionTest {
   test_named_N1_superFormals_N1_hasSuper_N1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named({required int n1});
 }
 class B.named({required super.n1}) extends A {
   this : super.named(n1: 0);
+//                   ^^
+// [diag.duplicateNamedArgument] The argument for the named parameter 'n1' was already specified.
 }
-''',
-      [error(diag.duplicateNamedArgument, 110, 2)],
-    );
+''');
   }
 
   test_named_P_N1_n2_superFormals_P_hasSuper_n2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int p1, {required int n1, int? n2});
 }
 class B.named(super.p1) extends A {
   this : super.named(n2: 1);
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'n1' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 104, 18)],
-    );
+''');
   }
 
   test_named_P_n1_superFormals_P_hasSuper_n1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int p1, {int? n1});
 }
@@ -2322,7 +2339,7 @@ class B.named(super.p1) extends A {
   }
 
   test_named_P_N1_superFormals_P_N1_hasSuper_none() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int p1, {required int n1});
 }
@@ -2333,21 +2350,20 @@ class B.named(super.p1, {required super.n1}) extends A {
   }
 
   test_named_PP_superFormals_P_hasSuper_P() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int p1, int p2);
 }
 class B.named(super.p1) extends A {
+//                  ^^
+// [diag.positionalSuperFormalParameterWithPositionalArgument] Positional super parameters can't be used when the super constructor invocation has a positional argument.
   this : super.named(0);
 }
-''',
-      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 59, 2)],
-    );
+''');
   }
 
   test_unnamed_n1_n2_n3_superFormals_n1_n2_hasSuper_n3() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1, int? n2, int? n3});
 }
@@ -2358,21 +2374,20 @@ class B({super.n1, super.n2}) extends A {
   }
 
   test_unnamed_N1_N2_superFormals_N1_hasBody_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1, required int n2});
 }
 class B({required super.n1}) extends A {
   this;
+//^^^^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
 }
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 96, 4)],
-    );
+''');
   }
 
   test_unnamed_N1_N2_superFormals_N1_hasSuper_N2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1, required int n2});
 }
@@ -2383,7 +2398,7 @@ class B({required super.n1}) extends A {
   }
 
   test_unnamed_n1_n2_superFormals_n1_hasSuper_n2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1, int? n2});
 }
@@ -2394,21 +2409,20 @@ class B({super.n1}) extends A {
   }
 
   test_unnamed_N1_N2_superFormals_N1_hasSuper_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1, required int n2});
 }
 class B({required super.n1}) extends A {
   this : super();
+//       ^^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'n2' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 103, 7)],
-    );
+''');
   }
 
   test_unnamed_n1_N2_superFormals_n1_N2_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1, required int n2});
 }
@@ -2417,19 +2431,18 @@ class B({super.n1, required super.n2}) extends A;
   }
 
   test_unnamed_N1_N2_superFormals_N1_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1, required int n2});
 }
 class B({required super.n1}) extends A;
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 59, 1)],
-    );
+//    ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+''');
   }
 
   test_unnamed_N1_superFormals_n1_default_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
@@ -2438,7 +2451,7 @@ class B({super.n1 = 1}) extends A;
   }
 
   test_unnamed_N1_superFormals_N1_hasBody_noSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
@@ -2449,35 +2462,33 @@ class B({required super.n1}) extends A {
   }
 
   test_unnamed_N1_superFormals_N1_hasSuper_N1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
 class B({required super.n1}) extends A {
   this : super(n1: 0);
+//             ^^
+// [diag.duplicateNamedArgument] The argument for the named parameter 'n1' was already specified.
 }
-''',
-      [error(diag.duplicateNamedArgument, 92, 2)],
-    );
+''');
   }
 
   test_unnamed_n1_superFormals_n1_hasSuper_n1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1});
 }
 class B({super.n1}) extends A {
   this : super(n1: 1);
+//             ^^
+// [diag.duplicateNamedArgument] The argument for the named parameter 'n1' was already specified.
 }
-''',
-      [error(diag.duplicateNamedArgument, 75, 2)],
-    );
+''');
   }
 
   test_unnamed_N1_superFormals_N1_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
@@ -2486,7 +2497,7 @@ class B({required super.n1}) extends A;
   }
 
   test_unnamed_n1_superFormals_n1_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1});
 }
@@ -2495,22 +2506,20 @@ class B({super.n1}) extends A;
   }
 
   test_unnamed_N1_superFormals_N1_noBody_N2_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n2});
 }
 class B({required super.n1}) extends A;
-''',
-      [
-        error(diag.implicitSuperInitializerMissingArguments, 42, 1),
-        error(diag.superFormalParameterWithoutAssociatedNamed, 60, 2),
-      ],
-    );
+//    ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+//                      ^^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
+''');
   }
 
   test_unnamed_N1_superFormals_none_hasSuper_N1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
@@ -2521,7 +2530,7 @@ class B() extends A {
   }
 
   test_unnamed_n1_superFormals_none_hasSuper_n1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1});
 }
@@ -2532,51 +2541,46 @@ class B() extends A {
   }
 
   test_unnamed_N1_superFormals_P_hasBody_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
 class B(super.n1) extends A {
+//            ^^
+// [diag.superFormalParameterWithoutAssociatedPositional] No associated positional super constructor parameter.
   this;
+//^^^^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
 }
-''',
-      [
-        error(diag.superFormalParameterWithoutAssociatedPositional, 50, 2),
-        error(diag.implicitSuperInitializerMissingArguments, 68, 4),
-      ],
-    );
+''');
   }
 
   test_unnamed_N1_superFormals_P_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int n1});
 }
 class B(super.n1) extends A;
-''',
-      [
-        error(diag.implicitSuperInitializerMissingArguments, 42, 1),
-        error(diag.superFormalParameterWithoutAssociatedPositional, 50, 2),
-      ],
-    );
+//    ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+//            ^^
+// [diag.superFormalParameterWithoutAssociatedPositional] No associated positional super constructor parameter.
+''');
   }
 
   test_unnamed_n1_superFormals_P_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({int? n1});
 }
 class B(super.p1) extends A;
-''',
-      [error(diag.superFormalParameterWithoutAssociatedPositional, 42, 2)],
-    );
+//            ^^
+// [diag.superFormalParameterWithoutAssociatedPositional] No associated positional super constructor parameter.
+''');
   }
 
   test_unnamed_P_n1_n2_superFormals_P_hasSuper_n1_n2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1, int? n2});
 }
@@ -2587,21 +2591,20 @@ class B(super.p1) extends A {
   }
 
   test_unnamed_P_N1_n2_superFormals_P_hasSuper_n2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1, int? n2});
 }
 class B(super.p1) extends A {
   this : super(n2: 1);
+//       ^^^^^^^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'n1' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 92, 12)],
-    );
+''');
   }
 
   test_unnamed_P_n1_n2_superFormals_P_n1_hasSuper_n2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1, int? n2});
 }
@@ -2612,7 +2615,7 @@ class B(super.p1, {super.n1}) extends A {
   }
 
   test_unnamed_P_n1_N2_superFormals_P_n1_N2_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1, required int n2});
 }
@@ -2621,7 +2624,7 @@ class B(super.p1, {super.n1, required super.n2}) extends A;
   }
 
   test_unnamed_P_N1_n2_superFormals_P_n2_hasSuper_N1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1, int? n2});
 }
@@ -2632,7 +2635,7 @@ class B(super.p1, {super.n2}) extends A {
   }
 
   test_unnamed_P_N1_superFormals_N1_hasSuper_P() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1});
 }
@@ -2643,7 +2646,7 @@ class B({required super.n1}) extends A {
   }
 
   test_unnamed_P_n1_superFormals_n1_hasSuper_P() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1});
 }
@@ -2654,21 +2657,20 @@ class B({super.n1}) extends A {
   }
 
   test_unnamed_P_N1_superFormals_P_hasBody_noSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1});
 }
 class B(super.p1) extends A {
   this;
+//^^^^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
 }
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 76, 4)],
-    );
+''');
   }
 
   test_unnamed_P_n1_superFormals_P_hasSuper_n1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1});
 }
@@ -2679,7 +2681,7 @@ class B(super.p1) extends A {
   }
 
   test_unnamed_P_N1_superFormals_P_N1_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1});
 }
@@ -2688,7 +2690,7 @@ class B(super.p1, {required super.n1}) extends A;
   }
 
   test_unnamed_P_n1_superFormals_P_n1_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {int? n1});
 }
@@ -2697,60 +2699,55 @@ class B(super.p1, {super.n1}) extends A;
   }
 
   test_unnamed_P_N1_superFormals_P_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, {required int n1});
 }
 class B(super.p1) extends A;
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 50, 1)],
-    );
+//    ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+''');
   }
 
   test_unnamed_P_superFormals_N1_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B({required super.p1}) extends A;
-''',
-      [
-        error(diag.implicitSuperInitializerMissingArguments, 31, 1),
-        error(diag.superFormalParameterWithoutAssociatedNamed, 49, 2),
-      ],
-    );
+//    ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+//                      ^^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
+''');
   }
 
   test_unnamed_p_superFormals_n1_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? p1]);
 }
 class B({super.n1}) extends A;
-''',
-      [error(diag.superFormalParameterWithoutAssociatedNamed, 43, 2)],
-    );
+//             ^^
+// [diag.superFormalParameterWithoutAssociatedNamed] No associated named super constructor parameter.
+''');
   }
 
   test_unnamed_P_superFormals_none_hasSuper_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B() extends A {
   this : super();
+//             ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
 }
-''',
-      [error(diag.notEnoughPositionalArgumentsNameSingular, 62, 1)],
-    );
+''');
   }
 
   test_unnamed_P_superFormals_none_hasSuper_p() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
@@ -2761,7 +2758,7 @@ class B() extends A {
   }
 
   test_unnamed_p_superFormals_none_hasSuper_p() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? p1]);
 }
@@ -2772,31 +2769,29 @@ class B() extends A {
   }
 
   test_unnamed_P_superFormals_none_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B() extends A;
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 31, 1)],
-    );
+//    ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+''');
   }
 
   test_unnamed_P_superFormals_none_noConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B() extends A;
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 31, 1)],
-    );
+//    ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+''');
   }
 
   test_unnamed_P_superFormals_p_default_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
@@ -2805,7 +2800,7 @@ class B([super.p1 = 1]) extends A;
   }
 
   test_unnamed_P_superFormals_P_hasSuper_none() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
@@ -2816,35 +2811,33 @@ class B(super.p1) extends A {
   }
 
   test_unnamed_P_superFormals_p_hasSuper_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B([super.p1]) extends A {
+//             ^^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'p1' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
   this : super();
 }
-''',
-      [error(diag.missingDefaultValueForParameterPositional, 40, 2)],
-    );
+''');
   }
 
   test_unnamed_p_superFormals_p_hasSuper_p() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? p1]);
 }
 class B(super.p1) extends A {
+//            ^^
+// [diag.positionalSuperFormalParameterWithPositionalArgument] Positional super parameters can't be used when the super constructor invocation has a positional argument.
   this : super(1);
 }
-''',
-      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 42, 2)],
-    );
+''');
   }
 
   test_unnamed_p_superFormals_p_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([int? p1]);
 }
@@ -2853,71 +2846,66 @@ class B([super.p1]) extends A;
   }
 
   test_unnamed_P_superFormals_P_noBody_wrongType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B(String super.p1) extends A;
-''',
-      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 46, 2)],
-    );
+//                   ^^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'String' of this parameter isn't a subtype of the type 'int' of the associated super constructor parameter.
+''');
   }
 
   test_unnamed_P_superFormals_PP_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1);
 }
 class B(super.p1, super.p2) extends A;
-''',
-      [error(diag.superFormalParameterWithoutAssociatedPositional, 49, 2)],
-    );
+//                      ^^
+// [diag.superFormalParameterWithoutAssociatedPositional] No associated positional super constructor parameter.
+''');
   }
 
   test_unnamed_PP_superFormals_P_hasSuper_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, int p2);
 }
 class B(super.p1) extends A {
   this : super();
+//             ^
+// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'A.new', but 1 found.
 }
-''',
-      [error(diag.notEnoughPositionalArgumentsNamePlural, 78, 1)],
-    );
+''');
   }
 
   test_unnamed_PP_superFormals_P_hasSuper_P() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, int p2);
 }
 class B(super.p1) extends A {
+//            ^^
+// [diag.positionalSuperFormalParameterWithPositionalArgument] Positional super parameters can't be used when the super constructor invocation has a positional argument.
   this : super(0);
 }
-''',
-      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 47, 2)],
-    );
+''');
   }
 
   test_unnamed_PP_superFormals_P_noBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, int p2);
 }
 class B(super.p1) extends A;
-''',
-      [error(diag.implicitSuperInitializerMissingArguments, 39, 1)],
-    );
+//    ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+''');
   }
 
   test_unnamed_Pp_superFormals_Pp_noBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int p1, [int? p2]);
 }

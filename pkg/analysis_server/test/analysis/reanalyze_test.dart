@@ -34,7 +34,7 @@ class ReanalyzeTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_reanalyze() async {
-    var b = getFolder(testPackageLibPath).parent.getChildAssumingFile('b.dart');
+    var b = getFolder(testPackageLibPath).parent.getFile('b.dart');
 
     var file = newFile('$testPackageTestPath/a.dart', r'''
 import '../b.dart';

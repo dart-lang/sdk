@@ -80,5 +80,5 @@ org-dartlang-testcase:///synthetic_enum_constructor.dart:
 - _E&_Enum&M. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:9:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- F. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:15:6)
-- G. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:27:9)
+- F. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:11:6)
+- G. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:18:9)

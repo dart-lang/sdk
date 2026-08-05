@@ -17,7 +17,7 @@ import '../extensions.dart';
 const _desc = r'Avoid annotating with `dynamic` when not required.';
 
 class AvoidAnnotatingWithDynamic extends AnalysisRule {
-  AvoidAnnotatingWithDynamic()
+  new()
     : super(name: LintNames.avoid_annotating_with_dynamic, description: _desc);
 
   @override
@@ -30,7 +30,7 @@ class AvoidAnnotatingWithDynamic extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addFieldFormalParameter(this, visitor);
-    registry.addSimpleFormalParameter(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
     registry.addSuperFormalParameter(this, visitor);
   }
 }
@@ -38,7 +38,7 @@ class AvoidAnnotatingWithDynamic extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     _checkNode(node, node.type);
   }
 
@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkNode(node, node.type);
   }
 
-  void _checkNode(NormalFormalParameter node, TypeAnnotation? type) {
+  void _checkNode(FormalParameter node, TypeAnnotation? type) {
     if (node.inAugmentation) return;
 
     if (type is NamedType && type.type is DynamicType) {

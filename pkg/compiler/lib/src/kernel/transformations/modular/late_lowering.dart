@@ -62,8 +62,7 @@ class LateLowering {
 
   // Each map contains the mapping from late local variables to cells for a
   // given function scope. All late local variables are lowered to cells.
-  final List<Map<VariableDeclaration, VariableDeclaration>?> _variableCells =
-      [];
+  final List<Map<Variable, Variable>?> _variableCells = [];
 
   // Uninitialized late static fields are lowered to cells.
   final Map<Field, Field> _fieldCells = {};
@@ -89,12 +88,12 @@ class LateLowering {
 
   Nullability get nonNullable => _contextMember!.enclosingLibrary.nonNullable;
 
-  bool _shouldLowerVariable(VariableDeclaration variable) => variable.isLate;
+  bool _shouldLowerVariable(Variable variable) => variable.isLate;
 
-  bool _shouldLowerUninitializedVariable(VariableDeclaration variable) =>
+  bool _shouldLowerUninitializedVariable(Variable variable) =>
       _shouldLowerVariable(variable) && variable.initializer == null;
 
-  bool _shouldLowerInitializedVariable(VariableDeclaration variable) =>
+  bool _shouldLowerInitializedVariable(Variable variable) =>
       _shouldLowerVariable(variable) && variable.initializer != null;
 
   bool _shouldLowerStaticField(Field field) =>
@@ -227,7 +226,7 @@ class LateLowering {
     _variableCells.removeLast();
   }
 
-  VariableDeclaration? _lookupVariableCell(VariableDeclaration variable) {
+  Variable? _lookupVariableCell(Variable variable) {
     assert(_shouldLowerVariable(variable));
     for (final scope in _variableCells) {
       if (scope == null) continue;
@@ -237,16 +236,13 @@ class LateLowering {
     return null;
   }
 
-  VariableDeclaration _addToCurrentScope(
-    VariableDeclaration variable,
-    VariableDeclaration cell,
-  ) {
+  Variable _addToCurrentScope(Variable variable, Variable cell) {
     assert(_shouldLowerVariable(variable));
     assert(_lookupVariableCell(variable) == null);
     return (_variableCells.last ??= {})[variable] = cell;
   }
 
-  VariableDeclaration _variableCell(VariableDeclaration variable) {
+  Variable _variableCell(Variable variable) {
     assert(_shouldLowerVariable(variable));
     final cell = _lookupVariableCell(variable);
     if (cell != null) return cell;
@@ -255,19 +251,18 @@ class LateLowering {
         : _initializedVariableCell(variable);
   }
 
-  VariableDeclaration _uninitializedVariableCell(VariableDeclaration variable) {
+  Variable _uninitializedVariableCell(Variable variable) {
     assert(_shouldLowerUninitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    String? name = variable.name;
-    final cell = VariableDeclaration(
-      name,
+    String? name = variable.cosmeticName;
+    final cell = SyntheticVariable(
+      cosmeticName: name,
       initializer: _callCellConstructor(
         _nameLiteral(name, fileOffset),
         fileOffset,
       ),
       type: InterfaceType(_coreTypes.cellClass, nonNullable),
       isFinal: true,
-      isSynthesized: true,
     )..fileOffset = fileOffset;
 
     return _addToCurrentScope(variable, cell);
@@ -285,12 +280,12 @@ class LateLowering {
     return FunctionExpression(closure)..fileOffset = fileOffset;
   }
 
-  VariableDeclaration _initializedVariableCell(VariableDeclaration variable) {
+  Variable _initializedVariableCell(Variable variable) {
     assert(_shouldLowerInitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    String? name = variable.name;
-    final cell = VariableDeclaration(
-      name,
+    String? name = variable.cosmeticName;
+    final cell = SyntheticVariable(
+      cosmeticName: name,
       initializer: _callInitializedCellConstructor(
         _nameLiteral(name, fileOffset),
         _initializerClosure(variable.initializer!, variable.type),
@@ -298,27 +293,22 @@ class LateLowering {
       ),
       type: InterfaceType(_coreTypes.initializedCellClass, nonNullable),
       isFinal: true,
-      isSynthesized: true,
     )..fileOffset = fileOffset;
     return _addToCurrentScope(variable, cell);
   }
 
   TreeNode transformVariableDeclaration(
-    VariableDeclaration variable,
+    Variable variable,
     Member? contextMember,
   ) {
     _contextMember = contextMember;
 
     if (!_shouldLowerVariable(variable)) return variable;
 
-    // A [VariableDeclaration] being used as a statement must be a direct child
-    // of a [Block].
-    if (variable.parent is! Block) return variable;
-
     return _variableCell(variable);
   }
 
-  VariableGet _variableCellRead(VariableDeclaration variable, int fileOffset) {
+  VariableGet _variableCellRead(Variable variable, int fileOffset) {
     assert(_shouldLowerVariable(variable));
     return VariableGet(_variableCell(variable))..fileOffset = fileOffset;
   }
@@ -326,7 +316,7 @@ class LateLowering {
   TreeNode transformVariableGet(VariableGet node, Member contextMember) {
     _contextMember = contextMember;
 
-    VariableDeclaration variable = node.variable;
+    Variable variable = node.variable;
     if (!_shouldLowerVariable(variable)) return node;
 
     int fileOffset = node.fileOffset;
@@ -345,7 +335,7 @@ class LateLowering {
   TreeNode transformVariableSet(VariableSet node, Member contextMember) {
     _contextMember = contextMember;
 
-    VariableDeclaration variable = node.variable;
+    Variable variable = node.variable;
     if (!_shouldLowerVariable(variable)) return node;
 
     int fileOffset = node.fileOffset;
@@ -418,8 +408,8 @@ class LateLowering {
         isExtensionTypeMember: field.isExtensionTypeMember,
       )..fileOffset = fileOffset;
 
-      VariableDeclaration setterValue = VariableDeclaration(
-        'value',
+      PositionalParameter setterValue = PositionalParameter(
+        cosmeticName: 'value',
         type: type,
         isSynthesized: true,
       )..fileOffset = fileOffset;
@@ -587,28 +577,26 @@ class LateLowering {
         //   }
         //   return value;
         // }
-        VariableDeclaration value = VariableDeclaration(
-          'value',
+        SyntheticVariable value = SyntheticVariable(
+          cosmeticName: 'value',
           initializer: fieldRead(),
           type: type,
-          isSynthesized: true,
         )..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
-        VariableDeclaration result = VariableDeclaration(
-          'result',
+        SyntheticVariable result = SyntheticVariable(
+          cosmeticName: 'result',
           initializer: initializer,
           type: type,
           isFinal: true,
-          isSynthesized: true,
         )..fileOffset = fileOffset;
         VariableGet resultRead() =>
             VariableGet(result)..fileOffset = fileOffset;
         return Block([
-          value,
+          VariableStatement(VariableDeclaration(value)),
           IfStatement(
             _callIsSentinel(valueRead(), fileOffset),
             Block([
-              result,
+              VariableStatement(VariableDeclaration(result)),
               ExpressionStatement(
                 StaticInvocation(
                   _coreTypes.lateInitializeOnceCheck,
@@ -645,15 +633,14 @@ class LateLowering {
         //
         // This lowering avoids generating an extra narrowing node in inference,
         // but the generated code is worse due to poor register allocation.
-        VariableDeclaration value = VariableDeclaration(
-          'value',
+        SyntheticVariable value = SyntheticVariable(
+          cosmeticName: 'value',
           initializer: fieldRead(),
           type: type,
-          isSynthesized: true,
         )..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
         return Block([
-          value,
+          VariableStatement(VariableDeclaration(value)),
           IfStatement(
             _callIsSentinel(valueRead(), fileOffset),
             ExpressionStatement(
@@ -674,9 +661,9 @@ class LateLowering {
       fileUri: fileUri,
       reference: field.getterReference,
     )..fileOffset = fileOffset;
-    // The initializer is copied from [field] to [getter] so we copy the
-    // transformer flags to reflect whether the getter contains super calls.
-    getter.transformerFlags = field.transformerFlags;
+    // The initializer is copied from [field] to [getter] so we copy this
+    // property to reflect whether the getter contains super calls.
+    getter.containsSuperCalls = field.containsSuperCalls;
     _copyAnnotations(getter, field);
     if (initializer != null && field.isFinal) {
       getter.addAnnotation(
@@ -686,8 +673,8 @@ class LateLowering {
     }
     enclosingClass.addProcedure(getter);
 
-    VariableDeclaration setterValue = VariableDeclaration(
-      'value',
+    PositionalParameter setterValue = PositionalParameter(
+      cosmeticName: 'value',
       type: type,
       isSynthesized: true,
     )..fileOffset = fileOffset;

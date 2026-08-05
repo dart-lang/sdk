@@ -54,14 +54,14 @@ class ErrorOrRecord2ExtensionTest {
     expect(result.result, 100);
   }
 
-  test_mapResultsSync_error() async {
+  test_mapResultsSync_error() {
     var result = (success(1), errorX).mapResultsSync((a, b) {
       throw 'function should not be called';
     });
     expect(result, errorX);
   }
 
-  test_mapResultsSync_result() async {
+  test_mapResultsSync_result() {
     var result = (success(1), success(2)).mapResultsSync((a, b) {
       expect(a, 1);
       expect(b, 2);
@@ -111,14 +111,14 @@ class ErrorOrRecord3ExtensionTest {
     expect(result.result, 100);
   }
 
-  test_mapResultsSync_error() async {
+  test_mapResultsSync_error() {
     var result = (success(1), success(2), errorX).mapResultsSync((a, b, c) {
       throw 'function should not be called';
     });
     expect(result, errorX);
   }
 
-  test_mapResultsSync_result() async {
+  test_mapResultsSync_result() {
     var result = (success(1), success(2), success(3)).mapResultsSync((a, b, c) {
       expect(a, 1);
       expect(b, 2);
@@ -178,7 +178,7 @@ class ErrorOrRecord4ExtensionTest {
     expect(result.result, 100);
   }
 
-  test_mapResultsSync_error() async {
+  test_mapResultsSync_error() {
     var result = (success(1), success(2), success(3), errorX).mapResultsSync((
       a,
       b,
@@ -190,7 +190,7 @@ class ErrorOrRecord4ExtensionTest {
     expect(result, errorX);
   }
 
-  test_mapResultsSync_result() async {
+  test_mapResultsSync_result() {
     var result = (success(1), success(2), success(3), success(4))
         .mapResultsSync((a, b, c, d) {
           expect(a, 1);
@@ -283,12 +283,12 @@ class ErrorOrTest {
     expect(result.result, 2);
   }
 
-  test_mapResultSync_error() async {
+  test_mapResultSync_error() {
     var result = errorX.mapResultSync((_) => success(1));
     expect(result.isError, isTrue);
   }
 
-  test_mapResultSync_result() async {
+  test_mapResultSync_result() {
     var result = success(1).mapResultSync((_) => success(2));
     expect(result.isError, isFalse);
     expect(result.result, 2);

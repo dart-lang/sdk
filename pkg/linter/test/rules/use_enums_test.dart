@@ -18,16 +18,9 @@ class UseEnumsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.use_enums;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class C {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
 
 augment class C {
   static const a = C._(1);
@@ -36,51 +29,43 @@ augment class C {
   const C._(this.i);
 }
 ''');
+    // TODO(pq): update when augmentation contributed fields are considered.
+    // See: https://github.com/dart-lang/linter/issues/4900
+    await assertNoDiagnostics(r'''
+part 'b.dart';
 
-    await assertDiagnosticsInFile(a.path, [
-      // TODO(pq): update when augmentation contributed fields are considered.
-      // See: https://github.com/dart-lang/linter/issues/4900
-    ]);
-    await assertNoDiagnosticsInFile(b.path);
+class C {}
+''');
   }
 
   test_constructor_private() async {
-    await assertDiagnostics(
-      r'''
-class A {
+    await assertDiagnosticsFromMarkup(r'''
+class [!A!] {
   static const A a = A._(1);
   static const A b = A._(2);
   final int value;
   const A._(this.value);
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_extendsObject() async {
-    await assertDiagnostics(
-      r'''
-class A extends Object {
+    await assertDiagnosticsFromMarkup(r'''
+class [!A!] extends Object {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_multiDeclaration() async {
-    await assertDiagnostics(
-      r'''
-class A {
+    await assertDiagnosticsFromMarkup(r'''
+class [!A!] {
   static const A a = A._(), b = A._();
   const A._();
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_no_lint_abstract() async {
@@ -343,15 +328,12 @@ class _A(int x) {
   }
 
   test_primaryConstructor_private() async {
-    await assertDiagnostics(
-      r'''
-class const A._(final int value) {
+    await assertDiagnosticsFromMarkup(r'''
+class const [!A!]._(final int value) {
   static const A a = A._(1);
   static const A b = A._(2);
 }
-''',
-      [lint(12, 1)],
-    );
+''');
   }
 
   test_primaryConstructor_public() async {
@@ -373,9 +355,8 @@ class const A._(final int values) {
   }
 
   test_referencedFactoryConstructor() async {
-    await assertDiagnostics(
-      r'''
-class _E {
+    await assertDiagnosticsFromMarkup(r'''
+class [!_E!] {
   static const _E c = _E();
   static const _E d = _E();
 
@@ -385,65 +366,51 @@ class _E {
 }
 
 _E e = _E.withValue(0);
-''',
-      [lint(6, 2)],
-    );
+''');
   }
 
   test_simple_hasPart() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'a.dart';
-class A {
+class [!A!] {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
-''',
-      [lint(21, 1)],
-    );
+''');
   }
 
   test_simple_private() async {
-    await assertDiagnostics(
-      r'''
-class _A {
+    await assertDiagnosticsFromMarkup(r'''
+class [!_A!] {
   static const _A a = _A();
   static const _A b = _A();
   const _A();
 }
-''',
-      [lint(6, 2)],
-    );
+''');
   }
 
   test_simple_public() async {
-    await assertDiagnostics(
-      r'''
-class A {
+    await assertDiagnosticsFromMarkup(r'''
+class [!A!] {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_withMixin() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin class M { }
-class A with M {
+class [!A!] with M {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 }

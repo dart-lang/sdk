@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertClassToMixin extends ResolvedCorrectionProducer {
-  ConvertClassToMixin({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -98,7 +98,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
 class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
   final List<ClassElement> referencedClasses = [];
 
-  _SuperclassReferenceFinder();
+  new();
 
   @override
   void visitSuperExpression(SuperExpression node) {

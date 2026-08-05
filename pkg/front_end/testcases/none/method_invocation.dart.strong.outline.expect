@@ -14,7 +14,7 @@ class Class2<T extends core::Object? = dynamic> extends core::Object {
   field core::Function? nullableFunctionField;
   field () → void nonNullableFunctionTypedField;
   field () →? void nullableFunctionTypedField;
-  constructor •(self::Class2::T% field, core::Function nonNullableFunctionField, () → void nonNullableFunctionTypedField) → self::Class2<self::Class2::T%>
+  constructor •(initializing-formal self::Class2::T% field, initializing-formal core::Function nonNullableFunctionField, initializing-formal () → void nonNullableFunctionTypedField) → self::Class2<self::Class2::T%>
     ;
   method call() → self::Class2::T%
     ;
@@ -39,5 +39,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///method_invocation.dart:40:17 -> IntConstant(96)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///method_invocation.dart:43:17 -> IntConstant(96)
 Extra constant evaluation: evaluated: 1, effectively constant: 1

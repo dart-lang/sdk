@@ -101,6 +101,7 @@ template("mac_toolchain") {
 
     tool("asm") {
       # For GCC we can just use the C compiler to compile assembly.
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       depfile = "{{output}}.d"
       command = "$asm -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
@@ -128,6 +129,7 @@ template("mac_toolchain") {
     }
 
     tool("alink") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       rspfile = "{{output}}.rsp"
       command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
@@ -139,6 +141,7 @@ template("mac_toolchain") {
     }
 
     tool("solink") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       dylib = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"  # eg
                                                                              # "./libfoo.dylib"
       rspfile = dylib + ".rsp"
@@ -160,6 +163,21 @@ template("mac_toolchain") {
       extract_toc_command = "{ otool -l $dylib | grep LC_ID_DYLIB -A 5; nm -gP $dylib | cut -f1-2 -d' ' | grep -v U\$\$; true; }"
 
       command = "if $does_reexport_command ; then $link_command && $extract_toc_command > $tocname; else $link_command && $extract_toc_command > $temporary_tocname && $replace_command ; fi; fi"
+
+      if (codesigning_identity != "") {
+        # codesign tool performs signing in-place. This does not fit very well
+        # into the overall build: we would have to produce unsigned binary with
+        # some suffix (e.g. dart_unsigned), then copy it to the final location
+        # and sign. To avoid this dance we choose to perform signing here
+        # at the link step. Unfortunately this also comes with some limitations:
+        # executable target can't push arbitrary configuration variables down
+        # to the link step. Which means we can't specify per target
+        # entitlement files - and instead rely on dart_codesign.py script to
+        # match binaries to their entitlement files by name.
+        signing_script =
+            rebase_path("//runtime/tools/dart_codesign.py", root_build_dir)
+        command += " && $signing_script --identity $codesigning_identity --binary $dylib"
+      }
 
       rspfile_content = "{{inputs_newline}}"
 
@@ -188,6 +206,7 @@ template("mac_toolchain") {
     }
 
     tool("link") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       exename = "{{target_output_name}}{{output_extension}}"
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"
@@ -203,7 +222,8 @@ template("mac_toolchain") {
       commands += [ "$dsymutil -o $dsymdir $outfile" ]
 
       symbolizer_script =
-          rebase_path("//runtime/tools/dart_profiler_symbols.py")
+          rebase_path("//runtime/tools/dart_profiler_symbols.py",
+                      root_build_dir)
       commands +=
           [ "$symbolizer_script --nm $nm --output $symfile --binary $outfile" ]
 
@@ -222,7 +242,8 @@ template("mac_toolchain") {
         # to the link step. Which means we can't specify per target
         # entitlement files - and instead rely on dart_codesign.py script to
         # match binaries to their entitlement files by name.
-        signing_script = rebase_path("//runtime/tools/dart_codesign.py")
+        signing_script =
+            rebase_path("//runtime/tools/dart_codesign.py", root_build_dir)
         binaries_to_sign = [
           "--binary",
           outfile,

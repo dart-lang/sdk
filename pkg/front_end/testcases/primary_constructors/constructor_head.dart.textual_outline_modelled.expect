@@ -1,5 +1,5 @@
 class C1 {
-  new ();
+  new();
 }
 
 class C10 {
@@ -35,34 +35,34 @@ class C16 {
 }
 
 class C2 {
-  new () : x = 0;
+  new() : x = 0;
   var x;
 }
 
 class C3 {
-  new () {}
+  new() {}
 }
 
 class C4 {
-  new () : x = 0 {}
+  new() : x = 0 {}
   var x;
 }
 
 class C5 {
-  const new ();
+  const new();
 }
 
 class C6 {
-  const new () : x = 0;
+  const new() : x = 0;
   var x;
 }
 
 class C7 {
-  const new () {}
+  const new() {}
 }
 
 class C8 {
-  const new () : x = 0 {}
+  const new() : x = 0 {}
   var x;
 }
 

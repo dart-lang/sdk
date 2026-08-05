@@ -12,7 +12,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't ignore a diagnostic code that is not produced.";
 
 class UnnecessaryIgnore extends MultiAnalysisRule {
-  UnnecessaryIgnore() : super(name: 'unnecessary_ignore', description: _desc) {
+  new() : super(name: 'unnecessary_ignore', description: _desc) {
     // Register the unnecessary_ignore lint codes with the analyzer's validator.
     // We do this here to avoid having to introduce a dependency from the analyzer
     // on the linter.

@@ -10,7 +10,7 @@ class InputOutputData<T, U> {
   final List<T> input;
   final List<U> output;
 
-  const InputOutputData(this.input, this.output);
+  const new(this.input, this.output);
 }
 
 const Strategy simpleAddStrategy = Strategy(
@@ -69,7 +69,7 @@ The input has several entries.''',
 class Input {
   final String content;
 
-  const Input(this.content);
+  const new(this.content);
 }
 
 Map<Scenario, InputOutputData<Input, String>> scenarios = {
@@ -85,7 +85,7 @@ class Test<T, U> {
   final int size;
   final Map<Strategy, TestFunction<T, U>> strategies;
 
-  const Test(this.size, this.strategies);
+  const new(this.size, this.strategies);
 
   void _test(
     Registry registry,

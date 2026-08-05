@@ -108,14 +108,14 @@ Future compileToKernel(
   Uri packagesFile,
   Uri outputFile,
   List<Uri> sources,
-  List<Uri> additionalDills,
+  List<Uri> additionalDillModules,
 ) async {
   final state = fe.initializeCompiler(
     null,
     sdkSummary,
     librariesFile,
     packagesFile,
-    additionalDills,
+    additionalDillModules,
     target,
     StandardFileSystem.instance,
     const <String>[],

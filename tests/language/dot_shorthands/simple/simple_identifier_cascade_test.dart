@@ -66,32 +66,16 @@ void main() {
     ..integerList = [.one, .two, .one]
     ..integerSet = {.one, .two}
     ..integerMap = {.one: .two, .two: .two}
-    ..integerMap2 = {
-      .one: (.one, .two),
-      .two: (.two, .two),
-    }
+    ..integerMap2 = {.one: (.one, .two), .two: (.two, .two)}
     // Extension type
     ..integerExtList = [.one, .two, .one]
     ..integerExtSet = {.one, .two}
-    ..integerExtMap = {
-      .one: .two,
-      .two: .two,
-    }
-    ..integerExtMap2 = {
-      .one: (.one, .two),
-      .two: (.two, .two),
-    }
+    ..integerExtMap = {.one: .two, .two: .two}
+    ..integerExtMap2 = {.one: (.one, .two), .two: (.two, .two)}
     // Mixin
-    ..integerMixinList = [
-      .mixinOne,
-      .mixinTwo,
-      .mixinOne,
-    ]
+    ..integerMixinList = [.mixinOne, .mixinTwo, .mixinOne]
     ..integerMixinSet = {.mixinOne, .mixinTwo}
-    ..integerMixinMap = {
-      .mixinOne: .mixinTwo,
-      .mixinTwo: .mixinTwo,
-    }
+    ..integerMixinMap = {.mixinOne: .mixinTwo, .mixinTwo: .mixinTwo}
     ..integerMixinMap2 = {
       .mixinOne: (.mixinOne, .mixinTwo),
       .mixinTwo: (.mixinTwo, .mixinTwo),

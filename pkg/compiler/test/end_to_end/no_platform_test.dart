@@ -19,7 +19,7 @@ main() {
           null,
           Dart2jsTarget('dart2js', TargetFlags()),
           sdkLibrariesSpecificationUri,
-          [], // additionalDills
+          [], // additionalDillModules
           Uri.base.resolve('.dart_tool/package_config.json'), // packagesFileUri
           explicitExperimentalFlags: experimentalFlags,
           verify: true,

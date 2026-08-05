@@ -219,15 +219,11 @@ class TypeConstraintFromArgument<
   final SharedTypeView argumentType;
   final SharedTypeView parameterType;
   final String parameterName;
-  final String? genericClassName;
-  final bool isGenericClassInDartCore;
 
   TypeConstraintFromArgument({
     required this.argumentType,
     required this.parameterType,
     required this.parameterName,
-    required this.genericClassName,
-    this.isGenericClassInDartCore = false,
   });
 
   @override
@@ -243,20 +239,8 @@ class TypeConstraintFromArgument<
     // TODO(cstefantsova): we should highlight the span. That would be more
     // useful.  However in summary code it doesn't look like the AST node with
     // span is available.
-    String prefix;
-    if ((genericClassName == "List" || genericClassName == "Map") &&
-        isGenericClassInDartCore) {
-      // This will become:
-      //     "List element"
-      //     "Map key"
-      //     "Map value"
-      prefix = "${genericClassName} $parameterName";
-    } else {
-      prefix = "Parameter '$parameterName'";
-    }
-
     return [
-      prefix,
+      "Parameter '$parameterName'",
       "declared as     '${parameterType.getDisplayString()}'",
       "but argument is '${argumentType.getDisplayString()}'.",
     ];

@@ -6,13 +6,13 @@ typedef B = self::A;
 typedef D<X extends core::Object? = dynamic> = self::C<X%, X%>;
 class A extends core::Object {
   field core::int foo;
-  constructor •(core::int foo) → self::A
+  constructor •(initializing-formal core::int foo) → self::A
     ;
 }
 class C<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::C::X% x;
   covariant-by-class field self::C::Y% y;
-  constructor •(self::C::X% x, self::C::Y% y) → self::C<self::C::X%, self::C::Y%>
+  constructor •(initializing-formal self::C::X% x, initializing-formal self::C::Y% y) → self::C<self::C::X%, self::C::Y%>
     ;
 }
 static method test1(dynamic x) → dynamic

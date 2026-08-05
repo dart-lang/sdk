@@ -39,7 +39,7 @@ class ClassHierarchyBuilder
 
   late Types types;
 
-  ClassHierarchyBuilder(this.objectClassBuilder, this.loader, this.coreTypes)
+  new(this.objectClassBuilder, this.loader, this.coreTypes)
     : objectClass = objectClassBuilder.cls,
       futureClass = coreTypes.futureClass,
       functionClass = coreTypes.functionClass {

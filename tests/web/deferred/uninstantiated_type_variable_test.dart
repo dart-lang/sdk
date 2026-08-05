@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+
 import 'uninstantiated_type_variable_lib.dart' deferred as lib;
 
 /// Regression test: if a type variable is used, but not instantiated, it still

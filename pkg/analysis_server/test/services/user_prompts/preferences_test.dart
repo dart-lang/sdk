@@ -108,7 +108,7 @@ class _OptionalStateResourceProvider implements ResourceProvider {
 
   final ResourceProvider _provider;
 
-  _OptionalStateResourceProvider(this._provider);
+  new(this._provider);
 
   @override
   Context get pathContext => _provider.pathContext;

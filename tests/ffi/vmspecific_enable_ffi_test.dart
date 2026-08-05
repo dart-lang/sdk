@@ -3,19 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Dart test program for testing the --enable-ffi=false flag.
-//
-// VMOptions=--enable-ffi=false
 
-// Formatting can break multitests, so don't format them.
-// dart format off
+import 'dart:io';
 
-import 'dart:ffi'; //# 01: compile-time error
+import 'package:expect/expect.dart';
+import 'package:path/path.dart' as path;
 
-import 'package:ffi/ffi.dart'; //# 01: compile-time error
+final _execSuffix = Platform.isWindows ? '.exe' : '';
 
 void main() {
-  Pointer<Int8> p = //# 01: compile-time error
-      calloc(); //# 01: compile-time error
-  print(p.address); //# 01: compile-time error
-  calloc.free(p); //# 01: compile-time error
+  final buildDir = path.dirname(Platform.executable);
+  final sdkDir = path.dirname(path.dirname(buildDir));
+  // Use the JIT `dart` executable from the build directory rather than
+  // `Platform.executable`, which is the AOT runtime under dartkp and cannot run
+  // the source helper.
+  final dartExecutable = path.join(buildDir, 'dart$_execSuffix');
+  final helperPath = path.join(
+    sdkDir,
+    'tests',
+    'ffi',
+    'vmspecific_enable_ffi_test_helper.dart',
+  );
+
+  final result = Process.runSync(dartExecutable, [
+    '--enable-ffi=false',
+    helperPath,
+  ]);
+
+  Expect.equals(254, result.exitCode);
+  Expect.contains(
+    'import of dart:ffi is not supported in the current Dart runtime',
+    result.stderr,
+  );
 }

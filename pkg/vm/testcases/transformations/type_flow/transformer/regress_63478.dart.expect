@@ -1,0 +1,30 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method test1() → void {
+  function #x#initializer() → Never
+    return throw "error";
+  late Never x = [@vm.inferred-type.metadata=? (receiver not int)] #x#initializer(){() → Never};
+  core::print("reachable");
+}
+
+[@vm.inferred-return-type.metadata=!]
+static method sayNever() → Never
+  return throw "Never";
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method test2() → void {
+  function #y#initializer() → Never
+    return self::sayNever();
+  late Never y = [@vm.inferred-type.metadata=? (receiver not int)] #y#initializer(){() → Never};
+  core::print("reachable");
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::test1();
+  self::test2();
+}

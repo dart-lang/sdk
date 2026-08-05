@@ -12,7 +12,7 @@ class A<X extends core::Object? = dynamic> extends self::P<self::A::X%> /*hasCon
   const constructor foo(self::A::X% x) → self::A<self::A::X%>
     : super self::P::•(x)
     ;
-  constructor •(self::A::X% x) → self::A<self::A::X%>
+  constructor •(super-initializing-formal self::A::X% x) → self::A<self::A::X%>
     : assert(#C1 =={core::Object::==}{(core::Object) → core::bool} #C1), super self::P::•(x)
     ;
 }

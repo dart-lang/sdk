@@ -37,9 +37,13 @@ main() {
     const bool.fromEnvironment("dart.library.web_gl"),
   );
 
-  // All web backends support `dart:js_interop`
+  // All web backends support `dart:js_interop`. dart2wasm standalone is tested
+  // on the web but is not a web backend.
+  final isDart2WasmStandalone = const String.fromEnvironment(
+    "test_runner.configuration",
+  ).contains('standalone');
   Expect.equals(
-    isWebConfiguration,
+    isWebConfiguration && !isDart2WasmStandalone,
     const bool.fromEnvironment("dart.library.js_interop"),
   );
 

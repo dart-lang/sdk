@@ -82,7 +82,6 @@ main() {
     "Dart_CreateIsolateGroupFromKernel",
     "Dart_CreateIsolateInGroup",
     "Dart_CreateSnapshot",
-    "Dart_CreateVMAOTSnapshotAsAssembly",
     "Dart_CurrentIsolate",
     "Dart_CurrentIsolateData",
     "Dart_CurrentIsolateGroup",
@@ -366,6 +365,7 @@ main() {
     "Dart_TypeToNullableType",
     "Dart_TypeVoid",
     "Dart_VersionString",
+    "Dart_WriteCallbackStub",
     "Dart_WriteHeapSnapshot",
     "Dart_WriteProfileToTimeline",
     if (isAOTRuntime) ...[

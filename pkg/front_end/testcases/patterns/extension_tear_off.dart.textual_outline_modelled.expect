@@ -7,6 +7,6 @@ extension _ on int {
 main() {}
 
 method(dynamic d) => switch (d) {
-      int(:var method) => method(d),
-      _ => 0,
-    };
+  int(:var method) => method(d),
+  _ => 0,
+};

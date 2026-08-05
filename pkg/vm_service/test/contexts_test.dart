@@ -5,156 +5,121 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'contexts_lib.dart' as testee_lib;
 
-// Make sure these variables are not removed by the tree shaker.
-@pragma('vm:entry-point')
-late final Function cleanBlock;
-@pragma('vm:entry-point')
-late final Function copyingBlock;
-@pragma('vm:entry-point')
-late final Function fullBlock;
-@pragma('vm:entry-point')
-late final Function fullBlockWithChain;
-
-Function genCleanBlock() {
-  dynamic block(x) => x;
-  return block;
-}
-
-Function genCopyingBlock() {
-  final x = 'I could be copied into the block';
-  String block() => x;
-  return block;
-}
-
-Function genFullBlock() {
-  var x = 42; // I must captured in a context.
-  int block() => x;
-  x++;
-  return block;
-}
-
-Function genFullBlockWithChain() {
-  var x = 420; // I must captured in a context.
-  int Function() outerBlock() {
-    var y = 4200;
-    int innerBlock() => x + y;
-    y++;
-    return innerBlock;
-  }
-
-  x++;
-  return outerBlock();
-}
-
-void script() {
-  cleanBlock = genCleanBlock();
-  copyingBlock = genCopyingBlock();
-  fullBlock = genFullBlock();
-  fullBlockWithChain = genFullBlockWithChain();
-}
-
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    final rootLib =
-        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
-    final fieldRef =
-        rootLib.variables!.singleWhere((v) => v.name == 'cleanBlock');
-    final field = await service.getObject(isolateId, fieldRef.id!) as Field;
-    final block =
-        await service.getObject(isolateId, field.staticValue.id!) as Instance;
-
-    expect(block.closureFunction, isNotNull);
-    expect(block.closureContext, isNull);
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    final rootLib =
-        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
-    final fieldRef =
-        rootLib.variables!.singleWhere((v) => v.name == 'copyingBlock');
-    final field = await service.getObject(isolateId, fieldRef.id!) as Field;
-    final block =
-        await service.getObject(isolateId, field.staticValue.id!) as Instance;
-    expect(block.closureFunction, isNotNull);
-    expect(block.closureContext, isNotNull);
-
-    final closureContext = block.closureContext!;
-    expect(closureContext.length, 1);
-
-    final ctxt =
-        await service.getObject(isolateId, closureContext.id!) as Context;
-    final value = ctxt.variables!.single.value as InstanceRef;
-    expect(value.kind, InstanceKind.kString);
-    expect(value.valueAsString, 'I could be copied into the block');
-    expect(ctxt.parent, isNull);
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    final rootLib =
-        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
-    final fieldRef =
-        rootLib.variables!.singleWhere((v) => v.name == 'fullBlock');
-    final field = await service.getObject(isolateId, fieldRef.id!) as Field;
-    final block =
-        await service.getObject(isolateId, field.staticValue.id!) as Instance;
-
-    expect(block.closureFunction, isNotNull);
-    expect(block.closureContext, isNotNull);
-
-    final closureContext = block.closureContext!;
-    expect(block.closureContext!.length, 1);
-
-    final ctxt =
-        await service.getObject(isolateId, closureContext.id!) as Context;
-    final value = ctxt.variables!.single.value as InstanceRef;
-    expect(value.kind, InstanceKind.kInt);
-    expect(value.valueAsString, '43');
-    expect(ctxt.parent, isNull);
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    final rootLib =
-        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
-    final fieldRef =
-        rootLib.variables!.singleWhere((v) => v.name == 'fullBlockWithChain');
-    final field = await service.getObject(isolateId, fieldRef.id!) as Field;
-    final block =
-        await service.getObject(isolateId, field.staticValue.id!) as Instance;
-
-    expect(block.closureFunction, isNotNull);
-    expect(block.closureContext, isNotNull);
-
-    final closureContext = block.closureContext!;
-    expect(block.closureContext!.length, 1);
-
-    final ctxt =
-        await service.getObject(isolateId, closureContext.id!) as Context;
-    final value = ctxt.variables!.single.value as InstanceRef;
-    expect(value.kind, InstanceKind.kInt);
-    expect(value.valueAsString, '4201');
-
-    final parent = ctxt.parent!;
-    expect(parent.length, 1);
-
-    final outerCtxt = await service.getObject(isolateId, parent.id!) as Context;
-
-    final outerValue = outerCtxt.variables!.single.value as InstanceRef;
-    expect(outerValue.kind, InstanceKind.kInt);
-    expect(outerValue.valueAsString, '421');
-    expect(outerCtxt.parent, isNull);
-  },
-];
-
-void main(List<String> args) => runIsolateTests(
+void main(List<String> args) => IsolateTestHarness(
+      'contexts_lib.dart',
       args,
-      tests,
-      'contexts_test.dart',
-      testeeBefore: script,
-    );
+    ).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final isolate = await service.getIsolate(isolateId);
+      final rootLib = await service.getObject(
+          isolateId,
+          isolate.libraries!
+              .firstWhere((l) => l.uri!.contains('contexts_lib'))
+              .id!) as Library;
+      final fieldRef =
+          rootLib.variables!.singleWhere((v) => v.name == 'cleanBlock');
+      final field = await service.getObject(isolateId, fieldRef.id!) as Field;
+      final block = await service.getObject(
+        isolateId,
+        field.staticValue.id!,
+      ) as Instance;
+
+      expect(block.closureFunction, isNotNull);
+      expect(block.closureContext, isNull);
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final isolate = await service.getIsolate(isolateId);
+      final rootLib = await service.getObject(
+          isolateId,
+          isolate.libraries!
+              .firstWhere((l) => l.uri!.contains('contexts_lib'))
+              .id!) as Library;
+      final fieldRef =
+          rootLib.variables!.singleWhere((v) => v.name == 'copyingBlock');
+      final field = await service.getObject(isolateId, fieldRef.id!) as Field;
+      final block = await service.getObject(
+        isolateId,
+        field.staticValue.id!,
+      ) as Instance;
+      expect(block.closureFunction, isNotNull);
+      expect(block.closureContext, isNotNull);
+
+      final closureContext = block.closureContext!;
+      expect(closureContext.length, 1);
+
+      final ctxt =
+          await service.getObject(isolateId, closureContext.id!) as Context;
+      final value = ctxt.variables!.single.value as InstanceRef;
+      expect(value.kind, InstanceKind.kString);
+      expect(value.valueAsString, 'I could be copied into the block');
+      expect(ctxt.parent, isNull);
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final isolate = await service.getIsolate(isolateId);
+      final rootLib = await service.getObject(
+          isolateId,
+          isolate.libraries!
+              .firstWhere((l) => l.uri!.contains('contexts_lib'))
+              .id!) as Library;
+      final fieldRef =
+          rootLib.variables!.singleWhere((v) => v.name == 'fullBlock');
+      final field = await service.getObject(isolateId, fieldRef.id!) as Field;
+      final block = await service.getObject(
+        isolateId,
+        field.staticValue.id!,
+      ) as Instance;
+
+      expect(block.closureFunction, isNotNull);
+      expect(block.closureContext, isNotNull);
+
+      final closureContext = block.closureContext!;
+      expect(block.closureContext!.length, 1);
+
+      final ctxt =
+          await service.getObject(isolateId, closureContext.id!) as Context;
+      final value = ctxt.variables!.single.value as InstanceRef;
+      expect(value.kind, InstanceKind.kInt);
+      expect(value.valueAsString, '43');
+      expect(ctxt.parent, isNull);
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final isolate = await service.getIsolate(isolateId);
+      final rootLib = await service.getObject(
+          isolateId,
+          isolate.libraries!
+              .firstWhere((l) => l.uri!.contains('contexts_lib'))
+              .id!) as Library;
+      final fieldRef =
+          rootLib.variables!.singleWhere((v) => v.name == 'fullBlockWithChain');
+      final field = await service.getObject(isolateId, fieldRef.id!) as Field;
+      final block = await service.getObject(
+        isolateId,
+        field.staticValue.id!,
+      ) as Instance;
+
+      expect(block.closureFunction, isNotNull);
+      expect(block.closureContext, isNotNull);
+
+      final closureContext = block.closureContext!;
+      expect(block.closureContext!.length, 1);
+
+      final ctxt =
+          await service.getObject(isolateId, closureContext.id!) as Context;
+      final value = ctxt.variables!.single.value as InstanceRef;
+      expect(value.kind, InstanceKind.kInt);
+      expect(value.valueAsString, '4201');
+
+      final parent = ctxt.parent!;
+      expect(parent.length, 1);
+
+      final outerCtxt =
+          await service.getObject(isolateId, parent.id!) as Context;
+
+      final outerValue = outerCtxt.variables!.single.value as InstanceRef;
+      expect(outerValue.kind, InstanceKind.kInt);
+      expect(outerValue.valueAsString, '421');
+      expect(outerCtxt.parent, isNull);
+    }).run(testeeMain: testee_lib.main);

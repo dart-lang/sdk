@@ -725,6 +725,9 @@ class Assembler : public AssemblerBase {
   void vandq(QRegister qd, QRegister qn, QRegister qm);
   void vmvnq(QRegister qd, QRegister qm);
 
+  void vcnt(DRegister dd, DRegister dm);
+  void vpaddlu(OperandSize sz, DRegister dd, DRegister dm);
+
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);
   void vcgeqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
@@ -1097,6 +1100,13 @@ class Assembler : public AssemblerBase {
 
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
+
+  void ExtractBitField(Register dst,
+                       Register src,
+                       intptr_t low_bit,
+                       intptr_t width) override {
+    ubfx(dst, src, low_bit, width);
+  }
 
   void ExtractClassIdFromTags(Register result,
                               Register tags,

@@ -14,7 +14,7 @@ final class MyClass extends core::Object /*hasConstConstructor*/  {
   final field core::Object i;
 
   [@vm.unreachable.metadata=]
-  const constructor •(core::Object i) → self::MyClass
+  const constructor •(initializing-formal core::Object i) → self::MyClass
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 @#C1

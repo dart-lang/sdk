@@ -19,8 +19,7 @@ import '../extensions.dart';
 const _desc = r'Use collection literals when possible.';
 
 class PreferCollectionLiterals extends AnalysisRule {
-  PreferCollectionLiterals()
-    : super(name: LintNames.prefer_collection_literals, description: _desc);
+  new() : super(name: LintNames.prefer_collection_literals, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferCollectionLiterals;
@@ -39,7 +38,7 @@ class PreferCollectionLiterals extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final TypeProvider typeProvider;
-  _Visitor(this.rule, this.typeProvider);
+  new(this.rule, this.typeProvider);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

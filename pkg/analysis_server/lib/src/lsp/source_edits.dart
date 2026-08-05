@@ -11,9 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/formatter.dart';
@@ -223,7 +221,7 @@ class FileEditInformation {
   final int? selectionOffsetRelative;
   final int? selectionLength;
 
-  FileEditInformation(
+  new(
     this.doc,
     this.lineInfo,
     this.edits, {
@@ -284,7 +282,7 @@ class _MinimalEditComputer {
   /// The edits being built.
   final _edits = <TextEdit>[];
 
-  _MinimalEditComputer({
+  new({
     required ParsedUnitResult result,
     required this._lineInfo,
     required String unformatted,
@@ -418,10 +416,12 @@ class _MinimalEditComputer {
         break;
       }
 
-      if (unformattedToken.lexeme != formattedToken.lexeme) {
-        // If the token lexemes do not match, there is a difference in the
-        // parsed token streams (this should not ordinarily happen) so use the
-        // fallback.
+      if (unformattedToken.lexeme != formattedToken.lexeme &&
+          !allowedLexemeDifferences.contains(unformattedToken.type)) {
+        // If the token lexemes do not match (except where this is a token
+        // allowed to have differences), there is an unexpected difference
+        // in the parsed token streams (this should not ordinarily happen) so
+        // use the fallback.
         return _generateFallback();
       }
 
@@ -619,12 +619,18 @@ class _MinimalEditComputer {
 
   /// Iterates over a token stream returning all tokens including comments.
   Iterable<Token> _iterateAllTokens(Token token) sync* {
-    while (!token.isEof) {
+    while (true) {
+      // EOF is handled inside the loop.
       Token? commentToken = token.precedingComments;
       while (commentToken != null) {
         yield commentToken;
         commentToken = commentToken.next;
       }
+
+      // We handle EOF here because the EOF token can have precedingComments
+      // that we must not miss.
+      if (token.isEof) break;
+
       yield token;
       token = token.next!;
     }
@@ -669,27 +675,14 @@ class _MinimalEditComputer {
   /// be parsed.
   static Token? _parse(String s, FeatureSet featureSet) {
     try {
-      var scanner =
-          Scanner(
-            s,
-            DiagnosticReporter(
-              DiagnosticListener.nullListener,
-              _SourceMock.instance,
-            ),
-          )..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+      var scanner = Scanner(inputText: s, reportError: (_) {})
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
       return scanner.tokenize();
     } catch (e) {
       return null;
     }
   }
-}
-
-class _SourceMock implements Source {
-  static final Source instance = _SourceMock();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

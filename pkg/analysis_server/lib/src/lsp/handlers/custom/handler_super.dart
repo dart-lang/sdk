@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 
 class SuperHandler
     extends SharedMessageHandler<TextDocumentPositionParams, Location?> {
-  SuperHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.super_;

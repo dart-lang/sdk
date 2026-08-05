@@ -4,8 +4,6 @@
 
 /// The type of the parameter should be inferred from the corresponding field.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 import 'package:expect/expect.dart';
 import 'package:expect/static_type_helper.dart';
 

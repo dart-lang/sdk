@@ -20,7 +20,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
   late final int _errorOffset;
   late final int _errorEnd;
 
-  RemoveDeadCode({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

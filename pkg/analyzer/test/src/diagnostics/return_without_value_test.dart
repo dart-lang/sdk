@@ -2,43 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnWithoutValueTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ReturnWithoutValueTest extends PubPackageResolutionTest {
   test_async_futureInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<int> f() async {
   return;
+//^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
 }
-''',
-      [error(diag.returnWithoutValue, 26, 6)],
-    );
+''');
   }
 
   test_async_futureObject() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<Object> f() async {
   return;
+//^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
 }
-''',
-      [error(diag.returnWithoutValue, 29, 6)],
-    );
+''');
   }
 
   test_catchError_futureOfVoid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<void> future) {
   future.catchError((e) {
     return;
@@ -48,31 +47,29 @@ void f(Future<void> future) {
   }
 
   test_factoryConstructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() {
     return;
+//  ^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
   }
 }
-''',
-      [error(diag.returnWithoutValue, 30, 6)],
-    );
+''');
   }
 
   test_function() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() {
   return;
+//^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
 }
-''',
-      [error(diag.returnWithoutValue, 12, 6)],
-    );
+''');
   }
 
   test_function_async_block_empty__to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f() async {
   return;
 }
@@ -82,7 +79,7 @@ dynamic f() async {
   test_function_Null() async {
     // Test that block bodied functions with return type Null and an empty
     // return cause a static warning.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 Null f() {
   return;
 }
@@ -90,7 +87,7 @@ Null f() {
   }
 
   test_function_sync_block_empty__to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f() {
   return;
 }
@@ -98,7 +95,7 @@ dynamic f() {
   }
 
   test_function_sync_block_empty__to_Null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 Null f() {
   return;
 }
@@ -106,7 +103,7 @@ Null f() {
   }
 
   test_function_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   return;
 }
@@ -114,23 +111,22 @@ void f() {
   }
 
   test_functionExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   return (int y) {
     if (y < 0) {
       return;
+//    ^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
     }
     return 0;
   };
 }
-''',
-      [error(diag.returnWithoutValue, 48, 6)],
-    );
+''');
   }
 
   test_functionExpression_async_block_empty__to_Object() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 Object Function() f = () async {
   return;
 };
@@ -138,31 +134,29 @@ Object Function() f = () async {
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int m() {
     return;
+//  ^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
   }
 }
-''',
-      [error(diag.returnWithoutValue, 26, 6)],
-    );
+''');
   }
 
   test_multipleInconsistentReturns() async {
     // Tests that only the RETURN_WITHOUT_VALUE warning is created, and no
     // MIXED_RETURN_TYPES are created.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(int x) {
   if (x < 0) {
     return 1;
   }
   return;
+//^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
 }
-''',
-      [error(diag.returnWithoutValue, 50, 6)],
-    );
+''');
   }
 }

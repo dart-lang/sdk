@@ -7,6 +7,7 @@
 library float32x4_sign_mask;
 
 import 'dart:typed_data';
+
 import 'package:expect/expect.dart';
 
 void testImmediates() {

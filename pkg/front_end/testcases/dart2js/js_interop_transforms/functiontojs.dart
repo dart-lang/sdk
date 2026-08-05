@@ -18,27 +18,44 @@ void main() {
   ((([int? arg1, String? arg2]) => arg2) as void Function([int])).toJS;
 
   ((int arg1, String arg2, JSArray arg3) => arg3).toJS;
-  (((int arg1, [String? arg2, JSArray? arg3]) => arg3) as void Function(int,
-          [String]))
+  (((int arg1, [String? arg2, JSArray? arg3]) => arg3)
+          as void Function(int, [String]))
       .toJS;
 
   ((int arg1, String arg2, JSArray arg3, JSObject arg4) => arg4).toJS;
-  (((int arg1, String arg2, JSArray arg3, [JSObject? arg4]) => arg4) as void
-          Function(int, String, JSArray))
+  (((int arg1, String arg2, JSArray arg3, [JSObject? arg4]) => arg4)
+          as void Function(int, String, JSArray))
       .toJS;
 
-  ((int arg1, String arg2, JSArray arg3, JSObject arg4, JSPromise arg5) => arg5)
-      .toJS;
+  ((
+    int arg1,
+    String arg2,
+    JSArray arg3,
+    JSObject arg4,
+    JSPromise arg5,
+  ) => arg5).toJS;
   (((int arg1, String arg2, [JSArray? arg3, JSObject? arg4, JSPromise? arg5]) =>
-          arg5) as void Function(int, String, [JSArray?, JSObject?]))
+              arg5)
+          as void Function(int, String, [JSArray?, JSObject?]))
       .toJS;
 
-  ((int arg1, String arg2, JSArray arg3, JSObject arg4, JSPromise arg5,
-          JSAny arg6) =>
-      arg6).toJS;
-  (((int arg1, String arg2, JSArray arg3, JSObject arg4,
-              [JSPromise? arg5, JSAny? arg6]) =>
-          arg6) as void Function(int, String, JSArray, JSObject, [JSPromise?]))
+  ((
+    int arg1,
+    String arg2,
+    JSArray arg3,
+    JSObject arg4,
+    JSPromise arg5,
+    JSAny arg6,
+  ) => arg6).toJS;
+  (((
+            int arg1,
+            String arg2,
+            JSArray arg3,
+            JSObject arg4, [
+            JSPromise? arg5,
+            JSAny? arg6,
+          ]) => arg6)
+          as void Function(int, String, JSArray, JSObject, [JSPromise?]))
       .toJS;
 
   jsFunction.toDart;

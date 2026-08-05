@@ -6,6 +6,7 @@
 // ensure the _isFutureOr specializer didn't regress anything.
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 
 @pragma('dart2js:never-inline')

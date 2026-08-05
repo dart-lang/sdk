@@ -2,29 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AsExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AsExpressionResolutionTest extends PubPackageResolutionTest {
   test_expression_constVariable() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 const num a = 1.2;
 const int b = a as int;
-''',
-      [error(diag.constEvalThrowsException, 33, 8)],
-    );
+//            ^^^^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+''');
 
-    var node = findNode.asExpression('as int');
+    var node = result.findNode.asExpression('as int');
     assertResolvedNodeText(node, r'''
 AsExpression
   expression: SimpleIdentifier
@@ -41,14 +41,14 @@ AsExpression
   }
 
   test_expression_localVariable() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   num v = 42;
   v as int;
 }
 ''');
 
-    var node = findNode.singleAsExpression;
+    var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
   expression: SimpleIdentifier
@@ -65,18 +65,17 @@ AsExpression
   }
 
   test_expression_super() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   void f() {
     super as T;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 30, 5)],
-    );
+''');
 
-    var node = findNode.singleAsExpression;
+    var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
   expression: SuperExpression
@@ -92,7 +91,7 @@ AsExpression
   }
 
   test_expression_switchExpression() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object? x) {
   (switch (x) {
     _ => 0,
@@ -100,7 +99,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.singleAsExpression;
+    var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
   expression: SwitchExpression

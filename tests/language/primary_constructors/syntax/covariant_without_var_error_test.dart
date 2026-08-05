@@ -5,24 +5,22 @@
 // It is an error for a formal parameter to have the `covariant` modifier
 // but not the `var` modifier.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C1(covariant int x);
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//       ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 class C2({covariant int? x});
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//        ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 class C3({required covariant int x});
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                 ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.
 
 class C4([covariant int? x]);
-//      ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//        ^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.INVALID_COVARIANT_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+// [cfe] The 'covariant' modifier can only be used on non-final declaring parameters.

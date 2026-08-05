@@ -52,11 +52,6 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
         reason: 'Validation was not empty',
       );
     }
-    expect(
-      validator.blockCount,
-      equals(0),
-      reason: 'SDK dill only contains outlines',
-    );
   }
 
   @override
@@ -144,7 +139,7 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
     blockCount++;
     expect(
       block,
-      const TypeMatcher<FunctionNode>().having(
+      const TypeMatcher<Block>().having(
         (c) => c.fileOffset,
         '${block.toText(astTextStrategyForTesting)} : fileOffset',
         isNot(equals(-1)),

@@ -43,11 +43,7 @@ class PubCommand {
   /// tools (such as the IDE).
   var _lastQueuedCommand = Future<void>.value();
 
-  PubCommand(
-    this._instrumentationService,
-    this._pathContext,
-    this._processRunner,
-  ) {
+  new(this._instrumentationService, this._pathContext, this._processRunner) {
     // When calling the `pub` command, we must add an identifier to the
     // PUB_ENVIRONMENT environment variable (joined with colons).
     const pubEnvString = 'analysis_server.pub_api';
@@ -178,7 +174,7 @@ class PubOutdatedPackageDetails {
   final String? resolvableVersion;
   final String? upgradableVersion;
 
-  PubOutdatedPackageDetails(
+  new(
     this.packageName, {
     required this.currentVersion,
     required this.latestVersion,

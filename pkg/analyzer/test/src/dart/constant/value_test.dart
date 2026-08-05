@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,13 +28,13 @@ final Matcher throwsEvaluationException = throwsA(
 );
 
 @reflectiveTest
-class DartObjectImplTest {
+class DartObjectImplTest with ResourceProviderMixin {
   late final TypeProviderImpl _typeProvider;
   late final TypeSystemImpl _typeSystem;
   FeatureSet _featureSet = FeatureSets.latestWithExperiments;
 
   void setUp() {
-    var analysisContext = TestAnalysisContext();
+    var analysisContext = TestAnalysisContext(this);
     _typeProvider = analysisContext.typeProvider;
     _typeSystem = analysisContext.typeSystem;
   }

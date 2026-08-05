@@ -165,5 +165,5 @@ class WrappedProcess {
   final String id;
   final List<String> observatoryLines;
 
-  WrappedProcess(this.process, this.id, this.observatoryLines);
+  new(this.process, this.id, this.observatoryLines);
 }

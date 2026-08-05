@@ -18,8 +18,10 @@ import '../codes/cfe_codes.dart';
 import '../compute_platform_binaries_location.dart';
 import '../kernel_generator_impl.dart';
 
-typedef PerformAnalysisFunction =
-    void Function(DiagnosticMessageHandler onDiagnostic, Component component);
+typedef PerformAnalysisFunction = void Function(
+  DiagnosticMessageHandler onDiagnostic,
+  Component component,
+);
 typedef UriFilter = bool Function(Uri uri);
 
 /// Analysis the [entryPoints] using [performAnalysis].
@@ -65,15 +67,13 @@ Future<void> _runAnalysis(
   options.onDiagnostic = (CfeDiagnosticMessage message) {
     printDiagnosticMessage(message, print);
   };
-  InternalCompilerResult compilerResult =
-      await kernelForProgramInternal(
-            entryPoints.first,
-            options,
-            retainDataForTesting: true,
-            requireMain: false,
-            additionalSources: entryPoints.skip(1).toList(),
-          )
-          as InternalCompilerResult;
+  InternalCompilerResult compilerResult = await kernelForProgramInternal(
+    entryPoints.first,
+    options,
+    retainDataForTesting: true,
+    requireMain: false,
+    additionalSources: entryPoints.skip(1).toList(),
+  ) as InternalCompilerResult;
 
   performAnalysis(options.onDiagnostic!, compilerResult.component!);
 }
@@ -83,7 +83,7 @@ class StaticTypeVisitorBase extends RecursiveVisitor {
 
   StaticTypeContext? staticTypeContext;
 
-  StaticTypeVisitorBase(Component component, ClassHierarchy classHierarchy)
+  new(Component component, ClassHierarchy classHierarchy)
     : typeEnvironment = new TypeEnvironment(
         new CoreTypes(component),
         classHierarchy,
@@ -123,7 +123,7 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
 
   Map<String, Map<String, List<FormattedMessage>>> _messages = {};
 
-  AnalysisVisitor(this.onDiagnostic, this.component, this.uriFilter)
+  new(this.onDiagnostic, this.component, this.uriFilter)
     : super(
         component,
         new ClassHierarchy(component, new CoreTypes(component)),
@@ -203,7 +203,7 @@ class AnalysisInterface {
   final AnalysisVisitor _visitor;
   final ComponentLookup _componentLookup;
 
-  AnalysisInterface(this._visitor)
+  new(this._visitor)
     : _componentLookup = new ComponentLookup(_visitor.component);
 
   void reportMessage(TreeNode node, String message) {
@@ -236,15 +236,17 @@ class AnalysisInterface {
   }
 }
 
-typedef GeneralAnalysisFunction =
-    void Function(TreeNode node, AnalysisInterface interface);
+typedef GeneralAnalysisFunction = void Function(
+  TreeNode node,
+  AnalysisInterface interface,
+);
 
 /// Generalized analyzer that uses a single [GeneralAnalysisFunction] on all
 /// [TreeNode]s.
 class GeneralAnalyzer extends AnalysisVisitor {
   final GeneralAnalysisFunction analyzer;
 
-  GeneralAnalyzer(
+  new(
     DiagnosticMessageHandler onDiagnostic,
     Component component,
     bool Function(Uri uri)? analyzedUrisFilter,
@@ -281,7 +283,7 @@ PerformAnalysisFunction performGeneralAnalysis(
 class ComponentLookup {
   final Component _component;
 
-  ComponentLookup(this._component);
+  new(this._component);
 
   Map<Uri, LibraryLookup>? _libraries;
 
@@ -303,7 +305,7 @@ class ComponentLookup {
 class LibraryLookup {
   final Library library;
 
-  LibraryLookup(this.library);
+  new(this.library);
 
   Map<String, ClassLookup>? _classes;
 
@@ -325,7 +327,7 @@ class LibraryLookup {
 class ClassLookup {
   final Class cls;
 
-  ClassLookup(this.cls);
+  new(this.cls);
 }
 
 /// Entry points used for analyzing cfe source code.

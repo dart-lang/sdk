@@ -113,8 +113,8 @@ void propertyAccess(Class1? n1) {
   n1?.nullable1 = new Class1().nonNullable1.nullable1;
   nullable1 = n1?.nullable1 = new Class1().nonNullable1.nullable1;
   n1?.nullable1 = new Class1().nonNullable1.nullable1 = new Class1();
-  nullable1 =
-      n1?.nullable1 = new Class1().nonNullable1.nullable1 = new Class1();
+  nullable1 = n1?.nullable1 = new Class1().nonNullable1.nullable1 =
+      new Class1();
   n1?.nullable1 = new Class1().nonNullable1.nonNullable1Method();
   nullable1 = n1?.nullable1 = new Class1().nonNullable1.nonNullable1Method();
   n1?.nonNullable1Method().nonNullable1.nullable1;
@@ -124,27 +124,27 @@ void propertyAccess(Class1? n1) {
   n1?.nonNullable1.nullable1 = new Class1().nullable1;
   nullable1 = n1?.nonNullable1.nullable1 = new Class1().nullable1;
   n1?.nonNullable1.nullable1 = new Class1().nullable1 = new Class1();
-  nullable1 =
-      n1?.nonNullable1.nullable1 = new Class1().nullable1 = new Class1();
+  nullable1 = n1?.nonNullable1.nullable1 = new Class1().nullable1 =
+      new Class1();
   n1?.nonNullable1.nullable1 = new Class1().nonNullable1Method();
   nullable1 = n1?.nonNullable1.nullable1 = new Class1().nonNullable1Method();
   n1?.nullable1 = new Class1().nullable1 = new Class1().nullable1;
   nullable1 = n1?.nullable1 = new Class1().nullable1 = new Class1().nullable1;
-  n1?.nullable1 =
-      new Class1().nullable1 = new Class1().nullable1 = new Class1();
-  nullable1 = n1?.nullable1 =
-      new Class1().nullable1 = new Class1().nullable1 = new Class1();
+  n1?.nullable1 = new Class1().nullable1 = new Class1().nullable1 =
+      new Class1();
+  nullable1 = n1?.nullable1 = new Class1().nullable1 = new Class1().nullable1 =
+      new Class1();
   n1?.nullable1 = new Class1().nullable1 = new Class1().nonNullable1Method();
-  nullable1 = n1?.nullable1 =
-      new Class1().nullable1 = new Class1().nonNullable1Method();
+  nullable1 = n1?.nullable1 = new Class1().nullable1 = new Class1()
+      .nonNullable1Method();
   n1?.nonNullable1Method().nullable1 = new Class1().nullable1;
   nullable1 = n1?.nonNullable1Method().nullable1 = new Class1().nullable1;
   n1?.nonNullable1Method().nullable1 = new Class1().nullable1 = new Class1();
-  nullable1 = n1?.nonNullable1Method().nullable1 =
-      new Class1().nullable1 = new Class1();
+  nullable1 = n1?.nonNullable1Method().nullable1 = new Class1().nullable1 =
+      new Class1();
   n1?.nonNullable1Method().nullable1 = new Class1().nonNullable1Method();
-  nullable1 =
-      n1?.nonNullable1Method().nullable1 = new Class1().nonNullable1Method();
+  nullable1 = n1?.nonNullable1Method().nullable1 = new Class1()
+      .nonNullable1Method();
 
   n1?.nonNullable1.nonNullable1Method().nullable1;
   n1?.nonNullable1.nonNullable1Method().nullable1 = new Class1();
@@ -153,11 +153,12 @@ void propertyAccess(Class1? n1) {
   n1?.nullable1 = new Class1().nonNullable1Method().nullable1;
   nullable1 = n1?.nullable1 = new Class1().nonNullable1Method().nullable1;
   n1?.nullable1 = new Class1().nonNullable1Method().nullable1 = new Class1();
-  nullable1 = n1?.nullable1 =
-      new Class1().nonNullable1Method().nullable1 = new Class1();
+  nullable1 = n1?.nullable1 = new Class1().nonNullable1Method().nullable1 =
+      new Class1();
   n1?.nullable1 = new Class1().nonNullable1Method().nonNullable1Method();
-  nullable1 =
-      n1?.nullable1 = new Class1().nonNullable1Method().nonNullable1Method();
+  nullable1 = n1?.nullable1 = new Class1()
+      .nonNullable1Method()
+      .nonNullable1Method();
   n1?.nonNullable1Method().nonNullable1Method().nullable1;
   n1?.nonNullable1Method().nonNullable1Method().nullable1 = new Class1();
   n1?.nonNullable1Method().nonNullable1Method().nonNullable1Method();

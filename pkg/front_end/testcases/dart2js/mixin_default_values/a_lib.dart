@@ -6,15 +6,13 @@ import 't_lib.dart';
 String _defaultStringy(String t) => t.toLowerCase();
 
 class A {
-  A({
-    double d = 3.14,
-    StringyFunction<String> s = _defaultStringy,
-  }) : this.factoryConstructor(d: d, s: s);
+  A({double d = 3.14, StringyFunction<String> s = _defaultStringy})
+    : this.factoryConstructor(d: d, s: s);
   A.factoryConstructor({
     double d = 3.14,
     StringyFunction<String> s = _defaultStringy,
-  })  : d = d,
-        _s = s;
+  }) : d = d,
+       _s = s;
   String doStringy(String i) => _s(i);
   final double d;
   final StringyFunction<String> _s;

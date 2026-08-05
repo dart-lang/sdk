@@ -2,22 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoCombinedSuperSignatureTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NoCombinedSuperSignatureTest extends PubPackageResolutionTest {
   test_conflictingParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   void foo(int x);
 }
@@ -28,10 +28,10 @@ abstract class B {
 
 abstract class C implements A, B {
   foo(num x);
+//^^^
+// [diag.noCombinedSuperSignature] Can't infer missing types in 'C' from overridden methods: A.foo (void Function(int)), B.foo (void Function(double)).
 }
-''',
-      [error(diag.noCombinedSuperSignature, 122, 3)],
-    );
+''');
   }
 
   /// If the method is subject to override inference, it is already an error
@@ -40,8 +40,7 @@ abstract class C implements A, B {
   /// It does not matter that the conflicting component (the return type here)
   /// was resolved.
   test_conflictingReturnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   int foo(int x);
 }
@@ -52,15 +51,14 @@ abstract class B {
 
 abstract class C implements A, B {
   Never foo(x);
+//      ^^^
+// [diag.noCombinedSuperSignature] Can't infer missing types in 'C' from overridden methods: A.foo (int Function(int)), B.foo (double Function(int)).
 }
-''',
-      [error(diag.noCombinedSuperSignature, 126, 3)],
-    );
+''');
   }
 
   test_noInvalidOverrideErrors() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   String foo(String a);
 }
@@ -71,9 +69,9 @@ abstract class B {
 
 abstract class C implements A, B {
   foo(a);
+//^^^
+// [diag.noCombinedSuperSignature] Can't infer missing types in 'C' from overridden methods: A.foo (String Function(String)), B.foo (int Function(int)).
 }
-''',
-      [error(diag.noCombinedSuperSignature, 123, 3)],
-    );
+''');
   }
 }

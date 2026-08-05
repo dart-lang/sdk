@@ -9,6 +9,7 @@ import "dart:convert";
 // ignore: IMPORT_INTERNAL_LIBRARY
 import "dart:_http"
     show
+        TestingClass$_WebSocketPerMessageDeflate,
         TestingClass$_WebSocketProtocolTransformer,
         Testing$_WebSocketProtocolTransformer;
 import "dart:math";
@@ -19,6 +20,7 @@ import "package:expect/expect.dart";
 
 typedef _WebSocketProtocolTransformer =
     TestingClass$_WebSocketProtocolTransformer;
+typedef _WebSocketPerMessageDeflate = TestingClass$_WebSocketPerMessageDeflate;
 
 class WebSocketFrame {
   WebSocketFrame(int opcode, List<int> data);
@@ -261,8 +263,179 @@ void testUnmaskedMessage() {
   controller.add(frame);
 }
 
+void testMaxPayloadLengthRejectsOversizedFrame() {
+  asyncStart();
+  var transformer = new _WebSocketProtocolTransformer(false, null, 100);
+  var controller = new StreamController<List<int>>(sync: true);
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (_) {
+          Expect.fail("No data should be delivered for an oversized frame");
+        },
+        onError: (e) {
+          Expect.isTrue(
+            e.toString().contains("exceeds"),
+            "expected payload-length error, got: $e",
+          );
+          asyncEnd();
+        },
+      );
+  var message = new Uint8List(200);
+  List<int> frame = createFrame(
+    true,
+    FRAME_OPCODE_BINARY,
+    null,
+    message,
+    0,
+    message.length,
+  );
+  controller.add(frame);
+}
+
+void testMaxPayloadLengthDefaultAcceptsLargeFrame() {
+  asyncStart();
+  var transformer = new _WebSocketProtocolTransformer(false, null);
+  var controller = new StreamController<List<int>>(sync: true);
+  var message = new Uint8List(70000)
+    ..[0] = 0xAB
+    ..[69999] = 0xCD;
+  int messageCount = 0;
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (buffer) {
+          Expect.listEquals(message, buffer);
+          messageCount++;
+        },
+        onDone: () {
+          Expect.equals(1, messageCount);
+          asyncEnd();
+        },
+      );
+  List<int> frame = createFrame(
+    true,
+    FRAME_OPCODE_BINARY,
+    null,
+    message,
+    0,
+    message.length,
+  );
+  controller.add(frame);
+  controller.close();
+}
+
+void testReserved1WithoutNegotiatedExtensionRejected() {
+  asyncStart();
+  var transformer = new _WebSocketProtocolTransformer();
+  var controller = new StreamController<List<int>>(sync: true);
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (_) {
+          Expect.fail("No data should be delivered for a reserved RSV1 bit");
+        },
+        onError: (e) {
+          asyncEnd();
+        },
+      );
+  controller.add(<int>[0xC2, 0]);
+}
+
+void testReserved1OnContinuationFrameRejected() {
+  asyncStart();
+  var transformer = new _WebSocketProtocolTransformer(
+    false,
+    new _WebSocketPerMessageDeflate(),
+  );
+  var controller = new StreamController<List<int>>(sync: true);
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (_) {
+          Expect.fail("No data should be delivered for a reserved RSV1 bit");
+        },
+        onError: (e) {
+          asyncEnd();
+        },
+      );
+  controller.add(<int>[FRAME_OPCODE_BINARY, 0]);
+  controller.add(<int>[0xC0, 0]);
+}
+
+void testReserved1OnControlFrameRejected() {
+  asyncStart();
+  var transformer = new _WebSocketProtocolTransformer(
+    false,
+    new _WebSocketPerMessageDeflate(),
+  );
+  var controller = new StreamController<List<int>>(sync: true);
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (_) {
+          Expect.fail("No data should be delivered for a reserved RSV1 bit");
+        },
+        onError: (e) {
+          asyncEnd();
+        },
+      );
+  controller.add(<int>[0xC9, 0]);
+}
+
+void testControlFramePreservesCompressionState() {
+  asyncStart();
+  var outgoingDeflate = new _WebSocketPerMessageDeflate();
+  var transformer = new _WebSocketProtocolTransformer(
+    false,
+    new _WebSocketPerMessageDeflate(),
+  );
+  var controller = new StreamController<List<int>>(sync: true);
+  var message = <int>[for (int i = 0; i < 100; i++) i];
+  var compressed = outgoingDeflate.processOutgoingMessage(message);
+  Expect.isTrue(compressed.length > 1);
+  var split = compressed.length ~/ 2;
+  int messageCount = 0;
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (buffer) {
+          if (buffer is! List<int>) return;
+          Expect.listEquals(message, buffer);
+          messageCount++;
+        },
+        onDone: () {
+          Expect.equals(1, messageCount);
+          asyncEnd();
+        },
+      );
+  var first = createFrame(
+    false,
+    FRAME_OPCODE_BINARY,
+    null,
+    compressed,
+    0,
+    split,
+  );
+  first[0] |= 0x40;
+  controller.add(first);
+  controller.add(<int>[0x89, 0]);
+  controller.add(
+    createFrame(true, 0, null, compressed, split, compressed.length - split),
+  );
+  controller.close();
+}
+
 void main() {
+  asyncStart();
   testFullMessages();
   testFragmentedMessages();
   testUnmaskedMessage();
+  testMaxPayloadLengthRejectsOversizedFrame();
+  testMaxPayloadLengthDefaultAcceptsLargeFrame();
+  testReserved1WithoutNegotiatedExtensionRejected();
+  testReserved1OnContinuationFrameRejected();
+  testReserved1OnControlFrameRejected();
+  testControlFramePreservesCompressionState();
+  asyncEnd();
 }

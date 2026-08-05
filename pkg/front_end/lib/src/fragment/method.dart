@@ -49,7 +49,7 @@ class MethodFragment implements Fragment, FunctionFragment {
   final List<FormalParameterBuilder>? declaredFormals;
 
   final bool isOperator;
-  final AsyncMarker asyncModifier;
+  final AsyncModifier asyncModifier;
   final String? nativeMethodName;
 
   final DeclarationFragment? enclosingDeclaration;
@@ -66,7 +66,7 @@ class MethodFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
-  MethodFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.startOffset,
@@ -128,7 +128,7 @@ class MethodFragment implements Fragment, FunctionFragment {
 class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
   MethodFragment _fragment;
 
-  _MethodBodyBuildingContext(this._fragment);
+  new(this._fragment);
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -153,7 +153,7 @@ class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
       _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   ExtensionScope get extensionScope {

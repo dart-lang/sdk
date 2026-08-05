@@ -26,19 +26,8 @@ class A {
 
   // Prevent fields from being optimized away as write-only.
   String toString() {
-    return field1 +
-        field2 +
-        field3 +
-        field4 +
-        field5 +
-        field6 +
-        field7 +
-        field8 +
-        field9 +
-        field10 +
-        field11 +
-        field12 +
-        field13;
+    return '$field1$field2$field3$field4$field5$field6$field7'
+        '$field8$field9$field10$field11$field12$field13';
   }
 }
 
@@ -64,23 +53,9 @@ class B {
 
   // Prevent fields from being optimized away as write-only.
   String toString() {
-    return field1 +
-        field2 +
-        field3 +
-        field4 +
-        field5 +
-        field6 +
-        field7 +
-        field8 +
-        field9 +
-        field10 +
-        field11 +
-        field12 +
-        field13 +
-        field14 +
-        field15 +
-        field16 +
-        field17;
+    return '$field1$field2$field3$field4$field5$field6$field7'
+        '$field8$field9$field10$field11$field12$field13$field14'
+        '$field15$field16$field17';
   }
 }
 
@@ -108,25 +83,9 @@ class C {
 
   // Prevent fields from being optimized away as write-only.
   String toString() {
-    return field1 +
-        field2 +
-        field3 +
-        field4 +
-        field5 +
-        field6 +
-        field7 +
-        field8 +
-        field9 +
-        field10 +
-        field11 +
-        field12 +
-        field13 +
-        field14 +
-        field15 +
-        field16 +
-        field17 +
-        field18 +
-        field19;
+    return '$field1$field2$field3$field4$field5$field6$field7'
+        '$field8$field9$field10$field11$field12$field13$field14'
+        '$field15$field16$field17$field18$field19';
   }
 }
 
@@ -166,37 +125,10 @@ class Old {
 
   // Prevent fields from being optimized away as write-only.
   String toString() {
-    return new1 +
-        new2 +
-        new3 +
-        new4 +
-        new5 +
-        new6 +
-        new7 +
-        new8 +
-        new9 +
-        new10 +
-        new11 +
-        new12 +
-        new13 +
-        new14 +
-        new15 +
-        new16 +
-        new17 +
-        new18 +
-        new19 +
-        new20 +
-        new21 +
-        new22 +
-        new23 +
-        new24 +
-        new25 +
-        new26 +
-        new27 +
-        new28 +
-        new29 +
-        new30 +
-        new31;
+    return '$new1$new2$new3$new4$new5$new6$new7$new8$new9$new10'
+        '$new11$new12$new13$new14$new15$new16$new17$new18$new19$new20'
+        '$new21$new22$new23$new24$new25$new26$new27$new28$new29$new30'
+        '$new31';
   }
 }
 

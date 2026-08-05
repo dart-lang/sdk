@@ -34,5 +34,16 @@ void main() {
         throwsFailedToStartException,
       );
     });
+
+    test('successfully binds to loopback IPv6 when configured', () async {
+      final service = await createDartRuntimeServiceForTest(
+        config: const DartRuntimeServiceOptions(
+          enableLogging: true,
+          host: '::1',
+        ),
+      );
+      expect(service.uri.host, equals('::1'));
+      expect(service.isServerRunning, true);
+    });
   });
 }

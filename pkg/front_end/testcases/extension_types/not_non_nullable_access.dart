@@ -36,7 +36,7 @@ method2(ET1? et) {
   et.foo(0); // Error
   et.foo; // Error
   et.setter = // Error
-  et.getter; // Error
+      et.getter; // Error
   et + et; // Error
   -et; // Error
   et[0]; // Error
@@ -57,7 +57,7 @@ method4<S>(S s, ET2<S>? et) {
   et.foo(s); // Error
   et.foo; // Error
   et.setter = // Error
-  et.getter; // Error
+      et.getter; // Error
   et + et; // Error
   -et; // Error
   et[0]; // Error
@@ -78,7 +78,7 @@ method6<S, U extends ET2<S>>(S s, U? et) {
   et.foo(s); // Error
   et.foo; // Error
   et.setter = // Error
-  et.getter; // Error
+      et.getter; // Error
   et + et; // Error
   -et; // Error
   et[0]; // Error
@@ -99,7 +99,7 @@ method8<S, U extends ET2<S>, V extends U>(S s, V? et) {
   et.foo(s); // Error
   et.foo; // Error
   et.setter = // Error
-  et.getter; // Error
+      et.getter; // Error
   et + et; // Error
   -et; // Error
   et[0]; // Error
@@ -110,7 +110,7 @@ method9<S, U extends ET2<S>, V extends U?>(S s, V et) {
   et.foo(s); // Error
   et.foo; // Error
   et.setter = // Error
-  et.getter; // Error
+      et.getter; // Error
   et + et; // Error
   -et; // Error
   et[0]; // Error
@@ -121,7 +121,7 @@ method10<S, U extends ET2<S>?, V extends U>(S s, V et) {
   et.foo(s); // Error
   et.foo; // Error
   et.setter = // Error
-  et.getter; // Error
+      et.getter; // Error
   et + et; // Error
   -et; // Error
   et[0]; // Error

@@ -7,6 +7,7 @@
 library simd_store_to_load_forward_test;
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 Float32x4 testLoadStoreForwardingFloat32x4(Float32x4List l, Float32x4 v) {

@@ -107,7 +107,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -123,16 +123,17 @@ import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:watcher/watcher.dart';
 
-/// A function that can be executed to create a handler for a request.
-typedef HandlerGenerator =
-    LegacyHandler Function(
-      LegacyAnalysisServer,
-      Request,
-      CancellationToken,
-      OperationPerformanceImpl,
-    );
+typedef AnalysisOptionsBuilderUpdater = void Function(
+  AnalysisOptionsBuilder analysisOptionsBuilder,
+);
 
-typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
+/// A function that can be executed to create a handler for a request.
+typedef HandlerGenerator = LegacyHandler Function(
+  LegacyAnalysisServer,
+  Request,
+  CancellationToken,
+  OperationPerformanceImpl,
+);
 
 /// Various IDE options.
 class AnalysisServerOptions {
@@ -382,7 +383,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
-  LegacyAnalysisServer(
+  new(
     this.channel,
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
@@ -552,9 +553,8 @@ class LegacyAnalysisServer extends AnalysisServer {
     return (Uri uri) async {
       var requestId = '${nextServerRequestId++}';
       await sendRequest(
-        ServerOpenUrlRequestParams(
-          '$uri',
-        ).toRequest(requestId, clientUriConverter: uriConverter),
+        ServerOpenUrlRequestParams('$uri')
+            .toRequest(requestId, clientUriConverter: uriConverter),
       );
     };
   }
@@ -743,9 +743,8 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
 
     channel.sendNotification(
-      LspNotificationParams(
-        notification,
-      ).toNotification(clientUriConverter: uriConverter),
+      LspNotificationParams(notification)
+          .toNotification(clientUriConverter: uriConverter),
     );
   }
 
@@ -978,6 +977,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     MessageType type,
     String message,
     List<String> actionLabels,
+    CancellationToken cancellationToken,
   ) async {
     assert(supportsShowMessageRequest);
     var requestId = (nextServerRequestId++).toString();
@@ -987,8 +987,18 @@ class LegacyAnalysisServer extends AnalysisServer {
       message,
       actions,
     ).toRequest(requestId, clientUriConverter: uriConverter);
-    var response = await sendRequest(request);
-    return response.result?['action'] as String?;
+    var responseFuture = sendRequest(request);
+
+    // Wait for either the result, or cancellation.
+    await Future.any([responseFuture, cancellationToken.whenCancelled]);
+
+    if (cancellationToken.isCancellationRequested) {
+      return null;
+    } else {
+      // If we didn't enter the branch above, we know this future completed.
+      var response = await responseFuture;
+      return response.result?['action'] as String?;
+    }
   }
 
   @override
@@ -1086,35 +1096,37 @@ class LegacyAnalysisServer extends AnalysisServer {
       // analyzed. Add it to driver to which it should have been added.
       contextManager.getDriverFor(file)?.addFile(file);
 
-      notifyDeclarationsTracker(file);
       notifyFlutterWidgetDescriptions(file);
 
       // TODO(scheglov): implement other cases
     });
   }
 
-  /// Use the given updaters to update the values of the options in every
-  /// existing analysis context.
-  void updateOptions(List<OptionUpdater> optionUpdaters) {
+  /// Use the given updaters to configure the analysis options builders for
+  /// existing analysis contexts.
+  void updateOptions(List<AnalysisOptionsBuilderUpdater> builderUpdaters) {
     // TODO(scheglov): implement for the new analysis driver
     //    //
     //    // Update existing contexts.
     //    //
     //    for (AnalysisContext context in analysisContexts) {
-    //      AnalysisOptionsImpl options =
-    //          new AnalysisOptionsImpl.from(context.analysisOptions);
-    //      optionUpdaters.forEach((OptionUpdater optionUpdater) {
-    //        optionUpdater(options);
+    //      var builder = AnalysisOptionsBuilder.from(context.analysisOptions);
+    //      builderUpdaters.forEach((
+    //        AnalysisOptionsBuilderUpdater builderUpdater,
+    //      ) {
+    //        builderUpdater(builder);
     //      });
-    //      context.analysisOptions = options;
+    //      context.analysisOptions = builder.build();
     //      // `TODO`(brianwilkerson) As far as I can tell, this doesn't cause analysis
     //      // to be scheduled for this context.
     //    }
     //    //
     //    // Update the defaults used to create new contexts.
     //    //
-    //    optionUpdaters.forEach((OptionUpdater optionUpdater) {
-    //      optionUpdater(defaultContextOptions);
+    //    builderUpdaters.forEach((
+    //      AnalysisOptionsBuilderUpdater builderUpdater,
+    //    ) {
+    //      builderUpdater(defaultContextOptions);
     //    });
   }
 
@@ -1167,9 +1179,8 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
     var analysis = AnalysisStatus(isAnalyzing);
     channel.sendNotification(
-      ServerStatusParams(
-        analysis: analysis,
-      ).toNotification(clientUriConverter: uriConverter),
+      ServerStatusParams(analysis: analysis)
+          .toNotification(clientUriConverter: uriConverter),
     );
   }
 
@@ -1218,7 +1229,7 @@ class ServerContextManagerCallbacks
   @override
   final LegacyAnalysisServer analysisServer;
 
-  ServerContextManagerCallbacks(this.analysisServer, super.resourceProvider);
+  new(this.analysisServer, super.resourceProvider);
 
   AbstractNotificationManager get _notificationManager =>
       analysisServer.notificationManager;
@@ -1391,7 +1402,7 @@ class ServerException {
   final StackTrace stackTrace;
   final bool fatal;
 
-  ServerException(this.message, this.exception, this.stackTrace, this.fatal);
+  new(this.message, this.exception, this.stackTrace, this.fatal);
 
   @override
   String toString() => message;

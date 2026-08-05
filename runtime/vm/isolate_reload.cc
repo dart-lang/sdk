@@ -553,7 +553,7 @@ IsolateGroupReloadContext::IsolateGroupReloadContext(
       isolate_group_(isolate_group),
       class_table_(class_table),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
-      reload_timestamp_(OS::GetCurrentTimeMillis()),
+      reload_timestamp_(OS::GetCurrentTimeMicros()),
       js_(js),
       instance_morphers_(zone_, 0),
       reasons_to_cancel_reload_(zone_, 0),
@@ -1520,14 +1520,13 @@ void ProgramReloadContext::DeoptimizeDependentCode() {
   TIMELINE_SCOPE(DeoptimizeDependentCode);
   ClassTable* class_table = IG->class_table();
 
-  const intptr_t bottom = Dart::vm_isolate_group()->class_table()->NumCids();
-  const intptr_t top = IG->class_table()->NumCids();
+  const intptr_t num_cids = IG->class_table()->NumCids();
   Class& cls = Class::Handle();
   Array& fields = Array::Handle();
   Field& field = Field::Handle();
   Thread* thread = Thread::Current();
   SafepointWriteRwLocker ml(thread, IG->program_lock());
-  for (intptr_t cls_idx = bottom; cls_idx < top; cls_idx++) {
+  for (intptr_t cls_idx = kInstanceCid; cls_idx < num_cids; cls_idx++) {
     if (!class_table->HasValidClassAt(cls_idx)) {
       // Skip.
       continue;
@@ -1550,8 +1549,6 @@ void ProgramReloadContext::DeoptimizeDependentCode() {
   }
 
   DeoptimizeTypeTestingStubs();
-
-  // TODO(rmacnak): Also call LibraryPrefix::InvalidateDependentCode.
 }
 
 void ProgramReloadContext::CheckpointClasses() {
@@ -2285,6 +2282,9 @@ void ProgramReloadContext::InvalidateFunctions(
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
+    if (func.ptr() == StubCode::UnknownDartCode().owner()) {
+      continue;
+    }
 
     // Force-optimized functions cannot deoptimize.
     if (func.ForceOptimize()) continue;

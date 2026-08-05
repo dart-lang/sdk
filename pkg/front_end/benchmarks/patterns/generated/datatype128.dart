@@ -4009,7 +4009,7 @@ abstract class Visitor128<R, A> {
 }
 
 class CounterVisitor128 implements Visitor128<void, Counter> {
-  const CounterVisitor128();
+  const new();
 
   @override
   void visitSub0(Sub0 sub, Counter counter) {

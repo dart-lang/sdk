@@ -770,7 +770,7 @@ class LeastUpperBoundHelper {
 
     var returnType = getLeastUpperBound(f.returnType, g.returnType);
 
-    return FunctionTypeImpl.v2(
+    return FunctionTypeImpl(
       typeParameters: fresh.typeParameters,
       formalParameters: parameters,
       returnType: returnType,

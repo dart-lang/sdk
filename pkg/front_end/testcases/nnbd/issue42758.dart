@@ -24,7 +24,10 @@ test1(Never n1, Never? n2, Null n3) {
 }
 
 test2<N1 extends Never, N2 extends Never?, N3 extends Null>(
-    N1 n1, N2 n2, N3 n3) {
+  N1 n1,
+  N2 n2,
+  N3 n3,
+) {
   var l1 = [...n1];
   var l2 = [...?n1];
   var l3 = [...n2];

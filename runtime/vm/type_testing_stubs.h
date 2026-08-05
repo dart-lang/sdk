@@ -32,10 +32,6 @@ class TypeTestingStubNamer {
   // Converts the contents of the buffer to an assembly-safe name.
   static void MakeNameAssemblerSafe(BaseTextBuffer* buffer);
 
-  Library& lib_;
-  Class& klass_;
-  AbstractType& type_;
-  String& string_;
   mutable intptr_t nonce_ = 0;
 };
 
@@ -264,7 +260,8 @@ class TypeUsageInfo : public ThreadStackResource {
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
-                              Definition* type_arguments);
+                              Definition* type_arguments,
+                              bool convert_to_instance_type_arguments = false);
 #endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

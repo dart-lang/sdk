@@ -73,7 +73,7 @@ abstract class Devirtualization extends RecursiveVisitor {
     if (arguments.named.isNotEmpty || func.namedParameters.isNotEmpty) {
       final names = arguments.named.map((v) => v.name).toSet();
       for (var param in func.namedParameters) {
-        final passed = names.remove(param.name);
+        final passed = names.remove(param.parameterName);
         if (param.isRequired && !passed) {
           return false;
         }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,17 +15,16 @@ void main() {
 @reflectiveTest
 class DocImportCannotHaveConfigurationsTest extends PubPackageResolutionTest {
   test_configurations() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:math' if (dart.library.html) 'dart:html';
+//                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.docImportCannotHaveConfigurations] Doc imports can't have configurations.
 class C {}
-''',
-      [error(diag.docImportCannotHaveConfigurations, 27, 34)],
-    );
+''');
   }
 
   test_noConfigurations() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:math';
 class C {}
 ''');

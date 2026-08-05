@@ -3,10 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension type N(Future<int> _) {}
+
 extension type F(Future<int> _) implements Future<int> {}
 
 void test<X, XN extends N, XF extends F>(
-    N n, F f, X x, XN xn, XF xf, N? nq, F? fq, XN? xnq, XF? xfq) async {
+  N n,
+  F f,
+  X x,
+  XN xn,
+  XF xf,
+  N? nq,
+  F? fq,
+  XN? xnq,
+  XF? xfq,
+) async {
   await n; // Error.
   await f; // OK, type `int`.
   await x; // OK, type `X`.

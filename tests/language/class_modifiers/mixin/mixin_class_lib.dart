@@ -13,6 +13,7 @@ abstract mixin class AbstractMixinClass {
 mixin Mixin {
   int foo = 0;
 }
+
 mixin class NamedMixinClassApplication = Object with Mixin;
 
 class NotAMixinClass {}

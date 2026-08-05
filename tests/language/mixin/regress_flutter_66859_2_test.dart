@@ -9,7 +9,9 @@
 import "package:expect/expect.dart";
 
 mixin X {}
+
 mixin Y {}
+
 mixin Z {}
 
 class A extends B<C> with X {}

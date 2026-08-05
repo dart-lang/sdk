@@ -399,23 +399,6 @@ def _CheckAnalyzerFiles(input_api, output_api):
                 long_text=stdout)
         ]
 
-    # Verify the linter's `example/all.yaml` file.
-    if any(f.LocalPath().startswith('pkg/linter/lib/src/rules')
-           for f in input_api.AffectedFiles()):
-        args = [
-            "tools/sdks/dart-sdk/bin/dart",
-            "pkg/linter/tool/checks/check_all_yaml.dart",
-        ]
-        stdout = input_api.subprocess.check_output(args).strip()
-        if not stdout:
-            return []
-
-        return [
-            output_api.PresubmitError(
-                "The check_all_yaml linter tool revealed issues:",
-                long_text=stdout)
-        ]
-
     # TODO(srawlins): Check more:
     # * "verify_sorted" for individual modified (not deleted) files in
     #   Analyzer-team-owned directories.

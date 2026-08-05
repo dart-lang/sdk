@@ -2,31 +2,31 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/issue51971_2.dart:6:27: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971_2.dart:9:27: Error: Read of a non-const variable is not a constant expression.
 //   if (x1 case int a1 && < a1 || int a1) { // Error.
 //                           ^
 //
-// pkg/front_end/testcases/patterns/issue51971_2.dart:8:44: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971_2.dart:11:44: Error: Read of a non-const variable is not a constant expression.
 //   } else if (x1 case int a1 || int a1 && < a1) { // Error.
 //                                            ^
 //
-// pkg/front_end/testcases/patterns/issue51971_2.dart:27:22: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971_2.dart:30:22: Error: Read of a non-const variable is not a constant expression.
 //     case int a3 && < a3: // Error.
 //                      ^
 //
-// pkg/front_end/testcases/patterns/issue51971_2.dart:28:26: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971_2.dart:31:26: Error: Read of a non-const variable is not a constant expression.
 //     case String a3 && == a3: // Error.
 //                          ^
 //
-// pkg/front_end/testcases/patterns/issue51971_2.dart:37:22: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971_2.dart:40:22: Error: Read of a non-const variable is not a constant expression.
 //     case int a4 && < a4 when a4 > 0: // Error.
 //                      ^
 //
-// pkg/front_end/testcases/patterns/issue51971_2.dart:38:26: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971_2.dart:41:26: Error: Read of a non-const variable is not a constant expression.
 //     case String a4 && == a4 when a4.startsWith("f"): // Error.
 //                          ^
 //
-// pkg/front_end/testcases/patterns/issue51971_2.dart:47:17: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971_2.dart:50:17: Error: Read of a non-const variable is not a constant expression.
 //     int a5 && < a5 => 1, // Error.
 //                 ^
 //

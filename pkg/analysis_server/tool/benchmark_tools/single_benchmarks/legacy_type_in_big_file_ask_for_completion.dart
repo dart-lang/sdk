@@ -65,7 +65,7 @@ class FileContentPair {
   final Uri uri;
   final String content;
 
-  FileContentPair(this.uri, this.content);
+  new(this.uri, this.content);
 }
 
 class LegacyTypingInBigFileAskForCompletion
@@ -77,12 +77,8 @@ class LegacyTypingInBigFileAskForCompletion
 
   final RunDetails runDetails;
 
-  LegacyTypingInBigFileAskForCompletion(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: false);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: false);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;
@@ -175,5 +171,5 @@ class RunDetails {
   final FileContentPair mainFile;
   final int offset;
 
-  RunDetails({required this.mainFile, required this.offset});
+  new({required this.mainFile, required this.offset});
 }

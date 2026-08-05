@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:test/test.dart';
 import 'package:vm_service/src/vm_service.dart';
-import '../common/test_helper.dart';
+
+import '../common/service_test_common.dart';
+import 'echo_lib.dart' as testee_lib;
 
 class EchoResponse extends Response {
   static EchoResponse? parse(Map<String, dynamic>? json) =>
@@ -18,61 +21,53 @@ class EchoResponse extends Response {
   final String text;
 }
 
-var tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    addTypeFactory('_EchoResponse', EchoResponse.parse);
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    // Echo from VM target.
-    final result = await service.callMethod(
-      '_echo',
-      args: {
-        'text': 'hello',
-      },
-    );
-    expect(result, isA<EchoResponse>());
-    expect((result as EchoResponse).text, 'hello');
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    // Echo from Isolate target.
-    final result = await service.callMethod(
-      '_echo',
-      isolateId: isolateRef.id!,
-      args: {
-        'text': 'hello',
-      },
-    );
-    expect(result, isA<EchoResponse>());
-    expect((result as EchoResponse).text, 'hello');
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    final completer = Completer<void>();
-    late final StreamSubscription sub;
-    sub = service.onEvent('_Echo').listen((event) async {
-      expect(event.kind, '_Echo');
-      expect(event.data!.lengthInBytes, 3);
-      expect(event.data!.getUint8(0), 0);
-      expect(event.data!.getUint8(1), 128);
-      expect(event.data!.getUint8(2), 255);
-      await sub.cancel();
-      await service.streamCancel('_Echo');
-      completer.complete();
-    });
-
-    await service.streamListen('_Echo');
-    await service.callMethod(
-      '_triggerEchoEvent',
-      isolateId: isolateRef.id!,
-      args: {
-        'text': 'hello',
-      },
-    );
-    await completer.future;
-  },
-];
-
-Future<void> main(args) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'echo_lib.dart',
       args,
-      tests,
-      'echo_test.dart',
-    );
+    ).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      addTypeFactory('_EchoResponse', EchoResponse.parse);
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      // Echo from VM target.
+      final result = await service.callMethod(
+        '_echo',
+        args: {
+          'text': 'hello',
+        },
+      );
+      expect(result, isA<EchoResponse>());
+      expect((result as EchoResponse).text, 'hello');
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      // Echo from Isolate target.
+      final result = await service.callMethod(
+        '_echo',
+        isolateId: isolateRef.id!,
+        args: {
+          'text': 'hello',
+        },
+      );
+      expect(result, isA<EchoResponse>());
+      expect((result as EchoResponse).text, 'hello');
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final completer = Completer<void>();
+      late final StreamSubscription sub;
+      sub = service.onEvent('_Echo').listen((event) async {
+        expect(event.kind, '_Echo');
+        expect(event.data!.lengthInBytes, 3);
+        expect(event.data!.getUint8(0), 0);
+        expect(event.data!.getUint8(1), 128);
+        expect(event.data!.getUint8(2), 255);
+        await sub.cancel();
+        await service.streamCancel('_Echo');
+        completer.complete();
+      });
+
+      await service.streamListen('_Echo');
+      await service.callMethod(
+        '_triggerEchoEvent',
+        isolateId: isolateRef.id!,
+        args: {
+          'text': 'hello',
+        },
+      );
+      await completer.future;
+    }).run(testeeMain: testee_lib.main);

@@ -16,6 +16,7 @@
 // dart2wasmOptions=--extra-compiler-option=--enable-experimental-wasm-interop
 
 import 'dart:_wasm';
+import 'dart:_js_interop_wasm';
 import 'dart:js_interop';
 
 import 'package:expect/expect.dart';

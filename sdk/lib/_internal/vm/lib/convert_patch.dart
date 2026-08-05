@@ -43,10 +43,9 @@ class Utf8Decoder {
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
       return _JsonUtf8Decoder(
-            (next as JsonDecoder)._reviver,
-            this._allowMalformed,
-          )
-          as dynamic /*=Converter<List<int>, T>*/;
+        (next as JsonDecoder)._reviver,
+        this._allowMalformed,
+      ) as dynamic /*=Converter<List<int>, T>*/;
     }
     return super.fuse<T>(next);
   }

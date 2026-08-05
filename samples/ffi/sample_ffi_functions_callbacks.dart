@@ -11,22 +11,23 @@ import 'dylib_utils.dart';
 
 typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
 
-typedef CoordinateTrice =
-    Pointer<Coordinate> Function(
-      Pointer<NativeFunction<NativeCoordinateOp>>,
-      Pointer<Coordinate>,
-    );
+typedef CoordinateTrice = Pointer<Coordinate> Function(
+  Pointer<NativeFunction<NativeCoordinateOp>>,
+  Pointer<Coordinate>,
+);
 
 typedef BinaryOp = int Function(int, int);
 typedef NativeIntptrBinOp = IntPtr Function(IntPtr, IntPtr);
 typedef NativeIntptrBinOpLookup =
     Pointer<NativeFunction<NativeIntptrBinOp>> Function();
 
-typedef NativeApplyTo42And74Type =
-    IntPtr Function(Pointer<NativeFunction<NativeIntptrBinOp>>);
+typedef NativeApplyTo42And74Type = IntPtr Function(
+  Pointer<NativeFunction<NativeIntptrBinOp>>,
+);
 
-typedef ApplyTo42And74Type =
-    int Function(Pointer<NativeFunction<NativeIntptrBinOp>>);
+typedef ApplyTo42And74Type = int Function(
+  Pointer<NativeFunction<NativeIntptrBinOp>>,
+);
 
 int myPlus(int a, int b) {
   print("myPlus");

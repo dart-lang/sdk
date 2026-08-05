@@ -31,7 +31,7 @@ Future<void> main(List<String> args) async {
 
 class ReachabilityDataComputer
     extends CfeDataComputer<Set<_ReachabilityAssertion>> {
-  const ReachabilityDataComputer();
+  const new();
 
   @override
   DataInterpreter<Set<_ReachabilityAssertion>> get dataValidator =>
@@ -47,9 +47,10 @@ class ReachabilityDataComputer
     Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
     member.accept(
       new ReachabilityDataExtractor(
         testResultData.compilerResult,
@@ -70,7 +71,7 @@ class ReachabilityDataExtractor
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final FlowAnalysisResult _flowResult;
 
-  ReachabilityDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
     this._flowResult,
@@ -127,7 +128,7 @@ enum _ReachabilityAssertion { doesNotComplete, unreachable }
 
 class _ReachabilityDataInterpreter
     implements DataInterpreter<Set<_ReachabilityAssertion>> {
-  const _ReachabilityDataInterpreter();
+  const new();
 
   @override
   String getText(

@@ -2,83 +2,92 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainIsNotFunctionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MainIsNotFunctionTest extends PubPackageResolutionTest {
   test_class() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 class main {}
+//    ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
 ''');
-    assertErrorsInResult([error(diag.mainIsNotFunction, 6, 4)]);
   }
 
   test_classAlias() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 mixin M {}
 class main = A with M;
+//    ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
 ''');
-    assertErrorsInResult([error(diag.mainIsNotFunction, 28, 4)]);
   }
 
   test_enum() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 enum main {
+//   ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
   v
 }
 ''');
-    assertErrorsInResult([error(diag.mainIsNotFunction, 5, 4)]);
   }
 
   test_function() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main() {}
 ''');
   }
 
   test_getter() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 int get main => 0;
+//      ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
 ''');
-    assertErrorsInResult([error(diag.mainIsNotFunction, 8, 4)]);
   }
 
   test_mixin() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 mixin main on A {}
+//    ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
 ''');
-    assertErrorsInResult([error(diag.mainIsNotFunction, 17, 4)]);
   }
 
   test_typedef() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef main = void Function();
+//      ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
 ''');
-    assertErrorsInResult([error(diag.mainIsNotFunction, 8, 4)]);
   }
 
   test_typedef_legacy() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef void main();
+//           ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
 ''');
-    assertErrorsInResult([error(diag.mainIsNotFunction, 13, 4)]);
   }
 
   test_variable() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 var main = 0;
+//  ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
 ''');
-    assertErrorsInResult([error(diag.mainIsNotFunction, 4, 4)]);
   }
 }

@@ -10,7 +10,7 @@ class SourceBuilder {
 
   int? _exitOffset;
 
-  SourceBuilder(this.file, this.offset);
+  new(this.file, this.offset);
 
   /// Returns the exit offset, maybe `null` if not set.
   int? get exitOffset {

@@ -3,4 +3,13 @@ extension type N(Future<int> _) {}
 extension type F(Future<int> _) implements Future<int> {}
 
 void test<X, XN extends N, XF extends F>(
-    N n, F f, X x, XN xn, XF xf, N? nq, F? fq, XN? xnq, XF? xfq) async {}
+  N n,
+  F f,
+  X x,
+  XN xn,
+  XF xf,
+  N? nq,
+  F? fq,
+  XN? xnq,
+  XF? xfq,
+) async {}

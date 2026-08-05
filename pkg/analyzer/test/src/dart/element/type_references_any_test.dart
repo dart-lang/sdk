@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,55 +16,39 @@ main() {
 
 @reflectiveTest
 class TypeReferencesAnyTest extends AbstractTypeSystemTest {
-  late TypeParameterElementImpl T;
-  late TypeParameterTypeImpl T_none;
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    T = typeParameter('T');
-    T_none = typeParameterTypeNone(T);
-  }
-
   test_false() {
-    _checkFalse(dynamicType);
-    _checkFalse(intNone);
-    _checkFalse(neverNone);
-    _checkFalse(voidNone);
-    _checkFalse(listNone(intNone));
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+
+      void checkFalse(TypeImpl type) {
+        var actual = type.referencesAny({T});
+        expect(actual, isFalse);
+      }
+
+      checkFalse(parseType('dynamic'));
+      checkFalse(parseType('int'));
+      checkFalse(parseType('Never'));
+      checkFalse(parseType('void'));
+      checkFalse(parseType('List<int>'));
+    });
   }
 
   test_true() {
-    _checkTrue(T_none);
-    _checkTrue(listNone(T_none));
-    _checkTrue(mapNone(T_none, intNone));
-    _checkTrue(mapNone(intNone, T_none));
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkTrue(functionTypeNone(returnType: T_none));
+      void checkTrue(TypeImpl type) {
+        var actual = type.referencesAny({T});
+        expect(actual, isTrue);
+      }
 
-    _checkTrue(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: T_none)],
-      ),
-    );
-
-    _checkTrue(
-      functionTypeNone(
-        typeParameters: [typeParameter('U', bound: T_none)],
-        returnType: voidNone,
-      ),
-    );
-  }
-
-  void _checkFalse(TypeImpl type) {
-    var actual = type.referencesAny({T});
-    expect(actual, isFalse);
-  }
-
-  void _checkTrue(TypeImpl type) {
-    var actual = type.referencesAny({T});
-    expect(actual, isTrue);
+      checkTrue(scope.parseType('T'));
+      checkTrue(scope.parseType('List<T>'));
+      checkTrue(scope.parseType('Map<T, int>'));
+      checkTrue(scope.parseType('Map<int, T>'));
+      checkTrue(scope.parseType('T Function()'));
+      checkTrue(scope.parseType('void Function(T)'));
+      checkTrue(scope.parseType('void Function<U extends T>()'));
+    });
   }
 }

@@ -2,12 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:21:20: Error: Can't implement 'I?' because it's nullable.
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:24:20: Error: Can't implement 'I?' because it's nullable.
 // Try removing the question mark.
 // enum E3 implements I? { // Error.
 //                    ^^
 //
-// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:16:6: Error: The non-abstract class 'E2' is missing implementations for these members:
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:19:6: Error: The non-abstract class 'E2' is missing implementations for these members:
 //  - I.foo
 // Try to either
 //  - provide an implementation,
@@ -16,7 +16,7 @@ library;
 //  - provide a 'noSuchMethod' implementation.
 // enum E2 implements I { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:6:8: Context: 'I.foo' is defined here.
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:9:8: Context: 'I.foo' is defined here.
 //   void foo();
 //        ^^^
 //
@@ -83,16 +83,16 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:10:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:11:3 -> InstanceConstant(const E1{_Enum.index: 1, _Enum._name: "two"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:9:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "one"}, const E1{_Enum.index: 1, _Enum._name: "two"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:17:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:18:3 -> InstanceConstant(const E2{_Enum.index: 1, _Enum._name: "two"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:16:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "one"}, const E2{_Enum.index: 1, _Enum._name: "two"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:22:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:23:3 -> InstanceConstant(const E3{_Enum.index: 1, _Enum._name: "two"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:21:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "one"}, const E3{_Enum.index: 1, _Enum._name: "two"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:29:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:30:3 -> InstanceConstant(const E4{_Enum.index: 1, _Enum._name: "two"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:28:6 -> ListConstant(const <E4>[const E4{_Enum.index: 0, _Enum._name: "one"}, const E4{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:13:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:14:3 -> InstanceConstant(const E1{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:12:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "one"}, const E1{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:20:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:21:3 -> InstanceConstant(const E2{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:19:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "one"}, const E2{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:25:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:26:3 -> InstanceConstant(const E3{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:24:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "one"}, const E3{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:32:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:33:3 -> InstanceConstant(const E4{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:31:6 -> ListConstant(const <E4>[const E4{_Enum.index: 0, _Enum._name: "one"}, const E4{_Enum.index: 1, _Enum._name: "two"}])
 Extra constant evaluation: evaluated: 32, effectively constant: 12

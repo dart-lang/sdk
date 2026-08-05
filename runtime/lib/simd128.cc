@@ -36,19 +36,17 @@ DEFINE_NATIVE_ENTRY(Float32x4_splat, 0, 1) {
   return Float32x4::New(_v, _v, _v, _v);
 }
 
-DEFINE_NATIVE_ENTRY(Float32x4_zero, 0, 1) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
+DEFINE_NATIVE_ENTRY(Float32x4_zero, 0, 0) {
   return Float32x4::New(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-DEFINE_NATIVE_ENTRY(Float32x4_fromInt32x4Bits, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, v, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(Float32x4_fromInt32x4Bits, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, v, arguments->NativeArgAt(0));
   return Float32x4::New(v.value());
 }
 
-DEFINE_NATIVE_ENTRY(Float32x4_fromFloat64x2, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, v, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(Float32x4_fromFloat64x2, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, v, arguments->NativeArgAt(0));
   float _x = static_cast<float>(v.x());
   float _y = static_cast<float>(v.y());
   return Float32x4::New(_x, _y, 0.0f, 0.0f);
@@ -433,8 +431,8 @@ DEFINE_NATIVE_ENTRY(Int32x4_fromBools, 0, 4) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-DEFINE_NATIVE_ENTRY(Int32x4_fromFloat32x4Bits, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(Int32x4_fromFloat32x4Bits, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(0));
   return Int32x4::New(v.value());
 }
 
@@ -693,16 +691,12 @@ DEFINE_NATIVE_ENTRY(Float64x2_splat, 0, 1) {
   return Float64x2::New(v.value(), v.value());
 }
 
-DEFINE_NATIVE_ENTRY(Float64x2_zero, 0, 1) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
+DEFINE_NATIVE_ENTRY(Float64x2_zero, 0, 0) {
   return Float64x2::New(0.0, 0.0);
 }
 
-DEFINE_NATIVE_ENTRY(Float64x2_fromFloat32x4, 0, 2) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(Float64x2_fromFloat32x4, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(0));
   double _x = v.x();
   double _y = v.y();
   return Float64x2::New(_x, _y);

@@ -4,12 +4,12 @@ library;
 //
 // pkg/front_end/testcases/primary_constructors/constructor_head.dart:33:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-//   const new () {}
+//   const new() {}
 //   ^^^^^
 //
 // pkg/front_end/testcases/primary_constructors/constructor_head.dart:38:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-//   const new () : x = 0 {}
+//   const new() : x = 0 {}
 //   ^^^^^
 //
 // pkg/front_end/testcases/primary_constructors/constructor_head.dart:69:3: Error: A const constructor can't have a body.
@@ -23,9 +23,16 @@ library;
 //   ^^^^^
 //
 // pkg/front_end/testcases/primary_constructors/constructor_head.dart:29:9: Error: Constructor is marked 'const' so all fields must be final.
-//   const new () : x = 0;
+//   const new() : x = 0;
 //         ^
 // pkg/front_end/testcases/primary_constructors/constructor_head.dart:28:7: Context: Field isn't final, but constructor is 'const'.
+//   var x;
+//       ^
+//
+// pkg/front_end/testcases/primary_constructors/constructor_head.dart:38:9: Error: Constructor is marked 'const' so all fields must be final.
+//   const new() : x = 0 {}
+//         ^
+// pkg/front_end/testcases/primary_constructors/constructor_head.dart:37:7: Context: Field isn't final, but constructor is 'const'.
 //   var x;
 //       ^
 //
@@ -63,13 +70,13 @@ class C6 extends core::Object /*hasConstConstructor*/  {
     : self::C6::x = 0, super core::Object::•()
     ;
 }
-class C7 extends core::Object {
-  constructor •() → self::C7
+class C7 extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C7
     : super core::Object::•() {}
 }
-class C8 extends core::Object {
+class C8 extends core::Object /*hasConstConstructor*/  {
   field dynamic x;
-  constructor •() → self::C8
+  const constructor •() → self::C8
     : self::C8::x = 0, super core::Object::•() {}
 }
 class C9 extends core::Object {
@@ -103,12 +110,12 @@ class C14 extends core::Object /*hasConstConstructor*/  {
     : self::C14::x = 0, super core::Object::•()
     ;
 }
-class C15 extends core::Object {
-  constructor named() → self::C15
+class C15 extends core::Object /*hasConstConstructor*/  {
+  const constructor named() → self::C15
     : super core::Object::•() {}
 }
-class C16 extends core::Object {
+class C16 extends core::Object /*hasConstConstructor*/  {
   final field dynamic x;
-  constructor named() → self::C16
+  const constructor named() → self::C16
     : self::C16::x = 0, super core::Object::•() {}
 }

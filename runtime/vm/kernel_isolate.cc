@@ -109,7 +109,7 @@ class RunKernelTask : public ThreadPool::Task {
     // isolate_ was set as side effect of create callback.
     ASSERT(isolate->is_kernel_isolate());
 
-    isolate->message_handler()->Run(isolate->group()->thread_pool(), nullptr,
+    isolate->message_handler()->Run(isolate->group()->thread_pool(),
                                     ShutdownIsolate,
                                     reinterpret_cast<uword>(isolate));
   }
@@ -125,7 +125,6 @@ class RunKernelTask : public ThreadPool::Task {
       auto T = Thread::Current();
       TransitionNativeToVM transition(T);
       StackZone zone(T);
-      HandleScope handle_scope(T);
 
       auto I = T->isolate();
       ASSERT(I->is_kernel_isolate());

@@ -8,7 +8,7 @@ extension type Int(core::int i) implements core::int {
   constructor • = self::Int|constructor#;
   constructor tearoff • = self::Int|constructor#_#new#tearOff;
 }
-static extension-type-member method Int|constructor#(core::int i) → self::Int /* erasure=core::int */
+static extension-type-member method Int|constructor#(initializing-formal core::int i) → self::Int /* erasure=core::int */
   ;
 static extension-type-member synthetic method Int|constructor#_#new#tearOff(core::int i) → self::Int /* erasure=core::int */
   return self::Int|constructor#(i);

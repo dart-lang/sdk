@@ -18,7 +18,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't implicitly reopen classes.";
 
 class ImplicitReopen extends AnalysisRule {
-  ImplicitReopen()
+  new()
     : super(
         name: LintNames.implicit_reopen,
         description: _desc,
@@ -42,7 +42,7 @@ class ImplicitReopen extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void checkElement({
     required InterfaceElement? element,

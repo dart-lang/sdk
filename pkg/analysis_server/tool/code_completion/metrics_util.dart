@@ -17,7 +17,7 @@ class ArithmeticMeanComputer {
   int? min;
   int? max;
 
-  ArithmeticMeanComputer(this.name);
+  new(this.name);
 
   double get mean => sum / count;
 
@@ -98,7 +98,7 @@ class Counter {
   final Map<String, int> _buckets = {};
   int _totalCount = 0;
 
-  Counter(this.name);
+  new(this.name);
 
   /// Return a copy of all the current count data, this getter copies and
   /// returns the data to ensure that the data is only modified with the public
@@ -224,7 +224,7 @@ class MeanReciprocalRankComputer {
   double _sum_5 = 0;
   int _count = 0;
 
-  MeanReciprocalRankComputer(this.name);
+  new(this.name);
 
   int get count => _count;
 
@@ -322,8 +322,7 @@ class PercentileComputer {
 
   int maxValue = 0;
 
-  PercentileComputer(this.name, {required this.valueLimit})
-    : _counts = Uint32List(valueLimit);
+  new(this.name, {required this.valueLimit}) : _counts = Uint32List(valueLimit);
 
   /// Calculates the median (p50) value.
   int get median => kthPercentile(50);
@@ -432,16 +431,16 @@ class Place {
   /// The total number of possible places.
   final int _denominator;
 
-  const Place(this._numerator, this._denominator)
+  const new(this._numerator, this._denominator)
     : assert(_numerator > 0),
       assert(_denominator >= _numerator);
 
   /// Return an instance extracted from the decoded JSON [map].
-  factory Place.fromJson(Map<String, dynamic> map) {
+  factory fromJson(Map<String, dynamic> map) {
     return Place(map['numerator'] as int, map['denominator'] as int);
   }
 
-  const Place.none() : _numerator = 0, _denominator = 0;
+  const new none() : _numerator = 0, _denominator = 0;
 
   int get denominator => _denominator;
 

@@ -26,7 +26,6 @@ import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
@@ -46,7 +45,7 @@ class PluginException implements Exception {
   final String message;
 
   /// Initialize a newly created exception to have the given [message].
-  PluginException(this.message);
+  new(this.message);
 
   @override
   String toString() => message;
@@ -60,7 +59,7 @@ class PluginFiles {
   /// The plugin package config file.
   final File packageConfig;
 
-  PluginFiles(this.execution, this.packageConfig);
+  new(this.execution, this.packageConfig);
 }
 
 /// An object used to manage the currently running plugins.
@@ -96,21 +95,31 @@ class PluginManager {
   /// A table mapping the paths of plugins to information about those plugins.
   final Map<String, PluginIsolate> _pluginMap = <String, PluginIsolate>{};
 
+  /// The parameters for the last 'analysis.setAnalysisRoots' request that was
+  /// received from the client.
+  ///
+  /// Because plugins are lazily discovered, this needs to be retained so that
+  /// it can be sent after a plugin has been started.
+  AnalysisSetAnalysisRootsParams? _analysisSetAnalysisRootsParams;
+
   /// The parameters for the last 'analysis.setPriorityFiles' request that was
-  /// received from the client. Because plugins are lazily discovered, this
-  /// needs to be retained so that it can be sent after a plugin has been
-  /// started.
+  /// received from the client.
+  ///
+  /// Because plugins are lazily discovered, this needs to be retained so that
+  /// it can be sent after a plugin has been started.
   AnalysisSetPriorityFilesParams? _analysisSetPriorityFilesParams;
 
   /// The parameters for the last 'analysis.setSubscriptions' request that was
-  /// received from the client. Because plugins are lazily discovered, this
-  /// needs to be retained so that it can be sent after a plugin has been
-  /// started.
+  /// received from the client.
+  ///
+  /// Because plugins are lazily discovered, this needs to be retained so that
+  /// it can be sent after a plugin has been started.
   AnalysisSetSubscriptionsParams? _analysisSetSubscriptionsParams;
 
-  /// The current state of content overlays. Because plugins are lazily
-  /// discovered, the state needs to be retained so that it can be sent after a
-  /// plugin has been started.
+  /// The current state of content overlays.
+  ///
+  /// Because plugins are lazily discovered, the state needs to be retained so
+  /// that it can be sent after a plugin has been started.
   final Map<String, AddContentOverlay> _overlayState = {};
 
   final StreamController<void> _pluginsChanged = StreamController.broadcast();
@@ -132,7 +141,7 @@ class PluginManager {
   ///
   /// The notifications from the running plugins will be handled by the given
   /// [_notificationManager].
-  PluginManager(
+  new(
     this._resourceProvider,
     this._byteStorePath,
     this._sdkPath,
@@ -225,16 +234,17 @@ class PluginManager {
 
     pluginIsolate.addContextRoot(contextRoot);
     if (startedSuccessfully) {
-      var analysisSetSubscriptionsParams = _analysisSetSubscriptionsParams;
-      if (analysisSetSubscriptionsParams != null) {
-        pluginIsolate.sendRequest(analysisSetSubscriptionsParams);
-      }
-      if (_overlayState.isNotEmpty) {
-        pluginIsolate.sendRequest(AnalysisUpdateContentParams(_overlayState));
-      }
-      var analysisSetPriorityFilesParams = _analysisSetPriorityFilesParams;
-      if (analysisSetPriorityFilesParams != null) {
-        pluginIsolate.sendRequest(analysisSetPriorityFilesParams);
+      // Send these cached requests to the restarted plugin in order to catch it
+      // back up to the working state.
+      var cachedRequests = [
+        ?_analysisSetSubscriptionsParams,
+        ?_analysisSetAnalysisRootsParams,
+        if (_overlayState.isNotEmpty)
+          AnalysisUpdateContentParams(_overlayState),
+        ?_analysisSetPriorityFilesParams,
+      ];
+      for (var cachedRequest in cachedRequests) {
+        pluginIsolate.sendRequest(cachedRequest);
       }
     }
   }
@@ -317,7 +327,7 @@ class PluginManager {
     @visibleForTesting bool builtAsAot = _builtAsAot,
   }) {
     var pluginFolder = _resourceProvider.getFolder(pluginPath);
-    var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
+    var pubspecFile = pluginFolder.getFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
       // If there's no pubspec file, then we don't need to copy the package
       // because we won't be running pub.
@@ -349,9 +359,7 @@ class PluginManager {
 
     var parentFolder = pluginStateFolder(pluginPath);
     if (parentFolder.exists) {
-      var executionFolder = parentFolder.getChildAssumingFolder(
-        pluginFolder.shortName,
-      );
+      var executionFolder = parentFolder.getFolder(pluginFolder.shortName);
       return _computeFiles(
         executionFolder,
         builtAsAot: builtAsAot,
@@ -389,7 +397,7 @@ class PluginManager {
       throw PluginException('No state location, so plugin could not be copied');
     }
     var stateName = _uniqueDirectoryName(pluginPath);
-    return stateFolder.getChildAssumingFolder(stateName);
+    return stateFolder.getFolder(stateName);
   }
 
   /// The path to the "plugin state" folder for a plugin at [pluginPath].
@@ -457,10 +465,25 @@ class PluginManager {
     }
   }
 
-  /// Send a request based on the given [params] to existing plugins to set the
-  /// priority files to those specified by the [params]. As a side-effect,
-  /// record the parameters so that they can be sent to any newly started
-  /// plugins.
+  /// Sends a request based on the given [params] to existing _new_ (not legacy)
+  /// plugins to set the analysis roots to those specified by [params].
+  ///
+  /// As a side-effect, records the parameters so that they can be sent to any
+  /// newly started plugins.
+  void setAnalysisSetAnalysisRootsParams(
+    AnalysisSetAnalysisRootsParams params,
+  ) {
+    for (var isolate in newPluginIsolates) {
+      isolate.setAnalysisRoots(params);
+    }
+    _analysisSetAnalysisRootsParams = params;
+  }
+
+  /// Sends a request based on the given [params] to existing plugins to set the
+  /// priority files to those specified by the [params].
+  ///
+  /// As a side-effect, records the parameters so that they can be sent to any
+  /// newly started plugins.
   void setAnalysisSetPriorityFilesParams(
     AnalysisSetPriorityFilesParams params,
   ) {
@@ -470,9 +493,11 @@ class PluginManager {
     _analysisSetPriorityFilesParams = params;
   }
 
-  /// Send a request based on the given [params] to existing plugins to set the
-  /// subscriptions to those specified by the [params]. As a side-effect, record
-  /// the parameters so that they can be sent to any newly started plugins.
+  /// Sends a request based on the given [params] to existing plugins to set the
+  /// subscriptions to those specified by the [params].
+  ///
+  /// As a side-effect, records the parameters so that they can be sent to any
+  /// newly started plugins.
   void setAnalysisSetSubscriptionsParams(
     AnalysisSetSubscriptionsParams params,
   ) {
@@ -482,10 +507,11 @@ class PluginManager {
     _analysisSetSubscriptionsParams = params;
   }
 
-  /// Send a request based on the given [params] to existing plugins to set the
-  /// content overlays to those specified by the [params]. As a side-effect,
-  /// update the overlay state so that it can be sent to any newly started
-  /// plugins.
+  /// Sends a request based on the given [params] to existing plugins to set the
+  /// content overlays to those specified by the [params].
+  ///
+  /// As a side-effect, updates the overlay state so that it can be sent to any
+  /// newly started plugins.
   void setAnalysisUpdateContentParams(
     AnalysisUpdateContentParams params, {
     String? precomputedNewContentForChange,
@@ -540,7 +566,21 @@ class PluginManager {
     );
 
     var stopwatch = Stopwatch()..start();
-    var depfile = entrypoint.parent.getChildAssumingFile('depfile.txt');
+    var depfile = entrypoint.parent.getFile('depfile.txt');
+    var aotSnapshotFile = entrypoint.parent.getFile('plugin.aot');
+    if (aotSnapshotFile.exists) {
+      try {
+        // Delete any existing AOT snapshot. On MacOS, sometimes this file
+        // becomes quarantined due to a race condition with codesigning and
+        // overwriting the file.
+        aotSnapshotFile.delete();
+      } catch (e) {
+        instrumentationService.logInfo(
+          'Could not delete existing AOT plugin entrypoint at '
+          '"$aotSnapshotFile": $e.',
+        );
+      }
+    }
     var result = _processRunner.runSync(
       sdk.dart,
       ['compile', 'aot-snapshot', '--depfile', depfile.path, entrypoint.path],
@@ -604,9 +644,7 @@ class PluginManager {
       throw PluginException(exceptionReason);
     }
 
-    return pluginFolder
-        .getChildAssumingFolder('bin')
-        .getChildAssumingFile('plugin.aot');
+    return pluginFolder.getFolder('bin').getFile('plugin.aot');
   }
 
   /// Computes the plugin files, given that the plugin should exist in
@@ -619,15 +657,13 @@ class PluginManager {
     String? pubCommand,
     Workspace? workspace,
   }) {
-    var pluginFile = pluginFolder
-        .getChildAssumingFolder('bin')
-        .getChildAssumingFile('plugin.dart');
+    var pluginFile = pluginFolder.getFolder('bin').getFile('plugin.dart');
     if (!pluginFile.exists) {
       throw PluginException("File '${pluginFile.path}' does not exist.");
     }
     File? packageConfigFile = pluginFolder
-        .getChildAssumingFolder(file_paths.dotDartTool)
-        .getChildAssumingFile(file_paths.packageConfigJson);
+        .getFolder(file_paths.dotDartTool)
+        .getFile(file_paths.packageConfigJson);
 
     if (pubCommand != null) {
       var pubResult = _runPubCommand(
@@ -714,11 +750,9 @@ class PluginManager {
     var pluginPath = pluginFolder.path;
     var stateFolder = _resourceProvider.getStateLocation('.plugin_manager')!;
     var stateName = '${_uniqueDirectoryName(pluginPath)}.packages';
-    var packageConfigFile = stateFolder.getChildAssumingFile(stateName);
+    var packageConfigFile = stateFolder.getFile(stateName);
     if (!packageConfigFile.exists) {
-      var pluginPubspec = pluginFolder.getChildAssumingFile(
-        file_paths.pubspecYaml,
-      );
+      var pluginPubspec = pluginFolder.getFile(file_paths.pubspecYaml);
       if (!pluginPubspec.exists) {
         return null;
       }
@@ -742,9 +776,7 @@ class PluginManager {
                     .parent
                     .parent;
                 packages.add(_Package(packageName, packageRoot));
-                pubspecFiles.add(
-                  packageRoot.getChildAssumingFile(file_paths.pubspecYaml),
-                );
+                pubspecFiles.add(packageRoot.getFile(file_paths.pubspecYaml));
               }
             }
           }
@@ -752,18 +784,18 @@ class PluginManager {
 
         packages.sort((a, b) => a.name.compareTo(b.name));
 
-        var packageConfigBuilder = PackageConfigFileBuilder();
-        for (var package in packages) {
-          packageConfigBuilder.add(
-            name: package.name,
-            rootPath: package.root.path,
-          );
-        }
-        packageConfigFile.writeAsStringSync(
-          packageConfigBuilder.toContent(
-            pathContext: _resourceProvider.pathContext,
-          ),
-        );
+        var packageConfigContent = const JsonEncoder.withIndent('  ').convert({
+          'configVersion': 2,
+          'packages': [
+            for (var package in packages)
+              {
+                'name': package.name,
+                'rootUri': '${package.root.toUri()}',
+                'packageUri': 'lib/',
+              },
+          ],
+        });
+        packageConfigFile.writeAsStringSync('$packageConfigContent\n');
       } catch (exception) {
         // If we are not able to produce a package config file, return `null` so
         // that callers will not try to load the plugin.
@@ -785,19 +817,15 @@ class PluginManager {
     required File pluginFile,
     required Folder pluginFolder,
   }) {
-    var aotSnapshotFile = pluginFolder
-        .getChildAssumingFolder('bin')
-        .getChildAssumingFile('plugin.aot');
+    var aotSnapshotFile = pluginFolder.getFolder('bin').getFile('plugin.aot');
     if (!aotSnapshotFile.exists) return null;
     var snapshotModificationStamp = aotSnapshotFile.modificationStamp;
 
     if (pluginFile.modificationStamp > snapshotModificationStamp) return null;
-    var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
+    var pubspecFile = pluginFolder.getFile(file_paths.pubspecYaml);
     if (pubspecFile.modificationStamp > snapshotModificationStamp) return null;
 
-    var depfile = pluginFolder
-        .getChildAssumingFolder('bin')
-        .getChildAssumingFile('depfile.txt');
+    var depfile = pluginFolder.getFolder('bin').getFile('depfile.txt');
     if (!depfile.exists) return null;
 
     var content = depfile.readAsStringSync();
@@ -958,5 +986,5 @@ class _Package {
   final String name;
   final Folder root;
 
-  _Package(this.name, this.root);
+  new(this.name, this.root);
 }

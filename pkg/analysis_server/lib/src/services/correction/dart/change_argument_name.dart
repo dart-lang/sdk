@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -16,7 +17,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   /// replacement before the replacement is deemed to not be worth offering.
   static const _maxDistance = 4;
 
-  ChangeArgumentName({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -30,8 +31,8 @@ class ChangeArgumentName extends MultiCorrectionProducer {
       return const [];
     }
 
-    var currentNameNode = namedContext.identifier;
-    var currentName = currentNameNode.name;
+    var currentNameNode = namedContext.nameToken;
+    var currentName = currentNameNode.lexeme;
 
     var producers = <ResolvedCorrectionProducer>[];
     for (var proposedName in names) {
@@ -58,20 +59,26 @@ class ChangeArgumentName extends MultiCorrectionProducer {
     return levenshtein(current, proposal, _maxDistance, caseSensitive: false);
   }
 
-  _NamedExpressionContext? _getNamedParameterNames() {
+  _NamedArgumentContext? _getNamedParameterNames() {
     var node = this.node;
-    var namedExpression = node.parent?.parent;
-    if (node is SimpleIdentifier &&
-        namedExpression is NamedExpression &&
-        namedExpression.name == node.parent) {
-      var argumentList = namedExpression.parent;
+    NamedArgument? namedArgument;
+    if (node is NamedArgument) {
+      namedArgument = node;
+    } else if (node.parent case NamedArgument parent) {
+      namedArgument = parent;
+    }
+    if (namedArgument != null) {
+      var argumentList = namedArgument.parent;
       if (argumentList is ArgumentList) {
         var parameters = ExecutableParameters.forInvocation(
           sessionHelper,
           argumentList.parent,
         );
         if (parameters != null) {
-          return _NamedExpressionContext(node, parameters.namedNames);
+          return _NamedArgumentContext(
+            namedArgument.name,
+            parameters.namedNames,
+          );
         }
       }
     }
@@ -83,12 +90,12 @@ class ChangeArgumentName extends MultiCorrectionProducer {
 /// the [ChangeArgumentName] producer.
 class _ChangeName extends ResolvedCorrectionProducer {
   /// The name of the argument being changed.
-  final SimpleIdentifier _argumentName;
+  final Token _argumentName;
 
   /// The name to which the argument name will be changed.
   final String _proposedName;
 
-  _ChangeName(this._argumentName, this._proposedName, {required super.context});
+  new(this._argumentName, this._proposedName, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -104,14 +111,14 @@ class _ChangeName extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.node(_argumentName), _proposedName);
+      builder.addSimpleReplacement(range.token(_argumentName), _proposedName);
     });
   }
 }
 
-class _NamedExpressionContext {
-  final SimpleIdentifier identifier;
+class _NamedArgumentContext {
+  final Token nameToken;
   final List<String> names;
 
-  _NamedExpressionContext(this.identifier, this.names);
+  new(this.nameToken, this.names);
 }

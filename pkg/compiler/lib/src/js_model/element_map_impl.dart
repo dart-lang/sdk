@@ -872,7 +872,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     List<DartType> parameterTypes = <DartType>[];
     List<DartType> optionalParameterTypes = <DartType>[];
 
-    DartType getParameterType(ir.VariableDeclaration variable) {
+    DartType getParameterType(ir.Variable variable) {
       // isCovariant implies this FunctionNode is a class Procedure.
       var isCovariant =
           variable.isCovariantByDeclaration || variable.isCovariantByClass;
@@ -882,24 +882,24 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       );
     }
 
-    for (ir.VariableDeclaration variable in node.positionalParameters) {
+    for (ir.PositionalParameter parameter in node.positionalParameters) {
       if (parameterTypes.length == node.requiredParameterCount) {
-        optionalParameterTypes.add(getParameterType(variable));
+        optionalParameterTypes.add(getParameterType(parameter));
       } else {
-        parameterTypes.add(getParameterType(variable));
+        parameterTypes.add(getParameterType(parameter));
       }
     }
     var namedParameters = <String>[];
     var requiredNamedParameters = <String>{};
     List<DartType> namedParameterTypes = [];
-    List<ir.VariableDeclaration> sortedNamedParameters =
+    List<ir.NamedParameter> sortedNamedParameters =
         node.namedParameters.toList()
-          ..sort((a, b) => a.name!.compareTo(b.name!));
-    for (ir.VariableDeclaration variable in sortedNamedParameters) {
-      namedParameters.add(variable.name!);
-      namedParameterTypes.add(getParameterType(variable));
-      if (variable.isRequired) {
-        requiredNamedParameters.add(variable.name!);
+          ..sort((a, b) => a.parameterName.compareTo(b.parameterName));
+    for (ir.NamedParameter parameter in sortedNamedParameters) {
+      namedParameters.add(parameter.parameterName);
+      namedParameterTypes.add(getParameterType(parameter));
+      if (parameter.isRequired) {
+        requiredNamedParameters.add(parameter.parameterName);
       }
     }
     List<FunctionTypeVariable> typeVariables;
@@ -1714,12 +1714,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   JContextField _constructContextFieldEntry(
     InterfaceType? memberThisType,
-    ir.VariableDeclaration variable,
+    ir.Variable variable,
     BoxLocal boxLocal,
     Map<Name, MemberEntity> memberMap,
   ) {
     JContextField boxedField = JContextField(
-      variable.name!,
+      variable.cosmeticName!,
       boxLocal,
       isConst: variable.isConst,
     );
@@ -1743,11 +1743,11 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// are accessed in different scopes. This function creates the container
   /// and returns a map of locals to the corresponding records created.
   @override
-  Map<ir.VariableDeclaration, JContextField> makeContextContainer(
+  Map<ir.Variable, JContextField> makeContextContainer(
     KernelScopeInfo info,
     MemberEntity member,
   ) {
-    Map<ir.VariableDeclaration, JContextField> boxedFields = {};
+    Map<ir.Variable, JContextField> boxedFields = {};
     if (info.boxedVariables.isNotEmpty) {
       NodeBox box = info.capturedVariablesAccessor!;
 
@@ -1772,7 +1772,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       InterfaceType? memberThisType = member.enclosingClass != null
           ? elementEnvironment.getThisType(member.enclosingClass!)
           : null;
-      for (ir.VariableDeclaration variable in info.boxedVariables) {
+      for (ir.Variable variable in info.boxedVariables) {
         boxedFields[variable] = _constructContextFieldEntry(
           memberThisType,
           variable,
@@ -1794,10 +1794,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     var requiredNamedParameters = <String>{};
     for (var p
         in node.namedParameters.toList()
-          ..sort((a, b) => a.name!.compareTo(b.name!))) {
-      namedParameters.add(p.name!);
+          ..sort((a, b) => a.parameterName.compareTo(b.parameterName))) {
+      namedParameters.add(p.parameterName);
       if (p.isRequired) {
-        requiredNamedParameters.add(p.name!);
+        requiredNamedParameters.add(p.parameterName);
       }
     }
     return ParameterStructure(
@@ -1813,7 +1813,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     MemberEntity member,
     ir.FunctionNode node,
     JLibrary enclosingLibrary,
-    Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
+    Map<ir.Variable, JContextField> contextFieldsVisibleInScope,
     KernelScopeInfo info,
     InterfaceType supertype, {
     required bool createSignatureMethod,
@@ -1852,7 +1852,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     classes.register(classEntity, closureData, ClosureClassEnv(memberMap));
 
     Local? closureEntity;
-    ir.VariableDeclaration? closureEntityNode;
+    ir.Variable? closureEntityNode;
     if (node.parent is ir.FunctionDeclaration) {
       final parent = node.parent as ir.FunctionDeclaration;
       closureEntityNode = parent.variable;
@@ -1881,7 +1881,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     JsClosureClassInfo closureClassInfo = JsClosureClassInfo.fromScopeInfo(
       classEntity,
       node,
-      <ir.VariableDeclaration, JContextField>{},
+      <ir.Variable, JContextField>{},
       info,
       member.enclosingClass,
       closureEntity,
@@ -1928,7 +1928,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     MemberEntity member,
     InterfaceType? memberThisType,
     KernelScopeInfo info,
-    Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
+    Map<ir.Variable, JContextField> contextFieldsVisibleInScope,
     Map<Name, MemberEntity> memberMap,
   ) {
     // TODO(efortuna): Limit field number usage to when we need to distinguish
@@ -1942,7 +1942,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     // TODO(redemption): Merge this loop and the following.
 
     for (ir.Node variable in info.freeVariables) {
-      if (variable is ir.VariableDeclaration) {
+      if (variable is ir.Variable) {
         if (contextFieldsVisibleInScope.containsKey(variable)) {
           bool constructedField = _constructClosureFieldForRecord(
             variable,
@@ -1979,12 +1979,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     for (ir.Node variable in info.freeVariables) {
       // Make a corresponding field entity in this closure class for the
       // free variables in the KernelScopeInfo.freeVariable.
-      if (variable is ir.VariableDeclaration) {
+      if (variable is ir.Variable) {
         if (!contextFieldsVisibleInScope.containsKey(variable)) {
           closureClassInfo.registerFieldForVariable(
             variable,
             _constructClosureField(
-              variable.name!,
+              variable.cosmeticName!,
               closureClassInfo,
               memberThisType,
               memberMap,
@@ -2036,12 +2036,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// locals they contain may be). Returns `true` if we constructed a new field
   /// in the closure class.
   bool _constructClosureFieldForRecord(
-    ir.VariableDeclaration capturedLocal,
+    ir.Variable capturedLocal,
     JsClosureClassInfo closureClassInfo,
     InterfaceType? memberThisType,
     Map<Name, MemberEntity> memberMap,
     ir.TreeNode sourceNode,
-    Map<ir.VariableDeclaration, JContextField> contextFieldsVisibleInScope,
+    Map<ir.Variable, JContextField> contextFieldsVisibleInScope,
     int fieldNumber,
   ) {
     JContextField contextField = contextFieldsVisibleInScope[capturedLocal]!;
@@ -2156,7 +2156,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         parts.add(anonymous);
         anonymous = '';
       } else if (node is ir.FunctionDeclaration) {
-        String? name = node.variable.name;
+        String? name = node.variable.cosmeticName;
         if (name != null && name != "") {
           parts.add(utils.operatorNameToIdentifier(name)!);
         } else {

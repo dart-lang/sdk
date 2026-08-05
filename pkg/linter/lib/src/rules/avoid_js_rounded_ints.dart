@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid JavaScript rounded ints.';
 
 class AvoidJsRoundedInts extends AnalysisRule {
-  AvoidJsRoundedInts()
-    : super(name: LintNames.avoid_js_rounded_ints, description: _desc);
+  new() : super(name: LintNames.avoid_js_rounded_ints, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.avoidJsRoundedInts;
@@ -34,7 +33,7 @@ class AvoidJsRoundedInts extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   bool isRounded(int? value) => value?.toDouble().toInt() != value;
   @override

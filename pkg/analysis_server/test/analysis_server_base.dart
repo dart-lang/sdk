@@ -121,23 +121,21 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   void setPriorityFiles(List<File> files) {
     handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams(
-        files.map((e) => e.path).toList(),
-      ).toRequest(
-        '${nextRequestId++}',
-        clientUriConverter: server.uriConverter,
-      ),
+      AnalysisSetPriorityFilesParams(files.map((e) => e.path).toList())
+          .toRequest(
+            '${nextRequestId++}',
+            clientUriConverter: server.uriConverter,
+          ),
     );
   }
 
   Future<void> setPriorityFiles2(List<File> files) async {
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams(
-        files.map((e) => e.path).toList(),
-      ).toRequest(
-        '${nextRequestId++}',
-        clientUriConverter: server.uriConverter,
-      ),
+      AnalysisSetPriorityFilesParams(files.map((e) => e.path).toList())
+          .toRequest(
+            '${nextRequestId++}',
+            clientUriConverter: server.uriConverter,
+          ),
     );
   }
 

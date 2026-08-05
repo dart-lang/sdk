@@ -8,6 +8,7 @@ class A1 {
   void setInstanceField(int value) {
     _instanceField = value;
   }
+
   static int _staticField = 0;
   static int getStaticField() => _staticField;
   static void setStaticField(int value) {
@@ -31,7 +32,7 @@ extension A2 on A1 {
   }
 
   int operator -() {
-   return -getInstanceField();
+    return -getInstanceField();
   }
 
   static int staticField = A1.getStaticField();

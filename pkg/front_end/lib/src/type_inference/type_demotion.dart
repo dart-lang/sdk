@@ -13,7 +13,7 @@ bool hasPromotedTypeParameter(DartType type) {
 
 /// Visitor that returns `true` if a type contains a promoted type parameter.
 class _HasPromotedTypeParameterVisitor extends FindTypeVisitor {
-  const _HasPromotedTypeParameterVisitor();
+  const new();
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -40,7 +40,7 @@ DartType demoteTypeInLibrary(DartType type) {
 ///
 /// The visitor returns `null` if the type wasn't changed.
 class _DemotionNullabilityNormalization extends ReplacementVisitor {
-  const _DemotionNullabilityNormalization();
+  const new();
 
   @override
   Nullability? visitNullability(DartType node) {

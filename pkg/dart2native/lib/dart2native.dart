@@ -23,10 +23,10 @@ Future<bool> isKernelFile(String path) async {
   // Convert the 32-bit header into a list of 4 bytes.
   final kernelMagicNumberList = Uint8List(4)
     ..buffer.asByteData().setInt32(
-          0,
-          kernelMagicNumber,
-          Endian.big,
-        );
+      0,
+      kernelMagicNumber,
+      Endian.big,
+    );
 
   final header = await File(path)
       .openRead(
@@ -49,10 +49,16 @@ Future<void> writeAppendedExecutable(
   switch (targetOS) {
     case OS.macOS:
       return await writeAppendedMachOExecutable(
-          dartAotRuntime, payloadPath, outputPath);
+        dartAotRuntime,
+        payloadPath,
+        outputPath,
+      );
     case OS.windows:
       return await writeAppendedPortableExecutable(
-          dartAotRuntime, payloadPath, outputPath);
+        dartAotRuntime,
+        payloadPath,
+        outputPath,
+      );
     default:
       final dartAotRuntimeFile = File(dartAotRuntime);
       final dartAotRuntimeLength = dartAotRuntimeFile.lengthSync();
@@ -62,8 +68,9 @@ Future<void> writeAppendedExecutable(
       final offset = dartAotRuntimeLength + padding;
 
       // Note: The offset is always Little Endian regardless of host.
-      final offsetBytes = ByteData(8) // 64 bit in bytes.
-        ..setUint64(0, offset, Endian.little);
+      final offsetBytes =
+          ByteData(8) // 64 bit in bytes.
+            ..setUint64(0, offset, Endian.little);
 
       final outputFile = File(outputPath).openWrite();
       outputFile.add(dartAotRuntimeFile.readAsBytesSync());
@@ -129,14 +136,15 @@ Future<ProcessResult> generateKernelHelper({
 }
 
 Future<ProcessResult> generateAotSnapshotHelper(
-    String genSnapshot,
-    String format,
-    String outFlag,
-    String kernelFile,
-    String snapshotFile,
-    String? debugFile,
-    bool enableAsserts,
-    List<String> extraGenSnapshotOptions) {
+  String genSnapshot,
+  String format,
+  String outFlag,
+  String kernelFile,
+  String snapshotFile,
+  String? debugFile,
+  bool enableAsserts,
+  List<String> extraGenSnapshotOptions,
+) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-$format',
     '--$outFlag=$snapshotFile',
@@ -145,6 +153,6 @@ Future<ProcessResult> generateAotSnapshotHelper(
     if (debugFile != null) '--strip',
     if (enableAsserts) '--enable-asserts',
     ...extraGenSnapshotOptions,
-    kernelFile
+    kernelFile,
   ]);
 }

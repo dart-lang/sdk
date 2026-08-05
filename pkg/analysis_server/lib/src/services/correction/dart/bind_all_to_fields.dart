@@ -20,7 +20,7 @@ import 'create_constructor.dart';
 /// parameter and declaring the corresponding field. This matches a workflow
 /// with the [CreateConstructor] assist.
 class BindAllToFields extends ResolvedCorrectionProducer {
-  BindAllToFields({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

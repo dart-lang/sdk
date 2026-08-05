@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class CascadeExpressionResolutionTest extends PubPackageResolutionTest {
   test_nullAware_indexGet_promotableField() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final D? _d;
   C(this._d);
@@ -36,7 +36,7 @@ test(C c) {
     // The null shorting for the index get `.._d?[0]` ends at the end of the
     // cascade section, therefore in the cascade section that follows, `..d_`
     // has static type `D?`.
-    var node = findNode.simple('_d?.g()');
+    var node = result.findNode.simple('_d?.g()');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
@@ -46,7 +46,7 @@ SimpleIdentifier
   }
 
   test_nullAware_indexGet_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   D? get d;
 }
@@ -65,7 +65,7 @@ test(C c, int? i) {
     // The null shorting for the index get `..d?[0]` ends at the end of the
     // cascade section, therefore in the cascade section that follows, `i` has
     // static type `int?`.
-    var node = findNode.simple('i!);');
+    var node = result.findNode.simple('i!);');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
@@ -75,7 +75,7 @@ SimpleIdentifier
   }
 
   test_nullAware_indexSet_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   D get d;
   void f(int i);
@@ -93,7 +93,7 @@ test(C c, int? i) {
     // The null shorting for the index set `..d[0] ??= i!` ends at the end of
     // the cascade section, therefore in the cascade section that follows, `i`
     // has static type `int?`.
-    var node = findNode.simple('i!);');
+    var node = result.findNode.simple('i!);');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
@@ -103,7 +103,7 @@ SimpleIdentifier
   }
 
   test_nullAware_methodInvocation_promotableField() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final D? _d;
   C(this._d);
@@ -121,7 +121,7 @@ test(C c) {
     // The null shorting for the method invocation `.._d?.f()` ends at the end
     // of the cascade section, therefore in the cascade section that follows,
     // `.._d` has static type `D?`.
-    var node = findNode.simple('_d?.g()');
+    var node = result.findNode.simple('_d?.g()');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
@@ -131,7 +131,7 @@ SimpleIdentifier
   }
 
   test_nullAware_methodInvocation_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   D? get d;
 }
@@ -148,7 +148,7 @@ test(C c, int? i) {
     // The null shorting for the method invocation `..d?.f(i!)` ends at the end
     // of the cascade section, therefore in the cascade section that follows,
     // `i` has static type `int?`.
-    var node = findNode.simple('i!);');
+    var node = result.findNode.simple('i!);');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
@@ -158,7 +158,7 @@ SimpleIdentifier
   }
 
   test_nullAware_propertyGet_promotableField() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final D? _d;
   C(this._d);
@@ -177,7 +177,7 @@ test(C c) {
     // The null shorting for the property get `.._d?.d` ends at the end of the
     // cascade section, therefore in the cascade section that follows, `..d_`
     // has static type `D?`.
-    var node = findNode.simple('_d?.g()');
+    var node = result.findNode.simple('_d?.g()');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
@@ -187,7 +187,7 @@ SimpleIdentifier
   }
 
   test_nullAware_propertyGet_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   D? get d;
 }
@@ -206,7 +206,7 @@ test(C c, int? i) {
     // The null shorting for the property get `..d?.d` ends at the end of the
     // cascade section, therefore in the cascade section that follows, `i` has
     // static type `int?`.
-    var node = findNode.simple('i!);');
+    var node = result.findNode.simple('i!);');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
@@ -216,7 +216,7 @@ SimpleIdentifier
   }
 
   test_nullAware_propertySet_promotableLocal() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   int? x;
   void f(int i);
@@ -229,7 +229,7 @@ test(C c, int? i) {
     // The null shorting for the property set `..x ??= i!` ends at the end of
     // the cascade section, therefore in the cascade section that follows, `i`
     // has static type `int?`.
-    var node = findNode.simple('i!);');
+    var node = result.findNode.simple('i!);');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i

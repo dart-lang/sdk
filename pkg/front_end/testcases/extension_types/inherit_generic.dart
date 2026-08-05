@@ -6,7 +6,7 @@ extension type A<T>(Object it) {
   T method() => throw '';
   T get getter => throw '';
   void set setter(T value) {}
-  T operator[] (T index) => throw '';
+  T operator [](T index) => throw '';
 }
 
 extension type B<S>(Object it) implements A<S> {
@@ -15,7 +15,8 @@ extension type B<S>(Object it) implements A<S> {
   void set setter2(S value) {
     setter = value;
   }
-  void operator[]= (S index, S value) {
+
+  void operator []=(S index, S value) {
     value = this[index];
   }
 }
@@ -26,7 +27,8 @@ extension type C(Object i) implements A<int> {
   void set setter3(int value) {
     setter = value;
   }
-  void operator[]= (int index, int value) {
+
+  void operator []=(int index, int value) {
     value = this[index];
   }
 }

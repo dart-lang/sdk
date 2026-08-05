@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -48,12 +49,14 @@ void main(List<String> args) {
   print("(2): ${args[1]}");
   print("");
 
-  ClosedWorldClassHierarchy ch1 =
-      new ClassHierarchy(binary1, new CoreTypes(binary1))
-          as ClosedWorldClassHierarchy;
-  ClosedWorldClassHierarchy ch2 =
-      new ClassHierarchy(binary2, new CoreTypes(binary2))
-          as ClosedWorldClassHierarchy;
+  ClosedWorldClassHierarchy ch1 = new ClassHierarchy(
+    binary1,
+    new CoreTypes(binary1),
+  ) as ClosedWorldClassHierarchy;
+  ClosedWorldClassHierarchy ch2 = new ClassHierarchy(
+    binary2,
+    new CoreTypes(binary2),
+  ) as ClosedWorldClassHierarchy;
 
   Map<Uri, Library> libMap1 = createLibMap(binary1);
   Map<Uri, Library> libMap2 = createLibMap(binary2);
@@ -161,7 +164,7 @@ class ClassReference {
   final String name;
   final Uri libImportUri;
 
-  const ClassReference(this.name, this.libImportUri);
+  const new(this.name, this.libImportUri);
 
   @override
   int get hashCode => name.hashCode * 13 + libImportUri.hashCode * 17;

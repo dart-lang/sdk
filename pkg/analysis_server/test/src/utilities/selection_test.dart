@@ -666,8 +666,8 @@ void f({a, [!b, c!], d}) {}
 ''');
     _assertSelection(selection, r'''
 nodesInRange
-  DefaultFormalParameterImpl: b
-  DefaultFormalParameterImpl: c
+  RegularFormalParameterImpl: b
+  RegularFormalParameterImpl: c
 ''');
   }
 
@@ -677,8 +677,8 @@ void f(a, [!b, c!], d) {}
 ''');
     _assertSelection(selection, r'''
 nodesInRange
-  SimpleFormalParameterImpl: b
-  SimpleFormalParameterImpl: c
+  RegularFormalParameterImpl: b
+  RegularFormalParameterImpl: c
 ''');
   }
 
@@ -1456,5 +1456,5 @@ class _CodeSelection {
   final TestCode testCode;
   final Selection selection;
 
-  _CodeSelection({required this.testCode, required this.selection});
+  new({required this.testCode, required this.selection});
 }

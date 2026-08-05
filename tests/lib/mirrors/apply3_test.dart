@@ -5,6 +5,7 @@
 // Test [Function.apply] on user-defined classes that implement [noSuchMethod].
 
 import "package:expect/expect.dart";
+
 import 'dart:mirrors';
 
 class F {

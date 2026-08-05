@@ -5,8 +5,6 @@
 // A compile-time error occurs if an assignment to a primary parameter occurs
 // in the initializing expression of a non-late instance variable.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C(int x, Object? z) {
   Record y = (
     ++x,

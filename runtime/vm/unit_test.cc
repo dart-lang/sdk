@@ -40,7 +40,6 @@ DECLARE_FLAG(bool, force_evacuation);
 const uint8_t* platform_dill = kPlatformDill;
 const intptr_t platform_dill_size = kPlatformDillSize;
 
-const uint8_t* TesterState::vm_snapshot_data = nullptr;
 Dart_IsolateGroupCreateCallback TesterState::create_callback = nullptr;
 Dart_IsolateShutdownCallback TesterState::shutdown_callback = nullptr;
 Dart_IsolateGroupCleanupCallback TesterState::group_cleanup_callback = nullptr;
@@ -140,10 +139,9 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
 Dart_Isolate TestCase::CreateTestIsolate(const char* name,
                                          void* group_data,
                                          void* isolate_data) {
-  return CreateIsolate(bin::core_isolate_snapshot_data,
+  return CreateIsolate(bin::core_snapshot_data,
                        0 /* Snapshots have length encoded within them. */,
-                       bin::core_isolate_snapshot_instructions, name,
-                       group_data, isolate_data);
+                       bin::core_snapshot_text, name, group_data, isolate_data);
 }
 
 void SetupCoreLibrariesForUnitTest() {

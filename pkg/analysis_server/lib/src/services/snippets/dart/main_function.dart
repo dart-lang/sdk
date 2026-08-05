@@ -15,7 +15,7 @@ class MainFunction extends DartSnippetProducer {
   static const prefix = 'main';
   static const label = 'main()';
 
-  MainFunction(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

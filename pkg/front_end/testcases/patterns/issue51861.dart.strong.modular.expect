@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int foo;
-  constructor •(core::int foo) → self::A
+  constructor •(initializing-formal core::int foo) → self::A
     : self::A::foo = foo, super core::Object::•()
     ;
   get bar() → core::int

@@ -32,28 +32,33 @@ class C4 {
 
 enum E0 {
   a;
+
   this;
 }
 
 enum E1 {
   a;
+
   this : assert(true);
 }
 
 enum E2() {
   a;
+
   this;
   this : assert(true);
 }
 
 enum E3() {
   a;
+
   this;
   this : assert(true);
 }
 
 enum E4 {
   a;
+
   this;
   this : assert(true);
 }

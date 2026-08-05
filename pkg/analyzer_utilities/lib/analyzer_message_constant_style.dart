@@ -13,7 +13,7 @@ sealed class ConstantStyle {
   /// The static type of the constant that should be generated.
   final String staticType;
 
-  ConstantStyle({required this.concreteClassName, required this.staticType});
+  new({required this.concreteClassName, required this.staticType});
 }
 
 /// [ConstantStyle] object indicating that an "old style" constant should be
@@ -22,10 +22,7 @@ sealed class ConstantStyle {
 // TODO(paulberry): finish supporting the literate API in all analyzer messages
 // and eliminate this.
 class OldConstantStyle extends ConstantStyle {
-  OldConstantStyle({
-    required super.concreteClassName,
-    required super.staticType,
-  });
+  new({required super.concreteClassName, required super.staticType});
 }
 
 /// [ConstantStyle] object indicating that a constant should be generated that
@@ -34,7 +31,7 @@ class WithArgumentsConstantStyle extends ConstantStyle {
   /// The parameters that should be accepted by the `.withArguments` getter.
   final String withArgumentsParams;
 
-  WithArgumentsConstantStyle({
+  new({
     required super.concreteClassName,
     required super.staticType,
     required this.withArgumentsParams,
@@ -44,8 +41,5 @@ class WithArgumentsConstantStyle extends ConstantStyle {
 /// [ConstantStyle] object indicating that a constant should be generated that
 /// doesn't require any arguments.
 class WithoutArgumentsConstantStyle extends ConstantStyle {
-  WithoutArgumentsConstantStyle({
-    required super.concreteClassName,
-    required super.staticType,
-  });
+  new({required super.concreteClassName, required super.staticType});
 }

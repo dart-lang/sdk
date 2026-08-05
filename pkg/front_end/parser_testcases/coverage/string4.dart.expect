@@ -28,7 +28,9 @@ beginCompilationUnit(void)
           beginLiteralString(r"""
 æbler
 æbler""")
-          endLiteralString(0, ;)
+          endLiteralString(0, r"""
+æbler
+æbler""")
         endReturnStatement(true, return, ;)
       endBlockFunctionBody(1, {, })
     endTopLevelMethod(void, null, })
@@ -47,7 +49,8 @@ beginCompilationUnit(void)
         beginReturnStatement(return)
           beginLiteralString(r"""
 æbler""")
-          endLiteralString(0, })
+          endLiteralString(0, r"""
+æbler""")
           handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], r"""
 æbler""", r"""
 æbler""")

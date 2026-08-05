@@ -16,7 +16,7 @@ class B<X extends core::Object? = dynamic> extends core::Object {
 }
 class C<Y extends core::Object? = dynamic> extends core::Object {
   final field (self::D<self::C::Y%>) → FutureOr<self::C::Y%>bar;
-  constructor •((self::D<self::C::Y%>) → FutureOr<self::C::Y%>bar) → self::C<self::C::Y%>
+  constructor •(initializing-formal (self::D<self::C::Y%>) → FutureOr<self::C::Y%>bar) → self::C<self::C::Y%>
     ;
 }
 abstract class D<W extends core::Object? = dynamic> extends core::Object implements self::A {

@@ -13,7 +13,7 @@ import "dart:core" as core;
 class DynamicClass<T extends dynamic, S extends self::DynamicClass::T% = dynamic> extends core::Object {
   covariant-by-class field self::DynamicClass::T% field1;
   covariant-by-class field self::DynamicClass::T% field2;
-  constructor •(self::DynamicClass::T% field1, self::DynamicClass::T% field2) → self::DynamicClass<self::DynamicClass::T%, self::DynamicClass::S%>
+  constructor •(initializing-formal self::DynamicClass::T% field1, initializing-formal self::DynamicClass::T% field2) → self::DynamicClass<self::DynamicClass::T%, self::DynamicClass::S%>
     : self::DynamicClass::field1 = field1, self::DynamicClass::field2 = field2, super core::Object::•()
     ;
   method method() → dynamic
@@ -22,7 +22,7 @@ class DynamicClass<T extends dynamic, S extends self::DynamicClass::T% = dynamic
 class NumClass<T extends core::num, S extends self::NumClass::T = core::num> extends core::Object {
   covariant-by-class field self::NumClass::T field1;
   covariant-by-class field self::NumClass::S field2;
-  constructor •(self::NumClass::T field1, self::NumClass::S field2) → self::NumClass<self::NumClass::T, self::NumClass::S>
+  constructor •(initializing-formal self::NumClass::T field1, initializing-formal self::NumClass::S field2) → self::NumClass<self::NumClass::T, self::NumClass::S>
     : self::NumClass::field1 = field1, self::NumClass::field2 = field2, super core::Object::•()
     ;
   method method1() → core::num
@@ -40,7 +40,7 @@ class Class<X5 extends self::Class::X4 = core::int, X4 extends self::Class::X3 =
   covariant-by-class field self::Class::X3 field3;
   covariant-by-class field self::Class::X4 field4;
   covariant-by-class field self::Class::X5 field5;
-  constructor •(self::Class::X0 field0, self::Class::X1 field1, self::Class::X2 field2, self::Class::X3 field3, self::Class::X4 field4, self::Class::X5 field5) → self::Class<self::Class::X5, self::Class::X4, self::Class::X3, self::Class::X2, self::Class::X1, self::Class::X0>
+  constructor •(initializing-formal self::Class::X0 field0, initializing-formal self::Class::X1 field1, initializing-formal self::Class::X2 field2, initializing-formal self::Class::X3 field3, initializing-formal self::Class::X4 field4, initializing-formal self::Class::X5 field5) → self::Class<self::Class::X5, self::Class::X4, self::Class::X3, self::Class::X2, self::Class::X1, self::Class::X0>
     : self::Class::field0 = field0, self::Class::field1 = field1, self::Class::field2 = field2, self::Class::field3 = field3, self::Class::field4 = field4, self::Class::field5 = field5, super core::Object::•()
     ;
   method method() → dynamic {

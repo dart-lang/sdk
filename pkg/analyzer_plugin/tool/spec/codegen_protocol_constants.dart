@@ -27,6 +27,9 @@ class _CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
     codeGeneratorSettings.languageName = 'dart';
   }
 
+  @override
+  String get regenScript => 'pkg/analyzer_plugin/tool/spec/generate_all.dart';
+
   /// Generate the given [constant].
   void generateConstant(_Constant constant) {
     write('const String ');

@@ -30,6 +30,7 @@ final tests = <VMTest>[
       expect(event.json!['uri'], dds.uri.toString());
       serviceMessageCompleter.complete();
     });
+    await service.streamListen(EventStreams.kService);
 
     // Start DDS, which should result in the original VM service client being
     // disconnected from the VM service.

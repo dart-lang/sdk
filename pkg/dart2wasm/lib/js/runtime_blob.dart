@@ -4,7 +4,7 @@
 
 final jsRuntimeBlobTemplate = Template(r'''
 // Compiles a dart2wasm-generated main module from `source` which can then
-// instantiatable via the `instantiate` method.
+// be instantiated via the `instantiate` method.
 //
 // `source` needs to be a `Response` object (or promise thereof) e.g. created
 // via the `fetch()` JS API.
@@ -14,30 +14,11 @@ export async function compileStreaming(source) {
       await WebAssembly.compileStreaming(source, builtins), builtins);
 }
 
-// Compiles a dart2wasm-generated wasm modules from `bytes` which is then
-// instantiatable via the `instantiate` method.
+// Compiles a dart2wasm-generated wasm module from `bytes` which is then
+// instantiable via the `instantiate` method.
 export async function compile(bytes) {
   const builtins = {<<BUILTINS_MAP_BODY>>};
   return new CompiledApp(await WebAssembly.compile(bytes, builtins), builtins);
-}
-
-// DEPRECATED: Please use `compile` or `compileStreaming` to get a compiled app,
-// use `instantiate` method to get an instantiated app and then call
-// `invokeMain` to invoke the main function.
-export async function instantiate(modulePromise, importObjectPromise) {
-  var moduleOrCompiledApp = await modulePromise;
-  if (!(moduleOrCompiledApp instanceof CompiledApp)) {
-    moduleOrCompiledApp = new CompiledApp(moduleOrCompiledApp);
-  }
-  const instantiatedApp = await moduleOrCompiledApp.instantiate(await importObjectPromise);
-  return instantiatedApp.instantiatedModule;
-}
-
-// DEPRECATED: Please use `compile` or `compileStreaming` to get a compiled app,
-// use `instantiate` method to get an instantiated app and then call
-// `invokeMain` to invoke the main function.
-export const invoke = (moduleInstance, ...args) => {
-  moduleInstance.exports.$invokeMain(args);
 }
 
 class CompiledApp {
@@ -49,31 +30,23 @@ class CompiledApp {
   // The second argument is an options object containing:
   // `loadDeferredModules` is a JS function that takes an array of module names
   //   matching wasm files produced by the dart2wasm compiler. It also takes a
-  //   callback that should be invoked for each loaded module with 2 arugments:
+  //   callback that should be invoked for each loaded module with 2 arguments:
   //   (1) the module name, (2) the loaded module in a format supported by
   //   `WebAssembly.compile` or `WebAssembly.compileStreaming`. The callback
   //   returns a Promise that resolves when the module is instantiated.
   //   loadDeferredModules should return a Promise that resolves when all the
   //   modules have been loaded and the callback promises have resolved.
   // `loadDeferredId` is a JS function that takes load ID produced by the
-  //   compiler when the `load-ids` option is passed. Each load ID maps to one
-  //   or more wasm files as specified in the emitted JSON file. It also takes a
-  //   callback that should be invoked for each loaded module with 2 arugments:
-  //   (1) the module name, (2) the loaded module in a format supported by
-  //   `WebAssembly.compile` or `WebAssembly.compileStreaming`. The callback
-  //   returns a Promise that resolves when the module is instantiated.
-  //   loadDeferredModules should return a Promise that resolves when all the
+  //   compiler when the `use-load-ids` option is passed. Each load ID maps to
+  //   one or more wasm files as specified in the emitted JSON file. It also
+  //   takes a callback that should be invoked for each loaded module with 2
+  //   arguments: (1) the module name, (2) the loaded module in a format
+  //   supported by `WebAssembly.compile` or `WebAssembly.compileStreaming`.
+  //   The callback returns a Promise that resolves when the module is
+  //   instantiated.
+  //   loadDeferredId should return a Promise that resolves when all the
   //   modules have been loaded and the callback promises have resolved.
-  // `loadDynamicModule` is a JS function that takes two string names matching,
-  //   in order, a wasm file produced by the dart2wasm compiler during dynamic
-  //   module compilation and a corresponding js file produced by the same
-  //   compilation. It also takes a callback that should be invoked with the
-  //   loaded module in a format supported by `WebAssembly.compile` or
-  //   `WebAssembly.compileStreaming` and the result of using the JS 'import'
-  //   API on the js file path. It should return a Promise that resolves when
-  //   all the modules have been loaded and the callback promises have resolved.
-  async instantiate(additionalImports,
-      {loadDeferredModules, loadDynamicModule, loadDeferredId} = {}) {
+  async instantiate(additionalImports, {loadDeferredModules, loadDeferredId} = {}) {
     let dartInstance;
 
     // Prints to the console
@@ -109,7 +82,7 @@ class CompiledApp {
     };
 
     const baseImports = {
-      dart2wasm: dart2wasm,
+      <<INTERNAL_IMPORTS_MODULE_NAME>>: dart2wasm,
       Math: Math,
       Date: Date,
       Object: Object,
@@ -131,7 +104,6 @@ class CompiledApp {
       <<MODULE_LOADING_IMPORT>>
       <<JS_POLYFILL_IMPORT>>
     });
-    dartInstance.exports.$setThisModule(dartInstance);
 
     return new InstantiatedApp(this, dartInstance);
   }
@@ -208,7 +180,6 @@ final moduleLoadingHelperTemplate = Template(r'''
         <<JS_POLYFILL_IMPORT>>
         "<<MAIN_MODULE_NAME>>": dartInstance.exports,
       });
-      moduleInstance.exports.$setThisModule(moduleInstance);
     }
     const moduleLoadingHelper = {
       "loadDeferredModules": async (moduleNames) => {
@@ -223,39 +194,7 @@ final moduleLoadingHelperTemplate = Template(r'''
         }
         await loadDeferredId(loadId, handleDeferredModuleBytes.bind(this));
       },
-      "loadDynamicModuleFromUri": async (wasmUri, jsUri) => {
-        if (!loadDynamicModule) {
-          throw "No implementation of loadDynamicModule provided.";
-        }
-        let moduleInstance;
-        async function handleDynamicModuleBytes(source, jsModule) {
-          const builtins = this.builtins;
-          const module = await ((source instanceof Response)
-              ? WebAssembly.compileStreaming(source, builtins)
-              : WebAssembly.compile(source, builtins));
-          moduleInstance = await WebAssembly.instantiate(module, {
-            "<<MAIN_MODULE_NAME>>": dartInstance.exports,
-            ...jsModule.imports(finalizeWrapper),
-          });
-          moduleInstance.exports.$setThisModule(moduleInstance);
-        }
-        await loadDynamicModule(wasmUri, jsUri, handleDynamicModuleBytes.bind(this));
-        return moduleInstance.exports.$invokeEntryPoint;
-      },
     };
-''');
-
-final dynamicSubmoduleJsImportTemplate = Template(r'''
-export function imports(finalizeWrapper) {
-  const dart2wasm = {
-    <<JS_METHODS>>
-  };
-
-  return {
-    dart2wasm: dart2wasm,
-    <<IMPORTED_JS_STRINGS_IN_MJS>>
-  };
-}
 ''');
 
 class Template {

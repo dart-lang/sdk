@@ -13,21 +13,27 @@ import 'package:status_file/utils.dart';
 
 ArgParser buildParser() {
   var parser = ArgParser();
-  parser.addFlag("overwrite",
-      abbr: 'w',
-      negatable: false,
-      defaultsTo: false,
-      help: "Overwrite input files with formatted output.");
-  parser.addFlag("delete-non-existing",
-      abbr: 'd',
-      negatable: true,
-      defaultsTo: true,
-      help: "Remove non-existing test entries.");
-  parser.addFlag("help",
-      abbr: "h",
-      negatable: false,
-      defaultsTo: false,
-      help: "Show help and commands for this tool.");
+  parser.addFlag(
+    "overwrite",
+    abbr: 'w',
+    negatable: false,
+    defaultsTo: false,
+    help: "Overwrite input files with formatted output.",
+  );
+  parser.addFlag(
+    "delete-non-existing",
+    abbr: 'd',
+    negatable: true,
+    defaultsTo: true,
+    help: "Remove non-existing test entries.",
+  );
+  parser.addFlag(
+    "help",
+    abbr: "h",
+    negatable: false,
+    defaultsTo: false,
+    help: "Show help and commands for this tool.",
+  );
   return parser;
 }
 
@@ -58,19 +64,27 @@ void main(List<String> arguments) {
         if (!canLint(entry.path)) {
           return;
         }
-        normalizeFile(entry.path, overwrite,
-            deleteNonExisting: deleteNonExisting);
+        normalizeFile(
+          entry.path,
+          overwrite,
+          deleteNonExisting: deleteNonExisting,
+        );
       });
     }
   }
 }
 
-bool normalizeFile(String path, bool writeFile,
-    {required bool deleteNonExisting}) {
+bool normalizeFile(
+  String path,
+  bool writeFile, {
+  required bool deleteNonExisting,
+}) {
   try {
     var statusFile = StatusFile.read(path);
-    var normalizedStatusFile =
-        normalizeStatusFile(statusFile, deleteNonExisting: deleteNonExisting);
+    var normalizedStatusFile = normalizeStatusFile(
+      statusFile,
+      deleteNonExisting: deleteNonExisting,
+    );
     if (writeFile) {
       File(path).writeAsStringSync(normalizedStatusFile.toString());
       print("Normalized $path");
@@ -79,11 +93,15 @@ bool normalizeFile(String path, bool writeFile,
     }
     // Check if there are linting errors remaining, such as line comments,
     // that needs to be handled manually.
-    var lintErrors =
-        lint(normalizedStatusFile, checkForNonExisting: deleteNonExisting);
+    var lintErrors = lint(
+      normalizedStatusFile,
+      checkForNonExisting: deleteNonExisting,
+    );
     if (lintErrors.isNotEmpty) {
-      print("The normalizer could not remove all linting errors. The following "
-          "has to be removed manually:");
+      print(
+        "The normalizer could not remove all linting errors. The following "
+        "has to be removed manually:",
+      );
       lintErrors.forEach(print);
     }
   } on status_file.SyntaxError catch (error) {

@@ -74,6 +74,7 @@ embedded_libs:
       includedPaths: [myPackageRoot.path],
       librarySummaryPaths: [],
       resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
       sdkSummaryPath: sdkSummaryFile.path,
       withFineDependencies: true,
     );
@@ -119,6 +120,7 @@ embedded_libs:
       includedPaths: [myPackageRoot.path],
       librarySummaryPaths: [],
       resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
       sdkSummaryPath: sdkSummaryFile.path,
       withFineDependencies: true,
     );

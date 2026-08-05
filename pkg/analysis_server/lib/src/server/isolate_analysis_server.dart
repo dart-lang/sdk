@@ -17,7 +17,7 @@ class IsolateAnalysisServer {
   SocketServer socketServer;
 
   /// Initialize a newly created isolate server.
-  IsolateAnalysisServer(this.socketServer);
+  new(this.socketServer);
 
   /// Initializes an [IsolateChannel] with [clientSendPort] and starts a server
   /// with it.

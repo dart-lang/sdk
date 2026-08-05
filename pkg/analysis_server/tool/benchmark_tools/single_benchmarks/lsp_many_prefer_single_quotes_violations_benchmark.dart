@@ -42,9 +42,8 @@ RunDetails createData(
   Directory.fromUri(libDirUri).createSync();
 
   // Write analysis_options.
-  File.fromUri(
-    packageDirUri.resolve('analysis_options.yaml'),
-  ).writeAsStringSync('''
+  File.fromUri(packageDirUri.resolve('analysis_options.yaml'))
+      .writeAsStringSync('''
 linter:
   rules:
     - prefer_single_quotes
@@ -69,7 +68,7 @@ class FileContentPair {
   final Uri uri;
   final String content;
 
-  FileContentPair(this.uri, this.content);
+  new(this.uri, this.content);
 }
 
 class LspManyPreferSingleQuotesViolationsBenchmark
@@ -81,12 +80,8 @@ class LspManyPreferSingleQuotesViolationsBenchmark
 
   final RunDetails runDetails;
 
-  LspManyPreferSingleQuotesViolationsBenchmark(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: true);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: true);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;
@@ -159,5 +154,5 @@ class LspManyPreferSingleQuotesViolationsBenchmark
 class RunDetails {
   final FileContentPair mainFile;
 
-  RunDetails({required this.mainFile});
+  new({required this.mainFile});
 }

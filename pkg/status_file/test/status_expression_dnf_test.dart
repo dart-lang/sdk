@@ -47,26 +47,32 @@ void testDnf() {
 
   // Testing dnf and simple minimization (duplicates).
   shouldDnfTo(r'$a && ($b || $c)', r'$a && $b || $a && $c');
-  shouldDnfTo(r'($a || $b) && ($c || $d)',
-      r'$a && $c || $a && $d || $b && $c || $b && $d');
+  shouldDnfTo(
+    r'($a || $b) && ($c || $d)',
+    r'$a && $c || $a && $d || $b && $c || $b && $d',
+  );
 
   // Testing minimizing by complementation
   // The following two examples can be found here:
   // https://en.wikipedia.org/wiki/Quine%E2%80%93McCluskey_algorithm
   shouldDnfTo(
-      r"$a && !$b && !$c && !$d || $a && !$b && !$c && $d || "
-          r"$a && !$b && $c && !$d || $a && !$b && $c && $d",
-      r"$a && !$b");
+    r"$a && !$b && !$c && !$d || $a && !$b && !$c && $d || "
+        r"$a && !$b && $c && !$d || $a && !$b && $c && $d",
+    r"$a && !$b",
+  );
 
   shouldDnfTo(
-      r"!$a && $b && !$c && !$d || $a && !$b && !$c && !$d || "
-          r"$a && !$b && $c && !$d || $a && !$b && $c && $d || $a && $b && !$c && !$d ||"
-          r" $a && $b && $c && $d || $a && !$b && !$c && $d || $a && $b && $c && !$d",
-      r"$a && !$b || $a && $c || $b && !$c && !$d");
+    r"!$a && $b && !$c && !$d || $a && !$b && !$c && !$d || "
+        r"$a && !$b && $c && !$d || $a && !$b && $c && $d || $a && $b && !$c && !$d ||"
+        r" $a && $b && $c && $d || $a && !$b && !$c && $d || $a && $b && $c && !$d",
+    r"$a && !$b || $a && $c || $b && !$c && !$d",
+  );
 
   // Test that an expression is converted to dnf and minified correctly.
   shouldDnfTo(r'($a || $b) && ($a || $c)', r'$a || $b && $c');
   shouldDnfTo(r'(!$a || $b) && ($a || $b)', r'$b');
-  shouldDnfTo(r'($a || $b || $c) && (!$a || !$b)',
-      r'$a && !$b || !$a && $b || !$b && $c');
+  shouldDnfTo(
+    r'($a || $b || $c) && (!$a || !$b)',
+    r'$a && !$b || !$a && $b || !$b && $c',
+  );
 }

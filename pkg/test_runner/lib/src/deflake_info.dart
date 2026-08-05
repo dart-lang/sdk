@@ -9,17 +9,21 @@ class DeflakeInfo {
   int repeat;
   int timeout;
 
-  DeflakeInfo(
-      {required this.name, required this.repeat, required this.timeout});
+  DeflakeInfo({
+    required this.name,
+    required this.repeat,
+    required this.timeout,
+  });
 
   Map<dynamic, dynamic> toJson() => {
-        'name': name,
-        'repeat': repeat,
-        'timeout': timeout,
-      };
+    'name': name,
+    'repeat': repeat,
+    'timeout': timeout,
+  };
 
   static DeflakeInfo fromJson(Map<dynamic, dynamic> json) => DeflakeInfo(
-      name: json['name'] as String,
-      repeat: json['repeat'] as int? ?? 5,
-      timeout: json['timeout'] as int? ?? -1);
+    name: json['name'] as String,
+    repeat: json['repeat'] as int? ?? 5,
+    timeout: json['timeout'] as int? ?? -1,
+  );
 }

@@ -356,12 +356,8 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   Expect.equals(
     6,
     (list.reduce(
-              (a, b) =>
-                  ((a as JSNumber).toDouble + (b as JSNumber).toDouble).toJS
-                      as T,
-            )
-            as JSNumber)
-        .toDartDouble,
+      (a, b) => ((a as JSNumber).toDouble + (b as JSNumber).toDouble).toJS as T,
+    ) as JSNumber).toDartDouble,
   );
 
   // fold

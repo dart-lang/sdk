@@ -13,7 +13,7 @@ import 'package:collection/collection.dart';
 class RemoveAnnotation extends ResolvedCorrectionProducer {
   String _annotationName = '';
 
-  RemoveAnnotation({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -49,9 +49,7 @@ class RemoveAnnotation extends ResolvedCorrectionProducer {
     var node = coveringNode;
     if (node case Identifier(parent: Annotation parent)) {
       await addFix(parent);
-    } else if (node is DefaultFormalParameter) {
-      await addFix(findAnnotation(node.parameter.metadata, 'required'));
-    } else if (node is NormalFormalParameter) {
+    } else if (node is FormalParameter) {
       await addFix(findAnnotation(node.metadata, 'required'));
     } else if (node is MethodDeclaration) {
       await addFix(findAnnotation(node.metadata, 'override'));

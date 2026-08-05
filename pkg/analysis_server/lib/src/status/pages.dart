@@ -24,7 +24,7 @@ abstract class Page {
   final String title;
   final String? description;
 
-  Page(this.id, this.title, {this.description});
+  new(this.id, this.title, {this.description});
 
   // We could make this absolute which would make it work from multi-path
   // routes, but that also breaks it when serving through certain proxy servers
@@ -195,7 +195,7 @@ abstract class Site {
   final String title;
   final List<Page> pages = [];
 
-  Site(this.title);
+  new(this.title);
 
   String get customCss => '';
 

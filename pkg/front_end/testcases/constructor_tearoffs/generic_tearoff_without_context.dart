@@ -23,7 +23,7 @@ method() {
   var foo = A.foo; // Ok.
   var fooArgs = A<int>.foo; // Ok.
   var _new = A.new; // Ok.
-  var newArgs  = A<int>.new; // Ok.
+  var newArgs = A<int>.new; // Ok.
   var bar = A.bar; // Ok.
   var barArgs = A<int>.bar; // Ok.
 

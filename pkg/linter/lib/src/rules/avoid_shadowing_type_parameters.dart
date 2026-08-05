@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid shadowing type parameters.';
 
 class AvoidShadowingTypeParameters extends AnalysisRule {
-  AvoidShadowingTypeParameters()
+  new()
     : super(
         name: LintNames.avoid_shadowing_type_parameters,
         description: _desc,
@@ -32,6 +32,9 @@ class AvoidShadowingTypeParameters extends AnalysisRule {
   ) {
     var visitor = _Visitor(this, context);
     registry.addFunctionDeclarationStatement(this, visitor);
+    registry.addFunctionExpression(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
+    registry.addGenericFunctionType(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -43,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final AnalysisRule rule;
 
-  _Visitor(this.rule, RuleContext context)
+  new(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );
@@ -53,6 +56,23 @@ class _Visitor extends SimpleAstVisitor<void> {
     var functionExpression = node.functionDeclaration.functionExpression;
     if (functionExpression.typeParameters != null) {
       _checkAncestorParameters(functionExpression.typeParameters, node);
+    }
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is FunctionDeclaration) {
+      return;
+    }
+    if (node.typeParameters != null) {
+      _checkAncestorParameters(node.typeParameters, node);
+    }
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    if (node.typeParameters != null) {
+      _checkAncestorParameters(node.typeParameters, node);
     }
   }
 
@@ -73,6 +93,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Static methods have nothing above them to shadow.
     if (!node.isStatic) {
       _checkAncestorParameters(node.typeParameters, node);
+    }
+  }
+
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    var typeParameters = node.functionTypedSuffix?.typeParameters;
+    if (typeParameters != null) {
+      _checkAncestorParameters(typeParameters, node);
     }
   }
 
@@ -101,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (parent is ExtensionTypeDeclaration) {
         _checkForShadowing(
           typeParameters,
-          parent.primaryConstructor.typeParameters,
+          parent.namePart.typeParameters,
           'extension type',
         );
       } else if (parent is MethodDeclaration) {
@@ -114,6 +142,18 @@ class _Visitor extends SimpleAstVisitor<void> {
           parent.functionExpression.typeParameters,
           'function',
         );
+      } else if (parent is RegularFormalParameter) {
+        _checkForShadowing(
+          typeParameters,
+          parent.functionTypedSuffix?.typeParameters,
+          'parameter',
+        );
+      } else if (parent is GenericFunctionType) {
+        _checkForShadowing(typeParameters, parent.typeParameters, 'function');
+      } else if (parent is GenericTypeAlias) {
+        _checkForShadowing(typeParameters, parent.typeParameters, 'typedef');
+      } else if (parent is FunctionExpression) {
+        _checkForShadowing(typeParameters, parent.typeParameters, 'function');
       }
       parent = parent.parent;
     }

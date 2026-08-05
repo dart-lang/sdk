@@ -299,17 +299,14 @@ final class RegisterAllocationChecker extends Pass {
 }
 
 /// Abstract value computed in the program.
-sealed class _Value {
-  _Value();
-
+sealed class _Value() {
   factory _Value.fromDef(Definition def) =>
       (def is Constant) ? _Const(def.value) : _Result(def);
 }
 
 /// Value representing a result of the [Definition].
-final class _Result extends _Value {
-  final Definition def;
-  _Result(this.def) : assert(def is! Constant);
+final class _Result(final Definition def) extends _Value {
+  this : assert(def is! Constant);
 
   @override
   bool operator ==(Object other) => other is _Result && def == other.def;
@@ -322,10 +319,7 @@ final class _Result extends _Value {
 }
 
 /// Value representing a constant.
-final class _Const extends _Value {
-  final ConstantValue value;
-  _Const(this.value);
-
+final class _Const(final ConstantValue value) extends _Value {
   @override
   bool operator ==(Object other) => other is _Const && value == other.value;
 
@@ -337,10 +331,7 @@ final class _Const extends _Value {
 }
 
 /// Invalid value, clobbered in the given [Instruction].
-final class _Garbage extends _Value {
-  final Instruction clobber;
-  _Garbage(this.clobber);
-
+final class _Garbage(final Instruction clobber) extends _Value {
   @override
   bool operator ==(Object other) =>
       other is _Garbage && clobber == other.clobber;
@@ -355,12 +346,8 @@ final class _Garbage extends _Value {
 }
 
 /// Incoming value into the block.
-final class _Incoming extends _Value {
-  final Block block;
-  final Location loc;
+final class _Incoming(final Block block, final Location loc) extends _Value {
   _Value? value;
-
-  _Incoming(this.block, this.loc);
 
   @override
   String toString() => 'incoming $loc at ${IrToText.reference(block)} entry';
@@ -368,12 +355,10 @@ final class _Incoming extends _Value {
 
 /// Prints results of the register allocation.
 /// Can be used as [IrToText.annotator] or [ErrorContext.annotator].
-class RegisterAllocationPrinter {
-  final BackEndState backEndState;
-  final Constraints constraints;
-
-  RegisterAllocationPrinter(this.backEndState, this.constraints);
-
+class RegisterAllocationPrinter(
+  final BackEndState backEndState,
+  final Constraints constraints,
+) {
   String? print(Instruction instr) {
     final constr = constraints.getConstraints(instr);
     if (constr == null) {

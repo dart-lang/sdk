@@ -34,6 +34,8 @@ class Tokenizer {
   Token? _head;
   Token? _last;
 
+  final _newLineRegExp = RegExp('\r?\n');
+
   Tokenizer(this.text);
 
   Token? tokenize() {
@@ -45,7 +47,7 @@ class Tokenizer {
       if (whitespace.contains(c)) {
         // skip
       } else if (c == '/' && _peek(i) == '/') {
-        int index = text.indexOf('\n', i);
+        int index = text.indexOf(_newLineRegExp, i);
         if (index == -1) index = text.length;
         _emit(text.substring(i, index));
         i = index;

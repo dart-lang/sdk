@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class QualifyReference extends ResolvedCorrectionProducer {
   String _qualifiedName = '';
 
-  QualifyReference({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

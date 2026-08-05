@@ -26,7 +26,7 @@ class Transform {
 
   /// Initialize a newly created transform to describe a transformation of the
   /// [element].
-  Transform({
+  new({
     required this.title,
     required this.date,
     required this.bulkApply,

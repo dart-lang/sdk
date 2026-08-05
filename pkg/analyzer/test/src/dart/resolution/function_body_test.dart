@@ -7,12 +7,14 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
       FunctionBodyResolutionTest_isPotentiallyMutatedInScope,
     );
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -122,19 +124,19 @@ void f() {
 
   /// Assign that `x` in the only [FunctionBody] is not mutated.
   Future<void> _assertFormalParameter(String code, bool expected) async {
-    await assertNoErrorsInCode(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
-    var body = findNode.singleFunctionBody;
-    var element = findElement2.parameter('x');
+    var body = result.findNode.singleFunctionBody;
+    var element = result.findElement.parameter('x');
     expect(body.isPotentiallyMutatedInScope(element), expected);
   }
 
   /// Assign that `v` in the only [FunctionBody] is not mutated.
   Future<void> _assertLocalVariable(String code, bool expected) async {
-    await assertNoErrorsInCode(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
-    var body = findNode.singleFunctionBody;
-    var element = findElement2.localVar('v');
+    var body = result.findNode.singleFunctionBody;
+    var element = result.findElement.localVar('v');
     expect(body.isPotentiallyMutatedInScope(element), expected);
   }
 }

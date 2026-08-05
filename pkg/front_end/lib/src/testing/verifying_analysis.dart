@@ -19,7 +19,7 @@ class VerifyingAnalysis extends AnalysisVisitor {
 
   Map _expectedJson = {};
 
-  VerifyingAnalysis(
+  new(
     DiagnosticMessageHandler onDiagnostic,
     Component component,
     this._allowedListPath,

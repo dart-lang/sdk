@@ -17,7 +17,7 @@ import '../extensions.dart';
 const _desc = r'Avoid field initializers in const classes.';
 
 class AvoidFieldInitializersInConstClasses extends AnalysisRule {
-  AvoidFieldInitializersInConstClasses()
+  new()
     : super(
         name: LintNames.avoid_field_initializers_in_const_classes,
         description: _desc,
@@ -43,7 +43,7 @@ class HasParameterReferenceVisitor extends RecursiveAstVisitor<void> {
 
   bool useParameter = false;
 
-  HasParameterReferenceVisitor(this.parameters);
+  new(this.parameters);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -58,7 +58,7 @@ class HasParameterReferenceVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {

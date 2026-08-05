@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,101 +15,71 @@ main() {
 @reflectiveTest
 class EqualKeysInMapPatternTest extends PubPackageResolutionTest {
   test_identical_double() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {3.14: 1, 3.14: 2}) {}
+//            ^^^^
+// [context 1] The first key with this value.
+//                     ^^^^
+// [diag.equalKeysInMapPattern][context 1] Two keys in a map pattern can't be equal.
 }
-''',
-      [
-        error(
-          diag.equalKeysInMapPattern,
-          35,
-          4,
-          contextMessages: [message(testFile, 26, 4)],
-        ),
-      ],
-    );
+''');
   }
 
   test_identical_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {0: 1, 0: 2}) {}
+//            ^
+// [context 1] The first key with this value.
+//                  ^
+// [diag.equalKeysInMapPattern][context 1] Two keys in a map pattern can't be equal.
 }
-''',
-      [
-        error(
-          diag.equalKeysInMapPattern,
-          32,
-          1,
-          contextMessages: [message(testFile, 26, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_identical_int_viaIdentifier() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 const b = 0;
 
 void f(x) {
   if (x case {a: 1, b: 2}) {}
+//            ^
+// [context 1] The first key with this value.
+//                  ^
+// [diag.equalKeysInMapPattern][context 1] Two keys in a map pattern can't be equal.
 }
-''',
-      [
-        error(
-          diag.equalKeysInMapPattern,
-          59,
-          1,
-          contextMessages: [message(testFile, 53, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_identical_type() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {int: 0, int: 0}) {}
+//            ^^^
+// [context 1] The first key with this value.
+//                    ^^^
+// [diag.equalKeysInMapPattern][context 1] Two keys in a map pattern can't be equal.
 }
-''',
-      [
-        error(
-          diag.equalKeysInMapPattern,
-          34,
-          3,
-          contextMessages: [message(testFile, 26, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_identical_type_extensionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {int: 0, E: 0}) {}
+//            ^^^
+// [context 1] The first key with this value.
+//                    ^
+// [diag.equalKeysInMapPattern][context 1] Two keys in a map pattern can't be equal.
 }
 extension type E(int it) {}
-''',
-      [
-        error(
-          diag.equalKeysInMapPattern,
-          34,
-          1,
-          contextMessages: [message(testFile, 26, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_notIdentical_double() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {3.14: 1, 2.71: 2}) {}
 }
@@ -118,7 +87,7 @@ void f(x) {
   }
 
   test_notIdentical_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {0: 1, 2: 3}) {}
 }
@@ -126,7 +95,7 @@ void f(x) {
   }
 
   test_notIdentical_userClass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {const A(0): 1, const A(2): 3}) {}
 }
@@ -140,7 +109,7 @@ class A {
   }
 
   test_recordType_notPrimitiveEqual_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {(a: const A()): 1, (a: const A()): 2}) {}
 }
@@ -153,7 +122,7 @@ class A {
   }
 
   test_recordType_notPrimitiveEqual_positional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {(0, const A()): 1, (0, const A()): 2}) {}
 }
@@ -166,7 +135,7 @@ class A {
   }
 
   test_recordType_primitiveEqual_differentShape() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {(0, 1): 2, (0,): 3}) {}
 }
@@ -174,43 +143,31 @@ void f(x) {
   }
 
   test_recordType_primitiveEqual_empty() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {(): 1, (): 2}) {}
+//            ^^
+// [context 1] The first key with this value.
+//                   ^^
+// [diag.equalKeysInMapPattern][context 1] Two keys in a map pattern can't be equal.
 }
-''',
-      [
-        error(
-          diag.equalKeysInMapPattern,
-          33,
-          2,
-          contextMessages: [message(testFile, 26, 2)],
-        ),
-      ],
-    );
+''');
   }
 
   test_recordType_primitiveEqual_named_equal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {(a: 0): 1, (a: 0): 2}) {}
+//            ^^^^^^
+// [context 1] The first key with this value.
+//                       ^^^^^^
+// [diag.equalKeysInMapPattern][context 1] Two keys in a map pattern can't be equal.
 }
-''',
-      [
-        error(
-          diag.equalKeysInMapPattern,
-          37,
-          6,
-          contextMessages: [message(testFile, 26, 6)],
-        ),
-      ],
-    );
+''');
   }
 
   test_recordType_primitiveEqual_named_notEqual() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {(a: 0): 1, (a: 2): 3}) {}
 }
@@ -218,25 +175,19 @@ void f(x) {
   }
 
   test_recordType_primitiveEqual_positional_equal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {(0,): 1, (0,): 2}) {}
+//            ^^^^
+// [context 1] The first key with this value.
+//                     ^^^^
+// [diag.equalKeysInMapPattern][context 1] Two keys in a map pattern can't be equal.
 }
-''',
-      [
-        error(
-          diag.equalKeysInMapPattern,
-          35,
-          4,
-          contextMessages: [message(testFile, 26, 4)],
-        ),
-      ],
-    );
+''');
   }
 
   test_recordType_primitiveEqual_positional_notEqual() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {(0,): 1, (2,): 3}) {}
 }

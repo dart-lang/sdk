@@ -14,7 +14,7 @@ class TestDefinition extends DartSnippetProducer with TestSnippetMixin {
   static const prefix = 'test';
   static const label = 'test';
 
-  TestDefinition(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

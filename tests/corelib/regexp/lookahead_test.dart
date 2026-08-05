@@ -27,6 +27,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'v8_regexp_utils.dart';
+
 import 'package:expect/expect.dart';
 
 void main() {

@@ -28,8 +28,8 @@ void buildTests({required String packagePath}) {
 
   var libFolder = provider
       .getFolder(pkgRootPath)
-      .getChildAssumingFolder(packagePath)
-      .getChildAssumingFolder('lib');
+      .getFolder(packagePath)
+      .getFolder('lib');
 
   for (var file in libFolder.allFiles) {
     if (file_paths.isDart(pathContext, file.path)) {

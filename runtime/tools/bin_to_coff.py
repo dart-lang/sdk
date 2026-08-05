@@ -19,7 +19,7 @@ FILE_HEADER_AR32WR = 0x100  # File is 32-bit little endian
 SECTION_HEADER_TEXT = 0x20  # Contains executable code
 SECTION_HEADER_DATA = 0x40  # Contains only initialized data
 SECTION_HEADER_BSS = 0x80  # Contains uninitialized data
-SECTION_HEADER_ALIGN32 = 0x00600000  # Align data on a 32-byte boundary
+SECTION_HEADER_ALIGN64 = 0x00700000  # Align data on a 64-byte boundary
 SECTION_HEADER_EXECUTE = 0x20000000  # The section can be executed as code
 SECTION_HEADER_READ = 0x40000000  # The section can be read
 SECTION_HEADER_WRITE = 0x80000000  # The section can be written to
@@ -198,10 +198,10 @@ def main():
     offset += FILE_HEADER_SIZE
 
     section_name = SECTION_NAME_RDATA
-    section_flags = SECTION_HEADER_DATA | SECTION_HEADER_ALIGN32 | SECTION_HEADER_READ
+    section_flags = SECTION_HEADER_DATA | SECTION_HEADER_ALIGN64 | SECTION_HEADER_READ
     if args.executable:
         section_name = SECTION_NAME_TEXT
-        section_flags = SECTION_HEADER_TEXT | SECTION_HEADER_ALIGN32 | SECTION_HEADER_EXECUTE | SECTION_HEADER_READ
+        section_flags = SECTION_HEADER_TEXT | SECTION_HEADER_ALIGN64 | SECTION_HEADER_EXECUTE | SECTION_HEADER_READ
 
     # Populate the section header for a single section.
     pack_into(SECTION_HEADER_FORMAT, buff, offset, section_name, SECTION_PADDR,

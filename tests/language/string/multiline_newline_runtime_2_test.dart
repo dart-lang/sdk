@@ -6,6 +6,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+
 import 'multiline_newline_cr.dart' as cr;
 import 'multiline_newline_crlf.dart' as crlf;
 import 'multiline_newline_lf.dart' as lf;

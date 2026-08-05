@@ -100,6 +100,8 @@ struct CallbackMetadata {
   uword entry_point;
   uword type;  // FfiCallbackMetadata::CallType
   uword epilogue;
+  uword caller_isolate;
+  uword caller_isolate_group;
 };
 extern "C" Thread* DLRT_GetFfiCallbackMetadata(uword trampoline,
                                                CallbackMetadata* out);
@@ -108,9 +110,13 @@ extern "C" void* DLRT_ExitTemporaryIsolate();
 #else
 extern "C" void* DLRT_ExitTemporaryIsolate(Thread*);
 #endif
-extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread*);
-extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread*);
-extern "C" void* DLRT_ExitSyncCallback(Thread*);
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread*,
+                                                   Isolate*,
+                                                   IsolateGroup*);
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread*,
+                                                    Isolate*,
+                                                    IsolateGroup*);
+extern "C" void* DLRT_ExitSyncCallback(Thread*, Isolate*, IsolateGroup*);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

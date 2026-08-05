@@ -13,7 +13,7 @@ import "dart:core" as core;
 
 class A<X extends core::Object? = dynamic> extends core::Object {
   final field self::A::X% x;
-  constructor •(self::A::X% x) → self::A<self::A::X%>
+  constructor •(initializing-formal self::A::X% x) → self::A<self::A::X%>
     : self::A::x = x, super core::Object::•()
     ;
 }

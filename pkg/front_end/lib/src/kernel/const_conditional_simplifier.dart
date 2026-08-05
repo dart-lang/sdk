@@ -8,6 +8,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
+import 'external_ast_helper.dart' as extern;
 import 'try_constant_evaluator.dart';
 
 class ConstConditionalSimplifier extends RemovingTransformer {
@@ -17,7 +18,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   late final _ConstantEvaluator constantEvaluator;
   final bool _removeAsserts;
 
-  ConstConditionalSimplifier(
+  new(
     DartLibrarySupport librarySupport,
     ConstantsBackend constantsBackend,
     this._component,
@@ -81,7 +82,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     } else {
       return node.otherwise ??
           removalSentinel ?? // Coverage-ignore(suite): Not run.
-          new EmptyStatement();
+          extern.createEmptyStatement();
     }
   }
 
@@ -89,7 +90,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   // Coverage-ignore(suite): Not run.
   TreeNode visitAssertBlock(AssertBlock node, TreeNode? removalSentinel) {
     if (_removeAsserts) {
-      return removalSentinel ?? new EmptyStatement();
+      return removalSentinel ?? extern.createEmptyStatement();
     } else {
       return super.visitAssertBlock(node, removalSentinel);
     }
@@ -117,7 +118,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     TreeNode? removalSentinel,
   ) {
     if (_removeAsserts) {
-      return removalSentinel ?? new EmptyStatement();
+      return removalSentinel ?? extern.createEmptyStatement();
     } else {
       return super.visitAssertStatement(node, removalSentinel);
     }
@@ -128,14 +129,14 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   // TODO(fishythefish): Do caches need to be invalidated when the static type
   // context changes?
   /// Cache for local variables in the current method.
-  Map<VariableDeclaration, Constant?> _variableCache = {};
+  Map<Variable, Constant?> _variableCache = {};
   final Map<Field, Constant?> _staticFieldCache = {};
   final Map<FunctionNode, Constant?> _functionCache = {};
   final Map<FunctionNode, Constant?> _localFunctionCache = {};
   // TODO(fishythefish): Make this more granular than [TreeNode].
   final bool Function(TreeNode) _shouldNotInline;
 
-  _ConstantEvaluator(
+  new(
     super.librarySupport,
     super.constantsBackend,
     super.component,
@@ -168,7 +169,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     return _evaluate(expression);
   }
 
-  Constant? _evaluateVariableGet(VariableDeclaration variable) {
+  Constant? _evaluateVariableGet(Variable variable) {
     // A function parameter can be declared final with an initializer, but
     // doesn't necessarily have the initializer's value.
     if (variable.parent is FunctionNode) return null;
@@ -179,8 +180,10 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     return _evaluate(initializer);
   }
 
-  Constant? _lookupVariableGet(VariableDeclaration variable) => _variableCache
-      .putIfAbsent(variable, () => _evaluateVariableGet(variable));
+  Constant? _lookupVariableGet(Variable variable) => _variableCache.putIfAbsent(
+    variable,
+    () => _evaluateVariableGet(variable),
+  );
 
   @override
   Constant visitVariableGet(VariableGet node) =>
@@ -258,7 +261,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     //
     // This can occur when calling const extension type constructors since these
     // are lowered into top level functions.
-    Map<VariableDeclaration, Constant?> oldCache = _variableCache;
+    Map<Variable, Constant?> oldCache = _variableCache;
     _variableCache = {};
     Constant result =
         _lookupStaticInvocation(node.target) ??

@@ -10,14 +10,12 @@ const bool useImplicitCreationExpressionInCfe = true;
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {
-  DietParser(
-    Listener listener, {
-    required ExperimentalFeatures experimentalFeatures,
-  }) : super(
-         listener,
-         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-         experimentalFeatures: experimentalFeatures,
-       );
+  new(Listener listener, {required ExperimentalFeatures experimentalFeatures})
+    : super(
+        listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        experimentalFeatures: experimentalFeatures,
+      );
 
   @override
   Token parseFormalParametersRest(Token token, MemberKind kind) {

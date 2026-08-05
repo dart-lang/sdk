@@ -7,72 +7,18 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
-
-@pragma('vm:entry-point') // Prevent obfuscation
-late String ascii;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String latin1;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String unicode;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String hebrew;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String singleQuotes;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String doubleQuotes;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String newLines;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String tabs;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String surrogatePairs;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String nullInTheMiddle;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String escapedUnicodeEscape;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String longStringEven;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String longStringOdd;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String malformedWithLeadSurrogate;
-@pragma('vm:entry-point') // Prevent obfuscation
-late String malformedWithTrailSurrogate;
-
-void script() {
-  ascii = 'Hello, World!';
-  latin1 = 'blåbærgrød';
-  unicode = 'Îñţérñåţîöñåļîžåţîờñ';
-  hebrew = 'שלום רב שובך צפורה נחמדת'; // Right-to-left text.
-  singleQuotes = "'One,' he said.";
-  doubleQuotes = '"Two," he said.';
-  newLines = 'Windows\r\nSmalltalk\rUnix\n';
-  tabs = 'One\tTwo\tThree';
-  surrogatePairs = '1𝄞2𝄞𝄞3𝄞𝄞𝄞';
-  nullInTheMiddle = 'There are four\u0000 words.';
-  escapedUnicodeEscape = 'Should not be A: \\u0041';
-
-  // A surrogate pair will cross the preferred truncation boundary.
-  longStringEven = '..';
-  for (int i = 0; i < 512; i++) {
-    longStringEven += '𝄞';
-  }
-  longStringOdd = '.';
-  for (int i = 0; i < 512; i++) {
-    longStringOdd += '𝄞';
-  }
-
-  malformedWithLeadSurrogate = 'before${'𝄞'[0]}after';
-  malformedWithTrailSurrogate = 'before${'𝄞'[1]}after';
-}
+import 'common/service_test_common.dart';
+import 'string_escaping_lib.dart';
+import 'string_escaping_lib.dart' as testee_lib;
 
 Future<void> testStrings(VmService service, IsolateRef isolateRef) async {
   final isolateId = isolateRef.id!;
   final isolate = await service.getIsolate(isolateId);
   final rootLib = await service.getObject(
     isolateId,
-    isolate.rootLib!.id!,
+    isolate.libraries!
+        .firstWhere((l) => l.uri!.contains('string_escaping_lib'))
+        .id!,
   ) as Library;
 
   final variables = <Field>[
@@ -114,13 +60,7 @@ Future<void> testStrings(VmService service, IsolateRef isolateRef) async {
   expectFullString('malformedWithTrailSurrogate', malformedWithTrailSurrogate);
 }
 
-final tests = <IsolateTest>[
-  testStrings,
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'string_escaping_test.dart',
-      testeeBefore: script,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('string_escaping_lib.dart', args)
+        .addCustomTest(testStrings)
+        .run(testeeMain: testee_lib.main);

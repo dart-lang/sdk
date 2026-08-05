@@ -29,7 +29,7 @@ Expression _makeForwardingCall(
   final List<NamedExpression> named = function.namedParameters
       .map(
         (v) => new NamedExpression(
-          v.name!,
+          v.parameterName,
           new VariableGet(v)..fileOffset = v.fileOffset,
         )..fileOffset = v.fileOffset,
       )

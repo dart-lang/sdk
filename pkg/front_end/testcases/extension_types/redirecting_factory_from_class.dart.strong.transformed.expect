@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A1 extends core::Object /*hasConstConstructor*/  {
   final field core::int foo;
-  const constructor •(core::int foo) → self::A1
+  const constructor •(initializing-formal core::int foo) → self::A1
     : self::A1::foo = foo, super core::Object::•()
     ;
   static const factory redir(self::A1 it) → self::A1 /* redirection-target: self::E1|constructor#redir */
@@ -12,7 +12,7 @@ class A1 extends core::Object /*hasConstConstructor*/  {
 }
 class A2 extends core::Object /*hasConstConstructor*/  {
   final field core::int foo;
-  const constructor •(core::int foo) → self::A2
+  const constructor •(initializing-formal core::int foo) → self::A2
     : self::A2::foo = foo, super core::Object::•()
     ;
   static const factory redir(core::bool b) → self::A2 /* redirection-target: self::E2|constructor#pick */
@@ -20,13 +20,13 @@ class A2 extends core::Object /*hasConstConstructor*/  {
 }
 class B2 extends self::A2 /*hasConstConstructor*/  {
   static const field self::B2 element = #C2;
-  const constructor •(core::int foo) → self::B2
+  const constructor •(super-initializing-formal core::int foo) → self::B2
     : super self::A2::•(foo)
     ;
 }
 class C2 extends self::A2 /*hasConstConstructor*/  {
   static const field self::C2 element = #C3;
-  const constructor •(core::int foo) → self::C2
+  const constructor •(super-initializing-formal core::int foo) → self::C2
     : super self::A2::•(foo)
     ;
 }
@@ -44,7 +44,7 @@ extension type E2(self::A2 it) implements self::A2 {
   constructor pick = self::E2|constructor#pick;
   constructor tearoff pick = self::E2|constructor#_#pick#tearOff;
 }
-static extension-type-member const method E1|constructor#(self::A1 it) → self::E1 /* erasure=self::A1 */ {
+static extension-type-member const method E1|constructor#(initializing-formal self::A1 it) → self::E1 /* erasure=self::A1 */ {
   lowered final self::E1 /* erasure=self::A1 */ #this = it;
   return #this;
 }
@@ -58,7 +58,7 @@ static method test1() → dynamic {
   const self::A1 a1 = #C4;
   self::expectIdentical(#C4, #C4);
 }
-static extension-type-member const method E2|constructor#(self::A2 it) → self::E2 /* erasure=self::A2 */ {
+static extension-type-member const method E2|constructor#(initializing-formal self::A2 it) → self::E2 /* erasure=self::A2 */ {
   lowered final self::E2 /* erasure=self::A2 */ #this = it;
   return #this;
 }

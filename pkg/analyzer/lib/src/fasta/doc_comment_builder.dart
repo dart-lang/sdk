@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show optional, Parser;
 import 'package:_fe_analyzer_shared/src/parser/util.dart'
@@ -380,6 +382,9 @@ final class DocCommentBuilder {
       case 'endtemplate':
         _endBlockDocDirectiveTag(parser, DocDirectiveType.endTemplate);
         return true;
+      case 'example':
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.example));
+        return true;
       case 'inject-html':
         _parseBlockDocDirectiveTag(parser, DocDirectiveType.injectHtml);
         return true;
@@ -433,9 +438,10 @@ final class DocCommentBuilder {
       ),
     ];
 
+    var experimentalFeatures = ExperimentalFeaturesStatus(_featureSet);
     var scanner = DocImportStringScanner(
       syntheticImport,
-      configuration: ScannerConfiguration(),
+      configuration: experimentalFeatures.buildScannerConfiguration(),
       sourceMap: sourceMap,
     );
 
@@ -457,7 +463,7 @@ final class DocCommentBuilder {
     );
     var parser = Parser(
       docImportListener,
-      experimentalFeatures: ExperimentalFeaturesStatus(_featureSet),
+      experimentalFeatures: experimentalFeatures,
     );
     docImportListener.parser = parser;
     parser.parseUnit(token);

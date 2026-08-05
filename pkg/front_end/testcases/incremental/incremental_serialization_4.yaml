@@ -58,7 +58,7 @@ worlds:
     expectedLibraryCount: 3
     incrementalSerializationDoesWork: true
   - entry: main.dart
-    expectInitializeFromDill: false # .packages changed
+    expectInitializeFromDill: false # package_config changed.
     sources:
       main.dart: |
         import "package:package1/p1.dart";

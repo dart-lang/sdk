@@ -9,7 +9,7 @@ class Cloneable<T extends core::Object? = dynamic> extends core::Object {
 class Pair<T extends self::Cloneable<self::Pair::T> = self::Cloneable<dynamic>, U extends self::Cloneable<self::Pair::U> = self::Cloneable<dynamic>> extends core::Object {
   covariant-by-class field self::Pair::T? t;
   covariant-by-class field self::Pair::U? u;
-  constructor •(self::Pair::T? t, self::Pair::U? u) → self::Pair<self::Pair::T, self::Pair::U>
+  constructor •(initializing-formal self::Pair::T? t, initializing-formal self::Pair::U? u) → self::Pair<self::Pair::T, self::Pair::U>
     ;
   constructor _() → self::Pair<self::Pair::T, self::Pair::U>
     ;

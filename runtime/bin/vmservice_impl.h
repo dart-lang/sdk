@@ -17,7 +17,7 @@ class VmService {
 #if defined(PRODUCT)
   static bool Setup(const char* server_ip,
                     intptr_t server_port,
-                    bool dev_mode_server,
+                    bool origin_check_disabled,
                     bool auth_codes_disabled,
                     const char* write_service_info_filename,
                     bool trace_loading,
@@ -47,7 +47,7 @@ class VmService {
   static bool Setup(
       const char* server_ip,
       intptr_t server_port,
-      bool dev_mode_server,
+      bool origin_check_disabled,
       bool auth_codes_disabled,
       const char* write_service_info_filename,
       bool trace_loading,

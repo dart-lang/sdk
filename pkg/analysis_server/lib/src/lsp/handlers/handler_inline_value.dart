@@ -24,7 +24,7 @@ typedef StaticOptions =
 class InlineValueHandler
     extends
         SharedMessageHandler<InlineValueParams, TextDocumentInlineValueResult> {
-  InlineValueHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_inlineValue;
@@ -104,7 +104,7 @@ class InlineValueHandler
 
 class InlineValueRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  InlineValueRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>
@@ -143,7 +143,7 @@ class _InlineValueCollector {
   /// locations provided by the client.
   final LineInfo lineInfo;
 
-  _InlineValueCollector(
+  new(
     this.lineInfo, {
     required this.rangeAlreadyExecuted,
     required this.rangeIncludingCurrentLine,
@@ -270,7 +270,7 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   /// avoid showing inline values in other branches.
   final int currentExecutionOffset;
 
-  _InlineValueVisitor(
+  new(
     this.clientConfiguration,
     this.collector,
     this.rootNode,

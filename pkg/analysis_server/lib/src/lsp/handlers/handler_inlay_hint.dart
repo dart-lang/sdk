@@ -14,7 +14,7 @@ typedef StaticOptions =
 
 class InlayHintHandler
     extends LspMessageHandler<InlayHintParams, List<InlayHint>> {
-  InlayHintHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_inlayHint;
 
@@ -67,7 +67,7 @@ class InlayHintHandler
 
 class InlayHintRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  InlayHintRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => InlayHintRegistrationOptions(

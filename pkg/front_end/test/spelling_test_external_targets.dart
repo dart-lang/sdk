@@ -26,7 +26,7 @@ Future<SpellContext> createContext(
 }
 
 class SpellContextExternal extends SpellContext {
-  SpellContextExternal({required bool interactive, required bool onlyInGit})
+  new({required bool interactive, required bool onlyInGit})
     : super(interactive: interactive, onlyInGit: onlyInGit);
 
   @override

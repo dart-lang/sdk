@@ -45,19 +45,17 @@ import "dart:core" as core;
 
 static method foo() → void {
   core::List<dynamic> repoPaths = <dynamic>[let final core::String #t1 = "a" in invalid-expression "This requires the experimental 'records' language feature to be enabled."];
-  {
+  for (final dynamic #t2 in invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:14: Error: Undefined name 'user'.
+  for (var (:user, :repo) in repoPaths)  {
+             ^^^^") {
     invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:13: Error: This couldn't be parsed.
   for (var (:user, :repo) in repoPaths)  {
             ^";
-    for (final dynamic #t2 in invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:9:14: Error: Undefined name 'user'.
-  for (var (:user, :repo) in repoPaths)  {
-             ^^^^") {
-      core::print(invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:10:11: Error: Undefined name 'user'.
+    core::print(invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:10:11: Error: Undefined name 'user'.
     print(user);
           ^^^^");
-      core::print(invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:11:11: Error: Undefined name 'repo'.
+    core::print(invalid-expression "pkg/front_end/testcases/regress/use_pattern_in_for_loop_when_language_version_is_too_low.dart:11:11: Error: Undefined name 'repo'.
     print(repo);
           ^^^^");
-    }
   }
 }

@@ -8,6 +8,7 @@ import "package:expect/expect.dart";
 
 const printString = "print";
 const var1 = Simple(printString);
+
 class Simple {
   final String name;
 
@@ -17,6 +18,7 @@ class Simple {
 }
 
 const var2 = A();
+
 class A {
   const A() {
     return;

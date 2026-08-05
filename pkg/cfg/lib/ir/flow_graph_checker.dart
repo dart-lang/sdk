@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/types.dart';
@@ -57,7 +58,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
         constantsAllowed = false;
         parametersAllowed = true;
       }
-      if (parametersAllowed && instr is! Parameter && instr is! ParallelMove) {
+      if (parametersAllowed && instr is! Parameter) {
         parametersAllowed = false;
       }
       if (phisAllowed && instr is! Phi) {
@@ -115,7 +116,8 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
     }
   }
 
-  void verifyTypeArguments(Definition typeArguments, Definition user) {
+  /// Verify type arguments input of the [user].
+  void verifyTypeArgumentsInput(Definition typeArguments, Instruction user) {
     switch (typeArguments) {
       case TypeArguments():
       case Constant(value: ConstantValue(constant: TypeArgumentsConstant())):
@@ -126,9 +128,45 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
     }
   }
 
+  // Verify uses of type arguments definition.
+  void verifyUsesOfTypeArguments(Definition def) {
+    for (final use in def.inputUses) {
+      final user = use.getInstruction(graph);
+      switch (user) {
+        case CallInstruction():
+          if (!user.hasTypeArguments) {
+            // Exception: direct call to _instantiateClosure from dart:_internal
+            // may take type arguments as a regular argument.
+            final target = (user as DirectCall).target;
+            assert(target.member.name.text == '_instantiateClosure');
+            assert(
+              target.member.enclosingLibrary.importUri.toString() ==
+                  'dart:_internal',
+            );
+          } else {
+            assert(user.typeArguments == def);
+          }
+        case AllocateObject():
+          assert(user.typeArguments == def);
+        case AllocateListLiteral():
+          assert(user.typeArguments == def);
+        case AllocateMapLiteral():
+          assert(user.typeArguments == def);
+        case InstantiateClosure():
+          assert(user.typeArguments == def);
+        case EnterSuspendableFunction():
+          assert(user.typeArguments == def);
+        case Suspend(op: .awaitWithTypeCheck):
+          assert(user.typeArguments == def);
+        default:
+          throw 'Unexpected user ${IrToText.instruction(user)} of type arguments ${IrToText.instruction(def)}';
+      }
+    }
+  }
+
   void verifyCall(CallInstruction instr) {
     if (instr.hasTypeArguments) {
-      verifyTypeArguments(instr.typeArguments!, instr);
+      verifyTypeArgumentsInput(instr.typeArguments!, instr);
     }
   }
 
@@ -246,10 +284,19 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitUnreachable(Unreachable instr) {
+    assert(instr.next == null);
+    assert(instr.block!.successors.isEmpty);
+  }
+
+  @override
   void visitConstant(Constant instr) {
     assert(constantsAllowed);
     assert(instr.block is EntryBlock);
     assert(graph.getConstant(instr.value) == instr);
+    if (instr.value.isTypeArgumentsConstant) {
+      verifyUsesOfTypeArguments(instr);
+    }
   }
 
   @override
@@ -318,11 +365,15 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitTypeParameters(TypeParameters instr) {
     assert(instr.block is EntryBlock);
     // TypeParameters can only be used in TypeCast, TypeTest,
-    // TypeArguments and TypeLiteral.
+    // TypeArguments, TypeLiteral and StoreInstanceField for capturing.
     for (final use in instr.inputUses) {
       final user = use.getInstruction(graph);
       switch (user) {
         case TypeCast() || TypeTest() || TypeArguments() || TypeLiteral():
+        case StoreInstanceField(:var field)
+            when field.isSynthetic &&
+                (field.asSynthetic is ClosureField ||
+                    field.asSynthetic is ContextField):
           break;
         default:
           throw 'Unexpected user ${IrToText.instruction(user)} of TypeParameters';
@@ -332,7 +383,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitTypeCast(TypeCast instr) {
-    assert(instr.testedType is! TopType);
+    assert(instr.testedType is! TopType || !instr.isChecked);
     assert(instr.testedType is! ExtendedType);
   }
 
@@ -344,23 +395,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitTypeArguments(TypeArguments instr) {
-    // TypeArguments can only be used as the first input in a call or AllocateObject.
-    for (final use in instr.inputUses) {
-      final user = use.getInstruction(graph);
-      switch (user) {
-        case CallInstruction():
-          assert(user.hasTypeArguments);
-          assert(user.typeArguments == instr);
-        case AllocateObject():
-          assert(user.typeArguments == instr);
-        case AllocateListLiteral():
-          assert(user.typeArguments == instr);
-        case AllocateMapLiteral():
-          assert(user.typeArguments == instr);
-        default:
-          throw 'Unexpected user ${IrToText.instruction(user)} of TypeArguments';
-      }
-    }
+    verifyUsesOfTypeArguments(instr);
   }
 
   @override
@@ -369,7 +404,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   @override
   void visitAllocateObject(AllocateObject instr) {
     if (instr.hasTypeArguments) {
-      verifyTypeArguments(instr.typeArguments!, instr);
+      verifyTypeArgumentsInput(instr.typeArguments!, instr);
     }
   }
 
@@ -377,17 +412,56 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitAllocateClosure(AllocateClosure instr) {}
 
   @override
+  void visitAllocateContext(AllocateContext instr) {}
+
+  @override
   void visitAllocateListLiteral(AllocateListLiteral instr) {
-    verifyTypeArguments(instr.typeArguments, instr);
+    verifyTypeArgumentsInput(instr.typeArguments, instr);
   }
 
   @override
   void visitAllocateMapLiteral(AllocateMapLiteral instr) {
-    verifyTypeArguments(instr.typeArguments, instr);
+    verifyTypeArgumentsInput(instr.typeArguments, instr);
   }
 
   @override
+  void visitAllocateRecordLiteral(AllocateRecordLiteral instr) {}
+
+  @override
   void visitStringInterpolation(StringInterpolation instr) {}
+
+  @override
+  void visitInstantiateClosure(InstantiateClosure instr) {
+    verifyTypeArgumentsInput(instr.typeArguments, instr);
+  }
+
+  @override
+  void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {
+    assert(graph.function.isSuspendable);
+    verifyTypeArgumentsInput(instr.typeArguments, instr);
+  }
+
+  @override
+  void visitSuspend(Suspend instr) {
+    assert(graph.function.isSuspendable);
+    final asyncMarker = graph.function.asyncMarker;
+    switch (instr.op) {
+      case .await || .awaitWithTypeCheck:
+        assert(asyncMarker == .Async || asyncMarker == .AsyncStar);
+        break;
+      case .asyncYield || .asyncYieldStar:
+        assert(asyncMarker == .AsyncStar);
+        break;
+      case .syncYield || .syncYieldStar:
+        assert(asyncMarker == .SyncStar);
+        break;
+    }
+    if (instr.op == .awaitWithTypeCheck) {
+      verifyTypeArgumentsInput(instr.typeArguments!, instr);
+    } else {
+      assert(instr.typeArguments == null);
+    }
+  }
 
   @override
   void visitComparison(Comparison instr) {
@@ -432,6 +506,9 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitSetListElement(SetListElement instr) {}
+
+  @override
+  void visitAllocateRecord(AllocateRecord instr) {}
 
   @override
   void visitBoxInt(BoxInt instr) {

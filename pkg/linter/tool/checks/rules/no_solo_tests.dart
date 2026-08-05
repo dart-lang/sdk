@@ -14,7 +14,7 @@ import 'package:linter/src/diagnostic.dart' as diag;
 class NoSoloTests extends AnalysisRule {
   static const DiagnosticCode code = diag.noSoloTests;
 
-  NoSoloTests()
+  new()
     : super(name: 'no_solo_tests', description: "Don't commit soloed tests.");
 
   @override
@@ -35,7 +35,7 @@ class NoSoloTests extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

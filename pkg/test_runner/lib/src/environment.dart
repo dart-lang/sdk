@@ -32,7 +32,8 @@ final _variables = {
   "simulator": _Variable.bool((c) => c.isSimulator),
   "spec_parser": _Variable.bool((c) => c.compiler == Compiler.specParser),
   "system": _Variable(_systemName, _systemNames),
-  "use_sdk": _Variable.bool((c) => c.useSdk)
+  "use_sdk": _Variable.bool((c) => c.useSdk),
+  "dart2wasm_standalone": _Variable.bool((c) => c.isDart2wasmStandalone),
 };
 
 /// Gets the name of the runtime as it appears in status files.
@@ -87,8 +88,9 @@ class ConfigurationEnvironment implements Environment {
 
     if (!variable.allowedValues.contains(value)) {
       errors.add(
-          'Variable "$name" cannot have value "$value". Allowed values are:\n'
-          '${variable.allowedValues.join(', ')}.');
+        'Variable "$name" cannot have value "$value". Allowed values are:\n'
+        '${variable.allowedValues.join(', ')}.',
+      );
     }
   }
 
@@ -119,12 +121,12 @@ class _Variable {
   final List<String> allowedValues;
 
   _Variable(this._lookUp, Iterable<String> allowed)
-      : allowedValues = allowed.toList();
+    : allowedValues = allowed.toList();
 
   /// Creates a Boolean variable with allowed values "true" and "false".
   _Variable.bool(_BoolLookUpFunction lookUp)
-      : _lookUp = ((configuration) => lookUp(configuration).toString()),
-        allowedValues = const ["true", "false"];
+    : _lookUp = ((configuration) => lookUp(configuration).toString()),
+      allowedValues = const ["true", "false"];
 
   String lookUp(TestConfiguration configuration) => _lookUp(configuration);
 }

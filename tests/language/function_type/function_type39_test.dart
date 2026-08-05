@@ -13,6 +13,7 @@
 
 import 'dart:core';
 import 'dart:core' as core;
+
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart' as v;
 
@@ -27,14 +28,16 @@ typedef F1<T> = List<Function> Function([List<Function>]);
 typedef F2<T> = List<T> Function(Function);
 typedef F3<T> = void Function(int y, [int x]);
 typedef F4<T> = Function<A>(List<A> x);
-typedef F5<T> =
-    int Function(int x, [Function]) Function<B extends core.int>(int x);
+typedef F5<T> = int Function(int x, [Function]) Function<B extends core.int>(
+  int x,
+);
 typedef F6<T> =
     int Function(int y, {core.List<core.int> x}) Function<B extends core.int>(
       int x,
     );
-typedef F7<T> =
-    Function Function([Function x]) Function<B extends core.int>(int x);
+typedef F7<T> = Function Function([Function x]) Function<B extends core.int>(
+  int x,
+);
 typedef F8<T> =
     Function Function(core.List<core.int>) Function<B extends core.int>(int x);
 typedef F9<T> =
@@ -51,22 +54,28 @@ typedef F13<T> =
     core.List<core.int> Function(int, [List<T>]) Function<B extends core.int>(
       int x,
     );
-typedef F14<T> =
-    List<T> Function({Function x}) Function<B extends core.int>(int x);
-typedef F15<T> =
-    List<T> Function(List<T> x) Function<B extends core.int>(int x);
-typedef F16<T> =
-    Function(int, [Function x]) Function<B extends core.int>(int x);
-typedef F17<T> =
-    Function([core.List<core.int>]) Function<B extends core.int>(int x);
-typedef F18<T> =
-    void Function(int x, [int]) Function<B extends core.int>(int x);
+typedef F14<T> = List<T> Function({Function x}) Function<B extends core.int>(
+  int x,
+);
+typedef F15<T> = List<T> Function(List<T> x) Function<B extends core.int>(
+  int x,
+);
+typedef F16<T> = Function(int, [Function x]) Function<B extends core.int>(
+  int x,
+);
+typedef F17<T> = Function([core.List<core.int>]) Function<B extends core.int>(
+  int x,
+);
+typedef F18<T> = void Function(int x, [int]) Function<B extends core.int>(
+  int x,
+);
 typedef F19<T> =
     void Function(int y, {List<Function> x}) Function<B extends core.int>(
       int x,
     );
-typedef F20<T> =
-    int Function<A>(Function x) Function<B extends core.int>(int x);
+typedef F20<T> = int Function<A>(Function x) Function<B extends core.int>(
+  int x,
+);
 typedef F21<T> =
     core.List<core.int> Function<A>(List<Function> x)
     Function<B extends core.int>(int x);

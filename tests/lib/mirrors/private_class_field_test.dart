@@ -6,6 +6,7 @@
 // another library.
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 import 'private_class_field_other.dart';

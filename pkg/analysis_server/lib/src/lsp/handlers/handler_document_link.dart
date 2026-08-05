@@ -20,7 +20,7 @@ import 'package:analyzer_plugin/src/utilities/navigation/document_links.dart';
 class DocumentLinkHandler
     extends LspMessageHandler<DocumentLinkParams, List<lsp.DocumentLink>?>
     with LspPluginRequestHandlerMixin {
-  DocumentLinkHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_documentLink;
@@ -135,7 +135,7 @@ class DocumentLinkHandler
 
 class DocumentLinkRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<DocumentLinkOptions> {
-  DocumentLinkRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => DocumentLinkRegistrationOptions(

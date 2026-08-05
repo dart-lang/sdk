@@ -1319,6 +1319,109 @@ void testIgnoreWhenCompleteError() {
   Future.delayed(Duration.zero, asyncEnd);
 }
 
+void testFuturePause() {
+  const Duration low = Duration(milliseconds: 10);
+  const Duration mid = Duration(milliseconds: 20);
+  const Duration hi = Duration(milliseconds: 30);
+  // No argument means Duration.zero.
+
+  asyncStart();
+  var timers = 0;
+  void expectTimer(int n) {
+    timers++;
+    Expect.equals(n, timers);
+  }
+
+  Timer(hi, () {
+    expectTimer(10);
+  });
+  Timer(mid, () {
+    expectTimer(7);
+  });
+  Timer(low, () {
+    expectTimer(4);
+  });
+  Timer(Duration.zero, () {
+    expectTimer(1);
+  });
+  Future.pause(hi).then((_) {
+    expectTimer(11);
+  });
+  Future.pause(mid).then((_) {
+    expectTimer(8);
+  });
+  Future.pause(low).then((_) {
+    expectTimer(5);
+  });
+  Future.pause().then((_) {
+    expectTimer(2);
+  });
+  Timer(hi, () {
+    expectTimer(12);
+    asyncEnd();
+  });
+  Timer(mid, () {
+    expectTimer(9);
+  });
+  Timer(low, () {
+    expectTimer(6);
+  });
+  Timer(Duration.zero, () {
+    expectTimer(3);
+  });
+}
+
+void testFuturePauseNoArg() {
+  asyncStart();
+  // No argument means Duration.zero.
+  var microtasks = 0;
+  var timers = 0;
+  void expectMicrotask(int expectedMicrotasks, int expectedTimers) {
+    microtasks++;
+    Expect.equals(expectedMicrotasks, microtasks);
+    Expect.equals(expectedTimers, timers);
+  }
+
+  void expectTimer(int expectedTimers) {
+    timers++;
+    microtasks = 0;
+    Expect.equals(expectedTimers, timers);
+  }
+
+  scheduleMicrotask(() {
+    expectMicrotask(1, 0);
+  });
+  Future.microtask(() {
+    expectMicrotask(2, 0);
+  });
+  Timer(Duration.zero, () {
+    expectTimer(1);
+    scheduleMicrotask(() {
+      expectMicrotask(1, 1);
+    });
+  });
+  Timer(const Duration(milliseconds: 10), () {
+    expectTimer(4);
+    asyncEnd();
+  });
+  // Behaves as timer.zero.
+  Future.pause().then((_) {
+    expectTimer(2);
+    scheduleMicrotask(() {
+      expectMicrotask(1, 2);
+    });
+  });
+  scheduleMicrotask(() {
+    expectMicrotask(3, 0);
+  });
+  Future.microtask(() {
+    expectMicrotask(4, 0);
+  });
+  Timer(Duration.zero, () {
+    expectTimer(3);
+  });
+}
+
 void main() {
   asyncStart();
 
@@ -1372,6 +1475,9 @@ void main() {
   testChainedFutureValue();
   testChainedFutureValueDelay();
   testChainedFutureError();
+
+  testFuturePause();
+  testFuturePauseNoArg();
 
   testSyncFuture_i13368();
 

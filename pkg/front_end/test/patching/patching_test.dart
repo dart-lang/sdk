@@ -40,7 +40,7 @@ Future<void> main(List<String> args) async {
 }
 
 class TestConfigWithLanguageVersion extends CfeTestConfig {
-  TestConfigWithLanguageVersion(
+  new(
     String marker,
     String name, {
     Uri? librariesSpecificationUri,
@@ -62,7 +62,7 @@ class TestConfigWithLanguageVersion extends CfeTestConfig {
 }
 
 class PatchingDataComputer extends CfeDataComputer<Features> {
-  const PatchingDataComputer();
+  const new();
 
   @override
   void computeMemberData(
@@ -131,7 +131,7 @@ class Tags {
 }
 
 class PatchingDataExtractor extends CfeDataExtractor<Features> {
-  PatchingDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<Features>> actualMap,
   ) : super(compilerResult, actualMap);

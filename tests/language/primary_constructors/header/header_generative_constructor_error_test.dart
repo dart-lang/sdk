@@ -5,59 +5,58 @@
 // A class that has a declaring header constructor cannot have any other
 // non-redirecting generative constructors.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C1(var int x) {
   C1.named(this.x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 8]
+  // [analyzer] COMPILE_TIME_ERROR.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY
+  // [cfe] Classes with primary constructors can't have non-redirecting generative constructors.
 }
 
 class C2(final int x) {
   C2.named(this.x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 8]
+  // [analyzer] COMPILE_TIME_ERROR.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY
+  // [cfe] Classes with primary constructors can't have non-redirecting generative constructors.
 }
 
 class C3(int x) {
   C3.named(int x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 8]
+  // [analyzer] COMPILE_TIME_ERROR.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY
+  // [cfe] Classes with primary constructors can't have non-redirecting generative constructors.
 }
+
 class C4() {
   C4.named(int x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 8]
+  // [analyzer] COMPILE_TIME_ERROR.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY
+  // [cfe] Classes with primary constructors can't have non-redirecting generative constructors.
 }
 
 class C5.named(var int x) {
   C5(this.x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 2]
+  // [analyzer] COMPILE_TIME_ERROR.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY
+  // [cfe] Classes with primary constructors can't have non-redirecting generative constructors.
 }
 
 class C6.named(final int x) {
   C6(this.x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 2]
+  // [analyzer] COMPILE_TIME_ERROR.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY
+  // [cfe] Classes with primary constructors can't have non-redirecting generative constructors.
 }
 
 class C7.named(int x) {
   C7(int x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 2]
+  // [analyzer] COMPILE_TIME_ERROR.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY
+  // [cfe] Classes with primary constructors can't have non-redirecting generative constructors.
 }
 
 class C8.named() {
   C8(int x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 2]
+  // [analyzer] COMPILE_TIME_ERROR.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY
+  // [cfe] Classes with primary constructors can't have non-redirecting generative constructors.
 }

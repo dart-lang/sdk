@@ -79,7 +79,7 @@ class StringBufferWrapper {
   int currentNewlines = 1;
   String prev = "";
 
-  StringBufferWrapper(this.createWhy, this.parent);
+  new(this.createWhy, this.parent);
 
   void addNewline() {
     if (parent.singleLineStringDepth > 0) return;
@@ -152,7 +152,7 @@ class ProgramCreator implements Visitor {
       currentExpressionStart != null &&
       (sb.length - currentExpressionStart!) >= 20;
 
-  ProgramCreator({required bool createWhy}) {
+  new({required bool createWhy}) {
     sb = new StringBufferWrapper(createWhy, this);
   }
 
@@ -846,7 +846,7 @@ class Token {
   final int offset;
   Token? next;
 
-  Token(this.value, this.offset);
+  new(this.value, this.offset);
 
   @override
   String toString() => "$value";
@@ -884,7 +884,7 @@ class Empty extends Node {
 class AnyCharNode extends Node {
   final Token token;
 
-  AnyCharNode(this.token);
+  new(this.token);
 
   @override
   String toString() => "$token";
@@ -901,7 +901,7 @@ class AnyCharNode extends Node {
 class EndOfFileNode extends Node {
   final Token token;
 
-  EndOfFileNode(this.token);
+  new(this.token);
 
   @override
   String toString() => "$token";
@@ -918,7 +918,7 @@ class EndOfFileNode extends Node {
 class Leaf extends Node {
   final Token token;
 
-  Leaf(this.token);
+  new(this.token);
 
   @override
   String toString() => "$token";
@@ -935,7 +935,7 @@ class Leaf extends Node {
 class Sequence extends Node {
   final List<Node> nodes;
 
-  Sequence(this.nodes);
+  new(this.nodes);
 
   @override
   String toString() => "$nodes";
@@ -1010,7 +1010,7 @@ class RangeNode extends Node {
   final Literal a;
   final Literal b;
 
-  RangeNode(this.a, this.b);
+  new(this.a, this.b);
 
   @override
   String toString() => "$a .. $b";
@@ -1030,7 +1030,7 @@ class RangeNode extends Node {
 class Optional extends Node {
   final Node a;
 
-  Optional(this.a);
+  new(this.a);
 
   @override
   String toString() => "($a)?";
@@ -1049,7 +1049,7 @@ class Optional extends Node {
 class OneOrMore extends Node {
   final Node a;
 
-  OneOrMore(this.a);
+  new(this.a);
 
   @override
   String toString() => "($a)+";
@@ -1068,7 +1068,7 @@ class OneOrMore extends Node {
 class ZeroOrMore extends Node {
   final Node a;
 
-  ZeroOrMore(this.a);
+  new(this.a);
 
   @override
   String toString() => "($a)*";
@@ -1087,7 +1087,7 @@ class ZeroOrMore extends Node {
 class TildeNode extends Node {
   final Node a;
 
-  TildeNode(this.a);
+  new(this.a);
 
   @override
   String toString() => "~($a)";
@@ -1106,7 +1106,7 @@ class TildeNode extends Node {
 class Literal extends Node {
   String content;
 
-  Literal(this.content);
+  new(this.content);
 
   @override
   String toString() => "'${content}'";

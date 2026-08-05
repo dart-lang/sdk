@@ -15,3 +15,11 @@ secondary_source = "//build/secondary/"
 
 # Override the default script executable to always be python3.
 script_executable = "python3"
+
+default_args = {
+  # Overwrite default args declared in the Fuchsia sdk
+  fuchsia_sdk_readelf_exec = "//buildtools/linux-x64/clang/bin/llvm-readelf"
+
+  # Dart uses of a copy of icudata embedded into the executable
+  icu_copy_icudata_to_root_build_dir = false
+}

@@ -59,7 +59,7 @@ typedef DartTypePredicate = bool Function(DartType type);
 abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  LeakDetectorProcessors(this.rule);
+  new(this.rule);
 
   @protected
   Map<DartTypePredicate, String> get predicates;
@@ -181,7 +181,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
   /// valid use.
   var containsValidUse = false;
 
-  _ValidUseVisitor(
+  new(
     this.variable,
     this.variableElement,
     this.predicates, {

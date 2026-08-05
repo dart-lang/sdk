@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveLate extends ResolvedCorrectionProducer {
-  RemoveLate({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -88,5 +88,5 @@ class _LateKeywordLocation {
   final Token lateKeyword;
   final Token nextToken;
 
-  _LateKeywordLocation({required this.lateKeyword, required this.nextToken});
+  new({required this.lateKeyword, required this.nextToken});
 }

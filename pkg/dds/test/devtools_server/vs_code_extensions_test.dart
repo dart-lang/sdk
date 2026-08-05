@@ -16,8 +16,12 @@ void main() {
   late String emptyDartAppRoot;
   late File extensionConfig;
 
+  setUpAll(() async {
+    await testController.runPubGet();
+  });
+
   setUp(() async {
-    await testController.setUp(runPubGet: true);
+    await testController.setUp(withApp: false);
     emptyDartAppRoot = testController.emptyDartAppRoot.toFilePath();
     extensionConfig = File(path.join(
         testController.packageWithExtensionsRoot.toFilePath(),

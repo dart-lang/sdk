@@ -19,7 +19,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 /// to the protocol over stdin/stdout).
 class ConnectToDtdHandler
     extends SharedMessageHandler<ConnectToDtdParams, Null> {
-  ConnectToDtdHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.connectToDtd;

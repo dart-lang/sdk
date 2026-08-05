@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/kernel.dart';
+
 import 'type_parser.dart';
+
 import 'package:test/test.dart';
 
 final List<TestCase> testCases = <TestCase>[
@@ -78,14 +80,11 @@ class TestCase {
   Map<String, String?>?
   expectedSubstitution; // Null if unification should fail.
 
-  TestCase.success(
-    this.type1,
-    this.type2,
-    Map<String, String?> expectedSubstitution,
-  ) : this.expectedSubstitution = expectedSubstitution,
+  new success(this.type1, this.type2, Map<String, String?> expectedSubstitution)
+    : this.expectedSubstitution = expectedSubstitution,
       this.quantifiedVariables = expectedSubstitution.keys;
 
-  TestCase.fail(this.type1, this.type2, this.quantifiedVariables);
+  new fail(this.type1, this.type2, this.quantifiedVariables);
 
   bool get shouldSucceed => expectedSubstitution != null;
 

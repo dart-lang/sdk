@@ -33,7 +33,7 @@ class TestParser extends Parser {
   final bool trace;
   bool _inhibitPrinting = false;
 
-  TestParser(
+  new(
     Listener listener,
     this.trace, {
     required ExperimentalFeatures experimentalFeatures,
@@ -206,7 +206,6 @@ class TestParser extends Parser {
     Token beginToken,
     Token modifierStart,
     Token keyword,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -217,7 +216,6 @@ class TestParser extends Parser {
       '$beginToken, '
       '$modifierStart, '
       '$keyword, '
-      '$macroToken, '
       '$sealedToken, '
       '$baseToken, '
       '$interfaceToken, '
@@ -228,7 +226,6 @@ class TestParser extends Parser {
       beginToken,
       modifierStart,
       keyword,
-      macroToken,
       sealedToken,
       baseToken,
       interfaceToken,
@@ -595,7 +592,7 @@ class TestParser extends Parser {
 
   @override
   Token parseRecordType(
-    final Token start,
+    Token start,
     Token token,
     bool isQuestionMarkPartOfType,
   ) {
@@ -851,7 +848,7 @@ class TestParser extends Parser {
 
   @override
   Token? recoverySmallLookAheadSkipTokens(
-    final Token token,
+    Token token,
     List<TokenType> lookFor,
   ) {
     doPrint(
@@ -881,7 +878,6 @@ class TestParser extends Parser {
   Token parseClassOrNamedMixinApplication(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -894,7 +890,6 @@ class TestParser extends Parser {
       'parseClassOrNamedMixinApplication('
       '$beginToken, '
       '$abstractToken, '
-      '$macroToken, '
       '$sealedToken, '
       '$baseToken, '
       '$interfaceToken, '
@@ -907,7 +902,6 @@ class TestParser extends Parser {
     var result = super.parseClassOrNamedMixinApplication(
       beginToken,
       abstractToken,
-      macroToken,
       sealedToken,
       baseToken,
       interfaceToken,
@@ -1108,14 +1102,19 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixinHeaderOpt(Token token, Token mixinKeyword) {
+  Token parseMixinHeaderOpt(
+    Token token,
+    Token? constKeyword,
+    Token mixinKeyword,
+  ) {
     doPrint(
       'parseMixinHeaderOpt('
       '$token, '
+      '$constKeyword, '
       '$mixinKeyword)',
     );
     indent++;
-    var result = super.parseMixinHeaderOpt(token, mixinKeyword);
+    var result = super.parseMixinHeaderOpt(token, constKeyword, mixinKeyword);
     indent--;
     return result;
   }
@@ -1217,16 +1216,23 @@ class TestParser extends Parser {
   Token parsePrimaryConstructorOpt(
     DeclarationKind kind,
     Token token,
-    Token? constKeyword,
-  ) {
+    Token? constKeyword, {
+    bool allowExtensionTypeRepresentation = true,
+  }) {
     doPrint(
       'parsePrimaryConstructorOpt('
       '$kind, '
       '$token, '
-      '$constKeyword)',
+      '$constKeyword, '
+      'allowExtensionTypeRepresentation: $allowExtensionTypeRepresentation)',
     );
     indent++;
-    var result = super.parsePrimaryConstructorOpt(kind, token, constKeyword);
+    var result = super.parsePrimaryConstructorOpt(
+      kind,
+      token,
+      constKeyword,
+      allowExtensionTypeRepresentation: allowExtensionTypeRepresentation,
+    );
     indent--;
     return result;
   }
@@ -1585,7 +1591,7 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseSuperInitializerExpression(final Token start) {
+  Token parseSuperInitializerExpression(Token start) {
     doPrint(
       'parseSuperInitializerExpression('
       '$start)',
@@ -1942,6 +1948,7 @@ class TestParser extends Parser {
     Token token,
     DeclarationKind kind,
     Token beforeStart,
+    Token? augmentToken,
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
@@ -1952,6 +1959,7 @@ class TestParser extends Parser {
       '$token, '
       '$kind, '
       '$beforeStart, '
+      '$augmentToken, '
       '$externalToken, '
       '$staticOrCovariant, '
       '$varFinalOrConst, '
@@ -1962,6 +1970,7 @@ class TestParser extends Parser {
       token,
       kind,
       beforeStart,
+      augmentToken,
       externalToken,
       staticOrCovariant,
       varFinalOrConst,
@@ -2515,19 +2524,6 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseAugmentSuperExpression(Token token, IdentifierContext context) {
-    doPrint(
-      'parseAugmentSuperExpression('
-      '$token, '
-      '$context)',
-    );
-    indent++;
-    var result = super.parseAugmentSuperExpression(token, context);
-    indent--;
-    return result;
-  }
-
-  @override
   Token parseLiteralListSuffix(Token token, Token? constKeyword) {
     doPrint(
       'parseLiteralListSuffix('
@@ -2566,10 +2562,7 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseLiteralListSetMapOrFunction(
-    final Token start,
-    Token? constKeyword,
-  ) {
+  Token parseLiteralListSetMapOrFunction(Token start, Token? constKeyword) {
     doPrint(
       'parseLiteralListSetMapOrFunction('
       '$start, '
@@ -2957,7 +2950,7 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExpressionStatementOrConstDeclaration(final Token start) {
+  Token parseExpressionStatementOrConstDeclaration(Token start) {
     doPrint(
       'parseExpressionStatementOrConstDeclaration('
       '$start)',
@@ -2970,7 +2963,7 @@ class TestParser extends Parser {
 
   @override
   Token parseExpressionStatementOrDeclaration(
-    final Token start, [
+    Token start, [
     ForPartsContext? forPartsContext,
   ]) {
     doPrint(

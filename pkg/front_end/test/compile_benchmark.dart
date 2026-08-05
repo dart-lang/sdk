@@ -253,7 +253,7 @@ class IntPair {
   final int key;
   final int value;
 
-  IntPair(this.key, this.value);
+  new(this.key, this.value);
 
   @override
   String toString() {
@@ -429,12 +429,12 @@ class Instrumented {
   final Uri dill;
   final List<Procedure> procedures;
 
-  Instrumented(this.dill, this.procedures);
+  new(this.dill, this.procedures);
 }
 
 class RegisterCallTransformer extends RecursiveVisitor {
   final Procedure registerCallProcedure;
-  RegisterCallTransformer(this.registerCallProcedure);
+  new(this.registerCallProcedure);
   List<Procedure> procedures = [];
 
   @override
@@ -468,10 +468,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
   final Procedure registerCallStartProcedure;
   final Procedure registerCallEndProcedure;
 
-  RegisterTimeTransformer(
-    this.registerCallStartProcedure,
-    this.registerCallEndProcedure,
-  );
+  new(this.registerCallStartProcedure, this.registerCallEndProcedure);
 
   List<Procedure> procedures = [];
 

@@ -5,6 +5,7 @@
 // Dart test for function type alias with an imported result type that happens
 // to have the same name as a type parameter.
 import "package:expect/expect.dart";
+
 import "../library11.dart" as lib11;
 
 typedef lib11.Library111<Library111> F<Library111>(

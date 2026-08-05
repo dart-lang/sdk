@@ -22,7 +22,7 @@ static method cfeAwait<XF extends self::F /* erasure=asy::Future<core::int> */>(
   core::int? v3 = v1;
   v1 = v3{core::int};
 }
-static extension-type-member method F|constructor#(wildcard asy::Future<core::int> _#wc0#formal) → self::F /* erasure=asy::Future<core::int> */ {
+static extension-type-member method F|constructor#(wildcard initializing-formal asy::Future<core::int> _#wc0#formal) → self::F /* erasure=asy::Future<core::int> */ {
   lowered final self::F /* erasure=asy::Future<core::int> */ #this = _#wc0#formal;
   return #this;
 }

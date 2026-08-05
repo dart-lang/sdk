@@ -16,5 +16,16 @@ extension type G<T>(T o) {}
 
 extension type G2<T extends Object>(T o) implements Object {}
 
-test<T1, T2 extends A, T3 extends Object>(Object o, A a, B b, C c, D d, D2 d2,
-    E e, F f, G<T1> g1, G<T2> g2, G2<T3> g3) {}
+test<T1, T2 extends A, T3 extends Object>(
+  Object o,
+  A a,
+  B b,
+  C c,
+  D d,
+  D2 d2,
+  E e,
+  F f,
+  G<T1> g1,
+  G<T2> g2,
+  G2<T3> g3,
+) {}

@@ -24,7 +24,7 @@ import "dart:core" as core;
 class C extends core::Object {
   field core::String _foo;
   field core::String _bar;
-  constructor •({required core::String _foo, required core::String _bar}) → self::C
+  constructor •({required initializing-formal core::String _foo, required initializing-formal core::String _bar}) → self::C
     ;
 }
 static method main() → dynamic

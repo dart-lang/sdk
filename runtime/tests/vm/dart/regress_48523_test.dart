@@ -9,7 +9,7 @@ import 'isolates/reload_utils.dart';
 main() async {
   if (!currentVmSupportsReload) return;
 
-  await withTempDir((String tempDir) async {
+  await withTempDir("regress-48523", (String tempDir) async {
     final dills = await generateDills(tempDir, dartTestFile());
     final reloader = await launchOn(dills[0]);
 

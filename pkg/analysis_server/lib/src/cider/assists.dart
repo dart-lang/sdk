@@ -15,7 +15,7 @@ class CiderAssistsComputer {
   final PerformanceLog _logger;
   final FileResolver _fileResolver;
 
-  CiderAssistsComputer(this._logger, this._fileResolver);
+  new(this._logger, this._fileResolver);
 
   /// Compute quick assists on the line and character position.
   Future<List<Assist>> compute(

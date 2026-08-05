@@ -38,28 +38,18 @@ class ExhaustivenessDataForTesting {
 }
 
 // Coverage-ignore(suite): Not run.
-class ExhaustivenessResult {
-  final StaticType scrutineeType;
-  final List<Space> caseSpaces;
-  final List<int> caseOffsets;
-  final Set<int> unreachableCases;
-  final NonExhaustiveness? nonExhaustiveness;
+class ExhaustivenessResult(
+  final StaticType scrutineeType,
+  final List<Space> caseSpaces,
+  final List<int> caseOffsets,
+  final Set<int> unreachableCases,
+  final NonExhaustiveness? nonExhaustiveness,
+);
 
-  ExhaustivenessResult(
-    this.scrutineeType,
-    this.caseSpaces,
-    this.caseOffsets,
-    this.unreachableCases,
-    this.nonExhaustiveness,
-  );
-}
-
-class CfeTypeOperations implements TypeOperations<DartType> {
-  final TypeEnvironment _typeEnvironment;
-  final Library _enclosingLibrary;
-
-  CfeTypeOperations(this._typeEnvironment, this._enclosingLibrary);
-
+class CfeTypeOperations(
+  final TypeEnvironment _typeEnvironment,
+  final Library _enclosingLibrary,
+) implements TypeOperations<DartType> {
   ClassHierarchy get _classHierarchy => _typeEnvironment.hierarchy;
 
   @override
@@ -392,12 +382,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 }
 
-class EnumValue {
-  final Class enumClass;
-  final String name;
-
-  EnumValue(this.enumClass, this.name);
-
+class EnumValue(final Class enumClass, final String name) {
   @override
   int get hashCode => Object.hash(enumClass, name);
 
@@ -434,12 +419,8 @@ EnumValue? constantToEnumValue(CoreTypes coreTypes, Constant constant) {
   return null;
 }
 
-class CfeEnumOperations
+class CfeEnumOperations(final ConstantEvaluator _constantEvaluator)
     implements EnumOperations<DartType, Class, Field, EnumValue> {
-  final ConstantEvaluator _constantEvaluator;
-
-  CfeEnumOperations(this._constantEvaluator);
-
   @override
   Class? getEnumClass(DartType type) {
     if (type is InterfaceType && type.classNode.isEnum) {
@@ -486,12 +467,8 @@ class CfeEnumOperations
   }
 }
 
-class CfeSealedClassOperations
+class CfeSealedClassOperations(final TypeEnvironment _typeEnvironment)
     implements SealedClassOperations<DartType, Class> {
-  final TypeEnvironment _typeEnvironment;
-
-  CfeSealedClassOperations(this._typeEnvironment);
-
   @override
   List<Class> getDirectSubclasses(Class sealedClass) {
     Library library = sealedClass.enclosingLibrary;
@@ -606,10 +583,8 @@ class CfeExhaustivenessCache
     extends ExhaustivenessCache<DartType, Class, Class, Field, EnumValue> {
   final TypeEnvironment typeEnvironment;
 
-  CfeExhaustivenessCache(
-    ConstantEvaluator constantEvaluator,
-    Library enclosingLibrary,
-  ) : typeEnvironment = constantEvaluator.typeEnvironment,
+  new(ConstantEvaluator constantEvaluator, Library enclosingLibrary)
+    : typeEnvironment = constantEvaluator.typeEnvironment,
       super(
         new CfeTypeOperations(
           constantEvaluator.typeEnvironment,
@@ -626,7 +601,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
   final StaticTypeContext context;
   final bool Function(Constant) hasPrimitiveEquality;
 
-  PatternConverter(
+  new(
     this.languageVersion,
     this.cache,
     this.context, {
@@ -906,11 +881,9 @@ bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {
   return type.accept1(const ExhaustiveDartTypeVisitor(), coreTypes);
 }
 
-class ExhaustiveDartTypeVisitor
+class const ExhaustiveDartTypeVisitor()
     with DartTypeVisitor1ExperimentExclusionMixin<bool, CoreTypes>
     implements DartTypeVisitor1<bool, CoreTypes> {
-  const ExhaustiveDartTypeVisitor();
-
   @override
   bool visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
     throw new UnsupportedError(
@@ -1015,9 +988,7 @@ class ExhaustiveDartTypeVisitor
   }
 }
 
-class TypeParameterReplacer extends ReplacementVisitor {
-  const TypeParameterReplacer();
-
+class const TypeParameterReplacer() extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     DartType replacement = super.visitTypeParameterType(node, variance) ?? node;

@@ -33,11 +33,15 @@ Future<Map<String, dynamic>> makeHttpServiceRequest({
     params: params,
   );
   final httpClient = HttpClient();
-  final request = await httpClient.getUrl(requestUri);
-  final response = await request.close();
-  final jsonResponse = await response
-      .transform(utf8.decoder)
-      .transform(json.decoder)
-      .first as Map<String, dynamic>;
-  return jsonResponse['result'];
+  try {
+    final request = await httpClient.getUrl(requestUri);
+    final response = await request.close();
+    final jsonResponse = await response
+        .transform(utf8.decoder)
+        .transform(json.decoder)
+        .first as Map<String, dynamic>;
+    return jsonResponse['result'];
+  } finally {
+    httpClient.close();
+  }
 }

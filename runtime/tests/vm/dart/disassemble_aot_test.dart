@@ -57,8 +57,13 @@ Future<void> main(List<String> args) async {
       '--disassemble',
       '--disassemble_stubs',
       '--always_generate_trampolines_for_testing',
-      '--snapshot-kind=app-aot-elf',
-      '--elf=$elfFile',
+      if (Platform.isMacOS) ...[
+        '--snapshot-kind=app-aot-macho-dylib',
+        '--macho=$elfFile',
+      ] else ...[
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$elfFile',
+      ],
       scriptDill,
     ]);
 

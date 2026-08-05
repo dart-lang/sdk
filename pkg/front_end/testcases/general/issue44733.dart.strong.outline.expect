@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue44733.dart:22:3: Error: Type 'F' not found.
+// pkg/front_end/testcases/general/issue44733.dart:21:3: Error: Type 'F' not found.
 //   F get y => super.y as F;
 //   ^
 //

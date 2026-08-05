@@ -34,11 +34,8 @@ class PluginWatcher implements DriverWatcher {
   final bool _pluginsAreEnabled;
 
   /// Initialize a newly created plugin watcher.
-  PluginWatcher(
-    this.resourceProvider,
-    this.manager, {
-    required this._pluginsAreEnabled,
-  }) : _locator = PluginLocator(resourceProvider);
+  new(this.resourceProvider, this.manager, {required this._pluginsAreEnabled})
+    : _locator = PluginLocator(resourceProvider);
 
   @override
   void addedDriver(AnalysisDriver driver) {
@@ -138,9 +135,7 @@ class PluginWatcher implements DriverWatcher {
       "context root: '${contextRoot.root.path}'",
     );
     sharedPluginFolder.create();
-    var pubspecFile = sharedPluginFolder.getChildAssumingFile(
-      file_paths.pubspecYaml,
-    );
+    var pubspecFile = sharedPluginFolder.getFile(file_paths.pubspecYaml);
     var newPubspecContent = packageGenerator.generatePubspec();
     // Only update the file if the content is different, to avoid changing the
     // modification timestamp.
@@ -149,8 +144,8 @@ class PluginWatcher implements DriverWatcher {
       pubspecFile.writeAsStringSync(newPubspecContent);
     }
 
-    var binFolder = sharedPluginFolder.getChildAssumingFolder('bin')..create();
-    var entrypointFile = binFolder.getChildAssumingFile('plugin.dart');
+    var binFolder = sharedPluginFolder.getFolder('bin')..create();
+    var entrypointFile = binFolder.getFile('plugin.dart');
     var newEntrypointContent = packageGenerator.generateEntrypoint();
     // Only update the file if the content is different, to avoid changing the
     // modification timestamp.
@@ -205,5 +200,5 @@ class _DriverInfo {
   final List<String> packageRoots;
 
   /// Initialize a newly created information holder.
-  _DriverInfo(this.contextRoot, this.packageRoots);
+  new(this.contextRoot, this.packageRoots);
 }

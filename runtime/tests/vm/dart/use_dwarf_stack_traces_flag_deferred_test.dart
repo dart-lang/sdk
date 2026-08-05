@@ -37,7 +37,8 @@ Future<void> main() async {
     ),
     runNonDwarf,
     [
-      runElf,
+      // Don't run ELF on MacOS since that requires allow-unsigned-executable-memory.
+      if (!Platform.isMacOS) runElf,
       // Don't run assembly on Windows since DLLs don't contain DWARF.
       if (!Platform.isWindows) runAssembly,
     ],
@@ -73,8 +74,13 @@ Future<NonDwarfState> runNonDwarf(String tempDir, String scriptDill) async {
   await run(genSnapshot, <String>[
     '--no-dwarf-stack-traces-mode',
     '--loading-unit-manifest=$manifestPath',
-    '--snapshot-kind=app-aot-elf',
-    '--elf=$snapshotPath',
+    if (Platform.isMacOS) ...[
+      '--snapshot-kind=app-aot-macho-dylib',
+      '--macho=$snapshotPath',
+    ] else ...[
+      '--snapshot-kind=app-aot-elf',
+      '--elf=$snapshotPath',
+    ],
     scriptDill,
   ]);
 

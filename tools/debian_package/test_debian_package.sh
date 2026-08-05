@@ -5,13 +5,18 @@
 set -ex
 
 debfile="$1"
+arch="$2"
 checkout=$(pwd)
 
 # api.buildbucket.gitiles_commit.id is not populated in try jobs :(
 if [ ! -f $debfile ]; then
   echo "warning: $debfile does not exist"
   version=$(tools/debian_package/get_version.py)
-  debfile="out/ReleaseX64/dart_${version}-1_amd64.deb"
+  case $arch in
+    x64) debfile="out/ReleaseX64/dart_${version}-1_amd64.deb" ;;
+    arm64) debfile="out/ReleaseARM64/dart_${version}-1_arm64.deb" ;;
+    riscv64) debfile="out/ReleaseRISCV64/dart_${version}-1_riscv64.deb" ;;
+  esac
 fi
 
 function test_image() {

@@ -7,22 +7,24 @@ class Tearoffable {
 }
 
 ok<
-        XnonNull extends Object,
-        YnonNull extends XnonNull,
-        XpotentiallyNull extends Object?,
-        YpotentiallyNull extends XpotentiallyNull>(
-    dynamic dynamicArg,
-    Object objectArg,
-    num numArg,
-    int intArg,
-    double doubleArg,
-    Function functionArg,
-    void Function() toVoidArg,
-    Tearoffable tearoffableArg,
-    XnonNull xNonNullArg,
-    XpotentiallyNull xPotentiallyNullArg,
-    YnonNull yNonNullArg,
-    YpotentiallyNull yPotentiallyNullArg) {
+  XnonNull extends Object,
+  YnonNull extends XnonNull,
+  XpotentiallyNull extends Object?,
+  YpotentiallyNull extends XpotentiallyNull
+>(
+  dynamic dynamicArg,
+  Object objectArg,
+  num numArg,
+  int intArg,
+  double doubleArg,
+  Function functionArg,
+  void Function() toVoidArg,
+  Tearoffable tearoffableArg,
+  XnonNull xNonNullArg,
+  XpotentiallyNull xPotentiallyNullArg,
+  YnonNull yNonNullArg,
+  YpotentiallyNull yPotentiallyNullArg,
+) {
   dynamic dynamicVar = dynamicArg;
   dynamicVar = objectArg;
   dynamicVar = numArg;
@@ -85,32 +87,34 @@ ok<
 }
 
 error<
-        XnonNull extends Object,
-        YnonNull extends XnonNull,
-        XpotentiallyNull extends Object?,
-        YpotentiallyNull extends XpotentiallyNull>(
-    Object objectArg,
-    Object? objectNullableArg,
-    num numArg,
-    num? numNullableArg,
-    int intArg,
-    int? intNullableArg,
-    double doubleArg,
-    double? doubleNullableArg,
-    Function functionArg,
-    Function? functionNullableArg,
-    void Function() toVoidArg,
-    void Function()? toVoidNullableArg,
-    Tearoffable tearoffableArg,
-    Tearoffable? tearoffableNullableArg,
-    XnonNull xNonNullArg,
-    XnonNull? xNonNullNullableArg,
-    XpotentiallyNull xPotentiallyNullArg,
-    XpotentiallyNull? xPotentiallyNullNullableArg,
-    YnonNull yNonNullArg,
-    YnonNull? yNonNullNullableArg,
-    YpotentiallyNull yPotentiallyNullArg,
-    YpotentiallyNull? yPotentiallyNullNullableArg) {
+  XnonNull extends Object,
+  YnonNull extends XnonNull,
+  XpotentiallyNull extends Object?,
+  YpotentiallyNull extends XpotentiallyNull
+>(
+  Object objectArg,
+  Object? objectNullableArg,
+  num numArg,
+  num? numNullableArg,
+  int intArg,
+  int? intNullableArg,
+  double doubleArg,
+  double? doubleNullableArg,
+  Function functionArg,
+  Function? functionNullableArg,
+  void Function() toVoidArg,
+  void Function()? toVoidNullableArg,
+  Tearoffable tearoffableArg,
+  Tearoffable? tearoffableNullableArg,
+  XnonNull xNonNullArg,
+  XnonNull? xNonNullNullableArg,
+  XpotentiallyNull xPotentiallyNullArg,
+  XpotentiallyNull? xPotentiallyNullNullableArg,
+  YnonNull yNonNullArg,
+  YnonNull? yNonNullNullableArg,
+  YpotentiallyNull yPotentiallyNullArg,
+  YpotentiallyNull? yPotentiallyNullNullableArg,
+) {
   Object objectVar = objectNullableArg;
   objectVar = numNullableArg;
   objectVar = intNullableArg;

@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer if elements to conditional expressions where possible.';
 
 class PreferIfElementsToConditionalExpressions extends AnalysisRule {
-  PreferIfElementsToConditionalExpressions()
+  new()
     : super(
         name: LintNames.prefer_if_elements_to_conditional_expressions,
         description: _desc,
@@ -38,18 +38,29 @@ class PreferIfElementsToConditionalExpressions extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    AstNode nodeToReplace = node;
+    AstNode errorNode = node;
     var parent = node.parent;
     while (parent is ParenthesizedExpression) {
-      nodeToReplace = parent;
+      errorNode = parent;
       parent = parent.parent;
     }
-    if (parent is ListLiteral || (parent is SetOrMapLiteral && parent.isSet)) {
-      rule.reportAtNode(nodeToReplace);
+    if (_shouldReport(errorNode, parent)) {
+      rule.reportAtNode(errorNode);
     }
+  }
+
+  bool _shouldReport(AstNode node, AstNode? parent) {
+    if (parent is ListLiteral) return true;
+    if (parent is SetOrMapLiteral && parent.isSet) return true;
+    if (parent is IfElement &&
+        (node == parent.thenElement || node == parent.elseElement)) {
+      return true;
+    }
+    if (parent is ForElement && node == parent.body) return true;
+    return false;
   }
 }

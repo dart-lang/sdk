@@ -111,8 +111,53 @@ B14 = TargetBlock() idom:B8
 B34 = JoinBlock(B14, B29) idom:B0
   Return(v38)
 
+--- withTryBlock
+B0 = EntryBlock() dominates:(B3)
+  v1 = Constant(43)
+  v6 = Constant(1)
+  v9 = Constant(0)
+  v20 = Constant("bye")
+  v22 = Constant(null)
+  v42 = Constant(-1)
+  Goto(B3)
+B3 = JoinBlock(B0, B28) idom:B0 dominates:(B12, B11) loop-header (depth:1 body:(B3, B11, B15, B28, B14) back-edges:(B28))
+  v41 = Phi(v1, v43)
+  v43 = BinaryIntOp +(v41, v42)
+  v10 = Comparison int >(v43, v9)
+  Branch(v10, true: B11, false: B12)
+B11 = TargetBlock() idom:B3 dominates:(B15, B14) in-loop:B3
+  TryEntry(try-body: B14, catch-block: B15)
+B14 = TargetBlock() exception-handler:B15 idom:B11 in-loop:B3
+  v17 = LoadStaticField(var63)
+  v18 = BinaryIntOp +(v17, v6)
+  StoreStaticField(var63, v18)
+  Throw(v20)
+B15 = CatchBlock() idom:B11 dominates:(B28, B27) in-loop:B3
+  v23 = Parameter(#exception)
+  v24 = Parameter(#stackTrace)
+  v26 = TypeTest(v23, StackOverflowError)
+  Branch(v26, true: B27, false: B28)
+B27 = TargetBlock() idom:B15
+  Throw(v23, v24)
+B28 = TargetBlock() idom:B15 in-loop:B3
+  v35 = LoadStaticField(var63)
+  StoreStaticField(var68, v35)
+  Goto(B3)
+B12 = TargetBlock() idom:B3
+  Return(v22)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)
+  Return(v1)
+
+--- field-init var63
+B0 = EntryBlock()
+  v1 = Constant(28)
+  Return(v1)
+
+--- field-init var68
+B0 = EntryBlock()
+  v1 = Constant(44)
   Return(v1)
 

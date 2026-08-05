@@ -7,6 +7,7 @@ library kernel.type_substitute_bounds_test;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
+
 import 'type_parser.dart';
 
 final List<TestCase> testCases = <TestCase>[
@@ -43,7 +44,7 @@ class TestCase {
   final Map<String, TypeBound> bounds;
   final String expected;
 
-  TestCase(this.type, this.bounds, this.expected);
+  new(this.type, this.bounds, this.expected);
 
   @override
   String toString() {
@@ -60,7 +61,7 @@ class TestCase {
 class TypeBound {
   final String lower, upper;
 
-  TypeBound(this.lower, this.upper);
+  new(this.lower, this.upper);
 }
 
 TypeBound bound(String lower, String upper) => new TypeBound(lower, upper);

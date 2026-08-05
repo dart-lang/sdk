@@ -159,7 +159,7 @@ class A {
 ''');
     setAugmentationContent(r'''
 augment class A {
-  augment String get [!g!] => '';
+  augment String get [!g!];
 }
 ''');
 
@@ -175,7 +175,7 @@ class A {
 ''');
     setAugmentationContent(r'''
 augment class A {
-  augment void [!m!]() {}
+  augment void [!m!]();
 }
 ''');
 
@@ -191,7 +191,7 @@ class A {
 ''');
     setAugmentationContent(r'''
 augment class A {
-  augment set [!g!](String value) {}
+  augment set [!g!](String value);
 }
 ''');
 
@@ -215,15 +215,16 @@ augment enum [!A!] {
     await expectNavigationCodeLens();
   }
 
-  test_available_enum_member() async {
+  test_available_enum_method() async {
     setLibraryContent(r'''
 enum A {
-  [!one!],
+  one;
+  void [!m!]() {}
 }
 ''');
     setAugmentationContent(r'''
-augment enum A {
-  augment [!one!],
+augment enum A {;
+  augment void [!m!]();
 }
 ''');
 
@@ -236,7 +237,7 @@ augment enum A {
 void [!f!]() {}
 ''');
     setAugmentationContent(r'''
-augment void [!f!]() {}
+augment void [!f!]();
 ''');
 
     await initialize();

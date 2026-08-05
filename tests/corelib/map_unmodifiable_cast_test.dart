@@ -5,6 +5,7 @@
 library map_unmodifiable_cast_test;
 
 import "package:expect/expect.dart";
+
 import 'dart:collection';
 
 void main() {
@@ -30,9 +31,13 @@ void main() {
     "unmodView<Object>(int).cast<num>",
   );
 
-  var m2 = new Map<num, num>.unmodifiable({1: 37});
-  testNum(m2, "Map<num>.unmod");
-  testNum(m2.cast<int, int>(), "Map<num>.unmod.cast<int>");
+  for (var map in [
+    new Map<num, num>.unmodifiable({1: 37}),
+    new Map<num, num>.unmodifiableOf({1: 37}),
+  ]) {
+    testNum(map, "Map<num>.unmod");
+    testNum(map.cast<int, int>(), "Map<num>.unmod.cast<int>");
+  }
 
   Map<Symbol, dynamic> nsm = new NsmMap().foo(a: 0);
   test<Symbol, dynamic>(nsm, #a, 0, "nsm", noSuchMethodMap: true);

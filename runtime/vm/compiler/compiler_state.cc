@@ -141,7 +141,6 @@ DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
     return *Lower##_class_;                                                    \
   }
 
-DEFINE_CLASS_GETTER(TypedData, TypedData, typed_data, TypedData)
 DEFINE_CLASS_GETTER(TypedData, TypedList, typed_list, _TypedList)
 
 #undef DEFINE_CLASS_GETTER

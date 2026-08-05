@@ -28,11 +28,36 @@ test3(Iterable<dynamic> x) {
 }
 
 main() {
-  expectEquals(test1([[1], [2], [3]]), -1);
-  expectEquals(test1([[1], [2], [30]]), 30);
-  expectEquals(test2([["foo", "bar", "baz"], ["bar", "foo", "baz"], ["bar", "baz", "foo"]]), "foo");
+  expectEquals(
+    test1([
+      [1],
+      [2],
+      [3],
+    ]),
+    -1,
+  );
+  expectEquals(
+    test1([
+      [1],
+      [2],
+      [30],
+    ]),
+    30,
+  );
+  expectEquals(
+    test2([
+      ["foo", "bar", "baz"],
+      ["bar", "foo", "baz"],
+      ["bar", "baz", "foo"],
+    ]),
+    "foo",
+  );
   expectEquals(test2([]), "");
-  expectThrows(() => test3([[null, 1, 2]]));
+  expectThrows(
+    () => test3([
+      [null, 1, 2],
+    ]),
+  );
   expectEquals(test3([]), -1);
 }
 

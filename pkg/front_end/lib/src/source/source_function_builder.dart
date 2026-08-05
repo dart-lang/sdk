@@ -9,14 +9,13 @@ import 'package:kernel/class_hierarchy.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../kernel/internal_ast.dart';
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import 'source_library_builder.dart';
 import 'source_type_parameter_builder.dart';
 
 /// Builds the [TypeParameter]s for [declaredTypeParameters] and the parameter
-/// [VariableDeclaration]s for [declaredFormals] and adds them to [function].
+/// [Variable]s for [declaredFormals] and adds them to [function].
 ///
 /// If [classTypeParameters] the bounds on type parameters and formal parameter
 /// types will be marked as `isCovariantByClass` depending on their use of the
@@ -60,17 +59,17 @@ void buildTypeParametersAndFormals(
   if (declaredFormals != null) {
     for (int i = 0; i < declaredFormals.length; i++) {
       FormalParameterBuilder formal = declaredFormals[i];
-      VariableDeclaration parameter =
-          (formal.build(libraryBuilder) as InternalVariable).astVariable;
+      FunctionParameter parameter = formal.build(libraryBuilder).astVariable;
       if (needsCheckVisitor != null) {
         if (parameter.type.accept(needsCheckVisitor)) {
           parameter.isCovariantByClass = true;
         }
       }
-      if (formal.isNamed) {
-        function.namedParameters.add(parameter);
-      } else {
-        function.positionalParameters.add(parameter);
+      switch (parameter) {
+        case PositionalParameter():
+          function.positionalParameters.add(parameter);
+        case NamedParameter():
+          function.namedParameters.add(parameter);
       }
       parameter.parent = function;
       if (formal.isRequiredPositional) {
@@ -78,7 +77,7 @@ void buildTypeParametersAndFormals(
       }
 
       // Required named parameters can't have default values.
-      if (formal.isRequiredNamed && formal.hasDeclaredInitializer) {
+      if (formal.isRequiredNamed && formal.hasDeclaredDefaultValue) {
         libraryBuilder.addProblem(
           diag.requiredNamedParameterHasDefaultValueError.withArguments(
             parameterName: formal.name,

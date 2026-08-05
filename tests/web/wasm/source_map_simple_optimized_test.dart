@@ -11,8 +11,8 @@ void main() {
 }
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
-  ('source_map_simple_lib.dart', 18, 3, 'g'),
-  ('source_map_simple_lib.dart', 14, 3, 'f'),
+  ('source_map_simple_lib.dart', 17, 3, 'g'),
+  ('source_map_simple_lib.dart', 13, 3, 'f'),
 ];
 
 /*

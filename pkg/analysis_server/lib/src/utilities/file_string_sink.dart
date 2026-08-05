@@ -8,8 +8,7 @@ import 'dart:io';
 class FileStringSink implements StringSink {
   final IOSink _sink;
 
-  FileStringSink(String path)
-    : _sink = File(path).openWrite(mode: FileMode.append);
+  new(String path) : _sink = File(path).openWrite(mode: FileMode.append);
 
   @override
   void write(Object? obj) {

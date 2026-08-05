@@ -7,7 +7,9 @@ library stream_controller_test;
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
+
 import 'dart:async';
+
 import 'event_helper.dart';
 
 const MS = const Duration(milliseconds: 1);

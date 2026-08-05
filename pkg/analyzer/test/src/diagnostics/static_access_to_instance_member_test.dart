@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticAccessToInstanceMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class StaticAccessToInstanceMemberTest extends PubPackageResolutionTest {
   test_annotation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A.name();
 }
@@ -27,126 +28,117 @@ main() {
   }
 
   test_extension_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get g => 0;
 }
 f() {
   E.g;
+//  ^
+// [diag.staticAccessToInstanceMember] Instance member 'g' can't be accessed using static access.
 }
-''',
-      [error(diag.staticAccessToInstanceMember, 51, 1)],
-    );
+''');
   }
 
   test_extension_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void m() {}
 }
 f() {
   E.m();
+//  ^
+// [diag.staticAccessToInstanceMember] Instance member 'm' can't be accessed using static access.
 }
-''',
-      [error(diag.staticAccessToInstanceMember, 47, 1)],
-    );
+''');
   }
 
   test_extension_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void set s(int i) {}
 }
 f() {
   E.s = 2;
+//  ^
+// [diag.staticAccessToInstanceMember] Instance member 's' can't be accessed using static access.
 }
-''',
-      [error(diag.staticAccessToInstanceMember, 56, 1)],
-    );
+''');
   }
 
   test_method_invocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {}
 }
 main() {
   A.m();
-}''',
-      [error(diag.staticAccessToInstanceMember, 34, 1)],
-    );
+//  ^
+// [diag.staticAccessToInstanceMember] Instance member 'm' can't be accessed using static access.
+}''');
   }
 
   test_method_reference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {}
 }
 main() {
   A.m;
-}''',
-      [error(diag.staticAccessToInstanceMember, 34, 1)],
-    );
+//  ^
+// [diag.staticAccessToInstanceMember] Instance member 'm' can't be accessed using static access.
+}''');
   }
 
   test_propertyAccess_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var f;
 }
 main() {
   A.f;
-}''',
-      [error(diag.staticAccessToInstanceMember, 34, 1)],
-    );
+//  ^
+// [diag.staticAccessToInstanceMember] Instance member 'f' can't be accessed using static access.
+}''');
   }
 
   test_propertyAccess_field_toplevel_generic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   List<T> t = [];
 }
 var x = C.t;
-''',
-      [error(diag.staticAccessToInstanceMember, 43, 1)],
-    );
+//        ^
+// [diag.staticAccessToInstanceMember] Instance member 't' can't be accessed using static access.
+''');
   }
 
   test_propertyAccess_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   get f => 42;
 }
 main() {
   A.f;
-}''',
-      [error(diag.staticAccessToInstanceMember, 40, 1)],
-    );
+//  ^
+// [diag.staticAccessToInstanceMember] Instance member 'f' can't be accessed using static access.
+}''');
   }
 
   test_propertyAccess_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set f(x) {}
 }
 main() {
   A.f = 42;
-}''',
-      [error(diag.staticAccessToInstanceMember, 39, 1)],
-    );
+//  ^
+// [diag.staticAccessToInstanceMember] Instance member 'f' can't be accessed using static access.
+}''');
   }
 
   test_static_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static m() {}
 }
@@ -158,7 +150,7 @@ main() {
   }
 
   test_static_propertyAccess_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static var f;
 }
@@ -170,7 +162,7 @@ main() {
   }
 
   test_static_propertyAccess_propertyAccessor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static get f => 42;
   static set f(x) {}

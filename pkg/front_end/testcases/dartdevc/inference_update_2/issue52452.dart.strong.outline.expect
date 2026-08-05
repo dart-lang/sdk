@@ -44,7 +44,7 @@ class B extends core::Object {
     return new self::B::•(i);
 }
 class E extends self::_E&B&M1 implements self::D {
-  constructor •(core::int? i) → self::E
+  constructor •(super-initializing-formal core::int? i) → self::E
     ;
   static synthetic method _#new#tearOff(core::int? i) → self::E
     return new self::E::•(i);
@@ -85,5 +85,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///issue52452.dart:47:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///issue52452.dart:42:4 -> InstanceConstant(const _Override{})
 Extra constant evaluation: evaluated: 23, effectively constant: 1

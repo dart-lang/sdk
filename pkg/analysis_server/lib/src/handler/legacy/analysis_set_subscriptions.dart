@@ -15,12 +15,7 @@ import 'package:analysis_server/src/utilities/extensions/resource_provider.dart'
 class AnalysisSetSubscriptionsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  AnalysisSetSubscriptionsHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -45,9 +40,8 @@ class AnalysisSetSubscriptionsHandler extends LegacyHandler {
         );
     server.setAnalysisSubscriptions(subMap);
     // Forward the request to the plugins.
-    var converter = RequestConverter();
     server.pluginManager.setAnalysisSetSubscriptionsParams(
-      converter.convertAnalysisSetSubscriptionsParams(params),
+      params.asPluginProtocol,
     );
     sendResult(AnalysisSetSubscriptionsResult());
   }

@@ -2847,7 +2847,8 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   }
 
   bool _isFull32BitMask(ConstantValue constant) {
-    return constant is IntConstantValue && constant.intValue == _mask32;
+    return constant is IntConstantValue &&
+        constant.intValue.toUnsigned(32) == _mask32;
   }
 
   static final _mask32 = BigInt.parse('FFFFFFFF', radix: 16);

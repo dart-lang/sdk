@@ -18,7 +18,7 @@ import '../extensions.dart';
 const _desc = r'Avoid using private types in public APIs.';
 
 class LibraryPrivateTypesInPublicApi extends AnalysisRule {
-  LibraryPrivateTypesInPublicApi()
+  new()
     : super(
         name: LintNames.library_private_types_in_public_api,
         description: _desc,
@@ -40,7 +40,7 @@ class LibraryPrivateTypesInPublicApi extends AnalysisRule {
 class Validator extends SimpleAstVisitor<void> {
   AnalysisRule rule;
 
-  Validator(this.rule);
+  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -60,7 +60,6 @@ class Validator extends SimpleAstVisitor<void> {
     if (isPrivateName(node.name.lexeme)) {
       return;
     }
-    node.superclass.accept(this);
     node.typeParameters?.accept(this);
   }
 
@@ -70,11 +69,6 @@ class Validator extends SimpleAstVisitor<void> {
     if (isEffectivelyPrivate(node)) return;
 
     node.parameters.accept(this);
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    node.parameter.accept(this);
   }
 
   @override
@@ -99,17 +93,19 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (Identifier.isPrivateName(node.primaryConstructor.typeName.lexeme)) {
+    var namePart = node.namePart;
+    if (Identifier.isPrivateName(namePart.typeName.lexeme)) {
       return;
     }
-    node.primaryConstructor.typeParameters?.accept(this);
+    namePart.typeParameters?.accept(this);
 
-    for (var formalParameter
-        in node.primaryConstructor.formalParameters.parameters) {
-      if (formalParameter is SimpleFormalParameter) {
-        var name = formalParameter.name;
-        if (name != null && !Identifier.isPrivateName(name.lexeme)) {
-          formalParameter.type!.accept(this);
+    if (namePart is PrimaryConstructorDeclaration) {
+      for (var formalParameter in namePart.formalParameters.parameters) {
+        if (formalParameter is RegularFormalParameter) {
+          var name = formalParameter.name;
+          if (name != null && !Identifier.isPrivateName(name.lexeme)) {
+            formalParameter.type?.accept(this);
+          }
         }
       }
     }
@@ -175,16 +171,6 @@ class Validator extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    if (node.isNamed && Identifier.isPrivateName(node.name.lexeme)) {
-      return;
-    }
-    node.returnType?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters.accept(this);
-  }
-
-  @override
   void visitGenericFunctionType(GenericFunctionType node) {
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
@@ -238,12 +224,18 @@ class Validator extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     var name = node.name;
     if (name != null && node.isNamed && Identifier.isPrivateName(name.lexeme)) {
       return;
     }
-    node.type?.accept(this);
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      node.type?.accept(this);
+      functionTypedSuffix.typeParameters?.accept(this);
+      functionTypedSuffix.formalParameters.accept(this);
+    } else {
+      node.type?.accept(this);
+    }
   }
 
   @override
@@ -314,7 +306,7 @@ class Validator extends SimpleAstVisitor<void> {
 class Visitor extends SimpleAstVisitor<void> {
   AnalysisRule rule;
 
-  Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

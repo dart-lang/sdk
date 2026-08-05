@@ -13,8 +13,9 @@ class ElementsBuilder with Builder<ir.Elements> {
   final _functionTableBuilders = <ir.Table, ActiveFunctionSegmentBuilder>{};
   final _expressionTableBuilders = <ir.Table, ActiveExpressionSegmentBuilder>{};
 
-  late final declarativeSegmentBuilder =
-      DeclarativeSegmentBuilder(_moduleBuilder);
+  late final declarativeSegmentBuilder = DeclarativeSegmentBuilder(
+    _moduleBuilder,
+  );
 
   ElementsBuilder(this._moduleBuilder);
 
@@ -25,14 +26,19 @@ class ElementsBuilder with Builder<ir.Elements> {
     assert(table.type.isSubtypeOf(ir.RefType.func(nullable: true)));
     assert(table.enclosingModule == _moduleBuilder.module);
     return _functionTableBuilders.putIfAbsent(
-        table, () => ActiveFunctionSegmentBuilder(table));
+      table,
+      () => ActiveFunctionSegmentBuilder(table),
+    );
   }
 
   ActiveExpressionSegmentBuilder activeExpressionSegmentBuilderFor(
-      ir.Table table) {
+    ir.Table table,
+  ) {
     assert(table.enclosingModule == _moduleBuilder.module);
     return _expressionTableBuilders.putIfAbsent(
-        table, () => ActiveExpressionSegmentBuilder(table));
+      table,
+      () => ActiveExpressionSegmentBuilder(table),
+    );
   }
 
   @override
@@ -77,8 +83,10 @@ class ActiveFunctionSegmentBuilder with Builder<List<ir.ActiveElementSegment>> {
 
   void setFunctionAt(int index, ir.BaseFunction function) {
     assert(function.enclosingModule == table.enclosingModule);
-    assert(table.maxSize == null || index < table.maxSize!,
-        'Index $index greater than max table size ${table.maxSize}');
+    assert(
+      table.maxSize == null || index < table.maxSize!,
+      'Index $index greater than max table size ${table.maxSize}',
+    );
     _functions[index] = function;
     table.minSize = math.max(table.minSize, index + 1);
   }
@@ -129,8 +137,10 @@ class ActiveExpressionSegmentBuilder
 
   void setExpressionAt(int index, InstructionsBuilder init) {
     assert(init.moduleBuilder.module == table.enclosingModule);
-    assert(table.maxSize == null || index < table.maxSize!,
-        'Index $index greater than max table size ${table.maxSize}');
+    assert(
+      table.maxSize == null || index < table.maxSize!,
+      'Index $index greater than max table size ${table.maxSize}',
+    );
     _expressions[index] = init;
     table.minSize = math.max(table.minSize, index + 1);
   }

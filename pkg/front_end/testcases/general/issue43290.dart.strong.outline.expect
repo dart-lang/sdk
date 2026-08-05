@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::int length;
-  const constructor •({core::int length = 0}) → self::Class
+  const constructor •({initializing-formal core::int length = 0}) → self::Class
     : self::Class::length = length, super core::Object::•()
     ;
   method method1a() → dynamic

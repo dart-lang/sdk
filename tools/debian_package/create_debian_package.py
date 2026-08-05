@@ -20,6 +20,7 @@ DART_DIR = abspath(join(dirname(__file__), '..', '..'))
 def BuildOptions():
     result = optparse.OptionParser()
     result.add_option("--version", default=None)
+    result.add_option("--timestamp", default=None)
     result.add_option("--arch", default=None)
     result.add_option("--lib_dir", default=None)
     return result
@@ -38,13 +39,13 @@ def GenerateCopyright(filename):
             f.write(' %s' % line)  # Line already contains trailing \n.
 
 
-def GenerateChangeLog(filename, version):
+def GenerateChangeLog(filename, version, timestamp):
     with open(filename, 'w') as f:
         f.write('dart (%s-1) UNRELEASED; urgency=low\n' % version)
         f.write('\n')
         f.write('  * Generated file.\n')
         f.write('\n')
-        f.write(' -- Dart Team <misc@dartlang.org>\n')
+        f.write(' -- Dart Team <misc@dartlang.org> %s\n' % timestamp)
 
 
 def Main():
@@ -52,12 +53,14 @@ def Main():
     (options, args) = parser.parse_args()
 
     version = options.version
+    timestamp = options.timestamp
     versiondir = 'dart-%s' % version
     shutil.copytree(join(DART_DIR, 'tools', 'debian_package', 'debian'),
                     join(versiondir, 'debian'),
                     dirs_exist_ok=True)
     GenerateCopyright(join(versiondir, 'debian', 'copyright'))
-    GenerateChangeLog(join(versiondir, 'debian', 'changelog'), version)
+    GenerateChangeLog(join(versiondir, 'debian', 'changelog'), version,
+                      timestamp)
 
     cmd = ['dpkg-buildpackage', '-B', '-a', options.arch, '-us', '-uc']
     env = os.environ.copy()

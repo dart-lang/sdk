@@ -40,11 +40,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   GatherUsedLocalElementsVisitor(this._enclosingLibrary);
 
   @override
+  void visitAnnotation(Annotation node) {
+    var arguments = node.arguments;
+    if (arguments != null) {
+      _addParametersForArguments(arguments);
+    }
+    super.visitAnnotation(node);
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     var element = node.element;
-    if (element != null) {
-      usedElements.members.add(element);
-    }
+    usedElements.addMember(element);
     super.visitAssignmentExpression(node);
   }
 
@@ -108,26 +115,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         );
       }
     }
-
-    for (var parameter in node.parameters.parameters) {
-      if (parameter is SuperFormalParameter) {
-        usedElements.addElement(
-          parameter.declaredFragment!.element.superConstructorParameter,
-        );
-      }
-    }
-
     super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    var element = node.declaredFragment?.element;
-    if (element is SuperFormalParameterElement) {
-      usedElements.addElement(element.superConstructorParameter);
-    }
-
-    super.visitDefaultFormalParameter(node);
   }
 
   @override
@@ -365,6 +353,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _addParametersForArguments(node.argumentList);
     super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    var element = node.declaredFragment?.element;
+    if (element is SuperFormalParameterElement) {
+      var superConstructorParameter = element.superConstructorParameter;
+      if (superConstructorParameter != null) {
+        usedElements.addElement(superConstructorParameter);
+      }
+    }
+    super.visitSuperFormalParameter(node);
   }
 
   @override
@@ -995,12 +995,16 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is InterfaceElement) {
       var elementName = element.name;
+      if (element is SetterElement) {
+        elementName = '$elementName=';
+      }
       if (elementName != null) {
         Name name = Name(_libraryUri, elementName);
         var overridden = enclosingElement.getOverridden(name);
         if (overridden == null) {
           return const [];
         }
+
         return overridden.map(
           (e) => (e is SubstitutedExecutableElementImpl) ? e.baseElement : e,
         );
@@ -1009,12 +1013,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     return [];
   }
 
-  /// Check if [element] is a class member which overrides a super class's class
-  /// member which is used.
   bool _overridesUsedElement(Element element) {
-    return _overriddenElements(
-      element,
-    ).any((e) => _usedElements.members.contains(e) || _overridesUsedElement(e));
+    return _overriddenElements(element).any(
+      (e) =>
+          _usedElements.members.contains(e) ||
+          _usedElements.elements.contains(e) ||
+          _overridesUsedElement(e),
+    );
   }
 
   /// Check if [element] is a parameter of a method which overrides a super
@@ -1104,20 +1109,23 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _visitLocalVariableElement(LocalVariableElement element) {
-    if (!_isUsedElement(element) && !_isNamedWildcard(element)) {
-      DiagnosticWithArguments<
-        LocatableDiagnostic Function({required String name})
-      >
-      code;
-      if (_usedElements.isCatchException(element)) {
-        code = diag.unusedCatchClause;
-      } else if (_usedElements.isCatchStackTrace(element)) {
-        code = diag.unusedCatchStack;
-      } else {
-        code = diag.unusedLocalVariable;
-      }
+    if (_isUsedElement(element)) return;
+
+    if (_usedElements.isCatchException(element) &&
+        // TODO(srawlins): Report a wildcard catch clause exception variable.
+        !_isNamedWildcard(element)) {
       _reportDiagnosticForElement(
-        code.withArguments(name: element.displayName),
+        diag.unusedCatchClause.withArguments(name: element.displayName),
+        element,
+      );
+    } else if (_usedElements.isCatchStackTrace(element)) {
+      _reportDiagnosticForElement(
+        diag.unusedCatchStack.withArguments(name: element.displayName),
+        element,
+      );
+    } else if (!_isNamedWildcard(element)) {
+      _reportDiagnosticForElement(
+        diag.unusedLocalVariable.withArguments(name: element.displayName),
         element,
       );
     }

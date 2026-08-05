@@ -14,7 +14,7 @@ class EnumLike extends core::Object /*hasConstConstructor*/  {
   static const field self2::EnumLike a = const self2::EnumLike::_(0);
   static const field self2::EnumLike b = const self2::EnumLike::_(1);
   static const field core::List<self2::EnumLike> values = const <self2::EnumLike>[self2::EnumLike::a, self2::EnumLike::b];
-  const constructor _(core::int value) → self2::EnumLike
+  const constructor _(initializing-formal core::int value) → self2::EnumLike
     : self2::EnumLike::value = value, super core::Object::•()
     ;
   static synthetic method _#_#tearOff(core::int value) → self2::EnumLike

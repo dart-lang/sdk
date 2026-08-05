@@ -17,8 +17,7 @@ import '../extensions.dart';
 const _desc = r'Prefer to use `whereType` on iterable.';
 
 class PreferIterableWhereType extends AnalysisRule {
-  PreferIterableWhereType()
-    : super(name: LintNames.prefer_iterable_wheretype, description: _desc);
+  new() : super(name: LintNames.prefer_iterable_wheretype, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferIterableWheretype;
@@ -36,7 +35,7 @@ class PreferIterableWhereType extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

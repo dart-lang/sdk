@@ -3,43 +3,33 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
+confuse(f) => f;
+
 main() {
-  group('supported_media', () {
-    test('supported', () {
-      expect(MediaStream.supported, true);
-    });
-  });
-
-  group('supported_MediaStreamEvent', () {
-    test('supported', () {
-      expect(MediaStreamEvent.supported, true);
-    });
-  });
-
-  group('supported_MediaStreamTrackEvent', () {
-    test('supported', () {
-      expect(MediaStreamTrackEvent.supported, true);
-    });
-  });
-
   group('constructors', () {
     test('MediaStreamEvent', () {
-      var expectation = MediaStreamEvent.supported ? returnsNormally : throws;
+      var expectation = globalContext.has('MediaStreamEvent')
+          ? returnsNormally
+          : throws;
       expect(() {
-        var event = new Event.eventType('MediaStreamEvent', 'media');
+        var event = confuse(MediaStreamEvent('media'));
         expect(event is MediaStreamEvent, isTrue);
       }, expectation);
     });
 
     test('MediaStreamTrackEvent', () {
-      var expectation = MediaStreamTrackEvent.supported
+      var expectation = globalContext.has('MediaStreamTrackEvent')
           ? returnsNormally
           : throws;
       expect(() {
-        var event = new Event.eventType('MediaStreamTrackEvent', 'media');
+        var event = confuse(MediaStreamTrackEvent('media', {}));
         expect(event is MediaStreamTrackEvent, isTrue);
       }, expectation);
     });

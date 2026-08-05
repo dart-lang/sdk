@@ -226,12 +226,14 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
       return imposedType;
     }
 
-    // If the function expression is declared `async*` and the imposed return
-    // type is of the form `Stream<S>` for some `S`, then the context type
-    // is `S`.
+    var unionFreeImposedType = typeSystem.unionFreeType(imposedType);
+
+    // If the function expression is declared `async*` and the union-free type
+    // derived from the imposed return type is of the form `Stream<S>` for some
+    // `S`, then the context type is `S`.
     if (node.isGenerator && node.isAsynchronous) {
       var elementType = _argumentOf(
-        imposedType,
+        unionFreeImposedType,
         typeSystem.typeProvider.streamElement,
       );
       if (elementType != null) {
@@ -239,12 +241,12 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
       }
     }
 
-    // If the function expression is declared `sync*` and the imposed return
-    // type is of the form `Iterable<S>` for some `S`, then the context type
-    // is `S`.
+    // If the function expression is declared `sync*` and the union-free type
+    // derived from the imposed return type is of the form `Iterable<S>` for
+    // some `S`, then the context type is `S`.
     if (node.isGenerator && node.isSynchronous) {
       var elementType = _argumentOf(
-        imposedType,
+        unionFreeImposedType,
         typeSystem.typeProvider.iterableElement,
       );
       if (elementType != null) {

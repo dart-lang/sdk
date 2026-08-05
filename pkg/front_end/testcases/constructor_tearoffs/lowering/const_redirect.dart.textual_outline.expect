@@ -1,17 +1,11 @@
 class Class {
   final List<Const> constants;
-  Class(
-      {this.constants = const [
-        Const.impl(),
-        Alias.impl(),
-        ImplAlias<String>()
-      ]});
-  const Class.named(
-      {this.constants = const [
-        Const.impl(),
-        Alias.impl(),
-        ImplAlias<String>()
-      ]});
+  Class({
+    this.constants = const [Const.impl(), Alias.impl(), ImplAlias<String>()],
+  });
+  const Class.named({
+    this.constants = const [Const.impl(), Alias.impl(), ImplAlias<String>()],
+  });
 }
 
 typedef Alias = Const;

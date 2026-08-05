@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class ExtraSizeAnnotationArray extends PubPackageResolutionTest {
   test_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 const EIGHT = 8;
@@ -29,7 +28,7 @@ final class Struct8BytesInlineArrayInt extends Struct {
   }
 
   test_one() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 final class C extends Struct {
@@ -40,17 +39,16 @@ final class C extends Struct {
   }
 
   test_two() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 final class C extends Struct {
   @Array(8)
   @Array(8)
+//^^^^^^^^^
+// [diag.extraSizeAnnotationCarray] 'Array's must have exactly one 'Array' annotation.
   external Array<Uint8> a0;
 }
-''',
-      [error(diag.extraSizeAnnotationCarray, 65, 9)],
-    );
+''');
   }
 }

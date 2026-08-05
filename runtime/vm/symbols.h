@@ -15,14 +15,11 @@ namespace dart {
 class IsolateGroup;
 class ObjectPointerVisitor;
 
-// Contains a list of frequently used strings in a canonicalized form. This
-// list is kept in the vm_isolate in order to share the copy across isolates
-// without having to maintain copies in each isolate.
 class Symbols : public AllStatic {
  public:
   enum { kMaxOneCharCodeSymbol = 0xFF };
 
-  // List of strings that are pre created in the vm isolate.
+  // List of strings that are pre created.
   // clang-format off
   enum SymbolId {
 #define DEFINE_SYMBOL_INDEX(symbol, literal) k##symbol##Id,
@@ -49,7 +46,7 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
     Roots::symbol_handle(index).initRO(symbol);
   }
 
-  // Access methods for one byte character symbols stored in the vm isolate.
+  // Access methods for one byte character symbols.
   static const String& Dot() { return Symbol(kNullCharId + '.'); }
   static const String& Equals() { return Symbol(kNullCharId + '='); }
   static const String& Plus() { return Symbol(kNullCharId + '+'); }
@@ -83,14 +80,13 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static const String& Caret() { return Symbol(kNullCharId + '^'); }
   static const String& Tilde() { return Symbol(kNullCharId + '~'); }
 
-// Access methods for symbol handles stored in the vm isolate for predefined
-// symbols.
+// Access methods for handles of the predefined symbols.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \
   static const String& symbol() { return Symbol(k##symbol##Id); }
   PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
 
-  // Initialize frequently used symbols in the vm isolate.
+  // Initialize frequently used symbols.
   static void Init(IsolateGroup* isolate_group);
   static void InitFromSnapshot(IsolateGroup* isolate_group);
 
@@ -167,7 +163,7 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
                        intptr_t* capacity);
 
  private:
-  enum { kInitialVMIsolateSymtabSize = 1024, kInitialSymtabSize = 2048 };
+  static constexpr intptr_t kInitialSymtabSize = 4 * KB;
 
   template <typename StringType>
   static StringPtr NewSymbol(Thread* thread, const StringType& str);

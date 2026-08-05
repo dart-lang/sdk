@@ -9,19 +9,8 @@ import 'package:test/test.dart';
 
 import 'utils/server_driver.dart';
 
-late final DevToolsServerTestController testController;
-
 void main() {
-  testController = DevToolsServerTestController();
   final baseHrefRegex = RegExp('<base href="([^"]+)"');
-
-  setUp(() async {
-    await testController.setUp();
-  });
-
-  tearDown(() async {
-    await testController.tearDown();
-  });
 
   group('serves index.html', () {
     DevToolsServerDriver? server;
@@ -48,7 +37,7 @@ void main() {
       final resp = await req.close();
       expect(resp.statusCode, 200);
       final bodyContent = await resp.transform(utf8.decoder).join();
-      expect(bodyContent, contains('Dart DevTools'));
+      expect(bodyContent, contains('The Flutter Authors'));
     }, timeout: const Timeout.factor(10));
 
     test('serves 404 for requests that are not pages', () async {

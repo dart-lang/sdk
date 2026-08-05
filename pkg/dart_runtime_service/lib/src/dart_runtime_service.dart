@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pool/pool.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:stream_channel/stream_channel.dart';
@@ -30,9 +31,22 @@ class DartRuntimeService {
     required DartRuntimeServiceBackendBuilder backendBuilder,
   }) : authCode = config.disableAuthCodes ? null : generateSecret() {
     if (config.enableLogging) {
-      _logger.onRecord.listen(stdout.writeln);
+      _logger.onRecord.listen(stderr.writeln);
     }
     backend = backendBuilder(this);
+    // We can't use the const constructors here as they won't pickup Dart
+    // environment variables specified at runtime when the service is compiled
+    // to a snapshot. This behavior is somewhat undefined and doesn't work
+    // in AOT, but is maintained for backwards compatibility.
+    silenceServiceOutput =
+        // TODO(48602): deprecate SILENT_OBSERVATORY in favor of
+        // SILENT_VM_SERVICE
+        // ignore: prefer_const_constructors
+        bool.fromEnvironment('SILENT_OBSERVATORY') ||
+        // ignore: prefer_const_constructors
+        bool.fromEnvironment('SILENT_VM_SERVICE') ||
+        // ignore: prefer_const_constructors
+        bool.fromEnvironment('SILENT_SERVICE');
   }
 
   static Future<DartRuntimeService> initialize({
@@ -74,7 +88,13 @@ class DartRuntimeService {
   ///
   /// It's possible that the returned [Uri] is no longer valid if the server
   /// was recently shut down.
-  Uri get httpUri => uri.replace(scheme: 'http');
+  Uri get httpUri => uri.replace(
+    scheme: 'http',
+    pathSegments: [
+      ...uri.pathSegments,
+      if (uri.pathSegments.isEmpty || uri.pathSegments.last.isNotEmpty) '',
+    ],
+  );
 
   /// The sse:// URI pointing to this [DartRuntimeService]'s server.
   ///
@@ -103,14 +123,17 @@ class DartRuntimeService {
 
   final _logger = Logger('$DartRuntimeService');
 
-  @visibleForTesting
-  late final ClientManager clientManager = ClientManager(
-    backend: backend,
-    eventStreamMethods: eventStreamManager,
-  );
+  /// Exposes methods for controlling acceptance of new [Client] connections.
+  ClientConnectionController get clientConnectionController => clientManager;
 
-  UnmodifiableClientNamedLookup get clients =>
-      UnmodifiableClientNamedLookup(clientManager.clients);
+  @visibleForTesting
+  late final ClientManager clientManager = backend.clientManagerBuilder();
+
+  /// The set of currently connected [Client]s.
+  UnmodifiableClientNamedLookup get clients => clientManager.clients;
+
+  /// Exposes methods for interacting with event streams.
+  EventStreamMethods get eventStreams => eventStreamManager;
 
   @visibleForTesting
   late final eventStreamManager = EventStreamManager(
@@ -118,30 +141,70 @@ class DartRuntimeService {
     clientsGetter: () => clients,
   );
 
-  // TODO(bkonyi): this should be protected by a mutex.
+  final _serverLock = Pool(1);
   HttpServer? _server;
+  bool _shutdownCalled = false;
+  final _initializedCompleter = Completer<void>();
 
   /// Returns true if the HTTP server is active.
   bool get isServerRunning => _server != null;
 
+  /// If true, the service won't write any messages to STDOUT.
+  ///
+  /// Note: this does not impact logging output when
+  /// [DartRuntimeServiceOptions.enableLogging] is true.
+  bool silenceServiceOutput = false;
+
+  /// Writes [message] to STDOUT, unless [silenceServiceOutput] is true.
+  void printServiceOutput(String message) {
+    if (silenceServiceOutput) {
+      return;
+    }
+    stdout.writeln(message);
+  }
+
   /// Initializes the service's state without starting the web server.
   Future<void> _initialize() async {
-    await backend.initialize();
+    try {
+      await backend.initialize();
 
-    if (config.autoStart) {
-      _logger.info('Autostart enabled. Starting server.');
-      await _startServer();
+      if (_shutdownCalled) {
+        _logger.info(
+          'Shutdown was called during backend initialization. Aborting.',
+        );
+        return;
+      }
+
+      if (config.autoStart) {
+        _logger.info('Autostart enabled. Starting server.');
+        await _startServer();
+      }
+      if (_shutdownCalled) {
+        _logger.info('Shutdown was called during initialization. Aborting.');
+        return;
+      }
+      await backend.onServiceReady(this);
+    } finally {
+      if (!_initializedCompleter.isCompleted) {
+        _initializedCompleter.complete();
+      }
     }
-    await backend.onServiceReady(this);
   }
 
   /// Shuts down the service and cleans up backend state.
   Future<void> shutdown() async {
+    _shutdownCalled = true;
+    if (!_initializedCompleter.isCompleted) {
+      await _initializedCompleter.future;
+    }
     await backend.clearState();
     await backend.shutdown();
-    await _shutdownServer();
+    try {
+      await _shutdownServer();
+    } on DartRuntimeServiceServerNotRunning catch (_) {}
     await clientManager.shutdown();
     Logger.root.clearListeners();
+    _logger.info('Dart Runtime Service shutdown complete.');
   }
 
   /// Enables or disables the server based on the value of [enable].
@@ -151,28 +214,32 @@ class DartRuntimeService {
   ///
   /// This is called when `dart:developer`'s [Service.controlWebServer] is
   /// invoked.
-  // TODO(bkonyi): respect silenceOutput
-  Future<void> serverControl({
-    required bool enable,
-    bool? silenceOutput,
-  }) async {
-    // TODO(bkonyi): verify there's no race conditions
-    if (!enable && isServerRunning) {
-      await _shutdownServer();
-    } else if (enable && !isServerRunning) {
-      await _startServer();
-    }
+  Future<void> serverControl({required bool enable, bool? silenceOutput}) {
+    return _serverLock.withResource(() async {
+      if (silenceOutput != null) {
+        _logger.info(
+          'silenceServiceOutput: $silenceServiceOutput -> $silenceOutput',
+        );
+        silenceServiceOutput = silenceOutput;
+      }
+      if (!enable && isServerRunning) {
+        await _shutdownServerLocked();
+      } else if (enable && !isServerRunning) {
+        await _startServerLocked();
+      }
+    });
   }
 
   /// Toggles the state of the HTTP server, enabling it if it's not running and
   /// disabling it if it is running.
-  Future<void> toggleServer() async {
-    // TODO(bkonyi): verify there's no race conditions
-    if (isServerRunning) {
-      await _shutdownServer();
-    } else {
-      await _startServer();
-    }
+  Future<void> toggleServer() {
+    return _serverLock.withResource(() async {
+      if (isServerRunning) {
+        await _shutdownServerLocked();
+      } else {
+        await _startServerLocked();
+      }
+    });
   }
 
   /// Creates an artificial client to process JSON-RPC requests from
@@ -181,18 +248,32 @@ class DartRuntimeService {
     required StreamChannel<String> connection,
     required String name,
   }) {
-    return clientManager.addClient(connection: connection, name: name);
+    return clientManager.addClient(
+      connection: connection,
+      name: name,
+      artificial: true,
+    );
   }
 
-  Future<void> _startServer() async {
+  Future<void> _startServer() => _serverLock.withResource(_startServerLocked);
+
+  Future<void> _startServerLocked() async {
     if (_server != null) {
       _logger.warning(
         "Attempted to start the HTTP server, but it's already running.",
       );
       throw const DartRuntimeServiceServerAlreadyRunning();
     }
-    // TODO(bkonyi): support IPv6
-    final host = InternetAddress.loopbackIPv4.host;
+    final hostStr = config.host ?? InternetAddress.loopbackIPv4.host;
+    var parsedHost = InternetAddress.tryParse(hostStr);
+    if (parsedHost == null) {
+      final addresses = await InternetAddress.lookup(hostStr);
+      parsedHost = addresses.firstWhere(
+        (a) => a.type == InternetAddressType.IPv4,
+        orElse: () => addresses.first,
+      );
+    }
+    final host = parsedHost;
 
     _logger.info('Starting the Dart Runtime Service.');
     late String errorMessage;
@@ -200,7 +281,7 @@ class DartRuntimeService {
       () async {
         try {
           final handlers = _handlers();
-          _logger.info('Attempting to bind to $host:${config.port}');
+          _logger.info('Attempting to bind to ${host.address}:${config.port}');
           return await io.serve(handlers, host, config.port);
         } on SocketException catch (e) {
           errorMessage = e.message;
@@ -225,18 +306,21 @@ class DartRuntimeService {
     _server = server;
     _uri = Uri(
       scheme: 'ws',
-      host: host,
+      host: host.address,
       port: server.port,
       path: authCode != null ? '/$authCode' : '',
     );
     await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
     _logger.info(
-      'Dart Runtime Service HTTP server started successfully and is listening '
-      'at $uri.',
+      'Dart Runtime Service HTTP server started successfully and is '
+      'listening at $uri.',
     );
   }
 
-  Future<void> _shutdownServer() async {
+  Future<void> _shutdownServer() =>
+      _serverLock.withResource(_shutdownServerLocked);
+
+  Future<void> _shutdownServerLocked() async {
     final server = _server;
     if (server == null) {
       _logger.warning(
@@ -248,11 +332,13 @@ class DartRuntimeService {
     _logger.info('Dart Runtime Service HTTP server is shutting down.');
     _server = null;
     _uri = null;
-    await server.close();
+    await server.close(force: true);
+    _logger.info('Dart Runtime Service HTTP server is closed.');
+    await backend.onServerShutdown();
   }
 
   /// Send a [StreamEvent] to subscribed clients.
-  void sendEvent({required StreamEvent event}) {
+  void sendEvent({required StreamEventBase event}) {
     event.send(eventStreamMethods: eventStreamManager);
   }
 

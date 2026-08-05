@@ -22,12 +22,10 @@ namespace dart {
 class Snapshot {
  public:
   enum Kind {
-    kFull,      // Full snapshot of an application.
-    kFullCore,  // Full snapshot of core libraries.
-    kFullJIT,   // Full + JIT code
-    kFullAOT,   // Full + AOT code
-    kModule,    // Module snapshot with code.
-    kNone,      // gen_snapshot
+    kFull,     // Full
+    kFullJIT,  // Full + JIT code
+    kFullAOT,  // Full + AOT code
+    kModule,   // Module snapshot with code.
     kInvalid
   };
   static const char* KindToCString(Kind kind);
@@ -62,8 +60,7 @@ class Snapshot {
   void set_kind(Kind value) { return Write<int64_t>(kKindOffset, value); }
 
   static bool IsFull(Kind kind) {
-    return (kind == kFull) || (kind == kFullCore) || (kind == kFullJIT) ||
-           (kind == kFullAOT);
+    return (kind == kFull) || (kind == kFullJIT) || (kind == kFullAOT);
   }
   static bool IncludesCode(Kind kind) {
     return (kind == kFullJIT) || (kind == kFullAOT) || (kind == kModule);
@@ -105,15 +102,6 @@ class Snapshot {
 
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
 };
-
-inline static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
-                                        Snapshot::Kind isolate_kind) {
-  if (vm_kind == isolate_kind) return true;
-  if (((vm_kind == Snapshot::kFull) || (vm_kind == Snapshot::kFullCore)) &&
-      isolate_kind == Snapshot::kFullJIT)
-    return true;
-  return Snapshot::IsFull(isolate_kind);
-}
 
 class SerializedObjectBuffer : public StackResource {
  public:

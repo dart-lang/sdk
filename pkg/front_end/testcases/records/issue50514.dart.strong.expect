@@ -3,12 +3,12 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/records/issue50514.dart:9:11: Error: Constant evaluation error:
-// test() => const <Record>{
+// test() => const <Record>{const (1, 2, A()), const (1, 2, A())};
 //           ^
-// pkg/front_end/testcases/records/issue50514.dart:11:9: Context: The element '(1, 2, A {})' conflicts with another existing element in the set.
+// pkg/front_end/testcases/records/issue50514.dart:9:51: Context: The element '(1, 2, A {})' conflicts with another existing element in the set.
 //  - 'A' is from 'pkg/front_end/testcases/records/issue50514.dart'.
-//   const (1, 2, A())
-//         ^
+// test() => const <Record>{const (1, 2, A()), const (1, 2, A())};
+//                                                   ^
 //
 import self as self;
 import "dart:core" as core;

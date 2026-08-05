@@ -31,9 +31,8 @@ RunDetails copyData(
   }
 
   // Write analysis_options.
-  File.fromUri(
-    packageDirUri.resolve('analysis_options.yaml'),
-  ).writeAsStringSync('''
+  File.fromUri(packageDirUri.resolve('analysis_options.yaml'))
+      .writeAsStringSync('''
 analyzer:
   errors:
     todo: ignore
@@ -163,9 +162,8 @@ environment:
     var pluginLibDir = Directory.fromUri(
       outerDirForAdditionalData.resolve('plugin/lib/'),
     )..createSync(recursive: true);
-    File.fromUri(
-      pluginLibDir.uri.resolve('benchmark_helper_plugin.dart'),
-    ).writeAsStringSync('');
+    File.fromUri(pluginLibDir.uri.resolve('benchmark_helper_plugin.dart'))
+        .writeAsStringSync('');
 
     // tools/analyzer_plugin/bin/plugin.dart
     var dir = Directory.fromUri(
@@ -195,9 +193,8 @@ dependencies:
     pubGetIn(packageDirUri.path);
 
     // Write analysis_options enabling the plugin.
-    File.fromUri(
-      packageDirUri.resolve('analysis_options.yaml'),
-    ).writeAsStringSync('''
+    File.fromUri(packageDirUri.resolve('analysis_options.yaml'))
+        .writeAsStringSync('''
 analyzer:
   errors:
     todo: ignore
@@ -252,7 +249,7 @@ class FileContentPair {
   final Uri uri;
   final String content;
 
-  FileContentPair(this.uri, this.content);
+  new(this.uri, this.content);
 }
 
 class RunDetails {
@@ -265,7 +262,7 @@ class RunDetails {
   final List<FileContentPair> orderedFileCopies;
   final int numFiles;
 
-  RunDetails({
+  new({
     required this.libDirUri,
     required this.mainFile,
     required this.mainFileTypingContent,

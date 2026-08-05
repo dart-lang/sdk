@@ -51,7 +51,7 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  Map<String, List<Folder>>? get packageMap {
+  Map<String, Folder>? get packageMap {
     for (var resolver in resolvers) {
       if (resolver is PackageMapUriResolver) {
         return resolver.packageMap;

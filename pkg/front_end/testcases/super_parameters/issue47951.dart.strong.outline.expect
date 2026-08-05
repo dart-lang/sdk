@@ -7,9 +7,9 @@ class A extends core::Object {
     ;
 }
 class B extends self::A {
-  constructor sub1(core::int a1) → self::B
+  constructor sub1(super-initializing-formal core::int a1) → self::B
     ;
-  constructor sub2(core::double a2) → self::B
+  constructor sub2(super-initializing-formal core::double a2) → self::B
     ;
 }
 static method main() → dynamic

@@ -6,7 +6,7 @@ extension type ET10({required String it});
 
 extension type ET11({required final List<int> it});
 
-extension type ET2([int?it]);
+extension type ET2([int? it]);
 
 extension type ET3([final bool? it]);
 

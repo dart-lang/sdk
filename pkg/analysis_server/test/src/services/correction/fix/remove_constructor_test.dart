@@ -105,6 +105,24 @@ extension E on int {
 }
 ''');
   }
+
+  Future<void> test_primaryConstructor() async {
+    await resolveTestCode('''
+extension E() on int;
+''');
+    await assertHasFix('''
+extension E on int;
+''');
+  }
+
+  Future<void> test_primaryConstructor_withTypeParameters() async {
+    await resolveTestCode('''
+extension E<T>() on int;
+''');
+    await assertHasFix('''
+extension E<T> on int;
+''');
+  }
 }
 
 @reflectiveTest
@@ -195,6 +213,51 @@ mixin M {
     await assertHasFix('''
 mixin M {
 }
+''');
+  }
+
+  Future<void> test_primaryConstructor_emptyBody() async {
+    await resolveTestCode('''
+mixin M() {}
+''');
+    await assertHasFix('''
+mixin M {}
+''');
+  }
+
+  Future<void> test_primaryConstructor_implements() async {
+    await resolveTestCode('''
+mixin M() implements Object {}
+''');
+    await assertHasFix('''
+mixin M implements Object {}
+''');
+  }
+
+  Future<void> test_primaryConstructor_semicolon() async {
+    await resolveTestCode('''
+mixin M();
+''');
+    await assertHasFix('''
+mixin M;
+''');
+  }
+
+  Future<void> test_primaryConstructor_withOnClause() async {
+    await resolveTestCode('''
+mixin M() on Object {}
+''');
+    await assertHasFix('''
+mixin M on Object {}
+''');
+  }
+
+  Future<void> test_primaryConstructor_withTypeParameters() async {
+    await resolveTestCode('''
+mixin M<T>() {}
+''');
+    await assertHasFix('''
+mixin M<T> {}
 ''');
   }
 }

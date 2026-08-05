@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import "loading_unit_root_has_only_export_lib1.dart" deferred as lib;
 
 main() async {

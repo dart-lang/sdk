@@ -13,6 +13,7 @@ import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 
@@ -825,7 +826,7 @@ part 'c.dart';
   test_getResolvedLibraryContaining_library() async {
     var a = newFile('$testPackageLibPath/a.dart', '');
     var currentSession = contextFor(a).currentSession;
-    var filePath = a.toUri().toFilePath();
+    var filePath = a.path;
     var result = await currentSession.getResolvedLibraryContaining(filePath);
     var units = (result as ResolvedLibraryResult).units;
     var paths = units.map((unit) => unit.path);
@@ -840,7 +841,7 @@ part 'part.dart';
 part of 'lib.dart';
 ''');
     var currentSession = contextFor(part).currentSession;
-    var filePath = part.toUri().toFilePath();
+    var filePath = part.path;
     var result = await currentSession.getResolvedLibraryContaining(filePath);
     var units = (result as ResolvedLibraryResult).units;
     var paths = units.map((unit) => unit.path);
@@ -859,7 +860,7 @@ part 'part_part.dart';
 part of 'part.dart';
 ''');
     var currentSession = contextFor(partPart).currentSession;
-    var filePath = partPart.toUri().toFilePath();
+    var filePath = partPart.path;
     var result = await currentSession.getResolvedLibraryContaining(filePath);
     var units = (result as ResolvedLibraryResult).units;
     var paths = units.map((unit) => unit.path);
@@ -914,7 +915,7 @@ unitElementResult
   path: /home/test/lib/test.dart
   uri: package:test/test.dart
   element
-    library: root::package:test/test.dart
+    library: package:test/test.dart
     classes: A, B
 ''');
   }
@@ -935,7 +936,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/test.dart
+    library: package:test/test.dart
     classes: A, B
 ''');
   }
@@ -952,7 +953,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/a.dart
+    library: package:test/a.dart
     classes: A, B
 ''');
   }
@@ -974,7 +975,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/test.dart
+    library: package:test/test.dart
     classes: A, B
 ''');
   }
@@ -991,7 +992,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/a.dart
+    library: package:test/a.dart
     classes: A, B
 ''');
   }
@@ -1008,7 +1009,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/a.dart
+    library: package:test/a.dart
     classes: A, B
 ''');
   }
@@ -1030,11 +1031,12 @@ unitElementResult
   void _assertUnitElementResultText(UnitElementResult result, String expected) {
     var actual = _getElementUnitResultText(result);
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   String _getElementUnitResultText(UnitElementResult result) {

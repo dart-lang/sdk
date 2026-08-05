@@ -1208,6 +1208,14 @@ class _Cookie implements Cookie {
         // An extension-av, which is not validated or processed.
       }
     }
+
+    // RFC-6265bis currently requires SameSite=None cookies to carry the
+    // Secure attribute.
+    if (sameSite == SameSite.none && !secure) {
+      throw HttpException(
+        "Cookie with 'SameSite=None' must also have the 'Secure' attribute.",
+      );
+    }
   }
 
   String toString() {

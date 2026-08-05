@@ -930,8 +930,8 @@ class AnalysisDriverUnitIndexBuilder extends Object
   List<String>? _strings;
   List<AnalysisDriverSubtypeBuilder>? _subtypes;
   List<int>? _supertypes;
-  List<int>? _unitLibraryUris;
-  List<int>? _unitUnitUris;
+  List<int>? _unitLibraryPaths;
+  List<int>? _unitUnitPaths;
   List<bool>? _usedElementIsQualifiedFlags;
   List<idl.IndexRelationKind>? _usedElementKinds;
   List<int>? _usedElementLengths;
@@ -1005,7 +1005,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   List<int> get elementUnits => _elementUnits ??= <int>[];
 
   /// Each item of this list corresponds to a unique referenced element.  It is
-  /// the index into [unitLibraryUris] and [unitUnitUris] for the library
+  /// the index into [unitLibraryPaths] and [unitUnitPaths] for the library
   /// specific unit where the element is declared.
   set elementUnits(List<int> value) {
     assert(value.every((e) => e >= 0));
@@ -1017,7 +1017,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
 
   /// Support for indexing `part` and `part of` directives.
   ///
-  /// This is the index into [unitLibraryUris] and [unitUnitUris].
+  /// This is the index into [unitLibraryPaths] and [unitUnitPaths].
   /// This is the library fragment referenced by the directive.
   set libFragmentRefTargets(List<int> value) {
     assert(value.every((e) => e >= 0));
@@ -1089,25 +1089,25 @@ class AnalysisDriverUnitIndexBuilder extends Object
   }
 
   @override
-  List<int> get unitLibraryUris => _unitLibraryUris ??= <int>[];
+  List<int> get unitLibraryPaths => _unitLibraryPaths ??= <int>[];
 
-  /// Each item of this list corresponds to the library URI of a unique library
+  /// Each item of this list corresponds to the library path of a unique library
   /// specific unit referenced in the index.  It is an index into [strings]
   /// list.
-  set unitLibraryUris(List<int> value) {
+  set unitLibraryPaths(List<int> value) {
     assert(value.every((e) => e >= 0));
-    this._unitLibraryUris = value;
+    this._unitLibraryPaths = value;
   }
 
   @override
-  List<int> get unitUnitUris => _unitUnitUris ??= <int>[];
+  List<int> get unitUnitPaths => _unitUnitPaths ??= <int>[];
 
-  /// Each item of this list corresponds to the unit URI of a unique library
+  /// Each item of this list corresponds to the unit path of a unique library
   /// specific unit referenced in the index.  It is an index into [strings]
   /// list.
-  set unitUnitUris(List<int> value) {
+  set unitUnitPaths(List<int> value) {
     assert(value.every((e) => e >= 0));
-    this._unitUnitUris = value;
+    this._unitUnitPaths = value;
   }
 
   @override
@@ -1214,8 +1214,8 @@ class AnalysisDriverUnitIndexBuilder extends Object
     List<String>? strings,
     List<AnalysisDriverSubtypeBuilder>? subtypes,
     List<int>? supertypes,
-    List<int>? unitLibraryUris,
-    List<int>? unitUnitUris,
+    List<int>? unitLibraryPaths,
+    List<int>? unitUnitPaths,
     List<bool>? usedElementIsQualifiedFlags,
     List<idl.IndexRelationKind>? usedElementKinds,
     List<int>? usedElementLengths,
@@ -1238,8 +1238,8 @@ class AnalysisDriverUnitIndexBuilder extends Object
        _strings = strings,
        _subtypes = subtypes,
        _supertypes = supertypes,
-       _unitLibraryUris = unitLibraryUris,
-       _unitUnitUris = unitUnitUris,
+       _unitLibraryPaths = unitLibraryPaths,
+       _unitUnitPaths = unitUnitPaths,
        _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
        _usedElementKinds = usedElementKinds,
        _usedElementLengths = usedElementLengths,
@@ -1267,21 +1267,21 @@ class AnalysisDriverUnitIndexBuilder extends Object
       }
     }
     signatureSink.addInt(this._nullStringId ?? 0);
-    var unitLibraryUris = this._unitLibraryUris;
-    if (unitLibraryUris == null) {
+    var unitLibraryPaths = this._unitLibraryPaths;
+    if (unitLibraryPaths == null) {
       signatureSink.addInt(0);
     } else {
-      signatureSink.addInt(unitLibraryUris.length);
-      for (var x in unitLibraryUris) {
+      signatureSink.addInt(unitLibraryPaths.length);
+      for (var x in unitLibraryPaths) {
         signatureSink.addInt(x);
       }
     }
-    var unitUnitUris = this._unitUnitUris;
-    if (unitUnitUris == null) {
+    var unitUnitPaths = this._unitUnitPaths;
+    if (unitUnitPaths == null) {
       signatureSink.addInt(0);
     } else {
-      signatureSink.addInt(unitUnitUris.length);
-      for (var x in unitUnitUris) {
+      signatureSink.addInt(unitUnitPaths.length);
+      for (var x in unitUnitPaths) {
         signatureSink.addInt(x);
       }
     }
@@ -1485,8 +1485,8 @@ class AnalysisDriverUnitIndexBuilder extends Object
     fb.Offset? offset_strings;
     fb.Offset? offset_subtypes;
     fb.Offset? offset_supertypes;
-    fb.Offset? offset_unitLibraryUris;
-    fb.Offset? offset_unitUnitUris;
+    fb.Offset? offset_unitLibraryPaths;
+    fb.Offset? offset_unitUnitPaths;
     fb.Offset? offset_usedElementIsQualifiedFlags;
     fb.Offset? offset_usedElementKinds;
     fb.Offset? offset_usedElementLengths;
@@ -1568,13 +1568,13 @@ class AnalysisDriverUnitIndexBuilder extends Object
     if (!(supertypes == null || supertypes.isEmpty)) {
       offset_supertypes = fbBuilder.writeListUint32(supertypes);
     }
-    var unitLibraryUris = _unitLibraryUris;
-    if (!(unitLibraryUris == null || unitLibraryUris.isEmpty)) {
-      offset_unitLibraryUris = fbBuilder.writeListUint32(unitLibraryUris);
+    var unitLibraryPaths = _unitLibraryPaths;
+    if (!(unitLibraryPaths == null || unitLibraryPaths.isEmpty)) {
+      offset_unitLibraryPaths = fbBuilder.writeListUint32(unitLibraryPaths);
     }
-    var unitUnitUris = _unitUnitUris;
-    if (!(unitUnitUris == null || unitUnitUris.isEmpty)) {
-      offset_unitUnitUris = fbBuilder.writeListUint32(unitUnitUris);
+    var unitUnitPaths = _unitUnitPaths;
+    if (!(unitUnitPaths == null || unitUnitPaths.isEmpty)) {
+      offset_unitUnitPaths = fbBuilder.writeListUint32(unitUnitPaths);
     }
     var usedElementIsQualifiedFlags = _usedElementIsQualifiedFlags;
     if (!(usedElementIsQualifiedFlags == null ||
@@ -1660,11 +1660,11 @@ class AnalysisDriverUnitIndexBuilder extends Object
     if (offset_supertypes != null) {
       fbBuilder.addOffset(18, offset_supertypes);
     }
-    if (offset_unitLibraryUris != null) {
-      fbBuilder.addOffset(2, offset_unitLibraryUris);
+    if (offset_unitLibraryPaths != null) {
+      fbBuilder.addOffset(2, offset_unitLibraryPaths);
     }
-    if (offset_unitUnitUris != null) {
-      fbBuilder.addOffset(3, offset_unitUnitUris);
+    if (offset_unitUnitPaths != null) {
+      fbBuilder.addOffset(3, offset_unitUnitPaths);
     }
     if (offset_usedElementIsQualifiedFlags != null) {
       fbBuilder.addOffset(13, offset_usedElementIsQualifiedFlags);
@@ -1732,8 +1732,8 @@ class _AnalysisDriverUnitIndexImpl extends Object
   List<String>? _strings;
   List<idl.AnalysisDriverSubtype>? _subtypes;
   List<int>? _supertypes;
-  List<int>? _unitLibraryUris;
-  List<int>? _unitUnitUris;
+  List<int>? _unitLibraryPaths;
+  List<int>? _unitUnitPaths;
   List<bool>? _usedElementIsQualifiedFlags;
   List<idl.IndexRelationKind>? _usedElementKinds;
   List<int>? _usedElementLengths;
@@ -1863,8 +1863,8 @@ class _AnalysisDriverUnitIndexImpl extends Object
   }
 
   @override
-  List<int> get unitLibraryUris {
-    return _unitLibraryUris ??= const fb.Uint32ListReader().vTableGet(
+  List<int> get unitLibraryPaths {
+    return _unitLibraryPaths ??= const fb.Uint32ListReader().vTableGet(
       _bc,
       _bcOffset,
       2,
@@ -1873,8 +1873,8 @@ class _AnalysisDriverUnitIndexImpl extends Object
   }
 
   @override
-  List<int> get unitUnitUris {
-    return _unitUnitUris ??= const fb.Uint32ListReader().vTableGet(
+  List<int> get unitUnitPaths {
+    return _unitUnitPaths ??= const fb.Uint32ListReader().vTableGet(
       _bc,
       _bcOffset,
       3,
@@ -2027,13 +2027,13 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     if (local_supertypes.isNotEmpty) {
       result["supertypes"] = local_supertypes;
     }
-    var local_unitLibraryUris = unitLibraryUris;
-    if (local_unitLibraryUris.isNotEmpty) {
-      result["unitLibraryUris"] = local_unitLibraryUris;
+    var local_unitLibraryPaths = unitLibraryPaths;
+    if (local_unitLibraryPaths.isNotEmpty) {
+      result["unitLibraryPaths"] = local_unitLibraryPaths;
     }
-    var local_unitUnitUris = unitUnitUris;
-    if (local_unitUnitUris.isNotEmpty) {
-      result["unitUnitUris"] = local_unitUnitUris;
+    var local_unitUnitPaths = unitUnitPaths;
+    if (local_unitUnitPaths.isNotEmpty) {
+      result["unitUnitPaths"] = local_unitUnitPaths;
     }
     var local_usedElementIsQualifiedFlags = usedElementIsQualifiedFlags;
     if (local_usedElementIsQualifiedFlags.isNotEmpty) {
@@ -2093,8 +2093,8 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     "strings": strings,
     "subtypes": subtypes,
     "supertypes": supertypes,
-    "unitLibraryUris": unitLibraryUris,
-    "unitUnitUris": unitUnitUris,
+    "unitLibraryPaths": unitLibraryPaths,
+    "unitUnitPaths": unitUnitPaths,
     "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
     "usedElementKinds": usedElementKinds,
     "usedElementLengths": usedElementLengths,

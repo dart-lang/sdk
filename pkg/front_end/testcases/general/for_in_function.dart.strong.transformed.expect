@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method call() → void {
+    core::print("A");
+  }
+}
+static method main() → dynamic {
+  {
+    synthesized core::Iterator<self::A> :sync-for-iterator = core::_GrowableList::_literal1<self::A>(new self::A::•()).{core::Iterable::iterator}{core::Iterator<self::A>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final self::A #t1 = :sync-for-iterator.{core::Iterator::current}{self::A};
+      {
+        () → void e = let final self::A #t2 = #t1 in #t2 == null ?{() → void} null : #t2.{self::A::call}{() → void};
+        e(){() → void};
+      }
+    }
+  }
+}

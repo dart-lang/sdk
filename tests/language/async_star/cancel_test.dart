@@ -121,28 +121,29 @@ main() {
       }
     }
 
-    return fugl(
-      3,
-    ).whenComplete(() => fugl(2)).whenComplete(() => fugl(1)).whenComplete(() {
-      expect(res, [
-        'fisk 3',
-        '+fisk',
-        0,
-        1,
-        '-fisk',
-        'done',
-        'fisk 2',
-        '+fisk',
-        0,
-        1,
-        '-fisk',
-        'done',
-        'fisk 1',
-        '+fisk',
-        0,
-        '-fisk',
-        'done',
-      ]);
-    });
+    return fugl(3)
+        .whenComplete(() => fugl(2))
+        .whenComplete(() => fugl(1))
+        .whenComplete(() {
+          expect(res, [
+            'fisk 3',
+            '+fisk',
+            0,
+            1,
+            '-fisk',
+            'done',
+            'fisk 2',
+            '+fisk',
+            0,
+            1,
+            '-fisk',
+            'done',
+            'fisk 1',
+            '+fisk',
+            0,
+            '-fisk',
+            'done',
+          ]);
+        });
   });
 }

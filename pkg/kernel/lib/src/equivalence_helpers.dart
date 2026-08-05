@@ -6,7 +6,7 @@ part of 'equivalence.dart';
 
 /// The node or property currently visited by the [EquivalenceVisitor].
 abstract class State {
-  const State();
+  const new();
 
   State? get parent;
 }
@@ -18,7 +18,7 @@ class NodeState extends State {
   final Node a;
   final Node b;
 
-  NodeState(this.a, this.b, [this.parent]);
+  new(this.a, this.b, [this.parent]);
 }
 
 /// State for visiting an AST property in [EquivalenceVisitor]
@@ -27,7 +27,7 @@ class PropertyState extends State {
   final State? parent;
   final String name;
 
-  PropertyState(this.name, [this.parent]);
+  new(this.name, [this.parent]);
 }
 
 /// The state of the equivalence visitor.
@@ -38,7 +38,7 @@ class CheckingState {
   /// If `true`, inequivalences are currently reported.
   final bool isAsserting;
 
-  CheckingState({
+  new({
     this.isAsserting = true,
     UnionFind<Reference>? assumedReferences,
     State? currentState,
@@ -149,10 +149,7 @@ class EquivalenceResult {
   final bool hasInequivalences;
   final List<Inequivalence> registeredInequivalences;
 
-  EquivalenceResult({
-    this.hasInequivalences = false,
-    required this.registeredInequivalences,
-  });
+  new({this.hasInequivalences = false, required this.registeredInequivalences});
 
   bool get isEquivalent =>
       !hasInequivalences && registeredInequivalences.isEmpty;
@@ -173,7 +170,7 @@ class Inequivalence {
   final State state;
   final String message;
 
-  Inequivalence(this.state, this.message);
+  new(this.state, this.message);
 
   @override
   String toString() {
@@ -251,12 +248,9 @@ class ReferenceName {
   final String? name;
   final String? uri;
 
-  ReferenceName.internal(this.kind, this.name, {this.parent, this.uri});
+  new internal(this.kind, this.name, {this.parent, this.uri});
 
-  factory ReferenceName.fromNamedNode(
-    NamedNode node, [
-    ReferenceNameKind? memberKind,
-  ]) {
+  factory fromNamedNode(NamedNode node, [ReferenceNameKind? memberKind]) {
     if (node is Library) {
       return new ReferenceName.internal(
         ReferenceNameKind.Library,
@@ -340,7 +334,7 @@ class ReferenceName {
     }
   }
 
-  factory ReferenceName.fromCanonicalName(CanonicalName canonicalName) {
+  factory fromCanonicalName(CanonicalName canonicalName) {
     List<CanonicalName> parents = [];
     CanonicalName? parent = canonicalName;
     while (parent != null) {

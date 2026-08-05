@@ -20,12 +20,7 @@ import 'package:pub_semver/pub_semver.dart';
 class EditFormatIfEnabledHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditFormatIfEnabledHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   /// Format the given [file] with the given [languageVersion].
   ///

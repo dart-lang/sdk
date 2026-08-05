@@ -27,6 +27,7 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// How broadly a [CorrectionProducer] can be applied.
@@ -520,23 +521,33 @@ abstract class ResolvedCorrectionProducer
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
     var parent = expression.parent;
+    if (parent is NamedArgument && parent.argumentExpression == expression) {
+      return parent.correspondingParameter?.type;
+    }
+    RecordLiteralNamedField? namedField;
     // `(myFunction(),)` or `(name: myFunction())`.
-    if (parent case NamedExpression(parent: var grandParent) && var named) {
-      parent = grandParent;
-      expression = named;
+    if (parent is RecordLiteralNamedField) {
+      namedField = parent;
+      parent = parent.parent;
     }
     if (parent is RecordLiteral) {
       var recordType = inferUndefinedExpressionType(parent);
       if (recordType is RecordType) {
-        if (expression case NamedExpression named) {
+        if (namedField != null) {
+          var name = namedField.name;
           return recordType.namedFields
-              .firstWhere((field) => field.name == named.name.label.name)
-              .type;
+              .firstWhereOrNull((field) => field.name == name.lexeme)
+              ?.type;
         } else {
-          var index = parent.fields.indexed
-              .firstWhere((record) => record.$2 == expression)
-              .$1;
-          return recordType.positionalFields[index].type;
+          var index = parent.fields
+              .whereType<Expression>()
+              .indexed
+              .firstWhereOrNull((record) => record.$2 == expression)
+              ?.$1;
+          if (index != null && index < recordType.positionalFields.length) {
+            return recordType.positionalFields[index].type;
+          }
+          return null;
         }
       }
     }
@@ -562,7 +573,7 @@ abstract class ResolvedCorrectionProducer
         if (type is InterfaceType && type.isDartCoreFunction) {
           return FunctionTypeImpl(
             typeParameters: const [],
-            parameters: const [],
+            formalParameters: const [],
             returnType: DynamicTypeImpl.instance,
             nullabilitySuffix: NullabilitySuffix.none,
           );
@@ -588,6 +599,9 @@ abstract class ResolvedCorrectionProducer
           return type;
         }
       }
+    }
+    if (parent is PatternVariableDeclaration) {
+      return parent.pattern.type(typeProvider, typeSystem);
     }
     if (parent is AssignmentExpression) {
       var assignment = parent;
@@ -676,6 +690,9 @@ abstract class ResolvedCorrectionProducer
       if (parent is IfStatement) {
         var statement = parent;
         if (statement.expression == expression) {
+          if (statement.caseClause case var clause?) {
+            return clause.guardedPattern.pattern.type(typeProvider, typeSystem);
+          }
           return _coreTypeBool;
         }
       }
@@ -746,7 +763,7 @@ abstract class ResolvedCorrectionProducer
               :var type,
               parent: var statement,
             ) when iterable == expression) {
-      var inferredType = type ?? typeProvider.objectQuestionType;
+      var inferredType = type(typeProvider, typeSystem);
       if (statement.awaitKeyword != null) {
         return typeProvider.streamType(inferredType);
       }
@@ -900,6 +917,10 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     if (method != null) {
       return method.body;
     }
+    var constructorBody = node.thisOrAncestorOfType<PrimaryConstructorBody>();
+    if (constructorBody != null) {
+      return constructorBody.body;
+    }
     return null;
   }
 
@@ -947,15 +968,190 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 }
 
 extension on ForEachParts {
-  DartType? get type {
+  DartType type(TypeProvider typeProvider, TypeSystem typeSystem) {
     return switch (this) {
-      ForEachPartsWithDeclaration(
-        loopVariable: DeclaredIdentifier(type: TypeAnnotation(:var type)),
-      ) ||
-      ForEachPartsWithIdentifier(
-        identifier: Identifier(staticType: var type),
-      ) => type,
-      _ => null,
+          ForEachPartsWithDeclaration(
+            loopVariable: DeclaredIdentifier(type: TypeAnnotation(:var type)),
+          ) ||
+          ForEachPartsWithIdentifier(
+            identifier: Identifier(staticType: var type),
+          ) => type,
+          ForEachPartsWithPattern(:var pattern) => pattern.type(
+            typeProvider,
+            typeSystem,
+          ),
+          _ => null,
+        } ??
+        typeProvider.objectQuestionType;
+  }
+}
+
+extension on DartPattern {
+  DartType type(TypeProvider typeProvider, TypeSystem typeSystem) {
+    DartType? resultType = switch (this) {
+      ObjectPattern(:var type) => type.type,
+      RecordPattern(:var fields) => fields.recordType(typeProvider, typeSystem),
+      DeclaredVariablePattern(:var type) => type?.type,
+      AssignedVariablePattern(:var element) => switch (element) {
+        FormalParameterElement(:var type) => type,
+        LocalVariableElement(:var type) => type,
+        _ => null, // Not valid code.
+      },
+      ParenthesizedPattern(:var pattern) => RecordTypeImpl(
+        positionalFields: [
+          RecordTypePositionalFieldImpl(
+            type: pattern.type(typeProvider, typeSystem),
+          ),
+        ],
+        namedFields: const [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+      ConstantPattern(:var expression) => expression.staticType,
+      NullCheckPattern(:var pattern) || NullAssertPattern(:var pattern) =>
+        pattern
+            .type(typeProvider, typeSystem)
+            .withNullability(NullabilitySuffix.question),
+      RelationalPattern(:var operand) => operand.staticType,
+      WildcardPattern(:var type) => type?.type,
+      CastPattern(:var type) => type.type,
+      MapPattern(:var mapType) => mapType(typeProvider, typeSystem),
+      ListPattern(:var listType) => listType(typeProvider, typeSystem),
+      LogicalOrPattern(:var leftOperand, :var rightOperand) =>
+        typeSystem.leastUpperBound(
+          leftOperand.type(typeProvider, typeSystem),
+          rightOperand.type(typeProvider, typeSystem),
+        ),
+      LogicalAndPattern(:var leftOperand, :var rightOperand) =>
+        typeSystem.greatestLowerBound(
+          leftOperand.type(typeProvider, typeSystem),
+          rightOperand.type(typeProvider, typeSystem),
+        ),
     };
+    if (resultType == null || resultType is InvalidType) {
+      resultType = typeProvider.objectQuestionType;
+    }
+    return resultType;
+  }
+}
+
+extension on MapPattern {
+  DartType mapType(TypeProvider typeProvider, TypeSystem typeSystem) {
+    if (typeArguments case var typeArgs?) {
+      return typeProvider.mapType(
+        typeArgs.arguments.first.type ?? typeProvider.objectQuestionType,
+        typeArgs.arguments.last.type ?? typeProvider.objectQuestionType,
+      );
+    }
+    DartType? keyType;
+    DartType? valueType;
+    late List<DartType> mapTypes = [];
+    for (var element in elements) {
+      switch (element) {
+        case MapPatternEntry(:var key, :var value):
+          if (keyType != null) {
+            keyType = typeSystem.leastUpperBound(
+              keyType,
+              key.staticType ?? typeProvider.objectQuestionType,
+            );
+          }
+          keyType ??= key.staticType ?? typeProvider.objectQuestionType;
+          if (valueType != null) {
+            valueType = typeSystem.leastUpperBound(
+              valueType,
+              value.type(typeProvider, typeSystem),
+            );
+          }
+          valueType ??= value.type(typeProvider, typeSystem);
+        case RestPatternElement():
+          // These are invalid in map patterns.
+          break;
+      }
+    }
+    if (elements.isEmpty || keyType == null) {
+      keyType = typeProvider.objectQuestionType;
+    }
+    if (elements.isEmpty || valueType == null) {
+      valueType = typeProvider.objectQuestionType;
+    }
+    DartType calculatedMapType = typeProvider.mapType(keyType, valueType);
+    if (mapTypes.isNotEmpty) {
+      for (var mapType in mapTypes) {
+        calculatedMapType = typeSystem.leastUpperBound(
+          calculatedMapType,
+          mapType,
+        );
+      }
+    }
+    return calculatedMapType;
+  }
+}
+
+extension on ListPattern {
+  DartType listType(TypeProvider typeProvider, TypeSystem typeSystem) {
+    if (typeArguments case var typeArgs?) {
+      return typeProvider.listType(
+        typeArgs.arguments.first.type ?? typeProvider.objectQuestionType,
+      );
+    }
+    DartType elementType = typeProvider.dynamicType;
+    late List<DartType> listTypes = [];
+    for (var element in elements) {
+      switch (element) {
+        case DartPattern pattern:
+          elementType = typeSystem.leastUpperBound(
+            elementType,
+            pattern.type(typeProvider, typeSystem),
+          );
+        case RestPatternElement(:var pattern):
+          if (pattern != null) {
+            listTypes.add(pattern.type(typeProvider, typeSystem));
+          }
+        default:
+          break;
+      }
+    }
+    DartType calculatedListType = typeProvider.listType(elementType);
+    if (listTypes.isNotEmpty) {
+      for (var listType in listTypes) {
+        calculatedListType = typeSystem.leastUpperBound(
+          calculatedListType,
+          listType,
+        );
+      }
+    }
+    return calculatedListType;
+  }
+}
+
+extension on DartType {
+  DartType withNullability(NullabilitySuffix nullabilitySuffix) {
+    var self = this;
+    if (self is TypeImpl) {
+      return self.withNullability(nullabilitySuffix);
+    }
+    return self;
+  }
+}
+
+extension on NodeList<PatternField> {
+  RecordTypeImpl recordType(TypeProvider typeProvider, TypeSystem typeSystem) {
+    return RecordTypeImpl(
+      positionalFields: [
+        for (var field in this)
+          if (field.name is! PatternFieldName)
+            RecordTypePositionalFieldImpl(
+              type: field.pattern.type(typeProvider, typeSystem),
+            ),
+      ],
+      namedFields: [
+        for (var field in this)
+          if (field.name case PatternFieldName(:var name))
+            RecordTypeNamedFieldImpl(
+              name: name?.lexeme ?? field.effectiveName ?? '',
+              type: field.pattern.type(typeProvider, typeSystem),
+            ),
+      ],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 }

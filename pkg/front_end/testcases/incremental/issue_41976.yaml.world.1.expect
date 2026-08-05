@@ -15,7 +15,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
   }
   class ValueKey extends dart.core::Object implements foo::LocalKey /*hasConstConstructor*/  {
     final field dart.core::String value;
-    const constructor •(dart.core::String value) → foo::ValueKey
+    const constructor •(initializing-formal dart.core::String value) → foo::ValueKey
       : foo::ValueKey::value = value, super dart.core::Object::•()
       ;
   }

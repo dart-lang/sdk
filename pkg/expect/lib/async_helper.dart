@@ -50,8 +50,10 @@ Exception _buildException(String msg) {
 void asyncStart([int count = 1]) {
   if (count <= 0) return;
   if (_initialized && _asyncLevel == 0) {
-    throw _buildException('asyncStart() was called even though we are done '
-        'with testing.');
+    throw _buildException(
+      'asyncStart() was called even though we are done '
+      'with testing.',
+    );
   }
   if (!_initialized) {
     print('unittest-suite-wait-for-done');
@@ -66,8 +68,10 @@ void asyncEnd() {
     if (!_initialized) {
       throw _buildException('asyncEnd() was called before asyncStart().');
     } else {
-      throw _buildException('asyncEnd() was called more often than '
-          'asyncStart().');
+      throw _buildException(
+        'asyncEnd() was called more often than '
+        'asyncStart().',
+      );
     }
   }
   _asyncLevel--;
@@ -114,8 +118,10 @@ Future<void> asyncTest(Future<void> Function() test) {
 /// ```
 /// If `result` completes with an [ExpectException] error from another
 /// failed test expectation, that error cannot be caught and accepted.
-Future<T> asyncExpectThrows<T extends Object>(Future<void> result,
-    [String reason = ""]) {
+Future<T> asyncExpectThrows<T extends Object>(
+  Future<void> result, [
+  String reason = "",
+]) {
   // Delay computing the header text until the test has failed.
   // The header computation uses complicated language features,
   // and language tests should avoid doing complicated things
@@ -138,21 +144,25 @@ Future<T> asyncExpectThrows<T extends Object>(Future<void> result,
   // ExpectException since that won't work.
 
   asyncStart();
-  return result.then<T>((_) {
-    throw ExpectException("${header()} Did not throw.");
-  }, onError: (error, stack) {
-    // A test failure doesn't count as throwing. Rethrow it.
-    if (error is ExpectException) throw error;
+  return result.then<T>(
+    (_) {
+      throw ExpectException("${header()} Did not throw.");
+    },
+    onError: (error, stack) {
+      // A test failure doesn't count as throwing. Rethrow it.
+      if (error is ExpectException) throw error;
 
-    if (error is! T) {
-      // Throws something unexpected.
-      throw ExpectException(
-          "${header()} Unexpected '${Error.safeToString(error)}'\n$stack");
-    }
+      if (error is! T) {
+        // Throws something unexpected.
+        throw ExpectException(
+          "${header()} Unexpected '${Error.safeToString(error)}'\n$stack",
+        );
+      }
 
-    asyncEnd();
-    return error;
-  });
+      asyncEnd();
+      return error;
+    },
+  );
 }
 
 /// Checks that the asynchronous [result] throws a [T] if and only if
@@ -161,8 +171,10 @@ Future<T> asyncExpectThrows<T extends Object>(Future<void> result,
 /// When [condition] is `false`, [result] is expected to complete without
 /// errors.
 Future<T?> asyncExpectThrowsWhen<T extends Object>(
-    bool condition, Future<void> result,
-    [String reason = ""]) {
+  bool condition,
+  Future<void> result, [
+  String reason = "",
+]) {
   return condition
       ? asyncExpectThrows<T>(result, reason)
       : result.then<T?>((_) => null);

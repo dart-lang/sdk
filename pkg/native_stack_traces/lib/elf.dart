@@ -2,12 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-export 'src/constants.dart'
-    show
-        isolateDataSymbolName,
-        isolateSymbolName,
-        vmDataSymbolName,
-        vmSymbolName;
+export 'src/constants.dart' show dataSymbolName, textSymbolName;
 export 'src/elf.dart'
     show
         DynamicTable,

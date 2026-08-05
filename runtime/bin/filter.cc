@@ -167,10 +167,6 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
   Dart_Handle data_obj = Dart_GetNativeArgument(args, 1);
   intptr_t start = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
   intptr_t end = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
-  intptr_t chunk_length = end - start;
-  intptr_t length;
-  Dart_TypedData_Type type;
-  uint8_t* buffer = nullptr;
 
   Filter* filter = nullptr;
   Dart_Handle err = GetFilter(filter_obj, &filter);
@@ -178,39 +174,26 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
     Dart_PropagateError(err);
   }
 
-  Dart_Handle result = Dart_TypedDataAcquireData(
-      data_obj, &type, reinterpret_cast<void**>(&buffer), &length);
-  if (!Dart_IsError(result)) {
-    ASSERT(type == Dart_TypedData_kUint8 || type == Dart_TypedData_kInt8);
-    if (type != Dart_TypedData_kUint8 && type != Dart_TypedData_kInt8) {
-      Dart_TypedDataReleaseData(data_obj);
-      Dart_ThrowException(DartUtils::NewInternalError(
-          "Invalid argument passed to Filter_Process"));
-    }
-    uint8_t* zlib_buffer = new uint8_t[chunk_length];
-    if (zlib_buffer == nullptr) {
-      Dart_TypedDataReleaseData(data_obj);
-      Dart_PropagateError(Dart_NewApiError("Could not allocate zlib buffer"));
-    }
-
-    memmove(zlib_buffer, buffer + start, chunk_length);
-    Dart_TypedDataReleaseData(data_obj);
-    buffer = zlib_buffer;
-  } else {
-    err = Dart_ListLength(data_obj, &length);
-    if (Dart_IsError(err)) {
-      Dart_PropagateError(err);
-    }
-    buffer = new uint8_t[chunk_length];
-    if (buffer == nullptr) {
-      Dart_PropagateError(Dart_NewApiError("Could not allocate buffer"));
-    }
-    err = Dart_ListGetAsBytes(data_obj, start, buffer, chunk_length);
-    if (Dart_IsError(err)) {
-      delete[] buffer;
-      Dart_PropagateError(err);
-    }
+  intptr_t length;
+  err = Dart_ListLength(data_obj, &length);
+  if (Dart_IsError(err)) {
+    Dart_PropagateError(err);
   }
+  if (!(0 <= start && start <= end && end <= length)) {
+    Dart_PropagateError(Dart_NewApiError("Invalid range"));
+  }
+
+  intptr_t chunk_length = end - start;
+  uint8_t* buffer = new uint8_t[chunk_length];
+  if (buffer == nullptr) {
+    Dart_PropagateError(Dart_NewApiError("Could not allocate buffer"));
+  }
+  err = Dart_ListGetAsBytes(data_obj, start, buffer, chunk_length);
+  if (Dart_IsError(err)) {
+    delete[] buffer;
+    Dart_PropagateError(err);
+  }
+
   // Process will take ownership of buffer, if successful.
   if (!filter->Process(buffer, chunk_length)) {
     delete[] buffer;

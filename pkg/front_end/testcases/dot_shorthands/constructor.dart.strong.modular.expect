@@ -7,7 +7,7 @@ class Color extends core::Object {
   constructor red() → self::Color
     : self::Color::x = 1, super core::Object::•()
     ;
-  constructor •(core::int x) → self::Color
+  constructor •(initializing-formal core::int x) → self::Color
     : self::Color::x = x, super core::Object::•()
     ;
 }

@@ -104,6 +104,24 @@ bool hasWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
   return hasPragma(coreTypes, member, "wasm:weak-export");
 }
 
+bool? getWasmPreferInlinePragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+    coreTypes,
+    member,
+    "wasm:prefer-inline",
+    defaultValue: true,
+  );
+}
+
+bool? getWasmNeverInlinePragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+    coreTypes,
+    member,
+    "wasm:never-inline",
+    defaultValue: true,
+  );
+}
+
 String? getWasmExportPragma(CoreTypes coreTypes, Member member) {
   return getPragma<String>(
     coreTypes,
@@ -164,21 +182,67 @@ List<int> _intToLittleEndianBytes(int i) {
 
 String intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
 
+/// The name of the module with given [id].
+///
+/// NOTE:
+///
+/// This is the name used in the name section of the module. If a wasm runtime
+/// doesn't know where the wasm file came from (e.g. no url or file path) then
+/// stack traces may fallback to use the module name. Using a stable naming for
+/// the module names allows mapping module names in stack frames back to module
+/// ids and therefore back the file name:
+///
+/// We also use this name in imports: Wasm modules that import things from other
+/// wasm modules use this name as import module name. (Currently the only cross
+/// module imports are deferred modules importing the main module, deferred
+/// modules don't import other deferred modules).
+String moduleNameFromId(int id) => id == 0 ? 'M' : 'M$id';
+
+/// The reverse of [moduleNameFromId].
+int? moduleNameToId(String moduleName) {
+  if (moduleName == 'M') return 0;
+  if (moduleName.startsWith('M')) {
+    return int.tryParse(moduleName.substring(1));
+  }
+  return null;
+}
+
 /// Maps ints to minimal length strings.
 ///
 /// For simplicity, this only uses combinations of 1-byte characters. The 2+
 /// byte characters don't significantly impact the average string size.
 ///
-/// Starts at 1 to avoid emitting the empty string.
+/// Will not emit an empty string.
 String intToMinString(int i) {
+  // Stick to the 92 printable characters (starting after "), from 35 to 126.
+  var base = 92;
   assert(i >= 0);
   i += 1;
   final codeUnits = <int>[];
   while (i > 0) {
-    // Stick to the 92 printable characters (starting after "), from 35 to 126.
-    int remainder = i % 92;
-    i ~/= 92;
+    int remainder = i % base;
+    i ~/= base;
     codeUnits.add(remainder + 35);
+  }
+  return String.fromCharCodes(codeUnits);
+}
+
+/// Maps ints to minimal length strings that are safe to use as JavaScript
+/// identifiers.
+///
+/// Will not emit an empty string.
+String intToMinJsSafeString(int i) {
+  assert(i >= 0);
+  i += 1;
+  final codeUnits = <int>[];
+  while (i > 0) {
+    int remainder = i % 52;
+    i ~/= 52;
+    if (remainder < 26) {
+      codeUnits.add(remainder + 65); // 'A'-'Z'
+    } else {
+      codeUnits.add(remainder - 26 + 97); // 'a'-'z'
+    }
   }
   return String.fromCharCodes(codeUnits);
 }

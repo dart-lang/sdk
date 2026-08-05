@@ -5,8 +5,6 @@
 // `factory() => C();` is a factory constructor whose name is the name of the
 // enclosing class, and not a method.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import "package:expect/expect.dart";
 
 class C1 {

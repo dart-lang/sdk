@@ -47,7 +47,7 @@ class TestRoot {
 
   final List<Suite> suites;
 
-  TestRoot(this.packages, this.suites);
+  new(this.packages, this.suites);
 
   Analyze get analyze => suites.last as Analyze;
 

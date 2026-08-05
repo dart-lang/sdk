@@ -10,8 +10,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -20,7 +18,7 @@ import '../extensions.dart';
 const _desc = r'Use initializing formals when possible.';
 
 class PreferInitializingFormals extends AnalysisRule {
-  PreferInitializingFormals()
+  new()
     : super(name: LintNames.prefer_initializing_formals, description: _desc);
 
   @override
@@ -66,7 +64,7 @@ class _ConstructorChecker {
   /// surrounding library.
   final bool _privateNamedParametersEnabled;
 
-  _ConstructorChecker(
+  new(
     this._rule,
     this._constructorFragment,
     this._parameterList,
@@ -74,7 +72,7 @@ class _ConstructorChecker {
     this._body, {
     required this._privateNamedParametersEnabled,
   }) : _parameters = _parameterList.parameters
-           .where((param) => param.notDefault is! SuperFormalParameter)
+           .where((param) => param is! SuperFormalParameter)
            .map((param) => param.declaredFragment?.element)
            .toList();
 
@@ -87,7 +85,7 @@ class _ConstructorChecker {
       var parameter = parameterFragment.element;
       // TODO(rnystrom): Handle declaring parameters for primary constructors
       // here too.
-      if (parameter.isInitializingFormal) {
+      if (parameter is FieldFormalParameterElement) {
         _initializingParameters.add(parameter);
       }
     }
@@ -210,7 +208,7 @@ class _ReferenceCounter extends RecursiveAstVisitor<void> {
 
   int count = 0;
 
-  _ReferenceCounter(this.parameterElement);
+  new(this.parameterElement);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -224,7 +222,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule _rule;
   final RuleContext _context;
 
-  _Visitor(this._rule, this._context);
+  new(this._rule, this._context);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

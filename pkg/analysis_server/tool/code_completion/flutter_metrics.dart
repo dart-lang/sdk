@@ -95,7 +95,7 @@ class FlutterData {
   Map<String, Map<String, int>> childData = {};
 
   /// Initialize a newly created set of data to be empty.
-  FlutterData();
+  new();
 
   /// Record that an instance of the [childWidget] was created. If the instance
   /// creation expression is an argument in another widget constructor
@@ -126,7 +126,7 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
-  FlutterDataCollector(this.data);
+  new(this.data);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -158,7 +158,7 @@ class FlutterMetricsComputer {
 
   /// Initialize a newly created metrics computer that can compute the metrics
   /// in one or more files and directories.
-  FlutterMetricsComputer();
+  new();
 
   /// Compute the metrics for the file(s) in the [rootPath].
   Future<void> compute(String rootPath) async {
@@ -189,7 +189,6 @@ class FlutterMetricsComputer {
     // Create a new collection to avoid consuming large quantities of memory.
     var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
-      excludedPaths: root.excludedPaths.toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];

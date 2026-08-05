@@ -8,6 +8,7 @@
 // VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
+
 import 'dart:typed_data';
 
 double uint64toDouble(int i) {

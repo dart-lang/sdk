@@ -44,6 +44,43 @@ class B {
 }
 ''');
   }
+
+  Future<void> test_one_fix_enum() async {
+    await resolveTestCode('''
+enum A {
+  v,
+  w.a();
+
+  A.a();
+  A();
+}
+
+enum B {
+  x,
+  y.b();
+
+  B.b();
+  B();
+}
+''');
+    await assertHasFix('''
+enum A {
+  v,
+  w.a();
+  A();
+
+  A.a();
+}
+
+enum B {
+  x,
+  y.b();
+  B();
+
+  B.b();
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -53,6 +90,96 @@ class SortUnnamedConstructorFirstTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.sort_unnamed_constructors_first;
+
+  Future<void> test_enum_newHead() async {
+    await resolveTestCode('''
+enum A {
+  v,
+  w.a();
+
+  A.a();
+  new();
+}
+''');
+    await assertHasFix('''
+enum A {
+  v,
+  w.a();
+  new();
+
+  A.a();
+}
+''');
+  }
+
+  Future<void> test_enum_noConstants() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+enum A {
+  ;
+  A.a();
+  A();
+}
+''');
+    await assertHasFix('''
+enum A {
+  ;
+  A();
+  A.a();
+}
+''', filter: lintNameFilter(lintCode));
+  }
+
+  Future<void> test_enum_simple() async {
+    await resolveTestCode('''
+enum A {
+  v,
+  w.a();
+
+  A.a();
+  A();
+}
+''');
+    await assertHasFix('''
+enum A {
+  v,
+  w.a();
+  A();
+
+  A.a();
+}
+''');
+  }
+
+  Future<void> test_keyword_factory() async {
+    await resolveTestCode('''
+class A {
+  A.a();
+  factory() => A.a();
+}
+''');
+    await assertHasFix('''
+class A {
+  factory() => A.a();
+  A.a();
+}
+''');
+  }
+
+  Future<void> test_keyword_new() async {
+    await resolveTestCode('''
+class A {
+  A.a();
+  new();
+}
+''');
+    await assertHasFix('''
+class A {
+  new();
+  A.a();
+}
+''');
+  }
 
   Future<void> test_one_fix() async {
     await resolveTestCode('''

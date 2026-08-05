@@ -19,6 +19,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// stringifies to [type] and that its generics match the given stringified
   /// output.
   FunctionType expectFunctionType(
+    TestResolvedUnitResult result,
     String name,
     String type, {
     String typeParams = '[]',
@@ -36,7 +37,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
       return '[$elementsStr]';
     }
 
-    SimpleIdentifier identifier = findNode.simple(name);
+    SimpleIdentifier identifier = result.findNode.simple(name);
     var functionType = _getFunctionTypedElementType(identifier);
     assertType(functionType, type);
     expect(identifier.staticType, isNull);
@@ -49,8 +50,12 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// If [type] is a string, validates that the identifier's static type
   /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
   /// to match the type.
-  void expectIdentifierType(String name, String type) {
-    SimpleIdentifier identifier = findNode.simple(name);
+  void expectIdentifierType(
+    TestResolvedUnitResult result,
+    String name,
+    String type,
+  ) {
+    SimpleIdentifier identifier = result.findNode.simple(name);
     assertType(identifier.staticType, type);
   }
 
@@ -60,8 +65,12 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// If [type] is a string, validates that the identifier's static type
   /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
   /// to match the type.
-  void expectInitializerType(String name, String type) {
-    var declaration = findNode.variableDeclaration(name);
+  void expectInitializerType(
+    TestResolvedUnitResult result,
+    String name,
+    String type,
+  ) {
+    var declaration = result.findNode.variableDeclaration(name);
     var initializer = declaration.initializer!;
     assertType(initializer.staticType, type);
   }

@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -15,13 +15,14 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../resolution/node_text_expectations.dart';
 
 main() {
@@ -75,7 +76,7 @@ linter:
 ''');
 
     var packageConfigFileBuilder = PackageConfigFileBuilder()
-      ..add(name: 'foo', rootPath: fooFolder.path);
+      ..add(name: 'foo', rootFolder: fooFolder);
     newPackageConfigJsonFileFromBuilder(
       rootFolder.path,
       packageConfigFileBuilder,
@@ -119,6 +120,37 @@ linter:
     expect(
       analysisOptions.lintRules.map((e) => e.name),
       unorderedEquals(['unnecessary_parenthesis']),
+    );
+  }
+
+  @Deprecated('Tests compatibility for updateAnalysisOptions4.')
+  test_new_analysisOptions_updateAnalysisOptions4() {
+    var rootFolder = newFolder('/home/test');
+    var optionsFile = newAnalysisOptionsYamlFile(rootFolder.path, '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      includedPaths: [rootFolder.path],
+      sdkPath: sdkRoot.path,
+      updateAnalysisOptions4: ({required analysisOptions}) {
+        analysisOptions.warning = false;
+        analysisOptions.lint = true;
+        analysisOptions.contextFeatures = FeatureSet.latestLanguageVersion(
+          flags: ['variance'],
+        );
+      },
+      withFineDependencies: true,
+    );
+    var analysisContext = collection.contextFor(rootFolder.path);
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(optionsFile)
+            as AnalysisOptionsImpl;
+
+    expect(analysisOptions.warning, isFalse);
+    expect(analysisOptions.lint, isTrue);
+    expect(
+      analysisOptions.contextFeatures.isEnabled(ExperimentalFeatures.variance),
+      isTrue,
     );
   }
 
@@ -384,8 +416,8 @@ name: test
 
     _assertWorkspaceCollectionText(
       workspaceRootPath,
-      updateAnalysisOptions: ({required analysisOptions}) {
-        analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+      configureAnalysisOptionsBuilder: ({required analysisOptionsBuilder}) {
+        analysisOptionsBuilder.contextFeatures = FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
           flags: ['digit-separators', 'variance'],
         );
@@ -424,7 +456,9 @@ analysisOptions
       nonfunction-type-aliases
       null-aware-elements
       patterns
+      primary-constructors
       private-named-parameters
+      record-use
       records
       sealed-class
       set-literals
@@ -467,8 +501,8 @@ name: test
 
     _assertWorkspaceCollectionText(
       workspaceRootPath,
-      updateAnalysisOptions: ({required analysisOptions}) {
-        analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+      configureAnalysisOptionsBuilder: ({required analysisOptionsBuilder}) {
+        analysisOptionsBuilder.contextFeatures = FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
           flags: ['variance'],
         );
@@ -507,7 +541,9 @@ analysisOptions
       nonfunction-type-aliases
       null-aware-elements
       patterns
+      primary-constructors
       private-named-parameters
+      record-use
       records
       sealed-class
       set-literals
@@ -1141,8 +1177,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1207,8 +1243,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1291,9 +1327,9 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath)
-        ..add(name: 'package3', rootPath: package3RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath))
+        ..add(name: 'package3', rootFolder: getFolder(package3RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1368,8 +1404,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newAnalysisOptionsYamlFile(workspaceRootPath, '');
@@ -1448,8 +1484,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1523,8 +1559,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1595,8 +1631,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'root_package', rootPath: workspaceRootPath)
-        ..add(name: 'package1', rootPath: package1RootPath),
+        ..add(name: 'root_package', rootFolder: getFolder(workspaceRootPath))
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath)),
     );
 
     var collection = AnalysisContextCollectionImpl(
@@ -1655,8 +1691,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'root_package', rootPath: workspaceRootPath)
-        ..add(name: 'package1', rootPath: package1RootPath),
+        ..add(name: 'root_package', rootFolder: getFolder(workspaceRootPath))
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath)),
     );
 
     var collection = AnalysisContextCollectionImpl(
@@ -1692,11 +1728,12 @@ workspaces
   ) {
     var actual = _getContextCollectionText(collection);
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   /// Asserts the text of a context collection created for a single included
@@ -1705,8 +1742,8 @@ workspaces
     String workspaceRootPath,
     String expected, {
     File? optionsFile,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions,
+    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
+    configureAnalysisOptionsBuilder,
   }) {
     if (optionsFile != null) {
       expect(optionsFile.exists, isTrue);
@@ -1716,7 +1753,7 @@ workspaces
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(workspaceRootPath).path],
       optionsFile: optionsFile?.path,
-      updateAnalysisOptions4: updateAnalysisOptions,
+      configureAnalysisOptionsBuilder: configureAnalysisOptionsBuilder,
       withFineDependencies: true,
     );
 

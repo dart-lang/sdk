@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Test type of argument in `operator ==(Object other)`.';
 
 class TestTypesInEquals extends AnalysisRule {
-  TestTypesInEquals()
-    : super(name: LintNames.test_types_in_equals, description: _desc);
+  new() : super(name: LintNames.test_types_in_equals, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.testTypesInEquals;
@@ -34,7 +33,7 @@ class TestTypesInEquals extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitAsExpression(AsExpression node) {

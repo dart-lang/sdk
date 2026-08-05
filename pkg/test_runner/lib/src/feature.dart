@@ -16,8 +16,9 @@ class Feature {
 
   /// Enforces that implicit downcasts from `dynamic` are typed checked at
   /// runtime.
-  static const checkedImplicitDowncasts =
-      Feature._("checked-implicit-downcasts");
+  static const checkedImplicitDowncasts = Feature._(
+    "checked-implicit-downcasts",
+  );
 
   /// Enforces runtime parameter type checks.
   ///

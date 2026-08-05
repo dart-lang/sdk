@@ -8,7 +8,7 @@ class E0 extends core::_Enum /*isEnum*/  {
   final field core::int foo;
   final field core::int bar;
   static const field core::List<self::E0> values = #C8;
-  const constructor •(core::int #index, core::String #name, core::int foo, {required core::int bar}) → self::E0
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int foo, {required initializing-formal core::int bar}) → self::E0
     : self::E0::foo = foo, self::E0::bar = bar, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -19,7 +19,7 @@ class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E1<core::int> two = #C11;
   final field self::E1::X% foo;
   static const field core::List<self::E1<dynamic>> values = #C12;
-  const constructor •(core::int #index, core::String #name, {required self::E1::X% foo}) → self::E1<self::E1::X%>
+  const constructor •(core::int #index, core::String #name, {required initializing-formal self::E1::X% foo}) → self::E1<self::E1::X%>
     : self::E1::foo = foo, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -33,7 +33,7 @@ class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z
   final field self::E2::Y% bar;
   final field self::E2::Z? baz;
   static const field core::List<self::E2<dynamic, dynamic, dynamic>> values = #C22;
-  const constructor •(core::int #index, core::String #name, self::E2::X% foo, {required self::E2::Y% bar, has-declared-initializer self::E2::Z? baz = #C19}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
+  const constructor •(core::int #index, core::String #name, initializing-formal self::E2::X% foo, {required initializing-formal self::E2::Y% bar, initializing-formal has-declared-initializer self::E2::Z? baz = #C19}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
     : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String

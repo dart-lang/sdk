@@ -37,21 +37,25 @@ int SSLCertContext::CertificateCallback(int preverify_ok,
   if (isolate == nullptr) {
     FATAL("CertificateCallback called with no current isolate\n");
   }
-  X509* certificate = X509_STORE_CTX_get_current_cert(store_ctx);
   int ssl_index = SSL_get_ex_data_X509_STORE_CTX_idx();
   SSL* ssl =
       static_cast<SSL*>(X509_STORE_CTX_get_ex_data(store_ctx, ssl_index));
   SSLFilter* filter = static_cast<SSLFilter*>(
       SSL_get_ex_data(ssl, SSLFilter::filter_ssl_index));
+  if (filter == nullptr) {
+    return 0;
+  }
   Dart_Handle callback = filter->bad_certificate_callback();
   if (Dart_IsNull(callback)) {
     return 0;
   }
+  X509* certificate = X509_STORE_CTX_get0_cert(store_ctx);
+  if (certificate == nullptr) {
+    return 0;
+  }
 
   // Upref since the Dart X509 object may outlive the SecurityContext.
-  if (certificate != nullptr) {
-    X509_up_ref(certificate);
-  }
+  X509_up_ref(certificate);
   Dart_Handle args[1];
   args[0] = X509Helper::WrappedX509Certificate(certificate);
   if (Dart_IsError(args[0])) {
@@ -70,7 +74,7 @@ int SSLCertContext::CertificateCallback(int preverify_ok,
     filter->callback_error = result;
     return 0;
   }
-  return static_cast<int>(DartUtils::GetBooleanValue(result));
+  return DartUtils::GetBooleanValue(result) ? 1 : 0;
 }
 
 void SSLCertContext::KeyLogCallback(const SSL* ssl, const char* line) {

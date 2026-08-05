@@ -1,0 +1,63 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  method foo = self::E|foo;
+  method tearoff foo = self::E|get#foo;
+}
+static extension-member method E|foo(lowered final core::int #this) → void {
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::int #t1;
+    #t1 = anonymous#this;
+  }
+  {
+    core::int p = 1;
+    core::int #t2;
+    #t2 = #this;
+  }
+  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : block {
+    final synthesized core::int anonymous#this = anonymous#receiver as core::int;
+    core::int #t3;
+    #t3 = anonymous#this;
+  } =>#t3;
+  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : block {
+    core::int p = anonymous#receiver as core::int;
+    core::int #t4;
+    #t4 = #this;
+  } =>#t4;
+  let final core::int #t5 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t5;
+      core::int #t6;
+      #t6 = let dynamic #t7 = anonymous#this in anonymous#this;
+    }
+  } =>#t5;
+  let final core::int #t8 = 1 in block {
+    {
+      core::int p = #t8;
+      core::int #t9;
+      #t9 = let dynamic #t10 = #this in p;
+    }
+  } =>#t8;
+  let final core::int #t11 = 1 in #t11 == null ?{core::int} #t11 : block {
+    let synthesized core::int anonymous#receiver = #t11 in anonymous#receiver == null ?{core::int?} null : block {
+      final synthesized core::int anonymous#this = anonymous#receiver as core::int;
+      core::int #t12;
+      #t12 = let dynamic #t13 = anonymous#this in anonymous#this;
+    } =>#t12;
+  } =>#t11;
+  let final core::int #t14 = 1 in #t14 == null ?{core::int} #t14 : block {
+    let synthesized core::int anonymous#receiver = #t14 in anonymous#receiver == null ?{core::int?} null : block {
+      core::int p = anonymous#receiver as core::int;
+      core::int #t15;
+      #t15 = let dynamic #t16 = #this in p;
+    } =>#t15;
+  } =>#t14;
+}
+static extension-member method E|get#foo(lowered final core::int #this) → () → void
+  return () → void => self::E|foo(#this);
+static method main() → void {
+  self::E|foo(1);
+}

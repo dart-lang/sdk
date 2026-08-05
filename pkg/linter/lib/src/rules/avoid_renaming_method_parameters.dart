@@ -20,7 +20,7 @@ import '../extensions.dart';
 const _desc = r"Don't rename parameters of overridden methods.";
 
 class AvoidRenamingMethodParameters extends AnalysisRule {
-  AvoidRenamingMethodParameters()
+  new()
     : super(
         name: LintNames.avoid_renaming_method_parameters,
         description: _desc,
@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final AnalysisRule rule;
 
-  _Visitor(this.rule, RuleContext context)
+  new(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );

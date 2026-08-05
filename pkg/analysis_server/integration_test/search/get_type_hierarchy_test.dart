@@ -262,7 +262,7 @@ class HierarchyResults {
 
   /// Create a [HierarchyResults] object based on the result from a
   /// getTypeHierarchy request.
-  HierarchyResults(this.items) : pivot = items[0] {
+  new(this.items) : pivot = items[0] {
     for (var i = 0; i < items.length; i++) {
       nameToIndex[items[i].classElement.name] = i;
     }

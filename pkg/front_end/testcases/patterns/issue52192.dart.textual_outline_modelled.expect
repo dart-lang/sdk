@@ -3,7 +3,8 @@ abstract class A<X> {
 }
 
 class B implements A<int> {
-  void Function(int) get g => (int i) => callCount++;
+  void Function(int) get g =>
+      (int i) => callCount++;
 }
 
 expect(expected, actual) {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 // Tests cycle errors for primary constructors.
 
 class A() extends C {}
@@ -20,7 +18,6 @@ class C() extends B {}
 //    ^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'C' is a supertype of itself.
-
 
 class SuperA(super.x) extends SuperC {}
 //    ^^^^^^

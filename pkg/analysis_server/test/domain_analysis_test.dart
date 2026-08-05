@@ -11,9 +11,9 @@ import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
@@ -447,7 +447,7 @@ AnalysisErrors
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
 
     await pumpEventQueue(times: 5000);
@@ -919,9 +919,8 @@ AnalysisErrors
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({testFile.path: AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -950,9 +949,8 @@ AnalysisErrors
 
     // Remove the overlay, now the file will be read.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: RemoveContentOverlay(),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({testFile.path: RemoveContentOverlay()})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     // The file has errors.
@@ -997,7 +995,7 @@ AnalysisErrors
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
 
     await pumpEventQueue(times: 5000);
@@ -1149,9 +1147,8 @@ AnalysisErrors
     // Set the overlay, with a different content.
     // We get another notification with errors.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        aPath: AddContentOverlay('error2'),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({aPath: AddContentOverlay('error2')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1177,9 +1174,8 @@ AnalysisErrors
 
     // Remove the overlay, the file has different content, so notification.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        aPath: RemoveContentOverlay(),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({aPath: RemoveContentOverlay()})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1330,7 +1326,7 @@ class A {}
     // Write the empty file, without `package:aaa`.
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
 
     newFile(testFilePath, '''
@@ -1406,9 +1402,8 @@ AnalysisErrors
 
     // Set overlay with different content, with errors.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        aPath: AddContentOverlay('error2'),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({aPath: AddContentOverlay('error2')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1428,9 +1423,8 @@ AnalysisErrors
     // After removing the overlay, errors are gone.
     // TODO(scheglov): why not flush?
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        aPath: RemoveContentOverlay(),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({aPath: RemoveContentOverlay()})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1453,10 +1447,8 @@ AnalysisErrors
     d.writeAsStringSync('');
 
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams([
-        a.path,
-        c.path,
-      ]).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([a.path, c.path])
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -1488,9 +1480,8 @@ AnalysisErrors
 
   Future<void> test_setPriorityFiles_notAbsolute() async {
     var response = await handleRequest(
-      AnalysisSetPriorityFilesParams([
-        'a.dart',
-      ]).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams(['a.dart'])
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
@@ -1908,7 +1899,7 @@ class A {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
 
     newFile(testFilePath, '''
@@ -1956,9 +1947,8 @@ AnalysisErrors
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({testFile.path: AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     // A new errors notification was received, no errors.
@@ -2014,9 +2004,8 @@ AnalysisErrors
 
   Future<void> test_updateContent_notAbsolute() async {
     var response = await handleRequest(
-      AnalysisUpdateContentParams({
-        'a.dart': AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({'a.dart': AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     expect(response, isResponseFailure('0'));
   }
@@ -2133,7 +2122,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // plugins.
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
-      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2177,8 +2167,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'plugin1', rootPath: plugin1.path)
-        ..add(name: 'plugin2', rootPath: plugin2.path),
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path))
+        ..add(name: 'plugin2', rootFolder: getFolder(plugin2.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2220,7 +2210,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // plugins.
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
-      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2261,7 +2252,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // plugins.
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
-      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2313,8 +2305,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'plugin1', rootPath: plugin1.path)
-        ..add(name: 'plugin2', rootPath: plugin2.path),
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path))
+        ..add(name: 'plugin2', rootFolder: getFolder(plugin2.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2355,8 +2347,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'plugin1', rootPath: plugin1.path)
-        ..add(name: 'plugin2', rootPath: plugin2.path),
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path))
+        ..add(name: 'plugin2', rootFolder: getFolder(plugin2.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2396,7 +2388,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // Write the single package config at the root that can resolve the plugin.
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
-      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains the
@@ -2447,9 +2440,12 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
 
     if (withPackageConfig) {
       var packageConfig = PackageConfigFileBuilder()
-        ..add(name: name, rootPath: packagePath);
+        ..add(name: name, rootFolder: getFolder(packagePath));
       for (var plugin in plugins) {
-        packageConfig.add(name: plugin.name, rootPath: plugin.path);
+        packageConfig.add(
+          name: plugin.name,
+          rootFolder: getFolder(plugin.path),
+        );
       }
       newPackageConfigJsonFileFromBuilder(packagePath, packageConfig);
     }
@@ -2516,7 +2512,7 @@ class A {}
     writePackageConfig(
       convertPath('/project'),
       config: (PackageConfigFileBuilder()
-        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+        ..add(name: 'pkgA', rootFolder: getFolder('/packages/pkgA'))),
     );
     //
     addTestFile('''
@@ -2568,7 +2564,7 @@ class A {}
     writePackageConfig(
       convertPath('/project'),
       config: (PackageConfigFileBuilder()
-        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+        ..add(name: 'pkgA', rootFolder: getFolder('/packages/pkgA'))),
     );
     //
     addTestFile('// no "pkgA" reference');
@@ -2674,7 +2670,7 @@ class _NotificationPrinter {
   final ResourceProvider resourceProvider;
   final TreeStringSink sink;
 
-  _NotificationPrinter({
+  new({
     required this.configuration,
     required this.resourceProvider,
     required this.sink,

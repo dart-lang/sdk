@@ -61,7 +61,7 @@ class FastaTypesTest extends SubtypeTest<DartType, TypeParserEnvironment> {
 
   final TypeParserEnvironment environment;
 
-  FastaTypesTest(this.hierarchy, this.environment);
+  new(this.hierarchy, this.environment);
 
   @override
   DartType toType(String text, TypeParserEnvironment environment) {

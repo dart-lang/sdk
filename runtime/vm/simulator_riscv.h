@@ -200,6 +200,7 @@ class Simulator {
   uintx_t get_sp() const { return get_xreg(SP); }
   uintx_t get_fp() const { return get_xreg(FP); }
   uintx_t get_lr() const { return get_xreg(RA); }
+  void set_lp_enabled(bool value) { lp_enabled_ = value; }
   void set_ss_enabled(bool value) { ss_enabled_ = value; }
   void PrintRegisters();
   void PrintStack();
@@ -319,6 +320,8 @@ class Simulator {
   DART_NORETURN void IllegalInstruction(CInstr instr);
   DART_NORETURN void Fault(const char* message);
 
+  void CheckLandingPad(Register rs1);
+
   template <typename type>
   type MemoryRead(uintx_t address, Register base);
   template <typename type>
@@ -396,7 +399,8 @@ class Simulator {
   double fregs_[kNumberOfFpuRegisters];
   uint32_t fcsr_ = 0;
 
-  // Zicfissp state
+  // Zicfilp/ss state
+  bool lp_enabled_ = false;
   bool ss_enabled_ = false;
   uintx_t ssp_ = 0;
 

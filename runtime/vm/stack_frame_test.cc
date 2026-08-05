@@ -163,7 +163,7 @@ TEST_CASE(ValidateStackFrameIteration) {
   const char* kScriptChars =
           "class StackFrame {"
           "  @pragma('vm:external-name', 'StackFrame_equals')\n"
-          "  external static equals(var obj1, var obj2);\n"
+          "  external static equals(obj1, obj2);\n"
           "  @pragma('vm:external-name', 'StackFrame_frameCount')\n"
           "  external static int frameCount();\n"
           "  @pragma('vm:external-name', 'StackFrame_dartFrameCount')\n"
@@ -255,7 +255,7 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
   const char* const kScriptChars =
       "class StackFrame {"
       "  @pragma('vm:external-name', 'StackFrame_equals')\n"
-      "  external static equals(var obj1, var obj2);\n"
+      "  external static equals(obj1, obj2);\n"
       "  @pragma('vm:external-name', 'StackFrame_frameCount')\n"
       "  external static int frameCount();\n"
       "  @pragma('vm:external-name', 'StackFrame_dartFrameCount')\n"

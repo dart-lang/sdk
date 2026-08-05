@@ -16,9 +16,8 @@ import 'utils/io_utils.dart' show computeRepoDirUri, getPackageVersionFor;
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateTestListener(repoDir);
-  new File.fromUri(
-    computeTestListenerUri(repoDir),
-  ).writeAsStringSync(generated, flush: true);
+  new File.fromUri(computeTestListenerUri(repoDir))
+      .writeAsStringSync(generated, flush: true);
 }
 
 Uri computeTestListenerUri(Uri repoDir) {
@@ -64,7 +63,7 @@ class ParserTestListener implements Listener {
   final StringBuffer sb = new StringBuffer();
   final bool trace;
 
-  ParserTestListener(this.trace);
+  new(this.trace);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
@@ -119,9 +118,8 @@ class ParserTestListener implements Listener {
 
   out.writeln("}");
 
-  return new DartFormatter(
-    languageVersion: getPackageVersionFor("front_end"),
-  ).format("$out");
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {
@@ -133,13 +131,12 @@ class ParserCreatorListener extends Listener {
   List<String?> parameterTypes = [];
   Token? formalParametersEnd;
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,

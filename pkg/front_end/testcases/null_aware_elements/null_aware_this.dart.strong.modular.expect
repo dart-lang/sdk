@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method test() → dynamic {
+    core::List<self::C> l = block {
+      final core::List<self::C> #t1 = <self::C>[];
+      final self::C? #t2 = this;
+      if(!(#t2 == null))
+        #t1.{core::List::add}{Invariant}(#t2{self::C}){(self::C) → void};
+    } =>#t1;
+    core::Set<self::C> s = block {
+      final core::Set<self::C> #t3 = col::LinkedHashSet::•<self::C>();
+      final self::C? #t4 = this;
+      if(!(#t4 == null))
+        #t3.{core::Set::add}{Invariant}(#t4{self::C}){(self::C) → core::bool};
+    } =>#t3;
+    core::Map<core::Object, core::Object> m = block {
+      final core::Map<core::Object, core::Object> #t5 = <core::Object, core::Object>{};
+      final core::Object? #t6 = this;
+      if(!(#t6 == null))
+        #t5.{core::Map::[]=}{Invariant}(#t6{core::Object}, 1){(core::Object, core::Object) → void};
+      final core::Object #t7 = 2;
+      final core::Object? #t8 = this;
+      if(!(#t8 == null))
+        #t5.{core::Map::[]=}{Invariant}(#t7, #t8{core::Object}){(core::Object, core::Object) → void};
+      final core::Object? #t9 = this;
+      if(!(#t9 == null)) {
+        final core::Object? #t10 = this;
+        if(!(#t10 == null))
+          #t5.{core::Map::[]=}{Invariant}(#t9{core::Object}, #t10{core::Object}){(core::Object, core::Object) → void};
+      }
+    } =>#t5;
+  }
+}

@@ -113,9 +113,35 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     negatable: false,
     help: 'Print this help message.',
   )
+  ..addOption(
+    'print-flow-graph',
+    abbr: 'p',
+    help: 'Print CFG IR of functions with matching names',
+    defaultsTo: null,
+  )
   ..addFlag(
-    'track-widget-creation',
+    'print-flow-graph-after-every-pass',
+    help: 'Print CFG IR after every pass',
+    defaultsTo: false,
+  )
+  ..addFlag(
+    'print-register-allocation',
+    help: 'Print register allocation when printing final CFG IR',
+    defaultsTo: false,
+  )
+  ..addFlag(
+    'track-creation-locations',
     help: 'Run a kernel transformer to track creation locations for widgets.',
+    defaultsTo: false,
+    aliases: [
+      // TODO(http://dartbug.com/63225): Remove this once flutter is migrated
+      // to the new flag.
+      'track-widget-creation',
+    ],
+  )
+  ..addFlag(
+    'use-ast-scopes',
+    help: 'Use scopes and captured contexts from AST.',
     defaultsTo: false,
   )
   ..addOption(
@@ -170,6 +196,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String? depfileTarget = options['depfile-target'];
   final List<String>? fileSystemRoots = options['filesystem-root'];
   final bool enableAsserts = options['enable-asserts'];
+  final bool useAstScopes = options['use-ast-scopes'];
   final List<String>? experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
 
@@ -180,10 +207,15 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String? importDill = options['import-dill'];
   final String messageVerbosity = options['verbosity'];
   final String cfeInvocationModes = options['invocation-modes'];
-  final bool trackWidgetCreation = options['track-widget-creation'];
+  final bool trackCreationLocations = options['track-creation-locations'];
 
   final TargetCPU targetCPU = TargetCPU.fromName(options['target-arch']);
   final ImageFormat imageFormat = ImageFormat.fromName(options['image-format']);
+
+  final String? printFlowGraph = options['print-flow-graph'];
+  final bool printFlowGraphAfterEveryPass =
+      options['print-flow-graph-after-every-pass'];
+  final bool printRegisterAllocation = options['print-register-allocation'];
 
   final fileSystem = createFrontEndFileSystem(
     fileSystemScheme,
@@ -194,9 +226,9 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
 
-  final additionalDills = <Uri>[];
+  final additionalDillModules = <Uri>[];
   if (importDill != null) {
-    additionalDills.add(Uri.base.resolveUri(new Uri.file(importDill)));
+    additionalDillModules.add(Uri.base.resolveUri(new Uri.file(importDill)));
   }
 
   final verbosity = Verbosity.parseArgument(messageVerbosity);
@@ -211,7 +243,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final compilerOptions = CompilerOptions()
     ..sdkSummary = platformKernelUri
     ..fileSystem = fileSystem
-    ..additionalDills = additionalDills
+    ..additionalDillModules = additionalDillModules
     ..packagesFileUri = packagesUri
     ..explicitExperimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experimentalFlags),
@@ -225,9 +257,9 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     ..verbosity = verbosity
     ..target = createFrontEndTarget(
       targetName,
-      trackWidgetCreation: trackWidgetCreation,
+      trackCreationLocations: trackCreationLocations,
       supportMirrors: false,
-      isClosureContextLoweringEnabled: false,
+      isClosureContextLoweringEnabled: useAstScopes,
     );
 
   if (compilerOptions.target == null) {
@@ -264,7 +296,11 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     targetCPU,
     imageFormat,
     enableAsserts: enableAsserts,
+    useAstScopes: useAstScopes,
     outputLibraryName: path.basename(outputFileName),
+    printFlowGraph: printFlowGraph,
+    printFlowGraphAfterEveryPass: printFlowGraphAfterEveryPass,
+    printRegisterAllocation: printRegisterAllocation,
   );
   final context = GlobalContext(typeEnvironment: typeEnvironment);
   await GlobalContext.withContext(context, () {

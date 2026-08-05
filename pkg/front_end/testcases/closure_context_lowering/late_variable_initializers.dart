@@ -40,6 +40,7 @@ test4(int directCaptured) {
     assertIsZero() {
       assert(directCaptured == 0);
     }
+
     assertIsZero();
     return 0;
   }

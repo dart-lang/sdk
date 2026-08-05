@@ -19,10 +19,10 @@ Dominators computeDominators(
 ) {
   // Step 1) Create nodes of the graph
   final root = Vertex(rootImport);
-  final veritices = <Object, Vertex>{rootImport: root};
   final allDeferredImports = <LibraryDependency>{rootImport};
+  final vertices = <Object, Vertex>{};
   directReferenceDependencies.forEach((reference, deps) {
-    veritices[reference] = Vertex(reference);
+    vertices[reference] = Vertex(reference);
     deps.deferredReferences.forEach(
       (_, imports) => allDeferredImports.addAll(imports),
     );
@@ -31,40 +31,40 @@ Dominators computeDominators(
     );
   });
   directConstantDependencies.forEach((constant, deps) {
-    veritices[constant] = Vertex(constant);
+    vertices[constant] = Vertex(constant);
   });
   for (final reference in roots) {
-    veritices[reference] ??= Vertex(reference);
+    vertices[reference] ??= Vertex(reference);
   }
   for (final import in allDeferredImports) {
-    veritices[import] = Vertex(import);
+    vertices[import] = Vertex(import);
   }
 
   // Step 2) Create edges of the graph
   for (final reference in roots) {
-    root.successors.add(veritices[reference]!);
+    root.successors.add(vertices[reference]!);
   }
   directReferenceDependencies.forEach((reference, deps) {
     if (deps.isEmpty) return;
-    final from = veritices[reference]!;
+    final from = vertices[reference]!;
     deps.references.forEach((reference) {
-      from.successors.add(veritices[reference]!);
+      from.successors.add(vertices[reference]!);
     });
     deps.deferredReferences.forEach((reference, imports) {
-      final referenceV = veritices[reference]!;
+      final referenceV = vertices[reference]!;
       imports.forEach((import) {
-        final importV = veritices[import]!;
+        final importV = vertices[import]!;
         from.successors.add(importV);
         importV.successors.add(referenceV);
       });
     });
     deps.constants.forEach((constant) {
-      from.successors.add(veritices[constant]!);
+      from.successors.add(vertices[constant]!);
     });
     deps.deferredConstants.forEach((constant, imports) {
-      final constantV = veritices[constant]!;
+      final constantV = vertices[constant]!;
       imports.forEach((import) {
-        final importV = veritices[import]!;
+        final importV = vertices[import]!;
         from.successors.add(importV);
         importV.successors.add(constantV);
       });
@@ -73,18 +73,18 @@ Dominators computeDominators(
   directConstantDependencies.forEach((constant, deps) {
     if (deps.isEmpty) return;
 
-    final from = veritices[constant]!;
+    final from = vertices[constant]!;
     final reference = deps.reference;
     if (reference != null) {
-      from.successors.add(veritices[reference]!);
+      from.successors.add(vertices[reference]!);
     }
     deps.constants.forEach((constant) {
-      from.successors.add(veritices[constant]!);
+      from.successors.add(vertices[constant]!);
     });
   });
 
   // Step 3) Cleanup duplicate successors (the `successors` field is a `List`)
-  veritices.forEach((_, v) {
+  vertices.forEach((_, v) {
     final allChildren = v.successors.toSet();
     v.successors.clear();
     v.successors.addAll(allChildren);
@@ -97,7 +97,7 @@ Dominators computeDominators(
   final doms = <LibraryDependency, DominatorNode<LibraryDependency>>{};
 
   LibraryDependency? dominatorOf(LibraryDependency import) {
-    final importV = veritices[import]!;
+    final importV = vertices[import]!;
     Vertex? dom = importV.dominator;
     while (dom != null && dom.object is! LibraryDependency) {
       dom = dom.dominator;
@@ -348,6 +348,9 @@ class Dominators {
 
   late final List<DominatorNode<LibraryDependency>> allNodes = _nodes.values
       .toList();
+
+  DominatorNode<LibraryDependency>? nodeFor(LibraryDependency import) =>
+      _nodes[import];
 }
 
 class DominatorNode<T> {

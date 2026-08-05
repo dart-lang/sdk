@@ -48,27 +48,31 @@ void main([List<String> args = const []]) async {
     });
   }
 
-  test('dart run test:test', timeout: longTimeout, () async {
-    await nativeAssetsTest('native_add', (packageUri) async {
-      final result = await runDart(
-        arguments: [
-          'run',
-          'test:test',
-        ],
-        workingDirectory: packageUri,
-        logger: logger,
-      );
-      expect(
-        result.stdout,
-        stringContainsInOrder(
-          [
-            'native add test',
-            'All tests passed!',
+  for (final compiler in ['kernel', 'cli']) {
+    test('dart run test:test', timeout: longTimeout, () async {
+      await nativeAssetsTest('native_add', (packageUri) async {
+        final result = await runDart(
+          arguments: [
+            'run',
+            'test:test',
+            '--compiler',
+            compiler,
           ],
-        ),
-      );
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+        expect(
+          result.stdout,
+          stringContainsInOrder(
+            [
+              'native add test',
+              'All tests passed!',
+            ],
+          ),
+        );
+      });
     });
-  });
+  }
 
   test('run pub get if needed', timeout: longTimeout, () async {
     await nativeAssetsTest(
@@ -107,30 +111,61 @@ void main([List<String> args = const []]) async {
     });
   });
 
-  for (final usePubWorkspace in [true, false]) {
-    test(
-      'dart test with user defines',
-      timeout: longTimeout,
-      () async {
-        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
-            (packageUri) async {
-          final result = await runDart(
-            arguments: [
-              'test',
-            ],
-            workingDirectory: packageUri,
-            logger: logger,
-          );
-          expect(
-            result.stdout,
-            stringContainsInOrder(
-              [
-                'All tests passed!',
+  for (final compiler in ['kernel', 'cli']) {
+    for (final usePubWorkspace in [true, false]) {
+      test(
+        'dart test with user defines',
+        timeout: longTimeout,
+        () async {
+          await nativeAssetsTest('user_defines',
+              usePubWorkspace: usePubWorkspace, (packageUri) async {
+            final result = await runDart(
+              arguments: [
+                'test',
+                '--compiler',
+                compiler,
               ],
-            ),
-          );
-        });
-      },
-    );
+              workingDirectory: packageUri,
+              logger: logger,
+            );
+            expect(
+              result.stdout,
+              stringContainsInOrder(
+                [
+                  'All tests passed!',
+                ],
+              ),
+            );
+          });
+        },
+      );
+    }
   }
+
+  test('package:treeshaking_dylib_record_use dart test', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('treeshaking_dylib_record_use',
+        usePubWorkspace: true, (packageUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=record-use',
+          'test',
+          '--compiler',
+          'cli',
+        ],
+        workingDirectory: packageUri,
+        logger: logger,
+      );
+      expect(result.stdout, contains('Running build hooks'));
+      expect(
+        result.stdout,
+        anyOf(
+          contains('All tests passed!'),
+          // TODO(https://github.com/dart-lang/sdk/issues/63295): Use
+          // DynamicLibrary.openAsset when available.
+          contains('All tests skipped.'),
+        ),
+      );
+    });
+  });
 }

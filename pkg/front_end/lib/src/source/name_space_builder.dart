@@ -34,11 +34,9 @@ class DeclarationNameSpaceBuilder {
   final NominalParameterNameSpace? _nominalParameterNameSpace;
   final List<Fragment> _fragments;
 
-  DeclarationNameSpaceBuilder(this._nominalParameterNameSpace, this._fragments);
+  new(this._nominalParameterNameSpace, this._fragments);
 
-  DeclarationNameSpaceBuilder.empty()
-    : _nominalParameterNameSpace = null,
-      _fragments = const [];
+  new empty() : _nominalParameterNameSpace = null, _fragments = const [];
 
   SourceDeclarationNameSpace buildNameSpace({
     required SourceLoader loader,
@@ -245,7 +243,7 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
   final List<SourceMemberBuilder> constructorBuilders;
   final List<SourceMemberBuilder> memberBuilders;
 
-  _DeclarationBuilderRegistry({
+  new({
     required this.problemReporting,
     required this.enclosingLibraryBuilder,
     required this.declarationBuilder,
@@ -366,7 +364,7 @@ class _LibraryBuilderRegistry implements BuilderRegistry {
   final SourceLibraryBuilder enclosingLibraryBuilder;
   final List<NamedBuilder> memberBuilders;
 
-  _LibraryBuilderRegistry({
+  new({
     required this.problemReporting,
     required this.enclosingLibraryBuilder,
     required this.memberBuilders,

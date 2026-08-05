@@ -5,7 +5,9 @@
 // Test that await after deferred loading works as expected.
 
 import 'dart:async';
+
 import "package:expect/expect.dart";
+
 import 'regression_28678_lib.dart' deferred as lib;
 
 class A {

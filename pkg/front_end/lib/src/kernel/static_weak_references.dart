@@ -5,6 +5,7 @@
 /// Handling of static weak references.
 
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
+import 'package:front_end/src/kernel/utils.dart' show isAnnotatedWithPragma;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -23,27 +24,7 @@ class StaticWeakReferences {
   static bool isAnnotatedWithWeakReferencePragma(
     Annotatable node,
     CoreTypes coreTypes,
-  ) {
-    List<Expression> annotations = node.annotations;
-    for (int i = 0; i < annotations.length; i++) {
-      Expression annotation = annotations[i];
-      if (annotation is ConstantExpression) {
-        Constant constant = annotation.constant;
-        if (constant is InstanceConstant) {
-          if (constant.classNode == coreTypes.pragmaClass) {
-            Constant? name =
-                constant.fieldValues[coreTypes.pragmaName.fieldReference];
-            if (name is StringConstant) {
-              if (name.value == weakTearoffReferencePragma) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-    }
-    return false;
-  }
+  ) => isAnnotatedWithPragma(node, coreTypes, weakTearoffReferencePragma);
 
   static void validateWeakReferenceUse(
     StaticInvocation node,

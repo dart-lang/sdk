@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,20 +14,21 @@ main() {
     defineReflectiveTests(ForTest);
     defineReflectiveTests(IfTest);
     defineReflectiveTests(WhileTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AssertTest extends PubPackageResolutionTest {
   test_downward() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   assert(a());
 }
 T a<T>() => throw '';
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -48,14 +49,14 @@ MethodInvocation
 @reflectiveTest
 class DoTest extends PubPackageResolutionTest {
   test_downward() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   do {} while(a());
 }
 T a<T>() => throw '';
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -76,17 +77,16 @@ MethodInvocation
 @reflectiveTest
 class ForTest extends PubPackageResolutionTest {
   test_awaitForIn_int_downward() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() async {
   await for (int e in a()) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
 }
 T a<T>() => throw '';
-''',
-      [error(diag.unusedLocalVariable, 34, 1)],
-    );
+''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -104,17 +104,16 @@ MethodInvocation
   }
 
   test_awaitForIn_var_downward() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() async {
   await for (var e in a()) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
 }
 T a<T>() => throw '';
-''',
-      [error(diag.unusedLocalVariable, 34, 1)],
-    );
+''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -132,25 +131,25 @@ MethodInvocation
   }
 
   test_awaitForIn_var_upward() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Stream<int> s) async {
   await for (var e in s) {
     e;
   }
 }
 ''');
-    assertType(findNode.simple('e;'), 'int');
+    assertType(result.findNode.simple('e;'), 'int');
   }
 
   test_for_downward() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   for (int i = 0; a(); i++) {}
 }
 T a<T>() => throw '';
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -168,17 +167,16 @@ MethodInvocation
   }
 
   test_forIn_dynamic_downward() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   for (var e in a()) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
 }
 T a<T>() => throw '';
-''',
-      [error(diag.unusedLocalVariable, 22, 1)],
-    );
+''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -196,17 +194,16 @@ MethodInvocation
   }
 
   test_forIn_int_downward() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   for (int e in a()) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
 }
 T a<T>() => throw '';
-''',
-      [error(diag.unusedLocalVariable, 22, 1)],
-    );
+''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -224,28 +221,28 @@ MethodInvocation
   }
 
   test_forIn_var_upward() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(List<int> s) async {
   for (var e in s) {
     e;
   }
 }
 ''');
-    assertType(findNode.simple('e;'), 'int');
+    assertType(result.findNode.simple('e;'), 'int');
   }
 }
 
 @reflectiveTest
 class IfTest extends PubPackageResolutionTest {
   test_downward() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   if (a()) {}
 }
 T a<T>() => throw '';
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -266,14 +263,14 @@ MethodInvocation
 @reflectiveTest
 class WhileTest extends PubPackageResolutionTest {
   test_downward() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (a()) {}
 }
 T a<T>() => throw '';
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

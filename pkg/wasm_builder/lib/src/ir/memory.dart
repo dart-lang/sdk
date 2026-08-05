@@ -16,8 +16,13 @@ abstract class Memory with Indexable, Exportable {
   @override
   final Module enclosingModule;
 
-  Memory(this.enclosingModule, this.finalizableIndex, this.shared, this.minSize,
-      [this.maxSize]) {
+  Memory(
+    this.enclosingModule,
+    this.finalizableIndex,
+    this.shared,
+    this.minSize, [
+    this.maxSize,
+  ]) {
     if (shared && maxSize == null) {
       throw "Shared memory must specify a maximum size.";
     }
@@ -58,8 +63,13 @@ abstract class Memory with Indexable, Exportable {
 
 /// A memory defined in a module.
 class DefinedMemory extends Memory implements Serializable {
-  DefinedMemory(super.enclosingModule, super.finalizableIndex, super.shared,
-      super.minSize, super.maxSize);
+  DefinedMemory(
+    super.enclosingModule,
+    super.finalizableIndex,
+    super.shared,
+    super.minSize,
+    super.maxSize,
+  );
 
   @override
   void serialize(Serializer s) => _serializeLimits(s);
@@ -93,8 +103,15 @@ class ImportedMemory extends Memory implements Import {
   @override
   final String name;
 
-  ImportedMemory(super.enclosingModule, this.module, this.name,
-      super.finalizableIndex, super.shared, super.minSize, super.maxSize);
+  ImportedMemory(
+    super.enclosingModule,
+    this.module,
+    this.name,
+    super.finalizableIndex,
+    super.shared,
+    super.minSize,
+    super.maxSize,
+  );
 
   @override
   void serialize(Serializer s) {

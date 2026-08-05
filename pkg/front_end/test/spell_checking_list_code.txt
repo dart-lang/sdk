@@ -135,6 +135,7 @@ backping
 backstop
 badly
 bail
+bailing
 balance
 bang
 bar
@@ -178,6 +179,7 @@ blindly
 blob
 blobs
 blocking
+blowing
 blowup
 bmp
 bn
@@ -236,6 +238,7 @@ carefully
 caret
 carets
 carriage
+carrier
 carrying
 cascade's
 cascades
@@ -320,6 +323,7 @@ compilations
 compiler's
 complement
 complementary
+complements
 completers
 completes
 complexity
@@ -353,6 +357,7 @@ considerable
 consideration
 considering
 constant's
+constitute
 constness
 constraining
 consult
@@ -1161,6 +1166,7 @@ mocking
 mockito
 modelled
 modelling
+modularly
 modulename
 momentarily
 monomorphic
@@ -1677,6 +1683,7 @@ selectively
 selectors
 semantically
 semver
+sensitive
 separation
 separators
 sequencing
@@ -1809,6 +1816,7 @@ stdin
 stdio
 stdlib
 stdout
+stepping
 sticks
 sticky
 stmt
@@ -1886,6 +1894,8 @@ surprising
 surrounded
 surrounds
 suspended
+suspending
+suspension
 svar
 svg
 sw

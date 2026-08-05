@@ -22,7 +22,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart' show groupBy;
@@ -89,7 +89,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
   /// This set is ignored if the caller provided an explicit filter in [only].
   final Set<CodeActionKind>? supportedKinds;
 
-  CodeActionComputer(
+  new(
     this.server,
     this.textDocument,
     this.range, {
@@ -360,7 +360,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
 class _CodeActionSorter {
   final Range range;
 
-  _CodeActionSorter(this.range);
+  new(this.range);
 
   List<CodeAction> sort(List<CodeActionWithPriority> actions) {
     var dedupedActions = _dedupeActions(actions, range.start);

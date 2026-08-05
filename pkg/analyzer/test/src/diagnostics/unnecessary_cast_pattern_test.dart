@@ -2,69 +2,64 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryCastPatternTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnnecessaryCastPatternTest extends PubPackageResolutionTest {
   test_matchedIsSameAsRequired() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var z as int) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'z' isn't used.
+//                 ^^
+// [diag.unnecessaryCastPattern] Unnecessary cast pattern.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.unnecessaryCastPattern, 35, 2),
-      ],
-    );
+''');
   }
 
   test_matchedIsSubtypeOfRequired() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var z as num) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'z' isn't used.
+//                 ^^
+// [diag.unnecessaryCastPattern] Unnecessary cast pattern.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.unnecessaryCastPattern, 35, 2),
-      ],
-    );
+''');
   }
 
   test_matchedIsSupertypeOfRequired() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   if (x case var z as int) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'z' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 33, 1)],
-    );
+''');
   }
 
   test_matchedIsUnrelatedToRequired() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B {}
 
 void f(A x) {
   if (x case var z as B) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'z' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 54, 1)],
-    );
+''');
   }
 }

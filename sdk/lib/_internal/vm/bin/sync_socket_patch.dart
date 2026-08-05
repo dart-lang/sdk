@@ -300,10 +300,11 @@ base class _NativeSynchronousSocket
       start,
       end,
     );
+
     var result = _nativeWrite(
       bufferAndStart.buffer,
       bufferAndStart.start,
-      end - (start - bufferAndStart.start),
+      end - start,
     );
     if (result is OSError) {
       throw SocketException("writeFromSync failed", osError: result);

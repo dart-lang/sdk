@@ -39,14 +39,14 @@ import 'package:js/js.dart';
 class A {
   external get foo;
 
-  external A(var foo);
+  external A(foo);
 }
 
 @JS('BClass')
 class B {
   external get foo;
 
-  external B(var foo);
+  external B(foo);
 }
 
 @JS()

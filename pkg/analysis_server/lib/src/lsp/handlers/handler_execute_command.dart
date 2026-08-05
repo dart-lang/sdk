@@ -14,7 +14,7 @@ import 'package:analysis_server/src/lsp/handlers/commands/fix_all_in_workspace.d
 import 'package:analysis_server/src/lsp/handlers/commands/log_action.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
-import 'package:analysis_server/src/lsp/handlers/commands/refactor_command_handler.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/refactor_command_executor.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/validate_refactor.dart';
@@ -28,13 +28,10 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 /// handler based on the command.
 class ExecuteCommandHandler
     extends SharedMessageHandler<ExecuteCommandParams, Object?> {
-  final Map<
-    String,
-    CommandHandler<ExecuteCommandParams, Object, AnalysisServer>
-  >
+  final Map<String, CommandHandler<ExecuteCommandParams, void, AnalysisServer>>
   commandHandlers;
 
-  ExecuteCommandHandler(super.server)
+  new(super.server)
     : commandHandlers = {
         // Commands that can run for any underlying server type.
         Commands.sortMembers: SortMembersCommandHandler(server),
@@ -46,7 +43,7 @@ class ExecuteCommandHandler
         Commands.validateRefactor: ValidateRefactorCommandHandler(server),
         // Add commands for each of the refactorings.
         for (var entry in RefactoringProcessor.generators.entries)
-          entry.key: RefactorCommandHandler(server, entry.key, entry.value),
+          entry.key: RefactorCommandExecutor(server, entry.key, entry.value),
 
         // Commands that currently require an underlying LSP server.
         if (server is LspAnalysisServer) ...{
@@ -135,7 +132,7 @@ class ExecuteCommandHandler
 
 class ExecuteCommandRegistrations extends FeatureRegistration
     with StaticRegistration<ExecuteCommandOptions> {
-  ExecuteCommandRegistrations(super.info);
+  new(super.info);
 
   @override
   List<LspDynamicRegistration> get dynamicRegistrations => [];

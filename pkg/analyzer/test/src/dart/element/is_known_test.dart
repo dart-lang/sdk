@@ -18,52 +18,47 @@ main() {
 @reflectiveTest
 class IsKnownTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _checkKnown(dynamicType);
+    _checkKnown(parseType('dynamic'));
   }
 
   test_function() {
-    _checkKnown(functionTypeNone(returnType: voidNone));
+    _checkKnown(parseType('void Function()'));
 
-    _checkUnknown(functionTypeNone(returnType: unknownInferredType));
+    _checkUnknown(parseType('UnknownInferredType Function()'));
 
-    _checkUnknown(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: unknownInferredType)],
-      ),
-    );
+    _checkUnknown(parseType('void Function(UnknownInferredType)'));
   }
 
   test_interface() {
-    _checkKnown(intNone);
-    _checkKnown(listNone(intNone));
-    _checkUnknown(listNone(unknownInferredType));
+    _checkKnown(parseType('int'));
+    _checkKnown(parseType('List<int>'));
+    _checkUnknown(parseType('List<UnknownInferredType>'));
   }
 
   test_never() {
-    _checkKnown(neverNone);
+    _checkKnown(parseType('Never'));
   }
 
   test_null() {
-    _checkKnown(nullNone);
+    _checkKnown(parseType('Null'));
   }
 
   test_record() {
-    _checkKnown(recordTypeNone(positionalTypes: [intNone]));
+    _checkKnown(parseRecordType('(int,)'));
 
-    _checkUnknown(recordTypeNone(positionalTypes: [unknownInferredType]));
+    _checkUnknown(parseType('(UnknownInferredType,)'));
 
-    _checkKnown(recordTypeNone(namedTypes: {'x': intNone}));
+    _checkKnown(parseRecordType('({int x})'));
 
-    _checkUnknown(recordTypeNone(namedTypes: {'x': unknownInferredType}));
+    _checkUnknown(parseType('({UnknownInferredType x})'));
   }
 
   test_unknownInferredType() {
-    _checkUnknown(unknownInferredType);
+    _checkUnknown(parseType('UnknownInferredType'));
   }
 
   test_void() {
-    _checkKnown(voidNone);
+    _checkKnown(parseType('void'));
   }
 
   void _checkKnown(DartType type) {

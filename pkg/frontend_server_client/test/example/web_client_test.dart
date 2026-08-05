@@ -18,15 +18,19 @@ void main() {
     final exampleFilePath = await pathFromNearestPackageConfig(
       'example/web_client.dart',
     );
-    final process = await TestProcess.start(
-        Platform.resolvedExecutable, ['run', exampleFilePath]);
-    await expectLater(process.stdout,
-        emitsThrough(contains('done compiling example/app/main.dart')));
+    final process = await TestProcess.start(Platform.resolvedExecutable, [
+      'run',
+      exampleFilePath,
+    ]);
+    await expectLater(
+      process.stdout,
+      emitsThrough(contains('done compiling example/app/main.dart')),
+    );
     process.stdin.writeln('new message');
     await expectLater(
-        process.stdout,
-        emitsThrough(
-            contains('Recompile succeeded for example/app/main.dart')));
+      process.stdout,
+      emitsThrough(contains('Recompile succeeded for example/app/main.dart')),
+    );
     process.stdin.writeln('quit');
     expect(await process.exitCode, 0);
   });

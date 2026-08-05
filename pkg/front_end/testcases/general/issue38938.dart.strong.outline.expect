@@ -14,7 +14,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int? v;
-  constructor •(core::int? v) → self::A
+  constructor •(initializing-formal core::int? v) → self::A
     ;
   constructor second() → self::A
     ;

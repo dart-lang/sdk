@@ -33,7 +33,7 @@ expectThrows(void Function() f) {
   try {
     f();
     hasThrown = false;
-  } catch(e) {}
+  } catch (e) {}
   if (!hasThrown) {
     throw "Expected function to throw.";
   }

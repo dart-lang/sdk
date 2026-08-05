@@ -36,12 +36,16 @@ void testOptions() {
   var configuration = parseConfiguration([
     '--dart2js-options=a b c',
     '--vm-options=d e f',
-    '--shared-options=g h i'
+    '--shared-options=g h i',
   ]);
   Expect.listEquals(configuration.dart2jsOptions, ['a', 'b', 'c']);
   Expect.listEquals(configuration.vmOptions, ['d', 'e', 'f']);
-  Expect.listEquals(configuration.sharedOptions,
-      ['g', 'h', 'i', '-Dtest_runner.configuration=custom-configuration-1']);
+  Expect.listEquals(configuration.sharedOptions, [
+    'g',
+    'h',
+    'i',
+    '-Dtest_runner.configuration=custom-configuration-1',
+  ]);
 
   // Reproduction arguments.
   configurations = parseConfigurations([
@@ -62,9 +66,11 @@ void testOptions() {
   ]);
   Expect.equals(2, configurations.length);
   for (var configuration in configurations) {
-    Expect.listEquals(
-        ['-n', 'valid-dart2js-chrome,valid-dart2js-safari', '--no-batch'],
-        configuration.reproducingArguments);
+    Expect.listEquals([
+      '-n',
+      'valid-dart2js-chrome,valid-dart2js-safari',
+      '--no-batch',
+    ], configuration.reproducingArguments);
   }
 
   // Allow vm-aot
@@ -76,37 +82,46 @@ void testOptions() {
 
 void testValidation() {
   // TODO(rnystrom): Test other options.
-  expectValidationError(
-      ['--timeout=notint'], 'Integer value expected for option "--timeout".');
-  expectValidationError(
-      ['--timeout=1,2'], 'Integer value expected for option "--timeout".');
+  expectValidationError([
+    '--timeout=notint',
+  ], 'Integer value expected for option "--timeout".');
+  expectValidationError([
+    '--timeout=1,2',
+  ], 'Integer value expected for option "--timeout".');
 
-  expectValidationError(['--progress=unknown'],
-      '"unknown" is not an allowed value for option "--progress".');
+  expectValidationError([
+    '--progress=unknown',
+  ], '"unknown" is not an allowed value for option "--progress".');
   // Don't allow multiple.
-  expectValidationError(['--progress=compact,silent'],
-      '"compact,silent" is not an allowed value for option "--progress".');
+  expectValidationError([
+    '--progress=compact,silent',
+  ], '"compact,silent" is not an allowed value for option "--progress".');
 
   // Don't allow invalid named configurations.
-  expectValidationError(['-ninvalid-vm-android-simarm'],
-      'The named configuration "invalid-vm-android-simarm" is invalid.');
+  expectValidationError([
+    '-ninvalid-vm-android-simarm',
+  ], 'The named configuration "invalid-vm-android-simarm" is invalid.');
 }
 
 void testSelectors() {
   // Default suites.
   {
     final configuration = parseConfiguration([]);
-    Expect.setEquals({
-      'samples',
-      'standalone',
-      'corelib',
-      'language',
-      'vm',
-      'utils',
-      'lib',
-      'kernel',
-      'ffi',
-    }, configuration.selectors.keys, "default suites");
+    Expect.setEquals(
+      {
+        'samples',
+        'standalone',
+        'corelib',
+        'language',
+        'vm',
+        'utils',
+        'lib',
+        'kernel',
+        'ffi',
+      },
+      configuration.selectors.keys,
+      "default suites",
+    );
   }
 
   // The test runner can run individual tests by being given the
@@ -114,26 +129,35 @@ void testSelectors() {
   // root of the Dart source checkout. The test runner parses
   // these paths, if they match a known test suite location,
   // and turns them into a suite name followed by a test path and name.
-  final testPath = ['tests', 'language', 'subdir', 'some_test.dart']
-      .join(Platform.pathSeparator);
+  final testPath = [
+    'tests',
+    'language',
+    'subdir',
+    'some_test.dart',
+  ].join(Platform.pathSeparator);
   final co19Path = [
     'tests',
     'co19',
     'src',
     'subdir_1',
     'subdir_src',
-    'some_co19_test'
+    'some_co19_test',
   ].join(Platform.pathSeparator);
   final configuration = parseConfiguration(
-      // Test arguments that include two test file paths and two
-      // suite selectors, one with a pattern ending in .dart.
-      // The final .dart is removed both from file paths and selector
-      // patterns.
-      ['vm', 'lib/a_legacy_test.dart', testPath, co19Path]);
+    // Test arguments that include two test file paths and two
+    // suite selectors, one with a pattern ending in .dart.
+    // The final .dart is removed both from file paths and selector
+    // patterns.
+    ['vm', 'lib/a_legacy_test.dart', testPath, co19Path],
+  );
   Expect.equals(
-      'subdir/some_test', configuration.selectors['language']?.pattern);
-  Expect.equals('subdir_1/subdir_src/some_co19_test',
-      configuration.selectors['co19']?.pattern);
+    'subdir/some_test',
+    configuration.selectors['language']?.pattern,
+  );
+  Expect.equals(
+    'subdir_1/subdir_src/some_co19_test',
+    configuration.selectors['co19']?.pattern,
+  );
   Expect.equals('.?', configuration.selectors['vm']?.pattern);
   Expect.equals('a_legacy_test', configuration.selectors['lib']?.pattern);
 }

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
     show ArgumentsTrailingComma;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:language_server_protocol/protocol_custom_generated.dart';
 
 /// The refactoring that converts all formal parameters into required named.
 class ConvertAllFormalParametersToNamed extends RefactoringProducer {
@@ -17,13 +16,10 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
 
   static const String constTitle = 'Convert all formal parameters to named';
 
-  ConvertAllFormalParametersToNamed(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => true;
-
-  @override
-  List<CommandParameter> get parameters => const <CommandParameter>[];
 
   @override
   String get title => constTitle;

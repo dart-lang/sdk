@@ -305,7 +305,6 @@ class ModifierContext {
   /// Parse modifiers for top level functions and fields.
   Token parseTopLevelMemberModifiers(Token token) {
     token = _parseModifiers(token);
-    reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
     reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);
@@ -606,14 +605,16 @@ class ModifierContext {
     if (covariantToken == null && staticToken == null && !_afterFactory) {
       staticToken = next;
 
-      if (constToken != null) {
+      if (abstractToken != null && parser.isAugmentationsFeatureEnabled) {
+        reportModifierOutOfOrder(next, abstractToken!.lexeme);
+      } else if (constToken != null) {
         reportModifierOutOfOrder(next, constToken!.lexeme);
       } else if (finalToken != null) {
         reportModifierOutOfOrder(next, finalToken!.lexeme);
-      } else if (varToken != null) {
-        reportModifierOutOfOrder(next, varToken!.lexeme);
       } else if (lateToken != null) {
         reportModifierOutOfOrder(next, lateToken!.lexeme);
+      } else if (varToken != null) {
+        reportModifierOutOfOrder(next, varToken!.lexeme);
       }
       return next;
     }

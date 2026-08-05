@@ -13,7 +13,7 @@ class SimpleDiagnosticListener implements DiagnosticListener {
   final bool _printDiagnostics;
   bool _hadDiagnostic = false;
 
-  SimpleDiagnosticListener(this._scrape, this._printDiagnostics);
+  new(this._scrape, this._printDiagnostics);
 
   bool get hadDiagnostic => _hadDiagnostic;
 

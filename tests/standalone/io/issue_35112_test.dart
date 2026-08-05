@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+
 import 'test_utils.dart' show withTempDir;
 
 main() async {

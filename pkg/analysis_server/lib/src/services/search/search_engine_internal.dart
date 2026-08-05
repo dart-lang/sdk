@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -18,7 +18,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 class SearchEngineImpl implements SearchEngine {
   final Iterable<AnalysisDriver> _drivers;
 
-  SearchEngineImpl(this._drivers);
+  new(this._drivers);
 
   @override
   Future<void> appendAllSubtypes(
@@ -26,13 +26,10 @@ class SearchEngineImpl implements SearchEngine {
     Set<InterfaceElement> allSubtypes,
     OperationPerformanceImpl performance,
   ) async {
-    var searchEngineCache = SearchEngineCache();
-
     Future<void> addSubtypes(InterfaceElement type) async {
       var directResults = await performance.runAsync(
         '_searchDirectSubtypes',
-        (performance) =>
-            _searchDirectSubtypes(type, searchEngineCache, performance),
+        (performance) => _searchDirectSubtypes(type, performance),
       );
       for (var directResult in directResults) {
         var directSubtype =
@@ -49,39 +46,43 @@ class SearchEngineImpl implements SearchEngine {
   @override
   Future<Set<String>?> membersOfSubtypes(InterfaceElement type) async {
     var drivers = _drivers.toList();
-    var searchedFiles = _createSearchedFiles(drivers);
+    _discoverAvailableFiles(drivers);
 
-    var libraryUriStr = type.library.uri.toString();
+    var libraryFile = type.library.firstFragment.source.mustBeFile;
+
     var hasSubtypes = false;
     var visitedIds = <String>{};
     var members = <String>{};
 
-    Future<void> addMembers(
-      InterfaceElement? type,
-      SubtypeResult? subtype,
-    ) async {
-      if (subtype != null && !visitedIds.add(subtype.id)) {
+    Future<void> addSubtype(DirectSubtypeWithMembers subtype) async {
+      if (!visitedIds.add(subtype.id)) {
         return;
       }
+
+      hasSubtypes = true;
+      members.addAll(
+        subtype.library.resource == libraryFile
+            ? subtype.members
+            : subtype.members.where((name) => !name.startsWith('_')),
+      );
+
       for (var driver in drivers) {
-        var subtypes = await driver.search.subtypes(
-          searchedFiles,
-          type: type,
-          subtype: subtype,
-        );
-        for (var subtype in subtypes) {
-          hasSubtypes = true;
-          members.addAll(
-            subtype.libraryUri == libraryUriStr
-                ? subtype.members
-                : subtype.members.where((name) => !name.startsWith('_')),
-          );
-          await addMembers(null, subtype);
+        var directSubtypes = await driver.search
+            .directSubtypesWithMembersOfSubtype(subtype);
+        for (var directSubtype in directSubtypes) {
+          await addSubtype(directSubtype);
         }
       }
     }
 
-    await addMembers(type, null);
+    for (var driver in drivers) {
+      var directSubtypes = await driver.search.directSubtypesWithMembersOfType(
+        type,
+      );
+      for (var directSubtype in directSubtypes) {
+        await addSubtype(directSubtype);
+      }
+    }
 
     if (!hasSubtypes) {
       return null;
@@ -95,6 +96,7 @@ class SearchEngineImpl implements SearchEngine {
   ) async {
     var allResults = <LibraryFragmentSearchMatch>[];
     var drivers = _drivers.toList();
+    _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var results = await driver.search.referencesLibraryFragment(fragment);
       allResults.addAll(results);
@@ -108,12 +110,9 @@ class SearchEngineImpl implements SearchEngine {
   ) async {
     var allResults = <LibraryFragmentSearchMatch>[];
     var drivers = _drivers.toList();
-    var searchedFiles = _createSearchedFiles(drivers);
+    _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
-      var results = await driver.search.referencesLibraryImport(
-        import,
-        searchedFiles,
-      );
+      var results = await driver.search.referencesLibraryImport(import);
       allResults.addAll(results);
     }
     return allResults;
@@ -123,9 +122,9 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
     var allDeclarations = <SearchMatch>[];
     var drivers = _drivers.toList();
-    var searchedFiles = _createSearchedFiles(drivers);
+    _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
-      var elements = await driver.search.classMembers(name, searchedFiles);
+      var elements = await driver.search.classMembers(name);
       allDeclarations.addAll(elements.map(SearchMatchImpl.forElement));
     }
     return allDeclarations;
@@ -135,12 +134,9 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberReferences(String name) async {
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
-    var searchedFiles = _createSearchedFiles(drivers);
+    _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
-      var results = await driver.search.unresolvedMemberReferences(
-        name,
-        searchedFiles,
-      );
+      var results = await driver.search.unresolvedMemberReferences(name);
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
@@ -160,9 +156,9 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchReferences(Element element) async {
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
-    var searchedFiles = _createSearchedFiles(drivers);
+    _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
-      var results = await driver.search.references(element, searchedFiles);
+      var results = await driver.search.references(element);
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
@@ -170,81 +166,45 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchSubtypes(
-    InterfaceElement type,
-    SearchEngineCache searchEngineCache, {
+    InterfaceElement type, {
     OperationPerformanceImpl? performance,
   }) async {
     performance ??= OperationPerformanceImpl('<root>');
-    var results = await _searchDirectSubtypes(
-      type,
-      searchEngineCache,
-      performance,
-    );
+    var results = await _searchDirectSubtypes(type, performance);
     return results.map(SearchMatchImpl.forSearchResult).toList();
   }
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
-    var allElements = HashSet<Element>(
-      hashCode: (e) => e.name.hashCode,
-      equals: (a, b) {
-        return a.lookupName == b.lookupName && a.library?.uri == b.library?.uri;
-      },
-    );
+    var allMatches = <SearchMatch>[];
     var regExp = RegExp(pattern);
     var drivers = _drivers.toList();
+    _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var elements = await driver.search.topLevelElements(regExp);
-      allElements.addAll(elements);
+      allMatches.addAll(elements.map(SearchMatchImpl.forElement));
     }
-    return allElements.map(SearchMatchImpl.forElement).toList();
+    return allMatches;
   }
 
-  /// Create a new [SearchedFiles] instance in which added files are owned
-  /// by the drivers that have them added.
-  SearchedFiles _createSearchedFiles(List<AnalysisDriver> drivers) {
-    var searchedFiles = SearchedFiles();
+  void _discoverAvailableFiles(List<AnalysisDriver> drivers) {
     for (var driver in drivers) {
-      searchedFiles.ownAnalyzed(driver.search);
+      driver.discoverAvailableFiles();
     }
-    return searchedFiles;
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(
     InterfaceElement type,
-    SearchEngineCache searchEngineCache,
     OperationPerformanceImpl performance,
   ) async {
     var allResults = <SearchResult>[];
 
-    // Fill out cache if needed.
-    var drivers = searchEngineCache.drivers ??= _drivers.toList();
-    var searchedFiles = searchEngineCache.searchedFiles ??=
-        _createSearchedFiles(drivers);
-    var assignedFiles = searchEngineCache.assignedFiles;
-    if (assignedFiles == null) {
-      assignedFiles = searchEngineCache.assignedFiles = {};
-      for (var driver in drivers) {
-        var assignedFilesForDrive = assignedFiles[driver] = [];
-        performance.run('discoverAvailableFiles', (_) {
-          return driver.discoverAvailableFiles();
-        });
-        for (var file in driver.fsState.knownFiles) {
-          if (searchedFiles.add(file.path, driver.search)) {
-            assignedFilesForDrive.add(file);
-          }
-        }
-      }
-    }
-
+    var drivers = _drivers.toList();
+    _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var results = await performance.runAsync(
-        'subTypes',
-        (_) => driver.search.subTypes(
-          type,
-          searchedFiles,
-          filesToCheck: assignedFiles![driver],
-        ),
+        'directSubtypeReferences',
+        (_) => driver.search.directSubtypeReferences(type),
       );
       allResults.addAll(results);
     }
@@ -280,7 +240,7 @@ class SearchMatchImpl implements SearchMatch {
   @override
   final SourceRange sourceRange;
 
-  SearchMatchImpl(
+  new(
     this.file,
     this.librarySource,
     this.unitSource,
@@ -374,5 +334,16 @@ class SearchMatchImpl implements SearchMatch {
         MatchKind.REFERENCE_IN_PATTERN_FIELD,
       _ => MatchKind.REFERENCE,
     };
+  }
+}
+
+extension _SourceExtension on Source {
+  /// Returns the [File] for this source.
+  ///
+  /// This assumes that the source is a [FileSource], which is safe because
+  /// index and search are only supported in DAS, where all sources are file
+  /// based.
+  File get mustBeFile {
+    return (this as FileSource).file;
   }
 }

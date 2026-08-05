@@ -20,7 +20,7 @@ typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
 class ReferencesHandler
     extends LspMessageHandler<ReferenceParams, List<Location>?> {
-  ReferencesHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_references;
@@ -139,7 +139,7 @@ class ReferencesHandler
 
 class ReferencesRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  ReferencesRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>

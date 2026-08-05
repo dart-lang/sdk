@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  final field core::int c;
+  set c(wildcard core::int _#wc0#formal) → void
+    ;
+}
+class MA = core::Object with self::M {
+  synthetic constructor •() → self::MA
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get c() → core::int
+    return super.{self::M::c};
+  synthetic mixin-super-stub set c(core::int _#wc0#formal) → void
+    return super.{self::M::c} = _#wc0#formal;
+}
+static method hello() → void
+  ;

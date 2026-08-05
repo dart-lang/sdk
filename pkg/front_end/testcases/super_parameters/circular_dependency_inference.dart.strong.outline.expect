@@ -17,36 +17,36 @@ import "dart:core" as core;
 
 class A1 extends core::Object {
   field self::B1 foo;
-  constructor •(self::B1 foo) → self::A1
+  constructor •(initializing-formal self::B1 foo) → self::A1
     ;
 }
 class B1 extends self::A1 {
-  constructor •(self::B1 foo) → self::B1
+  constructor •(super-initializing-formal self::B1 foo) → self::B1
     ;
 }
 class A2 extends core::Object {
   field invalid-type foo;
-  constructor •(invalid-type foo) → self::A2
+  constructor •(initializing-formal invalid-type foo) → self::A2
     ;
 }
 class B2 extends self::A2 {
-  constructor •(invalid-type foo) → self::B2
+  constructor •(super-initializing-formal invalid-type foo) → self::B2
     ;
 }
 class A3 extends core::Object {
   field invalid-type foo;
   constructor •() → self::A3
     ;
-  constructor initializeFoo(invalid-type foo) → self::A3
+  constructor initializeFoo(initializing-formal invalid-type foo) → self::A3
     ;
 }
 class B3 extends self::A3 {
   field (invalid-type) → self::A3 bar;
-  constructor •((invalid-type) → self::A3 bar) → self::B3
+  constructor •(initializing-formal (invalid-type) → self::A3 bar) → self::B3
     ;
 }
 class C3 extends self::B3 {
-  constructor •((invalid-type) → self::A3 bar) → self::C3
+  constructor •(super-initializing-formal (invalid-type) → self::A3 bar) → self::C3
     ;
 }
 static method f1() → self::B1

@@ -46,7 +46,7 @@ class HttpAnalysisServer {
   final List<String> _printBuffer = <String>[];
 
   /// Initialize a newly created HTTP server.
-  HttpAnalysisServer(this._socketServer);
+  new(this._socketServer);
 
   /// Return the port this server is bound to.
   Future<int?> get boundPort async {

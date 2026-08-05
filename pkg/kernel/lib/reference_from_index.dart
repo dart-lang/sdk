@@ -115,7 +115,7 @@ class IndexedLibrary extends IndexedContainerImpl {
   /// TODO(jensj): Should this class be renamed to make it more immediately
   /// clear that it also clears canonical names? And should the class be moved
   /// as it is more tightly bound with the incremental compiler?
-  IndexedLibrary(this.library) {
+  new(this.library) {
     library.reference.canonicalName = null;
     for (int i = 0; i < library.typedefs.length; i++) {
       Typedef typedef = library.typedefs[i];
@@ -179,7 +179,7 @@ class IndexedClass extends IndexedContainerImpl {
   @override
   final Library library;
 
-  IndexedClass._(this._cls, this.library) {
+  new _(this._cls, this.library) {
     for (int i = 0; i < _cls.constructors.length; i++) {
       Constructor constructor = _cls.constructors[i];
       constructor.reference.canonicalName = null;
@@ -210,10 +210,7 @@ class IndexedExtensionTypeDeclaration
   final IndexedLibrary _indexedLibrary;
   final ExtensionTypeDeclaration extensionTypeDeclaration;
 
-  IndexedExtensionTypeDeclaration(
-    this._indexedLibrary,
-    this.extensionTypeDeclaration,
-  ) {
+  new(this._indexedLibrary, this.extensionTypeDeclaration) {
     _addProcedures(extensionTypeDeclaration.procedures);
   }
 

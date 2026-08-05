@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinOnTypeAliasExpandsToTypeParameterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,7 +18,7 @@ main() {
 class MixinOnTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
   test_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T = A;
 mixin M on A {}
@@ -25,24 +26,22 @@ mixin M on A {}
   }
 
   test_class_noTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T<X extends A> = X;
 mixin M on T {}
-''',
-      [error(diag.mixinOnTypeAliasExpandsToTypeParameter, 50, 1)],
-    );
+//         ^
+// [diag.mixinOnTypeAliasExpandsToTypeParameter] A type alias that expands to a type parameter can't be used as a superclass constraint.
+''');
   }
 
   test_class_withTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T<X extends A> = X;
 mixin M on T<A> {}
-''',
-      [error(diag.mixinOnTypeAliasExpandsToTypeParameter, 50, 1)],
-    );
+//         ^
+// [diag.mixinOnTypeAliasExpandsToTypeParameter] A type alias that expands to a type parameter can't be used as a superclass constraint.
+''');
   }
 }

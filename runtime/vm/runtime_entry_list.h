@@ -53,6 +53,7 @@ namespace dart {
   V(NullError)                                                                 \
   V(NullErrorWithSelector)                                                     \
   V(NullCastError)                                                             \
+  V(TypeError)                                                                 \
   V(ArgumentNullError)                                                         \
   V(DispatchTableNullError)                                                    \
   V(ArgumentError)                                                             \
@@ -90,7 +91,8 @@ namespace dart {
   V(ResumeInterpreter)                                                         \
   V(InitializeSharedField)                                                     \
   V(FatalError)                                                                \
-  V(EnsureDeeplyImmutable)
+  V(EnsureDeeplyImmutable)                                                     \
+  V(AllocateBytecodeCoverageArray)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.

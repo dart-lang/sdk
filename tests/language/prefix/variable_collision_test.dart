@@ -1,6 +1,10 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// The formatter puts a blank line above the static error marker.
+// dart format off
+
 import "../library10.dart" as lib10;
 //                            ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER

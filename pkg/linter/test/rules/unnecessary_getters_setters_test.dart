@@ -77,15 +77,10 @@ class C {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
+  // TODO(scheglov): implement augmentation
   test_unnecessary_augmentationAddedGetterAndSetter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   String? _x;
@@ -96,103 +91,92 @@ augment class A {
   }
 }
 ''');
+    // TODO(pq): in the absence of accessors in the augmented class, report on
+    //  the class decl?
+    await assertDiagnosticsFromMarkup(r'''
+part 'b.dart';
 
-    await assertDiagnosticsInFile(a.path, [
-      // TODO(pq): in the absence of accessors in the augmented class, report on the class decl?
-      lint(33, 1),
-    ]);
+class [!A!] {}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
+  // TODO(scheglov): implement augmentation
   test_unnecessary_augmentationAddedSetter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment class A {
+  set x(String? value) {
+    _x = value;
+  }
+}
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class A {
   String? _x;
 
-  String? get x => _x;
+  String? get [!x!] => _x;
 }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment class A {
-  set x(String? value) {
-    _x = value;
-  }
-}
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(52, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_unnecessary_getterAndSetter_extensionType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(int i) {
   static int? _x;
-  static int? get x => _x;
+  static int? get [!x!] => _x;
   static set x(int? value) {
     _x = value;
   }
 }
-''',
-      [lint(62, 1)],
-    );
+''');
   }
 
   test_unnecessary_getterAndSetterHaveBlockBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? _x;
 
-  String? get x {
+  String? get [!x!] {
     return _x;
   }
   set x(String? value) {
     _x = value;
   }
 }
-''',
-      [lint(39, 1)],
-    );
+''');
   }
 
   test_unnecessary_getterHasExpressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? _x;
 
-  String? get x => _x;
+  String? get [!x!] => _x;
   set x(String? value)
   {
     _x = value;
   }
 }
-''',
-      [lint(39, 1)],
-    );
+''');
   }
 
   test_unnecessary_setterHasExpressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? _x;
 
-  String? get x {
+  String? get [!x!] {
     return _x;
   }
   set x(String? value) => _x = value;
 }
-''',
-      [lint(39, 1)],
-    );
+''');
   }
 }

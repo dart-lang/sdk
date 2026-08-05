@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
-  RemoveLeadingUnderscore({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -72,6 +72,15 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
         );
         if (root != null) {
           references = findLocalElementReferences(root, element);
+        } else {
+          var declaration = node
+              .thisOrAncestorOfType<PrimaryConstructorDeclaration>();
+          if (declaration != null) {
+            var body = declaration.body;
+            if (body != null) {
+              references = findLocalElementReferences(body, element);
+            }
+          }
         }
       }
     } else if (element is LocalElement) {

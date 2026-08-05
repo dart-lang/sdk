@@ -6,10 +6,12 @@ library IndexedDB1Test;
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
 import 'dart:collection';
+
 import 'utils.dart';
 
 // Write and re-read Maps: simple Maps; Maps with DAGs; Maps with cycles.

@@ -5,8 +5,6 @@
 // Tests that we infer `Object?` for an extension type's representation type if
 // the type isn't specified.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/static_type_helper.dart';
 
 // Representation type is `Object?`, not `dynamic`.
@@ -18,7 +16,7 @@ void main() {
   if (1 > 2) et3.i.arglebargle;
   //               ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] unspecified
+  // [cfe] The getter 'arglebargle' isn't defined for the type 'Object?'.
 
   ET0(null).name.expectStaticType<Exactly<Object?>>();
 }

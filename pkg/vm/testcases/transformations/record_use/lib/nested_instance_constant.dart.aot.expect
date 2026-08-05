@@ -14,7 +14,7 @@ final class Recorded extends core::Object /*hasConstConstructor*/  {
   final field core::String id;
 
   [@vm.unreachable.metadata=]
-  const constructor •(core::String id) → self::Recorded
+  const constructor •(initializing-formal core::String id) → self::Recorded
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 class Wrapper extends core::Object /*hasConstConstructor*/  {

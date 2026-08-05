@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/test_helper.dart';
+import '../common/service_test_common.dart';
 import 'http_get_isolate_rpc_common.dart';
+import 'http_get_isolate_rpc_lib.dart' as testee_lib;
 
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      httpGetIsolateRpcTests,
-      'http_get_isolate_rpc_test.dart',
-      useAuthToken: false,
-    );
+void main([args = const <String>[]]) {
+  final harness = IsolateTestHarness('http_get_isolate_rpc_lib.dart', args);
+  for (final test in httpGetIsolateRpcTests) {
+    harness.addCustomTest(test);
+  }
+  harness.run(testeeMain: testee_lib.main, useAuthToken: false);
+}

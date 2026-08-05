@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class ConstConstructorWithNonFinalFieldTest extends PubPackageResolutionTest {
   test_constFactory_named_hasNonFinal_redirect() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
   const factory A.named() = B;
@@ -31,7 +30,7 @@ class B implements A {
   }
 
   test_constFactory_unnamed_hasNonFinal_redirect() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
   const factory A() = B;
@@ -46,7 +45,7 @@ class B implements A {
   }
 
   test_constructor_newHead_unnamed_hasAbstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   abstract int x;
   const new();
@@ -55,7 +54,7 @@ abstract class A {
   }
 
   test_constructor_newHead_unnamed_hasFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 0;
   const new();
@@ -64,19 +63,18 @@ class A {
   }
 
   test_constructor_newHead_unnamed_hasNonFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
   const new();
+//      ^^^
+// [diag.constConstructorWithNonFinalField] Can't define a const constructor for a class with non-final fields.
 }
-''',
-      [error(diag.constConstructorWithNonFinalField, 31, 3)],
-    );
+''');
   }
 
   test_constructor_typeName_named_hasAbstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   abstract int x;
   const A.named();
@@ -85,7 +83,7 @@ abstract class A {
   }
 
   test_constructor_typeName_named_hasFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 0;
   const A.named();
@@ -94,19 +92,18 @@ class A {
   }
 
   test_constructor_typeName_named_hasNonFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
   const A.named();
+//      ^^^^^^^
+// [diag.constConstructorWithNonFinalField] Can't define a const constructor for a class with non-final fields.
 }
-''',
-      [error(diag.constConstructorWithNonFinalField, 31, 7)],
-    );
+''');
   }
 
   test_constructor_typeName_unnamed_hasAbstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   abstract int x;
   const A();
@@ -115,7 +112,7 @@ abstract class A {
   }
 
   test_constructor_typeName_unnamed_hasFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 0;
   const A();
@@ -124,30 +121,28 @@ class A {
   }
 
   test_constructor_typeName_unnamed_hasNonFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
   const A();
+//      ^
+// [diag.constConstructorWithNonFinalField] Can't define a const constructor for a class with non-final fields.
 }
-''',
-      [error(diag.constConstructorWithNonFinalField, 31, 1)],
-    );
+''');
   }
 
   test_primaryConstructor_named_hasNonFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A.named() {
+//    ^^^^^^^^^^^^^
+// [diag.constConstructorWithNonFinalField] Can't define a const constructor for a class with non-final fields.
   int x = 0;
 }
-''',
-      [error(diag.constConstructorWithNonFinalField, 6, 13)],
-    );
+''');
   }
 
   test_primaryConstructor_unnamed_hasAbstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class const A() {
   abstract int x;
 }
@@ -155,7 +150,7 @@ abstract class const A() {
   }
 
   test_primaryConstructor_unnamed_hasFinal() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A() {
   final int x = 0;
 }
@@ -163,13 +158,12 @@ class const A() {
   }
 
   test_primaryConstructor_unnamed_hasNonFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class const A() {
+//    ^^^^^
+// [diag.constConstructorWithNonFinalField] Can't define a const constructor for a class with non-final fields.
   int x = 0;
 }
-''',
-      [error(diag.constConstructorWithNonFinalField, 6, 5)],
-    );
+''');
   }
 }

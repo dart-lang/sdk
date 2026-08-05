@@ -40,7 +40,6 @@ void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
   RELEASE_ASSERT(yield_index != 0);
 
   ASSERT((kind == UntaggedPcDescriptors::kRuntimeCall) ||
-         (kind == UntaggedPcDescriptors::kBSSRelocation) ||
          (kind == UntaggedPcDescriptors::kOther) ||
          (yield_index != UntaggedPcDescriptors::kInvalidYieldIndex) ||
          (deopt_id != DeoptId::kNone));
@@ -48,8 +47,7 @@ void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
   // When precompiling, we only use pc descriptors for exceptions,
   // relocations and yield indices.
   if (!FLAG_precompiled_mode || try_index != -1 ||
-      yield_index != UntaggedPcDescriptors::kInvalidYieldIndex ||
-      kind == UntaggedPcDescriptors::kBSSRelocation) {
+      yield_index != UntaggedPcDescriptors::kInvalidYieldIndex) {
     const int32_t kind_and_metadata =
         UntaggedPcDescriptors::KindAndMetadata::Encode(kind, try_index,
                                                        yield_index);
@@ -65,18 +63,17 @@ void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
                                 function_.end_token_pos())) {
           FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
                 " invalid for function %s (%s, %s)",
-                token_pos.ToCString(),
-                UntaggedPcDescriptors::KindToCString(kind), pc_offset,
-                function_.ToFullyQualifiedCString(),
+                token_pos.ToCString(), PcDescriptors::KindToCString(kind),
+                pc_offset, function_.ToFullyQualifiedCString(),
                 function_.token_pos().ToCString(),
                 function_.end_token_pos().ToCString());
         }
         if (!script_.IsNull() && !script_.IsValidTokenPosition(token_pos)) {
           FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
                 " invalid for script %s of function %s",
-                token_pos.ToCString(),
-                UntaggedPcDescriptors::KindToCString(kind), pc_offset,
-                script_.ToCString(), function_.ToFullyQualifiedCString());
+                token_pos.ToCString(), PcDescriptors::KindToCString(kind),
+                pc_offset, script_.ToCString(),
+                function_.ToFullyQualifiedCString());
         }
       }
       const int32_t encoded_pos = token_pos.Serialize();

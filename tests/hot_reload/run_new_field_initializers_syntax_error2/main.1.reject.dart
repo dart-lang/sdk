@@ -12,7 +12,9 @@ import 'package:reload_test/reload_test_utils.dart';
 // time.
 
 class Foo {
-  Foo() { /* default constructor */ }
+  Foo() {
+    /* default constructor */
+  }
   int x = 4;
   int y = ......;
 }
@@ -32,8 +34,8 @@ Future<void> main() async {
 
 /** DIFF **/
 /*
- class Foo {
-   Foo() { /* default constructor */ }
+     /* default constructor */
+   }
    int x = 4;
 +  int y = ......;
  }

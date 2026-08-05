@@ -15,9 +15,9 @@ class PercentileCalculator {
   int _valueCount = 0;
 
   /// Initialize a newly created percentile calculator.
-  PercentileCalculator();
+  new();
 
-  factory PercentileCalculator.from(List<int> values) {
+  factory from(List<int> values) {
     var calculator = PercentileCalculator();
     for (var value in values) {
       calculator.addValue(value);

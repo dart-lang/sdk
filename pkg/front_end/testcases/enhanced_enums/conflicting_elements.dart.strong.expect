@@ -10,7 +10,7 @@ library;
 //   ^^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:13:3: Error: 'element' is already declared in this scope.
-//   element; // Error.
+//   element, // Error.
 //   ^^^^^^^
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:12:3: Context: Previous declaration of 'element'.
 //   element,
@@ -45,21 +45,21 @@ library;
 //   ^^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:51:3: Error: Can't declare a member that conflicts with an inherited one.
-//   element // Error.
+//   element, // Error.
 //   ^^^^^^^
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:47:12: Context: This is the inherited member.
 //   void set element(dynamic value) {}
 //            ^^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:59:3: Error: Can't declare a member that conflicts with an inherited one.
-//   element // Error.
+//   element, // Error.
 //   ^^^^^^^
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:55:7: Context: This is the inherited member.
 //   int element = 42;
 //       ^^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:67:3: Error: Can't declare a member that conflicts with an inherited one.
-//   element // Error.
+//   element, // Error.
 //   ^^^^^^^
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:63:8: Context: This is the inherited member.
 //   void element() {}

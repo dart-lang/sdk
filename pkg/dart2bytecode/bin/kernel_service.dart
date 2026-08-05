@@ -38,6 +38,7 @@ Uint8List _generateBytecode(
       emitLocalVarInfo: true,
       emitInstanceFieldInitializers: true,
       embedSourceText: true,
+      recordCoverage: true,
     ),
   );
   return byteSink.builder.takeBytes();

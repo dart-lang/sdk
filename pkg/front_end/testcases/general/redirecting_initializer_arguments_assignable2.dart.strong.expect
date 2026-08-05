@@ -26,7 +26,7 @@ class Foo<T extends self::X> extends core::Object {
   constructor fromT(self::Foo::T _init) → self::Foo<self::Foo::T>
     : this self::Foo::_internal(x: _init)
     ;
-  constructor _internal({required self::Foo::T x}) → self::Foo<self::Foo::T>
+  constructor _internal({required initializing-formal self::Foo::T x}) → self::Foo<self::Foo::T>
     : self::Foo::x = x, super core::Object::•()
     ;
 }

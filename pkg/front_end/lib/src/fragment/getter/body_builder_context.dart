@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/transformations/flags.dart';
 
 import '../../base/local_scope.dart';
 import '../../builder/declaration_builders.dart';
@@ -12,6 +11,7 @@ import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../type_inference/context_allocation_strategy.dart';
 import 'declaration.dart';
 
@@ -19,7 +19,7 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   final SourcePropertyBuilder _builder;
   final GetterFragmentDeclaration _declaration;
 
-  GetterFragmentBodyBuilderContext(
+  new(
     this._builder,
     this._declaration,
     SourceLibraryBuilder libraryBuilder,
@@ -58,13 +58,13 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) => null;
+  FunctionParameter? getTearOffParameter(int index) => null;
 
   @override
   void registerFunctionBody({
     required Statement? body,
     required ScopeProviderInfo? scopeProviderInfo,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
   }) {
     _declaration.registerFunctionBody(
@@ -72,8 +72,11 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
       scope: scopeProviderInfo
           // Coverage-ignore(suite): Not run.
           ?.scope,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
+      thisVariable: scopeProviderInfo
+          // Coverage-ignore(suite): Not run.
+          ?.thisVariable,
     );
   }
 
@@ -84,6 +87,6 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   void registerSuperCall() {
     // TODO(johnniwinther): This should be set on the member built from this
     // fragment and copied to the origin if necessary.
-    _builder.readTarget!.transformerFlags |= TransformerFlag.superCalls;
+    _builder.readTarget!.containsSuperCalls = true;
   }
 }

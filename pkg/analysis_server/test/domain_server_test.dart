@@ -11,6 +11,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -227,9 +228,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // If not supplied.
     await handleSuccessfulRequest(
-      ServerSetClientCapabilitiesParams(
-        [],
-      ).toRequest('-1', clientUriConverter: server.uriConverter),
+      ServerSetClientCapabilitiesParams([])
+          .toRequest('-1', clientUriConverter: server.uriConverter),
     );
     expect(server.clientCapabilities.supportsUris, isNull);
     expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
@@ -362,9 +362,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_setSubscriptions_success() async {
     expect(server.serverServices, isEmpty);
     // send request
-    var request = ServerSetSubscriptionsParams([
-      ServerService.STATUS,
-    ]).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ServerSetSubscriptionsParams([ServerService.STATUS])
+        .toRequest('0', clientUriConverter: server.uriConverter);
     await handleSuccessfulRequest(request);
     // set of services has been changed
     expect(server.serverServices, contains(ServerService.STATUS));
@@ -378,15 +377,15 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
       MessageType.warning,
       'message',
       ['a', 'b'],
+      NotCancelableToken(),
     );
     expect(serverChannel.serverRequestsSent, hasLength(1));
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
     serverChannel.simulateResponseFromClient(
-      ServerShowMessageRequestResult(
-        action: 'a',
-      ).toResponse(request.id, clientUriConverter: server.uriConverter),
+      ServerShowMessageRequestResult(action: 'a')
+          .toResponse(request.id, clientUriConverter: server.uriConverter),
     );
     var response = await responseFuture;
     expect(response, 'a');
@@ -400,6 +399,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
       MessageType.warning,
       'message',
       ['a', 'b'],
+      NotCancelableToken(),
     );
     expect(serverChannel.serverRequestsSent, hasLength(1));
 

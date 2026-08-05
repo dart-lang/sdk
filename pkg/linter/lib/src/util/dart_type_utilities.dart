@@ -6,12 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 
-import '../ast.dart';
 import '../extensions.dart';
 
 bool argumentsMatchParameters(
-  NodeList<Expression> arguments,
+  NodeList<Argument> arguments,
   NodeList<FormalParameter> parameters,
 ) {
   var namedParameters = <String, Element?>{};
@@ -30,14 +30,14 @@ bool argumentsMatchParameters(
     }
   }
   for (var argument in arguments) {
-    if (argument is NamedExpression) {
-      var element = argument.expression.canonicalElement;
+    if (argument is NamedArgument) {
+      var element = argument.argumentExpression.canonicalElement;
       if (element == null) {
         return false;
       }
-      namedArguments[argument.name.label.name] = element;
+      namedArguments[argument.name.lexeme] = element;
     } else {
-      var element = argument.canonicalElement;
+      var element = argument.argumentExpression.canonicalElement;
       if (element == null) {
         return false;
       }
@@ -105,8 +105,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
   if (expression1 is SimpleIdentifier) {
     return expression2 is SimpleIdentifier &&
         canonicalElementsAreEqual(
-          getWriteOrReadElement(expression1),
-          getWriteOrReadElement(expression2),
+          expression1.writeOrReadElement,
+          expression2.writeOrReadElement,
         );
   }
 
@@ -117,8 +117,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
           expression2.prefix.element,
         ) &&
         canonicalElementsAreEqual(
-          getWriteOrReadElement(expression1.identifier),
-          getWriteOrReadElement(expression2.identifier),
+          expression1.identifier.writeOrReadElement,
+          expression2.identifier.writeOrReadElement,
         );
   }
 
@@ -127,8 +127,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
     var target2 = expression2.target;
     return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
         canonicalElementsAreEqual(
-          getWriteOrReadElement(expression1.propertyName),
-          getWriteOrReadElement(expression2.propertyName),
+          expression1.propertyName.writeOrReadElement,
+          expression2.propertyName.writeOrReadElement,
         );
   }
 
@@ -162,21 +162,28 @@ bool canonicalElementsFromIdentifiersAreEqual(
 // TODO(srawlins): typedefs and functions in general.
 bool typesAreUnrelated(
   TypeSystem typeSystem,
-  DartType? leftType,
-  DartType? rightType,
+  DartType leftType,
+  DartType rightType,
 ) {
+  leftType = leftType.extensionTypeErasure;
+  rightType = rightType.extensionTypeErasure;
+
   // If we don't have enough information, or can't really compare the types,
   // return false as they _might_ be related.
-  if (leftType == null ||
-      leftType.isBottom ||
+  if (leftType.isBottom ||
       leftType is DynamicType ||
-      rightType == null ||
       rightType.isBottom ||
       rightType is DynamicType) {
     return false;
   }
   var promotedLeftType = typeSystem.promoteToNonNull(leftType);
   var promotedRightType = typeSystem.promoteToNonNull(rightType);
+  if (leftType.isDartCoreNull && typeSystem.isNonNullable(rightType)) {
+    return true;
+  }
+  if (rightType.isDartCoreNull && typeSystem.isNonNullable(leftType)) {
+    return true;
+  }
   if (promotedLeftType == promotedRightType ||
       typeSystem.isSubtypeOf(promotedLeftType, promotedRightType) ||
       typeSystem.isSubtypeOf(promotedRightType, promotedLeftType)) {
@@ -189,19 +196,15 @@ bool typesAreUnrelated(
     );
   } else if (promotedLeftType is TypeParameterType &&
       promotedRightType is TypeParameterType) {
-    return typesAreUnrelated(
-      typeSystem,
-      promotedLeftType.element.bound,
-      promotedRightType.element.bound,
-    );
+    var leftBound = promotedLeftType.element.bound;
+    if (leftBound == null) return false;
+    var rightBound = promotedRightType.element.bound;
+    if (rightBound == null) return false;
+    return typesAreUnrelated(typeSystem, leftBound, rightBound);
   } else if (promotedLeftType is FunctionType) {
-    if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
-      return true;
-    }
+    if (_isTypeUnrelatedToFunctionType(promotedRightType)) return true;
   } else if (promotedRightType is FunctionType) {
-    if (_isFunctionTypeUnrelatedToType(promotedRightType, promotedLeftType)) {
-      return true;
-    }
+    if (_isTypeUnrelatedToFunctionType(promotedLeftType)) return true;
   } else if (promotedLeftType is RecordType ||
       promotedRightType is RecordType) {
     return !typeSystem.isAssignableTo(promotedLeftType, promotedRightType) &&
@@ -210,21 +213,21 @@ bool typesAreUnrelated(
   return false;
 }
 
-bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
-  if (type2 is FunctionType) {
-    return false;
-  }
-  if (type2 is InterfaceType) {
-    var element2 = type2.element;
-    if (element2 is ClassElement &&
-        element2.thisType.lookUpMethod(
-              'call',
-              element2.library,
-              concrete: true,
-            ) !=
-            null) {
-      return false;
-    }
+/// Returns whether [type] is definitely unrelated to a function type.
+///
+/// A returned value of `false` indicates [type] _might_ be related to a
+/// function type.
+bool _isTypeUnrelatedToFunctionType(DartType type) {
+  if (type is FunctionType) return false;
+  if (type is InterfaceType) {
+    var element = type.element;
+    if (element is! ClassElement) return true;
+    var callMethod = element.thisType.lookUpMethod(
+      'call',
+      element.library,
+      concrete: true,
+    );
+    if (callMethod != null) return false;
   }
   return true;
 }

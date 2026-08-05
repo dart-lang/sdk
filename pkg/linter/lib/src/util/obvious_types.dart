@@ -34,6 +34,8 @@ extension CollectionElementExtensions on CollectionElement {
         // This should be the non-nullable version of `self.value.staticType`,
         // but since it requires computation, we return null.
         return null;
+      default:
+        return null;
     }
   }
 
@@ -52,6 +54,8 @@ extension CollectionElementExtensions on CollectionElement {
       case NullAwareElement():
         return self.value.hasObviousType;
       case ForElement():
+        return false;
+      default:
         return false;
     }
   }
@@ -149,8 +153,9 @@ extension ExpressionExtensions on Expression {
           return false;
         }
       case RecordLiteral():
-        for (var expression in self.fields) {
-          if (!expression.hasObviousType) return false;
+        for (var field in self.fields) {
+          if (field is RecordLiteralNamedField) return false;
+          if (!field.fieldExpression.hasObviousType) return false;
         }
         return true;
       case Literal():

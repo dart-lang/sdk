@@ -49,6 +49,20 @@ abstract class DelayedExpression {
     List<Statement>? statementEffects,
   });
 
+  /// Reads the result of the evaluated expression from [variableCache].
+  ///
+  /// The expression created by a [DelayedExpression] can be cached in a
+  /// variable. When that happens, some type checks might not be performed
+  /// before the value was stored and, therefore, should be done when the value
+  /// is retrieved from the cache. [createVariableCacheReadExpression] creates
+  /// an expression that reads the value from [variableCache] and applies the
+  /// necessary checks, if any.
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  });
+
   /// Returns the type of the resulting expression.
   DartType getType(TypeEnvironment typeEnvironment);
 
@@ -138,6 +152,16 @@ abstract mixin class AbstractDelayedExpression implements DelayedExpression {
   }
 
   @override
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(variableCache, promotedType: promotedType)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
   bool get isEffectOnly => false;
 
   @override
@@ -153,7 +177,7 @@ class FixedExpression extends AbstractDelayedExpression {
 
   bool used = false;
 
-  FixedExpression(this._expression, this._type);
+  new(this._expression, this._type);
 
   @override
   Expression createExpression(
@@ -171,6 +195,19 @@ class FixedExpression extends AbstractDelayedExpression {
   }
 
   @override
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(
+      variableCache,
+      promotedType: promotedType,
+      fileOffset: fileOffset,
+    );
+  }
+
+  @override
   DartType getType(TypeEnvironment typeEnvironment) => _type;
 
   @override
@@ -182,7 +219,7 @@ class BooleanExpression extends AbstractDelayedExpression {
   final bool value;
   final int fileOffset;
 
-  BooleanExpression(this.value, {required this.fileOffset});
+  new(this.value, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -210,7 +247,7 @@ class IntegerExpression extends AbstractDelayedExpression {
   final int value;
   final int fileOffset;
 
-  IntegerExpression(this.value, {required this.fileOffset});
+  new(this.value, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -244,7 +281,7 @@ class DelayedAndExpression implements DelayedExpression {
   final DelayedExpression _right;
   final int fileOffset;
 
-  DelayedAndExpression(this._left, this._right, {required this.fileOffset});
+  new(this._left, this._right, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -415,6 +452,17 @@ class DelayedAndExpression implements DelayedExpression {
       }
     }
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(variableCache, promotedType: promotedType)
+      ..fileOffset = fileOffset;
+  }
 }
 
 /// A lazy-or expression of the [_left] and [_right] expressions.
@@ -423,7 +471,7 @@ class DelayedOrExpression extends AbstractDelayedExpression {
   final DelayedExpression _right;
   final int fileOffset;
 
-  DelayedOrExpression(this._left, this._right, {required this.fileOffset});
+  new(this._left, this._right, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -480,7 +528,7 @@ class EffectExpression implements DelayedExpression {
   final DelayedExpression _result;
   final DelayedExpression? _lateEffect;
 
-  EffectExpression(this._effect, this._result, [this._lateEffect]);
+  new(this._effect, this._result, [this._lateEffect]);
 
   @override
   Expression createExpression(
@@ -602,6 +650,17 @@ class EffectExpression implements DelayedExpression {
       );
     }
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(variableCache, promotedType: promotedType)
+      ..fileOffset = fileOffset;
+  }
 }
 
 /// A expression that assigns [_value] to [_target].
@@ -611,13 +670,13 @@ class EffectExpression implements DelayedExpression {
 /// to [_target].
 class DelayedAssignment extends DelayedExpression {
   final MatchingCache _cache;
-  final VariableDeclaration _target;
+  final Variable _target;
   final DartType _type;
   final DelayedExpression _value;
   final bool hasEffect;
   final int fileOffset;
 
-  DelayedAssignment(
+  new(
     this._cache,
     this._target,
     this._type,
@@ -634,7 +693,7 @@ class DelayedAssignment extends DelayedExpression {
   }) {
     if (effects != null && hasEffect) {
       // Coverage-ignore-block(suite): Not run.
-      VariableDeclaration tempVariable = _cache.createTemporaryVariable(
+      Variable tempVariable = _cache.createTemporaryVariable(
         _type,
         fileOffset: fileOffset,
       );
@@ -682,7 +741,7 @@ class DelayedAssignment extends DelayedExpression {
     List<Statement>? effects,
   }) {
     if (effects != null && hasEffect) {
-      VariableDeclaration tempVariable = _cache.createTemporaryVariable(
+      Variable tempVariable = _cache.createTemporaryVariable(
         _type,
         fileOffset: fileOffset,
       );
@@ -731,6 +790,17 @@ class DelayedAssignment extends DelayedExpression {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(variableCache, promotedType: promotedType)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) {
     return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
@@ -758,7 +828,7 @@ class DelayedIsExpression extends AbstractDelayedExpression {
   final DartType _type;
   final int fileOffset;
 
-  DelayedIsExpression(this._operand, this._type, {required this.fileOffset});
+  new(this._operand, this._type, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -799,15 +869,13 @@ class DelayedAsExpression extends AbstractDelayedExpression {
   final DartType _type;
   final bool isUnchecked;
   final bool isImplicit;
-  final bool isCovarianceCheck;
   final int fileOffset;
 
-  DelayedAsExpression(
+  new(
     this._operand,
     this._type, {
     this.isUnchecked = false,
     this.isImplicit = false,
-    this.isCovarianceCheck = false,
     required this.fileOffset,
   });
 
@@ -822,16 +890,7 @@ class DelayedAsExpression extends AbstractDelayedExpression {
       effects: effects,
       inCacheInitializer: inCacheInitializer,
     );
-    if (isCovarianceCheck) {
-      // Coverage-ignore-block(suite): Not run.
-      return createAsExpression(
-        operand,
-        _type,
-        forNonNullableByDefault: true,
-        isCovarianceCheck: true,
-        fileOffset: fileOffset,
-      );
-    } else if (isImplicit) {
+    if (isImplicit) {
       DartType operandType = _operand.getType(typeEnvironment);
       if (typeEnvironment.isSubtypeOf(operandType, _type)) {
         return operand;
@@ -840,7 +899,6 @@ class DelayedAsExpression extends AbstractDelayedExpression {
     return createAsExpression(
       operand,
       _type,
-      forNonNullableByDefault: true,
       isUnchecked: isUnchecked,
       fileOffset: fileOffset,
     );
@@ -867,7 +925,7 @@ class DelayedNullAssertExpression extends AbstractDelayedExpression {
   final DelayedExpression _operand;
   final int fileOffset;
 
-  DelayedNullAssertExpression(this._operand, {required this.fileOffset});
+  new(this._operand, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -906,7 +964,7 @@ class DelayedNullCheckExpression extends AbstractDelayedExpression {
   final DelayedExpression _operand;
   final int fileOffset;
 
-  DelayedNullCheckExpression(this._operand, {required this.fileOffset});
+  new(this._operand, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -955,13 +1013,87 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
   final bool isObjectAccess;
   final int fileOffset;
 
-  DelayedInstanceGet(
+  /// Static type of the covariance check operand for the created expression,
+  /// if any.
+  ///
+  /// If the created expression needs to be checked due to covariantly occurring
+  /// type parameters, [covarianceCheckedExpressionStaticType] returns the
+  /// static type of the expression being checked. Note that that type is
+  /// different from the target type of the check. Consider the following
+  /// example:
+  ///
+  ///   e as{CovarianceChecks} T
+  ///
+  /// In the example, `e` is the created expression, `T` is the target type of
+  /// the check, and [covarianceCheckedExpressionStaticType], if not null, is
+  /// the static type of `e`, such that runtime type of all possible values `e`
+  /// evaluates to is a subtype of that static type. Not that the type is
+  /// different from the notion of static type as defined by the Dart language
+  /// specification.
+  ///
+  /// If the covariance check isn't needed for the created expression,
+  /// [covarianceCheckedExpressionStaticType] returns null.
+  ///
+  /// See also the documentation of [typeForCovariantCheck]
+  final DartType? covarianceCheckedExpressionStaticType;
+
+  /// The target type of the covariance check for the created expression, if
+  /// any.
+  ///
+  /// Some [InstanceGet] expressions might require a type check due to the class
+  /// type parameters appearing contravariantly in the return type of the
+  /// getter. In that case [typeForCovariantCheck] represents the target type of
+  /// the check. Consider the following example:
+  ///
+  ///   e as {CovarianceCheck} T
+  ///
+  /// In the example, `e` is the created expression, and `T` is the target type
+  /// of the check.
+  ///
+  /// See also the documentation of [covarianceCheckedExpressionStaticType].
+  final DartType? typeForCovariantCheck;
+
+  new(
     this._receiver,
     this._target,
     this._resultType, {
     required this.fileOffset,
     this.isObjectAccess = false,
-  });
+    this.typeForCovariantCheck,
+    this.covarianceCheckedExpressionStaticType,
+  }) : assert(
+         // [typeForCovariantCheck] and [covarianceCheckedExpressionStaticType]
+         // should be provided together or absent together.
+         typeForCovariantCheck == null &&
+                 covarianceCheckedExpressionStaticType == null ||
+             typeForCovariantCheck != null &&
+                 covarianceCheckedExpressionStaticType != null,
+       );
+
+  @override
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    Expression cacheVariableReadExpression;
+    if (covarianceCheckedExpressionStaticType
+        case DartType covarianceCheckedExpressionStaticType?) {
+      cacheVariableReadExpression = createCovarianceCheckedVariableGet(
+        variableCache,
+        operandStaticType: covarianceCheckedExpressionStaticType,
+        checkedType: typeForCovariantCheck!,
+        fileOffset: fileOffset,
+      );
+    } else {
+      cacheVariableReadExpression = createVariableGet(
+        variableCache,
+        promotedType: promotedType,
+        fileOffset: fileOffset,
+      );
+    }
+    return cacheVariableReadExpression;
+  }
 
   @override
   Expression createExpression(
@@ -970,35 +1102,75 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
     required bool inCacheInitializer,
   }) {
     Member target = _target;
+    Expression result;
     if (target is Procedure && !target.isGetter) {
-      return new InstanceTearOff(
-        isObjectAccess
-            ? InstanceAccessKind.Object
-            : InstanceAccessKind.Instance,
-        _receiver.createExpression(
-          typeEnvironment,
-          effects: effects,
-          inCacheInitializer: inCacheInitializer,
-        ),
-        _target.name,
-        interfaceTarget: target,
-        resultType: _resultType,
-      )..fileOffset = fileOffset;
+      if (typeForCovariantCheck case var typeForCovariantCheck?) {
+        // Coverage-ignore-block(suite): Not run.
+        result = createCovarianceCheckedInstanceTearOff(
+          isObjectAccess
+              ? InstanceAccessKind.Object
+              : InstanceAccessKind.Instance,
+          _receiver.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+          _target.name,
+          interfaceTarget: target,
+          checkType: typeForCovariantCheck,
+          objectNullableType: typeEnvironment.objectNullableRawType,
+          fileOffset: fileOffset,
+        );
+      } else {
+        result = createInstanceTearOff(
+          isObjectAccess
+              ? InstanceAccessKind.Object
+              : InstanceAccessKind.Instance,
+          _receiver.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+          _target.name,
+          interfaceTarget: target,
+          resultType: _resultType,
+          fileOffset: fileOffset,
+        );
+      }
     } else {
-      return new InstanceGet(
-        isObjectAccess
-            ? InstanceAccessKind.Object
-            : InstanceAccessKind.Instance,
-        _receiver.createExpression(
-          typeEnvironment,
-          effects: effects,
-          inCacheInitializer: inCacheInitializer,
-        ),
-        _target.name,
-        interfaceTarget: target,
-        resultType: _resultType,
-      )..fileOffset = fileOffset;
+      if (typeForCovariantCheck case var typeForCovariantCheck?) {
+        result = createCovarianceCheckedInstanceGet(
+          isObjectAccess
+              ? InstanceAccessKind.Object
+              : InstanceAccessKind.Instance,
+          _receiver.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+          _target.name,
+          interfaceTarget: target,
+          checkType: typeForCovariantCheck,
+          objectNullableType: typeEnvironment.objectNullableRawType,
+          fileOffset: fileOffset,
+        );
+      } else {
+        result = new InstanceGet(
+          isObjectAccess
+              ? InstanceAccessKind.Object
+              : InstanceAccessKind.Instance,
+          _receiver.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+          _target.name,
+          interfaceTarget: target,
+          resultType: _resultType,
+        )..fileOffset = fileOffset;
+      }
     }
+    return result;
   }
 
   @override
@@ -1027,7 +1199,7 @@ class DelayedDynamicGet extends AbstractDelayedExpression {
   final DartType _resultType;
   final int fileOffset;
 
-  DelayedDynamicGet(
+  new(
     this._receiver,
     this._propertyName,
     this._kind,
@@ -1076,11 +1248,7 @@ class DelayedFunctionTearOff extends AbstractDelayedExpression {
   final DartType _resultType;
   final int fileOffset;
 
-  DelayedFunctionTearOff(
-    this._receiver,
-    this._resultType, {
-    required this.fileOffset,
-  });
+  new(this._receiver, this._resultType, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -1125,7 +1293,7 @@ class DelayedDynamicInvocation extends AbstractDelayedExpression {
   final DartType _resultType;
   final int fileOffset;
 
-  DelayedDynamicInvocation(
+  new(
     this._receiver,
     this._methodName,
     this._arguments,
@@ -1198,7 +1366,7 @@ class DelayedRecordIndexGet extends AbstractDelayedExpression {
   final int _index;
   final int fileOffset;
 
-  DelayedRecordIndexGet(
+  new(
     this._receiver,
     this._recordType,
     this._index, {
@@ -1247,16 +1415,11 @@ class DelayedRecordNameGet extends AbstractDelayedExpression {
   final String _name;
   final int fileOffset;
 
-  DelayedRecordNameGet(
-    this._receiver,
-    this._recordType,
-    this._name, {
-    required this.fileOffset,
-  }) : assert(
-         _recordType.named.where((element) => element.name == _name).length ==
-             1,
-         "Invalid record type $_recordType for named access of '$_name'.",
-       );
+  new(this._receiver, this._recordType, this._name, {required this.fileOffset})
+    : assert(
+        _recordType.named.where((element) => element.name == _name).length == 1,
+        "Invalid record type $_recordType for named access of '$_name'.",
+      );
 
   @override
   Expression createExpression(
@@ -1303,7 +1466,7 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
   final List<DelayedExpression> _arguments;
   final int fileOffset;
 
-  DelayedInstanceInvocation(
+  new(
     this._receiver,
     this._target,
     this._functionType,
@@ -1379,7 +1542,7 @@ class DelayedExtensionInvocation extends AbstractDelayedExpression {
   final DartType _resultType;
   final int fileOffset;
 
-  DelayedExtensionInvocation(
+  new(
     this._target,
     this._arguments,
     this._typeArguments,
@@ -1444,7 +1607,7 @@ class DelayedEqualsExpression extends AbstractDelayedExpression {
   final FunctionType _functionType;
   final int fileOffset;
 
-  DelayedEqualsExpression(
+  new(
     this._left,
     this._right,
     this._target,
@@ -1497,7 +1660,7 @@ class DelayedEqualsExpression extends AbstractDelayedExpression {
 class DelayedNotExpression extends AbstractDelayedExpression {
   final DelayedExpression _expression;
 
-  DelayedNotExpression(this._expression);
+  new(this._expression);
 
   @override
   Expression createExpression(

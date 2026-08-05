@@ -36,7 +36,7 @@ extension type Bar<T extends core::Object? = dynamic>(invalid-type i) {
   constructor • = self::Bar|constructor#;
   constructor tearoff • = self::Bar|constructor#_#new#tearOff;
 }
-static extension-type-member method Foo|constructor#_(core::int i) → self::Foo% /* erasure=core::int, declared=! */
+static extension-type-member method Foo|constructor#_(initializing-formal core::int i) → self::Foo% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method Foo|constructor#_#_#tearOff(core::int i) → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#_(i);
@@ -60,7 +60,7 @@ static extension-type-member method Foo|constructor#erroneous() → self::Foo% /
   ;
 static extension-type-member synthetic method Foo|constructor#_#erroneous#tearOff() → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#erroneous();
-static extension-type-member method Bar|constructor#_<T extends core::Object? = dynamic>(invalid-type i) → self::Bar<self::Bar|constructor#_::T%>% /* erasure=invalid-type, declared=! */
+static extension-type-member method Bar|constructor#_<T extends core::Object? = dynamic>(initializing-formal invalid-type i) → self::Bar<self::Bar|constructor#_::T%>% /* erasure=invalid-type, declared=! */
   ;
 static extension-type-member synthetic method Bar|constructor#_#_#tearOff<T extends core::Object? = dynamic>(invalid-type i) → self::Bar<self::Bar|constructor#_#_#tearOff::T%>% /* erasure=invalid-type, declared=! */
   return self::Bar|constructor#_<self::Bar|constructor#_#_#tearOff::T%>(i);

@@ -90,4 +90,30 @@ void objectAllocation(int a) {
   obj.y += obj.x;
 }
 
+abstract class D {
+  void m1();
+  int get m2;
+  set m3(int value);
+}
+
+mixin M on D {
+  void m1() {}
+  int get m2 => 2;
+  set m3(int value) {}
+
+  void abstractSuperCalls() {
+    super.m1();
+    print(super.m2);
+    super.m3 = 3;
+  }
+}
+
+class E implements D {
+  void m1() {}
+  int get m2 => 3;
+  set m3(int value) {}
+}
+
+class F extends E with M {}
+
 void main() {}

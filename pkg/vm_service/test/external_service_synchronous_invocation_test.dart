@@ -9,7 +9,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'external_service_synchronous_invocation_lib.dart' as testee_lib;
 
 const successServiceName = 'successService';
 const errorServiceName = 'errorService';
@@ -102,16 +102,13 @@ Future<void> testErrorService(
   }
 }
 
-final tests = <IsolateTest>[
-  (VmService primaryClient, IsolateRef isolateRef) async {
-    final secondaryClient = await vmServiceConnectUri(primaryClient.wsUri!);
-    await testSuccessService(primaryClient, secondaryClient);
-    await testErrorService(primaryClient, secondaryClient);
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'external_service_synchronous_invocation_lib.dart',
       args,
-      tests,
-      'external_service_asynchronous_invocation_test.dart',
-    );
+    ).addCustomTest(
+      (VmService primaryClient, IsolateRef isolateRef) async {
+        final secondaryClient = await vmServiceConnectUri(primaryClient.wsUri!);
+        await testSuccessService(primaryClient, secondaryClient);
+        await testErrorService(primaryClient, secondaryClient);
+      },
+    ).run(testeeMain: testee_lib.main);

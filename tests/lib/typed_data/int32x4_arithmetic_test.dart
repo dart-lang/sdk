@@ -7,6 +7,7 @@
 library uint32x4_arithmetic_test;
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 testAdd() {

@@ -37,7 +37,7 @@ class _DebounceRequests {
   final StreamController<RequestOrResponse> discardedRequests;
   late final Stream<RequestOrResponse> requests;
 
-  _DebounceRequests(this.channel, this.discardedRequests) {
+  new(this.channel, this.discardedRequests) {
     var buffer = <RequestOrResponse>[];
     Timer? timer;
 

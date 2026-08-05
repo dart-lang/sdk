@@ -15,7 +15,7 @@ extension type TypeOf<T extends core::Object? = dynamic>(T% _) {
   constructor • = self::TypeOf|constructor#;
   constructor tearoff • = self::TypeOf|constructor#_#new#tearOff;
 }
-static extension-type-member const method E|constructor#<T extends core::Object? = dynamic>(core::Object? o) → self::E<self::E|constructor#::T%>% /* erasure=core::Object?, declared=! */ {
+static extension-type-member const method E|constructor#<T extends core::Object? = dynamic>(initializing-formal core::Object? o) → self::E<self::E|constructor#::T%>% /* erasure=core::Object?, declared=! */ {
   lowered final self::E<self::E|constructor#::T%>% /* erasure=core::Object?, declared=! */ #this = o;
   return #this;
 }
@@ -28,7 +28,7 @@ static extension-type-member const method E|constructor#cast<T extends core::Obj
 }
 static extension-type-member synthetic method E|constructor#_#cast#tearOff<T extends core::Object? = dynamic>(core::Object? v) → self::E<self::E|constructor#_#cast#tearOff::T%>% /* erasure=core::Object?, declared=! */
   return self::E|constructor#cast<self::E|constructor#_#cast#tearOff::T%>(v);
-static extension-type-member const method TypeOf|constructor#<T extends core::Object? = dynamic>(wildcard self::TypeOf|constructor#::T% _#wc0#formal) → self::TypeOf<self::TypeOf|constructor#::T%>% /* erasure=self::TypeOf|constructor#::T%, declared=! */ {
+static extension-type-member const method TypeOf|constructor#<T extends core::Object? = dynamic>(wildcard initializing-formal self::TypeOf|constructor#::T% _#wc0#formal) → self::TypeOf<self::TypeOf|constructor#::T%>% /* erasure=self::TypeOf|constructor#::T%, declared=! */ {
   lowered final self::TypeOf<self::TypeOf|constructor#::T%>% /* erasure=self::TypeOf|constructor#::T%, declared=! */ #this = _#wc0#formal;
   return #this;
 }

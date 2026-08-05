@@ -11,7 +11,18 @@ import 'http_request_helpers.dart';
 final httpGetVmRpcTests = <IsolateTest>[
   (VmService service, _) async {
     final wsUri = Uri.parse(service.wsUri!);
-    final serverUri = Uri.parse('http://${wsUri.authority}');
+    final pathSegments = <String>[...wsUri.pathSegments]
+      ..removeWhere((e) => e.isEmpty);
+    if (pathSegments.isNotEmpty && pathSegments.last == 'ws') {
+      pathSegments.removeLast();
+    }
+    pathSegments.add('');
+    final serverUri = Uri(
+      scheme: 'http',
+      host: wsUri.host,
+      port: wsUri.port,
+      pathSegments: pathSegments,
+    );
 
     try {
       final result = createServiceObject(

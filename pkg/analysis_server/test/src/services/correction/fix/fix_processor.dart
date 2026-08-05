@@ -14,9 +14,9 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:test/test.dart';
 
@@ -32,7 +32,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   late SourceChange change;
 
   /// The result of applying the [change] to the file content.
-  late String resultCode;
+  late String _resultCode;
 
   /// The workspace in which fixes contributor operates.
   Future<ChangeWorkspace> get workspace async {
@@ -99,6 +99,10 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
 }
 
 /// A base class defining support for writing bulk fix processor tests.
+///
+/// Tests using this base class validate that if there is more than one place to
+/// apply a fix, then the code is valid after applying as many fixes as possible
+/// in a single pass.
 abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// The source change associated with the fix that was found, or `null` if
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
@@ -117,6 +121,9 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// The name of the lint code being tested.
   String? get lintCode => null;
 
+  @override
+  Folder get sdkRoot => newFolder(getSdkPath());
+
   /// The workspace in which fixes contributor operates.
   Future<DartChangeWorkspace> get workspace async {
     return DartChangeWorkspace([await session]);
@@ -132,6 +139,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
+      byteStore: byteStore,
     );
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
     var edits = [for (var fix in fixes) ...fix.edits];
@@ -141,7 +149,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   Future<void> assertFormat(String expectedCode) async {
     var analysisContext = contextFor(testFile);
-    processor = BulkFixProcessor(TestInstrumentationService(), await workspace);
+    processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      await workspace,
+      byteStore: byteStore,
+    );
     await processor.formatCode([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -150,8 +162,12 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, normalizeSource(expectedCode));
   }
 
-  Future<void> assertHasFix(String expected, {bool isParse = false}) async {
-    change = await _computeSourceChange(isParse: isParse);
+  Future<void> assertHasFix(
+    String expected, {
+    List<String>? codes,
+    bool isParse = false,
+  }) async {
+    change = await _computeSourceChange(codes: codes, isParse: isParse);
 
     // apply to "file"
     var fileEdits = change.edits;
@@ -170,7 +186,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   Future<void> assertOrganize(String expectedCode) async {
     var analysisContext = contextFor(testFile);
-    processor = BulkFixProcessor(TestInstrumentationService(), await workspace);
+    processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      await workspace,
+      byteStore: byteStore,
+    );
     await processor.organizeDirectives([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -180,11 +200,16 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Computes fixes for the specified [testUnit].
-  Future<BulkFixProcessor> computeFixes({bool isParse = false}) async {
+  Future<BulkFixProcessor> computeFixes({
+    List<String>? codes,
+    bool isParse = false,
+  }) async {
     var analysisContext = contextFor(testFile);
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
+      codes: codes,
+      byteStore: byteStore,
     );
     if (isParse) {
       await processor.fixErrorsUsingParsedResult([analysisContext]);
@@ -198,7 +223,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// [testFile].
   Future<bool> computeHasFixes() async {
     var analysisContext = contextFor(testFile);
-    processor = BulkFixProcessor(TestInstrumentationService(), await workspace);
+    processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      await workspace,
+      byteStore: byteStore,
+    );
     return processor.hasFixes([analysisContext]);
   }
 
@@ -210,8 +239,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Returns the source change for computed fixes in the specified [testUnit].
-  Future<SourceChange> _computeSourceChange({bool isParse = false}) async {
-    processor = await computeFixes(isParse: isParse);
+  Future<SourceChange> _computeSourceChange({
+    List<String>? codes,
+    bool isParse = false,
+  }) async {
+    processor = await computeFixes(codes: codes, isParse: isParse);
     return processor.builder.sourceChange;
   }
 
@@ -236,8 +268,8 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     expected = normalizeSource(expected);
 
     var fileContent = testCode;
-    resultCode = SourceEdit.applySequence(fileContent, fileEdits[0].edits);
-    expect(resultCode, expected);
+    _resultCode = SourceEdit.applySequence(fileContent, fileEdits[0].edits);
+    expect(_resultCode, expected);
   }
 
   Future<List<Fix>> getFixesForAllErrors(Set<String>? alreadyCalculated) async {
@@ -330,23 +362,10 @@ abstract class FixProcessorErrorCodeTest extends FixProcessorTest {
 /// A base class defining support for writing fix processor tests that are
 /// specific to fixes associated with lints that use the FixKind.
 abstract class FixProcessorLintTest extends FixProcessorTest {
-  /// Return the lint code being tested.
+  /// The lint code being tested.
   String get lintCode;
 
-  /// Returns the [LintCode] for the [lintCode] (which is actually a name).
-  Future<LintCode> lintCodeByName(String name) async {
-    var diagnostics = testAnalysisResult.diagnostics;
-    var lintCodeSet = diagnostics
-        .map((d) => d.diagnosticCode)
-        .whereType<LintCode>()
-        .where((lintCode) => lintCode.lowerCaseName == name)
-        .toSet();
-    if (lintCodeSet.length != 1) {
-      fail('Expected exactly one LintCode, actually: $lintCodeSet');
-    }
-    return lintCodeSet.single;
-  }
-
+  /// A filter that filters by [name], for use in [assertHasFix].
   DiagnosticFilter lintNameFilter(String name) {
     return (e) {
       return e.diagnosticCode is LintCode &&
@@ -405,8 +424,8 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       fileContent = getFile(target).readAsStringSync();
     }
 
-    resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    expect(resultCode, parsedExpectedCode.code);
+    _resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
+    expect(_resultCode, parsedExpectedCode.code);
   }
 
   Future<void> assertHasFixAllFix(
@@ -429,8 +448,8 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       fileContent = getFile(target).readAsStringSync();
     }
 
-    resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    expect(resultCode, expected);
+    _resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
+    expect(_resultCode, expected);
   }
 
   /// Computes an error from [filter], and verifies that
@@ -657,12 +676,10 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {
-    var positions = <Position>[];
-    for (var search in searchStrings) {
-      var offset = resultCode.indexOf(search);
-      positions.add(Position(testFile.path, offset));
-    }
-    return positions;
+    return [
+      for (var search in searchStrings)
+        Position(testFile.path, _resultCode.indexOf(search)),
+    ];
   }
 }
 

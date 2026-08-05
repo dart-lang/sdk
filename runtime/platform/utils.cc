@@ -222,6 +222,14 @@ uint32_t Utils::StringHash(const void* data, int length) {
 
 #undef MIX
 
+// TODO(63370): Proper 64-bit hash.
+uint64_t Utils::StringHash64(const void* data, int length) {
+  uint64_t hi = StringHash(data, length / 2);
+  uint64_t lo = StringHash(reinterpret_cast<const uint8_t*>(data) + length / 2,
+                           length / 2);
+  return hi << 32 | lo;
+}
+
 uint32_t Utils::WordHash(intptr_t key) {
   // TODO(iposva): Need to check hash spreading.
   // This example is from http://www.concentric.net/~Ttwang/tech/inthash.htm
@@ -379,14 +387,41 @@ void* Utils::ResolveSymbolInDynamicLibrary(void* library_handle,
 }
 
 void Utils::UnloadDynamicLibrary(void* library_handle, char** error) {
+  const char* const cannot_close_process_or_executable =
+      "DynamicLibrary.process() and DynamicLibrary.executable() can't be "
+      "closed.";
+  if (library_handle == nullptr) {
+    if (error != nullptr) {
+      *error = Utils::StrDup(cannot_close_process_or_executable);
+    }
+    return;
+  }
+
   bool ok = false;
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+  void* const executable_handle = dlopen(nullptr, RTLD_LAZY);
+  const bool is_executable = library_handle == executable_handle;
+  if (executable_handle != nullptr) {
+    dlclose(executable_handle);
+  }
+  if (is_executable) {
+    if (error != nullptr) {
+      *error = Utils::StrDup(cannot_close_process_or_executable);
+    }
+    return;
+  }
   ok = dlclose(library_handle) == 0;
 #elif defined(DART_HOST_OS_WINDOWS)
   SetLastError(0);  // Clear any errors.
 
+  if (library_handle == GetModuleHandle(nullptr)) {
+    if (error != nullptr) {
+      *error = Utils::StrDup(cannot_close_process_or_executable);
+    }
+    return;
+  }
   ok = FreeLibrary(reinterpret_cast<HMODULE>(library_handle));
 #endif
 

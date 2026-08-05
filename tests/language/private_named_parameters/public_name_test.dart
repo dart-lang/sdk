@@ -4,8 +4,6 @@
 
 /// Test edge cases where the public name is valid.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 import 'package:expect/expect.dart';
 
 /// Can be a built-in identifier.

@@ -5,17 +5,17 @@
 // We emit an error if a const constructor has a body, even with the new,
 // shorter syntax.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C {
   final int x;
   const new(this.x) {}
+  // [error column 3]
+  // [cfe] A const constructor can't have a body.
   //                ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
 
   const new named(this.x) {}
+  // [error column 3]
+  // [cfe] A const constructor can't have a body.
   //                      ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
 }

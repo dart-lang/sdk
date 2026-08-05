@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+
 import "main_lib.dart";
 
 // Extending a legacy class that implements a core library base class.

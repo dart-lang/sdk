@@ -55,7 +55,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   // TODO(johnniwinther): Add [_augmentations] field.
   final TypedefFragment _introductory;
 
-  SourceTypeAliasBuilder({
+  new({
     required this.name,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required this.fileUri,

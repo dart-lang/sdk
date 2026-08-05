@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -16,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class UseDifferentDivisionOperator extends MultiCorrectionProducer {
-  UseDifferentDivisionOperator({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -64,10 +63,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
 
-  _UseDifferentDivisionOperator({
-    required super.context,
-    required this.fixKind,
-  });
+  new({required super.context, required this.fixKind});
 
   @override
   CorrectionApplicability get applicability =>
@@ -110,7 +106,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
               .havingMemberWithBaseName(name)
               .applicableTo(
                 targetLibrary: libraryElement2,
-                targetType: leftType! as TypeImpl,
+                targetType: leftType!,
               )
               .isNotEmpty;
         }).isEmpty;

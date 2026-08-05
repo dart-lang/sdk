@@ -307,6 +307,56 @@ mixin SharedEditArgumentTests
     );
   }
 
+  Future<void> test_primaryConstructor_addArg() async {
+    var content = '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget(int x, {int? y}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''';
+    var expectedContent = '''
+>>>>>>>>>> lib/test.dart
+import 'package:flutter/widgets.dart';
+
+class MyWidget(int x, {int? y}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyWidget(1, y: 2);
+}
+''';
+    await _expectArgumentEdit(
+      content,
+      ArgumentEdit(name: 'y', newValue: 2),
+      expectedContent,
+    );
+  }
+
+  Future<void> test_primaryConstructor_editArg() async {
+    var content = '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget(int x, {int? y}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyW^idget(1, y: 1);
+}
+''';
+    var expectedContent = '''
+>>>>>>>>>> lib/test.dart
+import 'package:flutter/widgets.dart';
+
+class MyWidget(int x, {int? y}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyWidget(1, y: 2);
+}
+''';
+    await _expectArgumentEdit(
+      content,
+      ArgumentEdit(name: 'y', newValue: 2),
+      expectedContent,
+    );
+  }
+
   Future<void> test_requiredPositional_addAfterNamed() async {
     failTestOnErrorDiagnostic = false; // Tests with missing positional.
     await _expectSimpleArgumentEdit(
@@ -610,8 +660,7 @@ const E myConst = .one;
       originalArgs: '(x: E.one)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
       errorCode: ServerErrorCodes.editArgumentInvalidValue,
-      message:
-          "The value for the parameter 'x' should be one of 'E.one', 'E.two' but was 'invalid'",
+      message: "The value for the parameter 'x' should be one of 'E.one', 'E.two' but was 'invalid'",
     );
   }
 

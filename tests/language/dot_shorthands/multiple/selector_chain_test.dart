@@ -22,25 +22,20 @@ void main() {
 
   ConstructorWithNonFinal ctorField = .new(1).field;
   ConstructorWithNonFinal ctorMethod = .new(1).method();
-  ConstructorWithNonFinal ctorMixed =
-      .new(1).method().field;
-  ConstructorWithNonFinal ctorMixed2 =
-      .new(1).field.method();
+  ConstructorWithNonFinal ctorMixed = .new(1).method().field;
+  ConstructorWithNonFinal ctorMixed2 = .new(1).field.method();
+
+  // Const
+  ConstructorWithNonFinal constCtorField = const .constNamed(1).field;
+  ConstructorWithNonFinal constCtorMethod = const .constNamed(1).method();
 
   // FutureOr
   FutureOr<StaticMember> futureOrMember = .member().field.method();
-  FutureOr<ConstructorWithNonFinal> futureOrCtor =
-      .new(1).field.method();
+  FutureOr<ConstructorWithNonFinal> futureOrCtor = .new(1).field.method();
 
   // Collection literals
-  var memberList = <StaticMember>[
-    .member().field,
-    .member().field.method(),
-  ];
-  var memberSet = <StaticMember>{
-    .member().field,
-    .member().field.method(),
-  };
+  var memberList = <StaticMember>[.member().field, .member().field.method()];
+  var memberSet = <StaticMember>{.member().field, .member().field.method()};
   var memberMap = <StaticMember, StaticMember>{
     .member().field: .member().field,
     .member().field.method(): .member().field.method(),
@@ -56,8 +51,7 @@ void main() {
   };
   var ctorMap = <ConstructorWithNonFinal, ConstructorWithNonFinal>{
     .new(1).field: .new(1).field,
-    .new(1).method().field:
-        .new(1).method().field,
+    .new(1).method().field: .new(1).method().field,
   };
 
   // Cascades
@@ -66,20 +60,15 @@ void main() {
     ..ctor = .new(1).method().field;
 
   StaticMember memberCascade = .member().field.method()..toString();
-  ConstructorWithNonFinal ctorCascade =
-      .new(1).method().field..toString();
+  ConstructorWithNonFinal ctorCascade = .new(1).method().field..toString();
 
   // If-null
   StaticMember? staticMemberNull = null as StaticMember?;
-  StaticMember ifNullMember =
-      staticMemberNull ?? .member().field.method();
-  StaticMember ifNullMember2 =
-      .member().field.methodNullable() ?? .member();
+  StaticMember ifNullMember = staticMemberNull ?? .member().field.method();
+  StaticMember ifNullMember2 = .member().field.methodNullable() ?? .member();
 
   ConstructorWithNonFinal? ctorNull = null as ConstructorWithNonFinal?;
-  ConstructorWithNonFinal ifNullCtor =
-      ctorNull ?? .new(1).method().field;
+  ConstructorWithNonFinal ifNullCtor = ctorNull ?? .new(1).method().field;
   ConstructorWithNonFinal ifNullCtor2 =
-      .new(1).method().field.methodNullable() ??
-      ConstructorWithNonFinal(1);
+      .new(1).method().field.methodNullable() ?? ConstructorWithNonFinal(1);
 }

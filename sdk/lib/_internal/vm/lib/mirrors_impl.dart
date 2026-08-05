@@ -879,9 +879,8 @@ class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
     var p = _parameters;
     if (p != null) return p;
     return _parameters = UnmodifiableListView<ParameterMirror>(
-      _FunctionTypeMirror_parameters(
-        _signatureReflectee,
-      ).cast<ParameterMirror>(),
+      _FunctionTypeMirror_parameters(_signatureReflectee)
+          .cast<ParameterMirror>(),
     );
   }
 
@@ -945,8 +944,9 @@ class _TypeVariableMirror extends _DeclarationMirror
   DeclarationMirror get owner {
     var o = _owner;
     if (o != null) return o;
-    return _owner = (_TypeVariableMirror_owner(_reflectee) as TypeMirror)
-        .originalDeclaration;
+    return _owner = (_TypeVariableMirror_owner(
+      _reflectee,
+    ) as TypeMirror).originalDeclaration;
   }
 
   bool get isStatic => false;

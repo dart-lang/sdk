@@ -16,8 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't use more than one case with same value.";
 
 class NoDuplicateCaseValues extends AnalysisRule {
-  NoDuplicateCaseValues()
-    : super(name: LintNames.no_duplicate_case_values, description: _desc);
+  new() : super(name: LintNames.no_duplicate_case_values, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.noDuplicateCaseValues;
@@ -35,7 +34,7 @@ class NoDuplicateCaseValues extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final NoDuplicateCaseValues rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitSwitchStatement(SwitchStatement node) {

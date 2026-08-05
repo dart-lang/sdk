@@ -47,4 +47,3 @@ void main() {
   NullableInteger nullableIntegerAssert = .one!;
   var nullableIntegerMixinList = <NullableInteger>[.one!, .two!, .one!];
 }
-

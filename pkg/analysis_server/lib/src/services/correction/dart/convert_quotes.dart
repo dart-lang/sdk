@@ -15,7 +15,7 @@ class ConvertQuotes extends _ConvertQuotes {
   @override
   late bool _fromSingle;
 
-  ConvertQuotes({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -42,7 +42,7 @@ class ConvertQuotes extends _ConvertQuotes {
 }
 
 class ConvertToDoubleQuotes extends _ConvertQuotes {
-  ConvertToDoubleQuotes({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -62,7 +62,7 @@ class ConvertToDoubleQuotes extends _ConvertQuotes {
 }
 
 class ConvertToSingleQuotes extends _ConvertQuotes {
-  ConvertToSingleQuotes({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -85,7 +85,7 @@ abstract class _ConvertQuotes extends ResolvedCorrectionProducer {
   static const _backslash = 0x5C;
   static const _dollar = 0x24;
 
-  _ConvertQuotes({required super.context});
+  new({required super.context});
 
   /// Return `true` if this producer is converting from single quotes to double
   /// quotes, or `false` if it's converting from double quotes to single quotes.
@@ -350,7 +350,7 @@ enum _QuotePair {
   final String newQuoteMultilineString;
   final int oppositeQuote;
 
-  const _QuotePair(
+  new(
     this.newQuote,
     this.newQuoteString,
     this.newQuoteMultilineString,

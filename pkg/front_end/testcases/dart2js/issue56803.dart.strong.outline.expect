@@ -10,7 +10,7 @@ extension type Ext(core::String _) implements core::String {
   constructor tearoff • = self::Ext|constructor#_#new#tearOff;
 }
 static const field core::String? maybe = const core::bool::fromEnvironment("not there") ?{core::String?} "string" : null;
-static extension-type-member const method Ext|constructor#_(wildcard core::String _#wc0#formal) → self::Ext /* erasure=core::String */ {
+static extension-type-member const method Ext|constructor#_(wildcard initializing-formal core::String _#wc0#formal) → self::Ext /* erasure=core::String */ {
   lowered final self::Ext /* erasure=core::String */ #this = _#wc0#formal;
   return #this;
 }
@@ -28,9 +28,9 @@ static method main() → void
 
 
 Extra constant evaluation status:
-Evaluated with empty environment: Not @ org-dartlang-testcase:///issue56803.dart:8:22 -> BoolConstant(false)
-Evaluated with empty environment: EqualsNull @ org-dartlang-testcase:///issue56803.dart:8:22 -> BoolConstant(true)
-Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///issue56803.dart:8:16 -> NullConstant(null)
+Evaluated with empty environment: Not @ org-dartlang-testcase:///issue56803.dart:8:30 -> BoolConstant(false)
+Evaluated with empty environment: EqualsNull @ org-dartlang-testcase:///issue56803.dart:8:30 -> BoolConstant(true)
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///issue56803.dart:8:24 -> NullConstant(null)
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///issue56803.dart:5:57 -> NullConstant(null)
 Evaluated with empty environment: StaticInvocation @ org-dartlang-testcase:///issue56803.dart:5:28 -> BoolConstant(false)
 Extra constant evaluation: evaluated: 11, effectively constant: 5

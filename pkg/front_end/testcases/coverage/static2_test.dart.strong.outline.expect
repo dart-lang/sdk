@@ -15,7 +15,7 @@ import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor a4(core::String x) → self::A
+  const constructor a4(initializing-formal core::String x) → self::A
     : invalid-initializer "pkg/front_end/testcases/coverage/static2_test.dart:9:26: Error: The type of parameter 'x', 'String' is not a subtype of the corresponding field's type, 'int'.
 Try changing the type of parameter 'x' to a subtype of 'int'.
   const A.a4(String this.x); // Error

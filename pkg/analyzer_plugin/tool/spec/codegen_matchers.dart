@@ -36,6 +36,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     codeGeneratorSettings.languageName = 'dart';
   }
 
+  @override
+  String get regenScript => 'pkg/analyzer_plugin/tool/spec/generate_all.dart';
+
   /// Create a matcher for the part of the API called [name], optionally
   /// clarified by [nameSuffix]. The matcher should verify that its input
   /// matches the given [type].

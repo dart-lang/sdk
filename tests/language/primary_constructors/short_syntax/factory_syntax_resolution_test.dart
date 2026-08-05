@@ -12,8 +12,6 @@
 // declaration has some of the keywords external and augment, but we don't
 // test those kinds of constructors here.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import "package:expect/expect.dart";
 
 class C {

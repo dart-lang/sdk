@@ -6,8 +6,11 @@
 
 typedef UpdateShouldNotify<T> = bool Function(T previous, T current);
 
-typedef ValueWidgetBuilder<T> =
-    Widget Function(BuildContext context, T value, Widget child);
+typedef ValueWidgetBuilder<T> = Widget Function(
+  BuildContext context,
+  T value,
+  Widget child,
+);
 
 class BuildContext {}
 

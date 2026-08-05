@@ -15,21 +15,17 @@ abstract class ProgressReporter {
 
   /// Creates a reporter for a token that was supplied by the client and does
   /// not need creating prior to use.
-  factory ProgressReporter.clientProvided(
-    LspAnalysisServer server,
-    ProgressToken token,
-  ) => _TokenProgressReporter(server, token);
+  factory clientProvided(LspAnalysisServer server, ProgressToken token) =>
+      _TokenProgressReporter(server, token);
 
   /// Creates a reporter for a new token that must be created prior to being
   /// used.
   ///
   /// If [token] is not supplied, a random identifier will be used.
-  factory ProgressReporter.serverCreated(
-    LspAnalysisServer server, [
-    ProgressToken? token,
-  ]) => _ServerCreatedProgressReporter(server, token);
+  factory serverCreated(LspAnalysisServer server, [ProgressToken? token]) =>
+      _ServerCreatedProgressReporter(server, token);
 
-  ProgressReporter._();
+  new _();
 
   // TODO(dantup): Add support for cancellable progress notifications.
   FutureOr<void> begin(String title, {String? message});
@@ -38,7 +34,7 @@ abstract class ProgressReporter {
 }
 
 class _NoopProgressReporter extends ProgressReporter {
-  _NoopProgressReporter() : super._();
+  new() : super._();
   @override
   void begin(String title, {String? message}) {}
   @override
@@ -49,7 +45,7 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
   static final _random = Random();
   Future<bool>? _tokenBeginRequest;
 
-  _ServerCreatedProgressReporter(LspAnalysisServer server, ProgressToken? token)
+  new(LspAnalysisServer server, ProgressToken? token)
     : super(server, token ?? ProgressToken.t2(_randomTokenIdentifier()));
 
   @override
@@ -105,7 +101,7 @@ class _TokenProgressReporter extends ProgressReporter {
   final ProgressToken _token;
   bool _needsEnd = false;
 
-  _TokenProgressReporter(this._server, this._token) : super._();
+  new(this._server, this._token) : super._();
 
   @override
   void begin(String? title, {String? message}) {

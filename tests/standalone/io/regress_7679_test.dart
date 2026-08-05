@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import 'dart:io';
 
 main() {
@@ -12,7 +13,7 @@ main() {
 import 'dart:io';
 
 class Expect {
-  static void isTrue(var x) {
+  static void isTrue(x) {
     if (!identical(x, true)) {
       throw new StateError("Not identical");
     }
@@ -41,6 +42,7 @@ main() {
     executable,
     []
       ..addAll(Platform.executableArguments)
+      ..add("--packages=" + Platform.packageConfig!)
       ..add('script.dart'),
     workingDirectory: temp.path,
     environment: {'DART_CRASHPAD_HANDLER': ''},

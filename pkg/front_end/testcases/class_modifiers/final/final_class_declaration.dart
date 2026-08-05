@@ -7,4 +7,5 @@ final class A {}
 abstract final class B {}
 
 mixin M {}
+
 final class C = Object with M;

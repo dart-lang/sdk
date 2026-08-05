@@ -19,7 +19,7 @@ class C {
   /*member: C.a:[empty|powerset=empty]*/
   C.a(
     int /*[exact=JSUInt31|powerset={I}{O}{N}]*/ x, [
-    var /*Union([exact=JSString|powerset={I}{O}{I}], [exact=_SECRET|powerset={N}{O}{N}], powerset: {IN}{O}{IN})*/ b =
+    /*Union([exact=JSString|powerset={I}{O}{I}], [exact=_SECRET|powerset={N}{O}{N}], powerset: {IN}{O}{IN})*/ b =
         const _SECRET(),
   ]) : this.x = x,
        this.y = b;
@@ -27,7 +27,7 @@ class C {
   /*member: C.b:[empty|powerset=empty]*/
   C.b(
     int /*[exact=JSUInt31|powerset={I}{O}{N}]*/ x, {
-    var /*Union([exact=JSString|powerset={I}{O}{I}], [exact=_SECRET|powerset={N}{O}{N}], powerset: {IN}{O}{IN})*/ b =
+    /*Union([exact=JSString|powerset={I}{O}{I}], [exact=_SECRET|powerset={N}{O}{N}], powerset: {IN}{O}{IN})*/ b =
         const _SECRET(),
   }) : this.x = x,
        this.y = b;

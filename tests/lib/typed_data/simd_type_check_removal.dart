@@ -7,6 +7,7 @@
 library simd_store_to_load_forward_test;
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 bool testFloat32x4TypeCheck(Float32x4 v) {

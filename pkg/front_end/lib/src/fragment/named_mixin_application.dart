@@ -32,7 +32,7 @@ class NamedMixinApplicationFragment implements Fragment {
     name.length,
   );
 
-  NamedMixinApplicationFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.startOffset,

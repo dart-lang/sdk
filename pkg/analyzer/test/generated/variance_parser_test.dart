@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/node_text_expectations.dart';
@@ -27,15 +26,16 @@ class VarianceParserTest extends ParserDiagnosticsTest {
   );
 
   void test_class_disabled_multiple() {
-    var parseResult = parseStringWithErrors(
-      'class A<in T, inout U, out V> { }',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''class A<in T, inout U, out V> { }
+//      ^^
+// [diag.experimentNotEnabledOffByDefault] This requires the experimental 'variance' language feature to be enabled.
+//            ^^^^^
+// [diag.experimentNotEnabledOffByDefault] This requires the experimental 'variance' language feature to be enabled.
+//                     ^^^
+// [diag.experimentNotEnabledOffByDefault] This requires the experimental 'variance' language feature to be enabled.''',
       featureSet: _disabledFeatureSet,
     );
-    parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 8, 2),
-      error(diag.experimentNotEnabledOffByDefault, 14, 5),
-      error(diag.experimentNotEnabledOffByDefault, 23, 3),
-    ]);
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -63,13 +63,12 @@ ClassDeclaration
   }
 
   void test_class_disabled_single() {
-    var parseResult = parseStringWithErrors(
-      'class A<out T> { }',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''class A<out T> { }
+//      ^^^
+// [diag.experimentNotEnabledOffByDefault] This requires the experimental 'variance' language feature to be enabled.''',
       featureSet: _disabledFeatureSet,
     );
-    parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 8, 3),
-    ]);
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -91,11 +90,10 @@ ClassDeclaration
   }
 
   void test_class_enabled_multiple() {
-    var parseResult = parseStringWithErrors(
+    var parseResult = parseTestCodeWithDiagnostics(
       'class A<in T, inout U, out V, W> { }',
       featureSet: _enabledFeatureSet,
     );
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -125,14 +123,14 @@ ClassDeclaration
   }
 
   void test_class_enabled_multipleVariances() {
-    var parseResult = parseStringWithErrors(
-      'class A<in out inout T> { }',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''class A<in out inout T> { }
+//         ^^^
+// [diag.multipleVarianceModifiers] Each type parameter can have at most one variance modifier.
+//             ^^^^^
+// [diag.multipleVarianceModifiers] Each type parameter can have at most one variance modifier.''',
       featureSet: _enabledFeatureSet,
     );
-    parseResult.assertErrors([
-      error(diag.multipleVarianceModifiers, 11, 3),
-      error(diag.multipleVarianceModifiers, 15, 5),
-    ]);
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -154,11 +152,10 @@ ClassDeclaration
   }
 
   void test_class_enabled_single() {
-    var parseResult = parseStringWithErrors(
+    var parseResult = parseTestCodeWithDiagnostics(
       'class A<in T> { }',
       featureSet: _enabledFeatureSet,
     );
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -180,14 +177,14 @@ ClassDeclaration
   }
 
   void test_function_disabled() {
-    var parseResult = parseStringWithErrors(
-      'void A(in int value) {}',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''void A(in int value) {}
+//     ^^
+// [diag.expectedIdentifierButGotKeyword] 'in' can't be used as an identifier because it's a keyword.
+//        ^^^
+// [diag.expectedToken] Expected to find ','.''',
       featureSet: _disabledFeatureSet,
     );
-    parseResult.assertErrors([
-      error(diag.expectedIdentifierButGotKeyword, 7, 2),
-      error(diag.expectedToken, 10, 3),
-    ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -213,14 +210,14 @@ FunctionDeclaration
   }
 
   void test_function_enabled() {
-    var parseResult = parseStringWithErrors(
-      'void A(in int value) {}',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''void A(in int value) {}
+//     ^^
+// [diag.expectedIdentifierButGotKeyword] 'in' can't be used as an identifier because it's a keyword.
+//        ^^^
+// [diag.expectedToken] Expected to find ','.''',
       featureSet: _enabledFeatureSet,
     );
-    parseResult.assertErrors([
-      error(diag.expectedIdentifierButGotKeyword, 7, 2),
-      error(diag.expectedToken, 10, 3),
-    ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -246,11 +243,12 @@ FunctionDeclaration
   }
 
   void test_list_disabled() {
-    var parseResult = parseStringWithErrors(
-      'List<out String> stringList = [];',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''List<out String> stringList = [];
+//       ^^^^^^
+// [diag.expectedToken] Expected to find ','.''',
       featureSet: _disabledFeatureSet,
     );
-    parseResult.assertErrors([error(diag.expectedToken, 9, 6)]);
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
@@ -278,11 +276,12 @@ TopLevelVariableDeclaration
   }
 
   void test_list_enabled() {
-    var parseResult = parseStringWithErrors(
-      'List<out String> stringList = [];',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''List<out String> stringList = [];
+//       ^^^^^^
+// [diag.expectedToken] Expected to find ','.''',
       featureSet: _enabledFeatureSet,
     );
-    parseResult.assertErrors([error(diag.expectedToken, 9, 6)]);
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
@@ -310,14 +309,14 @@ TopLevelVariableDeclaration
   }
 
   void test_mixin_disabled_multiple() {
-    var parseResult = parseStringWithErrors(
-      'mixin A<inout T, out U> { }',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''mixin A<inout T, out U> { }
+//      ^^^^^
+// [diag.experimentNotEnabledOffByDefault] This requires the experimental 'variance' language feature to be enabled.
+//               ^^^
+// [diag.experimentNotEnabledOffByDefault] This requires the experimental 'variance' language feature to be enabled.''',
       featureSet: _disabledFeatureSet,
     );
-    parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 8, 5),
-      error(diag.experimentNotEnabledOffByDefault, 17, 3),
-    ]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -341,13 +340,12 @@ MixinDeclaration
   }
 
   void test_mixin_disabled_single() {
-    var parseResult = parseStringWithErrors(
-      'mixin A<inout T> { }',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''mixin A<inout T> { }
+//      ^^^^^
+// [diag.experimentNotEnabledOffByDefault] This requires the experimental 'variance' language feature to be enabled.''',
       featureSet: _disabledFeatureSet,
     );
-    parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 8, 5),
-    ]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -368,11 +366,10 @@ MixinDeclaration
   }
 
   void test_mixin_enabled_single() {
-    var parseResult = parseStringWithErrors(
+    var parseResult = parseTestCodeWithDiagnostics(
       'mixin A<inout T> { }',
       featureSet: _enabledFeatureSet,
     );
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
@@ -393,11 +390,12 @@ MixinDeclaration
   }
 
   void test_typedef_disabled() {
-    var parseResult = parseStringWithErrors(
-      'typedef A<inout X> = X Function(X);',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''typedef A<inout X> = X Function(X);
+//              ^
+// [diag.expectedToken] Expected to find ','.''',
       featureSet: _disabledFeatureSet,
     );
-    parseResult.assertErrors([error(diag.expectedToken, 16, 1)]);
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''
@@ -428,11 +426,12 @@ GenericTypeAlias
   }
 
   void test_typedef_enabled() {
-    var parseResult = parseStringWithErrors(
-      'typedef A<inout X> = X Function(X);',
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''typedef A<inout X> = X Function(X);
+//              ^
+// [diag.expectedToken] Expected to find ','.''',
       featureSet: _enabledFeatureSet,
     );
-    parseResult.assertErrors([error(diag.expectedToken, 16, 1)]);
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''

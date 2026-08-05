@@ -26,7 +26,7 @@ class AddTypeParameter extends Change<_Data> {
 
   /// Initialize a newly created change to describe adding a type parameter to a
   /// type or a function.
-  AddTypeParameter({
+  new({
     required this.index,
     required this.name,
     required this.argumentValue,
@@ -195,7 +195,7 @@ class _TypeArgumentData extends _Data {
   final int newListOffset;
 
   /// Initialize newly created data.
-  _TypeArgumentData(this.typeArguments, this.newListOffset);
+  new(this.typeArguments, this.newListOffset);
 }
 
 /// The data returned when updating a type parameter list.
@@ -209,5 +209,5 @@ class _TypeParameterData extends _Data {
   final int newListOffset;
 
   /// Initialize newly created data.
-  _TypeParameterData(this.typeParameters, this.newListOffset);
+  new(this.typeParameters, this.newListOffset);
 }

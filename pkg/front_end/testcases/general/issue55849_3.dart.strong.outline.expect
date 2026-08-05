@@ -44,7 +44,7 @@ static extension-member method E|foo(lowered final self::C #this, {has-declared-
   ;
 static extension-member method E|get#foo(lowered final self::C #this) → ({a: self::A}) → dynamic
   return ({self::A a}) → dynamic => self::E|foo(#this, a: a);
-static extension-type-member method ET|constructor#(self::C c) → self::ET% /* erasure=self::C, declared=! */
+static extension-type-member method ET|constructor#(initializing-formal self::C c) → self::ET% /* erasure=self::C, declared=! */
   ;
 static extension-type-member synthetic method ET|constructor#_#new#tearOff(self::C c) → self::ET% /* erasure=self::C, declared=! */
   return self::ET|constructor#(c);

@@ -250,7 +250,7 @@ class OverlayFileSystemEntity implements FileSystemEntity {
   FileSystemEntity? _delegate;
   final OverlayFileSystem _fs;
 
-  OverlayFileSystemEntity(this.uri, this._fs);
+  new(this.uri, this._fs);
 
   Future<FileSystemEntity> get delegate async {
     if (_delegate != null) return _delegate!;
@@ -289,7 +289,7 @@ class Edit {
   final String original;
   final String replacement;
 
-  Edit(String uriString, this.original, this.replacement)
+  new(String uriString, this.original, this.replacement)
     : uri = _resolveOverlayUri(uriString);
 
   @override
@@ -301,7 +301,7 @@ class ChangeSet {
   final String name;
   final List<Edit> edits;
 
-  ChangeSet(this.name, this.edits);
+  new(this.name, this.edits);
 
   @override
   String toString() => 'ChangeSet($name, $edits)';

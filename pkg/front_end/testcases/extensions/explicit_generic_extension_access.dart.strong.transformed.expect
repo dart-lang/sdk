@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Class<T extends core::num> extends core::Object {
   covariant-by-class field self::Class::T field1;
   covariant-by-class field self::Class::T field2;
-  constructor •(self::Class::T field1, self::Class::T field2) → self::Class<self::Class::T>
+  constructor •(initializing-formal self::Class::T field1, initializing-formal self::Class::T field2) → self::Class<self::Class::T>
     : self::Class::field1 = field1, self::Class::field2 = field2, super core::Object::•()
     ;
 }
@@ -125,10 +125,10 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:91:41 -> IntConstant(23)
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:91:41 -> IntConstant(23)
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:93:41 -> IntConstant(23)
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:93:41 -> IntConstant(23)
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:95:41 -> IntConstant(67)
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:95:41 -> IntConstant(67)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:95:41 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:95:41 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:97:41 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:97:41 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:99:41 -> IntConstant(67)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:99:41 -> IntConstant(67)
 Extra constant evaluation: evaluated: 217, effectively constant: 6

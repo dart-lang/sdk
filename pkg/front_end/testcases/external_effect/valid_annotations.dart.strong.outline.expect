@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external static external-effect method foo(core::Object? o) → void;
+}
+@/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+external static external-effect method foo(core::Object? o) → void;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///valid_annotations.dart:9:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///valid_annotations.dart:5:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

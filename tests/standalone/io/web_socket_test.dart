@@ -252,6 +252,52 @@ class SecurityConfiguration {
     });
   }
 
+  void testAddErrorHandledLocally() {
+    asyncStart();
+
+    bool remoteErrorReceived = false;
+
+    runZonedGuarded(
+      () async {
+        final server = await createServer();
+
+        late StreamSubscription clientSubscription;
+        late WebSocket clientSocket;
+
+        server.listen((request) async {
+          final serverSocket = await WebSocketTransformer.upgrade(request);
+
+          // Errors added with addError are reported locally through
+          // async error handling and are not transmitted to the peer.
+          serverSocket.addError("local error");
+
+          await serverSocket.close();
+        });
+
+        clientSocket = await createClient(server.port);
+
+        clientSubscription = clientSocket.listen(
+          (_) {},
+          onError: (_) {
+            remoteErrorReceived = true;
+          },
+        );
+
+        await Future.delayed(Duration(milliseconds: 100));
+
+        await clientSubscription.cancel();
+        await clientSocket.close();
+        await server.close(force: true);
+      },
+      (Object error, StackTrace stackTrace) async {
+        Expect.equals("local error", error);
+        Expect.isFalse(remoteErrorReceived);
+
+        asyncEnd();
+      },
+    );
+  }
+
   void testDoubleCloseClient() {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
@@ -664,6 +710,7 @@ class SecurityConfiguration {
     testCancelThenClose();
     testCloseThenCancel();
     testListenAfterClose();
+    testAddErrorHandledLocally();
     testDoubleCloseClient();
     testDoubleCloseServer();
     testImmediateCloseServer();

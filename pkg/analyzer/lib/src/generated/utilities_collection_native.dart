@@ -44,6 +44,7 @@ extension type EnumSet<T extends Enum>(int _bits) {
   }
 
   /// Throws an exception if the [index] does not fit [int].
+  @pragma("vm:prefer-inline")
   static void _checkIndex(int index) {
     if (index < 0 || index > 60) {
       throw RangeError("Index not between 0 and 60: $index");

@@ -15,16 +15,14 @@ class AddAsync extends ResolvedCorrectionProducer {
   final _Type _type;
 
   /// Initialize a newly created producer.
-  AddAsync({required super.context}) : _type = _Type.others;
+  new({required super.context}) : _type = _Type.others;
 
-  AddAsync.discardedFutures({required super.context})
+  new discardedFutures({required super.context})
     : _type = _Type.discardedFutures;
 
-  AddAsync.missingReturn({required super.context})
-    : _type = _Type.missingReturn;
+  new missingReturn({required super.context}) : _type = _Type.missingReturn;
 
-  AddAsync.wrongReturnType({required super.context})
-    : _type = _Type.wrongReturnType;
+  new wrongReturnType({required super.context}) : _type = _Type.wrongReturnType;
 
   @override
   CorrectionApplicability get applicability =>
@@ -191,7 +189,7 @@ class _ReturnFinder extends RecursiveAstVisitor<void> {
   bool foundReturn = false;
 
   /// Initialize a newly created visitor.
-  _ReturnFinder();
+  new();
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
@@ -221,7 +219,7 @@ class _ReturnTypeTester extends RecursiveAstVisitor<void> {
   final DartType futureOf;
 
   /// Initialize a newly created visitor.
-  _ReturnTypeTester(this.typeSystem, this.futureOf);
+  new(this.typeSystem, this.futureOf);
 
   /// Tests whether a type is assignable to the [futureOf] type.
   bool isAssignable(DartType type) {

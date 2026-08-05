@@ -4,12 +4,15 @@
 
 library HistoryTest;
 
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
-import 'dart:html';
 import 'dart:async';
+import 'dart:html';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 main() {
-  test('supported', () {
-    expect(HashChangeEvent.supported, true);
+  test('supported_HashChangeEvent', () {
+    expect(globalContext.has('HashChangeEvent'), true);
   });
 }

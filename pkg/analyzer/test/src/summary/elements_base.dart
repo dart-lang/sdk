@@ -51,20 +51,55 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     var actual = getLibraryText(library: library, configuration: configuration);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
 
-  /// Returns the child element of [parent].
-  ///
-  /// The [parent] must have a reference, e.g. [ClassElementImpl].
-  ElementImpl getElementOfReference(ElementImpl parent, List<String> path) {
-    var reference = parent.reference!;
-    for (var pathComponent in path) {
-      reference = reference.getChild(pathComponent);
-    }
-    var elementFactory = parent.library!.session.elementFactory;
+  ElementImpl getConstructorElementOfReference(
+    InstanceElementImpl parent,
+    String key,
+  ) {
+    var reference = parent.reference.getOrCreateConstructor(key);
+    var elementFactory = parent.library.session.elementFactory;
+    return elementFactory.elementOfReference3(reference);
+  }
+
+  ElementImpl getFieldElementOfReference(
+    InstanceElementImpl parent,
+    String key,
+  ) {
+    var reference = parent.reference.getOrCreateField(key);
+    var elementFactory = parent.library.session.elementFactory;
+    return elementFactory.elementOfReference3(reference);
+  }
+
+  ElementImpl getGetterElementOfReference(
+    InstanceElementImpl parent,
+    String key,
+  ) {
+    var reference = parent.reference.getOrCreateGetter(key);
+    var elementFactory = parent.library.session.elementFactory;
+    return elementFactory.elementOfReference3(reference);
+  }
+
+  ElementImpl getMethodElementOfReference(
+    InstanceElementImpl parent,
+    String key,
+  ) {
+    var reference = parent.reference.getOrCreateMethod(key);
+    var elementFactory = parent.library.session.elementFactory;
+    return elementFactory.elementOfReference3(reference);
+  }
+
+  ElementImpl getSetterElementOfReference(
+    InstanceElementImpl parent,
+    String key,
+  ) {
+    var reference = parent.reference.getOrCreateSetter(key);
+    var elementFactory = parent.library.session.elementFactory;
     return elementFactory.elementOfReference3(reference);
   }
 

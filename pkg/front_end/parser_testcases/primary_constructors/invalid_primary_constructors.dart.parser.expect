@@ -1,0 +1,73 @@
+class const C {}
+enum const E {}
+extension type const E {}
+mixin M() {}
+mixin M(int i) {}
+mixin M.named() {}
+mixin M.named(int i) {}
+mixin M<T>() {}
+mixin M<T>(int i) {}
+mixin M<T>.named() {}
+mixin M<T>.named(int i) {}
+mixin const M() {}
+mixin const M(int i) {}
+mixin const M.named() {}
+mixin const M.named(int i) {}
+mixin const M<T>() {}
+mixin const M<T>(int i) {}
+mixin const M<T>.named() {}
+mixin const M<T>.named(int i) {}
+extension E() on int {}
+extension E(int i) on int {}
+extension E.named() on int {}
+extension E.named(int i) on int {}
+extension E<T>() on int {}
+extension E<T>(int i) on int {}
+extension E<T>.named() on int {}
+extension E<T>.named(int i) on int {}
+extension const E() on int {}
+extension const E(int i) on int {}
+extension const E.named() on int {}
+extension const E.named(int i) on int {}
+extension const E<T>() on int {}
+extension const E<T>(int i) on int {}
+extension const E<T>.named() on int {}
+extension const E<T>.named(int i) on int {}
+
+
+class[KeywordToken] const[KeywordToken] C[StringToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] const[KeywordToken] M[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] const[KeywordToken] M[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] const[KeywordToken] M[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] const[KeywordToken] M[StringToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] const[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] const[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] const[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] const[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken]([BeginToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] const[KeywordToken] E[StringToken]([BeginToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] const[KeywordToken] E[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] const[KeywordToken] E[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] const[KeywordToken] E[StringToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

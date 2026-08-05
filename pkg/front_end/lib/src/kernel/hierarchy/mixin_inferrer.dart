@@ -21,11 +21,8 @@ class BuilderMixinInferrer {
   final SourceClassBuilder classBuilder;
   final ClassHierarchyBase classHierarchyBase;
 
-  BuilderMixinInferrer(
-    this.classBuilder,
-    this.classHierarchyBase,
-    this.typeParametersToSolveFor,
-  ) : coreTypes = classHierarchyBase.coreTypes,
+  new(this.classBuilder, this.classHierarchyBase, this.typeParametersToSolveFor)
+    : coreTypes = classHierarchyBase.coreTypes,
       _mixinInferenceSolution = new _MixinInferenceSolution(
         typeParametersToSolveFor,
       );
@@ -121,9 +118,9 @@ class BuilderMixinInferrer {
         );
         return;
       }
-      InterfaceType u0 = Substitution.fromSupertype(
-        baseType,
-      ).substituteSupertype(supertype).asInterfaceType;
+      InterfaceType u0 = Substitution.fromSupertype(baseType)
+          .substituteSupertype(supertype)
+          .asInterfaceType;
       // We want to solve U0 = S0 where S0 is mixinSupertype, but we only have
       // a subtype constraints.  Solve for equality by solving
       // both U0 <: S0 and S0 <: U0.
@@ -177,11 +174,13 @@ class BuilderMixinInferrer {
     }
     // Bounds might mention the mixin class's type parameters so we have to
     // substitute them before calling instantiate to bounds.
-    Substitution substitution =
-        Substitution.fromPairs(mixinClass.typeParameters, [
-          for (TypeParameter parameter in parameters)
-            new TypeParameterType.withDefaultNullability(parameter),
-        ]);
+    Substitution substitution = Substitution.fromPairs(
+      mixinClass.typeParameters,
+      [
+        for (TypeParameter parameter in parameters)
+          new TypeParameterType.withDefaultNullability(parameter),
+      ],
+    );
     for (TypeParameter p in parameters) {
       p.bound = substitution.substituteType(p.bound);
     }
@@ -241,7 +240,7 @@ class _MixinInferenceSolution {
   structuralTypeParameterEqualityAssumptions =
       <StructuralParameter, StructuralParameter>{};
 
-  _MixinInferenceSolution(this.typeParametersToSolveFor);
+  new(this.typeParametersToSolveFor);
 
   Map<TypeParameter, DartType> get solution => _typeParameterSolution!;
 
@@ -386,9 +385,8 @@ class _MixinInferenceSolution {
           }
           Map<String, NamedType> namedParameterByName1 = <String, NamedType>{
             for (NamedType namedType in type1.namedParameters)
-              namedType // Coverage-ignore(suite): Not run.
-                      .name:
-                  namedType,
+              // Coverage-ignore(suite): Not run.
+              namedType.name: namedType,
           };
           for (NamedType namedType in type2.namedParameters) {
             // Coverage-ignore-block(suite): Not run.

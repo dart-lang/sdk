@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,35 +15,32 @@ main() {
 @reflectiveTest
 class ConstTypeParameterTest extends PubPackageResolutionTest {
   test_constantPattern_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(x) {
   if (x case T) {}
+//           ^
+// [diag.constTypeParameter] Type parameters can't be used in a constant expression.
 }
-''',
-      [error(diag.constTypeParameter, 28, 1)],
-    );
+''');
   }
 
   test_constantPattern_typeParameter_nested() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(Object? x) {
   if (x case const (T)) {}
+//                  ^
+// [diag.constTypeParameter] Type parameters can't be used in a constant expression.
 }
-''',
-      [error(diag.constTypeParameter, 43, 1)],
-    );
+''');
   }
 
   test_constantPattern_typeParameter_nested2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(Object? x) {
   if (x case const (List<T>)) {}
+//                  ^^^^^^^
+// [diag.constTypeParameter] Type parameters can't be used in a constant expression.
 }
-''',
-      [error(diag.constTypeParameter, 43, 7)],
-    );
+''');
   }
 }

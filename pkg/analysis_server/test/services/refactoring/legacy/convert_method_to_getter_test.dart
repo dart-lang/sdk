@@ -230,7 +230,7 @@ void test() {}
   void _createRefactoringForElement(ExecutableElement element) {
     refactoring = ConvertMethodToGetterRefactoring(
       refactoringWorkspace,
-      testAnalysisResult.session,
+      testAnalysisResult,
       element,
     );
   }

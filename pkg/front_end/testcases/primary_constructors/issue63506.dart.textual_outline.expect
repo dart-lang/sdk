@@ -1,0 +1,10 @@
+class B {
+  final int i;
+  const new({required this.i});
+}
+
+class const C({required int i}) extends B {
+  this : super(i: i);
+}
+
+main() {}

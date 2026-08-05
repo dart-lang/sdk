@@ -22,20 +22,17 @@ enum SyntacticNullability {
 class NullabilityBuilder {
   final SyntacticNullability _syntacticNullability;
 
-  const NullabilityBuilder.nullable()
-    : _syntacticNullability = SyntacticNullability.nullable;
+  const new nullable() : _syntacticNullability = SyntacticNullability.nullable;
 
-  const NullabilityBuilder.omitted()
-    : _syntacticNullability = SyntacticNullability.omitted;
+  const new omitted() : _syntacticNullability = SyntacticNullability.omitted;
 
-  const NullabilityBuilder.inherent()
-    : _syntacticNullability = SyntacticNullability.inherent;
+  const new inherent() : _syntacticNullability = SyntacticNullability.inherent;
 
   bool get isOmitted => _syntacticNullability == SyntacticNullability.omitted;
 
   bool get isNullable => _syntacticNullability == SyntacticNullability.nullable;
 
-  factory NullabilityBuilder.fromNullability(Nullability nullability) {
+  factory fromNullability(Nullability nullability) {
     switch (nullability) {
       case Nullability.nullable:
         return const NullabilityBuilder.nullable();

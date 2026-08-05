@@ -35,10 +35,9 @@ linter:
     - join_return_with_assignment
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
-    - noop_primitive_operations
     - no_literal_bool_comparisons
+    - noop_primitive_operations
     - only_throw_errors
-    - parameter_assignments
     - prefer_asserts_in_initializer_lists
     - prefer_const_constructors_in_immutables
     - prefer_constructors_over_static_methods
@@ -50,9 +49,10 @@ linter:
     - sort_pub_dependencies
     - test_types_in_equals
     - throw_in_finally
-    - unawaited_futures # pedantic
+    - unawaited_futures
     - unnecessary_async
     - unnecessary_breaks
+    - unnecessary_const_in_enum_constructor
     - unnecessary_final
     - unnecessary_ignore
     - unnecessary_lambdas
@@ -60,9 +60,9 @@ linter:
     - unnecessary_null_checks
     - unnecessary_parenthesis
     - unnecessary_statements
+    - unnecessary_type_name_in_constructor
     - unreachable_from_main
     - use_late_for_private_fields_and_variables
-    - use_null_aware_elements
     - use_setters_to_change_properties
     - use_string_buffers
     - use_to_and_as_if_applicable

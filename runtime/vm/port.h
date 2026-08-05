@@ -23,6 +23,14 @@ class MessageHandler;
 class Mutex;
 class PortHandler;
 
+enum class IsolateAcquireResult {
+  SUCCESS,
+  ISOLATE_NOT_AVAILABLE,
+  BUSY,
+  PINNED_TO_ANOTHER_THREAD,
+  HAS_MESSAGE_LOOP_OR_UNAVAILABLE,
+};
+
 class PortMap : public AllStatic {
  public:
   // Allocate a port for the provided handler and return its VM-global id.
@@ -48,7 +56,14 @@ class PortMap : public AllStatic {
 
   // Returns whether the isolate that owns the port is owned by the current
   // thread.
-  static bool IsOwnedByCurrentThread(Dart_Port id);
+  static bool IsOwnedByCurrentThread(Dart_Port id,
+                                     bool require_permanent_pin = false);
+
+  // Returns true if the port is owned by somebody.
+  static bool IsOwned(Dart_Port id);
+
+  static IsolateAcquireResult AcquireIsolateByControlPort(Dart_Port target_port,
+                                                          Isolate** p_isolate);
 
 #if defined(TESTING)
   static Isolate* GetIsolate(Dart_Port id);

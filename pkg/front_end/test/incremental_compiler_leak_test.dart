@@ -169,12 +169,10 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
         );
         for (vmService.ClassHeapStats member in allocationProfile.members!) {
           if (!classInfo.containsKey(member.classRef)) {
-            vmService.Class c =
-                (await serviceClient.getObject(
-                      isolateRef.id!,
-                      member.classRef!.id!,
-                    ))
-                    as vmService.Class;
+            vmService.Class c = (await serviceClient.getObject(
+              isolateRef.id!,
+              member.classRef!.id!,
+            )) as vmService.Class;
             classInfo[member.classRef!] = c;
           }
           List<int>? listOfInstanceCounts = instanceCounts[member.classRef];

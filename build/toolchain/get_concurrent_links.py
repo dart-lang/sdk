@@ -47,8 +47,8 @@ def GetDefaultConcurrentLinks():
                     match = memtotal_re.match(line)
                     if not match:
                         continue
-                    # Allow 8Gb per link on Linux because Gold is quite memory hungry
-                    return max(1, int(match.group(1)) // (8 * (2**20)))
+                    # Allow 3Gb per link on Linux because ld is quite memory hungry
+                    return max(1, int(match.group(1)) // (3 * (2**20)))
         return 1
     elif sys.platform == 'darwin':
         try:

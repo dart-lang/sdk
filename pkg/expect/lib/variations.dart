@@ -149,9 +149,10 @@ bool get checkedImplicitDowncasts =>
 /// This can cause some type errors to present differently than they otherwise
 /// would. For example, when these optimizations are disabled ArgumentErrors may
 /// present as TypeErrors instead.
-bool get rtiOptimizationsDisabled =>
-    const bool.fromEnvironment('dart.tool.dart2js.disable_rti_optimization',
-        defaultValue: true);
+bool get rtiOptimizationsDisabled => const bool.fromEnvironment(
+  'dart.tool.dart2js.disable_rti_optimization',
+  defaultValue: true,
+);
 
 /// Whether explicit casts are type checked at runtime.
 ///

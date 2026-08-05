@@ -13,7 +13,7 @@ class ClassInSameLibrary {
   final int? i;
   //         ^
   // [context 1] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 2] 'i' refers to a public property so it couldn't be promoted.
+  // [context 3] 'i' refers to a public property so it couldn't be promoted.
   ClassInSameLibrary(this.i);
 }
 
@@ -22,7 +22,7 @@ void testSameLibrary(ClassInSameLibrary c) {
     c.i.isEven;
     //  ^^^^^^
     // [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe 2] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+    // [cfe 3] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 }
 
@@ -30,7 +30,7 @@ void testOtherLibrary(ClassInOtherLibrary c) {
   if (c.i != null) {
     c.i.isEven;
     //  ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [analyzer 2 see why_not_promoted_public_lib.dart] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     // [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 }

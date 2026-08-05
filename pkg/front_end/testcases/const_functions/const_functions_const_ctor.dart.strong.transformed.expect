@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 class Simple extends core::Object /*hasConstConstructor*/  {
   final field core::String name;
-  const constructor •(core::String name) → self::Simple
+  const constructor •(initializing-formal core::String name) → self::Simple
     : self::Simple::name = name, super core::Object::•() {
     assert(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} #C1);
   }
@@ -37,6 +37,6 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///const_functions_const_ctor.dart:
-- Simple. (from org-dartlang-testcase:///const_functions_const_ctor.dart:14:9)
+- Simple. (from org-dartlang-testcase:///const_functions_const_ctor.dart:15:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- A. (from org-dartlang-testcase:///const_functions_const_ctor.dart:21:9)
+- A. (from org-dartlang-testcase:///const_functions_const_ctor.dart:23:9)

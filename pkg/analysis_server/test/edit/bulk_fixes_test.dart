@@ -78,14 +78,24 @@ import 'a.dart';
 
     addTestFile('''
 import 'a.dart';
-
-class A {
-  A f() => new A();
-}
 ''');
 
     var details = await _getBulkFixDetails();
     expect(details, isEmpty);
+  }
+
+  Future<void> test_lint_notEnabledInOptions() async {
+    addDiagnosticCode('unnecessary_new');
+
+    addTestFile('''
+class A {}
+A f() => new A();
+''');
+
+    await assertEditEquals(testFile, '''
+class A {}
+A f() => A();
+''');
   }
 
   Future<void> test_lint_unnecessaryNew() async {

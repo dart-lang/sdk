@@ -13,8 +13,11 @@ class Local {
 
   Local(this.index, this.type);
 
-  void printTo(IrPrinter p, Map<int, String> localNames,
-      {bool isParam = false}) {
+  void printTo(
+    IrPrinter p,
+    Map<int, String> localNames, {
+    bool isParam = false,
+  }) {
     p.write(isParam ? 'param' : 'local');
     p.write(' ');
     p.writeLocalIndexReference(index);
@@ -37,12 +40,28 @@ abstract class BaseFunction with Indexable, Exportable {
 
   /// Whether this function is pure and has no effect.
   ///
-  /// If marked as spure, we'll emit metadata in the
+  /// If marked as pure, we'll emit metadata in the
   /// `binaryen.removable.if.unused` custom section.
   bool isPure = false;
 
-  BaseFunction(this.enclosingModule, this.finalizableIndex, this.type,
-      [this.functionName]);
+  /// Whether this function is called from JS.
+  ///
+  /// If marked as isJSCalled, we'll emit metadata in the
+  /// `binaryen.js.called` custom section.
+  bool isJSCalled = false;
+
+  /// Inline hint for this function.
+  ///
+  /// If set, we'll emit metadata in the `binaryen.inline` custom section.
+  /// Value must be in range [0..127].
+  int? inlineHint;
+
+  BaseFunction(
+    this.enclosingModule,
+    this.finalizableIndex,
+    this.type, [
+    this.functionName,
+  ]);
 
   @override
   String get name => functionName ?? super.name;
@@ -64,12 +83,19 @@ class DefinedFunction extends BaseFunction implements Serializable {
   Map<int, String> get localNames => body.localNames;
 
   DefinedFunction(
-      super.enclosingModule, this.body, super.finalizableIndex, super.type,
-      [super.functionName]);
+    super.enclosingModule,
+    this.body,
+    super.finalizableIndex,
+    super.type, [
+    super.functionName,
+  ]);
 
   DefinedFunction.withoutBody(
-      super.enclosingModule, super.finalizableIndex, super.type,
-      [super.functionName]);
+    super.enclosingModule,
+    super.finalizableIndex,
+    super.type, [
+    super.functionName,
+  ]);
 
   @override
   void serialize(Serializer s) {
@@ -101,6 +127,12 @@ class DefinedFunction extends BaseFunction implements Serializable {
   void printTo(IrPrinter p) {
     if (isPure) {
       p.writeln('(@binaryen.removable.if.unused)');
+    }
+    if (isJSCalled) {
+      p.writeln('(@binaryen.js.called)');
+    }
+    if (inlineHint != null) {
+      p.writeln('(@binaryen.inline $inlineHint)');
     }
     p.write('(func ');
     p.writeFunctionReference(this);
@@ -154,9 +186,14 @@ class ImportedFunction extends BaseFunction implements Import {
   @override
   final String name;
 
-  ImportedFunction(super.enclosingModule, this.module, this.name,
-      super.finalizableIndex, super.type,
-      [super.functionName]);
+  ImportedFunction(
+    super.enclosingModule,
+    this.module,
+    this.name,
+    super.finalizableIndex,
+    super.type, [
+    super.functionName,
+  ]);
 
   @override
   void serialize(Serializer s) {
@@ -167,6 +204,8 @@ class ImportedFunction extends BaseFunction implements Import {
   }
 
   void printTo(IrPrinter p) {
+    assert(!isJSCalled);
+    assert(inlineHint == null);
     if (isPure) {
       p.writeln('(@binaryen.removable.if.unused)');
     }

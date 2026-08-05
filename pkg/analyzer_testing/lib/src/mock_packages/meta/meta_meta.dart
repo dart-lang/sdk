@@ -43,6 +43,9 @@ class TargetKind {
 
   static const getter = TargetKind._('getters', 'getter');
 
+  static const importDirective =
+      TargetKind._('import directives', 'importDirective');
+
   static const method = TargetKind._('methods', 'method');
 
   static const mixinType = TargetKind._('mixins', 'mixinType');
@@ -87,6 +90,7 @@ class TargetKind {
     function,
     library,
     getter,
+    importDirective,
     method,
     mixinType,
     optionalParameter,

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+library;
+
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -570,9 +573,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     if (identicalArgumentInfo != null) {
       var leftOperandInfo = identicalArgumentInfo[0]!;
       var rightOperandInfo = identicalArgumentInfo[1]!;
-      flow?.storeExpressionInfo(
+      resolver.flowAnalysis.storeExpressionInfo(
         argumentList.parent as ExpressionImpl,
-        flow.equalityOperation_end(
+        flow?.equalityOperation_end(
           leftOperandInfo.expressionInfo,
           SharedTypeView(leftOperandInfo.staticType),
           rightOperandInfo.expressionInfo,
@@ -604,20 +607,26 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         parameterContextType = UnknownInferredType.instance;
       }
       var argument = arguments[deferredArgument.index];
+      var expression = argument.argumentExpression;
       resolver.analyzeExpression(
-        argument,
+        expression,
         SharedTypeSchemaView(parameterContextType),
       );
-      argument = resolver.popRewrite()!;
+      expression = resolver.popRewrite()!;
+      if (argument is NamedArgumentImpl) {
+        argument.argumentExpression = expression;
+      } else {
+        arguments[deferredArgument.index] = expression;
+      }
       if (flow != null) {
         identicalArgumentInfo?[deferredArgument.index] = _IdenticalArgumentInfo(
-          expressionInfo: flow.getExpressionInfo(argument),
-          staticType: argument.typeOrThrow,
+          expressionInfo: resolver.flowAnalysis.getExpressionInfo(expression),
+          staticType: expression.typeOrThrow,
         );
       }
       if (parameter != null) {
         inferrer?.constrainArgument(
-          argument.typeOrThrow,
+          expression.typeOrThrow,
           parameter.type,
           parameter.name ?? '',
           nodeForTesting: node,
@@ -646,11 +655,11 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       Expression value;
       InternalFormalParameterElement? parameter;
       Object parameterKey;
-      if (argument is NamedExpressionImpl) {
-        value = argument.expression;
-        parameterKey = argument.name.label.name;
+      if (argument is NamedArgumentImpl) {
+        value = argument.argumentExpression;
+        parameterKey = argument.name.lexeme;
       } else {
-        value = argument;
+        value = argument.argumentExpression;
         parameterKey = unnamedArgumentIndex++;
       }
       value = value.unParenthesized;
@@ -677,24 +686,33 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           parameterContextType = UnknownInferredType.instance;
         }
         resolver.analyzeExpression(
-          argument,
+          argument.argumentExpression,
           SharedTypeSchemaView(parameterContextType),
         );
-        argument = resolver.popRewrite()!;
+        var rewritten = resolver.popRewrite()!;
+        if (argument is NamedArgumentImpl) {
+          argument.argumentExpression = rewritten;
+        } else {
+          arguments[i] = rewritten;
+        }
         if (flow != null) {
           identicalArgumentInfo?.add(
             _IdenticalArgumentInfo(
-              expressionInfo: flow.getExpressionInfo(argument),
-              staticType: argument.typeOrThrow,
+              expressionInfo: resolver.flowAnalysis.getExpressionInfo(
+                rewritten,
+              ),
+              staticType: rewritten.typeOrThrow,
             ),
           );
           whyNotPromotedArguments.add(
-            flow.whyNotPromoted(flow.getExpressionInfo(argument)),
+            flow.whyNotPromoted(
+              resolver.flowAnalysis.getExpressionInfo(rewritten),
+            ),
           );
         }
         if (parameter != null) {
           inferrer?.constrainArgument(
-            argument.typeOrThrow,
+            rewritten.typeOrThrow,
             parameter.type,
             parameter.name ?? '',
             nodeForTesting: node,
@@ -756,15 +774,11 @@ class MethodInvocationInferrer
   TypeImpl _refineReturnType(TypeImpl returnType) {
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
-      returnType = resolver.typeSystem.refineNumericInvocationType(
-        targetType,
-        node.methodName.element,
-        [
-          for (var argument in node.argumentList.arguments)
-            argument.typeOrThrow,
-        ],
-        returnType,
-      );
+      returnType = resolver.typeSystem
+          .refineNumericInvocationType(targetType, node.methodName.element, [
+            for (var argument in node.argumentList.arguments)
+              argument.argumentExpression.typeOrThrow,
+          ], returnType);
     }
     return returnType;
   }
@@ -858,7 +872,7 @@ class _FunctionLiteralDependencies
 /// Information tracked by [InvocationInferrer] about an argument passed to the
 /// `identical` function in `dart:core`.
 class _IdenticalArgumentInfo {
-  /// The [ExpressionInfo] returned by [FlowAnalysis.getExpressionInfo] for
+  /// The [ExpressionInfo] returned by [FlowAnalysisHelper.getExpressionInfo] for
   /// the argument.
   final ExpressionInfo? expressionInfo;
 

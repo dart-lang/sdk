@@ -37,6 +37,8 @@ DART_CONFIGURATION="ReleaseX64"
 if [[ `uname` == 'Darwin' ]];
 then
   BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
+else
+  BUILD_DIR="${ROOT_DIR}/out/$DART_CONFIGURATION"
 fi
 
 PKG_FILE="${ROOT_DIR}/.dart_tool/package_config.json"

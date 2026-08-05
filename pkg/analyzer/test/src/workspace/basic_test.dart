@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import 'workspace_test_support.dart';
 
 main() {
@@ -50,7 +50,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
       package.contains(
-        TestSource(convertPath('/workspace2/project/lib/file.dart')),
+        FileSource(newFile('/workspace2/project/lib/file.dart', '')),
       ),
       isFalse,
     );
@@ -62,19 +62,19 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
       package.contains(
-        TestSource(convertPath('/workspace/project/lib/file2.dart')),
+        FileSource(newFile('/workspace/project/lib/file2.dart', '')),
       ),
       isTrue,
     );
     expect(
       package.contains(
-        TestSource(convertPath('/workspace/project/bin/bin.dart')),
+        FileSource(newFile('/workspace/project/bin/bin.dart', '')),
       ),
       isTrue,
     );
     expect(
       package.contains(
-        TestSource(convertPath('/workspace/project/test/test.dart')),
+        FileSource(newFile('/workspace/project/test/test.dart', '')),
       ),
       isTrue,
     );
@@ -96,23 +96,20 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
   }
 
   void test_isDevDependency_bin() {
-    newFile('/workspace/bin/file.dart', '');
     var package = findPackage('/workspace/lib/code.dart')!;
-    var testSource = TestSource(convertPath('/workspace/bin/file.dart'));
+    var testSource = FileSource(newFile('/workspace/bin/file.dart', ''));
     expect(package.canBeDevDependency(testSource), false);
   }
 
   void test_isDevDependency_lib() {
-    newFile('/workspace/lib/src/file.dart', '');
     var package = findPackage('/workspace/lib/code.dart')!;
-    var testSource = TestSource(convertPath('/workspace/lib/src/file.dart'));
+    var testSource = FileSource(newFile('/workspace/lib/src/file.dart', ''));
     expect(package.canBeDevDependency(testSource), false);
   }
 
   void test_isDevDependency_true() {
-    newFile('/workspace/test/file.dart', '');
     var package = findPackage('/workspace/lib/code.dart')!;
-    var testSource = TestSource(convertPath('/workspace/test/file.dart'));
+    var testSource = FileSource(newFile('/workspace/test/file.dart', ''));
     expect(package.canBeDevDependency(testSource), true);
   }
 

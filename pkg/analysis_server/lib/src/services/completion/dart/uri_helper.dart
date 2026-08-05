@@ -24,11 +24,7 @@ class UriHelper {
   /// The state used to compute the candidate suggestions.
   final CompletionState state;
 
-  UriHelper({
-    required this.request,
-    required this.collector,
-    required this.state,
-  });
+  new({required this.request, required this.collector, required this.state});
 
   void addSuggestions(StringLiteral uri) {
     if (uri is! SimpleStringLiteral) {
@@ -182,13 +178,11 @@ class UriHelper {
     var packageMap = factory.packageMap;
     if (packageMap != null) {
       _suggestUri('package:');
-      packageMap.forEach((pkgName, folders) {
+      packageMap.forEach((pkgName, folder) {
         var prefix = 'package:$pkgName/';
         _suggestUri(prefix);
-        for (var folder in folders) {
-          if (folder.exists) {
-            _addPackageFolderSuggestions(partial, prefix, folder);
-          }
+        if (folder.exists) {
+          _addPackageFolderSuggestions(partial, prefix, folder);
         }
       });
     }

@@ -102,11 +102,29 @@ extension ListExtension<E> on List<E> {
     }
   }
 
+  /// Removes and returns the first element of this list.
+  ///
+  /// Returns `null` if the list is empty.
+  E? removeFirstOrNull() {
+    if (isNotEmpty) {
+      return removeAt(0);
+    }
+    return null;
+  }
+
   E? removeLastOrNull() {
     if (isNotEmpty) {
       return removeLast();
     }
     return null;
+  }
+
+  /// Splits this list at the given [index].
+  ///
+  /// Returns a record containing the elements before [index] and the elements
+  /// at or after [index].
+  (List<E>, List<E>) splitAt(int index) {
+    return (sublist(0, index), sublist(index));
   }
 
   /// Returns a new list with all elements of the target, arranged such that

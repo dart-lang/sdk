@@ -8,16 +8,16 @@ test(o, [expectedRest]) {
       return 0;
     case [0, ..., 1]:
       return 1;
-    case [0, 2, ... var rest]:
+    case [0, 2, ...var rest]:
       expect(expectedRest, rest);
       return 2;
-    case [0, ... var rest, 2]:
+    case [0, ...var rest, 2]:
       expect(expectedRest, rest);
       return 3;
-    case [0, 4, ... var rest, 2, 3]:
+    case [0, 4, ...var rest, 2, 3]:
       expect(expectedRest, rest);
       return 4;
-    case [0, 5, ... [1, ... var rest, 2], 2, 3]:
+    case [0, 5, ...[1, ...var rest, 2], 2, 3]:
       expect(expectedRest, rest);
       return 5;
   }
@@ -39,7 +39,16 @@ main() {
   expect(4, test([0, 4, 2, 3, 2, 3], [2, 3]));
   expect(null, test([0, 5, 3, 2, 3]));
   expect(null, test([0, 5, [], 2, 3]));
-  expect(null, test([0, 5, [0, 1], 2, 3]));
+  expect(
+    null,
+    test([
+      0,
+      5,
+      [0, 1],
+      2,
+      3,
+    ]),
+  );
   expect(5, test([0, 5, 1, 2, 2, 3], []));
   expect(5, test([0, 5, 1, 3, 2, 2, 3], [3]));
 }

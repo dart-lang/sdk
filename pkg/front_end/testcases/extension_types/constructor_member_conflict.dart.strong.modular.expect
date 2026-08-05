@@ -64,7 +64,7 @@ extension type ExtensionType(core::int it) {
   static redirecting-factory redirectingFactoryAndSetter = self::ExtensionType|constructor#redirectingFactoryAndSetter;
   static redirecting-factory tearoff redirectingFactoryAndSetter = self::ExtensionType|constructor#_#redirectingFactoryAndSetter#tearOff;
 }
-static extension-type-member method ExtensionType|constructor#(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */ {
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }

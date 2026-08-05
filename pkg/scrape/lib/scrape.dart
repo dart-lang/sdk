@@ -10,10 +10,10 @@ import 'dart:math' as math;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:args/args.dart';
@@ -85,18 +85,22 @@ class Scrape {
   ///
   /// If [minCount] is passed, then only shows items that occurred at least
   /// that many times.
-  void addHistogram(String name,
-      {SortOrder order = SortOrder.descending,
-      bool? showBar,
-      bool? showAll,
-      int? minCount}) {
+  void addHistogram(
+    String name, {
+    SortOrder order = SortOrder.descending,
+    bool? showBar,
+    bool? showAll,
+    int? minCount,
+  }) {
     _histograms.putIfAbsent(
-        name,
-        () => Histogram(
-            order: order,
-            showBar: showBar,
-            showAll: showAll,
-            minCount: minCount));
+      name,
+      () => Histogram(
+        order: order,
+        showBar: showBar,
+        showAll: showAll,
+        minCount: minCount,
+      ),
+    );
   }
 
   /// Add an occurrence of [item] to [histogram].
@@ -111,18 +115,33 @@ class Scrape {
   /// Run the scrape using the given set of command line arguments.
   void runCommandLine(List<String> arguments) {
     var parser = ArgParser(allowTrailingOptions: true);
-    parser.addOption('percent',
-        help: 'Only process a randomly selected percentage of files.');
-    parser.addFlag('tests',
-        defaultsTo: true, help: 'Process package test files.');
-    parser.addFlag('language-tests',
-        help: 'Process Dart SDK language test files.');
-    parser.addFlag('protobufs',
-        help: 'Process Dart files generated from protobufs.');
-    parser.addFlag('print-files',
-        defaultsTo: true, help: 'Print the path for each parsed file.');
-    parser.addFlag('print-errors',
-        defaultsTo: true, help: 'Print parse errors.');
+    parser.addOption(
+      'percent',
+      help: 'Only process a randomly selected percentage of files.',
+    );
+    parser.addFlag(
+      'tests',
+      defaultsTo: true,
+      help: 'Process package test files.',
+    );
+    parser.addFlag(
+      'language-tests',
+      help: 'Process Dart SDK language test files.',
+    );
+    parser.addFlag(
+      'protobufs',
+      help: 'Process Dart files generated from protobufs.',
+    );
+    parser.addFlag(
+      'print-files',
+      defaultsTo: true,
+      help: 'Print the path for each parsed file.',
+    );
+    parser.addFlag(
+      'print-errors',
+      defaultsTo: true,
+      help: 'Print parse errors.',
+    );
     parser.addFlag('help', negatable: false, help: 'Print help text.');
 
     var results = parser.parse(arguments);
@@ -275,11 +294,18 @@ class Scrape {
 
     // Tokenize the source.
     var stringSource = StringSource(source, file.path);
-    var diagnosticReporter =
-        DiagnosticReporter(diagnosticListener, stringSource);
-    var scanner = Scanner(source, diagnosticReporter);
+    var diagnosticReporter = DiagnosticReporter(
+      diagnosticListener,
+      stringSource,
+    );
+    var scanner = Scanner(
+      inputText: source,
+      reportError: diagnosticReporter.report,
+    );
     scanner.configureFeatures(
-        featureSet: featureSet, featureSetForOverriding: featureSet);
+      featureSet: featureSet,
+      featureSetForOverriding: featureSet,
+    );
     var startToken = scanner.tokenize();
     var lineInfo = LineInfo(scanner.lineStarts);
 
@@ -288,14 +314,17 @@ class Scrape {
       diagnosticReporter,
       featureSet: featureSet,
       languageVersion: LibraryLanguageVersion(
-          package: ExperimentStatus.currentVersion, override: null),
+        package: ExperimentStatus.currentVersion,
+        override: null,
+      ),
       lineInfo: lineInfo,
     );
 
     if (_printFiles) {
       if (Platform.isWindows) {
         // No ANSI escape codes on Windows.
-        var line = '[$_scrapedFileCount files, $_scrapedLineCount lines] '
+        var line =
+            '[$_scrapedFileCount files, $_scrapedLineCount lines] '
             '$shortPath';
         print(line);
       } else {
@@ -303,8 +332,10 @@ class Scrape {
         var trimmed = shortPath;
         if (trimmed.length > 80) trimmed = trimmed.substring(0, 80);
 
-        stdout.write('\u001b[2K\r'
-            '[$_scrapedFileCount files, $_scrapedLineCount lines] $trimmed');
+        stdout.write(
+          '\u001b[2K\r'
+          '[$_scrapedFileCount files, $_scrapedLineCount lines] $trimmed',
+        );
         _needClearLine = true;
       }
     }

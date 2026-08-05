@@ -36,31 +36,31 @@ extension type JSNumber(core::double value) implements self::JSAny% /* erasure=c
   constructor • = self::JSNumber|constructor#;
   constructor tearoff • = self::JSNumber|constructor#_#new#tearOff;
 }
-static extension-type-member method JSAny|constructor#(core::Object value) → self::JSAny% /* erasure=core::Object, declared=! */ {
+static extension-type-member method JSAny|constructor#(initializing-formal core::Object value) → self::JSAny% /* erasure=core::Object, declared=! */ {
   lowered final self::JSAny% /* erasure=core::Object, declared=! */ #this = value;
   return #this;
 }
 static extension-type-member synthetic method JSAny|constructor#_#new#tearOff(core::Object value) → self::JSAny% /* erasure=core::Object, declared=! */
   return self::JSAny|constructor#(value);
-static extension-type-member method JSObject|constructor#(core::Object value) → self::JSObject% /* erasure=core::Object, declared=! */ {
+static extension-type-member method JSObject|constructor#(initializing-formal core::Object value) → self::JSObject% /* erasure=core::Object, declared=! */ {
   lowered final self::JSObject% /* erasure=core::Object, declared=! */ #this = value;
   return #this;
 }
 static extension-type-member synthetic method JSObject|constructor#_#new#tearOff(core::Object value) → self::JSObject% /* erasure=core::Object, declared=! */
   return self::JSObject|constructor#(value);
-static extension-type-member method JSArray|constructor#(core::List<self::JSAny? /* erasure=core::Object? */> value) → self::JSArray% /* erasure=core::List<core::Object?>, declared=! */ {
+static extension-type-member method JSArray|constructor#(initializing-formal core::List<self::JSAny? /* erasure=core::Object? */> value) → self::JSArray% /* erasure=core::List<core::Object?>, declared=! */ {
   lowered final self::JSArray% /* erasure=core::List<core::Object?>, declared=! */ #this = value;
   return #this;
 }
 static extension-type-member synthetic method JSArray|constructor#_#new#tearOff(core::List<self::JSAny? /* erasure=core::Object? */> value) → self::JSArray% /* erasure=core::List<core::Object?>, declared=! */
   return self::JSArray|constructor#(value);
-static extension-type-member method JSExportedDartObject|constructor#(core::Object value) → self::JSExportedDartObject% /* erasure=core::Object, declared=! */ {
+static extension-type-member method JSExportedDartObject|constructor#(initializing-formal core::Object value) → self::JSExportedDartObject% /* erasure=core::Object, declared=! */ {
   lowered final self::JSExportedDartObject% /* erasure=core::Object, declared=! */ #this = value;
   return #this;
 }
 static extension-type-member synthetic method JSExportedDartObject|constructor#_#new#tearOff(core::Object value) → self::JSExportedDartObject% /* erasure=core::Object, declared=! */
   return self::JSExportedDartObject|constructor#(value);
-static extension-type-member method JSNumber|constructor#(core::double value) → self::JSNumber% /* erasure=core::double, declared=! */ {
+static extension-type-member method JSNumber|constructor#(initializing-formal core::double value) → self::JSNumber% /* erasure=core::double, declared=! */ {
   lowered final self::JSNumber% /* erasure=core::double, declared=! */ #this = value;
   return #this;
 }

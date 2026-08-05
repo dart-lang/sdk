@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PatternVariableAssignmentInsideGuardTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,104 +18,95 @@ main() {
 class PatternVariableAssignmentInsideGuardTest
     extends PubPackageResolutionTest {
   test_closure_outer_assignment() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a when () {
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
     if (x case _ when (a = 1) > 0) {}
+//                     ^
+// [diag.patternVariableAssignmentInsideGuard] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     return true;
   }()) {}
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.patternVariableAssignmentInsideGuard, 68, 1),
-      ],
-    );
+''');
   }
 
   test_closure_this_assignment() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a when () {
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
     a = 0;
+//  ^
+// [diag.patternVariableAssignmentInsideGuard] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
     return true;
   }()) {}
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.patternVariableAssignmentInsideGuard, 49, 1),
-      ],
-    );
+''');
   }
 
   test_expression_assignment() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a when (a = 1) > 0) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                       ^
+// [diag.patternVariableAssignmentInsideGuard] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.patternVariableAssignmentInsideGuard, 41, 1),
-      ],
-    );
+''');
   }
 
   test_expression_assignment_compound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a when (a += 1) > 0) {}
+//                       ^
+// [diag.patternVariableAssignmentInsideGuard] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 }
-''',
-      [error(diag.patternVariableAssignmentInsideGuard, 41, 1)],
-    );
+''');
   }
 
   test_expression_assignment_logicalOr2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case int a || int a when (a = 1) > 0) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                 ^^^^^^^^
+// [diag.deadCode] Dead code.
+//                        ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                                ^
+// [diag.patternVariableAssignmentInsideGuard] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.deadCode, 35, 8),
-        error(diag.unusedLocalVariable, 42, 1),
-        error(diag.patternVariableAssignmentInsideGuard, 50, 1),
-      ],
-    );
+''');
   }
 
   test_expression_postfixIncrement() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a when (a++) > 0) {}
+//                       ^
+// [diag.patternVariableAssignmentInsideGuard] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 }
-''',
-      [error(diag.patternVariableAssignmentInsideGuard, 41, 1)],
-    );
+''');
   }
 
   test_expression_prefixIncrement() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a when (++a) > 0) {}
+//                         ^
+// [diag.patternVariableAssignmentInsideGuard] Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 }
-''',
-      [error(diag.patternVariableAssignmentInsideGuard, 43, 1)],
-    );
+''');
   }
 
   test_ifStatement_caseClause_insideThen() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a when a > 0) {
     a = 0;
@@ -124,20 +116,19 @@ void f(int x) {
   }
 
   test_otherVariable_local() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   // ignore:unused_local_variable
   var b = 0;
   if (x case var a when (b = 1) > 0) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 80, 1)],
-    );
+''');
   }
 
   test_outerPattern_variablePattern() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a when a > 0) {
     if (x case _ when (a = 1) > 0) {}

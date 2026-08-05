@@ -4583,6 +4583,7 @@ int _scan(String uri, int start, int end, int state, List<int> indices) {
   }
   return state;
 }
+
 // --- URI PARSER TABLE --- end --- generated code, do not edit ---
 
 final class _SimpleUri implements _PlatformUri {

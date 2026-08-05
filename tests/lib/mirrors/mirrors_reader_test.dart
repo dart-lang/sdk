@@ -7,7 +7,9 @@
 library test.mirrors.reader;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
+
 import 'mirrors_reader.dart';
 
 class RuntimeMirrorsReader extends MirrorsReader {

@@ -9,7 +9,7 @@ class C extends core::Object {
 }
 class D extends core::Object implements self::C {
   final field dynamic n;
-  constructor •(dynamic n) → self::D
+  constructor •(initializing-formal dynamic n) → self::D
     ;
 }
 static method main() → dynamic

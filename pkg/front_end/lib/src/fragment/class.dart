@@ -27,7 +27,7 @@ class ClassFragment extends DeclarationFragmentImpl implements Fragment {
     name.length,
   );
 
-  ClassFragment({
+  new({
     required this.name,
     required super.fileUri,
     required this.nameOffset,

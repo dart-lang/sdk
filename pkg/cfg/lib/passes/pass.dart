@@ -42,8 +42,9 @@ abstract base class Pass {
 class Pipeline {
   final ErrorContext errorContext = ErrorContext();
   final List<Pass> passes = [];
+  final void Function(Pass)? afterPass;
 
-  Pipeline(List<Pass> passes) {
+  Pipeline(List<Pass> passes, {this.afterPass}) {
     this.passes.add(
       FlowGraphChecker('FlowGraphChecker after FlowGraph construction'),
     );
@@ -61,6 +62,8 @@ class Pipeline {
 
         pass.initialize(errorContext, graph);
         pass.run();
+
+        afterPass?.call(pass);
 
         errorContext.clear();
       }

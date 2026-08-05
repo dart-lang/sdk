@@ -10,7 +10,7 @@ import 'package:analyzer/src/util/platform_info.dart';
 
 class InitializeMessageHandler
     extends LspMessageHandler<InitializeParams, InitializeResult> {
-  InitializeMessageHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.initialize;

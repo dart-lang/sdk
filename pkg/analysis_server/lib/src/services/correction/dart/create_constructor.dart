@@ -19,7 +19,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
   // TODO(migration): We set this node when we have the change.
   late String _constructorName;
 
-  CreateConstructor({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -289,7 +289,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
           constructorName: constructorName?.lexeme,
           constructorNameGroupName: 'NAME',
         );
-      });
+      }, isNamed: constructorName != null);
       if (targetFile == file) {
         builder.addLinkedPosition(range.token(name), 'NAME');
       }

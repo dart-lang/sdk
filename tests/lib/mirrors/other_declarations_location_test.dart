@@ -5,7 +5,9 @@
 library test.declarations_location;
 
 import "dart:mirrors";
+
 import "package:expect/expect.dart";
+
 import "library_without_declaration.dart";
 import "library_with_annotated_declaration.dart";
 

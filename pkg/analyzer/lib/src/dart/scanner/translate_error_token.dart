@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as fe_diag;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';
@@ -18,7 +17,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   int charOffset = token.charOffset;
   // TODO(paulberry): why is endOffset sometimes null?
   int endOffset = token.endOffset ?? charOffset;
-  void makeError(LocatableDiagnostic locatableDiagnostic) {
+  void makeError(diag.LocatableDiagnostic locatableDiagnostic) {
     if (_isAtEnd(token, charOffset)) {
       // Analyzer never generates an error message past the end of the input,
       // since such an error would not be visible in an editor.
@@ -129,4 +128,4 @@ bool _isAtEnd(Token token, int charOffset) {
 /// Used to report a scan error.
 /// The [locatedDiagnostic] contains the error code, arguments, and the location
 /// of the error.
-typedef ReportError = void Function(LocatedDiagnostic locatedDiagnostic);
+typedef ReportError = void Function(diag.LocatedDiagnostic locatedDiagnostic);

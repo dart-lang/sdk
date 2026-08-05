@@ -10,6 +10,16 @@ const String _serverNoContextTakeover = "server_no_context_takeover";
 const String _clientMaxWindowBits = "client_max_window_bits";
 const String _serverMaxWindowBits = "server_max_window_bits";
 
+// 0x7fffffffffffffff defined in a JS-friendly way to work around a warning
+// issued when compiling this code. Note that this code is never actually
+// used on the Web, so it is safe to simply work around the warning.
+const int _kMaxInt = (0x1fffffffffffff << 10) + 23;
+
+const int _kDefaultWebSocketMaxPayloadLength = int.fromEnvironment(
+  "dart.io.default.ws.max.payload.length",
+  defaultValue: _kMaxInt,
+);
+
 // Matches _WebSocketOpcode.
 class _WebSocketMessageType {
   static const int NONE = 0;
@@ -34,6 +44,155 @@ class _WebSocketOpcode {
   static const int RESERVED_D = 13;
   static const int RESERVED_E = 14;
   static const int RESERVED_F = 15;
+}
+
+enum _WebSocketTrafficDirection {
+  inbound('in'),
+  outbound('out');
+
+  const _WebSocketTrafficDirection(this.value);
+  final String value;
+}
+
+/// Emits WebSocket timeline events.
+/// [_enabled] checks whether WebSocket timeline logging is currently enabled.
+///
+/// Records lightweight frame and lifecycle metadata for WebSocket activity,
+/// including send, receive, ping, pong, close, and error events.
+///
+/// Uses [_connectionId] to correlate events for a given WebSocket connection and
+/// serialized payload contents to minimize profiling overhead and memory usage.
+class _WebSocketTimelineLogger {
+  static const String _connectionIdKey = 'connectionId';
+  static const String _directionKey = 'direction';
+  static const String _opcodeKey = 'opcode';
+  static const String _bytesKey = 'bytes';
+  static const String _closeCodeKey = 'closeCode';
+  static const String _reasonKey = 'reason';
+  static const String _errorKey = 'error';
+  static const String _filterKey = 'HTTP/websocket';
+
+  final int _connectionId;
+  final TimelineTask _timeline;
+  bool get _enabled => HttpClient.enableTimelineLogging;
+
+  _WebSocketTimelineLogger(this._connectionId)
+    : _timeline = TimelineTask(filterKey: _filterKey);
+
+  static final Set<TimelineTask> _activeConnectTimelines = {};
+
+  static TimelineTask? startConnect(Uri uri) {
+    if (!HttpClient.enableTimelineLogging) {
+      return null;
+    }
+
+    final timeline = TimelineTask(filterKey: _filterKey);
+
+    _activeConnectTimelines.add(timeline);
+
+    timeline.start('WebSocket.Connect', arguments: {'uri': uri.toString()});
+
+    return timeline;
+  }
+
+  static void finishConnect(
+    TimelineTask? timeline, {
+    Map<String, Object?>? arguments,
+  }) {
+    if (timeline == null) {
+      return;
+    }
+
+    if (!_activeConnectTimelines.remove(timeline)) {
+      return;
+    }
+
+    timeline.finish(arguments: arguments);
+  }
+
+  void logSend(int opcode, int bytes) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Send',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: _WebSocketTrafficDirection.outbound.value,
+        _opcodeKey: opcodeName(opcode),
+        _bytesKey: bytes,
+      },
+    );
+  }
+
+  void logReceive(int opcode, int bytes) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Receive',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: _WebSocketTrafficDirection.inbound.value,
+        _opcodeKey: opcodeName(opcode),
+        _bytesKey: bytes,
+      },
+    );
+  }
+
+  void logPing(int bytes, _WebSocketTrafficDirection direction) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Ping',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: direction.value,
+        _bytesKey: bytes,
+      },
+    );
+  }
+
+  void logPong(int bytes, _WebSocketTrafficDirection direction) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Pong',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: direction.value,
+        _bytesKey: bytes,
+      },
+    );
+  }
+
+  void logClose({
+    int? closeCode,
+    String? reason,
+    _WebSocketTrafficDirection? direction,
+  }) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Close',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: ?direction?.value,
+        _closeCodeKey: ?closeCode,
+        _reasonKey: ?reason,
+      },
+    );
+  }
+
+  void logError(Object error) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Error',
+      arguments: {_connectionIdKey: _connectionId, _errorKey: error.toString()},
+    );
+  }
+
+  static String opcodeName(int opcode) => switch (opcode) {
+    _WebSocketOpcode.TEXT => 'text',
+    _WebSocketOpcode.BINARY => 'binary',
+    _WebSocketOpcode.CLOSE => 'close',
+    _WebSocketOpcode.PING => 'ping',
+    _WebSocketOpcode.PONG => 'pong',
+    _ => 'unknown',
+  };
 }
 
 class _EncodedString {
@@ -98,8 +257,16 @@ class _WebSocketProtocolTransformer
   final Uint8List _maskingBytes = Uint8List(4);
   final BytesBuilder _payload = BytesBuilder(copy: false);
 
+  final int _maxPayloadLength;
+
   final _WebSocketPerMessageDeflate? _deflate;
-  _WebSocketProtocolTransformer([this._serverSide = false, this._deflate]);
+  final _WebSocketTimelineLogger? _timelineLogger;
+  _WebSocketProtocolTransformer([
+    this._serverSide = false,
+    this._deflate,
+    this._maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
+    this._timelineLogger,
+  ]);
 
   Stream<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/> bind(
     Stream<List<int>> stream,
@@ -147,12 +314,16 @@ class _WebSocketProtocolTransformer
 
           _opcode = (byte & OPCODE);
 
-          if (_opcode != _WebSocketOpcode.CONTINUATION) {
-            if ((byte & RSV1) != 0) {
-              _compressed = true;
-            } else {
-              _compressed = false;
-            }
+          bool isMessageCompressed = (byte & RSV1) != 0;
+          if (isMessageCompressed &&
+              (_deflate == null ||
+                  _opcode == _WebSocketOpcode.CONTINUATION ||
+                  _isControlFrame())) {
+            throw WebSocketException("Protocol error");
+          }
+
+          if (_opcode != _WebSocketOpcode.CONTINUATION && !_isControlFrame()) {
+            _compressed = isMessageCompressed;
           }
 
           if (_opcode <= _WebSocketOpcode.BINARY) {
@@ -289,6 +460,11 @@ class _WebSocketProtocolTransformer
   }
 
   void _lengthDone() {
+    if (!_isControlFrame() && (_len < 0 || _len > _maxPayloadLength)) {
+      throw WebSocketException(
+        "Frame payload length $_len exceeds $_maxPayloadLength",
+      );
+    }
     if (_masked) {
       if (!_serverSide) {
         throw WebSocketException("Received masked frame from server");
@@ -345,11 +521,12 @@ class _WebSocketProtocolTransformer
 
       switch (_currentMessageType) {
         case _WebSocketMessageType.TEXT:
+          _timelineLogger?.logReceive(_WebSocketOpcode.TEXT, bytes.length);
           _eventSink!.add(utf8.decode(bytes));
-          break;
+
         case _WebSocketMessageType.BINARY:
+          _timelineLogger?.logReceive(_WebSocketOpcode.BINARY, bytes.length);
           _eventSink!.add(bytes);
-          break;
       }
       _currentMessageType = _WebSocketMessageType.NONE;
     }
@@ -366,7 +543,19 @@ class _WebSocketProtocolTransformer
             throw WebSocketException("Protocol error");
           }
           closeCode = payload[0] << 8 | payload[1];
-          if (closeCode == WebSocketStatus.noStatusReceived) {
+          // RFC 6455 §7.4.1 designates 1005, 1006, and 1015 as
+          // application-internal sentinels that MUST NOT be set as a
+          // status code in a Close control frame.
+          if (closeCode == WebSocketStatus.noStatusReceived ||
+              closeCode == WebSocketStatus.abnormalClosure ||
+              closeCode == WebSocketStatus.reserved1015) {
+            throw WebSocketException("Protocol error");
+          }
+          // Reject codes outside 1000-4999. RFC 6455 §7.4.2 only assigns
+          // meaning to codes in that range, so accepting anything else
+          // would let a peer push an arbitrary 16-bit value into
+          // `closeCode`.
+          if (closeCode < 1000 || closeCode > 4999) {
             throw WebSocketException("Protocol error");
           }
           if (payload.length > 2) {
@@ -374,16 +563,29 @@ class _WebSocketProtocolTransformer
           }
         }
         _state = CLOSED;
+        _timelineLogger?.logClose(
+          direction: _WebSocketTrafficDirection.inbound,
+          closeCode: closeCode,
+          reason: closeReason,
+        );
         _eventSink!.close();
         break;
 
       case _WebSocketOpcode.PING:
-        _eventSink!.add(_WebSocketPing(_payload.takeBytes()));
-        break;
+        var payload = _payload.takeBytes();
+        _timelineLogger?.logPing(
+          payload.length,
+          _WebSocketTrafficDirection.inbound,
+        );
+        _eventSink!.add(_WebSocketPing(payload));
 
       case _WebSocketOpcode.PONG:
-        _eventSink!.add(_WebSocketPong(_payload.takeBytes()));
-        break;
+        var payload = _payload.takeBytes();
+        _timelineLogger?.logPong(
+          payload.length,
+          _WebSocketTrafficDirection.inbound,
+        );
+        _eventSink!.add(_WebSocketPong(payload));
     }
     _prepareForNextFrame();
   }
@@ -416,8 +618,9 @@ class _WebSocketPong {
   _WebSocketPong([this.payload]);
 }
 
-typedef /*String|Future<String>*/ _ProtocolSelector =
-    Function(List<String> protocols);
+typedef /*String|Future<String>*/ _ProtocolSelector = Function(
+  List<String> protocols,
+);
 
 class _WebSocketTransformerImpl
     extends StreamTransformerBase<HttpRequest, WebSocket>
@@ -427,13 +630,23 @@ class _WebSocketTransformerImpl
   );
   final _ProtocolSelector? _protocolSelector;
   final CompressionOptions _compression;
+  final int _maxPayloadLength;
 
-  _WebSocketTransformerImpl(this._protocolSelector, this._compression);
+  _WebSocketTransformerImpl(
+    this._protocolSelector,
+    this._compression, [
+    this._maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
+  ]);
 
   Stream<WebSocket> bind(Stream<HttpRequest> stream) {
     stream.listen(
       (request) {
-        _upgrade(request, _protocolSelector, _compression)
+        _upgrade(
+              request,
+              _protocolSelector,
+              _compression,
+              maxPayloadLength: _maxPayloadLength,
+            )
             .then((WebSocket webSocket) => _controller.add(webSocket))
             .catchError(_controller.addError);
       },
@@ -465,8 +678,9 @@ class _WebSocketTransformerImpl
   static Future<WebSocket> _upgrade(
     HttpRequest request,
     _ProtocolSelector? protocolSelector,
-    CompressionOptions compression,
-  ) {
+    CompressionOptions compression, {
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
+  }) {
     var response = request.response;
     if (!_isUpgradeRequest(request)) {
       // Send error response.
@@ -493,7 +707,12 @@ class _WebSocketTransformerImpl
         response.headers.add("Sec-WebSocket-Protocol", protocol);
       }
 
-      var deflate = _negotiateCompression(request, response, compression);
+      var deflate = _negotiateCompression(
+        request,
+        response,
+        compression,
+        maxPayloadLength: maxPayloadLength,
+      );
 
       response.headers.contentLength = 0;
       return response.detachSocket().then<WebSocket>(
@@ -503,6 +722,7 @@ class _WebSocketTransformerImpl
           compression,
           true,
           deflate,
+          maxPayloadLength,
         ),
       );
     }
@@ -537,8 +757,9 @@ class _WebSocketTransformerImpl
   static _WebSocketPerMessageDeflate? _negotiateCompression(
     HttpRequest request,
     HttpResponse response,
-    CompressionOptions compression,
-  ) {
+    CompressionOptions compression, {
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
+  }) {
     var extensionHeader = request.headers.value("Sec-WebSocket-Extensions");
 
     extensionHeader ??= "";
@@ -560,6 +781,7 @@ class _WebSocketTransformerImpl
         serverMaxWindowBits: info.maxWindowBits,
         clientMaxWindowBits: info.maxWindowBits,
         serverSide: true,
+        maxPayloadLength: maxPayloadLength,
       );
 
       return deflate;
@@ -607,6 +829,8 @@ class _WebSocketPerMessageDeflate {
   int serverMaxWindowBits;
   bool serverSide;
 
+  int maxPayloadLength;
+
   RawZLibFilter? decoder;
   RawZLibFilter? encoder;
 
@@ -616,6 +840,7 @@ class _WebSocketPerMessageDeflate {
     this.serverNoContextTakeover = false,
     this.clientNoContextTakeover = false,
     this.serverSide = false,
+    this.maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   });
 
   RawZLibFilter _ensureDecoder() => decoder ??= RawZLibFilter.inflateFilter(
@@ -642,6 +867,13 @@ class _WebSocketPerMessageDeflate {
       final out = decoder.processed();
       if (out == null) break;
       result.add(out);
+      if (result.length > maxPayloadLength) {
+        this.decoder = null;
+        throw WebSocketException(
+          "Decompressed permessage-deflate frame exceeds "
+          "$maxPayloadLength bytes",
+        );
+      }
     }
 
     if ((serverSide && clientNoContextTakeover) ||
@@ -727,15 +959,25 @@ class _WebSocketOutgoingTransformer
 
   void add(message) {
     if (message is _WebSocketPong) {
+      webSocket._timelineLogger.logPong(
+        message.payload?.length ?? 0,
+        _WebSocketTrafficDirection.outbound,
+      );
       addFrame(_WebSocketOpcode.PONG, message.payload);
       return;
     }
     if (message is _WebSocketPing) {
+      webSocket._timelineLogger.logPing(
+        message.payload?.length ?? 0,
+        _WebSocketTrafficDirection.outbound,
+      );
       addFrame(_WebSocketOpcode.PING, message.payload);
       return;
     }
     List<int>? data;
     int opcode;
+    int payloadBytes = 0;
+
     if (message != null) {
       List<int> messageData;
       if (message is String) {
@@ -750,6 +992,7 @@ class _WebSocketOutgoingTransformer
       } else {
         throw ArgumentError(message);
       }
+      payloadBytes = messageData.length;
       var deflateHelper = _deflateHelper;
       if (deflateHelper != null) {
         messageData = deflateHelper.processOutgoingMessage(messageData);
@@ -758,6 +1001,7 @@ class _WebSocketOutgoingTransformer
     } else {
       opcode = _WebSocketOpcode.TEXT;
     }
+    webSocket._timelineLogger.logSend(opcode, payloadBytes);
     addFrame(opcode, data);
   }
 
@@ -778,6 +1022,11 @@ class _WebSocketOutgoingTransformer
         if (reason != null) ...utf8.encode(reason),
       ];
     }
+    webSocket._timelineLogger.logClose(
+      direction: _WebSocketTrafficDirection.outbound,
+      closeCode: code,
+      reason: reason,
+    );
     addFrame(_WebSocketOpcode.CLOSE, data);
     _eventSink!.close();
   }
@@ -956,6 +1205,7 @@ class _WebSocketConsumer implements StreamConsumer {
             _closeCompleter.complete(webSocket);
           },
           onError: (Object error, StackTrace stackTrace) {
+            webSocket._timelineLogger.logError(error);
             _closed = true;
             _cancel();
             if (error is ArgumentError) {
@@ -1050,6 +1300,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   Duration? _pingInterval;
   Timer? _pingTimer;
   late _WebSocketConsumer _consumer;
+  late final _WebSocketTimelineLogger _timelineLogger;
 
   int? _outCloseCode;
   String? _outCloseReason;
@@ -1064,6 +1315,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     Map<String, dynamic>? headers, {
     CompressionOptions compression = CompressionOptions.compressionDefault,
     HttpClient? customClient,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) {
     Uri uri = Uri.parse(url);
     if (!uri.isScheme("ws") && !uri.isScheme("wss")) {
@@ -1079,6 +1331,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     String nonce = base64Encode(nonceData);
 
     final callerStackTrace = StackTrace.current;
+    final connectTimeline = _WebSocketTimelineLogger.startConnect(uri);
 
     uri = Uri(
       scheme: uri.isScheme("wss") ? "https" : "http",
@@ -1129,6 +1382,10 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             response.detachSocket().then((socket) {
               socket.destroy();
             });
+            _WebSocketTimelineLogger.finishConnect(
+              connectTimeline,
+              arguments: {'error': message, 'httpStatusCode': ?httpStatusCode},
+            );
             return Future<WebSocket>.error(
               WebSocketException(message, httpStatusCode),
               callerStackTrace,
@@ -1175,24 +1432,36 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           _WebSocketPerMessageDeflate? deflate = negotiateClientCompression(
             response,
             compression,
+            maxPayloadLength: maxPayloadLength,
           );
 
-          return response.detachSocket().then<WebSocket>(
-            (socket) => _WebSocketImpl._fromSocket(
+          return response.detachSocket().then<WebSocket>((socket) {
+            _WebSocketTimelineLogger.finishConnect(connectTimeline);
+            return _WebSocketImpl._fromSocket(
               socket,
               protocol,
               compression,
               false,
               deflate,
-            ),
+              maxPayloadLength,
+            );
+          });
+        })
+        .catchError((Object error, StackTrace stackTrace) {
+          _WebSocketTimelineLogger.finishConnect(
+            connectTimeline,
+            arguments: {'error': error.toString()},
           );
+
+          return Future<WebSocket>.error(error, stackTrace);
         });
   }
 
   static _WebSocketPerMessageDeflate? negotiateClientCompression(
     HttpClientResponse response,
-    CompressionOptions compression,
-  ) {
+    CompressionOptions compression, {
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
+  }) {
     String extensionHeader =
         response.headers.value('Sec-WebSocket-Extensions') ?? "";
 
@@ -1220,6 +1489,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         serverMaxWindowBits: getWindowBits(_serverMaxWindowBits),
         clientNoContextTakeover: clientNoContextTakeover,
         serverNoContextTakeover: serverNoContextTakeover,
+        maxPayloadLength: maxPayloadLength,
       );
     }
 
@@ -1232,13 +1502,21 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     CompressionOptions compression, [
     this._serverSide = false,
     _WebSocketPerMessageDeflate? deflate,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   ]) : _controller = StreamController(sync: true) {
     _consumer = _WebSocketConsumer(this, _socket);
     _sink = _StreamSinkImpl(_consumer);
     _readyState = WebSocket.open;
     _deflate = deflate;
+    _timelineLogger = _WebSocketTimelineLogger(_serviceId);
 
-    var transformer = _WebSocketProtocolTransformer(_serverSide, deflate);
+    var transformer = _WebSocketProtocolTransformer(
+      _serverSide,
+      deflate,
+      maxPayloadLength,
+      _timelineLogger,
+    );
+
     var subscription = _subscription = transformer
         .bind(_socket)
         .listen(
@@ -1253,6 +1531,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             }
           },
           onError: (Object error, StackTrace stackTrace) {
+            _timelineLogger.logError(error);
             _closeTimer?.cancel();
             if (error is FormatException) {
               _close(WebSocketStatus.invalidFramePayloadData);
@@ -1410,6 +1689,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             code == WebSocketStatus.abnormalClosure ||
             (code > WebSocketStatus.internalServerError &&
                 code < WebSocketStatus.reserved1015) ||
-            (code >= WebSocketStatus.reserved1015 && code < 3000));
+            (code >= WebSocketStatus.reserved1015 && code < 3000) ||
+            // RFC 6455 §7.4.2 only assigns meaning to codes 1000-4999.
+            code > 4999);
   }
 }

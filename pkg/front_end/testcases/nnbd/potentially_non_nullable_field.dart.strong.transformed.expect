@@ -35,7 +35,7 @@ class A<T extends core::Object?> extends core::Object {
   late covariant-by-class field self::A::T% lr;
   covariant-by-class field self::A::T% lp;
   covariant-by-class field self::A::T% lq;
-  constructor •(core::int lv, self::A::T% lp, self::A::T% t) → self::A<self::A::T%>
+  constructor •(initializing-formal core::int lv, initializing-formal self::A::T% lp, self::A::T% t) → self::A<self::A::T%>
     : self::A::lv = lv, self::A::lp = lp, self::A::lu = 42, self::A::lq = t, super core::Object::•()
     ;
 }

@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'compiler_options.dart';
+import 'deferred_load/dominators.dart';
 import 'reference_extensions.dart';
 import 'target.dart';
 import 'util.dart';
@@ -32,12 +33,14 @@ class ModuleMetadataBuilder {
     bool skipEmit = false,
   }) {
     final id = _counter++;
-    final moduleImportName = options.translatorOptions.minify
-        ? intToMinString(id)
-        : 'module$id';
+    final moduleImportName = moduleNameFromId(id);
     return ModuleMetadata._(
       moduleImportName,
-      options.moduleNameForId(options.outputFile, id, emitAsMain: emitAsMain),
+      WasmCompilerOptions.moduleNameForId(
+        options.outputFile,
+        id,
+        emitAsMain: emitAsMain,
+      ),
       skipEmit: skipEmit,
       isMain: id == WasmCompilerOptions.mainModuleId,
     );
@@ -240,6 +243,8 @@ Set<Library> getReachableLibraries(
 }
 
 class DeferredModuleLoadingMap {
+  final LibraryDependency rootImport;
+
   // Maps each (library, deferred import) to a unique id.
   final Map<(Library, String), int> loadIds;
 
@@ -252,27 +257,53 @@ class DeferredModuleLoadingMap {
   // code generation to avoid emitting & loading empty modules.
   final List<List<ModuleMetadata>> moduleMap;
 
+  // Maps loadId to its dominating loadId (or null if dominated by root).
+  late final List<int?> dominatingLoadId = List.filled(loadIds.length, null);
+  late final List<Set<int>?> dominatingLoadIds = List.filled(
+    loadIds.length,
+    null,
+  );
+
+  // Maps loadId to the dedicated ModuleMetadata for that deferred import.
+  late final List<ModuleMetadata?> dedicatedModule = List.filled(
+    loadIds.length,
+    null,
+  );
+
   DeferredModuleLoadingMap._(
+    this.rootImport,
     this.loadIds,
     this.moduleMap,
     this.loadIdToDeferredImport,
   );
 
   factory DeferredModuleLoadingMap.fromComponent(Component c) {
-    int nextLoadId = 0;
+    final rootLibrary = Library(Uri.parse(r'root'), fileUri: Uri());
+    final rootImport = LibraryDependency.import(
+      Library(Uri(), fileUri: Uri()),
+      name: r'$root',
+    )..parent = rootLibrary;
+
     final loadIds = <(Library, String), int>{};
     final loadIdToDeferredImport = <LibraryDependency>[];
     final moduleMap = <List<ModuleMetadata>>[];
+
+    // Handle root.
+    loadIds[(rootLibrary, r'$root')] = 0;
+    loadIdToDeferredImport.add(rootImport);
+    moduleMap.add([]);
+
     for (final library in c.libraries) {
       for (final dep in library.dependencies) {
         if (!dep.isDeferred) continue;
         final name = dep.name!;
-        loadIds[(library, name)] = nextLoadId++;
+        loadIds[(library, name)] = loadIds.length;
         loadIdToDeferredImport.add(dep);
         moduleMap.add([]);
       }
     }
     return DeferredModuleLoadingMap._(
+      rootImport,
       loadIds,
       moduleMap,
       loadIdToDeferredImport,
@@ -285,5 +316,25 @@ class DeferredModuleLoadingMap {
     List<ModuleMetadata> modules,
   ) {
     moduleMap[loadIds[(lib, importName)]!].addAll(modules);
+  }
+
+  void computeDominatingLoadIds(Dominators dominators) {
+    for (int loadId = 0; loadId < loadIdToDeferredImport.length; ++loadId) {
+      final prefix = loadIdToDeferredImport[loadId];
+      final node = dominators.nodeFor(prefix);
+      if (node == null) continue;
+
+      final dominator = node.dominator;
+      assert((dominator == null) == (loadId == 0));
+      if (dominator == null) continue;
+
+      final dominatorPrefix = dominator.prefix;
+      final name = dominatorPrefix.name!;
+      final int domLoadId = dominator.dominator == null
+          ? 0
+          : loadIds[(dominatorPrefix.enclosingLibrary, name)]!;
+      dominatingLoadId[loadId] = domLoadId;
+      (dominatingLoadIds[domLoadId] ??= {}).add(loadId);
+    }
   }
 }

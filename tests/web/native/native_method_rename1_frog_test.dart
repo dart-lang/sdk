@@ -5,6 +5,7 @@
 // Test the feature where the native string declares the native method's name.
 
 import 'native_testing.dart';
+
 import 'dart:_js_helper' show Native, JSName;
 
 @Native("A")

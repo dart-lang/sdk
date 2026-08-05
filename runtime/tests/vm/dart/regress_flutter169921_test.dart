@@ -48,8 +48,13 @@ main(List<String> args) async {
     final profile = path.join(tempDir, 'profile.json');
     final snapshot = path.join(tempDir, 'snapshot.so');
     await run(genSnapshot, <String>[
-      '--snapshot-kind=app-aot-elf',
-      '--elf=$snapshot',
+      if (Platform.isMacOS) ...[
+        '--snapshot-kind=app-aot-macho-dylib',
+        '--macho=$snapshot',
+      ] else ...[
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$snapshot',
+      ],
       '--loading-unit-manifest=$manifest',
       '--write-v8-snapshot-profile-to=$profile',
       scriptDill,

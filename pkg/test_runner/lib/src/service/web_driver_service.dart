@@ -13,9 +13,7 @@ const safariDriverPort = 7055;
 
 class WebDriverService extends EventListener {
   static final _instances = <Runtime, WebDriverService>{};
-  static final supportedRuntimes = <Runtime>{
-    Runtime.safari,
-  };
+  static final supportedRuntimes = <Runtime>{Runtime.safari};
 
   bool _running = false;
   Process _process;
@@ -38,7 +36,8 @@ class WebDriverService extends EventListener {
   }
 
   static Future<WebDriverService> startServiceForRuntime(
-      Runtime runtime) async {
+    Runtime runtime,
+  ) async {
     var service = _instances[runtime];
     String driverExecutable;
     List<String> driverArguments;
@@ -56,11 +55,16 @@ class WebDriverService extends EventListener {
         throw ArgumentError.value(runtime, 'runtime', 'Unsupported runtime');
     }
     try {
-      var process = await Process.start(
-          driverExecutable, ['--port', '$port', ...driverArguments]);
+      var process = await Process.start(driverExecutable, [
+        '--port',
+        '$port',
+        ...driverArguments,
+      ]);
       print('Started WebDriverService on port $port');
-      return _instances[runtime] =
-          WebDriverService._(safariDriverPort, process);
+      return _instances[runtime] = WebDriverService._(
+        safariDriverPort,
+        process,
+      );
     } catch (error) {
       print('Failed to start $runtime web driver service: $error');
       rethrow;

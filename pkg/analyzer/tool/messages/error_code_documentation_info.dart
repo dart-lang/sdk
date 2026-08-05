@@ -51,6 +51,9 @@ class ErrorCodeDocumentationBlock extends ErrorCodeDocumentationPart {
   /// The file type of this code block (e.g. `dart` or `yaml`).
   final String fileType;
 
+  /// A list of the diagnostics that should be ignored for this code block.
+  final List<String> ignores;
+
   /// The language version that must be active for this code to behave as
   /// expected (if any).
   final String? languageVersion;
@@ -64,6 +67,7 @@ class ErrorCodeDocumentationBlock extends ErrorCodeDocumentationPart {
     required this.containingSection,
     this.experiments = const [],
     required this.fileType,
+    required this.ignores,
     this.languageVersion,
     this.uri,
   });
@@ -86,6 +90,12 @@ class _ErrorCodeDocumentationParser {
   /// The prefix used on directive lines to specify the experiments that should
   /// be enabled for a snippet.
   static const String experimentsPrefix = '%experiments=';
+
+  /// The prefix used on directive lines to specify a list of diagnostics that
+  /// should be ignored. These should only be diagnostics that shouldn't be
+  /// reported. If they are valid diagnostics, then add an `ignore` comment
+  /// in the code instead.
+  static const String ignorePrefix = '%ignore=';
 
   /// The prefix used on directive lines to specify the language version for
   /// the snippet.
@@ -166,6 +176,7 @@ class _ErrorCodeDocumentationParser {
     String? languageVersion;
     String? uri;
     List<String>? experiments;
+    List<String>? ignores;
     assert(line.startsWith('```'));
     var fileType = line.substring(3);
     if (fileType.isEmpty && containingSection != null) {
@@ -188,6 +199,7 @@ class _ErrorCodeDocumentationParser {
               containingSection: containingSection,
               experiments: experiments ?? const [],
               fileType: fileType,
+              ignores: ignores ?? const [],
               languageVersion: languageVersion,
               uri: uri,
             ),
@@ -208,6 +220,15 @@ class _ErrorCodeDocumentationParser {
             problem('URI directive should be surrounded by double quotes');
           }
           uri = line.substring(uriDirectivePrefix.length, line.length - 1);
+        } else if (line.startsWith(ignorePrefix)) {
+          if (ignores != null) {
+            problem('Multiple ignore directives');
+          }
+          ignores = line
+              .substring(ignorePrefix.length)
+              .split(',')
+              .map((e) => e.trim())
+              .toList();
         } else if (line.startsWith(experimentsPrefix)) {
           if (experiments != null) {
             problem('Multiple experiments directives');

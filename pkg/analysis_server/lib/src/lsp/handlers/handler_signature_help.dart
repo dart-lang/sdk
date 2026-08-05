@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/computer_type_arguments_signature.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -15,7 +16,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class SignatureHelpHandler
     extends SharedMessageHandler<SignatureHelpParams, SignatureHelp?> {
-  SignatureHelpHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_signatureHelp;
 
@@ -68,6 +69,7 @@ class SignatureHelpHandler
       // First check if we're in a type args list and if so build some
       // signature help for that.
       var typeArgsSignature = _tryGetTypeArgsSignatureHelp(
+        clientCapabilities,
         dartDocInfo,
         unit.unit,
         offset,
@@ -95,7 +97,14 @@ class SignatureHelpHandler
         return success(null);
       }
 
-      return success(toSignatureHelp(formats, signature));
+      return success(
+        toSignatureHelp(
+          signature,
+          preferredFormats: formats,
+          clientSupportsNullActiveParameter:
+              clientCapabilities.signatureHelpNullActiveParameter,
+        ),
+      );
     });
   }
 
@@ -105,6 +114,7 @@ class SignatureHelpHandler
   /// argument list or was auto-triggered in a location that was not the start
   /// of a type argument list.
   SignatureHelp? _tryGetTypeArgsSignatureHelp(
+    LspClientCapabilities clientCapabilities,
     DartdocDirectiveInfo dartDocInfo,
     CompilationUnit unit,
     int offset,
@@ -115,7 +125,9 @@ class SignatureHelpHandler
       dartDocInfo,
       unit,
       offset,
-      formats,
+      preferredFormats: formats,
+      clientSupportsNullActiveParameter:
+          clientCapabilities.signatureHelpNullActiveParameter,
     );
     if (!typeArgsComputer.offsetIsValid) {
       return null;
@@ -138,7 +150,7 @@ class SignatureHelpHandler
 
 class SignatureHelpRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<SignatureHelpOptions> {
-  SignatureHelpRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => SignatureHelpRegistrationOptions(

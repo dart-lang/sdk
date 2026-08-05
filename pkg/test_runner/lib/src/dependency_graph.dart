@@ -32,16 +32,23 @@ class Graph<T> {
     var sealed = StreamController<void>();
 
     return Graph._(
-        added,
-        added.stream.asBroadcastStream(),
-        changed,
-        changed.stream.asBroadcastStream(),
-        sealed,
-        sealed.stream.asBroadcastStream());
+      added,
+      added.stream.asBroadcastStream(),
+      changed,
+      changed.stream.asBroadcastStream(),
+      sealed,
+      sealed.stream.asBroadcastStream(),
+    );
   }
 
-  Graph._(this._addedController, this.added, this._changedController,
-      this.changed, this._sealedController, this.sealed);
+  Graph._(
+    this._addedController,
+    this.added,
+    this._changedController,
+    this.changed,
+    this._sealedController,
+    this.sealed,
+  );
 
   Iterable<Node<T>> get nodes => _nodes;
   bool get isSealed => _isSealed;
@@ -65,8 +72,11 @@ class Graph<T> {
   /// Adds a new node to the graph with [dependencies] and [userData].
   ///
   /// The node is in the [NodeState.initialized] state.
-  Node<T> add(T userData, Iterable<Node<T>> dependencies,
-      {bool timingDependency = false}) {
+  Node<T> add(
+    T userData,
+    Iterable<Node<T>> dependencies, {
+    bool timingDependency = false,
+  }) {
     assert(!_isSealed);
 
     var node = Node._(userData, timingDependency);

@@ -82,6 +82,37 @@ class DemoteViaExplicitWrite<Variable extends Object>
   String toString() => 'DemoteViaExplicitWrite($node)';
 }
 
+/// Non-promotion reason describing the situation where a promotion was lost
+/// because the current function was suspended (due to an `await` or `yield`
+/// statement) while inside a local function, allowing other code to execute and
+/// potentially modify the variable.
+class DemoteViaSuspension<Variable extends Object> extends NonPromotionReason {
+  /// The local variable that was not promoted.
+  final Variable variable;
+
+  /// The node representing the suspension (e.g. an `await` or `yield`).
+  ///
+  /// This is the node that was passed to [FlowAnalysis.suspension].
+  final Object node;
+
+  DemoteViaSuspension(this.variable, this.node);
+
+  @override
+  NonPromotionDocumentationLink get documentationLink =>
+      NonPromotionDocumentationLink.suspension;
+
+  @override
+  String get shortName => 'demoteViaSuspension';
+
+  @override
+  R accept<R, Node extends Object, Variable extends Object>(
+    NonPromotionReasonVisitor<R, Node, Variable> visitor,
+  ) => visitor.visitDemoteViaSuspension(this as DemoteViaSuspension<Variable>);
+
+  @override
+  String toString() => 'DemoteViaSuspension($node)';
+}
+
 /// Information gathered by flow analysis about an expression. This includes its
 /// static type, whether it refers to `null` or to something promotable, and the
 /// flow models representing execution state after the expression is evaluated.
@@ -238,6 +269,12 @@ abstract class FlowAnalysis<
   bool get isReachable;
 
   FlowAnalysisOperations<Variable> get operations;
+
+  /// Retrieves the type that `this` is promoted to, if it is currently
+  /// promoted.
+  ///
+  /// If `this` isn't currently promoted, returns `null`.
+  SharedTypeView? get promotedTypeOfThis;
 
   /// Call this method before visiting an anonymous block body.
   ///
@@ -489,10 +526,9 @@ abstract class FlowAnalysis<
   /// Call this method just after visiting the operands of a binary `==` or `!=`
   /// expression, or an invocation of `identical`.
   ///
-  /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
-  /// [getExpressionInfo] for the left and right operands. [leftOperandType]
-  /// and [rightOperandType] should be the static types of the left and right
-  /// operands.
+  /// [leftOperandInfo] and [rightOperandInfo] should be the expression info for
+  /// the left and right operands. [leftOperandType] and [rightOperandType]
+  /// should be the static types of the left and right operands.
   ///
   /// Returns the expression info for the `==` or `!=` expression.
   ExpressionInfo? equalityOperation_end(
@@ -517,14 +553,6 @@ abstract class FlowAnalysis<
     bool notEqual = false,
     required SharedTypeView matchedValueType,
   });
-
-  /// The [ExpressionInfo] associated with [target], if known.
-  ///
-  /// **For testing only!**
-  ///
-  /// Returns `null` if (a) no info is associated with [target], or (b) another
-  /// expression with info has been visited more recently than [target].
-  ExpressionInfo? expressionInfoForTesting(Expression target);
 
   /// Performs assertion checks at the conclusion of flow analysis.
   ///
@@ -750,6 +778,7 @@ abstract class FlowAnalysis<
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
+    bool inheritPromotableProperties = false,
   });
 
   /// Whether the [variable] is definitely assigned in the current state.
@@ -1099,6 +1128,18 @@ abstract class FlowAnalysis<
   @visibleForTesting
   SsaNode? ssaNodeForTesting(Variable variable);
 
+  /// Call this method after visiting an `await` expression or `yield`
+  /// statement.
+  ///
+  /// Both of these constructs have the effect of suspending the execution of
+  /// the current function and allowing other code to execute, so flow analysis
+  /// may need to demote some variables.
+  ///
+  /// [Node] should be the AST node of the `await` expression or `yield`
+  /// statement. This will be reported back via [DemoteViaSuspension.node] if
+  /// any promotions are lost due to this suspension.
+  void suspension(Node node);
+
   /// Call this method just after visiting a `case` or `default` body.
   ///
   /// See [switchStatement_expressionEnd] for details.
@@ -1194,6 +1235,12 @@ abstract class FlowAnalysis<
     ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   );
+
+  /// Call this method just before changing the binding of `this`.
+  void thisBinding_begin(ExpressionInfo? targetInfo);
+
+  /// Call this method just after the end of a `this` binding.
+  void thisBinding_end();
 
   /// Call this method just after visiting the expression `this` (or the
   /// pseudo-expression `super`, in the case of the analyzer, which represents
@@ -1464,6 +1511,15 @@ class FlowAnalysisDebug<
 
   @override
   FlowAnalysisOperations<Variable> get operations => _wrapped.operations;
+
+  @override
+  SharedTypeView? get promotedTypeOfThis {
+    return _wrap(
+      'promotedTypeOfThis',
+      () => _wrapped.promotedTypeOfThis,
+      isQuery: true,
+    );
+  }
 
   @override
   void anonymousBlockBody_begin() {
@@ -1766,15 +1822,6 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo? expressionInfoForTesting(Expression target) {
-    return _wrap(
-      'expressionInfoForTesting($target)',
-      () => _wrapped.expressionInfoForTesting(target),
-      isQuery: true,
-    );
-  }
-
-  @override
   void finish() {
     if (_exceptionOccurred) {
       _wrap('finish() (skipped)', () {}, isPure: true);
@@ -1830,15 +1877,6 @@ class FlowAnalysisDebug<
   @override
   void functionExpression_end() {
     _wrap('functionExpression_end()', () => _wrapped.functionExpression_end());
-  }
-
-  @override
-  ExpressionInfo? getExpressionInfo(Expression? expression) {
-    return _wrap(
-      'getExpressionInfo($expression)',
-      () => _wrapped.getExpressionInfo(expression),
-      isQuery: true,
-    );
   }
 
   @override
@@ -1956,11 +1994,13 @@ class FlowAnalysisDebug<
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
+    bool inheritPromotableProperties = false,
   }) {
     _wrap(
       'initialize($variable, $matchedType, $initializerExpressionInfo, '
       'isFinal: $isFinal, isLate: $isLate, '
-      'isImplicitlyTyped: $isImplicitlyTyped)',
+      'isImplicitlyTyped: $isImplicitlyTyped, '
+      'inheritPromotableProperties: $inheritPromotableProperties)',
       () => _wrapped.initialize(
         variable,
         matchedType,
@@ -1968,6 +2008,7 @@ class FlowAnalysisDebug<
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: isImplicitlyTyped,
+        inheritPromotableProperties: inheritPromotableProperties,
       ),
     );
   }
@@ -2410,14 +2451,8 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  ) {
-    _wrap(
-      'storeExpressionInfo($expression, $expressionInfo)',
-      () => _wrapped.storeExpressionInfo(expression, expressionInfo),
-    );
+  void suspension(Node node) {
+    _wrap('suspension($node)', () => _wrapped.suspension(node));
   }
 
   @override
@@ -2496,6 +2531,19 @@ class FlowAnalysisDebug<
         scrutineeType,
       ),
     );
+  }
+
+  @override
+  void thisBinding_begin(ExpressionInfo? targetInfo) {
+    _wrap(
+      'thisBinding_begin($targetInfo)',
+      () => _wrapped.thisBinding_begin(targetInfo),
+    );
+  }
+
+  @override
+  void thisBinding_end() {
+    _wrap('thisBinding_end()', () => _wrapped.thisBinding_end());
   }
 
   @override
@@ -2723,12 +2771,6 @@ abstract interface class FlowAnalysisNullShortingInterface<
   Expression extends Object,
   Variable extends Object
 > {
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? getExpressionInfo(Expression? expression);
-
   /// Call this method after visiting an expression using `?.`.
   void nullAwareAccess_end();
 
@@ -2765,13 +2807,6 @@ abstract interface class FlowAnalysisNullShortingInterface<
     SharedTypeView targetType, {
     Variable? guardVariable,
   });
-
-  /// Associates [expression] with the given [expressionInfo] object, for later
-  /// retrieval by [FlowAnalysis.getExpressionInfo].
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  );
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
@@ -2819,8 +2854,9 @@ class FlowModel {
   FlowModel conservativeJoin(
     FlowModelHelper helper,
     Iterable<int> writtenVariables,
-    Iterable<int> capturedVariables,
-  ) {
+    Iterable<int> capturedVariables, {
+    NonPromotionReason? Function(int variableKey)? getNonPromotionReason,
+  }) {
     FlowModel result = this;
 
     for (int variableKey in writtenVariables) {
@@ -2831,7 +2867,9 @@ class FlowModel {
       // guaranteed to be already assigned and won't be assigned again.
       if (helper.isFinal(variableKey)) continue;
 
-      PromotionModel newInfo = info.discardPromotionsAndMarkNotUnassigned();
+      PromotionModel newInfo = info.discardPromotionsAndMarkNotUnassigned(
+        nonPromotionReason: getNonPromotionReason?.call(variableKey),
+      );
       if (!identical(info, newInfo)) {
         result = result.updatePromotionInfo(helper, variableKey, newInfo);
       }
@@ -3518,7 +3556,12 @@ enum NonPromotionDocumentationLink {
   /// The expression in question is a reference to a local variable. It couldn't
   /// be promoted because the variable was written to between the type test and
   /// the usage.
-  write('http://dart.dev/go/non-promo-write');
+  write('http://dart.dev/go/non-promo-write'),
+
+  /// The expression in question is a reference to a local variable. It couldn't
+  /// be promoted because the local variable was demoted due to an 'await' or
+  /// 'yield' expression/statement.
+  suspension('http://dart.dev/go/non-promo-suspension');
 
   /// The link URL, as a text string.
   final String url;
@@ -3587,6 +3630,8 @@ abstract class NonPromotionReasonVisitor<
   NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
 
   R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable> reason);
+
+  R visitDemoteViaSuspension(DemoteViaSuspension<Variable> reason);
 
   R visitPropertyNotPromotedForInherentReason(
     PropertyNotPromotedForInherentReason reason,
@@ -3735,13 +3780,27 @@ class PromotionModel {
   ///
   /// Used by [FlowModel.conservativeJoin] to update the state of variables at
   /// the top of loops whose bodies write to them.
-  PromotionModel discardPromotionsAndMarkNotUnassigned() {
+  PromotionModel discardPromotionsAndMarkNotUnassigned({
+    NonPromotionReason? nonPromotionReason,
+  }) {
+    NonPromotionHistory? newNonPromotionHistory;
+    if (nonPromotionReason != null) {
+      newNonPromotionHistory = nonPromotionHistory;
+      for (int i = promotedTypes.length - 1; i >= 0; i--) {
+        newNonPromotionHistory = new NonPromotionHistory(
+          promotedTypes[i],
+          nonPromotionReason,
+          newNonPromotionHistory,
+        );
+      }
+    }
     return new PromotionModel(
       promotedTypes: const [],
       tested: tested,
       assigned: assigned,
       unassigned: false,
       ssaNode: writeCaptured ? null : new SsaNode(),
+      nonPromotionHistory: newNonPromotionHistory,
     );
   }
 
@@ -5155,9 +5214,6 @@ class _FlowAnalysisImpl<
   /// [_Reference] object referring to the scrutinee.  Otherwise `null`.
   _Reference? _scrutineeReference;
 
-  /// The mapping from expressions to their [ExpressionInfo]s.
-  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
-
   final AssignedVariables<Node, Variable> _assignedVariables;
 
   @override
@@ -5173,8 +5229,7 @@ class _FlowAnalysisImpl<
   @override
   late final SsaNode _superSsaNode = new SsaNode();
 
-  @override
-  late final SsaNode _thisSsaNode = new SsaNode();
+  final List<SsaNode> _thisSsaNodes = [new SsaNode()];
 
   @override
   final List<_Reference> _cascadeTargetStack = [];
@@ -5182,6 +5237,12 @@ class _FlowAnalysisImpl<
   /// The [_AnonymousBlockContext] for the immediately enclosing block-bodied
   /// anonymous method, if there is one. Otherwise `null`.
   _AnonymousBlockContext? _anonymousBlockContext;
+
+  /// Stack of [AssignedVariablesNodeInfo] for any local function, function
+  /// expression, or late variable initializer expression that encloses the
+  /// point in flow control that's currently being analyzed.
+  final List<AssignedVariablesNodeInfo> _enclosingFunctionExpressionInfoStack =
+      [];
 
   _FlowAnalysisImpl(
     this.operations,
@@ -5200,7 +5261,19 @@ class _FlowAnalysisImpl<
   bool get isReachable => _current.reachable.overallReachable;
 
   @override
+  SharedTypeView? get promotedTypeOfThis {
+    if (!typeAnalyzerOptions.thisPromotionEnabled) return null;
+    return _current.promotionInfo
+        ?.get(this, promotionKeyStore.thisPromotionKey)
+        ?.promotedTypes
+        .lastOrNull;
+  }
+
+  @override
   FlowAnalysisTypeOperations get typeOperations => operations;
+
+  @override
+  SsaNode get _thisSsaNode => _thisSsaNodes.last;
 
   @override
   void anonymousBlockBody_begin() {
@@ -5594,16 +5667,12 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo? expressionInfoForTesting(Expression target) {
-    return _expressionInfoMap[target];
-  }
-
-  @override
   void finish() {
     assert(_stack.isEmpty);
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
     assert(_scrutineeReference == null);
+    assert(_enclosingFunctionExpressionInfoStack.isEmpty);
   }
 
   @override
@@ -5680,10 +5749,6 @@ class _FlowAnalysisImpl<
   void functionExpression_end() {
     _functionExpression_end();
   }
-
-  @override
-  ExpressionInfo? getExpressionInfo(Expression? expression) =>
-      _expressionInfoMap[expression];
 
   @override
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
@@ -5845,6 +5910,7 @@ class _FlowAnalysisImpl<
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
+    bool inheritPromotableProperties = false,
   }) {
     SharedTypeView unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
@@ -5856,6 +5922,7 @@ class _FlowAnalysisImpl<
       isLate: isLate,
       isImplicitlyTyped: isImplicitlyTyped,
       unpromotedType: unpromotedType,
+      inheritPromotableProperties: inheritPromotableProperties,
     );
   }
 
@@ -6345,8 +6412,12 @@ class _FlowAnalysisImpl<
     // even if the underlying variable whose property is being referenced has
     // changed, because the next time the property is accessed, it will be
     // accessed through a new SSA node, and thus a new promotion key).
+    //
+    // If the scrutinee is `this`, promote it too.
     if (scrutineeReference != null &&
         (scrutineeReference is _PropertyReference ||
+            (scrutineeReference.isThisOrSuper &&
+                typeAnalyzerOptions.thisPromotionEnabled) ||
             _current.promotionInfo
                     ?.get(this, matchedValueReference.promotionKey)!
                     .ssaNode ==
@@ -6491,11 +6562,33 @@ class _FlowAnalysisImpl<
       ?.ssaNode;
 
   @override
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  ) {
-    _expressionInfoMap[expression] = expressionInfo;
+  void suspension(Node node) {
+    // During an async suspension or yield, other code may execute. If the
+    // current point in flow control is inside a local function, this means that
+    // enclosing functions may resume executing.
+    //
+    // Therefore, any variables that are read within the current local function,
+    // and written to anywhere, but not declared in the current local function,
+    // might potentially get written to, blowing away any promotions that are
+    // currently in effect.
+    if (_enclosingFunctionExpressionInfoStack case [..., var info]) {
+      Set<int> variablesToDemote = info.read
+          .intersection(_assignedVariables.anywhere.written)
+          .difference(info.declared);
+      _current = _current.conservativeJoin(
+        this,
+        variablesToDemote,
+        const [],
+        getNonPromotionReason: (variableKey) {
+          Variable? variable = promotionKeyStore.variableForKey(variableKey);
+          // `variableKey` should be one of the keys in `variableToDemote`;
+          // those keys in turn should always correspond to actual variables
+          // declared by the user. So `variable` should never be `null`.
+          assert(variablesToDemote.contains(variableKey));
+          return new DemoteViaSuspension<Variable>(variable!, node);
+        },
+      );
+    }
   }
 
   @override
@@ -6641,6 +6734,24 @@ class _FlowAnalysisImpl<
     if (switchStatement != null) {
       _statementToContext[switchStatement] = context;
     }
+  }
+
+  @override
+  void thisBinding_begin(ExpressionInfo? targetInfo) {
+    _Reference? expressionReference = _getExpressionReference(targetInfo);
+    SsaNode ssaNode =
+        expressionReference?.ssaNode ??
+        new SsaNode(
+          conditionVariableState: targetInfo != null && targetInfo.isNonTrivial
+              ? targetInfo
+              : null,
+        );
+    _thisSsaNodes.add(ssaNode);
+  }
+
+  @override
+  void thisBinding_end() {
+    _thisSsaNodes.removeLast();
   }
 
   @override
@@ -6847,6 +6958,9 @@ class _FlowAnalysisImpl<
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
     SharedTypeView staticType,
   ) {
+    if (typeAnalyzerOptions.thisPromotionEnabled) {
+      return () => {};
+    }
     PromotionModel? currentThisInfo = _current.promotionInfo?.get(
       this,
       promotionKeyStore.thisPromotionKey,
@@ -7097,19 +7211,6 @@ class _FlowAnalysisImpl<
     if (_scrutineeReference != null) {
       print('  scrutineeReference: $_scrutineeReference');
     }
-    int expressionInfoEntryIndex = 0;
-    for (MapEntry<Expression, ExpressionInfo?> expressionInfoEntry
-        in _expressionInfoMap.entries) {
-      print(
-        '  expressionWithInfo #$expressionInfoEntryIndex: '
-        '${expressionInfoEntry.key}',
-      );
-      print(
-        '  expressionInfo #$expressionInfoEntryIndex: '
-        '${expressionInfoEntry.value}',
-      );
-      expressionInfoEntryIndex++;
-    }
     if (_stack.isNotEmpty) {
       print('  stack:');
       for (_FlowContext stackEntry in _stack.reversed) {
@@ -7168,6 +7269,7 @@ class _FlowAnalysisImpl<
 
   void _functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _enclosingFunctionExpressionInfoStack.add(info);
     _current = _current.conservativeJoin(this, const [], info.written);
     _stack.add(
       new _FunctionExpressionContext(_current, _anonymousBlockContext),
@@ -7183,6 +7285,7 @@ class _FlowAnalysisImpl<
   void _functionExpression_end() {
     _FunctionExpressionContext context =
         _stack.removeLast() as _FunctionExpressionContext;
+    _enclosingFunctionExpressionInfoStack.removeLast();
     _current = context._previous;
     _anonymousBlockContext = context._previousAnonymousBlockContext;
   }
@@ -7259,16 +7362,19 @@ class _FlowAnalysisImpl<
         reference.promotionKey,
       );
       if (variable == null) {
-        List<SharedTypeView> promotedTypes = currentPromotionInfo.promotedTypes;
-        if (promotedTypes.isNotEmpty) {
-          return () {
-            Map<SharedTypeView, NonPromotionReason> result =
-                <SharedTypeView, NonPromotionReason>{};
-            for (SharedTypeView type in promotedTypes) {
-              result[type] = new ThisNotPromoted();
-            }
-            return result;
-          };
+        if (!typeAnalyzerOptions.thisPromotionEnabled) {
+          List<SharedTypeView> promotedTypes =
+              currentPromotionInfo.promotedTypes;
+          if (promotedTypes.isNotEmpty) {
+            return () {
+              Map<SharedTypeView, NonPromotionReason> result =
+                  <SharedTypeView, NonPromotionReason>{};
+              for (SharedTypeView type in promotedTypes) {
+                result[type] = new ThisNotPromoted();
+              }
+              return result;
+            };
+          }
         }
       } else {
         return () {
@@ -7445,6 +7551,7 @@ class _FlowAnalysisImpl<
     required bool isLate,
     required bool isImplicitlyTyped,
     required SharedTypeView unpromotedType,
+    bool inheritPromotableProperties = false,
   }) {
     if (isLate) {
       // Don't use expression info for late variables, since we don't know when
@@ -7458,12 +7565,15 @@ class _FlowAnalysisImpl<
       // https://github.com/dart-lang/language/issues/1785.
       expressionInfo = null;
     }
-    SsaNode newSsaNode = new SsaNode(
-      conditionVariableState:
-          expressionInfo != null && expressionInfo.isNonTrivial
-          ? expressionInfo
-          : null,
-    );
+    SsaNode newSsaNode =
+        inheritPromotableProperties && expressionInfo is _Reference
+        ? expressionInfo.ssaNode
+        : new SsaNode(
+            conditionVariableState:
+                expressionInfo != null && expressionInfo.isNonTrivial
+                ? expressionInfo
+                : null,
+          );
     _current = _current.write(
       this,
       null,
@@ -7731,16 +7841,23 @@ class _FlowAnalysisImpl<
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
   }
 
-  TrivialVariableReference _thisOrSuperReference(
+  _Reference _thisOrSuperReference(
     SharedTypeView staticType, {
     required bool isSuper,
-  }) => new TrivialVariableReference(
-    promotionKey: promotionKeyStore.thisPromotionKey,
-    model: _current,
-    type: staticType,
-    isThisOrSuper: true,
-    ssaNode: isSuper ? _superSsaNode : _thisSsaNode,
-  );
+  }) {
+    SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
+    return new TrivialVariableReference(
+      promotionKey: promotionKeyStore.thisPromotionKey,
+      model: _current,
+      type: staticType,
+      isThisOrSuper: true,
+      ssaNode: ssaNode,
+    ).restoreConditionVariableState(
+      ssaNode.conditionVariableState,
+      this,
+      _current,
+    );
+  }
 
   TrivialVariableReference _variableReference(
     int variableKey,

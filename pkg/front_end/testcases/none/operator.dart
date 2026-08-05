@@ -14,8 +14,15 @@ class Class<T> {
   int method(double o) => 42;
 }
 
-add(num n, int i, double d, Class<String> c, dynamic dyn, Never never,
-    String string) {
+add(
+  num n,
+  int i,
+  double d,
+  Class<String> c,
+  dynamic dyn,
+  Never never,
+  String string,
+) {
   print('InstanceInvocation');
   n + n;
   n + i;
@@ -48,8 +55,15 @@ add(num n, int i, double d, Class<String> c, dynamic dyn, Never never,
   string - 42;
 }
 
-unaryMinus(num n, int i, double d, Class<String> c, dynamic dyn, Never never,
-    String string) {
+unaryMinus(
+  num n,
+  int i,
+  double d,
+  Class<String> c,
+  dynamic dyn,
+  Never never,
+  String string,
+) {
   print('InstanceInvocation');
   -n;
   -i;
@@ -69,8 +83,14 @@ unaryMinus(num n, int i, double d, Class<String> c, dynamic dyn, Never never,
   -string;
 }
 
-indexGet(List<int> list, Map<String, double> map, Class<String> c, dynamic dyn,
-    Never never, String string) {
+indexGet(
+  List<int> list,
+  Map<String, double> map,
+  Class<String> c,
+  dynamic dyn,
+  Never never,
+  String string,
+) {
   print('InstanceInvocation');
   list[0];
   map['foo'];
@@ -89,8 +109,13 @@ indexGet(List<int> list, Map<String, double> map, Class<String> c, dynamic dyn,
   string[0];
 }
 
-indexSet(List<int> list, Map<String, double> map, Class<String> c, dynamic dyn,
-    Never never) {
+indexSet(
+  List<int> list,
+  Map<String, double> map,
+  Class<String> c,
+  dynamic dyn,
+  Never never,
+) {
   print('InstanceInvocation');
   list[0] = 42;
   map['foo'] = 0.5;
@@ -109,8 +134,13 @@ indexSet(List<int> list, Map<String, double> map, Class<String> c, dynamic dyn,
   string[0] = 42;
 }
 
-compound(List<int> list, Map<String, double> map, Class<String> c, dynamic dyn,
-    Never never) {
+compound(
+  List<int> list,
+  Map<String, double> map,
+  Class<String> c,
+  dynamic dyn,
+  Never never,
+) {
   print('InstanceInvocation');
   list[0] += 42;
   map['foo'] += 0.5;

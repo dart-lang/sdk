@@ -4,9 +4,9 @@ import "dart:core" as core;
 
 class A1 extends core::Object {
   final field core::int foo;
-  constructor •(core::int foo) → self::A1
+  constructor •(initializing-formal core::int foo) → self::A1
     ;
-  constructor named(core::int foo) → self::A1
+  constructor named(initializing-formal core::int foo) → self::A1
     ;
   constructor named2(core::int foo) → self::A1
     ;
@@ -14,23 +14,23 @@ class A1 extends core::Object {
     ;
 }
 class B1 extends self::A1 {
-  constructor •(core::int foo) → self::B1
+  constructor •(super-initializing-formal core::int foo) → self::B1
     ;
-  constructor named(core::int foo) → self::B1
+  constructor named(super-initializing-formal core::int foo) → self::B1
     ;
-  constructor named2(core::int foo) → self::B1
+  constructor named2(super-initializing-formal core::int foo) → self::B1
     ;
-  constructor named3({required core::int foo}) → self::B1
+  constructor named3({required super-initializing-formal core::int foo}) → self::B1
     ;
 }
 class A2 extends core::Object {
   final field core::int foo;
   final field core::String bar;
-  constructor •({required core::int foo, required core::String bar}) → self::A2
+  constructor •({required initializing-formal core::int foo, required initializing-formal core::String bar}) → self::A2
     ;
 }
 class B2 extends self::A2 {
-  constructor •({required core::String bar, required core::int foo}) → self::B2
+  constructor •({required super-initializing-formal core::String bar, required super-initializing-formal core::int foo}) → self::B2
     ;
 }
 static method main() → dynamic

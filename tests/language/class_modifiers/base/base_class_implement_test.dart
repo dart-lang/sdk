@@ -6,6 +6,7 @@
 // library.
 
 import 'package:expect/expect.dart';
+
 import 'base_class_implement_lib.dart';
 
 main() {

@@ -60,7 +60,7 @@ class RefactoringManager {
   Request? request;
   EditGetRefactoringResult? result;
 
-  RefactoringManager(this.server, this.refactoringWorkspace)
+  new(this.server, this.refactoringWorkspace)
     : searchEngine = refactoringWorkspace.searchEngine {
     _reset();
   }
@@ -227,7 +227,7 @@ class RefactoringManager {
         if (element is GetterElement) {
           refactoring = ConvertGetterToMethodRefactoring(
             refactoringWorkspace,
-            resolvedUnit.session,
+            resolvedUnit,
             element,
           );
         }
@@ -240,7 +240,7 @@ class RefactoringManager {
         if (element is ExecutableElement) {
           refactoring = ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
-            resolvedUnit.session,
+            resolvedUnit,
             element,
           );
         }

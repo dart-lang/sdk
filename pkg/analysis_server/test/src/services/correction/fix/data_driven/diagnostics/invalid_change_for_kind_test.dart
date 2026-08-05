@@ -31,7 +31,7 @@ transforms:
         uris: ['test.dart']
         extension: 'F'
 ''',
-      [error(diag.invalidChangeForKind, 177, 43)],
+      [error(diag.invalidChangeForKind, 177, 42)],
     );
   }
 }

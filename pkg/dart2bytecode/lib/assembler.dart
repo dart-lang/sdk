@@ -10,7 +10,8 @@ import 'dbc.dart';
 import 'exceptions.dart' show ExceptionsTable;
 import 'local_variable_table.dart' show LocalVariableTable;
 import 'options.dart';
-import 'source_positions.dart' show SourcePositions;
+import 'source_positions.dart'
+    show RecordedCoverageArray, RecordedCoverageType, SourcePositions;
 
 class Label {
   final bool allowsBackwardJumps;
@@ -60,13 +61,17 @@ class BytecodeAssembler {
   final ExceptionsTable exceptionsTable = new ExceptionsTable();
   final LocalVariableTable localVariableTable = new LocalVariableTable();
   final SourcePositions sourcePositions = new SourcePositions();
+  final RecordedCoverageArray recordedCoverageArray =
+      new RecordedCoverageArray();
   final bool _emitSourcePositions;
+  final bool _recordCoverage;
   bool isUnreachable = false;
   int currentSourcePosition = TreeNode.noOffset;
   int currentSourcePositionFlags = 0;
 
   BytecodeAssembler(BytecodeOptions options)
-    : _emitSourcePositions = options.emitSourcePositions;
+    : _emitSourcePositions = options.emitSourcePositions,
+      _recordCoverage = options.recordCoverage;
 
   int get offset => _length;
 
@@ -96,7 +101,7 @@ class BytecodeAssembler {
       if (!added) {
         // There's already an entry for the current PC, so emit a Nop instruction
         // to provide a new pc offset for the requested source position.
-        _emitNop();
+        emitNop();
         added = sourcePositions.add(
           offset,
           position,
@@ -530,6 +535,11 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void emitDup() {
+    _emitInstruction0(Opcode.kDup);
+  }
+
+  @pragma('vm:prefer-inline')
   void emitLoadConstant(int ra, int re) {
     _emitInstructionAE(Opcode.kLoadConstant, ra, re);
   }
@@ -656,7 +666,6 @@ class BytecodeAssembler {
 
   @pragma('vm:prefer-inline')
   void emitStoreFieldTOS(int rd) {
-    emitSourcePosition();
     _emitInstructionD(Opcode.kStoreFieldTOS, rd);
   }
 
@@ -762,11 +771,11 @@ class BytecodeAssembler {
     _emitInstructionA(Opcode.kCheckStack, ra);
   }
 
-  // Nops are never created by the bytecode generator, but rather by
-  // the assembler in order to provide unique pc offsets for source
-  // positions.
+  // Nops are explicitly created by the bytecode generator in only one case
+  // (calls to dart:developer::debugger). Otherwise, they are introduced by
+  // the assembler in order to provide unique pc offsets for source positions.
   @pragma('vm:prefer-inline')
-  void _emitNop() {
+  void emitNop() {
     _emitInstruction0(Opcode.kNop);
   }
 
@@ -787,9 +796,21 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
-  void emitAllocateClosure() {
+  void emitAllocateClosure(int rd) {
     emitSourcePosition();
-    _emitInstruction0(Opcode.kAllocateClosure);
+    _emitInstructionD(Opcode.kAllocateClosure, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitLoadClosureElement(int rd) {
+    emitSourcePosition();
+    _emitInstructionD(Opcode.kLoadClosureElement, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitStoreClosureElement(int rd) {
+    emitSourcePosition();
+    _emitInstructionD(Opcode.kStoreClosureElement, rd);
   }
 
   @pragma('vm:prefer-inline')
@@ -822,5 +843,17 @@ class BytecodeAssembler {
   @pragma('vm:prefer-inline')
   void emitLoadRecordField(int rd) {
     _emitInstructionD(Opcode.kLoadRecordField, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void recordCoverage(RecordedCoverageType type, int fileOffset) {
+    if (!_recordCoverage) return;
+    final index = recordedCoverageArray.add(type, fileOffset);
+    _emitRecordCoverage(type.index, index);
+  }
+
+  @pragma('vm:prefer-inline')
+  void _emitRecordCoverage(int ra, int re) {
+    _emitInstructionAE(Opcode.kRecordCoverage, ra, re);
   }
 }

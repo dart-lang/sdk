@@ -12,6 +12,10 @@ import 'package:pub_formats/pub_formats.dart';
 class InstalledCommand extends DartdevCommand {
   static const cmdName = 'installed';
   static const cmdDescription = 'List globally installed Dart CLI tools.';
+  static const noToolsInstalledMessage = 'No Dart CLI tools installed.';
+  static const noActiveToolsInstalledMessage =
+      'No active Dart CLI tools installed. '
+      'Run "dart installed --all" to show inactive tools.';
 
   @override
   CommandCategory get commandCategory => CommandCategory.global;
@@ -34,11 +38,21 @@ on `PATH` are non-active.''',
     final all = argResults.flag('all');
 
     final installedPackages = getInstalledPackages();
-    for (final package in installedPackages) {
-      if (package.installed == Installed.not && !all) {
-        continue;
+    final packagesToShow = [
+      for (final package in installedPackages)
+        if (all || package.installed != Installed.not) package,
+    ];
+
+    if (packagesToShow.isEmpty) {
+      if (all || installedPackages.isEmpty) {
+        print(noToolsInstalledMessage);
+      } else {
+        print(noActiveToolsInstalledMessage);
       }
-      print(package.toString());
+    } else {
+      for (final package in packagesToShow) {
+        print(package.toString());
+      }
     }
 
     return 0;

@@ -1,7 +1,7 @@
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 
 final paintingTextSpanLibrary = MockLibraryUnit(
-  'src/painting/text_span.dart',
+  'lib/src/painting/text_span.dart',
   r'''
 class TextSpan {
   final String? text;

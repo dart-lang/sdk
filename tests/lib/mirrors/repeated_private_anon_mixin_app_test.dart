@@ -7,6 +7,7 @@ library test.repeated_private_anon_mixin_app;
 // Regression test for symbol mangling.
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 import 'repeated_private_anon_mixin_app1.dart' as lib1;

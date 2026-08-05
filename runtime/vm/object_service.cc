@@ -858,7 +858,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
   while (iter.MoveNext()) {
     JSONObject descriptor(&members);
     descriptor.AddPropertyF("pcOffset", "%" Px "", iter.PcOffset());
-    descriptor.AddProperty("kind", KindAsStr(iter.Kind()));
+    descriptor.AddProperty("kind", KindToCString(iter.Kind()));
     descriptor.AddProperty("deoptId", iter.DeoptId());
     // TODO(turnidge): Use AddLocation instead.
     descriptor.AddProperty("tokenPos", iter.TokenPos());

@@ -18,14 +18,11 @@ class OneMemberAbstractsTest extends LintRuleTest {
   String get lintRule => LintNames.one_member_abstracts;
 
   test_oneMember_abstract() async {
-    await assertDiagnostics(
-      r'''
-abstract class C {
+    await assertDiagnosticsFromMarkup(r'''
+abstract class [!C!] {
   void m();
 }
-''',
-      [lint(15, 1)],
-    );
+''');
   }
 
   test_oneMember_abstractGetter() async {
@@ -64,7 +61,6 @@ augment abstract class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_oneMember_augmentedAbstractClass_declaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -74,14 +70,11 @@ augment abstract class A {
 }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'a.dart';
 
-abstract class A { }
-''',
-      [lint(31, 1)],
-    );
+abstract class [!A!] { }
+''');
   }
 
   test_oneMember_extendedType() async {
@@ -185,15 +178,12 @@ abstract class C {
   }
 
   test_zeroMember_extendedTypeHasOneMember() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class D extends C {}
 
-abstract class C {
+abstract class [!C!] {
   void m();
 }
-''',
-      [lint(46, 1)],
-    );
+''');
   }
 }

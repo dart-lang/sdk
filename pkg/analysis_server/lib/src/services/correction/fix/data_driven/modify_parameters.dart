@@ -37,7 +37,7 @@ class AddParameter extends ParameterModification {
   /// Initialize a newly created parameter modification to represent the
   /// addition of a parameter. If provided, the [argumentValue] will be used as
   /// the value of the new argument in invocations of the function.
-  AddParameter(
+  new(
     this.index,
     this.name,
     this.isRequired,
@@ -61,7 +61,7 @@ class ChangeParameterType extends ParameterModification {
   /// preexisting optional positional parameters after the ones being added.
   final CodeTemplate? argumentValue;
 
-  ChangeParameterType({
+  new({
     required this.reference,
     required this.nullability,
     required this.argumentValue,
@@ -76,8 +76,7 @@ class ModifyParameters extends Change<_Data> {
 
   /// Initialize a newly created transform to modifications to the parameter
   /// list of a function.
-  ModifyParameters({required this.modifications})
-    : assert(modifications.isNotEmpty);
+  new({required this.modifications}) : assert(modifications.isNotEmpty);
 
   @override
   // The private type of the [data] parameter is dictated by the signature of
@@ -350,11 +349,6 @@ class ModifyParameters extends Change<_Data> {
     if (parent is InvocationExpression) {
       var argumentList = parent.argumentList;
       return _Data(argumentList);
-    } else if (parent is Label) {
-      var argumentList = grandParent?.parent;
-      if (argumentList is ArgumentList) {
-        return _Data(argumentList);
-      }
     } else if (grandParent is InvocationExpression) {
       var argumentList = grandParent.argumentList;
       return _Data(argumentList);
@@ -363,17 +357,17 @@ class ModifyParameters extends Change<_Data> {
         greatGrandParent is InstanceCreationExpression) {
       var argumentList = greatGrandParent.argumentList;
       return _Data(argumentList);
-    } else if (parent is NamedExpression &&
+    } else if (parent is NamedArgument &&
         greatGrandParent is InstanceCreationExpression) {
       var argumentList = greatGrandParent.argumentList;
       return _Data(argumentList);
     } else if (grandParent is InstanceCreationExpression) {
       var argumentList = grandParent.argumentList;
       return _Data(argumentList);
-    } else if (parent is NamedExpression &&
+    } else if (parent is NamedArgument &&
         greatGrandParent is DotShorthandInvocation) {
       return _Data(greatGrandParent.argumentList);
-    } else if (parent is NamedExpression &&
+    } else if (parent is NamedArgument &&
         greatGrandParent is DotShorthandConstructorInvocation) {
       return _Data(greatGrandParent.argumentList);
     }
@@ -392,11 +386,11 @@ class ModifyParameters extends Change<_Data> {
   }
 
   /// Return the element of the argument list whose value is the given
-  /// [argument]. If the argument is the child of a named expression, then that
-  /// will be the named expression, otherwise it will be the argument itself.
-  Expression _realArgument(Expression argument) {
+  /// [argument]. If the argument is the child of a named argument, then that
+  /// will be the named argument, otherwise it will be the argument itself.
+  Argument _realArgument(Expression argument) {
     var parent = argument.parent;
-    return parent is NamedExpression ? parent : argument;
+    return parent is NamedArgument ? parent : argument;
   }
 }
 
@@ -410,7 +404,7 @@ class RemoveParameter extends ParameterModification {
 
   /// Initialize a newly created parameter modification to represent the removal
   /// of an existing [parameter].
-  RemoveParameter(this.parameter);
+  new(this.parameter);
 }
 
 /// The data returned when updating an invocation site.
@@ -420,5 +414,5 @@ class _Data {
 
   /// Initialize a newly created data object with the data needed to update an
   /// invocation site.
-  _Data(this.argumentList);
+  new(this.argumentList);
 }

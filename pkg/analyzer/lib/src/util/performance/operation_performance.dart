@@ -263,7 +263,9 @@ class OperationPerformanceImpl implements OperationPerformance {
     buffer.writeln();
 
     var childIndent = '$indent  ';
-    for (var child in children) {
+    var sortedChildren = children.toList()
+      ..sort((a, b) => b.elapsed.compareTo(a.elapsed));
+    for (var child in sortedChildren) {
       child.write(buffer: buffer, indent: childIndent);
     }
   }

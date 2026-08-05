@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingSizeAnnotationArray);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MissingSizeAnnotationArray extends PubPackageResolutionTest {
   test_one() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 final class C extends Struct {
@@ -27,15 +28,14 @@ final class C extends Struct {
   }
 
   test_two() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 final class C extends Struct {
   external Array<Uint8> a0;
+//         ^^^^^^^^^^^^
+// [diag.missingSizeAnnotationCarray] Fields of type 'Array' must have exactly one 'Array' annotation.
 }
-''',
-      [error(diag.missingSizeAnnotationCarray, 62, 12)],
-    );
+''');
   }
 }

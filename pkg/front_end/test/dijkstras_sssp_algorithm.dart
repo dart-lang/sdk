@@ -16,7 +16,7 @@ class DijkstrasAlgorithm<E> {
   Map<GraphNode<E>, int> dist = new Map<GraphNode<E>, int>();
   Map<GraphNode<E>, GraphNode<E>> prev = new Map<GraphNode<E>, GraphNode<E>>();
 
-  DijkstrasAlgorithm(
+  new(
     Iterable<GraphNode<E>> graphNodes,
     GraphNode<E> source,
     int Function(E, E) comparator,
@@ -98,7 +98,7 @@ class GraphNode<E> {
   final Set<GraphNode<E>> outgoing = new Set<GraphNode<E>>();
   final Set<GraphNode<E>> incoming = new Set<GraphNode<E>>();
 
-  GraphNode(this.node);
+  new(this.node);
 
   void addOutgoing(GraphNode<E> other) {
     if (outgoing.add(other)) {

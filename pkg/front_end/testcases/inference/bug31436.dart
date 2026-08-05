@@ -50,8 +50,7 @@ void arrow_test(List<Object> Function() g) {
     throw 'expected a runtime error';
   } on TypeError {}
   Object o = l;
-  g = () =>
-      o; // No implicit downcast on the assignment, implicit downcast on the return
+  g = () => o; // No implicit downcast on the assignment, implicit downcast on the return
   assert(g is List<Object> Function());
   assert(g is! List<int> Function());
   assert(g is! Object Function());

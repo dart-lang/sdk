@@ -274,7 +274,7 @@ void f(A a) {
   void _createRefactoringForElement(GetterElement element) {
     refactoring = ConvertGetterToMethodRefactoring(
       refactoringWorkspace,
-      testAnalysisResult.session,
+      testAnalysisResult,
       element,
     );
   }

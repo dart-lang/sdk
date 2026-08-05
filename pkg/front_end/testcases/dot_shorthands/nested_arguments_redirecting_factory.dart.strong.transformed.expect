@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field self::B b;
-  const constructor •({required self::B b}) → self::A
+  const constructor •({required initializing-formal self::B b}) → self::A
     : self::A::b = b, super core::Object::•()
     ;
 }
 class B extends core::Object /*hasConstConstructor*/  {
   final field self::C c;
-  const constructor •({required self::C c}) → self::B
+  const constructor •({required initializing-formal self::C c}) → self::B
     : self::B::c = c, super core::Object::•()
     ;
   static factory redirect({required self::C c}) → self::B /* redirection-target: self::B::• */

@@ -43,7 +43,7 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
 }
 
 class CheckCoverageData extends Step<TestDescription, void, Context> {
-  const CheckCoverageData();
+  const new();
 
   @override
   String get name => "CheckCoverageData";
@@ -151,12 +151,23 @@ class CheckCoverageData extends Step<TestDescription, void, Context> {
       print("Reading ${main.path}");
 
       String outputWithComments = main.readAsStringSync().trim();
-      return await context.match<TestDescription>(
+      expectMatch = await context.match<TestDescription>(
         ".commented.expect",
         outputWithComments,
         description.uri,
         description,
       );
+      if (expectMatch.outcome != Expectation.pass) return expectMatch;
+
+      outputWithComments = coverageData.values.first.visualization.trim();
+      if (outputWithComments.isNotEmpty) {
+        throw "Got unexpected visualization after comments: "
+            "$outputWithComments";
+      }
+
+      // Return the "pass" at the end. Done this way to more easily allow for
+      // adding more checks.
+      return expectMatch;
     } finally {
       try {
         tmpDir.deleteSync(recursive: true);
@@ -176,7 +187,10 @@ class CheckCoverageData extends Step<TestDescription, void, Context> {
 class CollectingCoverageHelper extends CoverageHelper {
   Completer<Coverage> completer = new Completer();
 
-  CollectingCoverageHelper() : super(doPrint: false, forceCompilation: true);
+  @override
+  Completer get completerForError => completer;
+
+  new() : super(doPrint: false, forceCompilation: true);
 
   @override
   void gotCoverage(Coverage coverage) {
@@ -198,7 +212,7 @@ class Context extends ChainContext with MatchContext {
     EXPECTATIONS,
   );
 
-  Context(this.suiteName, Map<String, String> environment)
+  new(this.suiteName, Map<String, String> environment)
     : updateExpectations =
           environment[EnvironmentKeys.updateExpectations] == "true";
 

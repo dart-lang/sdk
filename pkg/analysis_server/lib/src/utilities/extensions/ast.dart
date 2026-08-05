@@ -19,7 +19,7 @@ class ThrowStatement {
   final ExpressionStatement statement;
   final ThrowExpression expression;
 
-  ThrowStatement({required this.statement, required this.expression});
+  new({required this.statement, required this.expression});
 }
 
 class _ReferencedUnprefixedNamesCollector extends RecursiveAstVisitor<void> {

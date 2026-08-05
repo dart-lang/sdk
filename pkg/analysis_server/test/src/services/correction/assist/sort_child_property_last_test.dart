@@ -59,6 +59,56 @@ void f() {
     await assertNoAssist();
   }
 
+  Future<void> test_firstArgument_commentAfterArgument() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  Column(
+    ^children: [], // comment
+    mainAxisAlignment: .start,
+    crossAxisAlignment: .center,
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Column(
+    mainAxisAlignment: .start,
+    crossAxisAlignment: .center,
+    children: [], // comment
+  );
+}
+''');
+    assertExitPosition(after: '], // comment');
+  }
+
+  Future<void> test_middleArgument_commentAfterArgument() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  Column(
+    mainAxisAlignment: .start,
+    ^children: [], // comment
+    crossAxisAlignment: .center,
+  );
+}
+''');
+    // TODO(srawlins): It would be better to keep `// comment` with the
+    // `children` argument.
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Column(
+    mainAxisAlignment: .start, // comment
+    crossAxisAlignment: .center,
+    children: [],
+  );
+}
+''');
+    assertExitPosition(after: '],');
+  }
+
   Future<void> test_no_children() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -157,12 +207,8 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    ^children: <Widget>[
-      Text('aaa'),
-      Text('bbbbbb'),
-      Text('ccccccccc'),
-    ],
-    crossAxisAlignment: CrossAxisAlignment.center,
+    ^children: [],
+    crossAxisAlignment: .center,
   );
 }
 ''');
@@ -170,12 +216,8 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: <Widget>[
-      Text('aaa'),
-      Text('bbbbbb'),
-      Text('ccccccccc'),
-    ],
+    crossAxisAlignment: .center,
+    children: [],
   );
 }
 ''');

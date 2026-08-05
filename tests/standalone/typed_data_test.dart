@@ -10,6 +10,7 @@
 library TypedDataTest;
 
 import "package:expect/expect.dart";
+
 import 'dart:typed_data';
 
 void testCreateUint8TypedData() {

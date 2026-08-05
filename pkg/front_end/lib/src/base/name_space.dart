@@ -28,7 +28,7 @@ abstract class ComputedNameSpace implements NameSpace {
 
 abstract class ComputedMutableNameSpace
     implements MutableNameSpace, ComputedNameSpace {
-  factory ComputedMutableNameSpace() = ComputedMutableNameSpaceImpl._;
+  factory() = ComputedMutableNameSpaceImpl._;
 
   void replaceLocalMember(
     String name,
@@ -37,16 +37,10 @@ abstract class ComputedMutableNameSpace
   });
 }
 
-abstract class DeclarationNameSpace implements NameSpace {
-  final Map<String, MemberLookupResult> _content;
-  final Map<String, MemberLookupResult> _constructors;
-
-  DeclarationNameSpace({
-    required Map<String, MemberLookupResult> content,
-    required Map<String, MemberLookupResult> constructors,
-  }) : _content = content,
-       _constructors = constructors;
-
+abstract class DeclarationNameSpace({
+  required final Map<String, MemberLookupResult> _content,
+  required final Map<String, MemberLookupResult> _constructors,
+}) implements NameSpace {
   @override
   MemberLookupResult? lookup(String name) => _content[name];
 
@@ -56,7 +50,7 @@ abstract class DeclarationNameSpace implements NameSpace {
 base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
   Map<String, LookupResult>? _content;
 
-  ComputedMutableNameSpaceImpl._();
+  new _();
 
   @override
   void addLocalMember(
@@ -157,12 +151,9 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
   LookupResult? lookup(String name) => _content?[name];
 }
 
-final class LibraryNameSpace implements NameSpace {
-  final Map<String, LookupResult> _content;
-
-  LibraryNameSpace({required Map<String, LookupResult> content})
-    : _content = content;
-
+final class LibraryNameSpace({
+  required final Map<String, LookupResult> _content,
+}) implements NameSpace {
   void addLocalMember(String name, LookupResult member) {
     assert(
       !_content.containsKey(name),
@@ -247,12 +238,10 @@ String? areNameSpacesEquivalent({
   return sb.toString();
 }
 
-final class SourceDeclarationNameSpace extends DeclarationNameSpace {
-  SourceDeclarationNameSpace({
-    required super.content,
-    required super.constructors,
-  });
-
+final class SourceDeclarationNameSpace({
+  required super.content,
+  required super.constructors,
+}) extends DeclarationNameSpace {
   void addConstructor(String name, MemberLookupResult constructor) {
     assert(
       !_constructors.containsKey(name),
@@ -271,15 +260,13 @@ final class SourceDeclarationNameSpace extends DeclarationNameSpace {
   }
 }
 
-final class DillDeclarationNameSpace extends DeclarationNameSpace {
-  DillDeclarationNameSpace({
-    required super.content,
-    required super.constructors,
-  });
-}
+final class DillDeclarationNameSpace({
+  required super.content,
+  required super.constructors,
+}) extends DeclarationNameSpace;
 
 final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
-  DillExportNameSpace() : super._();
+  new() : super._();
 
   /// Patch up the scope, using the two replacement maps to replace builders in
   /// scope. The replacement maps from old LibraryBuilder to map, mapping

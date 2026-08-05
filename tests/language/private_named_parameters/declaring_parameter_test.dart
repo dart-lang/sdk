@@ -5,7 +5,7 @@
 /// Private named parameters can be used with declaring private constructor
 /// parameters.
 
-// SharedOptions=--enable-experiment=private-named-parameters,primary-constructors
+// SharedOptions=--enable-experiment=primary-constructors
 
 import 'package:expect/expect.dart';
 

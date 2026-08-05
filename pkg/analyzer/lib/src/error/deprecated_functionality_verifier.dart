@@ -6,10 +6,10 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class DeprecatedFunctionalityVerifier {
   final DiagnosticReporter _diagnosticReporter;
@@ -296,7 +296,7 @@ class DeprecatedFunctionalityVerifier {
       diagnosticReporter: _diagnosticReporter,
     );
 
-    List<Expression> superConstructorArguments;
+    List<Argument> superConstructorArguments;
 
     if (superConstructorInvocations.isEmpty) {
       superConstructorArguments = [];
@@ -314,11 +314,11 @@ class DeprecatedFunctionalityVerifier {
     }
 
     var namedSuperConstructorArgumentNames = superConstructorArguments
-        .whereType<NamedExpression>()
-        .map((a) => a.name.label.name)
+        .whereType<NamedArgument>()
+        .map((a) => a.name.lexeme)
         .toList();
     var positionalSuperConstructorArgumentCount = superConstructorArguments
-        .where((a) => a is! NamedExpression)
+        .whereNotType<NamedArgument>()
         .length;
 
     var superConstructorPositionalParameterCount = 0;

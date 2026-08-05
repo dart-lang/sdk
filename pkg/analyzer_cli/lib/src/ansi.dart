@@ -16,7 +16,7 @@ bool terminalSupportsAnsi() {
 class AnsiLogger {
   final bool useAnsi;
 
-  AnsiLogger(this.useAnsi);
+  new(this.useAnsi);
   String get blue => _code('\u001b[34m');
   String get bold => _code('\u001b[1m');
   String get bullet => (runningTests || !Platform.isWindows) ? '•' : '-';

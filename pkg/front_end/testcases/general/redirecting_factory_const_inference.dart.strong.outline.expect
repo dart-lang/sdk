@@ -13,7 +13,7 @@ class _Y<T extends core::Object? = dynamic> extends core::Object implements self
 }
 class A<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::_X<self::A::T%> x;
-  constructor •(self::_X<self::A::T%> x) → self::A<self::A::T%>
+  constructor •(initializing-formal self::_X<self::A::T%> x) → self::A<self::A::T%>
     ;
 }
 class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {

@@ -30,6 +30,7 @@ aer
 af
 albeit
 aligns
+alleged
 allocations
 allowlist
 allowlisting
@@ -68,6 +69,7 @@ authority
 autobianchi
 autofocus
 automatic
+availability
 averaged
 averages
 avg
@@ -122,6 +124,7 @@ brave
 brown
 bt
 btw
+bubble
 builddir
 bulkcompile
 busy
@@ -235,9 +238,11 @@ days
 db
 dbenchmark
 ddart
+ddebug
 dds
 debugger
 declarative
+decls
 decrease
 decrements
 dectcem
@@ -331,6 +336,7 @@ expanded
 expansive
 explainer
 extern
+extracting
 f\u
 fa
 fac
@@ -349,6 +355,7 @@ filesize
 filesystem
 filler
 filters
+fin
 fisk
 five
 fixtures
@@ -502,6 +509,7 @@ launch
 launching
 law
 le
+leftovers
 legs
 lengths
 lightly
@@ -515,7 +523,6 @@ llc
 ln
 locale
 locating
-logd
 logs
 loo
 lookahead
@@ -614,6 +621,7 @@ operate
 ops
 optimal
 oracle
+orderings
 ot
 outbound
 outliers
@@ -642,9 +650,11 @@ periodic
 periodically
 perm
 perms
+permutations
 person
 ph
 phrase
+picks
 pid
 pink
 placement
@@ -706,6 +716,7 @@ reenable
 reexport
 referential
 refname
+refs
 refusing
 regards
 regenerate
@@ -738,6 +749,7 @@ revisions
 risky
 rk
 rnone
+route
 routines
 row
 rows
@@ -791,6 +803,7 @@ silence
 simplistic
 slashes
 sleep
+slice
 slight
 sliver
 sm
@@ -816,6 +829,7 @@ ss
 ssls
 sssp
 stacks
+standing
 stashed
 stat
 statistics
@@ -823,6 +837,7 @@ stats
 stay
 std
 stopwatches
+streams
 stress
 stretch
 stringy
@@ -835,6 +850,7 @@ subcommand
 subdir
 subfolder
 subs
+subtest
 subtool
 subtools
 successes
@@ -877,6 +893,7 @@ tpt
 transitively
 translators
 transparent
+treenode
 triangle
 triggers
 trimming

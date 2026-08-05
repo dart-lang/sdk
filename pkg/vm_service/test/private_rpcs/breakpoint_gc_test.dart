@@ -5,25 +5,7 @@
 import 'package:vm_service/vm_service.dart';
 
 import '../common/service_test_common.dart';
-import '../common/test_helper.dart';
-
-const int LINE_A = 18;
-const int LINE_B = 21;
-const int LINE_C = 24;
-const String file = 'breakpoint_gc_test.dart';
-
-int foo() => 42;
-
-dynamic testeeMain() {
-  foo(); // static call
-
-  final dynamic list = [1, 2, 3];
-  list.clear(); // instance call
-  print(list);
-
-  final dynamic local = list; // debug step check = runtime call
-  return local;
-}
+import 'breakpoint_gc_lib.dart' as testee_lib;
 
 Future<void> forceGC(VmService service, IsolateRef isolateRef) async {
   await service.callMethod(
@@ -32,30 +14,26 @@ Future<void> forceGC(VmService service, IsolateRef isolateRef) async {
   );
 }
 
-final tests = <IsolateTest>[
-  hasPausedAtStart,
-  setBreakpointAtUriAndLine(file, LINE_A), // at `foo()`
-  setBreakpointAtUriAndLine(file, LINE_B), // at `list.clear()`
-  setBreakpointAtUriAndLine(file, LINE_C), // at `local = list`
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
-  forceGC, // Should not crash
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_B),
-  forceGC, // Should not crash
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_C),
-  forceGC, // Should not crash
-  resumeIsolate,
-];
-
-void main(List<String> args) => runIsolateTestsSynchronous(
-      args,
-      tests,
-      file,
-      testeeConcurrent: testeeMain,
-      pauseOnStart: true,
-    );
+void main([List<String> args = const <String>[]]) =>
+    IsolateTestHarness('breakpoint_gc_lib.dart', args)
+        .hasPausedAtStart()
+        .setBreakpointAtLine('LINE_A')
+        .setBreakpointAtLine('LINE_B')
+        .setBreakpointAtLine('LINE_C')
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        .stoppedAtLine('LINE_A')
+        .addCustomTest(forceGC)
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        .stoppedAtLine('LINE_B')
+        .addCustomTest(forceGC)
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        .stoppedAtLine('LINE_C')
+        .addCustomTest(forceGC)
+        .resumeIsolate()
+        .runSync(
+          testeeMain: testee_lib.main,
+          pauseOnStart: true,
+        );

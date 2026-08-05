@@ -22,8 +22,7 @@ import '../extensions.dart';
 const _desc = r'Specify type annotations.';
 
 class StrictTopLevelInference extends MultiAnalysisRule {
-  StrictTopLevelInference()
-    : super(name: LintNames.strict_top_level_inference, description: _desc);
+  new() : super(name: LintNames.strict_top_level_inference, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
@@ -53,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context)
+  new(this.rule, this.context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );
@@ -69,7 +68,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.parent is! CompilationUnit) return;
-    if (node.returnType == null && !node.isSetter) {
+    if (node.returnType == null &&
+        !node.isSetter &&
+        node.name.type != TokenType.INDEX_EQ) {
       _report(node.name);
     }
 
@@ -148,10 +149,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parameterName == null) continue;
       if (isWildcardIdentifier(parameterName.lexeme)) continue;
 
-      if (parameter is DefaultFormalParameter) {
-        parameter = parameter.parameter;
-      }
-      if (parameter is! SimpleFormalParameter) {
+      if (parameter is! RegularFormalParameter ||
+          parameter.functionTypedSuffix != null) {
         // Every type of parameter other than simple formal parameters get a type
         // one way or another:
         // * Field formal parameters have an explicit type or it is derived from
@@ -165,20 +164,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       if (parameter.type != null) return;
       if (overriddenMember == null) {
-        _report(parameterName, keyword: parameter.keyword);
+        _report(parameterName, keyword: parameter.constFinalOrVarKeyword);
       } else {
         if (parameter.isPositional) {
           if (overriddenMember.formalParameters.length <= i ||
               overriddenMember.formalParameters[i].isNamed) {
             // The overridden member does not have a corresponding parameter.
-            _report(parameterName, keyword: parameter.keyword);
+            _report(parameterName, keyword: parameter.constFinalOrVarKeyword);
           }
         } else {
           var overriddenParameter = overriddenMember.formalParameters
               .firstWhereOrNull((p) => p.isNamed);
           if (overriddenParameter == null) {
             // The overridden member does not have a corresponding parameter.
-            _report(parameterName, keyword: parameter.keyword);
+            _report(parameterName, keyword: parameter.constFinalOrVarKeyword);
           }
         }
       }
@@ -211,7 +210,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         container is ExtensionTypeElement;
 
     if (noOverride) {
-      if (node.returnType == null) {
+      if (node.returnType == null && node.name.type != TokenType.INDEX_EQ) {
         rule.reportAtToken(
           node.name,
           diagnosticCode: diag.strictTopLevelInferenceAddType,
@@ -224,6 +223,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var overriddenMember = node.declaredFragment?.element.overriddenMember;
       if (overriddenMember == null &&
           node.returnType == null &&
+          node.name.type != TokenType.INDEX_EQ &&
           (!container.isReflectiveTest ||
               (!node.name.lexeme.startsWith('test_') &&
                   !node.name.lexeme.startsWith('solo_test_')))) {
@@ -240,8 +240,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkSetter(MethodDeclaration node, PropertyAccessorElement element) {
     var parameter = node.parameters?.parameters.firstOrNull;
-    if (parameter == null) return;
-    if (parameter is! SimpleFormalParameter) return;
+    if (parameter is! RegularFormalParameter) return;
+    if (parameter.functionTypedSuffix != null) return;
     if (parameter.type != null) return;
 
     if (!_isOverride(node, element)) {

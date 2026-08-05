@@ -20,19 +20,12 @@ abstract class DelayedCheck {
   void check(ClassMembersBuilder membersBuilder);
 }
 
-class DelayedOverrideCheck implements DelayedCheck {
-  final SourceClassBuilder _classBuilder;
-  final ClassMember _declaredMember;
-  final Set<ClassMember> _overriddenMembers;
-  final ClassMember? _localMember;
-
-  DelayedOverrideCheck(
-    this._classBuilder,
-    this._declaredMember,
-    this._overriddenMembers, {
-    required ClassMember? localMember,
-  }) : this._localMember = localMember;
-
+class DelayedOverrideCheck(
+  final SourceClassBuilder _classBuilder,
+  final ClassMember _declaredMember,
+  final Set<ClassMember> _overriddenMembers, {
+  required final ClassMember? _localMember,
+}) implements DelayedCheck {
   @override
   void check(ClassMembersBuilder membersBuilder) {
     Member declaredMember = _declaredMember.getMember(membersBuilder);
@@ -245,19 +238,12 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
   }
 }
 
-class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
-  final SourceClassBuilder classBuilder;
-  final Name name;
-  final ClassMember getable;
-  final ClassMember setable;
-
-  DelayedClassGetterSetterCheck(
-    this.classBuilder,
-    this.name,
-    this.getable,
-    this.setable,
-  );
-
+class DelayedClassGetterSetterCheck(
+  final SourceClassBuilder classBuilder,
+  final Name name,
+  final ClassMember getable,
+  final ClassMember setable,
+) extends DelayedGetterSetterCheck {
   @override
   DeclarationBuilder get declarationBuilder => classBuilder;
 
@@ -325,19 +311,12 @@ class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
 }
 
 // Coverage-ignore(suite): Not run.
-class DelayedExtensionTypeGetterSetterCheck extends DelayedGetterSetterCheck {
-  final SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
-  final Name name;
-  final ClassMember getable;
-  final ClassMember setable;
-
-  DelayedExtensionTypeGetterSetterCheck(
-    this.extensionTypeDeclarationBuilder,
-    this.name,
-    this.getable,
-    this.setable,
-  );
-
+class DelayedExtensionTypeGetterSetterCheck(
+  final SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
+  final Name name,
+  final ClassMember getable,
+  final ClassMember setable,
+) extends DelayedGetterSetterCheck {
   @override
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
 
@@ -382,17 +361,14 @@ class DelayedExtensionTypeGetterSetterCheck extends DelayedGetterSetterCheck {
   }
 }
 
-class DelayedTypeComputation {
-  final ClassMembersNodeBuilder builder;
-  final ClassMember declaredMember;
-  final Set<ClassMember> overriddenMembers;
+class DelayedTypeComputation(
+  final ClassMembersNodeBuilder builder,
+  final ClassMember declaredMember,
+  final Set<ClassMember> overriddenMembers,
+) {
   bool _computed = false;
 
-  DelayedTypeComputation(
-    this.builder,
-    this.declaredMember,
-    this.overriddenMembers,
-  ) : assert(declaredMember.isSourceDeclaration);
+  this : assert(declaredMember.isSourceDeclaration);
 
   void compute(ClassMembersBuilder membersBuilder) {
     if (_computed) return;

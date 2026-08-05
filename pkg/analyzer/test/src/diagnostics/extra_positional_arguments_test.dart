@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,195 +17,178 @@ main() {
 class ExtraPositionalArgumentsCouldBeNamedTest
     extends PubPackageResolutionTest {
   test_class_constConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({int x = 0});
 }
 main() {
   const A(0);
+//        ^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArgumentsCouldBeNamed, 55, 1)],
-    );
+''');
   }
 
   test_class_constConstructor_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({int x = 0});
 }
 class B extends A {
   const B() : super(0);
+//                  ^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArgumentsCouldBeNamed, 76, 1)],
-    );
+''');
   }
 
   test_class_constConstructor_typedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({int x = 0});
 }
 typedef B = A;
 main() {
   const B(0);
+//        ^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArgumentsCouldBeNamed, 70, 1)],
-    );
+''');
   }
 
   test_context() async {
     // No context type should be supplied when type inferring an extra
     // positional argument, even if there is an unmatched name parameter.
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T>() => throw '$T';
 g({int? named}) {}
 main() {
   g(f());
+//  ^^^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArgumentsCouldBeNamed, 56, 3)],
-    );
+''');
     assertType(
-      findNode.methodInvocation('f()').typeArgumentTypes!.single,
+      result.findNode.methodInvocation('f()').typeArgumentTypes!.single,
       'dynamic',
     );
   }
 
   test_functionExpressionInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   (int x, {int y = 0}) {} (0, 1);
+//                            ^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 1 expected, but 2 found.
 }
-''',
-      [error(diag.extraPositionalArgumentsCouldBeNamed, 39, 1)],
-    );
+''');
   }
 
   test_metadata_enumConstant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(0);
+//  ^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 0 expected, but 1 found.
   const E({int? a});
+//              ^
+// [diag.unusedElementParameter] A value for optional parameter 'a' isn't ever given.
 }
-''',
-      [
-        error(diag.extraPositionalArgumentsCouldBeNamed, 13, 1),
-        error(diag.unusedElementParameter, 33, 1),
-      ],
-    );
+''');
   }
 
   test_metadata_extensionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type const A(int it) {}
 
 @A(0, 1)
+//    ^
+// [diag.extraPositionalArguments] Too many positional arguments: 1 expected, but 2 found.
 void f() {}
-''',
-      [error(diag.extraPositionalArguments, 41, 1)],
-    );
+''');
   }
 
   test_methodInvocation_topLevelFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f({x, y}) {}
 main() {
   f(0, 1, '2');
+//  ^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 0 expected, but 3 found.
 }
-''',
-      [error(diag.extraPositionalArgumentsCouldBeNamed, 26, 1)],
-    );
+''');
   }
 
   test_partiallyTypedName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f({int xx = 0, int yy = 0, int zz = 0}) {}
 
 main() {
   f(xx: 1, yy: 2, z);
+//                ^
+// [diag.undefinedIdentifier] Undefined name 'z'.
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [
-        error(diag.extraPositionalArgumentsCouldBeNamed, 71, 1),
-        error(diag.undefinedIdentifier, 71, 1),
-      ],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class ExtraPositionalArgumentsTest extends PubPackageResolutionTest {
   test_constConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
 main() {
   const A(0);
+//        ^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArguments, 44, 1)],
-    );
+''');
   }
 
   test_constConstructor_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
 class B extends A {
   const B() : super(0);
+//                  ^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArguments, 65, 1)],
-    );
+''');
   }
 
   test_enumConstant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(0)
+//  ^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
 }
-''',
-      [error(diag.extraPositionalArguments, 13, 1)],
-    );
+''');
   }
 
   test_functionExpressionInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   (int x) {} (0, 1);
+//               ^
+// [diag.extraPositionalArguments] Too many positional arguments: 1 expected, but 2 found.
 }
-''',
-      [error(diag.extraPositionalArguments, 26, 1)],
-    );
+''');
   }
 
   test_methodInvocation_topLevelFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {}
 main() {
   f(0, 1, '2');
+//  ^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 3 found.
 }
-''',
-      [error(diag.extraPositionalArguments, 20, 1)],
-    );
+''');
   }
 }

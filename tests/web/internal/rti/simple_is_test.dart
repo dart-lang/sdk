@@ -5,6 +5,7 @@
 // dart2jsOptions=--no-minify
 
 import 'dart:_rti' as rti;
+
 import "package:expect/expect.dart";
 
 class Thingy {}

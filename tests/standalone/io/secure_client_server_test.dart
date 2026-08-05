@@ -46,9 +46,8 @@ Future<SecureServerSocket> startEchoServer() {
 
 void checkServerCertificate(X509Certificate serverCert) {
   String serverCertString = serverCert.pem;
-  String certFile = new File(
-    localFile('certificates/server_chain.pem'),
-  ).readAsStringSync();
+  String certFile = new File(localFile('certificates/server_chain.pem'))
+      .readAsStringSync();
   Expect.isTrue(certFile.contains(serverCertString));
 
   // Computed with:

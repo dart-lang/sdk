@@ -69,8 +69,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
     diag.directivesOrderingPackageBeforeRelative,
   ];
 
-  DirectivesOrdering()
-    : super(name: LintNames.directives_ordering, description: _desc);
+  new() : super(name: LintNames.directives_ordering, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => allCodes;
@@ -117,7 +116,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final DirectivesOrdering rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -314,7 +313,8 @@ extension on Iterable<NamespaceDirective> {
 
   /// The directives with 'package:' URIs, after the first set of directives
   /// with absolute URIs.
-  Iterable<NamespaceDirective> get withPackageUrisSkippingAbsoluteUris => where(
-    _isNotDartDirective,
-  ).skipWhile(_isAbsoluteDirective).where(_isPackageDirective);
+  Iterable<NamespaceDirective> get withPackageUrisSkippingAbsoluteUris =>
+      where(_isNotDartDirective)
+          .skipWhile(_isAbsoluteDirective)
+          .where(_isPackageDirective);
 }

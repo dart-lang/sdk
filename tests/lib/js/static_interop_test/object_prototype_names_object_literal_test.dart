@@ -134,17 +134,15 @@ testObjectLiteralConflict() {
 }
 
 testConflictStaticInterop() {
-  var obj =
-      ObjectLiteralStaticInterop.named(
-            constructor: 'Cello',
-            hasOwnProperty: true,
-            isPrototypeOf: 5,
-            propertyIsEnumerable: 'Fosse',
-            toLocaleString: false,
-            toString: 16,
-            valueOf: 'Cello',
-          )
-          as JSObject;
+  var obj = ObjectLiteralStaticInterop.named(
+    constructor: 'Cello',
+    hasOwnProperty: true,
+    isPrototypeOf: 5,
+    propertyIsEnumerable: 'Fosse',
+    toLocaleString: false,
+    toString: 16,
+    valueOf: 'Cello',
+  ) as JSObject;
   // Unset properties are null.
   Expect.isNull(obj['a']);
   // Set properties have the expected value.

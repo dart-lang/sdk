@@ -56,11 +56,15 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 /// Assert that [actual] matches [matcher].
 void outOfTestExpect(
   Object? actual,
-  Matcher matcher, {
+  Object? matcherOrValue, {
   String? reason,
   skip,
   bool verbose = false,
 }) {
+  var matcher = matcherOrValue is Matcher
+      ? matcherOrValue
+      : equals(matcherOrValue);
+
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
@@ -95,12 +99,15 @@ String _defaultFailFormatter(
 typedef MatcherCreator = Matcher Function();
 
 /// Type of closures used by MatchesJsonObject to record field mismatches.
-typedef MismatchDescriber =
-    Description Function(Description mismatchDescription);
+typedef MismatchDescriber = Description Function(
+  Description mismatchDescription,
+);
 
 /// Type of callbacks used to process notifications.
-typedef NotificationProcessor =
-    void Function(String event, Map<Object?, Object?> params);
+typedef NotificationProcessor = void Function(
+  String event,
+  Map<Object?, Object?> params,
+);
 
 /// Type of callbacks used to process reverse-requests.
 typedef ReverseRequestProcessor = void Function(Request request);
@@ -390,7 +397,7 @@ class LazyMatcher implements Matcher {
   /// Otherwise null.
   Matcher? _wrappedMatcher;
 
-  LazyMatcher(this._creator);
+  new(this._creator);
 
   /// Create the wrapped matcher object, if it hasn't been created already.
   Matcher get _matcher {
@@ -431,7 +438,7 @@ class MatchesEnum extends Matcher {
   /// The set of enum values that are allowed.
   final List<String> allowedValues;
 
-  const MatchesEnum(this.description, this.allowedValues);
+  const new(this.description, this.allowedValues);
 
   @override
   Description describe(Description description) =>
@@ -457,11 +464,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
   /// their expected types.
   final Map<String, Matcher>? optionalFields;
 
-  const MatchesJsonObject(
-    this.description,
-    this.requiredFields, {
-    this.optionalFields,
-  });
+  const new(this.description, this.requiredFields, {this.optionalFields});
 
   @override
   Description describe(Description description) =>
@@ -834,7 +837,7 @@ class Server {
 class ServerErrorMessage {
   final Map<Object?, Object?> message;
 
-  ServerErrorMessage(this.message);
+  new(this.message);
 
   dynamic get error => message['error'];
 
@@ -851,7 +854,7 @@ class _ListOf extends Matcher {
   /// Iterable matcher which we use to test the contents of the list.
   final Matcher iterableMatcher;
 
-  _ListOf(this.elementMatcher) : iterableMatcher = everyElement(elementMatcher);
+  new(this.elementMatcher) : iterableMatcher = everyElement(elementMatcher);
 
   @override
   Description describe(Description description) =>
@@ -899,7 +902,7 @@ class _MapOf extends _RecursiveMatcher {
   /// Matcher which every value in the map must satisfy.
   final Matcher valueMatcher;
 
-  _MapOf(this.keyMatcher, this.valueMatcher);
+  new(this.keyMatcher, this.valueMatcher);
 
   @override
   Description describe(Description description) => description
@@ -939,7 +942,7 @@ class _OneOf extends Matcher {
   /// Matchers for the individual choices.
   final List<Matcher> choiceMatchers;
 
-  _OneOf(this.choiceMatchers);
+  new(this.choiceMatchers);
 
   @override
   Description describe(Description description) {
@@ -974,7 +977,7 @@ class _OneOf extends Matcher {
 /// Base class for matchers that operate by recursing through the contents of
 /// an object.
 abstract class _RecursiveMatcher extends Matcher {
-  const _RecursiveMatcher();
+  const new();
 
   /// Check the type of a substructure whose value is [item], using [matcher].
   /// If it doesn't match, record a closure in [mismatches] which can describe

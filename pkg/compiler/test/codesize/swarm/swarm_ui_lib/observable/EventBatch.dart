@@ -28,7 +28,7 @@ class EventBatch {
 
   /// Ensure there is an event batch where [userFunction] can accumulate events.
   /// When the batch is complete, fire all events at once.
-  static void Function(T) wrap<T>(userFunction(var a)) {
+  static void Function(T) wrap<T>(userFunction(a)) {
     return (e) {
       if (current == null) {
         // Not in a batch so create one.

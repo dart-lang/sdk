@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedInstantiateTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -21,13 +22,12 @@ class DeprecatedInstantiateTest extends PubPackageResolutionTest {
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 var x = Foo();
-''',
-      [error(diag.deprecatedInstantiate, 27, 3)],
-    );
+//      ^^^
+// [diag.deprecatedInstantiate] Instantiating 'Foo' is deprecated.
+''');
   }
 
   test_annotatedClass_dotShorthand() async {
@@ -35,13 +35,12 @@ var x = Foo();
 @Deprecated.instantiate()
 class Foo {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 Foo x = .new();
-''',
-      [error(diag.deprecatedInstantiate, 28, 3)],
-    );
+//       ^^^
+// [diag.deprecatedInstantiate] Instantiating 'Foo' is deprecated.
+''');
   }
 
   test_annotatedClass_dotShorthand_named() async {
@@ -51,13 +50,12 @@ class Foo {
   Foo.named();
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 Foo x = .named();
-''',
-      [error(diag.deprecatedInstantiate, 28, 5)],
-    );
+//       ^^^^^
+// [diag.deprecatedInstantiate] Instantiating 'Foo' is deprecated.
+''');
   }
 
   test_annotatedClass_redirectedFactory_named() async {
@@ -69,16 +67,15 @@ class Foo extends Bar {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar {
   Bar();
   factory Bar.one() = Foo.two;
+//                    ^^^^^^^
+// [diag.deprecatedInstantiate] Instantiating 'Foo' is deprecated.
 }
-''',
-      [error(diag.deprecatedInstantiate, 62, 7)],
-    );
+''');
   }
 
   test_annotatedClass_redirectedFactory_unnamed() async {
@@ -90,16 +87,15 @@ class Foo extends Bar {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar {
   Bar();
   factory Bar.one() = Foo;
+//                    ^^^
+// [diag.deprecatedInstantiate] Instantiating 'Foo' is deprecated.
 }
-''',
-      [error(diag.deprecatedInstantiate, 62, 3)],
-    );
+''');
   }
 
   test_annotatedClass_superInvocation_named() async {
@@ -110,7 +106,7 @@ class Foo {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo {
   Bar.named() : super.named();
@@ -123,7 +119,7 @@ class Bar extends Foo {
 @Deprecated.instantiate()
 class Foo {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo {
   Bar() : super();
@@ -137,13 +133,12 @@ class Bar extends Foo {
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 var x = Foo.new;
-''',
-      [error(diag.deprecatedInstantiate, 27, 7)],
-    );
+//      ^^^^^^^
+// [diag.deprecatedInstantiate] Instantiating 'Foo' is deprecated.
+''');
   }
 
   test_annotatedClass_typedef() async {
@@ -153,7 +148,7 @@ class Foo {}
 typedef Foo2 = Foo;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 var x = Foo2();
 ''');
@@ -166,13 +161,12 @@ class Foo {}
 typedef Foo2 = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 Foo2 x = .new();
-''',
-      [error(diag.deprecatedInstantiate, 29, 3)],
-    );
+//        ^^^
+// [diag.deprecatedInstantiate] Instantiating 'Foo' is deprecated.
+''');
   }
 
   test_annotatedClass_typedef_tearoff() async {
@@ -182,7 +176,7 @@ class Foo {}
 typedef Foo2 = Foo;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 var x = Foo2.new;
 ''');
@@ -195,17 +189,16 @@ class Foo = Object with M;
 mixin M {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 var x = Foo();
-''',
-      [error(diag.deprecatedInstantiate, 27, 3)],
-    );
+//      ^^^
+// [diag.deprecatedInstantiate] Instantiating 'Foo' is deprecated.
+''');
   }
 
   test_insideLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.implement()
 class Foo {}
 var x = Foo();
@@ -217,7 +210,7 @@ var x = Foo();
 class Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 var x = Foo();
 ''');

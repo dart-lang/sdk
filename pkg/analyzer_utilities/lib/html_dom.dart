@@ -12,7 +12,7 @@ const _htmlEscape = HtmlEscape(HtmlEscapeMode.element);
 class Document extends Element {
   static const Set<String> selfClosing = {'br', 'link', 'meta'};
 
-  Document() : super.tag('');
+  new() : super.tag('');
 
   /// Return the full HTML text for the document.
   String get outerHtml {
@@ -64,7 +64,7 @@ class Element extends Node {
 
   Map<String, String> attributes = {};
 
-  Element.tag(this.name);
+  new tag(this.name);
 
   List<Element> get children => nodes.whereType<Element>().toList();
 
@@ -94,7 +94,7 @@ class Text extends Node {
 
   final String text;
 
-  Text(this.text);
+  new(this.text);
 
   @override
   List<Node> get nodes => const [];

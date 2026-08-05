@@ -85,7 +85,7 @@ class WithOutputInfo {
   String separator = "\n";
   final RandomAccessFile randomAccessFile;
 
-  WithOutputInfo(this.names, this.sb, this.randomAccessFile);
+  new(this.names, this.sb, this.randomAccessFile);
 }
 
 void _processData(WithOutputInfo? withOutputInfo, int factorForMicroSeconds) {
@@ -229,9 +229,5 @@ class DelayedReportData {
   final double enterMicroseconds;
   final double duration;
 
-  DelayedReportData(
-    this.procedureNumber,
-    this.enterMicroseconds,
-    this.duration,
-  );
+  new(this.procedureNumber, this.enterMicroseconds, this.duration);
 }

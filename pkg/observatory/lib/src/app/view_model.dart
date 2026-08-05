@@ -30,7 +30,7 @@ class SortedTable {
   SortedTable(this.columns);
 
   int _sortColumnIndex = 0;
-  set sortColumnIndex(var index) {
+  set sortColumnIndex(index) {
     assert(index >= 0);
     assert(index < columns.length);
     _sortColumnIndex = index;
@@ -39,7 +39,7 @@ class SortedTable {
   int get sortColumnIndex => _sortColumnIndex;
   bool _sortDescending = true;
   bool get sortDescending => _sortDescending;
-  set sortDescending(var descending) {
+  set sortDescending(descending) {
     _sortDescending = descending;
   }
 

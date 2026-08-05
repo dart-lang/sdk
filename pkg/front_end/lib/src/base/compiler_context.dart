@@ -35,7 +35,7 @@ class CompilerContext {
 
   bool compilingPlatform = false;
 
-  CompilerContext(this.options) {
+  new(this.options) {
     if (options.verbose) {
       colors.printEnableColorsReason = print;
     }

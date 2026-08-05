@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
+import '../kernel/internal_ast.dart';
 import 'type_inference_engine.dart';
 import 'type_schema.dart';
 import 'type_schema_environment.dart';
@@ -21,14 +22,14 @@ import 'type_schema_environment.dart';
 class TypeConstraintGatherer
     extends
         shared.TypeConstraintGenerator<
-          VariableDeclaration,
+          InternalVariable,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
         >
     with
         shared.TypeConstraintGeneratorMixin<
-          VariableDeclaration,
+          InternalVariable,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
@@ -44,7 +45,7 @@ class TypeConstraintGatherer
 
   final TypeInferenceResultForTesting? _inferenceResultForTesting;
 
-  TypeConstraintGatherer(
+  new(
     this._environment,
     Iterable<StructuralParameter> typeParameters, {
     required OperationsCfe typeOperations,

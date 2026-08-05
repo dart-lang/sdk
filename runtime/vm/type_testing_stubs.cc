@@ -25,11 +25,7 @@
 
 namespace dart {
 
-TypeTestingStubNamer::TypeTestingStubNamer()
-    : lib_(Library::Handle()),
-      klass_(Class::Handle()),
-      type_(AbstractType::Handle()),
-      string_(String::Handle()) {}
+TypeTestingStubNamer::TypeTestingStubNamer() {}
 
 const char* TypeTestingStubNamer::StubNameForType(
     const AbstractType& type) const {
@@ -48,29 +44,32 @@ void TypeTestingStubNamer::WriteStubNameForTypeTo(
 void TypeTestingStubNamer::StringifyTypeTo(BaseTextBuffer* buffer,
                                            const AbstractType& type) const {
   NoSafepointScope no_safepoint;
+  Zone* zone = Thread::Current()->zone();
   if (type.IsType()) {
     const intptr_t cid = Type::Cast(type).type_class_id();
     ClassTable* class_table = IsolateGroup::Current()->class_table();
-    klass_ = class_table->At(cid);
-    ASSERT(!klass_.IsNull());
+    const auto& klass = Class::Handle(zone, class_table->At(cid));
+    ASSERT(!klass.IsNull());
 
-    lib_ = klass_.library();
-    if (!lib_.IsNull()) {
-      string_ = lib_.url();
-      buffer->AddString(string_.ToCString());
+    const auto& lib = Library::Handle(zone, klass.library());
+    if (!lib.IsNull()) {
+      const auto& url_string = String::Handle(zone, lib.url());
+      buffer->AddString(url_string.ToCString());
     } else {
       buffer->Printf("nolib%" Pd "_", nonce_++);
     }
 
     buffer->AddString("_");
-    buffer->AddString(klass_.ScrubbedNameCString());
+    buffer->AddString(klass.ScrubbedNameCString());
 
-    auto& type_arguments = TypeArguments::Handle(Type::Cast(type).arguments());
+    const auto& type_arguments =
+        TypeArguments::Handle(zone, Type::Cast(type).arguments());
     if (!type_arguments.IsNull()) {
+      auto& type_arg = AbstractType::Handle(zone);
       for (intptr_t i = 0, n = type_arguments.Length(); i < n; ++i) {
-        type_ = type_arguments.TypeAt(i);
+        type_arg = type_arguments.TypeAt(i);
         buffer->AddString("__");
-        StringifyTypeTo(buffer, type_);
+        StringifyTypeTo(buffer, type_arg);
       }
     }
   } else if (type.IsTypeParameter()) {
@@ -80,17 +79,19 @@ void TypeTestingStubNamer::StringifyTypeTo(BaseTextBuffer* buffer,
     buffer->AddString("Record");
     const intptr_t num_fields = rec.NumFields();
     const auto& field_names =
-        Array::Handle(rec.GetFieldNames(Thread::Current()));
+        Array::Handle(zone, rec.GetFieldNames(Thread::Current()));
     const intptr_t num_positional_fields = num_fields - field_names.Length();
-    const auto& field_types = Array::Handle(rec.field_types());
+    const auto& field_types = Array::Handle(zone, rec.field_types());
+    auto& field_type = AbstractType::Handle(zone);
+    auto& field_name = String::Handle(zone);
     for (intptr_t i = 0; i < num_fields; ++i) {
       buffer->AddString("__");
-      type_ ^= field_types.At(i);
-      StringifyTypeTo(buffer, type_);
+      field_type ^= field_types.At(i);
+      StringifyTypeTo(buffer, field_type);
       if (i >= num_positional_fields) {
         buffer->AddString("_");
-        string_ ^= field_names.At(i - num_positional_fields);
-        buffer->AddString(string_.ToCString());
+        field_name ^= field_names.At(i - num_positional_fields);
+        buffer->AddString(field_name.ToCString());
       }
     }
   } else {
@@ -116,14 +117,14 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     bool lazy_specialize /* = true */) {
   // During bootstrapping we have no access to stubs yet, so we'll just return
   // `null` and patch these later in `Object::FinishInit()`.
-  if (!StubCode::HasBeenInitialized()) {
+  if (StubCode::TopTypeTypeTest().ptr() == nullptr) {
     ASSERT(type.IsType());
     const classid_t cid = type.type_class_id();
     ASSERT(cid == kDynamicCid || cid == kVoidCid);
     return Code::null();
   }
 
-  if (type.IsTopTypeForSubtyping()) {
+  if (type.IsTopType()) {
     return StubCode::TopTypeTypeTest().ptr();
   }
   if (type.IsTypeParameter()) {
@@ -171,14 +172,12 @@ TypeTestingStubGenerator::TypeTestingStubGenerator()
 CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
 #if !defined(TARGET_ARCH_IA32)
-  ASSERT(StubCode::HasBeenInitialized());
-
   if (type.IsTypeParameter()) {
     return TypeTestingStubGenerator::DefaultCodeForType(
         type, /*lazy_specialize=*/false);
   }
 
-  if (type.IsTopTypeForSubtyping()) {
+  if (type.IsTopType()) {
     return StubCode::TopTypeTypeTest().ptr();
   }
 
@@ -257,7 +256,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const AbstractType& type) {
 
   auto& slow_tts_stub = Code::ZoneHandle(zone);
   if (FLAG_precompiled_mode) {
-    slow_tts_stub = thread->isolate_group()->object_store()->slow_tts_stub();
+    slow_tts_stub = StubCode::SlowTypeTest().ptr();
   }
 
   CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,
@@ -338,7 +337,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     HierarchyInfo* hi,
     const AbstractType& type) {
   // These are handled via the TopTypeTypeTestStub!
-  ASSERT(!type.IsTopTypeForSubtyping());
+  ASSERT(!type.IsTopType());
 
   if (type.IsObjectType()) {
     ASSERT(type.IsNonNullable());
@@ -1167,11 +1166,11 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     intptr_t type_param_value_offset_i,
     compiler::Label* check_failed) {
   ASSERT(type.IsInstantiated());
-  if (type.IsTopTypeForSubtyping()) {
+  if (type.IsTopType()) {
     return;
   }
 
-  ASSERT(!type.IsObjectType() || type.IsNonNullable());
+  ASSERT(!type.IsNullableObjectType());
 
   if (assembler->EmittingComments()) {
     TextBuffer buffer(128);
@@ -1264,7 +1263,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
-                              Definition* type_arguments) {
+                              Definition* type_arguments,
+                              bool convert_to_instance_type_arguments) {
   // The [type_arguments] can, in the general case, be any kind of [Definition]
   // but generally (in order of expected frequency)
   //
@@ -1288,15 +1288,28 @@ void RegisterTypeArgumentsUse(const Function& function,
   if (ConstantInstr* constant = type_arguments->AsConstant()) {
     const Object& object = constant->value();
     ASSERT(object.IsNull() || object.IsTypeArguments());
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(TypeArguments::RawCast(object.ptr()));
-    type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
+    auto& ta = TypeArguments::Handle(TypeArguments::RawCast(object.ptr()));
+    if (convert_to_instance_type_arguments) {
+      if (!ta.IsNull() && (ta.Length() > klass.NumTypeParameters())) {
+        // Account for sharing of larger type arguments vectors.
+        ta = ta.TruncatedTo(klass.NumTypeParameters());
+      }
+      ta = klass.GetInstanceTypeArguments(Thread::Current(), ta);
+    }
+    type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
   } else if (InstantiateTypeArgumentsInstr* instantiate =
                  type_arguments->AsInstantiateTypeArguments()) {
     if (instantiate->type_arguments()->BindsToConstant() &&
         !instantiate->type_arguments()->BoundConstant().IsNull()) {
-      const auto& ta =
-          TypeArguments::Cast(instantiate->type_arguments()->BoundConstant());
+      auto& ta = TypeArguments::Handle(TypeArguments::RawCast(
+          instantiate->type_arguments()->BoundConstant().ptr()));
+      if (convert_to_instance_type_arguments) {
+        if (!ta.IsNull() && (ta.Length() > klass.NumTypeParameters())) {
+          // Account for sharing of larger type arguments vectors.
+          ta = ta.TruncatedTo(klass.NumTypeParameters());
+        }
+        ta = klass.GetInstanceTypeArguments(Thread::Current(), ta);
+      }
       type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
     }
   } else if (LoadFieldInstr* load_field = type_arguments->AsLoadField()) {
@@ -1364,7 +1377,8 @@ void RegisterTypeArgumentsUse(const Function& function,
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
-                              Definition* type_arguments) {
+                              Definition* type_arguments,
+                              bool convert_to_instance_type_arguments) {
   // We only have a [TypeUsageInfo] object available durin AOT compilation.
   UNREACHABLE();
 }

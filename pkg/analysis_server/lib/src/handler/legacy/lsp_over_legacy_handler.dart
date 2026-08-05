@@ -18,12 +18,7 @@ import 'package:language_server_protocol/protocol_special.dart';
 
 /// The handler for the `lsp.handle` request.
 class LspOverLegacyHandler extends LegacyHandler {
-  LspOverLegacyHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   bool get recordsOwnAnalytics => true;

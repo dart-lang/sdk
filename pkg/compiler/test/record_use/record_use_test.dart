@@ -20,6 +20,8 @@ const List<String> compilerOptions = [
   Flags.testMode,
   Flags.disableInlining,
   Flags.disableTypeInference,
+  // https://github.com/dart-lang/sdk/issues/63131
+  Flags.noSourceMaps,
 ];
 
 /// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`

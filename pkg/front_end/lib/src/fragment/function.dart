@@ -33,7 +33,7 @@ abstract class FunctionBodyBuildingContext {
 
   LocalScope get formalParameterScope;
 
-  VariableDeclaration? get thisVariable;
+  InternalVariable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 

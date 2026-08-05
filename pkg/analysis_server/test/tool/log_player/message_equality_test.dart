@@ -105,6 +105,21 @@ void main() {
       expect(MessageEquality(ignoredKeys: {'ignoreMe'}).equals(m1, m2), isTrue);
     });
 
+    test('matches result with qualified ignored key differences', () {
+      var m1 = Message({
+        'id': 1,
+        'result': {'a': 1, 'ignoreMe': 2},
+      });
+      var m2 = Message({
+        'id': 1,
+        'result': {'a': 1, 'ignoreMe': 3},
+      });
+      expect(
+        MessageEquality(ignoredKeys: {'result.ignoreMe'}).equals(m1, m2),
+        isTrue,
+      );
+    });
+
     test('matches nested maps in params with ignored keys', () {
       var m1 = Message({
         'method': 'foo',

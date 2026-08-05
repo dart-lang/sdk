@@ -732,62 +732,10 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     expect(child.exists, isTrue);
   }
 
-  test_getChildAssumingFile_doesNotExist() {
-    Folder folder = getFolder(exists: true);
-
-    File child = folder.getChildAssumingFile('myFile');
-    expect(child, isNotNull);
-    expect(child.exists, isFalse);
-  }
-
-  test_getChildAssumingFile_file() {
-    Folder folder = getFolder(exists: true);
-    getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
-
-    File child = folder.getChildAssumingFile('myFile');
-    expect(child, isNotNull);
-    expect(child.exists, isTrue);
-  }
-
-  test_getChildAssumingFile_folder() {
-    Folder folder = getFolder(exists: true);
-    getFolder(exists: true, folderPath: join(defaultFolderPath, 'myFolder'));
-
-    File child = folder.getChildAssumingFile('myFolder');
-    expect(child, isNotNull);
-    expect(child.exists, isFalse);
-  }
-
-  test_getChildAssumingFolder_doesNotExist() {
-    Folder folder = getFolder(exists: true);
-
-    Folder child = folder.getChildAssumingFolder('myFile');
-    expect(child, isNotNull);
-    expect(child.exists, isFalse);
-  }
-
-  test_getChildAssumingFolder_file() {
-    Folder folder = getFolder(exists: true);
-    getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
-
-    Folder child = folder.getChildAssumingFolder('myFile');
-    expect(child, isNotNull);
-    expect(child.exists, isFalse);
-  }
-
-  test_getChildAssumingFolder_folder() {
-    Folder folder = getFolder(exists: true);
-    getFolder(exists: true, folderPath: join(defaultFolderPath, 'myFolder'));
-
-    Folder child = folder.getChildAssumingFolder('myFolder');
-    expect(child, isNotNull);
-    expect(child.exists, isTrue);
-  }
-
   test_getChildren_doesNotExist() {
     Folder folder = getFolder(exists: true);
 
-    folder = folder.getChildAssumingFolder('no-such-folder');
+    folder = folder.getFolder('no-such-folder');
     expect(() => folder.getChildren(), throwsA(isFileSystemException));
   }
 
@@ -876,6 +824,58 @@ mixin FolderTestMixin implements FileSystemTestSupport {
 
     var bar_b = children.singleWhere((e) => e.path == bar_b_path) as Folder;
     expect(bar_b.resolveSymbolicLinksSync(), foo_b);
+  }
+
+  test_getFile_doesNotExist() {
+    Folder folder = getFolder(exists: true);
+
+    File child = folder.getFile('myFile');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  test_getFile_file() {
+    Folder folder = getFolder(exists: true);
+    getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
+
+    File child = folder.getFile('myFile');
+    expect(child, isNotNull);
+    expect(child.exists, isTrue);
+  }
+
+  test_getFile_folder() {
+    Folder folder = getFolder(exists: true);
+    getFolder(exists: true, folderPath: join(defaultFolderPath, 'myFolder'));
+
+    File child = folder.getFile('myFolder');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  test_getFolder_doesNotExist() {
+    Folder folder = getFolder(exists: true);
+
+    Folder child = folder.getFolder('myFile');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  test_getFolder_file() {
+    Folder folder = getFolder(exists: true);
+    getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
+
+    Folder child = folder.getFolder('myFile');
+    expect(child, isNotNull);
+    expect(child.exists, isFalse);
+  }
+
+  test_getFolder_folder() {
+    Folder folder = getFolder(exists: true);
+    getFolder(exists: true, folderPath: join(defaultFolderPath, 'myFolder'));
+
+    Folder child = folder.getFolder('myFolder');
+    expect(child, isNotNull);
+    expect(child.exists, isTrue);
   }
 
   test_hashCode() {

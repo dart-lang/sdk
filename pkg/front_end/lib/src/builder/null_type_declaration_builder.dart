@@ -12,11 +12,8 @@ import 'type_builder.dart';
 
 // TODO(johnniwinther): Remove this.
 class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
-  NullTypeDeclarationBuilder(
-    DartType type,
-    LibraryBuilder compilationUnit,
-    int charOffset,
-  ) : super("Null", type, compilationUnit, charOffset);
+  new(DartType type, LibraryBuilder compilationUnit, int charOffset)
+    : super("Null", type, compilationUnit, charOffset);
 
   @override
   // Coverage-ignore(suite): Not run.

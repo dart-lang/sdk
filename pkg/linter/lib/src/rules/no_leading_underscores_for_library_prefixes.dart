@@ -17,7 +17,7 @@ import '../util/ascii_utils.dart';
 const _desc = r'Avoid leading underscores for library prefixes.';
 
 class NoLeadingUnderscoresForLibraryPrefixes extends AnalysisRule {
-  NoLeadingUnderscoresForLibraryPrefixes()
+  new()
     : super(
         name: LintNames.no_leading_underscores_for_library_prefixes,
         description: _desc,
@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final AnalysisRule rule;
 
-  _Visitor(this.rule, RuleContext context)
+  new(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );

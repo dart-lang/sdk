@@ -33,12 +33,12 @@ void _setScheduleImmediateClosure(_ScheduleImmediateClosure closure) {
 base class _NamespaceImpl implements _Namespace {
   _NamespaceImpl._();
 
-  external static _NamespaceImpl _create(_NamespaceImpl namespace, var n);
+  external static _NamespaceImpl _create(_NamespaceImpl namespace, n);
   external static int _getPointer(_NamespaceImpl namespace);
   external static int _getDefault();
 
   static _NamespaceImpl? _cachedNamespace = null;
-  static void _setupNamespace(var namespace) {
+  static void _setupNamespace(namespace) {
     _cachedNamespace = _create(new _NamespaceImpl._(), namespace);
   }
 
@@ -53,7 +53,7 @@ base class _NamespaceImpl implements _Namespace {
 }
 
 class _Namespace {
-  static void _setupNamespace(var namespace) {
+  static void _setupNamespace(namespace) {
     _NamespaceImpl._setupNamespace(namespace);
   }
 

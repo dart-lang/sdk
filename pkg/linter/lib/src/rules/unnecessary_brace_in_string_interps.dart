@@ -22,7 +22,7 @@ bool isIdentifierPart(Token? token) =>
     token is StringToken && token.lexeme.startsWith(identifierPart);
 
 class UnnecessaryBraceInStringInterps extends AnalysisRule {
-  UnnecessaryBraceInStringInterps()
+  new()
     : super(
         name: LintNames.unnecessary_brace_in_string_interps,
         description: _desc,
@@ -44,7 +44,7 @@ class UnnecessaryBraceInStringInterps extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitStringInterpolation(StringInterpolation node) {

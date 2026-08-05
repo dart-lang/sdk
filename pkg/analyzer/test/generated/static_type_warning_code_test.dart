@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticTypeWarningCodeTest);
     defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -20,134 +21,119 @@ main() {
 @reflectiveTest
 class StaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_await_flattened() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 external Future<Future<int>> ffi();
 f() async {
   Future<int> b = await ffi();
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 62, 1)],
-    );
+''');
   }
 
   test_await_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> fi() => Future.value(0);
 f() async {
   String a = await fi(); // Warning: int not assignable to String
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//           ^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 58, 1),
-        error(diag.invalidAssignment, 62, 10),
-      ],
-    );
+''');
   }
 
   test_awaitForIn_declaredVariableRightType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Stream<int> stream) async {
   await for (int i in stream) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 47, 1)],
-    );
+''');
   }
 
   test_awaitForIn_declaredVariableWrongType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Stream<String> stream) async {
   await for (int i in stream) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
+//                    ^^^^^^
+// [diag.forInOfInvalidElementType] The type 'Stream<String>' used in the 'for' loop must implement 'Stream' with a type argument that can be assigned to 'int'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 50, 1),
-        error(diag.forInOfInvalidElementType, 55, 6),
-      ],
-    );
+''');
   }
 
   test_awaitForIn_downcast() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Stream<num> stream) async {
   await for (int i in stream) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
+//                    ^^^^^^
+// [diag.forInOfInvalidElementType] The type 'Stream<num>' used in the 'for' loop must implement 'Stream' with a type argument that can be assigned to 'int'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 47, 1),
-        error(diag.forInOfInvalidElementType, 52, 6),
-      ],
-    );
+''');
   }
 
   test_awaitForIn_dynamicVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Stream<int> stream) async {
   await for (var i in stream) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 47, 1)],
-    );
+''');
   }
 
   test_awaitForIn_existingVariableRightType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Stream<int> stream) async {
   late int i;
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
   await for (i in stream) {}
 }
-''',
-      [error(diag.unusedLocalVariable, 41, 1)],
-    );
+''');
   }
 
   test_awaitForIn_existingVariableWrongType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Stream<String> stream) async {
   late int i;
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
   await for (i in stream) {}
+//                ^^^^^^
+// [diag.forInOfInvalidElementType] The type 'Stream<String>' used in the 'for' loop must implement 'Stream' with a type argument that can be assigned to 'int'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 44, 1),
-        error(diag.forInOfInvalidElementType, 65, 6),
-      ],
-    );
+''');
   }
 
   test_awaitForIn_streamOfDynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Stream stream) async {
   await for (int i in stream) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 42, 1)],
-    );
+''');
   }
 
   test_awaitForIn_upcast() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Stream<int> stream) async {
   await for (num i in stream) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 47, 1)],
-    );
+''');
   }
 
   test_bug21912() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B extends A {}
 
@@ -161,250 +147,228 @@ void f(
 ) {
   {
     Function2<Function2<int, double>, Function2<int, double>> left;
+//                                                            ^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'left' isn't used.
 
     left = t1;
+//         ^^
+// [diag.invalidAssignment] A value of type 'Function2<Function2<A, B>, Function2<B, A>>' can't be assigned to a variable of type 'Function2<Function2<int, double>, Function2<int, double>>'.
     left = t2;
+//         ^^
+// [diag.invalidAssignment] A value of type 'Function2<AToB, BToA>' can't be assigned to a variable of type 'Function2<Function2<int, double>, Function2<int, double>>'.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 263, 4),
-        error(diag.invalidAssignment, 281, 2),
-        error(diag.invalidAssignment, 296, 2),
-      ],
-    );
+''');
   }
 
   test_forIn_declaredVariableRightType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   for (int i in <int>[]) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
   }
 
   test_forIn_declaredVariableWrongType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   for (int i in <String>[]) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
+//              ^^^^^^^^^^
+// [diag.forInOfInvalidElementType] The type 'List<String>' used in the 'for' loop must implement 'Iterable' with a type argument that can be assigned to 'int'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 17, 1),
-        error(diag.forInOfInvalidElementType, 22, 10),
-      ],
-    );
+''');
   }
 
   test_forIn_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   dynamic d; // Could be [].
   for (var i in d) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 46, 1)],
-    );
+''');
   }
 
   test_forIn_dynamicIterable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   dynamic iterable;
   for (int i in iterable) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 37, 1)],
-    );
+''');
   }
 
   test_forIn_dynamicVariable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   for (var i in <int>[]) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
   }
 
   test_forIn_existingVariableRightType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   int i;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
   for (i in <int>[]) {}
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_forIn_existingVariableWrongType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   int i;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
   for (i in <String>[]) {}
+//          ^^^^^^^^^^
+// [diag.forInOfInvalidElementType] The type 'List<String>' used in the 'for' loop must implement 'Iterable' with a type argument that can be assigned to 'int'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 12, 1),
-        error(diag.forInOfInvalidElementType, 27, 10),
-      ],
-    );
+''');
   }
 
   test_forIn_iterableOfDynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   for (int i in []) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
   }
 
   test_forIn_object() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(List o) { // Could be [].
   for (var i in o) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 39, 1)],
-    );
+''');
   }
 
   test_forIn_typeBoundBad() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (String i in iterable) {}
+//              ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
+//                   ^^^^^^^^
+// [diag.forInOfInvalidElementType] The type 'Iterable<int>' used in the 'for' loop must implement 'Iterable' with a type argument that can be assigned to 'String'.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 81, 1),
-        error(diag.forInOfInvalidElementType, 86, 8),
-      ],
-    );
+''');
   }
 
   test_forIn_typeBoundGood() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (var i in iterable) {}
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 78, 1)],
-    );
+''');
   }
 
   test_forIn_upcast() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   for (num i in <int>[]) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
   }
 
   test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 callMe(f()) { f(); }
 f(Object p) {
   (p is String) && callMe(() { p.length; });
+//                               ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
   p = 0;
 }
-''',
-      [error(diag.undefinedGetter, 68, 6)],
-    );
+''');
   }
 
   test_typePromotion_booleanAnd_useInRight_mutatedInLeft() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object p) {
   ((p is String) && ((p = 42) == 42)) && p.length != 0;
+//                                         ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
 }
-''',
-      [error(diag.undefinedGetter, 57, 6)],
-    );
+''');
   }
 
   test_typePromotion_booleanAnd_useInRight_mutatedInRight() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object p) {
   (p is String) && (((p = 42) == 42) && p.length != 0);
+//                                        ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
 }
-''',
-      [error(diag.undefinedGetter, 56, 6)],
-    );
+''');
   }
 
   test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 callMe(f()) { f(); }
 g(Object p) {
   p is String ? callMe(() { p.length; }) : 0;
+//                            ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
   p = 42;
 }
-''',
-      [error(diag.undefinedGetter, 65, 6)],
-    );
+''');
   }
 
   test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 callMe(f()) { f(); }
 g(Object p) {
   p = 42;
   p is String ? callMe(() { p.length; }) : 0;
+//                            ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
 }
-''',
-      [error(diag.undefinedGetter, 75, 6)],
-    );
+''');
   }
 
   test_typePromotion_if_accessedInClosure_hasAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 callMe(f()) { f(); }
 f(Object p) {
   if (p is String) {
     callMe(() {
       p.length;
+//      ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
     });
   }
   p = 0;
 }
-''',
-      [error(diag.undefinedGetter, 80, 6)],
-    );
+''');
   }
 
   test_typePromotion_if_extends_notMoreSpecific_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class V {}
 class A<T> {}
 class B<S> extends A<S> {
@@ -414,16 +378,15 @@ class B<S> extends A<S> {
 f(A<V> p) {
   if (p is B) {
     p.b;
+//    ^
+// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'A<V>'.
   }
 }
-''',
-      [error(diag.undefinedGetter, 97, 1)],
-    );
+''');
   }
 
   test_typePromotion_if_extends_notMoreSpecific_notMoreSpecificTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class V {}
 class A<T> {}
 class B<S> extends A<S> {
@@ -433,58 +396,56 @@ class B<S> extends A<S> {
 f(A<V> p) {
   if (p is B<int>) {
     p.b;
+//    ^
+// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'A<V>'.
   }
 }
-''',
-      [error(diag.undefinedGetter, 102, 1)],
-    );
+''');
   }
 
   test_typePromotion_if_hasAssignment_before() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object p) {
   if (p is String) {
     p = 0;
     p.length;
+//    ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
   }
 }
-''',
-      [error(diag.undefinedGetter, 52, 6)],
-    );
+''');
   }
 
   test_typePromotion_if_hasAssignment_inClosure_anonymous_before() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Object p) {
   () {p = 0;};
   if (p is String) {
     p.length;
+//    ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
   }
 }
-''',
-      [error(diag.undefinedGetter, 56, 6)],
-    );
+''');
   }
 
   test_typePromotion_if_hasAssignment_inClosure_function_before() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 g(Object p) {
   f() {p = 0;};
+//^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
   if (p is String) {
     p.length;
+//    ^^^^^^
+// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
   }
 }
-''',
-      [error(diag.unusedElement, 16, 1), error(diag.undefinedGetter, 57, 6)],
-    );
+''');
   }
 
   test_typePromotion_if_implements_notMoreSpecific_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class V {}
 class A<T> {}
 class B<S> implements A<S> {
@@ -494,16 +455,15 @@ class B<S> implements A<S> {
 f(A<V> p) {
   if (p is B) {
     p.b;
+//    ^
+// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'A<V>'.
   }
 }
-''',
-      [error(diag.undefinedGetter, 100, 1)],
-    );
+''');
   }
 
   test_typePromotion_if_with_notMoreSpecific_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class V {}
 mixin A<T> {}
 class B<S> extends Object with A<S> {
@@ -513,32 +473,31 @@ class B<S> extends Object with A<S> {
 f(A<V> p) {
   if (p is B) {
     p.b;
+//    ^
+// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'A<V>'.
   }
 }
-''',
-      [error(diag.undefinedGetter, 109, 1)],
-    );
+''');
   }
 
   test_wrongNumberOfTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   late E element;
 }
 g(A<NoSuchType> a) {
+//  ^^^^^^^^^^
+// [diag.nonTypeAsTypeArgument] The name 'NoSuchType' isn't a type, so it can't be used as a type argument.
   a.element.anyGetterExistsInDynamic;
 }
-''',
-      [error(diag.nonTypeAsTypeArgument, 37, 10)],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class StrongModeStaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_legalAsyncGeneratorReturnType_function_supertypeOfStream() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async* { yield 42; }
 dynamic f2() async* { yield 42; }
 Object f3() async* { yield 42; }
@@ -551,7 +510,7 @@ Stream<int> f8() async* { yield 42; }
   }
 
   test_legalAsyncReturnType_function_supertypeOfFuture() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async { return 42; }
 dynamic f2() async { return 42; }
 Object f3() async { return 42; }
@@ -564,7 +523,7 @@ Future<int> f8() async { return 42; }
   }
 
   test_legalSyncGeneratorReturnType_function_supertypeOfIterable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() sync* { yield 42; }
 dynamic f2() sync* { yield 42; }
 Object f3() sync* { yield 42; }

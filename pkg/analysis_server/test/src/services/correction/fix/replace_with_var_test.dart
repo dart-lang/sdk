@@ -503,6 +503,25 @@ Set f() {
 ''');
   }
 
+  Future<void> test_primaryConstructor_localVariable() async {
+    await resolveTestCode('''
+class C() {
+  this {
+    int x = 1;
+    print(x);
+  }
+}
+''');
+    await assertHasFix('''
+class C() {
+  this {
+    var x = 1;
+    print(x);
+  }
+}
+''');
+  }
+
   Future<void> test_simple() async {
     await resolveTestCode('''
 String f() {
@@ -1000,6 +1019,20 @@ Set<(double, double)> s = {(1.5, 2.5)};
     await assertHasFix('''
 var s = <(double, double)>{(1.5, 2.5)};
 ''');
+  }
+
+  Future<void> test_primaryConstructor_field() async {
+    await resolveTestCode('''
+class C(var int x = 1);
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_primaryConstructor_parameter() async {
+    await resolveTestCode('''
+class C(int x = 1);
+''');
+    await assertNoFix();
   }
 
   Future<void> test_simple() async {

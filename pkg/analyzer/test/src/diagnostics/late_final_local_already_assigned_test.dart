@@ -2,62 +2,60 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LateFinalLocalAlreadyAssignedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LateFinalLocalAlreadyAssignedTest extends PubPackageResolutionTest {
   test_assignmentExpression_compound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   late final int v;
   v = 0;
   v += 1;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
   v;
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 40, 1)],
-    );
+''');
   }
 
   test_assignmentExpression_simple() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   late final int v;
   v = 0;
   v = 1;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
   v;
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 40, 1)],
-    );
+''');
   }
 
   test_assignmentExpression_simple_initialized() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   late final int v = 0;
   v = 1;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
   v;
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 35, 1)],
-    );
+''');
   }
 
   test_localVariable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   late final int a;
   a = 1;
@@ -67,60 +65,56 @@ void f() {
   }
 
   test_localVariable_forEach() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   late final int i;
   for (i in [1, 2, 3]) {
+//     ^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
     print(i);
   }
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 33, 1)],
-    );
+''');
   }
 
   test_postfixExpression_inc() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   late final int v = 0;
   v++;
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
   v;
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 35, 1)],
-    );
+''');
   }
 
   test_postfixExpression_nullCheck() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   late final int v = 0;
   v!;
+// ^
+// [diag.unnecessaryNonNullAssertion] The '!' will have no effect because the receiver can't be null.
   v;
 }
-''',
-      [error(diag.unnecessaryNonNullAssertion, 36, 1)],
-    );
+''');
   }
 
   test_prefixExpression_inc() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   late final int v = 0;
   ++v;
+//  ^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
   v;
 }
-''',
-      [error(diag.lateFinalLocalAlreadyAssigned, 37, 1)],
-    );
+''');
   }
 
   test_prefixExpression_negation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 main() {
   late final bool v = true;
   !v;

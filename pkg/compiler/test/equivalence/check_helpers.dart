@@ -73,8 +73,8 @@ bool equality(a, b) => a == b;
 /// Check that the values [property] of [object1] and [object2], [value1] and
 /// [value2] respectively, are equal and throw otherwise.
 bool check<T>(
-  var object1,
-  var object2,
+  object1,
+  object2,
   String property,
   T value1,
   T value2, [
@@ -186,8 +186,8 @@ Set<E> computeSetDifference<E>(
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkSetEquivalence<E>(
-  var object1,
-  var object2,
+  object1,
+  object2,
   String property,
   Iterable<E> set1,
   Iterable<E> set2,
@@ -221,8 +221,8 @@ bool checkSetEquivalence<E>(
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkMapEquivalence<K, V>(
-  var object1,
-  var object2,
+  object1,
+  object2,
   String property,
   Map<K, V> map1,
   Map<K, V> map2,

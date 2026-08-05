@@ -42,7 +42,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   final int charOffset;
 
-  factory RecordTypeBuilderImpl(
+  factory(
     List<RecordTypeFieldBuilder>? positional,
     List<RecordTypeFieldBuilder>? named,
     NullabilityBuilder nullabilityBuilder,
@@ -85,7 +85,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           );
   }
 
-  RecordTypeBuilderImpl._(
+  new _(
     this.positionalFields,
     this.namedFields,
     this.nullabilityBuilder,
@@ -425,7 +425,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
     Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
     TypeParameterFactory typeParameterFactory, {
-    final Variance variance = Variance.covariant,
+    Variance variance = Variance.covariant,
   }) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
@@ -537,7 +537,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 /// This is the normal record type whose field types are either explicit or
 /// omitted.
 class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
-  _ExplicitRecordTypeBuilder(
+  new(
     List<RecordTypeFieldBuilder>? positionalFields,
     List<RecordTypeFieldBuilder>? namedFields,
     NullabilityBuilder nullabilityBuilder,
@@ -573,7 +573,7 @@ class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
 /// inferred types, making this type indirectly depend on type inference.
 class _InferredRecordTypeBuilder extends RecordTypeBuilderImpl
     with InferableTypeBuilderMixin {
-  _InferredRecordTypeBuilder(
+  new(
     List<RecordTypeFieldBuilder>? positionalFields,
     List<RecordTypeFieldBuilder>? namedFields,
     NullabilityBuilder nullabilityBuilder,
@@ -629,7 +629,7 @@ class RecordTypeFieldBuilder {
 
   final bool isWildcard;
 
-  RecordTypeFieldBuilder(
+  new(
     this.metadata,
     this.type,
     this.name,

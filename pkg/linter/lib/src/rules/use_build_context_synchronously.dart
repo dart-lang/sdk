@@ -465,8 +465,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       _asynchronousIfAnyIsAsync([node.target, ...node.argumentList.arguments]);
 
   @override
-  AsyncState? visitNamedExpression(NamedExpression node) =>
-      node.expression.accept(this)?.asynchronousOrNull;
+  AsyncState? visitNamedArgument(NamedArgument node) =>
+      node.argumentExpression.accept(this)?.asynchronousOrNull;
 
   @override
   AsyncState? visitNullAwareElement(NullAwareElement node) =>
@@ -510,6 +510,10 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   @override
   AsyncState? visitRecordLiteral(RecordLiteral node) =>
       _asynchronousIfAnyIsAsync(node.fields);
+
+  @override
+  AsyncState? visitRecordLiteralNamedField(RecordLiteralNamedField node) =>
+      node.fieldExpression.accept(this)?.asynchronousOrNull;
 
   @override
   AsyncState? visitSetOrMapLiteral(SetOrMapLiteral node) =>
@@ -778,9 +782,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
           // Check for asynchrony in the statements that _follow_ [reference],
           // as they may lead to an async gap before we loop back to
           // [reference].
-          return _inOrderAsyncStateGuardable(
-            statements.skip(index + 1),
-          )?.asynchronousOrNull;
+          return _inOrderAsyncStateGuardable(statements.skip(index + 1))
+              ?.asynchronousOrNull;
         }
         return null;
       }
@@ -923,7 +926,7 @@ class ProtectedFunction {
   /// The list of named parameters that are protected.
   final List<String> named;
 
-  const ProtectedFunction(
+  const new(
     this.library,
     this.type,
     this.name, {
@@ -933,7 +936,7 @@ class ProtectedFunction {
 }
 
 class UseBuildContextSynchronously extends MultiAnalysisRule {
-  UseBuildContextSynchronously()
+  new()
     : super(
         name: LintNames.use_build_context_synchronously,
         description: _desc,
@@ -1115,7 +1118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void check(Expression node, Element mountedElement) {
     // Checks each of the statements before `child` for a `mounted` check, and
@@ -1150,7 +1153,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      if (grandparent is NamedExpression) {
+      if (grandparent is NamedArgument) {
         // Given a FunctionBody in a named argument, like
         // `future.catchError(test: (_) {...})`, we step up once more to the
         // argument list.
@@ -1183,9 +1186,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (staticType == null) return;
     var arguments = invocation.argumentList.arguments;
     var positionalArguments = arguments
-        .where((a) => a is! NamedExpression)
+        .where((a) => a is! NamedArgument)
         .toList();
-    var namedArguments = arguments.whereType<NamedExpression>().toList();
+    var namedArguments = arguments.whereType<NamedArgument>().toList();
     for (var constructor in protectedConstructors) {
       if (invocation.constructorName.name?.name == constructor.name &&
           staticType.isSameAs(constructor.type, constructor.library)) {
@@ -1218,9 +1221,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   ) {
     var arguments = invocation.argumentList.arguments;
     var positionalArguments = arguments
-        .where((a) => a is! NamedExpression)
+        .where((a) => a is! NamedArgument)
         .toList();
-    var namedArguments = arguments.whereType<NamedExpression>().toList();
+    var namedArguments = arguments.whereType<NamedArgument>().toList();
 
     var target = invocation.realTarget;
     var targetElement = target is Identifier ? target.element : null;
@@ -1270,16 +1273,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// protected argument [names] for a protected function.
   void checkNamedArguments(
     List<String> names,
-    List<NamedExpression> namedArguments,
+    List<NamedArgument> namedArguments,
     Expression callback,
     Expression errorNode,
   ) {
     for (var named in names) {
       var argument = namedArguments.firstWhereOrNull(
-        (a) => a.name.label.name == named,
+        (a) => a.name.lexeme == named,
       );
       if (argument == null) continue;
-      if (callback == argument.expression) {
+      if (callback == argument.argumentExpression) {
         rule.reportAtNode(
           errorNode,
           diagnosticCode: diag.useBuildContextSynchronouslyAsyncUse,
@@ -1292,13 +1295,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// the protected argument [positions] for a protected function.
   void checkPositionalArguments(
     List<int> positions,
-    List<Expression> positionalArguments,
+    List<Argument> positionalArguments,
     Expression callback,
     Expression errorNode,
   ) {
     for (var position in positions) {
       if (positionalArguments.length > position &&
-          callback == positionalArguments[position]) {
+          callback == positionalArguments[position].argumentExpression) {
         rule.reportAtNode(
           errorNode,
           diagnosticCode: diag.useBuildContextSynchronouslyAsyncUse,
@@ -1356,11 +1359,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitArgumentList(ArgumentList node) {
     for (var argument in node.arguments) {
-      var buildContextElement = argument.buildContextTypedElement;
+      var buildContextElement =
+          argument.argumentExpression.buildContextTypedElement;
       if (buildContextElement != null) {
         var mountedGetter = buildContextElement.associatedMountedGetter;
         if (mountedGetter != null) {
-          check(argument, mountedGetter);
+          check(argument.argumentExpression, mountedGetter);
         }
       }
     }
@@ -1406,9 +1410,6 @@ extension on Expression {
   /// The element of this expression, if it is typed as a BuildContext.
   Element? get buildContextTypedElement {
     var self = this;
-    if (self is NamedExpression) {
-      self = self.expression;
-    }
     if (self is PropertyAccess) {
       self = self.propertyName;
     }

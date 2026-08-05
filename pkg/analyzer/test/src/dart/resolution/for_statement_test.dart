@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,6 +19,7 @@ main() {
     defineReflectiveTests(ForStatementResolutionTest_ForPartsWithExpression);
     defineReflectiveTests(ForStatementResolutionTest_ForPartsWithDeclarations);
     defineReflectiveTests(ForStatementResolutionTest_ForPartsWithPattern);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -27,13 +28,13 @@ main() {
 class ForStatementResolutionTest_ForEachPartsWithDeclaration
     extends PubPackageResolutionTest {
   test_async_loopVariable_var_stream() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> values) async {
   await for (var v in values) {
     v;
   }
 }''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -66,17 +67,16 @@ ForStatement
   }
 
   test_async_scope_afterLoop_uses_outer_despite_loopVariable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x, int i) async {
   await for (var i in x) {}
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
   i;
 }
-''',
-      [error(diag.unusedLocalVariable, 54, 1)],
-    );
+''');
 
-    var node = findNode.singleBlockFunctionBody;
+    var node = result.findNode.singleBlockFunctionBody;
     assertResolvedNodeText(node, r'''
 BlockFunctionBody
   keyword: async
@@ -114,7 +114,7 @@ BlockFunctionBody
   }
 
   test_async_scope_loopVariable_shadows_numType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> values) async {
   await for (var num in values) {
     num;
@@ -122,7 +122,7 @@ void f(Stream<int> values) async {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -155,7 +155,7 @@ ForStatement
   }
 
   test_sync_iterable_contextType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   for (int v in g()) {}
@@ -164,7 +164,7 @@ void f() {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -200,16 +200,15 @@ ForStatement
   }
 
   test_sync_iterable_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic values) {
   for (var v in values) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 36, 1)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -234,18 +233,17 @@ ForStatement
   }
 
   test_sync_iterable_missing() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (var v in) {
+//             ^
+// [diag.missingIdentifier] Expected an identifier.
     v;
   }
 }
-''',
-      [error(diag.missingIdentifier, 26, 1)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -277,18 +275,17 @@ ForStatement
   }
 
   test_sync_iterable_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Iterable<int>? values) {
   for (var v in values) {
+//              ^^^^^^
+// [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
     v;
   }
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueAsIterator, 48, 6)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -320,18 +317,17 @@ ForStatement
   }
 
   test_sync_iterable_object() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object values) {
   for (var v in values) {
+//              ^^^^^^
+// [diag.forInOfInvalidType] The type 'Object' used in the 'for' loop must implement 'Iterable'.
     v;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 40, 6)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -363,21 +359,19 @@ ForStatement
   }
 
   test_sync_iterable_super() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Iterable<int> {
   void f() {
     for (var v in super) {}
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+//                ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 70, 1),
-        error(diag.missingAssignableSelector, 75, 5),
-      ],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -401,13 +395,13 @@ ForStatement
   }
 
   test_sync_loopVariable_dynamic() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> values) {
   for (dynamic v in values) {
     v;
   }
 }''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -442,7 +436,7 @@ ForStatement
   }
 
   test_sync_loopVariable_var_genericFunction() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   for (var v in g()) {}
@@ -451,7 +445,7 @@ void f() {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -484,14 +478,14 @@ ForStatement
   }
 
   test_sync_loopVariable_var_iterable() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Iterable<int> values) {
   for (var v in values) {
     v;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -523,14 +517,14 @@ ForStatement
   }
 
   test_sync_loopVariable_var_list() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> values) {
   for (var v in values) {
     v;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -562,17 +556,16 @@ ForStatement
   }
 
   test_sync_scope_afterLoop_uses_outer_despite_loopVariable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x, int i) {
   for (var i in x) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
   i;
 }
-''',
-      [error(diag.unusedLocalVariable, 40, 1)],
-    );
+''');
 
-    var node = findNode.singleBlockFunctionBody;
+    var node = result.findNode.singleBlockFunctionBody;
     assertResolvedNodeText(node, r'''
 BlockFunctionBody
   block: Block
@@ -608,19 +601,18 @@ BlockFunctionBody
   }
 
   test_sync_scope_body_shadows_loopVariable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> values) {
   for (var i in values) {
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
     var i = 'a';
     i;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 38, 1)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -665,7 +657,7 @@ ForStatement
   }
 
   test_sync_scope_iterable_uses_outer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> i) {
   for (var i in i) {
     i;
@@ -673,7 +665,7 @@ void f(List<int> i) {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -705,7 +697,7 @@ ForStatement
   }
 
   test_sync_scope_loopVariable_shadows_numType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> values) {
   for (var num in values) {
     num;
@@ -713,7 +705,7 @@ void f(List<int> values) {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -745,7 +737,7 @@ ForStatement
   }
 
   test_sync_type_genericFunctionType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (Null Function<T>(T, Null) e in <dynamic>[]) {
     e;
@@ -759,14 +751,14 @@ void f() {
 class ForStatementResolutionTest_ForEachPartsWithIdentifier
     extends PubPackageResolutionTest {
   test_async_iterable_stream() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(v, Stream<int> values) async {
   await for (v in values) {
     v;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -797,7 +789,7 @@ ForStatement
   }
 
   test_sync_iterable_contextType_fromInstanceSetter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T g<T>() => throw 0;
 
 class C {
@@ -809,7 +801,7 @@ class C {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -840,7 +832,7 @@ ForStatement
   }
 
   test_sync_iterable_contextType_fromTopLevelSetter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T g<T>() => throw 0;
 
 set x(int value) {}
@@ -850,7 +842,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -881,14 +873,14 @@ ForStatement
   }
 
   test_sync_iterable_list() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(v, List<int> values) {
   for (v in values) {
     v;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -918,17 +910,16 @@ ForStatement
   }
 
   test_sync_iterable_super() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Iterable<int> {
   void f(v) {
     for (v in super) {}
+//            ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 72, 5)],
-    );
-    var node = findNode.singleForStatement;
+''');
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -950,7 +941,7 @@ ForStatement
   }
 
   test_sync_scope_afterLoop_uses_outer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic v, List<int> values) {
   for (v in values) {
     v;
@@ -959,7 +950,7 @@ void f(dynamic v, List<int> values) {
 }
 ''');
 
-    var node = findNode.singleBlockFunctionBody;
+    var node = result.findNode.singleBlockFunctionBody;
     assertResolvedNodeText(node, r'''
 BlockFunctionBody
   block: Block
@@ -1000,7 +991,7 @@ BlockFunctionBody
   }
 
   test_sync_scope_header_not_affected_by_body_shadowing() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic v, List<int> values) {
   for (v in values) {
     var v = 0;
@@ -1009,7 +1000,7 @@ void f(dynamic v, List<int> values) {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1053,13 +1044,13 @@ ForStatement
   }
 
   test_sync_scope_iterable_uses_outer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic v) {
   for (v in v) {}
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1086,7 +1077,7 @@ ForStatement
 class ForStatementResolutionTest_ForEachPartsWithPattern
     extends PubPackageResolutionTest {
   test_async_iterable_contextType_patternVariable_typed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   await for (var (int a) in g()) {
     a;
@@ -1095,7 +1086,7 @@ void f() async {
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1145,7 +1136,7 @@ ForStatement
   }
 
   test_async_iterable_contextType_patternVariable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   await for (var (a) in g()) {
     a;
@@ -1154,7 +1145,7 @@ void f() async {
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1200,14 +1191,14 @@ ForStatement
   }
 
   test_async_iterable_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) async {
   await for (var (a) in x) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1245,17 +1236,16 @@ ForStatement
   }
 
   test_async_iterable_object() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) async {
   await for (var (a) in x) {
+//                      ^
+// [diag.forInOfInvalidType] The type 'Object' used in the 'for' loop must implement 'Iterable'.
     a;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 49, 1)],
-    );
-    var node = findNode.singleForStatement;
+''');
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1293,14 +1283,14 @@ ForStatement
   }
 
   test_async_iterable_stream() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   await for (var (a) in x) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1338,12 +1328,12 @@ ForStatement
   }
 
   test_async_iterable_stream_wildcard() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   await for (var (_) in x) {}
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1371,14 +1361,14 @@ ForStatement
   }
 
   test_async_keyword_final_patternVariable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   await for (final (a) in x) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1416,14 +1406,14 @@ ForStatement
   }
 
   test_async_pattern_patternVariable_typed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   await for (var (num a) in x) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1465,17 +1455,16 @@ ForStatement
   }
 
   test_async_scope_afterLoop_uses_outer_despite_patternVariable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x, int a) async {
   await for (var (a) in x) {}
+//                ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   a;
 }
-''',
-      [error(diag.unusedLocalVariable, 55, 1)],
-    );
+''');
 
-    var node = findNode.singleBlockFunctionBody;
+    var node = result.findNode.singleBlockFunctionBody;
     assertResolvedNodeText(node, r'''
 BlockFunctionBody
   keyword: async
@@ -1518,19 +1507,18 @@ BlockFunctionBody
   }
 
   test_async_scope_body_shadows_patternVariable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   await for (var (a) in x) {
+//                ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
     var a = 1;
     a;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 48, 1)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1582,7 +1570,7 @@ ForStatement
   }
 
   test_async_scope_iterable_uses_outer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   await for (var (x) in x) {
     x;
@@ -1590,7 +1578,7 @@ void f(Stream<int> x) async {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   awaitKeyword: await
@@ -1628,7 +1616,7 @@ ForStatement
   }
 
   test_metadata() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   for (@foo var (a) in x) {
     a;
@@ -1638,7 +1626,7 @@ void f(List<int> x) {
 const foo = 0;
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1683,19 +1671,18 @@ ForStatement
   }
 
   test_metadata_shadowing() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 42;
 void f(List<int> x) {
   for (@a var (a) in x) {
+//     ^^
+// [diag.invalidAnnotation] Annotation must be either a const variable reference or const constructor invocation.
     a;
   }
 }
-''',
-      [error(diag.invalidAnnotation, 43, 2)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1740,17 +1727,16 @@ ForStatement
   }
 
   test_sync_iterable_contextType_patternVariable_typed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (var (int a) in g()) {}
+//              ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 
 T g<T>() => throw 0;
-''',
-      [error(diag.unusedLocalVariable, 27, 1)],
-    );
-    var node = findNode.singleForStatement;
+''');
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1792,17 +1778,16 @@ ForStatement
   }
 
   test_sync_iterable_contextType_patternVariable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (var (a) in g()) {}
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 
 T g<T>() => throw 0;
-''',
-      [error(diag.unusedLocalVariable, 23, 1)],
-    );
-    var node = findNode.singleForStatement;
+''');
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1840,14 +1825,14 @@ ForStatement
   }
 
   test_sync_iterable_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   for (var (a) in x) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1884,14 +1869,14 @@ ForStatement
   }
 
   test_sync_iterable_list() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   for (var (a) in x) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1928,12 +1913,12 @@ ForStatement
   }
 
   test_sync_iterable_list_wildcard() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   for (var (_) in x) {}
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1960,17 +1945,16 @@ ForStatement
   }
 
   test_sync_iterable_object() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   for (var (a) in x) {
+//                ^
+// [diag.forInOfInvalidType] The type 'Object' used in the 'for' loop must implement 'Iterable'.
     a;
   }
 }
-''',
-      [error(diag.forInOfInvalidType, 37, 1)],
-    );
-    var node = findNode.singleForStatement;
+''');
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2007,20 +1991,18 @@ ForStatement
   }
 
   test_sync_iterable_super() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Iterable<int> {
   void f() {
     for (var (a) in super) {}
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 71, 1),
-        error(diag.missingAssignableSelector, 77, 5),
-      ],
-    );
-    var node = findNode.singleForStatement;
+''');
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2049,14 +2031,14 @@ ForStatement
   }
 
   test_sync_keyword_final_patternVariable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   for (final (a) in x) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2093,14 +2075,14 @@ ForStatement
   }
 
   test_sync_pattern_patternVariable_typed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   for (var (num a) in x) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2141,17 +2123,16 @@ ForStatement
   }
 
   test_sync_scope_afterLoop_uses_outer_despite_patternVariable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x, int a) {
   for (var (a) in x) {}
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   a;
 }
-''',
-      [error(diag.unusedLocalVariable, 41, 1)],
-    );
+''');
 
-    var node = findNode.singleBlockFunctionBody;
+    var node = result.findNode.singleBlockFunctionBody;
     assertResolvedNodeText(node, r'''
 BlockFunctionBody
   block: Block
@@ -2192,19 +2173,18 @@ BlockFunctionBody
   }
 
   test_sync_scope_body_shadows_patternVariable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   for (var (a) in x) {
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
     var a = 1;
     a;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 34, 1)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2255,7 +2235,7 @@ ForStatement
   }
 
   test_sync_scope_iterable_uses_outer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   for (var (x) in x) {
     x;
@@ -2263,7 +2243,7 @@ void f(List<int> x) {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2304,14 +2284,14 @@ ForStatement
 class ForStatementResolutionTest_ForPartsWithDeclarations
     extends PubPackageResolutionTest {
   test_scope_afterLoop_uses_outer_despite_initializerVariable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int i) {
   for (var i = 0; i < 1; i++) {}
   i;
 }
 ''');
 
-    var node = findNode.singleBlockFunctionBody;
+    var node = result.findNode.singleBlockFunctionBody;
     assertResolvedNodeText(node, r'''
 BlockFunctionBody
   block: Block
@@ -2376,7 +2356,7 @@ BlockFunctionBody
   }
 
   test_scope_body_shadows_loopVariable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> i) {
   for (var i = 0; i < 10; ++i) {
     var i = 'a';
@@ -2385,7 +2365,7 @@ void f(List<int> i) {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2459,7 +2439,7 @@ ForStatement
   }
 
   test_scope_initializerVariable_visibleInBody() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (var i = 0; i < 10; i++) {
     i;
@@ -2467,7 +2447,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2528,23 +2508,17 @@ ForStatement
   }
 
   test_scope_variables_initializer_uses_outer_sameName() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int i) {
   for (var i = i; i < 1; i++) {}
+//         ^
+// [context 1] The declaration of 'i' is here.
+//             ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'i' can't be referenced before it is declared.
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          31,
-          1,
-          contextMessages: [message(testFile, 27, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2599,13 +2573,13 @@ ForStatement
   }
 
   test_scope_variables_uses_outer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int i) {
   for (var i2 = i; i2 < 10; ++i2) {}
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2660,13 +2634,13 @@ ForStatement
   }
 
   test_scope_variables_visibleInNextVariableInitializer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (var i = 0, j = i; j < 1; j++) {}
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2734,13 +2708,13 @@ ForStatement
 class ForStatementResolutionTest_ForPartsWithExpression
     extends PubPackageResolutionTest {
   test_condition_rewrite() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(bool Function() b) {
   for (; b(); ) {}
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2767,7 +2741,7 @@ ForStatement
   }
 
   test_initialization_patternAssignment() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int a;
   for ((a) = 0;;) {
@@ -2776,7 +2750,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2814,7 +2788,7 @@ ForStatement
   }
 
   test_scope_body_shadows_outer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var i = 0;
   for (; i < 10; i++) {
@@ -2824,7 +2798,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2886,18 +2860,17 @@ ForStatement
   }
 
   test_update_super() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     for (;; super) {}
+//          ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 35, 5)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2921,7 +2894,7 @@ ForStatement
 class ForStatementResolutionTest_ForPartsWithPattern
     extends PubPackageResolutionTest {
   test_metadata() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (@deprecated var (a) = (0); a <= 2; a++) {
     a;
@@ -2929,7 +2902,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -3007,19 +2980,18 @@ ForStatement
   }
 
   test_metadata_shadowing() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 42;
 void f() {
   for (@a var (a) = (0); a <= 2; a++) {
+//     ^^
+// [diag.invalidAnnotation] Annotation must be either a const variable reference or const constructor invocation.
     a;
   }
 }
-''',
-      [error(diag.invalidAnnotation, 32, 2)],
-    );
+''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -3097,14 +3069,14 @@ ForStatement
   }
 
   test_scope_afterLoop_uses_outer_despite_patternVariable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) x, int a) {
   for (var (a, b) = x; b; a--) {}
   a;
 }
 ''');
 
-    var node = findNode.singleBlockFunctionBody;
+    var node = result.findNode.singleBlockFunctionBody;
     assertResolvedNodeText(node, r'''
 BlockFunctionBody
   block: Block
@@ -3177,7 +3149,7 @@ BlockFunctionBody
   }
 
   test_scope_body_shadows_patternVariable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) i) {
   for (var (a, b) = i; b; a--) {
     var a = 'a';
@@ -3186,7 +3158,7 @@ void f((int, bool) i) {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -3268,7 +3240,7 @@ ForStatement
   }
 
   test_scope_body_uses_outer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) x) {
   for (var (a, b) = x; b; a--) {
     x;
@@ -3276,7 +3248,7 @@ void f((int, bool) x) {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -3345,7 +3317,7 @@ ForStatement
   }
 
   test_scope_patternVariables() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) x) {
   for (var (a, b) = x; b; a--) {
     a;
@@ -3354,7 +3326,7 @@ void f((int, bool) x) {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -3430,13 +3402,13 @@ ForStatement
 
   test_scope_patternVariables_shadows_outer_in_expression() async {
     // TODO(scheglov): should report an error
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) a) {
   for (var (a, b) = a; b; a--) {}
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -3498,14 +3470,14 @@ ForStatement
   }
 
   test_scope_patternVariables_visibleIn_condition_updaters() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   for (var (a) = (0); a <= 2; a++) {
     a;
   }
 }
 ''');
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for

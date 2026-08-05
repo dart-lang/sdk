@@ -26,7 +26,7 @@ void BSS::InitializeBSSEntry(BSS::Relocation relocation,
   }
 }
 
-void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
+void BSS::Initialize(Thread* current, uword* bss_start) {
   // TODO(https://dartbug.com/52579): Remove.
   InitializeBSSEntry(Relocation::DLRT_GetFfiCallbackMetadata,
                      reinterpret_cast<uword>(DLRT_GetFfiCallbackMetadata),

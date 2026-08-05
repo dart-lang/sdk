@@ -19,7 +19,7 @@ const _desc =
     'with a non-nullable value.';
 
 class UnnecessaryNullableForFinalVariableDeclarations extends AnalysisRule {
-  UnnecessaryNullableForFinalVariableDeclarations()
+  new()
     : super(
         name: LintNames.unnecessary_nullable_for_final_variable_declarations,
         description: _desc,
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
   final RuleContext context;
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   void check(AstNode node) {
     if (node is! DeclaredVariablePattern) return;

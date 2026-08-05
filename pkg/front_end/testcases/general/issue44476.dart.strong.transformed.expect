@@ -26,7 +26,7 @@ library;
 // class A<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/general/issue44476.dart:11:14: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/general/issue44476.dart:12:14: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
 // Try changing type arguments so that they conform to the bounds.
 //   var baz = (A<num> z) {
 //              ^
@@ -34,7 +34,7 @@ library;
 // class A<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/general/issue44476.dart:12:19: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/general/issue44476.dart:13:19: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
 // Try changing type arguments so that they conform to the bounds.
 //     var bazbaz = (A<num> zz) => null;
 //                   ^

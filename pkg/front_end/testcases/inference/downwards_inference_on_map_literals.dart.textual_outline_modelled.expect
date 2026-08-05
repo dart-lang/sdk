@@ -4,9 +4,7 @@ main() {}
 
 void foo([
   Map<int, String> m1 = const {1: "hello"},
-  Map<int, String> m2 = const {
-    "hello": "world",
-  },
+  Map<int, String> m2 = const {"hello": "world"},
 ]) {}
 
 void test() {}

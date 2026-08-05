@@ -206,11 +206,11 @@ void testOpenUrlEmptyRequest() {
       });
 
       Callback2 cb = method[0] as Callback2;
-      cb(
-        Uri.parse("http://127.0.0.1:${server.port}/"),
-      ).then((request) => request.close()).then((response) {
-        response.listen((data) {}, onDone: server.close);
-      });
+      cb(Uri.parse("http://127.0.0.1:${server.port}/"))
+          .then((request) => request.close())
+          .then((response) {
+            response.listen((data) {}, onDone: server.close);
+          });
     });
   }
 }

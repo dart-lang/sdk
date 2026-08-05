@@ -2,145 +2,137 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MultipleCombinatorsExportTest);
     defineReflectiveTests(MultipleCombinatorsImportTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MultipleCombinatorsExportTest extends PubPackageResolutionTest {
   Future<void> test_hide() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'dart:async' hide Future, Stream;
 ''');
   }
 
   Future<void> test_hide_hide() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'dart:async' hide Future, Stream hide Stream;
-''',
-      [error(diag.multipleCombinators, 20, 31)],
-    );
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 
   Future<void> test_hide_show() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'dart:async' hide Future, Stream show Stream;
-''',
-      [error(diag.multipleCombinators, 20, 31)],
-    );
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 
   Future<void> test_no_combinators() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'dart:async';
 ''');
   }
 
   Future<void> test_show() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'dart:async' show Future, Stream;
 ''');
   }
 
   Future<void> test_show_hide() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'dart:async' show Future, Stream hide Stream;
-''',
-      [error(diag.multipleCombinators, 20, 31)],
-    );
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 
   Future<void> test_show_show() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'dart:async' show Future, Stream show Stream;
-''',
-      [error(diag.multipleCombinators, 20, 31)],
-    );
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 }
 
 @reflectiveTest
 class MultipleCombinatorsImportTest extends PubPackageResolutionTest {
   Future<void> test_hide() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
 import 'dart:async' hide Future, Stream;
 ''');
   }
 
   Future<void> test_hide_hide() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
 import 'dart:async' hide Future, Stream hide Stream;
-''',
-      [error(diag.multipleCombinators, 44, 31)],
-    );
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 
   Future<void> test_hide_show() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
 import 'dart:async' hide Future, Stream show Stream;
-''',
-      [error(diag.multipleCombinators, 44, 31)],
-    );
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 
   Future<void> test_no_combinators() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
 import 'dart:async';
 ''');
   }
 
   Future<void> test_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
 import 'dart:async' as async hide Future, Stream show Stream;
-''',
-      [error(diag.multipleCombinators, 53, 31)],
-    );
+//                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 
   Future<void> test_show() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
 import 'dart:async' show Future, Stream;
 ''');
   }
 
   Future<void> test_show_hide() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
 import 'dart:async' show Future, Stream hide Stream;
-''',
-      [error(diag.multipleCombinators, 44, 31)],
-    );
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 
   Future<void> test_show_show() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
 import 'dart:async' show Future, Stream show Stream;
-''',
-      [error(diag.multipleCombinators, 44, 31)],
-    );
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+''');
   }
 }

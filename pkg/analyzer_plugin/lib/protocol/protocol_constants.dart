@@ -4,7 +4,10 @@
 //
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
-// "pkg/analysis_server/tool/spec/generate_files".
+// "pkg/analyzer_plugin/tool/spec/generate_all.dart".
+
+// ignore_for_file: unnecessary_ignore, duplicate_ignore
+// ignore_for_file: unnecessary_type_name_in_constructor
 
 const String ANALYSIS_NOTIFICATION_ERRORS = 'analysis.errors';
 const String ANALYSIS_NOTIFICATION_ERRORS_ERRORS = 'errors';
@@ -33,6 +36,9 @@ const String ANALYSIS_REQUEST_GET_NAVIGATION_OFFSET = 'offset';
 const String ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS =
     'analysis.handleWatchEvents';
 const String ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS_EVENTS = 'events';
+const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
+const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED = 'excluded';
+const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED = 'included';
 const String ANALYSIS_REQUEST_SET_CONTEXT_ROOTS = 'analysis.setContextRoots';
 const String ANALYSIS_REQUEST_SET_CONTEXT_ROOTS_ROOTS = 'roots';
 const String ANALYSIS_REQUEST_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';

@@ -364,13 +364,12 @@ class _NullableVariableInference extends RecursiveVisitor {
   late NullableInference _nullInference;
 
   /// Variables that are currently believed to be not-null.
-  final _notNullLocals = HashSet<VariableDeclaration>.identity();
+  final _notNullLocals = HashSet<Variable>.identity();
 
   /// For each variable currently believed to be not-null ([_notNullLocals]),
   /// this collects variables that it is assigned to, so we update them if we
   /// later determine that the variable can be null.
-  final _assignedTo =
-      HashMap<VariableDeclaration, List<VariableDeclaration>>.identity();
+  final _assignedTo = HashMap<Variable, List<Variable>>.identity();
 
   /// All functions that have been analyzed with [analyzeFunction].
   ///
@@ -380,7 +379,7 @@ class _NullableVariableInference extends RecursiveVisitor {
 
   /// The current variable we are setting/initializing, so we can track if it
   /// is [_assignedTo] from another variable.
-  VariableDeclaration? _variableAssignedTo;
+  Variable? _variableAssignedTo;
 
   void enterFunction(FunctionNode node) {
     if (_functions.contains(node)) return; // local function already analyzed.
@@ -417,7 +416,7 @@ class _NullableVariableInference extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     if (_nullInference.allowNotNullDeclarations) {
       var annotations = node.annotations;
       if (annotations.isNotEmpty &&
@@ -458,7 +457,7 @@ class _NullableVariableInference extends RecursiveVisitor {
       _variableAssignedTo = variable;
 
       if (_nullInference.isNullable(node.value)) {
-        void markNullable(VariableDeclaration? v) {
+        void markNullable(Variable? v) {
           _notNullLocals.remove(v);
           _assignedTo.remove(v)?.forEach(markNullable);
         }
@@ -471,7 +470,7 @@ class _NullableVariableInference extends RecursiveVisitor {
     value.accept(this);
   }
 
-  bool variableIsNullable(VariableDeclaration variable) {
+  bool variableIsNullable(Variable variable) {
     if (_notNullLocals.contains(variable)) {
       if (_variableAssignedTo != null) {
         _assignedTo.putIfAbsent(variable, () => []).add(_variableAssignedTo!);

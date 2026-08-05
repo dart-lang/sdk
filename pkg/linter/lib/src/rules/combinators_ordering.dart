@@ -16,8 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Sort combinator names alphabetically.';
 
 class CombinatorsOrdering extends AnalysisRule {
-  CombinatorsOrdering()
-    : super(name: LintNames.combinators_ordering, description: _desc);
+  new() : super(name: LintNames.combinators_ordering, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.combinatorsOrdering;
@@ -36,7 +35,7 @@ class CombinatorsOrdering extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitHideCombinator(HideCombinator node) {

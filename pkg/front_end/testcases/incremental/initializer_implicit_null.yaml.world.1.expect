@@ -3,7 +3,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
 
   class A extends dart.core::Object {
     final field dart.core::int? a;
-    constructor •([dart.core::int? a = #C1]) → lib::A
+    constructor •([initializing-formal dart.core::int? a = #C1]) → lib::A
       : lib::A::a = a, super dart.core::Object::•()
       ;
   }

@@ -6,7 +6,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dev_compiler/dev_compiler.dart' as ddc_names
+import 'package:dev_compiler/dev_compiler.dart'
+    as ddc_names
     show libraryUriToJsIdentifier;
 
 import 'package:reload_test/ddc_helpers.dart' show FileDataPerGeneration;
@@ -48,13 +49,19 @@ class HotReloadMemoryFilesystem implements FileResolver {
   ///
   /// [clearWritableState] clears generation-specific state so that old
   /// generations' files aren't rewritten.
-  void writeToDisk(Uri outputDirectoryUri,
-      {required String generation, bool clearWritableState = true}) {
-    assert(Directory.fromUri(outputDirectoryUri).existsSync(),
-        '$outputDirectoryUri does not exist.');
+  void writeToDisk(
+    Uri outputDirectoryUri, {
+    required String generation,
+    bool clearWritableState = true,
+  }) {
+    assert(
+      Directory.fromUri(outputDirectoryUri).existsSync(),
+      '$outputDirectoryUri does not exist.',
+    );
     files.forEach((path, content) {
-      final outputFileUri =
-          outputDirectoryUri.resolve('generation$generation/').resolve(path);
+      final outputFileUri = outputDirectoryUri
+          .resolve('generation$generation/')
+          .resolve(path);
       final outputFile = File.fromUri(outputFileUri);
       outputFile.createSync(recursive: true);
       outputFile.writeAsBytesSync(content);
@@ -68,11 +75,11 @@ class HotReloadMemoryFilesystem implements FileResolver {
 
   @override
   FileDataPerGeneration get generationsToModifiedFilePaths => {
-        for (var e in generationChanges.entries)
-          e.key: e.value
-              .map((info) => [info.libraryName, info.jsSourcePath])
-              .toList()
-      };
+    for (var e in generationChanges.entries)
+      e.key: e.value
+          .map((info) => [info.libraryName, info.jsSourcePath])
+          .toList(),
+  };
 
   @override
   List<Map<String, String?>> get scriptDescriptorForBootstrap {
@@ -103,17 +110,19 @@ class HotReloadMemoryFilesystem implements FileResolver {
     final codeBytes = codeFile.readAsBytesSync();
     final sourcemapBytes = sourcemapFile.readAsBytesSync();
     final manifest = Map.castFrom<dynamic, dynamic, String, Object?>(
-        json.decode(manifestFile.readAsStringSync()) as Map);
+      json.decode(manifestFile.readAsStringSync()) as Map,
+    );
 
     generationChanges[generation] = [];
     for (final filePath in manifest.keys) {
       final fileUri = Uri.file(filePath);
       final Map<String, dynamic> offsets =
           Map.castFrom<dynamic, dynamic, String, Object?>(
-              manifest[filePath] as Map);
+            manifest[filePath] as Map,
+          );
       final codeOffsets = (offsets['code'] as List<dynamic>).cast<int>();
-      final sourcemapOffsets =
-          (offsets['sourcemap'] as List<dynamic>).cast<int>();
+      final sourcemapOffsets = (offsets['sourcemap'] as List<dynamic>)
+          .cast<int>();
 
       if (codeOffsets.length != 2 || sourcemapOffsets.length != 2) {
         continue;
@@ -129,19 +138,23 @@ class HotReloadMemoryFilesystem implements FileResolver {
         codeStart,
         codeEnd - codeStart,
       );
-      final fileName =
-          filePath.startsWith('/') ? filePath.substring(1) : filePath;
+      final fileName = filePath.startsWith('/')
+          ? filePath.substring(1)
+          : filePath;
       files[fileName] = byteView;
       final moduleName = ddc_names.libraryUriToJsIdentifier(fileUri);
       // TODO(markzipan): This is an overly simple heuristic to resolve the
       // original Dart file. Replace this if it no longer holds.
       var dartFileName = fileName;
       if (dartFileName.endsWith('.lib.js')) {
-        dartFileName =
-            fileName.substring(0, fileName.length - '.lib.js'.length);
+        dartFileName = fileName.substring(
+          0,
+          fileName.length - '.lib.js'.length,
+        );
       }
-      final fullyResolvedFileUri =
-          jsRootUri.resolve('generation$generation/$fileName');
+      final fullyResolvedFileUri = jsRootUri.resolve(
+        'generation$generation/$fileName',
+      );
       // This is a simple hack to resolve kernel library URIs from JS files.
       // This should be safe for hot reload tests but won't generalize.
       var libraryName = dartFileName;
@@ -152,10 +165,11 @@ class HotReloadMemoryFilesystem implements FileResolver {
         libraryName = 'hot-reload-test:///$libraryName';
       }
       final libraryInfo = LibraryInfo(
-          moduleName: moduleName,
-          libraryName: libraryName,
-          dartSourcePath: dartFileName,
-          jsSourcePath: fullyResolvedFileUri.toFilePath());
+        moduleName: moduleName,
+        libraryName: libraryName,
+        dartSourcePath: dartFileName,
+        jsSourcePath: fullyResolvedFileUri.toFilePath(),
+      );
       libraries.add(libraryInfo);
       if (generation == '0') {
         firstGenerationLibraries.add(libraryInfo);
@@ -187,11 +201,12 @@ class LibraryInfo {
   final String dartSourcePath;
   final String jsSourcePath;
 
-  LibraryInfo(
-      {required this.moduleName,
-      required this.libraryName,
-      required this.dartSourcePath,
-      required this.jsSourcePath});
+  LibraryInfo({
+    required this.moduleName,
+    required this.libraryName,
+    required this.dartSourcePath,
+    required this.jsSourcePath,
+  });
 
   @override
   String toString() =>

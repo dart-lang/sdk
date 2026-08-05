@@ -251,7 +251,7 @@ String? a;
           // Claim that we failed tpo apply the edits. This is what the client
           // would do if the edits provided were for an old version of the
           // document.
-          handler: (edit) => ApplyWorkspaceEditResult(
+          handler: (edit) async => ApplyWorkspaceEditResult(
             applied: false,
             failureReason: 'Document changed',
           ),

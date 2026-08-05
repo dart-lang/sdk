@@ -15,7 +15,7 @@ class ImplementedComputer {
 
   Set<String>? subtypeMembers;
 
-  ImplementedComputer(this.searchEngine, this.unitElement);
+  new(this.searchEngine, this.unitElement);
 
   Future<void> compute() async {
     for (var fragment in unitElement.classes) {

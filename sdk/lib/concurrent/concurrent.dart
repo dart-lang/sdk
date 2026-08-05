@@ -19,7 +19,7 @@ abstract interface class Mutex {
 
   external factory Mutex._();
 
-  external Object _runLocked(Object action);
+  external Object? _runLocked(Object action);
 
   /// Run the given synchronous `action` under a mutex.
   ///

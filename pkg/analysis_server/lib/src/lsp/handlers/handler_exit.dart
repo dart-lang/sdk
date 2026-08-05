@@ -12,7 +12,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 class ExitMessageHandler extends LspMessageHandler<void, void> {
   final bool clientDidCallShutdown;
 
-  ExitMessageHandler(super.server, {this.clientDidCallShutdown = false});
+  new(super.server, {this.clientDidCallShutdown = false});
 
   @override
   Method get handlesMessage => Method.exit;

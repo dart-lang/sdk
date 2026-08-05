@@ -35,7 +35,7 @@ class _WasmTransformer extends Transformer {
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
-  final Set<VariableDeclaration> _implicitFinalVariables = {};
+  final Set<Variable> _implicitFinalVariables = {};
 
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
@@ -46,7 +46,9 @@ class _WasmTransformer extends Transformer {
   final Class _wasmBaseClass;
 
   final Procedure _completerComplete;
+  final Procedure _completerCompleteError;
   final Procedure _completerConstructor;
+  final Procedure _completerSyncConstructor;
   final Procedure _completerGetFuture;
   final Procedure _streamControllerAdd;
   final Procedure _streamControllerAddError;
@@ -56,9 +58,7 @@ class _WasmTransformer extends Transformer {
   final Procedure _streamControllerGetHasListener;
   final Procedure _streamControllerGetIsPaused;
   final Procedure _streamControllerGetStream;
-  final Procedure _streamControllerSetOnCancel;
   final Procedure _streamControllerSetOnListen;
-  final Procedure _streamControllerSetOnResume;
 
   final Procedure _trySetStackTraceForwarder;
   final Procedure _trySetStackTrace;
@@ -150,10 +150,20 @@ class _WasmTransformer extends Transformer {
         'Completer',
         'complete',
       ),
+      _completerCompleteError = coreTypes.index.getProcedure(
+        'dart:async',
+        'Completer',
+        'completeError',
+      ),
       _completerConstructor = coreTypes.index.getProcedure(
         'dart:async',
         'Completer',
         '',
+      ),
+      _completerSyncConstructor = coreTypes.index.getProcedure(
+        'dart:async',
+        'Completer',
+        'sync',
       ),
       _completerGetFuture = coreTypes.index.getProcedure(
         'dart:async',
@@ -200,20 +210,10 @@ class _WasmTransformer extends Transformer {
         'StreamController',
         'get:stream',
       ),
-      _streamControllerSetOnCancel = coreTypes.index.getProcedure(
-        'dart:async',
-        'StreamController',
-        'set:onCancel',
-      ),
       _streamControllerSetOnListen = coreTypes.index.getProcedure(
         'dart:async',
         'StreamController',
         'set:onListen',
-      ),
-      _streamControllerSetOnResume = coreTypes.index.getProcedure(
-        'dart:async',
-        'StreamController',
-        'set:onResume',
       ),
       _trySetStackTraceForwarder = coreTypes.index.getTopLevelProcedure(
         'dart:async',
@@ -241,6 +241,30 @@ class _WasmTransformer extends Transformer {
     _currentMember = null;
     _cachedTypeContext = null;
     return result;
+  }
+
+  @override
+  TreeNode visitConstructor(Constructor node) {
+    _currentMember = node;
+    _cachedTypeContext = null;
+    _implicitFinalVariables.clear();
+
+    // NOTE: We handle constructors specially in order to ensure we process
+    // parameters before initializers (the `node.accept(this)` would use the
+    // wrong order)
+    transformList(node.function.positionalParameters, node.function);
+    transformList(node.function.namedParameters, node.function);
+    transformList(node.initializers, node);
+    if (node.function.body case final body?) {
+      node.function.body = transform(body);
+    }
+
+    for (final node in _implicitFinalVariables) {
+      node.isFinal = true;
+    }
+    _currentMember = null;
+    _cachedTypeContext = null;
+    return node;
   }
 
   /// Checks to see if it is safe to reuse `super._typeArguments`.
@@ -278,11 +302,11 @@ class _WasmTransformer extends Transformer {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  defaultVariable(Variable node) {
     if (!node.isFinal) {
       _implicitFinalVariables.add(node);
     }
-    return super.visitVariableDeclaration(node);
+    return super.defaultVariable(node);
   }
 
   @override
@@ -407,19 +431,17 @@ class _WasmTransformer extends Transformer {
       );
     }
 
-    final iterator = VariableDeclaration(
-      "#forIterator",
+    final iterator = SyntheticVariable(
+      cosmeticName: "#forIterator",
       initializer: iteratorInitializer..fileOffset = iterable.fileOffset,
       type: iteratorType,
-      isSynthesized: true,
     )..fileOffset = iterable.fileOffset;
 
     // Only used when `isAsync` is true.
-    final jumpSentinel = VariableDeclaration(
-      "#jumpSentinel",
+    final jumpSentinel = SyntheticVariable(
+      cosmeticName: "#jumpSentinel",
       initializer: ConstantExpression(BoolConstant(false)),
       type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable),
-      isSynthesized: true,
     );
 
     final condition = InstanceInvocation(
@@ -440,7 +462,10 @@ class _WasmTransformer extends Transformer {
         resultType: elementType,
       )..fileOffset = stmt.bodyOffset);
 
-    Block body = Block([variable, stmt.body])..fileOffset = stmt.fileOffset;
+    Block body = Block([
+      VariableStatement(VariableDeclaration(variable)),
+      stmt.body,
+    ])..fileOffset = stmt.fileOffset;
 
     Statement forStatement = ForStatement(
       const [],
@@ -479,8 +504,8 @@ class _WasmTransformer extends Transformer {
     }
 
     return Block([
-      iterator,
-      if (isAsync) jumpSentinel,
+      VariableStatement(VariableDeclaration(iterator)),
+      if (isAsync) VariableStatement(VariableDeclaration(jumpSentinel)),
       forStatement,
     ]).accept<TreeNode>(this);
   }
@@ -491,7 +516,7 @@ class _WasmTransformer extends Transformer {
   }
 
   InstanceInvocation _addToController(
-    VariableDeclaration controller,
+    Variable controller,
     Expression expression,
     int fileOffset,
   ) {
@@ -523,22 +548,43 @@ class _WasmTransformer extends Transformer {
     // Convert the function into:
     //
     //    Stream<T> name(args) {
-    //      var #controller = StreamController<T>(sync: true);
-    //
-    //      void #body() async {
-    //        Completer<void>? #paused;
-    //
-    //        #controller.onResume = #controller.onCancel = () {
+    //      var #paused;
+    //      var #cancelCompleter;
+    //      var #isDone = false;
+    //      var #onCancelCallback = () {
+    //        if (#isDone) return null;
+    //        if (#paused != null) {
     //          #paused?.complete(null);
     //          #paused = null;
-    //        };
+    //        }
+    //        #cancelCompleter ??= Completer.sync<void>();
+    //        return #cancelCompleter.future;
+    //      };
+    //      var #onResumeCallback = () {
+    //        if (#paused != null) {
+    //          #paused?.complete(null);
+    //          #paused = null;
+    //        }
+    //      }
+    //      var #controller = StreamController<T>(sync: true, onCancel: #onCancelCallback, onResume: #onResumeCallback);
     //
+    //      void #body() async {
     //        try {
     //          <transformed body>
     //        } catch (e, s) {
-    //          #controller.addError(e, s);
+    //          if (#cancelCompleter != null) {
+    //            #cancelCompleter?.completeError(e, s);
+    //            #cancelCompleter = null;
+    //          } else {
+    //            #controller.addError(e, s);
+    //          }
     //        } finally {
+    //          #isDone = true;
     //          #controller.close();
+    //          if (#cancelCompleter != null) {
+    //            #cancelCompleter?.complete(null);
+    //            #cancelCompleter = null;
+    //          }
     //        }
     //      }
     //
@@ -585,26 +631,6 @@ class _WasmTransformer extends Transformer {
       [emittedValueType],
     );
 
-    // StreamController<T>(sync: true)
-    final controllerInitializer = StaticInvocation(
-      _streamControllerConstructor,
-      Arguments(
-        [],
-        types: [emittedValueType],
-        named: [
-          NamedExpression('sync', ConstantExpression(BoolConstant(true))),
-        ],
-      ),
-    );
-
-    // var #controller = ...
-    final controllerVar = VariableDeclaration(
-      '#controller',
-      initializer: controllerInitializer..fileOffset = fileOffset,
-      type: controllerObjectType,
-      isSynthesized: true,
-    )..fileOffset = fileOffset;
-
     // `void #body() async { ... }` statements.
     final List<Statement> bodyStatements = [];
 
@@ -613,86 +639,128 @@ class _WasmTransformer extends Transformer {
       const VoidType(),
     ]);
 
-    final pausedVar = VariableDeclaration(
-      '#paused',
+    final pausedVar = SyntheticVariable(
+      cosmeticName: '#paused',
       initializer: null,
       type: pausedVarType,
-      isSynthesized: true,
     );
 
-    bodyStatements.add(pausedVar);
+    final cancelCompleterVar = SyntheticVariable(
+      cosmeticName: '#cancelCompleter',
+      initializer: null,
+      type: InterfaceType(_completerClass, Nullability.nullable, [
+        const VoidType(),
+      ]),
+    );
 
-    // controller.onResume = controller.onCancel = () {
-    //   #paused?.complete(null);
-    //   #paused = null;
-    // };
+    final isDoneVar = SyntheticVariable(
+      cosmeticName: '#isDone',
+      type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable),
+      initializer: ConstantExpression(BoolConstant(false)),
+    );
+
+    IfStatement makePauseCheck() => IfStatement(
+      EqualsNull(VariableGet(pausedVar)),
+      Block([]),
+      Block([
+        ExpressionStatement(
+          InstanceInvocation(
+            InstanceAccessKind.Instance,
+            VariableGet(pausedVar),
+            Name('complete'),
+            Arguments([ConstantExpression(NullConstant())]),
+            interfaceTarget: _completerComplete,
+            functionType:
+                substitute(_completerComplete.getterType, {
+                      _completerClass.typeParameters.first: const VoidType(),
+                    })
+                    as FunctionType,
+          ),
+        ),
+        ExpressionStatement(
+          VariableSet(pausedVar, ConstantExpression(NullConstant())),
+        ),
+      ]),
+    );
+
     final List<Statement> onCancelCallbackBodyStatements = [
       IfStatement(
-        EqualsNull(VariableGet(pausedVar)),
-        Block([]),
-        Block([
-          ExpressionStatement(
-            InstanceInvocation(
-              InstanceAccessKind.Instance,
-              VariableGet(pausedVar),
-              Name('complete'),
-              Arguments([ConstantExpression(NullConstant())]),
-              interfaceTarget: _completerComplete,
-              functionType:
-                  substitute(_completerComplete.getterType, {
-                        _completerClass.typeParameters.first: const VoidType(),
-                      })
-                      as FunctionType,
+        VariableGet(isDoneVar),
+        ReturnStatement(ConstantExpression(NullConstant())),
+        null,
+      ),
+      makePauseCheck(),
+      IfStatement(
+        EqualsNull(VariableGet(cancelCompleterVar)),
+        ExpressionStatement(
+          VariableSet(
+            cancelCompleterVar,
+            StaticInvocation(
+              _completerSyncConstructor,
+              Arguments([], types: [const VoidType()]),
             ),
           ),
-          ExpressionStatement(
-            VariableSet(pausedVar, ConstantExpression(NullConstant())),
+        ),
+        null,
+      ),
+      ReturnStatement(
+        InstanceGet(
+          InstanceAccessKind.Instance,
+          VariableGet(cancelCompleterVar),
+          Name('future'),
+          interfaceTarget: _completerGetFuture,
+          resultType: InterfaceType(
+            coreTypes.futureClass,
+            Nullability.nonNullable,
+            [const VoidType()],
           ),
-        ]),
+        ),
       ),
     ];
 
     final onCancelCallback = FunctionExpression(
       FunctionNode(
         Block(onCancelCallbackBodyStatements),
-        typeParameters: [],
-        positionalParameters: [],
-        namedParameters: [],
-        requiredParameterCount: 0,
-        returnType: const VoidType(),
+        returnType: FutureOrType(const VoidType(), Nullability.nonNullable),
       ),
     );
 
-    final onCancelCallbackVar = VariableDeclaration(
-      "#onCancelCallback",
+    final onCancelCallbackVar = SyntheticVariable(
+      cosmeticName: "#onCancelCallback",
       initializer: onCancelCallback,
+      isSynthesized: false,
     );
 
-    bodyStatements.add(onCancelCallbackVar);
+    final onResumeCallback = FunctionExpression(
+      FunctionNode(makePauseCheck(), returnType: const VoidType()),
+    );
 
-    bodyStatements.add(
-      ExpressionStatement(
-        InstanceSet(
-          InstanceAccessKind.Instance,
-          VariableGet(controllerVar),
-          Name('onResume'),
-          VariableGet(onCancelCallbackVar),
-          interfaceTarget: _streamControllerSetOnResume,
-        ),
+    final onResumeCallbackVar = SyntheticVariable(
+      cosmeticName: "#onResumeCallback",
+      initializer: onResumeCallback,
+      isSynthesized: false,
+    );
+
+    // StreamController<T>(sync: true)
+    final controllerInitializer = StaticInvocation(
+      _streamControllerConstructor,
+      Arguments(
+        [],
+        types: [emittedValueType],
+        named: [
+          NamedExpression('sync', ConstantExpression(BoolConstant(true))),
+          NamedExpression('onCancel', VariableGet(onCancelCallbackVar)),
+          NamedExpression('onResume', VariableGet(onResumeCallbackVar)),
+        ],
       ),
     );
 
-    bodyStatements.add(
-      ExpressionStatement(
-        InstanceSet(
-          InstanceAccessKind.Instance,
-          VariableGet(controllerVar),
-          Name('onCancel'),
-          VariableGet(onCancelCallbackVar),
-          interfaceTarget: _streamControllerSetOnCancel,
-        ),
-      ),
-    );
+    // var #controller = ...
+    final controllerVar = SyntheticVariable(
+      cosmeticName: '#controller',
+      initializer: controllerInitializer..fileOffset = fileOffset,
+      type: controllerObjectType,
+    )..fileOffset = fileOffset;
 
     _asyncStarFrames.add(
       _AsyncStarFrame(controllerVar, pausedVar, emittedValueType),
@@ -703,39 +771,84 @@ class _WasmTransformer extends Transformer {
 
     // The body will be wrapped with a `try-catch` to pass the error to the
     // controller, and `try-finally` to close the controller.
-    final exceptionVar = VariableDeclaration(null, isSynthesized: true);
+    final exceptionVar = CatchVariable(name: '#exception', isSynthesized: true);
 
-    final stackTraceVar = VariableDeclaration(
-      null,
-      isSynthesized: true,
+    final stackTraceVar = CatchVariable(
+      name: '#stackTrace',
       type: coreTypes.stackTraceRawType(Nullability.nonNullable),
+      isSynthesized: true,
     );
 
     final catch_ = Catch(
       exceptionVar,
       stackTrace: stackTraceVar,
+      IfStatement(
+        EqualsNull(VariableGet(cancelCompleterVar)),
+        ExpressionStatement(
+          InstanceInvocation(
+            InstanceAccessKind.Instance,
+            VariableGet(controllerVar),
+            Name("addError"),
+            Arguments([VariableGet(exceptionVar), VariableGet(stackTraceVar)]),
+            interfaceTarget: _streamControllerAddError,
+            functionType: _streamControllerAddError.getterType as FunctionType,
+          ),
+        ),
+        Block([
+          ExpressionStatement(
+            InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(cancelCompleterVar),
+              Name("completeError"),
+              Arguments([
+                VariableGet(exceptionVar),
+                VariableGet(stackTraceVar),
+              ]),
+              interfaceTarget: _completerCompleteError,
+              functionType: _completerCompleteError.getterType as FunctionType,
+            ),
+          ),
+          ExpressionStatement(
+            VariableSet(cancelCompleterVar, ConstantExpression(NullConstant())),
+          ),
+        ]),
+      ),
+    );
+
+    final finalizer = Block([
+      ExpressionStatement(
+        VariableSet(isDoneVar, ConstantExpression(BoolConstant(true))),
+      ),
       ExpressionStatement(
         InstanceInvocation(
           InstanceAccessKind.Instance,
           VariableGet(controllerVar),
-          Name("addError"),
-          Arguments([VariableGet(exceptionVar), VariableGet(stackTraceVar)]),
-          interfaceTarget: _streamControllerAddError,
-          functionType: _streamControllerAddError.getterType as FunctionType,
+          Name("close"),
+          Arguments([]),
+          interfaceTarget: _streamControllerClose,
+          functionType: _streamControllerClose.getterType as FunctionType,
         ),
       ),
-    );
-
-    final finalizer = ExpressionStatement(
-      InstanceInvocation(
-        InstanceAccessKind.Instance,
-        VariableGet(controllerVar),
-        Name("close"),
-        Arguments([]),
-        interfaceTarget: _streamControllerClose,
-        functionType: _streamControllerClose.getterType as FunctionType,
+      // Only complete the cancel completer if there was no error.
+      IfStatement(
+        Not(EqualsNull(VariableGet(cancelCompleterVar))),
+        ExpressionStatement(
+          InstanceInvocation(
+            InstanceAccessKind.Instance,
+            VariableGet(cancelCompleterVar),
+            Name('complete'),
+            Arguments([ConstantExpression(NullConstant())]),
+            interfaceTarget: _completerComplete,
+            functionType:
+                substitute(_completerComplete.getterType, {
+                      _completerClass.typeParameters.first: const VoidType(),
+                    })
+                    as FunctionType,
+          ),
+        ),
+        null,
       ),
-    );
+    ]);
 
     bodyStatements.add(
       TryFinally(TryCatch(transformedBody, [catch_]), finalizer),
@@ -759,11 +872,10 @@ class _WasmTransformer extends Transformer {
       Nullability.nonNullable,
     );
 
-    final bodyVar = VariableDeclaration(
-      '#body',
+    final bodyVar = SyntheticVariable(
+      cosmeticName: '#body',
       initializer: bodyInitializer..fileOffset = fileOffset,
       type: bodyFunctionType,
-      isSynthesized: true,
     )..fileOffset = fileOffset;
 
     // controller.onListen = () {
@@ -793,11 +905,17 @@ class _WasmTransformer extends Transformer {
 
     return FunctionNode(
       Block([
-        // var controller = StreamController<T>(sync: true);
-        controllerVar,
+        VariableStatement(VariableDeclaration(pausedVar)),
+        VariableStatement(VariableDeclaration(cancelCompleterVar)),
+        VariableStatement(VariableDeclaration(isDoneVar)),
+        VariableStatement(VariableDeclaration(onCancelCallbackVar)),
+        VariableStatement(VariableDeclaration(onResumeCallbackVar)),
+
+        // var controller = StreamController<T>(sync: true, onCancel: onCancelCallback, onResume: onResumeCallback);
+        VariableStatement(VariableDeclaration(controllerVar)),
 
         // var #body = ...;
-        bodyVar,
+        VariableStatement(VariableDeclaration(bodyVar)),
 
         // controller.onListen = ...;
         ExpressionStatement(setControllerOnListen),
@@ -1059,8 +1177,8 @@ class _WasmTransformer extends Transformer {
 }
 
 class _AsyncStarFrame {
-  final VariableDeclaration controllerVar;
-  final VariableDeclaration pausedVar;
+  final Variable controllerVar;
+  final Variable pausedVar;
   final DartType emittedValueType;
 
   _AsyncStarFrame(this.controllerVar, this.pausedVar, this.emittedValueType);
@@ -1207,8 +1325,8 @@ class PushPopWasmArrayTransformer {
     );
 
     // var newArray = WasmArray<T>(nextCapacity)
-    final newArrayVariable = VariableDeclaration(
-      'newArray',
+    final newArrayVariable = SyntheticVariable(
+      cosmeticName: 'newArray',
       initializer: arrayAllocation,
       type: InterfaceType(_wasmArrayClass, Nullability.nonNullable, [
         elementType,
@@ -1250,7 +1368,7 @@ class PushPopWasmArrayTransformer {
     }
 
     final List<Statement> arrayGrowStatements = [
-      newArrayVariable,
+      VariableStatement(VariableDeclaration(newArrayVariable)),
       ExpressionStatement(newArrayCopy),
       arrayFieldUpdate,
     ];
@@ -1374,12 +1492,14 @@ class PushPopWasmArrayTransformer {
     );
 
     // final temp = array[length]
-    final arrayGetVariable = VariableDeclaration.forValue(
-      arrayGet,
+    final arrayGetVariable = SyntheticVariable(
+      initializer: arrayGet,
       isFinal: true,
       type: elementType,
     );
-    blockStatements.add(arrayGetVariable);
+    blockStatements.add(
+      VariableStatement(VariableDeclaration(arrayGetVariable)),
+    );
 
     // array[length] = null
     if (elementIsNullable) {
@@ -1403,7 +1523,7 @@ class PushPopWasmArrayTransformer {
 }
 
 class _VariableCollector extends RecursiveVisitor {
-  Set<VariableDeclaration> variables = {};
+  Set<Variable> variables = {};
 
   @override
   void visitVariableGet(VariableGet node) {

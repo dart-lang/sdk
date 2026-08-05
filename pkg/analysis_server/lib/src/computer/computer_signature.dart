@@ -16,16 +16,11 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 class DartUnitSignatureComputer {
   final AstNode? _node;
   final int _offset;
-  final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
-  DartUnitSignatureComputer(
-    DartdocDirectiveInfo dartdocInfo,
-    CompilationUnit unit,
-    this._offset, {
-    this.documentationPreference = DocumentationPreference.full,
-  }) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
-       _node = unit.nodeCovering(offset: _offset);
+  new(DartdocDirectiveInfo dartdocInfo, CompilationUnit unit, this._offset)
+    : _documentationComputer = DartDocumentationComputer(dartdocInfo),
+      _node = unit.nodeCovering(offset: _offset);
 
   bool get offsetIsValid => _node != null;
 
@@ -78,15 +73,15 @@ class DartUnitSignatureComputer {
 
     // Try to compute the active parameter so the IDE can highlight it.
     int? activeParameterIndex;
-    if (argument case Expression(:var correspondingParameter?)) {
+    if (argument case Argument(:var correspondingParameter?)) {
       // If we know the active parameter, use its index.
       activeParameterIndex = parameters.indexOf(correspondingParameter);
-    } else if (argument is! NamedExpression) {
+    } else if (argument is! NamedArgument) {
       // If we're not a named expression, then we can count how many positional
       // parameters there are before us, and then find the index of the same
       // index positional parameter.
       var positionalArgsToSkip = argumentList.arguments
-          .where((argument) => argument is! NamedExpression)
+          .where((argument) => argument is! NamedArgument)
           .takeWhile((argument) => argument.end < _offset)
           .length;
       for (var i = 0; i < parameters.length; i++) {
@@ -102,10 +97,7 @@ class DartUnitSignatureComputer {
       }
     }
 
-    var dartdoc = _documentationComputer.computePreferred(
-      element,
-      documentationPreference,
-    );
+    var dartdoc = _documentationComputer.compute(element)?.full;
 
     return SignatureInformation(
       name: name,
@@ -162,7 +154,7 @@ class SignatureInformation {
   /// name will not be returned.
   final int? activeParameterIndex;
 
-  SignatureInformation({
+  new({
     required this.name,
     required this.parameters,
     required this.argumentList,

@@ -349,29 +349,40 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
   }
 }
 
-static bool DeleteRecursively(int dirfd, PathBuffer* path);
+static bool DeleteRecursively(int dirfd,
+                              PathBuffer* path,
+                              bool fail_on_missing = true);
 
 static bool DeleteFile(int dirfd, char* file_name, PathBuffer* path) {
-  return path->Add(file_name) &&
-         (NO_RETRY_EXPECTED(unlinkat(dirfd, path->AsString(), 0)) == 0);
+  if (!path->Add(file_name)) {
+    return false;
+  }
+  if (NO_RETRY_EXPECTED(unlinkat(dirfd, path->AsString(), 0)) == 0) {
+    return true;
+  }
+  return (errno == ENOENT);
 }
 
 static bool DeleteDir(int dirfd, char* dir_name, PathBuffer* path) {
   if ((strcmp(dir_name, ".") == 0) || (strcmp(dir_name, "..") == 0)) {
     return true;
   }
-  return path->Add(dir_name) && DeleteRecursively(dirfd, path);
+  return path->Add(dir_name) &&
+         DeleteRecursively(dirfd, path, /*fail_on_missing=*/false);
 }
 
-static bool DeleteRecursively(int dirfd, PathBuffer* path) {
+static bool DeleteRecursively(int dirfd,
+                              PathBuffer* path,
+                              bool fail_on_missing) {
   // Do not recurse into links for deletion. Instead delete the link.
   // If it's a file, delete it.
   struct stat st;
   if (TEMP_FAILURE_RETRY(
           fstatat(dirfd, path->AsString(), &st, AT_SYMLINK_NOFOLLOW)) == -1) {
-    return false;
+    return !fail_on_missing && (errno == ENOENT);
   } else if (!S_ISDIR(st.st_mode)) {
-    return (NO_RETRY_EXPECTED(unlinkat(dirfd, path->AsString(), 0)) == 0);
+    return (NO_RETRY_EXPECTED(unlinkat(dirfd, path->AsString(), 0)) == 0) ||
+           (!fail_on_missing && (errno == ENOENT));
   }
 
   if (!path->Add(File::PathSeparator())) {
@@ -383,7 +394,7 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
   const int fd =
       TEMP_FAILURE_RETRY(openat(dirfd, path->AsString(), O_DIRECTORY));
   if (fd < 0) {
-    return false;
+    return !fail_on_missing && (errno == ENOENT);
   }
   DIR* dir_pointer;
   do {
@@ -391,7 +402,7 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
   } while ((dir_pointer == nullptr) && (errno == EINTR));
   if (dir_pointer == nullptr) {
     FDUtils::SaveErrorAndClose(fd);
-    return false;
+    return !fail_on_missing && (errno == ENOENT);
   }
 
   // Iterate the directory and delete all files and directories.
@@ -418,7 +429,7 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
       }
       status =
           NO_RETRY_EXPECTED(unlinkat(dirfd, path->AsString(), AT_REMOVEDIR));
-      return status == 0;
+      return (status == 0) || (!fail_on_missing && (errno == ENOENT));
     }
     bool ok = false;
     switch (entry->d_type) {
@@ -446,6 +457,9 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
         struct stat entry_info;
         if (TEMP_FAILURE_RETRY(fstatat(dirfd, path->AsString(), &entry_info,
                                        AT_SYMLINK_NOFOLLOW)) == -1) {
+          if (errno == ENOENT) {
+            ok = true;
+          }
           break;
         }
         path->Reset(path_length);

@@ -5,7 +5,8 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../common/test_helper.dart';
+import '../common/service_test_common.dart';
+import 'type_arguments_lib.dart' as testee_lib;
 
 class TypeArgumentsList {
   static TypeArgumentsList? parse(Map<String, dynamic>? json) =>
@@ -44,48 +45,42 @@ extension on VmService {
   }
 }
 
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final result = await service.getTypeArgumentsList(
-      isolateId,
-      false,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('type_arguments_lib.dart', args)
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final result = await service.getTypeArgumentsList(
+        isolateId,
+        false,
+      );
 
-    expect(result.typeArguments, isNotEmpty);
-    expect(
-      result.canonicalTypeArgumentsTableSize,
-      greaterThanOrEqualTo(result.canonicalTypeArgumentsTableUsed),
-    );
+      expect(result.typeArguments, isNotEmpty);
+      expect(
+        result.canonicalTypeArgumentsTableSize,
+        greaterThanOrEqualTo(result.canonicalTypeArgumentsTableUsed),
+      );
 
-    final resultWithInstantiations = await service.getTypeArgumentsList(
-      isolateId,
-      true,
-    );
-    expect(resultWithInstantiations.typeArguments, isNotEmpty);
-    expect(
-      resultWithInstantiations.canonicalTypeArgumentsTableSize,
-      greaterThanOrEqualTo(
-        resultWithInstantiations.canonicalTypeArgumentsTableUsed,
-      ),
-    );
+      final resultWithInstantiations = await service.getTypeArgumentsList(
+        isolateId,
+        true,
+      );
+      expect(resultWithInstantiations.typeArguments, isNotEmpty);
+      expect(
+        resultWithInstantiations.canonicalTypeArgumentsTableSize,
+        greaterThanOrEqualTo(
+          resultWithInstantiations.canonicalTypeArgumentsTableUsed,
+        ),
+      );
 
-    // Check that |instantiated| <= |all|
-    expect(
-      resultWithInstantiations.typeArguments.length,
-      lessThanOrEqualTo(result.typeArguments.length),
-    );
+      // Check that |instantiated| <= |all|
+      expect(
+        resultWithInstantiations.typeArguments.length,
+        lessThanOrEqualTo(result.typeArguments.length),
+      );
 
-    // Check that we can retrieve the type argument again.
-    final firstType = result.typeArguments.first;
-    final type =
-        await service.getObject(isolateId, firstType.id!) as TypeArguments;
-    expect(firstType.name, type.name);
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'type_arguments_test.dart',
-    );
+      // Check that we can retrieve the type argument again.
+      final firstType = result.typeArguments.first;
+      final type =
+          await service.getObject(isolateId, firstType.id!) as TypeArguments;
+      expect(firstType.name, type.name);
+    }).run(testeeMain: testee_lib.main);

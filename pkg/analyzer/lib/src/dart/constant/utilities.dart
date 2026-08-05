@@ -175,15 +175,6 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
-    super.visitDefaultFormalParameter(node);
-    var defaultValue = node.defaultValue;
-    if (defaultValue != null && node.declaredFragment != null) {
-      constantsToCompute.add(node.declaredFragment!.element);
-    }
-  }
-
-  @override
   void visitEnumConstantDeclaration(
     covariant EnumConstantDeclarationImpl node,
   ) {
@@ -196,6 +187,24 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
       fromElement: element.constantInitializer,
       fromAst: node,
     );
+  }
+
+  @override
+  void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
+    super.visitFieldFormalParameter(node);
+    _visitFormalParameter(node);
+  }
+
+  @override
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
+    super.visitRegularFormalParameter(node);
+    _visitFormalParameter(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
+    super.visitSuperFormalParameter(node);
+    _visitFormalParameter(node);
   }
 
   @override
@@ -217,6 +226,12 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
           fromAst: node.initializer,
         );
       }
+    }
+  }
+
+  void _visitFormalParameter(FormalParameterImpl node) {
+    if (node.defaultClause != null && node.declaredFragment != null) {
+      constantsToCompute.add(node.declaredFragment!.element);
     }
   }
 }

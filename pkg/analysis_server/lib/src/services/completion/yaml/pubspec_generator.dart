@@ -9,23 +9,21 @@ import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 
 /// An object that represents the location of a package name.
 class PubPackageNameProducer extends KeyValueProducer {
-  const PubPackageNameProducer();
+  const new();
 
   @override
   Producer producerForKey(String key) => PubPackageVersionProducer(key);
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-    YamlCompletionRequest request,
-  ) sync* {
-    var cachedPackages = request.pubPackageService?.cachedPackages;
-    if (cachedPackages != null) {
-      var relevance = cachedPackages.length;
-      yield* cachedPackages.map(
-        (package) =>
-            packageName('${package.packageName}: ', relevance: relevance--),
-      );
-    }
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      if (request.pubPackageService?.cachedPackages
+          case List(length: var relevance) && var list)
+        ...list.map(
+          (package) =>
+              packageName('${package.packageName}: ', relevance: relevance--),
+        ),
+    ];
   }
 }
 
@@ -34,12 +32,10 @@ class PubPackageNameProducer extends KeyValueProducer {
 class PubPackageVersionProducer extends Producer {
   final String package;
 
-  const PubPackageVersionProducer(this.package);
+  const new(this.package);
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-    YamlCompletionRequest request,
-  ) sync* {
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
     var versions = request.pubPackageService?.cachedPubOutdatedVersions(
       request.filePath,
       package,
@@ -56,12 +52,11 @@ class PubPackageVersionProducer extends Producer {
     // "pub outdated" results.
     latest ??= request.pubPackageService?.cachedPubApiLatestVersion(package);
 
-    if (resolvable != null && resolvable != latest) {
-      yield identifier('^$resolvable', docComplete: '_latest compatible_');
-    }
-    if (latest != null) {
-      yield identifier('^$latest', docComplete: '_latest_');
-    }
+    return [
+      if (resolvable != null && resolvable != latest)
+        identifier('^$resolvable', docComplete: '_latest compatible_'),
+      if (latest != null) identifier('^$latest', docComplete: '_latest_'),
+    ];
   }
 }
 
@@ -154,10 +149,7 @@ class PubspecGenerator extends YamlCompletionGenerator {
   });
 
   /// Initialize a newly created suggestion generator for pubspec files.
-  PubspecGenerator(
-    super.resourceProvider,
-    PubPackageService super.pubPackageService,
-  );
+  new(super.resourceProvider, PubPackageService super.pubPackageService);
 
   @override
   Producer get topLevelProducer => pubspecProducer;

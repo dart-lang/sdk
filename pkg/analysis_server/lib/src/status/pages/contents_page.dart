@@ -10,7 +10,7 @@ import 'package:analysis_server/src/status/pages.dart';
 class ContentsPage extends DiagnosticPageWithNav {
   String? _description;
 
-  ContentsPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'contents',

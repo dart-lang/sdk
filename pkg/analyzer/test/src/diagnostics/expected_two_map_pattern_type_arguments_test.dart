@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class ExpectedTwoMapPatternTypeArgumentsTest extends PubPackageResolutionTest {
   test_0() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case {0: _}) {}
 }
@@ -24,18 +23,17 @@ void f(x) {
   }
 
   test_1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case <int>{0: _}) {}
+//           ^^^^^
+// [diag.expectedTwoMapPatternTypeArguments] Map patterns require two type arguments or none, but 1 found.
 }
-''',
-      [error(diag.expectedTwoMapPatternTypeArguments, 25, 5)],
-    );
+''');
   }
 
   test_2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case <bool, int>{0: _}) {}
 }
@@ -43,13 +41,12 @@ void f(x) {
   }
 
   test_3() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case <bool, int, String>{0: _}) {}
+//           ^^^^^^^^^^^^^^^^^^^
+// [diag.expectedTwoMapPatternTypeArguments] Map patterns require two type arguments or none, but 3 found.
 }
-''',
-      [error(diag.expectedTwoMapPatternTypeArguments, 25, 19)],
-    );
+''');
   }
 }

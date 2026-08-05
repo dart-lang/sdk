@@ -46,7 +46,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Uri? sdkSummary,
   Uri? packagesFile,
   Uri? librariesSpecificationUri,
-  List<Uri> additionalDills,
+  List<Uri> additionalDillModules,
   Map<Uri, List<int>> workerInputDigests,
   Target target,
   FileSystem fileSystem,
@@ -56,10 +56,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   bool trackNeededDillLibraries = false,
   bool verbose = false,
 }) {
-  List<Component> outputLoadedAdditionalDills = new List<Component>.filled(
-    additionalDills.length,
-    dummyComponent,
-  );
+  List<Component> outputLoadedAdditionalDillModules =
+      new List<Component>.filled(additionalDillModules.length, dummyComponent);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
     parseExperimentalArguments(experiments),
     onError: (e) => throw e,
@@ -67,11 +65,11 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   return modular.initializeIncrementalCompiler(
     oldState,
     tags,
-    outputLoadedAdditionalDills,
+    outputLoadedAdditionalDillModules,
     sdkSummary,
     packagesFile,
     librariesSpecificationUri,
-    additionalDills,
+    additionalDillModules,
     workerInputDigests,
     target,
     fileSystem: fileSystem,
@@ -89,7 +87,7 @@ InitializedCompilerState initializeCompiler(
   Uri? sdkSummary,
   Uri? librariesSpecificationUri,
   Uri? packagesFile,
-  List<Uri> additionalDills,
+  List<Uri> additionalDillModules,
   Target target,
   FileSystem fileSystem,
   Iterable<String> experiments,
@@ -105,7 +103,7 @@ InitializedCompilerState initializeCompiler(
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
     ..librariesSpecificationUri = librariesSpecificationUri
-    ..additionalDills = additionalDills
+    ..additionalDillModules = additionalDillModules
     ..target = target
     ..fileSystem = fileSystem
     ..environmentDefines = environmentDefines

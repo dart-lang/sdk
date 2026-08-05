@@ -9,8 +9,8 @@ library;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:path/path.dart' as path;
 
 Element convertElement(engine.Element element) {
   var kind = convertElementToElementKind(element);
@@ -135,7 +135,7 @@ ElementKind convertElementToElementKind(engine.Element element) {
 Element convertLibraryFragment(LibraryFragmentImpl fragment) {
   return Element(
     ElementKind.COMPILATION_UNIT,
-    path.basename(fragment.source.fullName),
+    (fragment.source as FileSource).file.shortName,
     Element.makeFlags(
       isPrivate: fragment.isPrivate,
       isDeprecated: fragment.library.isDeprecatedWithKind('use'),
@@ -146,7 +146,8 @@ Element convertLibraryFragment(LibraryFragmentImpl fragment) {
 
 String getElementDisplayName(engine.Element element) {
   if (element is engine.LibraryFragment) {
-    return path.basename((element as engine.LibraryFragment).source.fullName);
+    var fragment = element as engine.LibraryFragment;
+    return (fragment.source as FileSource).file.shortName;
   } else {
     return element.displayName;
   }

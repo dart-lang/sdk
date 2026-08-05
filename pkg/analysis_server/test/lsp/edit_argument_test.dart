@@ -20,7 +20,7 @@ void main() {
 
 @reflectiveTest
 class ComputeStringValueTest {
-  test_doubleQuote_multi_notRaw() async {
+  test_doubleQuote_multi_notRaw() {
     verifyStrings(
       [
         // Single quotes (not escaped).
@@ -38,7 +38,7 @@ class ComputeStringValueTest {
     );
   }
 
-  test_doubleQuote_multi_raw() async {
+  test_doubleQuote_multi_raw() {
     verifyStrings(
       [
         // Single quotes (not escaped).
@@ -60,7 +60,7 @@ class ComputeStringValueTest {
     );
   }
 
-  test_doubleQuote_notMulti_notRaw() async {
+  test_doubleQuote_notMulti_notRaw() {
     verifyStrings(
       [
         // Single quotes (not escaped).
@@ -82,7 +82,7 @@ class ComputeStringValueTest {
     );
   }
 
-  test_doubleQuote_notMulti_raw() async {
+  test_doubleQuote_notMulti_raw() {
     verifyStrings(
       [
         // Single quotes (not escaped).
@@ -104,7 +104,7 @@ class ComputeStringValueTest {
     );
   }
 
-  test_singleQuote_multi_notRaw() async {
+  test_singleQuote_multi_notRaw() {
     verifyStrings(
       [
         // Single quotes (not escaped).
@@ -122,7 +122,7 @@ class ComputeStringValueTest {
     );
   }
 
-  test_singleQuote_multi_raw() async {
+  test_singleQuote_multi_raw() {
     verifyStrings(
       [
         // Single quotes (not escaped).
@@ -144,7 +144,7 @@ class ComputeStringValueTest {
     );
   }
 
-  test_singleQuote_notMulti_notRaw() async {
+  test_singleQuote_notMulti_notRaw() {
     verifyStrings(
       [
         // Single quotes (escaped).
@@ -166,7 +166,7 @@ class ComputeStringValueTest {
     );
   }
 
-  test_singleQuote_notMulti_raw() async {
+  test_singleQuote_notMulti_raw() {
     verifyStrings(
       [
         // Single quotes (escaped, changed to non-raw because quotes in string).

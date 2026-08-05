@@ -10,21 +10,23 @@ import "package:expect/expect.dart";
 
 const printString = "print";
 const var1 = Simple(printString);
+
 class Simple {
   final String name;
 
   const Simple(this.name) {
-//                        ^
-// [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
+    //                    ^
+    // [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
     assert(this.name == printString);
   }
 }
 
 const var2 = A();
+
 class A {
   const A() {
-  //        ^
-  // [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
+    //      ^
+    // [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
     return;
   }
 }

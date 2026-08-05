@@ -123,12 +123,6 @@ class ElementWalker {
       _typeParameters = fragment.typeParameters,
       _variables = fragment.fields.where((f) => f.isOriginDeclaration).toList();
 
-  /// Creates an [ElementWalker] which walks the child elements of a parameter
-  /// element.
-  ElementWalker.forParameter(FormalParameterFragmentImpl this.fragment)
-    : _parameters = fragment.formalParameters,
-      _typeParameters = fragment.typeParameters;
-
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
   ElementWalker.forTypedef(TypeAliasFragmentImpl this.fragment)

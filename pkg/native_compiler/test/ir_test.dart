@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cfg/front_end/computed_scopes.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:front_end/src/api_unstable/vm.dart'
     show
@@ -46,7 +47,7 @@ const kUpdateExpectations = 'updateExpectations';
 final String dartSdkPkgDir = Platform.script.resolve('../..').toFilePath();
 
 Future<void> runTestCase(Uri source) async {
-  final target = VmTarget(TargetFlags());
+  final target = VmTarget(TargetFlags(isClosureContextLoweringEnabled: false));
   Component component = await compileTestCaseToKernelProgram(
     source,
     target: target,
@@ -85,7 +86,7 @@ Future<Component> compileTestCaseToKernelProgram(
   );
   final options = CompilerOptions()
     ..target = target
-    ..additionalDills = <Uri>[platformKernel]
+    ..sdkSummary = platformKernel
     ..environmentDefines = {}
     ..onDiagnostic = (CfeDiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
@@ -149,12 +150,15 @@ class CompileAndDumpIr extends RecursiveVisitor {
   }
 
   void compileAndDumpFunction(CFunction function) {
+    final closures = <CFunction>[];
     final graph = AstToIr(
       function,
       functionRegistry,
       recognizedMethods,
+      onLocalFunction: closures.add,
       enableAsserts: true,
       typeParametersStyle: .separateFunctionAndClassTypeParameters,
+      scopes: ComputedScopes(function.member, enableAsserts: true),
     ).buildFlowGraph();
     final backEndState = BackEndState();
     final constraints = Arm64Constraints();
@@ -165,13 +169,14 @@ class CompileAndDumpIr extends RecursiveVisitor {
       compressedWordSize: 8,
     );
     backEndState.stackFrame = Arm64StackFrame(function);
+    backEndState.unboxing = Unboxing();
     final pipeline = Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),
       ConstantPropagation(),
       ControlFlowOptimizations(),
       Lowering(functionRegistry, objectLayout),
-      Unboxing(),
+      backEndState.unboxing,
       ValueNumbering(simplification: Simplification()),
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
@@ -188,16 +193,13 @@ class CompileAndDumpIr extends RecursiveVisitor {
         annotator: RegisterAllocationPrinter(backEndState, constraints).print,
       ).toString(),
     );
+    for (final closure in closures) {
+      compileAndDumpFunction(closure);
+    }
   }
 }
 
-class Difference {
-  final int line;
-  final String actual;
-  final String expected;
-
-  Difference(this.line, this.actual, this.expected);
-}
+class Difference(final int line, final String actual, final String expected);
 
 Difference findFirstDifference(String actual, String expected) {
   final actualLines = actual.split('\n');

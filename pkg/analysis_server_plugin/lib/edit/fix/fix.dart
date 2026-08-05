@@ -5,6 +5,8 @@
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
+export 'package:analyzer_plugin/utilities/fixes/fixes.dart' show FixKind;
+
 /// A description of a single proposed fix for some problem.
 final class Fix {
   /// A description of the fix being proposed.

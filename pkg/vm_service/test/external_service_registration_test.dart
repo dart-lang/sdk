@@ -5,30 +5,30 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'external_service_registration_lib.dart' as testee_lib;
 
 const serviceName = 'serviceName';
 const serviceAlias = 'serviceAlias';
 
-final tests = <IsolateTest>[
-  (VmService primaryClient, IsolateRef isolateRef) async {
-    // Register two unique services.
-    await primaryClient.registerService(serviceName, serviceAlias);
-    await primaryClient.registerService('${serviceName}2', '${serviceAlias}2');
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('external_service_registration_lib.dart', args)
+        .addCustomTest(
+      (VmService primaryClient, IsolateRef isolateRef) async {
+        // Register two unique services.
+        await primaryClient.registerService(serviceName, serviceAlias);
+        await primaryClient.registerService(
+          '${serviceName}2',
+          '${serviceAlias}2',
+        );
 
-    try {
-      // Try to register with an existing service name.
-      await primaryClient.registerService(serviceName, serviceAlias);
-      fail('Successfully registered service with duplicate name');
-    } on RPCError catch (e) {
-      expect(e.code, RPCErrorKind.kServiceAlreadyRegistered.code);
-      expect(e.message, contains('Service already registered'));
-    }
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'external_service_registration_test.dart',
-    );
+        try {
+          // Try to register with an existing service name.
+          await primaryClient.registerService(serviceName, serviceAlias);
+          fail('Successfully registered service with duplicate name');
+        } on RPCError catch (e) {
+          expect(e.code, RPCErrorKind.kServiceAlreadyRegistered.code);
+          expect(e.message, contains('Service already registered'));
+        }
+      },
+    ).run(testeeMain: testee_lib.main);

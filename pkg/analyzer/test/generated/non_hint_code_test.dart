@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
-import 'test_support.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonHintCodeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -18,23 +18,21 @@ main() {
 class NonHintCodeTest extends PubPackageResolutionTest {
   test_issue20904BuggyTypePromotionAtIfJoin_1() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(message, dynamic_) {
   if (message is Function) {
     message = dynamic_;
   }
   int s = message;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 's' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 86, 1)],
-    );
+''');
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_3() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(message) {
   var dynamic_;
   if (message is Function) {
@@ -43,16 +41,15 @@ f(message) {
     return;
   }
   int s = message;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 's' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 115, 1)],
-    );
+''');
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_4() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(message) {
   if (message is Function) {
     message = '';
@@ -60,14 +57,14 @@ f(message) {
     return;
   }
   String s = message;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 's' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 96, 1)],
-    );
+''');
   }
 
   test_propagatedFieldType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A { }
 class X<T> {
   final x = <T>[];
@@ -82,7 +79,7 @@ class Z {
   }
 
   test_undefinedMethod_assignmentExpression_inSubtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {
   operator +(B b) {return new B();}
@@ -96,7 +93,7 @@ f(a, a2) {
   }
 
   test_undefinedMethod_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class D<T extends dynamic> {
   fieldAccess(T t) => t.abc;
   methodAccess(T t) => t.xyz(1, 2, 'three');
@@ -105,7 +102,7 @@ class D<T extends dynamic> {
   }
 
   test_undefinedMethod_unionType_all() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int m(int x) => 0;
 }
@@ -125,7 +122,7 @@ f(A a, B b) {
   }
 
   test_undefinedMethod_unionType_some() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int m(int x) => 0;
 }
@@ -140,80 +137,5 @@ f(A a, B b) {
   ab.m(0);
 }
 ''');
-  }
-}
-
-class PubSuggestionCodeTest extends PubPackageResolutionTest {
-  // TODO(brianwilkerson): The tests in this class are not being run, and all but
-  //  the first would fail. We should implement these checks and enable the
-  //  tests.
-  test_import_package() async {
-    await assertErrorsInCode(
-      '''
-import 'package:somepackage/other.dart';
-''',
-      [error(diag.uriDoesNotExist, 0, 0)],
-    );
-  }
-
-  test_import_referenceIntoLibDirectory_no_pubspec() async {
-    newFile("/myproj/lib/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/web/test.dart",
-      "import '../lib/other.dart';",
-      [],
-    );
-  }
-
-  test_import_referenceOutOfLibDirectory_no_pubspec() async {
-    newFile("/myproj/web/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/lib/test.dart",
-      "import '../web/other.dart';",
-      [],
-    );
-  }
-
-  test_import_valid_inside_lib1() async {
-    newFile("/myproj/pubspec.yaml", '');
-    newFile("/myproj/lib/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/lib/test.dart",
-      "import 'other.dart';",
-      [],
-    );
-  }
-
-  test_import_valid_inside_lib2() async {
-    newFile("/myproj/pubspec.yaml", '');
-    newFile("/myproj/lib/bar/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/lib/foo/test.dart",
-      "import '../bar/other.dart';",
-      [],
-    );
-  }
-
-  test_import_valid_outside_lib() async {
-    newFile("/myproj/pubspec.yaml", '');
-    newFile("/myproj/web/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/lib2/test.dart",
-      "import '../web/other.dart';",
-      [],
-    );
-  }
-
-  Future<void> _assertErrorsInCodeInFile(
-    String path,
-    String content,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    var file = newFile(path, content);
-    result = await resolveFile(file);
-
-    var diagnosticListener = GatheringDiagnosticListener();
-    diagnosticListener.addAll(result.diagnostics);
-    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 }

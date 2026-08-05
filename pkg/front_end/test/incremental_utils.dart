@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import "package:front_end/src/api_prototype/file_system.dart" show FileSystem;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
+import 'package:kernel/canonical_name.dart';
 import 'package:kernel/kernel.dart'
     show
         Class,
@@ -36,7 +37,24 @@ void postProcessComponent(Component c, {bool clearMetadata = true}) {
 
   c.problemsAsJson?.sort();
 
+  // Remove any old canonical names for these libraries first to avoid any
+  // leftovers if we've loaded several versions of a library.
+  for (Library library in c.libraries) {
+    CanonicalName? canonicalName = library.reference.canonicalName;
+    if (canonicalName != null) {
+      for (int j = 0; j < library.classes.length; j++) {
+        Class c = library.classes[j];
+        c.dirty = true;
+      }
+      canonicalName.unbindAll();
+      c.root.removeChild(canonicalName.name);
+    }
+  }
+
   c.computeCanonicalNames();
+
+  // We sort after computing canonical names because references are sorted by
+  // those.
   for (Library library in c.libraries) {
     library.additionalExports.sort();
     library.problemsAsJson?.sort();

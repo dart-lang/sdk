@@ -60,7 +60,7 @@ class LspMetaModelReader {
 
     return LspMetaModel(
       types: types,
-      methods: methodsEnum?.members.cast<Constant>().toList() ?? [],
+      methods: methodsEnum?.constants.toList() ?? [],
     );
   }
 
@@ -106,7 +106,7 @@ class LspMetaModelReader {
       name: 'Method',
       comment: comment,
       typeOfValues: TypeReference.string,
-      members: methodConstants,
+      constants: methodConstants,
     );
   }
 
@@ -299,7 +299,7 @@ class LspMetaModelReader {
       comment: documentation,
       isProposed: _isProposed(documentation),
       typeOfValues: baseType,
-      members: [
+      constants: [
         ...?(model['values'] as List?)?.map((p) => _extractEnumValue(type, p)),
       ],
     );

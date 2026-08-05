@@ -5,16 +5,14 @@
 // A class that has a declaring header constructor can have redirecting
 // generative constructors and factory constructors.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 
 class C1(final int x) {
-  C1.redirecting(int x): this(x);
+  C1.redirecting(int x) : this(x);
 }
 
 class C2.named(final int x) {
-  C2.redirecting(int x): this.named(x);
+  C2.redirecting(int x) : this.named(x);
 }
 
 class C3(final int x) {

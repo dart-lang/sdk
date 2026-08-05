@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void main() { foo<Object>(false, D(), D()); }
+void main() {
+  foo<Object>(false, D(), D());
+}
+
 void foo<X>(bool not, X b, X c) {
   if (b is! B) return;
   // Promoted to X&B. Proof:
@@ -36,27 +39,33 @@ void foo<X>(bool not, X b, X c) {
     // B v2 = bc; // Error in front-end
     // C v3 = bc; // Error in front-end
     if (not) {
-      bc = 0 as X;  // X assignable to bc.
+      bc = 0 as X; // X assignable to bc.
       throw "never got here, never go back"; // Don't flow demotion back.
     }
   }
 
-  bc.st<E<X>>; // Requires (reified as type argument) static type of `v` to be exactly X.
+  // Requires (reified as type argument) static type of `v` to be exactly X.
+  bc.st<E<X>>;
   St(bc).st<E<X>>;
   Rt(bc).rt<E<X>>;
 }
 
 // Diamond hierarchy
 class A {}
+
 class B implements A {}
+
 class C implements A {}
+
 class D implements B, C {}
 
 // Static type-checking helper.
 typedef E<T> = T Function(T);
+
 extension St<T> on T {
-  void st<T2 extends E<T>>(){}
+  void st<T2 extends E<T>>() {}
 }
+
 // Non-extension based static type checker.
 // (In case we thought it was just extensions being wrong.)
 class Rt<T> {

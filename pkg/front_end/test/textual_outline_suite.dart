@@ -5,13 +5,13 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
-    show ScannerConfiguration;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:dart_style/dart_style.dart'
     show DartFormatter, FormatterException;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/util/textual_outline.dart';
+import 'package:pub_semver/src/version.dart';
 import 'package:testing/testing.dart'
     show
         Chain,
@@ -22,11 +22,12 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
+import 'testing/environment_keys.dart';
 import 'testing/experimental_features.dart';
+import 'testing/folder_options.dart';
+import 'utils/io_utils.dart';
 import 'utils/kernel_chain.dart' show MatchContext;
 import 'utils/suite_utils.dart';
-import 'testing/environment_keys.dart';
-import 'testing/folder_options.dart';
 
 const int minSupportedMajorVersion = 2;
 const int minSupportedMinorVersion = 12;
@@ -64,7 +65,7 @@ class Context extends ChainContext with MatchContext {
   @override
   bool get canBeFixWithUpdateExpectations => true;
 
-  Context(Uri baseUri, Map<String, String> environment)
+  new(Uri baseUri, Map<String, String> environment)
     : suiteFolderOptions = new SuiteFolderOptions(baseUri),
       updateExpectations =
           environment[EnvironmentKeys.updateExpectations] == "true",
@@ -81,7 +82,7 @@ class Context extends ChainContext with MatchContext {
 }
 
 class TextualOutline extends Step<TestDescription, TestDescription, Context> {
-  const TextualOutline();
+  const new();
 
   @override
   String get name => "TextualOutline";
@@ -116,12 +117,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           new ExperimentalFeaturesFromFlags(experimentalFlags);
       String? result = textualOutline(
         bytes,
-        new ScannerConfiguration(
-          enableTripleShift: isExperimentEnabled(
-            ExperimentalFlag.tripleShift,
-            explicitExperimentalFlags: experimentalFlags,
-          ),
-        ),
+        experimentalFeatures.buildScannerConfiguration(),
         throwOnUnexpected: true,
         performModelling: modelled,
         returnNullOnError: false,
@@ -158,11 +154,11 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
             }
           }
 
-          // Default to the latest language version. If the test should be at
-          // an older language version, it will contain a `// @dart=x.y`
-          // comment, which takes precedence over this argument.
+          // Default to the same language version as front_end.
+          // If the test should be at an older language version, it will contain
+          // a `// @dart=x.y` comment, which takes precedence over this argument.
           result = new DartFormatter(
-            languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+            languageVersion: frontendVersion,
             experimentFlags: experimentFlags,
           ).format(result);
         } catch (e, st) {
@@ -216,3 +212,5 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
     return new Result.pass(description);
   }
 }
+
+Version frontendVersion = getPackageVersionFor("front_end");

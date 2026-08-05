@@ -82,12 +82,11 @@ R runZoned<R>(
       }
     }
     return runZonedGuarded(
-          body,
-          onError,
-          zoneSpecification: zoneSpecification,
-          zoneValues: zoneValues,
-        )
-        as R;
+      body,
+      onError,
+      zoneSpecification: zoneSpecification,
+      zoneValues: zoneValues,
+    ) as R;
   }
   return _runZoned<R>(body, zoneValues, zoneSpecification);
 }

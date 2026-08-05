@@ -63,7 +63,7 @@ class AbstractRefactoringContext {
   late final ChangeWorkspace workspace = DartChangeWorkspace(startSessions);
 
   /// Initialize a newly created refactoring context.
-  AbstractRefactoringContext({
+  new({
     required this.searchEngine,
     required this.startSessions,
     required this.resolvedLibraryResult,
@@ -100,7 +100,7 @@ class RefactoringContext extends AbstractRefactoringContext {
   final AnalysisServer server;
 
   /// Initialize a newly created refactoring context.
-  RefactoringContext({
+  new({
     required this.server,
     required super.startSessions,
     required super.resolvedLibraryResult,

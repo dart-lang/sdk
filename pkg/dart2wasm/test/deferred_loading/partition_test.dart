@@ -38,15 +38,36 @@ Future runDart2wasmTests() async {
       .toList();
   for (final mainFile in tests) {
     final mainFilePath = mainFile.path;
-    final defaultSplitExpectationFile =
-        '${mainFilePath.substring(0, mainFilePath.length - '.dart'.length)}.default.txt';
+    final mainFileBasePath = mainFilePath.substring(
+      0,
+      mainFilePath.length - '.dart'.length,
+    );
 
-    // Test without constraints.
+    // Generate a partitioning without constraints under
+    // `<testname>.default.txt`.
     await testPartitionExpectation(
       mainFilePath,
       null,
-      defaultSplitExpectationFile,
+      '$mainFileBasePath.default.txt',
     );
+
+    // If the `<testname>.constraints.json` exists generate a partitioining with
+    // constraints under `<testname>.constraints.txt`.
+    final jsonConstraintsFile = File('$mainFileBasePath.constraints.json');
+    if (jsonConstraintsFile.existsSync()) {
+      final constraintsJsonString = jsonConstraintsFile
+          .readAsStringSync()
+          .replaceAll(
+            '\${SDK_ROOT}',
+            Directory.current.absolute.uri.toString(),
+          );
+      final constraints = Parser().read(constraintsJsonString);
+      await testPartitionExpectation(
+        mainFilePath,
+        constraints,
+        '$mainFileBasePath.constraints.txt',
+      );
+    }
   }
 }
 
@@ -99,6 +120,7 @@ Future testPartitionExpectation(
       '--compiler-asserts',
       '--phases=cfe,tfa',
       '--enable-deferred-loading',
+      '--extra-compiler-option=--enable-experimental-wasm-interop',
       '-o',
       outDill,
       mainFile,

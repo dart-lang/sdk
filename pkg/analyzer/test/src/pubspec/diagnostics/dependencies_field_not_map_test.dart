@@ -2,38 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DependenciesFieldNotMapTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class DependenciesFieldNotMapTest extends PubspecDiagnosticTest {
   test_dependenciesField_empty() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
 ''');
   }
 
   test_dependenciesFieldNotMap_error_bool() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 dependencies: true
-''',
-      [diag.dependenciesFieldNotMap],
-    );
+//            ^^^^
+// [diag.dependenciesFieldNotMap] The value of the 'dependencies' field is expected to be a map.
+''');
   }
 
   test_dependenciesFieldNotMap_noError() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   a: any
@@ -41,12 +41,11 @@ dependencies:
   }
 
   test_devDependenciesFieldNotMap_dev_error_bool() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 dev_dependencies: true
-''',
-      [diag.dependenciesFieldNotMap],
-    );
+//                ^^^^
+// [diag.dependenciesFieldNotMap] The value of the 'dev_dependencies' field is expected to be a map.
+''');
   }
 }

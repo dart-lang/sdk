@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class ConstantPatternResolutionTest extends PubPackageResolutionTest {
   test_expression_class_field() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const foo = 0;
 }
@@ -28,7 +27,7 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PrefixedIdentifier
@@ -48,7 +47,7 @@ ConstantPattern
   }
 
   test_expression_instanceCreation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -58,7 +57,7 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   constKeyword: const
@@ -78,12 +77,12 @@ ConstantPattern
   }
 
   test_expression_integerLiteral() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 0) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -94,7 +93,7 @@ ConstantPattern
   }
 
   test_expression_integerLiteral_contextType_double() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(double x) {
   switch (x) {
     case 0:
@@ -102,7 +101,7 @@ void f(double x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -113,12 +112,12 @@ ConstantPattern
   }
 
   test_expression_listLiteral() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const [0]) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   constKeyword: const
@@ -135,12 +134,12 @@ ConstantPattern
   }
 
   test_expression_mapLiteral() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const {0: 1}) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   constKeyword: const
@@ -169,7 +168,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -177,14 +176,14 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -208,7 +207,7 @@ ConstantPattern
 const foo = 0;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -216,13 +215,13 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -236,12 +235,12 @@ ConstantPattern
   }
 
   test_expression_setLiteral() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const {0, 1}) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   constKeyword: const
@@ -262,14 +261,14 @@ ConstantPattern
   }
 
   test_expression_topLevelVariable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 
 void f(x) {
   if (x case foo) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: SimpleIdentifier
@@ -281,12 +280,12 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_dynamicElement() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case dynamic) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -300,12 +299,12 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_interfaceElement() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -319,12 +318,12 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_nested() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case [0, int]) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -349,12 +348,12 @@ ListPattern
   }
 
   test_expression_typeLiteral_notPrefixed_neverElement() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case Never) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -368,14 +367,14 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_typeAliasElement() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 
 void f(Object? x) {
   if (x case A) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -390,15 +389,14 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_notPrefixed_typeParameterElement() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>(Object? x) {
   if (x case T) {}
+//           ^
+// [diag.constTypeParameter] Type parameters can't be used in a constant expression.
 }
-''',
-      [error(diag.constTypeParameter, 36, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -412,14 +410,14 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_prefixed_dynamicElement() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as core;
 
 void f(core.Object? x) {
   if (x case core.dynamic) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -427,7 +425,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix::core
       name: dynamic
       element: dynamic
       type: dynamic
@@ -437,14 +435,14 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_prefixed_interfaceElement() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as core;
 
 void f(core.Object? x) {
   if (x case core.int) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -452,7 +450,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix::core
       name: int
       element: dart:core::@class::int
       type: int
@@ -462,14 +460,14 @@ ConstantPattern
   }
 
   test_expression_typeLiteral_prefixed_neverElement() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as core;
 
 void f(core.Object? x) {
   if (x case core.Never) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -477,7 +475,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix::core
       name: Never
       element: Never
       type: Never
@@ -491,7 +489,7 @@ ConstantPattern
 typedef A = int;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(Object? x) {
@@ -499,7 +497,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -507,7 +505,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::@typeAlias::A
       type: int
@@ -518,12 +516,12 @@ ConstantPattern
   }
 
   test_location_ifCase() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 0) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -534,7 +532,7 @@ ConstantPattern
   }
 
   test_location_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case 0:
@@ -542,7 +540,7 @@ void f(x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral

@@ -7,13 +7,14 @@
 
 #include "vm/globals.h"
 
+#include "platform/allocation.h"
 #include "platform/assert.h"
 #include "vm/lockers.h"
 #include "vm/raw_object.h"
 
 namespace dart {
 
-class WeakTable {
+class WeakTable : public MallocAllocated {
  public:
   static constexpr intptr_t kNoValue = 0;
 

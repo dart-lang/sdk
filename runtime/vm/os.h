@@ -69,6 +69,13 @@ class OS {
   // determined.
   static uintptr_t CurrentRSS();
 
+  // Safely reads size bytes from native address into buffer.
+  // Returns true on success, false if the address is invalid.
+  static bool SafeReadMemory(void* address,
+                             uint8_t* buffer,
+                             size_t size_in_bytes,
+                             const char** error);
+
   // Sleep the currently executing thread for millis ms.
   static void Sleep(int64_t millis);
 

@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,59 +25,51 @@ class InferenceFailureOnInstanceCreationTest extends PubPackageResolutionTest {
   }
 
   test_constructorNames_named() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection';
 void f() {
   HashMap.from({1: 1, 2: 2, 3: 3});
+//^^^^^^^^^^^^
+// [diag.inferenceFailureOnInstanceCreation] The type argument(s) of the constructor 'HashMap.from' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnInstanceCreation, 39, 12)],
-    );
-    expect(result.diagnostics[0].message, contains("'HashMap.from'"));
+''');
   }
 
   test_constructorNames_named_importPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection' as c;
 void f() {
   c.HashMap.from({1: 1, 2: 2, 3: 3});
+//^^^^^^^^^^^^^^
+// [diag.inferenceFailureOnInstanceCreation] The type argument(s) of the constructor 'c.HashMap.from' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnInstanceCreation, 44, 14)],
-    );
-    expect(result.diagnostics[0].message, contains("'c.HashMap.from'"));
+''');
   }
 
   test_constructorNames_unnamed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection';
 void f() {
   HashMap();
+//^^^^^^^
+// [diag.inferenceFailureOnInstanceCreation] The type argument(s) of the constructor 'HashMap' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnInstanceCreation, 39, 7)],
-    );
-    expect(result.diagnostics[0].message, contains("'HashMap'"));
+''');
   }
 
   test_constructorNames_unnamed_importPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection' as c;
 void f() {
   c.HashMap();
+//^^^^^^^^^
+// [diag.inferenceFailureOnInstanceCreation] The type argument(s) of the constructor 'c.HashMap' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnInstanceCreation, 44, 9)],
-    );
-    expect(result.diagnostics[0].message, contains("'c.HashMap'"));
+''');
   }
 
   test_explicitTypeArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection';
 void f() {
   HashMap<int, int>();
@@ -88,34 +78,31 @@ void f() {
   }
 
   test_extensionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E<T>(int i) {}
 void f() {
   E(1);
+//^
+// [diag.inferenceFailureOnInstanceCreation] The type argument(s) of the constructor 'E' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnInstanceCreation, 43, 1)],
-    );
+''');
   }
 
   test_genericMetadata_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   const C();
 }
 
 @C()
+// [diag.inferenceFailureOnInstanceCreation][column 1][length 4] The type argument(s) of the constructor 'C' can't be inferred.
 void f() {}
-''',
-      [error(diag.inferenceFailureOnInstanceCreation, 29, 4)],
-    );
+''');
   }
 
   test_genericMetadata_missingTypeArg_withoutGenericMetadata() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   const C();
 }
@@ -126,7 +113,7 @@ void f() {}
   }
 
   test_genericMetadata_upwardsInference() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   final T f;
   const C(this.f);
@@ -138,7 +125,7 @@ void g() {}
   }
 
   test_genericMetadata_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   const C();
 }
@@ -149,7 +136,7 @@ void f() {}
   }
 
   test_missingTypeArgument_downwardInference() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection';
 HashMap<int, int> f() {
   return HashMap();
@@ -160,7 +147,7 @@ HashMap<int, int> f() {
   test_missingTypeArgument_interfaceTypeTypedef_noInference() async {
     // `typedef A = HashMap;` means `typedef A = HashMap<dynamic, dynamic>;`.
     // So, there is no inference failure on `new A();`.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection';
 typedef A = HashMap;
 void f() {
@@ -170,20 +157,19 @@ void f() {
   }
 
   test_missingTypeArgument_noInference() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection';
 void f() {
   HashMap();
+//^^^^^^^
+// [diag.inferenceFailureOnInstanceCreation] The type argument(s) of the constructor 'HashMap' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnInstanceCreation, 39, 7)],
-    );
+''');
   }
 
   test_missingTypeArgument_noInference_optionalTypeArgs() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 class C<T> {}
@@ -194,17 +180,16 @@ void f() {
   }
 
   test_missingTypeArgument_noInference_topLevel() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection';
 var m = HashMap();
-''',
-      [error(diag.inferenceFailureOnInstanceCreation, 34, 7)],
-    );
+//      ^^^^^^^
+// [diag.inferenceFailureOnInstanceCreation] The type argument(s) of the constructor 'HashMap' can't be inferred.
+''');
   }
 
   test_missingTypeArgument_upwardInference() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:collection';
 void f() {
   HashMap.of({1: 1, 2: 2, 3: 3});

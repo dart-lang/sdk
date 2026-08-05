@@ -10,7 +10,7 @@ import "package:status_file/src/expression.dart";
 class TestEnvironment implements Environment {
   final Map<String, String> _values;
 
-  TestEnvironment(this._values);
+  new(this._values);
 
   @override
   void validate(String name, String value, List<String> errors) {
@@ -36,9 +36,12 @@ void main() {
 
 void testExpression() {
   var expression = Expression.parse(
-      r" $mode == debug && ($arch == chromium || $arch == dartc) ");
-  Expect.equals(r"$mode == debug && ($arch == chromium || $arch == dartc)",
-      expression.toString());
+    r" $mode == debug && ($arch == chromium || $arch == dartc) ",
+  );
+  Expect.equals(
+    r"$mode == debug && ($arch == chromium || $arch == dartc)",
+    expression.toString(),
+  );
 
   // Test BooleanExpression.evaluate().
   var environment = TestEnvironment({"arch": "dartc", "mode": "debug"});
@@ -62,14 +65,20 @@ void testSyntaxError() {
 }
 
 void testBoolean() {
-  var expression =
-      Expression.parse(r"  $arch == ia32 && $checked || $mode == release    ");
+  var expression = Expression.parse(
+    r"  $arch == ia32 && $checked || $mode == release    ",
+  );
   Expect.equals(
-      r"$arch == ia32 && $checked || $mode == release", expression.toString());
+    r"$arch == ia32 && $checked || $mode == release",
+    expression.toString(),
+  );
 
   // Test BooleanExpression.evaluate().
-  var environment =
-      TestEnvironment({"arch": "ia32", "checked": "true", "mode": "debug"});
+  var environment = TestEnvironment({
+    "arch": "ia32",
+    "checked": "true",
+    "mode": "debug",
+  });
 
   Expect.isTrue(expression.evaluate(environment));
   environment["mode"] = "release";
@@ -85,13 +94,19 @@ void testBoolean() {
 }
 
 void testNotBoolean() {
-  var expression =
-      Expression.parse(r"  $arch == ia32 && ! $checked || $mode == release ");
+  var expression = Expression.parse(
+    r"  $arch == ia32 && ! $checked || $mode == release ",
+  );
   Expect.equals(
-      r"$arch == ia32 && !$checked || $mode == release", expression.toString());
+    r"$arch == ia32 && !$checked || $mode == release",
+    expression.toString(),
+  );
 
-  var environment =
-      TestEnvironment({"arch": "ia32", "checked": "false", "mode": "debug"});
+  var environment = TestEnvironment({
+    "arch": "ia32",
+    "checked": "false",
+    "mode": "debug",
+  });
 
   Expect.isTrue(expression.evaluate(environment));
   environment["mode"] = "release";
@@ -108,16 +123,16 @@ void testNotBoolean() {
 
 void testNotEqual() {
   // Test the != operator.
-  var expression =
-      Expression.parse(r"$compiler == dart2js && $runtime != safari");
+  var expression = Expression.parse(
+    r"$compiler == dart2js && $runtime != safari",
+  );
   Expect.equals(
-      r"$compiler == dart2js && $runtime != safari", expression.toString());
+    r"$compiler == dart2js && $runtime != safari",
+    expression.toString(),
+  );
 
   // Test BooleanExpression.evaluate().
-  var environment = TestEnvironment({
-    "compiler": "none",
-    "runtime": "safari",
-  });
+  var environment = TestEnvironment({"compiler": "none", "runtime": "safari"});
 
   Expect.isFalse(expression.evaluate(environment));
   environment["runtime"] = "chrome";
@@ -163,8 +178,9 @@ void testNormalize() {
 
   // Order logic clauses.
   shouldNormalizeTo(
-      r"$b || ! $b || $b == b || $b && $d || $a || ! $a || $a == a || $a && $c",
-      r"$a == a || $b == b || $a || !$a || $b || !$b || $a && $c || $b && $d");
+    r"$b || ! $b || $b == b || $b && $d || $a || ! $a || $a == a || $a && $c",
+    r"$a == a || $b == b || $a || !$a || $b || !$b || $a && $c || $b && $d",
+  );
 
   // Recursively normalize.
   shouldNormalizeTo(r"$c == true || $b && $a", r"$c || $a && $b");

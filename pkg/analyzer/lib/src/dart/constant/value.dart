@@ -162,6 +162,9 @@ class DartObjectImpl implements DartObject, Constant {
   @override
   final TypeImpl type;
 
+  @override
+  final TypeImpl typeNotExtensionTypeErased;
+
   /// The state of the object.
   final InstanceState state;
 
@@ -175,8 +178,13 @@ class DartObjectImpl implements DartObject, Constant {
     InstanceState state, {
     VariableElementImpl? variable,
   }) {
-    type = type.extensionTypeErasure;
-    return DartObjectImpl._(typeSystem, type, state, variable: variable);
+    return DartObjectImpl._(
+      typeSystem,
+      type.extensionTypeErasure,
+      type,
+      state,
+      variable: variable,
+    );
   }
 
   /// Creates a duplicate instance of [other], tied to [variable].
@@ -184,9 +192,10 @@ class DartObjectImpl implements DartObject, Constant {
     DartObjectImpl other,
     VariableElementImpl variable,
   ) {
-    return DartObjectImpl(
+    return DartObjectImpl._(
       other._typeSystem,
       other.type,
+      other.typeNotExtensionTypeErased,
       other.state,
       variable: variable,
     );
@@ -230,8 +239,30 @@ class DartObjectImpl implements DartObject, Constant {
     return DartObjectImpl(typeSystem, type, GenericState({}, isUnknown: true));
   }
 
+  factory DartObjectImpl.withExtensionType({
+    required TypeSystemImpl typeSystem,
+    required TypeImpl type,
+    required TypeImpl typeNotExtensionTypeErased,
+    required InstanceState state,
+    VariableElementImpl? variable,
+  }) {
+    return DartObjectImpl._(
+      typeSystem,
+      type,
+      typeNotExtensionTypeErased,
+      state,
+      variable: variable,
+    );
+  }
+
   /// Initialize a newly created object to have the given [type] and [state].
-  DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable}) {
+  DartObjectImpl._(
+    this._typeSystem,
+    this.type,
+    this.typeNotExtensionTypeErased,
+    this.state, {
+    this.variable,
+  }) {
     if (state case GenericState state) {
       state._object = this;
     }
@@ -327,7 +358,7 @@ class DartObjectImpl implements DartObject, Constant {
     DartObjectImpl castType,
   ) {
     _assertType(castType);
-    var resultType = (castType.state as TypeState)._type;
+    var resultType = (castType.state as TypeState).type;
 
     // If we don't know the type, we cannot prove that the cast will fail.
     if (resultType == null) {
@@ -578,7 +609,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// [testedType].
   DartObjectImpl hasType(TypeSystemImpl typeSystem, DartObjectImpl testedType) {
     _assertType(testedType);
-    var typeType = (testedType.state as TypeState)._type;
+    var typeType = (testedType.state as TypeState).type;
     BoolState state;
     if (typeType == null) {
       state = BoolState.TRUE_STATE;
@@ -993,11 +1024,12 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   TypeImpl? toTypeValue() {
-    var state = this.state;
-    if (state is TypeState) {
-      return state._type;
-    }
-    return null;
+    return state.tryCast<TypeState>()?.type;
+  }
+
+  @override
+  TypeImpl? toTypeValueNotExtensionTypeErased() {
+    return state.tryCast<TypeState>()?.typeNotExtensionTypeErased;
   }
 
   /// Return the result of type-instantiating this object as [type].
@@ -3166,31 +3198,36 @@ class SymbolState extends InstanceState {
 /// The state of an object representing a type.
 class TypeState extends InstanceState {
   /// The element representing the type being modeled.
-  final TypeImpl? _type;
+  final TypeImpl? type;
+
+  /// From the point of view of constant evaluation, the value is [type].
+  /// But some clients want to know the explicit provided type.
+  final TypeImpl? typeNotExtensionTypeErased;
 
   factory TypeState(TypeImpl? type) {
-    type = type?.extensionTypeErasure;
-    return TypeState._(type);
+    return TypeState._(
+      type: type?.extensionTypeErasure,
+      typeNotExtensionTypeErased: type,
+    );
   }
 
-  TypeState._(this._type);
+  TypeState._({required this.type, required this.typeNotExtensionTypeErased});
 
   @override
-  int get hashCode => _type?.hashCode ?? 0;
+  int get hashCode => type?.hashCode ?? 0;
 
   @override
   String get typeName => "Type";
 
   @override
-  bool operator ==(Object other) =>
-      other is TypeState && (_type == other._type);
+  bool operator ==(Object other) => other is TypeState && (type == other.type);
 
   @override
   StringState convertToString() {
-    if (_type == null) {
-      return StringState.UNKNOWN_VALUE;
+    if (type case var type?) {
+      return StringState(type.getDisplayString());
     }
-    return StringState(_type.getDisplayString());
+    return StringState.UNKNOWN_VALUE;
   }
 
   @override
@@ -3203,22 +3240,22 @@ class TypeState extends InstanceState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    if (_type == null) {
+    var type = this.type;
+    if (type == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is TypeState) {
-      var rightType = rightOperand._type;
+      var rightType = rightOperand.type;
       if (rightType == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-
-      return BoolState.from(typeSystem.runtimeTypesEqual(_type, rightType));
+      return BoolState.from(typeSystem.runtimeTypesEqual(type, rightType));
     }
     return BoolState.FALSE_STATE;
   }
 
   @override
   String toString() {
-    return _type?.getDisplayString() ?? '-unknown-';
+    return type?.getDisplayString() ?? '-unknown-';
   }
 }

@@ -6,6 +6,9 @@
 // sealed.
 
 final class FinalClass {}
+//          ^^^^^^^^^^
+// [context 1] The type 'SubtypeOfFinal' is a subtype of 'FinalClass', and 'FinalClass' is defined here.
+// [context 2] The type 'SubtypeOfFinal' is a subtype of 'FinalClass', and 'FinalClass' is defined here.
 
 base class BaseClass extends FinalClass {}
 
@@ -30,7 +33,7 @@ mixin MixinImplements implements FinalClass {}
 
 mixin MixinImplementsIndirect implements SubtypeOfFinal {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 1] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The mixin 'MixinImplementsIndirect' must be 'base' because the supertype 'FinalClass' is 'final'.
 
 mixin On on FinalClass {}
@@ -47,5 +50,5 @@ class Multiple extends RegularClass implements FinalClass {}
 
 class IndirectSubtype extends SubtypeOfFinal {}
 //    ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 2] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'IndirectSubtype' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.

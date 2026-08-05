@@ -121,9 +121,9 @@ DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0, 0) {
 }
 
 static void SendNull(const SendPort& port) {
-  const Dart_Port destination_port_id = port.Id();
-  PortMap::PostMessage(Message::New(destination_port_id, Object::null(),
-                                    Message::kNormalPriority));
+  Dart_CObject message;
+  message.type = Dart_CObject_kNull;
+  Dart_PostCObject(port.Id(), &message);
 }
 
 DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 0, 1) {
@@ -193,8 +193,7 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_buildId, 0, 0) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   IsolateGroup* isolate_group = thread->isolate_group();
   ASSERT(isolate_group != nullptr);
-  if (const uint8_t* instructions =
-          isolate_group->source()->snapshot_instructions) {
+  if (const uint8_t* instructions = isolate_group->source()->snapshot_text) {
     const auto& build_id = OS::GetAppBuildId(instructions);
     if (build_id.data != nullptr) {
       ZoneTextBuffer buffer(zone);

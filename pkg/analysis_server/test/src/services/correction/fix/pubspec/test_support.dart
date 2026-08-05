@@ -10,7 +10,6 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart'
     as pubspec_validator;
 import 'package:analyzer/src/test_utilities/platform.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';

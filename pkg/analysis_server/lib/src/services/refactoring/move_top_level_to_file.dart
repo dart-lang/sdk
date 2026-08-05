@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/services/interactive_forms/interactive_forms.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
@@ -16,13 +18,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart'
-    show CommandParameter, SaveUriCommandParameter;
+    hide Element;
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A refactoring that will move one or more top-level declarations to a
 /// different file. The destination file can either be a new file or an existing
 /// file.
-class MoveTopLevelToFile extends RefactoringProducer {
+class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
   /// Return the name used for this command when communicating with the client
   /// (and for analytics).
   static const String commandName = 'dart.refactor.move_top_level_to_file';
@@ -35,7 +37,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
   /// Initialize a newly created refactoring producer to use the given
   /// [context].
-  MoveTopLevelToFile(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;
@@ -59,6 +61,24 @@ class MoveTopLevelToFile extends RefactoringProducer {
     ),
   ];
 
+  /// Builds the [InteractiveForm] to collect input for this refactor.
+  @override
+  ErrorOr<InteractiveForm> buildInteractiveForm() {
+    var destinationUriField = FormField(
+      id: 'destinationUri',
+      description: 'Move to file',
+      required: true,
+      defaultValue: refactoringContext.server.pathContext
+          .toUri(defaultFilePath)
+          .toString(),
+      type: FormFieldTypeFile(type: .Regular, filters: ['dart']),
+    );
+
+    var form = createForm([destinationUriField]);
+
+    return success(form);
+  }
+
   @override
   Future<ComputeStatus> compute(
     List<Object?> commandArguments,
@@ -71,8 +91,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
     _initializeFromMembers(members);
     var pathContext = refactoringContext.server.resourceProvider.pathContext;
     var sourcePath = members.containingFile;
-    // TODO(dantup): Add refactor-specific validation for incoming arguments.
-    // Argument is a String URI.
+    // Fields are validated as part of resolve(). We'll keep showing the
+    // form inputs until all the fields have valid answers.
     var destinationUri = Uri.parse(commandArguments[0] as String);
     var destinationFilePath = pathContext.fromUri(destinationUri);
 
@@ -279,7 +299,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
             return null;
           }
         case ExtensionTypeDeclaration():
-          nameToken = node.primaryConstructor.typeName;
+          nameToken = node.namePart.typeName;
           if (!validSelection(nameToken)) {
             return null;
           }
@@ -411,7 +431,7 @@ class _Member {
 
   /// Initialize a newly created instance representing the [member] with the
   /// given [name].
-  _Member(this.member, this.name);
+  new(this.member, this.name);
 }
 
 /// Information about a contiguous group of members to be moved.
@@ -421,7 +441,7 @@ class _MemberGroup {
 
   /// Initialize a newly created instance representing a group of contiguous
   /// [members].
-  _MemberGroup(this.members);
+  new(this.members);
 
   /// Return the member representing the [declaration].
   _Member? memberFor(CompilationUnitMember declaration) {
@@ -476,7 +496,7 @@ class _MembersToMove {
   final List<_MemberGroup> groups;
 
   /// Initialize a newly created instance representing [groups].
-  _MembersToMove(this.containingFile, this.groups);
+  new(this.containingFile, this.groups);
 
   /// Return the name that should be used for the file to which the members will
   /// be moved.
@@ -536,7 +556,7 @@ class _SealedSubclassIndex {
   /// may be incomplete.
   bool hasInvalidCandidateSet = false;
 
-  _SealedSubclassIndex(this.unit, {required this.candidateElements}) {
+  new(this.unit, {required this.candidateElements}) {
     var isCandidate = candidateElements.contains;
 
     // Index the declaration against each of its direct superclasses.

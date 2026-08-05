@@ -2,41 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PathDoesNotExistTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PathDoesNotExistTest extends PubspecDiagnosticTest {
   test_dependencyPathDoesNotExist_path_error() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
     path: does/not/exist
-''',
-      [diag.pathDoesNotExist],
-    );
+//        ^^^^^^^^^^^^^^
+// [diag.pathDoesNotExist] The path 'does/not/exist' doesn't exist.
+''');
   }
 
   test_devDependencyPathDoesNotExist_path_error() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 dev_dependencies:
   foo:
     path: does/not/exist
-''',
-      [diag.pathDoesNotExist],
-    );
+//        ^^^^^^^^^^^^^^
+// [diag.pathDoesNotExist] The path 'does/not/exist' doesn't exist.
+''');
   }
 
   test_devDependencyPathExists() {
@@ -44,7 +43,7 @@ dev_dependencies:
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dev_dependencies:
   foo:
@@ -53,35 +52,35 @@ dev_dependencies:
   }
 
   test_screenshotPathDoesNotExist_path_error() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 screenshots:
   - description: '...'
     path: example/screenshots/no.webp
-''',
-      [diag.pathDoesNotExist],
-    );
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.pathDoesNotExist] The path 'example/screenshots/no.webp' doesn't exist.
+''');
   }
 
   test_screenshotPathDoesNotExist_path_error_multiple() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 screenshots:
   - description: '...'
     path: example/screenshots/no.webp
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.pathDoesNotExist] The path 'example/screenshots/no.webp' doesn't exist.
   - description: '...'
     path: example/screenshots/no.webp
-''',
-      [diag.pathDoesNotExist, diag.pathDoesNotExist],
-    );
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.pathDoesNotExist] The path 'example/screenshots/no.webp' doesn't exist.
+''');
   }
 
   test_screenshotPathExists() {
     newFolder('/sample/example');
     newFile('/sample/example/yes.webp', '');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: foo
 screenshots:
   - description: '...'

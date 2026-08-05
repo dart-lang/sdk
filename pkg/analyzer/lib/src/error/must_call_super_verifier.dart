@@ -17,7 +17,7 @@ class MustCallSuperVerifier {
   MustCallSuperVerifier(this._diagnosticReporter);
 
   void checkMethodDeclaration(MethodDeclaration node) {
-    if (node.isStatic || node.isAbstract) {
+    if (node.isStatic || !node.isComplete) {
       return;
     }
     var element = node.declaredFragment!.element;

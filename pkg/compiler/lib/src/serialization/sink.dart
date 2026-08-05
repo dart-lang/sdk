@@ -482,8 +482,7 @@ class DataSinkWriter {
     } else if (value is ir.Member) {
       _sinkWriter.writeEnum(_TreeNodeKind.member);
       _writeMemberNode(value);
-    } else if (value is ir.VariableDeclaration &&
-        value.parent is ir.FunctionDeclaration) {
+    } else if (value is ir.Variable && value.parent is ir.FunctionDeclaration) {
       _sinkWriter.writeEnum(_TreeNodeKind.functionDeclarationVariable);
       _writeTreeNode(value.parent!, memberData);
     } else if (value is ir.FunctionNode) {

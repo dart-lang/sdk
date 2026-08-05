@@ -30,7 +30,7 @@ aot_snapshot("analysis_server_aot_product") {
 application_snapshot("analysis_server") {
   main_dart = "../../pkg/analysis_server/bin/server.dart"
   training_args = [
-    "--sdk=" + rebase_path("../../sdk/"),
-    "--train-using=" + rebase_path("../../pkg/compiler/lib"),
+    "--sdk=" + rebase_path("../../sdk/", root_build_dir),
+    "--train-using=" + rebase_path("../../pkg/compiler/lib", root_build_dir),
   ]
 }

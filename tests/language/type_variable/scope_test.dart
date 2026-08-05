@@ -8,21 +8,17 @@ class Foo<T> implements I<T> {
   Foo() {}
 
   static Foo<T> m(Foo<T> f) {
-  //         ^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-  // [cfe] Type variables can't be used in static members.
-  //                  ^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-  // [cfe] Type variables can't be used in static members.
+    //       ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Type variables can't be used in static members.
+    //                ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Type variables can't be used in static members.
     Foo<T> x = new Foo<String>();
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
     // [cfe] Type variables can't be used in static members.
-    //         ^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     return new Foo<String>();
-    //     ^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   }
 
   // T is in scope for a factory method.
@@ -38,12 +34,10 @@ class Foo<T> implements I<T> {
   // [cfe] Type variables can't be used in static members.
 
   static Foo<T> get f {
-  //         ^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-  // [cfe] Type variables can't be used in static members.
+    //       ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Type variables can't be used in static members.
     return new Foo<String>();
-    //     ^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   }
 
   static void set f(Foo<T> value) {}
@@ -58,12 +52,8 @@ abstract class I<T> {
 
 main() {
   Foo.m(new Foo<String>());
-  //    ^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   new I(new Foo<String>());
   Foo.f1 = new Foo<String>();
-  //       ^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   var x = Foo.f;
   Foo.f = x;
 }

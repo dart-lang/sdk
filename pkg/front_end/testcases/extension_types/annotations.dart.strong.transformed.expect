@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 @#C5
 extension type A(core::int i) {
+  @#C5
   abstract extension-type-member representation-field get i() → core::int;
   method m = self::A|m;
   method tearoff m = self::A|get#m;
@@ -12,14 +13,14 @@ extension type A(core::int i) {
   constructor constructor = self::A|constructor#constructor;
   constructor tearoff constructor = self::A|constructor#_#constructor#tearOff;
 }
-static extension-type-member method A|constructor#(@#C5 core::int i) → self::A% /* erasure=core::int, declared=! */ {
+static extension-type-member method A|constructor#(@#C5 initializing-formal core::int i) → self::A% /* erasure=core::int, declared=! */ {
   lowered final self::A% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method A|constructor#_#new#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#(i);
 @#C5
-static extension-type-member method A|constructor#constructor(core::int i) → self::A% /* erasure=core::int, declared=! */ {
+static extension-type-member method A|constructor#constructor(initializing-formal core::int i) → self::A% /* erasure=core::int, declared=! */ {
   lowered final self::A% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

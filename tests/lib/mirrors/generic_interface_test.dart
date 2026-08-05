@@ -35,29 +35,32 @@ void main() {
 
   ClassMirror interfaceOfInt = reflectClass(Fixed).superinterfaces.single;
   ClassMirror interfaceOfR = reflectClass(Generic).superinterfaces.single;
-  ClassMirror interfaceOfBool = reflect(
-    Generic<bool>(),
-  ).type.superinterfaces.single;
+  ClassMirror interfaceOfBool = reflect(Generic<bool>())
+      .type
+      .superinterfaces
+      .single;
 
   ClassMirror boundedOfInt = reflectClass(Bienbounded).superinterfaces.single;
-  ClassMirror interfaceOfFBounded = reflectClass(
-    FBounded,
-  ).superinterfaces.single;
+  ClassMirror interfaceOfFBounded = reflectClass(FBounded)
+      .superinterfaces
+      .single;
 
-  ClassMirror interfaceOfInt2 = reflectClass(
-    FixedMixinApplication,
-  ).superinterfaces.single;
-  ClassMirror interfaceOfX = reflectClass(
-    GenericMixinApplication,
-  ).superinterfaces.single;
-  ClassMirror interfaceOfDouble = reflect(
-    GenericMixinApplication<double>(),
-  ).type.superinterfaces.single;
+  ClassMirror interfaceOfInt2 = reflectClass(FixedMixinApplication)
+      .superinterfaces
+      .single;
+  ClassMirror interfaceOfX = reflectClass(GenericMixinApplication)
+      .superinterfaces
+      .single;
+  ClassMirror interfaceOfDouble = reflect(GenericMixinApplication<double>())
+      .type
+      .superinterfaces
+      .single;
   ClassMirror interfaceOfInt3 = reflectClass(FixedClass).superinterfaces.single;
   ClassMirror interfaceOfY = reflectClass(GenericClass).superinterfaces.single;
-  ClassMirror interfaceOfDouble2 = reflect(
-    GenericClass<double>(),
-  ).type.superinterfaces.single;
+  ClassMirror interfaceOfDouble2 = reflect(GenericClass<double>())
+      .type
+      .superinterfaces
+      .single;
 
   Expect.isTrue(interfaceDecl.isOriginalDeclaration);
   Expect.isTrue(boundedDecl.isOriginalDeclaration);
@@ -80,9 +83,9 @@ void main() {
   TypeVariableMirror xFromGenericMixinApplication = reflectClass(
     GenericMixinApplication,
   ).typeVariables.single;
-  TypeVariableMirror yFromGenericClass = reflectClass(
-    GenericClass,
-  ).typeVariables.single;
+  TypeVariableMirror yFromGenericClass = reflectClass(GenericClass)
+      .typeVariables
+      .single;
 
   Expect.equals(reflectClass(Object), tFromInterface.upperBound);
   Expect.equals(reflectClass(num), sFromBounded.upperBound);

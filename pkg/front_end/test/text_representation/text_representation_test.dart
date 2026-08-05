@@ -80,7 +80,7 @@ Future<void> main(List<String> args) async {
 }
 
 class TextRepresentationDataComputer extends CfeDataComputer<String> {
-  const TextRepresentationDataComputer();
+  const new();
 
   @override
   void computeLibraryData(
@@ -119,7 +119,7 @@ class TextRepresentationDataComputer extends CfeDataComputer<String> {
 class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   final AstTextStrategy strategy;
 
-  TextRepresentationDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
     this.strategy,
@@ -187,10 +187,26 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   String? computeNodeValue(Id id, TreeNode node) {
     if (node is ConstantExpression) {
       return node.constant.toText(strategy);
-    } else if (node is VariableDeclaration) {
+    } else if (node is Variable) {
       DartType type = node.type;
       return type.toText(strategy);
     }
     return null;
+  }
+
+  @override
+  ActualData<String>? mergeData(
+    ActualData<String> value1,
+    ActualData<String> value2,
+  ) {
+    // Prefer [Variable] over [ConstantExpression]. This is done to
+    // avoid conflict between a parameter and its implicit initializer.
+    if (value1.object is ConstantExpression && value2.object is Variable) {
+      return value2;
+    } else if (value2.object is ConstantExpression &&
+        value1.object is Variable) {
+      return value1;
+    }
+    return super.mergeData(value1, value2);
   }
 }

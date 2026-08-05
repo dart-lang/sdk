@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 
 class AugmentationHandler
     extends SharedMessageHandler<TextDocumentPositionParams, Location?> {
-  AugmentationHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.augmentation;

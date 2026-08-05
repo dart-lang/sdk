@@ -36,7 +36,7 @@ extension type Bar<T extends core::Object? = dynamic>(core::Object? i) {
   constructor • = self::Bar|constructor#;
   constructor tearoff • = self::Bar|constructor#_#new#tearOff;
 }
-static extension-type-member method Foo|constructor#_(core::int i) → self::Foo% /* erasure=core::int, declared=! */ {
+static extension-type-member method Foo|constructor#_(initializing-formal core::int i) → self::Foo% /* erasure=core::int, declared=! */ {
   lowered final self::Foo% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -79,7 +79,7 @@ static extension-type-member method Foo|constructor#erroneous() → self::Foo% /
 }
 static extension-type-member synthetic method Foo|constructor#_#erroneous#tearOff() → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#erroneous();
-static extension-type-member method Bar|constructor#_<T extends core::Object? = dynamic>(core::Object? i) → self::Bar<self::Bar|constructor#_::T%>% /* erasure=core::Object?, declared=! */ {
+static extension-type-member method Bar|constructor#_<T extends core::Object? = dynamic>(initializing-formal core::Object? i) → self::Bar<self::Bar|constructor#_::T%>% /* erasure=core::Object?, declared=! */ {
   lowered final self::Bar<self::Bar|constructor#_::T%>% /* erasure=core::Object?, declared=! */ #this = i;
   return #this;
 }

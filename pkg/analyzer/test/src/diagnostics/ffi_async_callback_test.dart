@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,34 +16,32 @@ main() {
 class FfiNativeCallableListenersMustReturnVoid
     extends PubPackageResolutionTest {
   test_NativeCallable_isolateLocal_argumentMustBeAConstant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   int e = 123;
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: e);
+//                                                                         ^
+// [diag.argumentMustBeAConstant] Argument 'exceptionalReturn' must be a constant.
 }
-''',
-      [error(diag.argumentMustBeAConstant, 143, 1)],
-    );
+''');
   }
 
   test_NativeCallable_isolateLocal_exceptionMustBeASubtype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: '?');
+//                                                                         ^^^
+// [diag.mustBeASubtype] The type 'String' must be a subtype of 'Int32' for 'isolateLocal'.
 }
-''',
-      [error(diag.mustBeASubtype, 128, 3)],
-    );
+''');
   }
 
   test_NativeCallable_isolateLocal_inferred() async {
-    await assertErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
@@ -52,115 +49,101 @@ void g() {
   callback = NativeCallable.isolateLocal(f, exceptionalReturn: 4);
   callback.close();
 }
-''', []);
+''');
   }
 
   test_NativeCallable_isolateLocal_invalidExceptionValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
   NativeCallable<Void Function(Int32)>.isolateLocal(f, exceptionalReturn: 4);
+//                                                     ^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidExceptionValue] The method isolateLocal can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'.
 }
-''',
-      [error(diag.invalidExceptionValue, 109, 20)],
-    );
+''');
   }
 
   test_NativeCallable_isolateLocal_missingExceptionValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.missingExceptionValue] The method isolateLocal must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'.
 }
-''',
-      [error(diag.missingExceptionValue, 55, 53)],
-    );
+''');
   }
 
   test_NativeCallable_isolateLocal_mustBeANativeFunctionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<int Function(int)>.isolateLocal(f, exceptionalReturn: 4);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.mustBeANativeFunctionType] The type 'int Function(int)' given to 'NativeCallable' must be a valid 'dart:ffi' native function type.
 }
-''',
-      [
-        error(
-          diag.mustBeANativeFunctionType,
-          55,
-          46,
-          messageContains: [
-            "The type 'int Function(int)' given to 'NativeCallable' must be",
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_NativeCallable_isolateLocal_mustBeASubtype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<Int32 Function(Double)>.isolateLocal(f, exceptionalReturn: 4);
+//                                                    ^
+// [diag.mustBeASubtype] The type 'int Function(int)' must be a subtype of 'Int32 Function(Double)' for 'NativeCallable'.
 }
-''',
-      [error(diag.mustBeASubtype, 107, 1)],
-    );
+''');
   }
 
   test_NativeCallable_isolateLocal_mustHaveTypeArgs() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable.isolateLocal(f, exceptionalReturn: 4);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.mustBeANativeFunctionType] The type 'Function' given to 'NativeCallable' must be a valid 'dart:ffi' native function type.
 }
-''',
-      [error(diag.mustBeANativeFunctionType, 55, 27)],
-    );
+''');
   }
 
   test_NativeCallable_isolateLocal_ok() async {
-    await assertErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: 4);
 }
-''', []);
+''');
   }
 
   test_NativeCallable_isolateLocal_okVoid() async {
-    await assertErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
   NativeCallable<Void Function(Int32)>.isolateLocal(f);
 }
-''', []);
+''');
   }
 
   test_NativeCallable_isolateLocal_voidReturnPermissive() async {
-    await assertErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<Void Function(Int32)>.isolateLocal(f);
 }
-''', []);
+''');
   }
 
   test_NativeCallable_listener_inferred() async {
-    await assertErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
@@ -168,78 +151,74 @@ void g() {
   callback = NativeCallable.listener(f);
   callback.close();
 }
-''', []);
+''');
   }
 
   test_NativeCallable_listener_mustBeANativeFunctionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
   NativeCallable<void Function(int)>.listener(f);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.mustBeANativeFunctionType] The type 'void Function(int)' given to 'NativeCallable' must be a valid 'dart:ffi' native function type.
 }
-''',
-      [error(diag.mustBeANativeFunctionType, 56, 43)],
-    );
+''');
   }
 
   test_NativeCallable_listener_mustBeASubtype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
   NativeCallable<Void Function(Double)>.listener(f);
+//                                               ^
+// [diag.mustBeASubtype] The type 'void Function(int)' must be a subtype of 'Void Function(Double)' for 'NativeCallable'.
 }
-''',
-      [error(diag.mustBeASubtype, 103, 1)],
-    );
+''');
   }
 
   test_NativeCallable_listener_mustHaveTypeArgs() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable.listener(f);
+//^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.mustBeANativeFunctionType] The type 'Function' given to 'NativeCallable' must be a valid 'dart:ffi' native function type.
 }
-''',
-      [error(diag.mustBeANativeFunctionType, 55, 23)],
-    );
+''');
   }
 
   test_NativeCallable_listener_mustReturnVoid() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<Int32 Function(Int32)>.listener(f);
+//                                               ^
+// [diag.mustReturnVoid] The return type of the function passed to 'NativeCallable.listener' must be 'void' rather than 'Int32'.
 }
-''',
-      [error(diag.mustReturnVoid, 102, 1)],
-    );
+''');
   }
 
   test_NativeCallable_listener_ok() async {
-    await assertErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
   NativeCallable<Void Function(Int32)>.listener(f);
 }
-''', []);
+''');
   }
 
   test_NativeCallable_listener_voidReturnPermissive() async {
-    await assertErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<Void Function(Int32)>.listener(f);
 }
-''', []);
+''');
   }
 }

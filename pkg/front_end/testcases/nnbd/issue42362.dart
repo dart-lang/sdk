@@ -10,19 +10,19 @@ class A {
   A.constructor2({this.i}); // error
 
   A.constructor3([int i]) // error
-      : this.i = i; // ok
+    : this.i = i; // ok
 
   A.constructor4({int i}) // error
-      : this.i = i; // ok
+    : this.i = i; // ok
 
   A.constructor5([int? i]) // ok
-      : this.i = i; // error
+    : this.i = i; // error
 
   A.constructor6({int? i}) // ok
-      : this.i = i; // error
+    : this.i = i; // error
 
   A.constructor7({required int i}) // ok
-      : this.i = i; // ok
+    : this.i = i; // ok
 
   external A.constructor8([int i]); // ok
 
@@ -87,7 +87,7 @@ class C implements B {
   C.constructor6({int? i}) : this.i = i; // error
 
   C.constructor7({required int i}) // ok
-      : this.i = i; // ok
+    : this.i = i; // ok
 
   factory C.factory3([int i]) = C.constructor3; // ok
 

@@ -9,6 +9,8 @@
 #error "Should not include runtime"
 #endif
 
+#include <memory>
+
 #include "include/dart_tools_api.h"
 
 #include "platform/assert.h"
@@ -24,6 +26,7 @@
 namespace dart {
 
 // Forward declarations.
+class Cage;
 class Isolate;
 class IsolateGroup;
 class ObjectPointerVisitor;
@@ -47,6 +50,9 @@ class Heap {
 #endif
     kCanonicalHashes,
     kObjectIds,
+#if defined(SNAPSHOT_BACKTRACE)
+    kSnapshotParents,
+#endif
     kLoadingUnits,
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     kHeapSamplingData,
@@ -70,7 +76,6 @@ class Heap {
   PageSpace* old_space() { return &old_space_; }
 
   uword Allocate(Thread* thread, intptr_t size, Space space) {
-    ASSERT(!read_only_);
     switch (space) {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
@@ -126,14 +131,12 @@ class Heap {
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
-  void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
   }
 
   // Initialize the heap and register it with the isolate.
   static void Init(IsolateGroup* isolate_group,
-                   bool is_vm_isolate,
                    intptr_t max_new_gen_words,
                    intptr_t max_old_gen_words);
 
@@ -202,6 +205,16 @@ class Heap {
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   void ResetObjectIdTable();
+
+#if defined(SNAPSHOT_BACKTRACE)
+  void SetSnapshotParent(ObjectPtr obj, Object* parent) {
+    SetWeakEntry(obj, kSnapshotParents, reinterpret_cast<intptr_t>(parent));
+  }
+  Object* GetSnapshotParent(ObjectPtr obj) const {
+    return reinterpret_cast<Object*>(GetWeakEntry(obj, kSnapshotParents));
+  }
+  void ResetSnapshotParentTable();
+#endif
 
   void SetLoadingUnit(ObjectPtr raw_obj, intptr_t unit_id) {
     ASSERT(Thread::Current()->IsDartMutatorThread());
@@ -274,7 +287,11 @@ class Heap {
   intptr_t ReachabilityBarrier() { return old_space_.collections(); }
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
-  bool is_vm_isolate() const { return is_vm_isolate_; }
+#if defined(DART_COMPRESSED_POINTERS)
+  Cage* cage() const { return cage_.get(); }
+#else
+  Cage* cage() const { return nullptr; }
+#endif
 
   void SetupImagePage(void* pointer, uword size, bool is_executable) {
     old_space_.SetupImagePage(pointer, size, is_executable);
@@ -312,7 +329,6 @@ class Heap {
   };
 
   Heap(IsolateGroup* isolate_group,
-       bool is_vm_isolate,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
@@ -350,7 +366,9 @@ class Heap {
   void CollectForDebugging(Thread* thread);
 
   IsolateGroup* const isolate_group_;
-  const bool is_vm_isolate_;
+#if defined(DART_COMPRESSED_POINTERS)
+  std::unique_ptr<Cage> cage_;
+#endif
 
   // The different spaces used for allocation.
   Scavenger new_space_;
@@ -363,9 +381,6 @@ class Heap {
   GCStats stats_;
 
   RelaxedAtomic<Dart_PerformanceMode> mode_ = {Dart_PerformanceMode_Default};
-
-  // This heap is in read-only mode: No allocation is allowed.
-  bool read_only_;
 
   bool assume_scavenge_will_fail_;
 
@@ -405,8 +420,6 @@ class HeapIterationScope : public ThreadStackResource {
   void IterateOldObjects(ObjectVisitor* visitor) const;
   void IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const;
 
-  void IterateVMIsolateObjects(ObjectVisitor* visitor) const;
-
   void IterateObjectPointers(ObjectPointerVisitor* visitor,
                              ValidationPolicy validate_frames);
   void IterateStackPointers(ObjectPointerVisitor* visitor,
@@ -427,14 +440,6 @@ class ForceGrowthScope : public ThreadStackResource {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ForceGrowthScope);
-};
-
-// Note: During this scope all pages are writable and the code pages are
-// non-executable.
-class WritableVMIsolateScope : ThreadStackResource {
- public:
-  explicit WritableVMIsolateScope(Thread* thread);
-  ~WritableVMIsolateScope();
 };
 
 class WritableCodePages : StackResource {

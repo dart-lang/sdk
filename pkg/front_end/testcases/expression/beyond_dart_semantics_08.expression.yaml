@@ -46,7 +46,7 @@ type_bounds: []
 type_defaults: []
 method: "foo"
 static: true
-offset: 94
+offset: 108
 scriptUri: main.dart
 expression: |
   list.first[1] = 42

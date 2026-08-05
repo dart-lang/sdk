@@ -17,7 +17,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   /// The camel-case version of the name.
   String _newName = '';
 
-  RenameToCamelCase({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -37,7 +37,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
     Token? nameToken;
     Element? element;
     var node = this.node;
-    if (node is SimpleFormalParameter) {
+    if (node is FormalParameter) {
       nameToken = node.name;
       element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {

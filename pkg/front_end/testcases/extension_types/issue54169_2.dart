@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension type ET1(ET2 it) {}
+
 extension type ET2(ET2 it) {}

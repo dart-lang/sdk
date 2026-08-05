@@ -15,11 +15,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddReturnType extends ResolvedCorrectionProducer {
-  AddReturnType({required super.context});
+  new({required super.context});
 
   @override
-  CorrectionApplicability get applicability =>
-      CorrectionApplicability.automatically;
+  CorrectionApplicability get applicability => .automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.addReturnType;
@@ -98,18 +97,18 @@ class AddReturnType extends ResolvedCorrectionProducer {
       if (body.isGenerator) {
         return typeProvider.streamElement.instantiate(
           typeArguments: [baseType],
-          nullabilitySuffix: baseType.nullabilitySuffix,
+          nullabilitySuffix: .none,
         );
       } else {
         return typeProvider.futureElement.instantiate(
           typeArguments: [baseType],
-          nullabilitySuffix: baseType.nullabilitySuffix,
+          nullabilitySuffix: .none,
         );
       }
     } else if (body.isGenerator) {
       return typeProvider.iterableElement.instantiate(
         typeArguments: [baseType],
-        nullabilitySuffix: baseType.nullabilitySuffix,
+        nullabilitySuffix: .none,
       );
     }
     return baseType;

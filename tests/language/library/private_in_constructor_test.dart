@@ -5,6 +5,7 @@
 library LibraryPrivateInConstructor;
 
 import "package:expect/expect.dart";
+
 import "private_in_constructor_a.dart";
 import "private_in_constructor_b.dart";
 

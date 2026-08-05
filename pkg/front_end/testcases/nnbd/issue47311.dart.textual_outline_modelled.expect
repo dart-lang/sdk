@@ -18,7 +18,9 @@ class Bar4 implements Foo4<Object> {
 
 class Bar5 implements Foo5<Object> {
   void method<V extends FutureOr<T>, T extends FutureOr<Object>>(
-      Baz<T> x, Baz<V> y) {}
+    Baz<T> x,
+    Baz<V> y,
+  ) {}
 }
 
 class Foo1<T> {
@@ -39,7 +41,9 @@ class Foo4<T> {
 
 class Foo5<T> {
   void method<V extends FutureOr<S>, S extends FutureOr<T>>(
-      Baz<S> x, Baz<V> y) {}
+    Baz<S> x,
+    Baz<V> y,
+  ) {}
 }
 
 typedef Baz<T> = T Function(T);

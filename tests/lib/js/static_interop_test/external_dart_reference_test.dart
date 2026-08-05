@@ -116,18 +116,16 @@ void generalTest() {
         .toDartObject,
   );
 
-  _identity =
-      ((ExternalDartReference<DartSubclass> et) =>
-              et.toDartObject.toExternalReference)
-          .toJS;
+  _identity = ((
+    ExternalDartReference<DartSubclass> et,
+  ) => et.toDartObject.toExternalReference).toJS;
   Expect.throws(() => identity(externalDartReference));
 
   // Check that we do the right thing with nullability still, both in the type
   // parameter and outside it.
-  _identity =
-      ((ExternalDartReference<Object> et) =>
-              et.toDartObject.toExternalReference)
-          .toJS;
+  _identity = ((
+    ExternalDartReference<Object> et,
+  ) => et.toDartObject.toExternalReference).toJS;
   nullableExternalDartReference = null?.toExternalReference;
   Expect.isTrue(nullableExternalDartReference == null);
   Expect.throwsWhen(
@@ -177,7 +175,12 @@ extension type WritableSignal<T>(JSFunction _) {
 
   void set(T value) => _set(value.toExternalReference);
 
-  void _update(JSExportedDartFunction update) {}
+  void _update(
+    JSExportedDartFunction<
+      ExternalDartReference<T> Function(ExternalDartReference<T>)
+    >
+    update,
+  ) {}
 
   void update(T Function(T) function) {
     // Because `ExternalDartReference<T>`s are `T` on the JS backends, we can

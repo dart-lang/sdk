@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryCastTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnnecessaryCastTest extends PubPackageResolutionTest {
   test_conditionalExpression_changesResultType_left() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 
@@ -28,7 +29,7 @@ dynamic f(bool c, B x, B y) {
   }
 
   test_conditionalExpression_changesResultType_right() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 
@@ -39,62 +40,59 @@ dynamic f(bool c, B x, B y) {
   }
 
   test_conditionalExpression_leftDynamic_rightUnnecessary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f(bool c, int a, int b) {
   return c ? a : b as int;
+//               ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 }
-''',
-      [error(diag.unnecessaryCast, 51, 8)],
-    );
+''');
   }
 
   test_conditionalExpression_leftUnnecessary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f(bool c, int a, int b) {
   return c ? a as int : b;
+//           ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 }
-''',
-      [error(diag.unnecessaryCast, 47, 8)],
-    );
+''');
   }
 
   test_conditionalExpression_leftUnnecessary_rightDynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f(bool c, int a, dynamic b) {
   return c ? a as int : b;
+//           ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 }
-''',
-      [error(diag.unnecessaryCast, 51, 8)],
-    );
+''');
   }
 
   test_conditionalExpression_leftUnnecessary_rightUnnecessary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f(bool c, int a, int b) {
   return c ? a as int : b as int;
+//           ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
+//                      ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 }
-''',
-      [error(diag.unnecessaryCast, 47, 8), error(diag.unnecessaryCast, 58, 8)],
-    );
+''');
   }
 
   test_conditionalExpression_rightUnnecessary() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f(bool c, int a, int b) {
   return c ? a : b as int;
+//               ^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 }
-''',
-      [error(diag.unnecessaryCast, 51, 8)],
-    );
+''');
   }
 
   test_dynamic_type() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(a) {
   a as Object;
 }
@@ -102,18 +100,17 @@ void f(a) {
   }
 
   test_expression_invalidType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   x as int;
+//^
+// [diag.undefinedIdentifier] Undefined name 'x'.
 }
-''',
-      [error(diag.undefinedIdentifier, 13, 1)],
-    );
+''');
   }
 
   test_function_toSubtype_viaParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function(int) a) {
   (a as void Function(num))(3);
 }
@@ -121,7 +118,7 @@ void f(void Function(int) a) {
   }
 
   test_function_toSubtype_viaReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num Function() a) {
   (a as int Function())();
 }
@@ -129,7 +126,7 @@ void f(num Function() a) {
   }
 
   test_function_toSupertype_viaParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function(num) a) {
   (a as void Function(int))(3);
 }
@@ -137,7 +134,7 @@ void f(void Function(num) a) {
   }
 
   test_function_toSupertype_viaReturnType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int Function() a) {
   (a as num Function())();
 }
@@ -145,7 +142,7 @@ void f(int Function() a) {
   }
 
   test_function_toUnrelated() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num Function(num) a) {
   (a as int Function(int))(3);
 }
@@ -153,7 +150,7 @@ void f(num Function(num) a) {
   }
 
   test_function_toUnrelated_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends num>(T Function(T) a) {
   (a as int Function(int))(3);
 }
@@ -161,7 +158,7 @@ void f<T extends num>(T Function(T) a) {
   }
 
   test_type_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   Object as dynamic;
 }
@@ -169,7 +166,7 @@ void f() {
   }
 
   test_type_function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Function f) {
   f as Function;
 }
@@ -177,7 +174,7 @@ void f(Function f) {
   }
 
   test_type_supertype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   a as Object;
 }
@@ -185,30 +182,28 @@ void f(int a) {
   }
 
   test_type_type() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num a) {
   a as num;
+//^^^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 }
-''',
-      [error(diag.unnecessaryCast, 18, 8)],
-    );
+''');
   }
 
   test_type_type_asInterfaceTypeTypedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef N = num;
 void f(num a) {
   a as N;
+//^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 }
-''',
-      [error(diag.unnecessaryCast, 35, 6)],
-    );
+''');
   }
 
   test_typeParameter_hasBound_same() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends num>(T a) {
   a as num;
 }
@@ -216,7 +211,7 @@ void f<T extends num>(T a) {
   }
 
   test_typeParameter_hasBound_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends int>(T a) {
   a as num;
 }
@@ -224,7 +219,7 @@ void f<T extends int>(T a) {
   }
 
   test_typeParameter_hasBound_unrelated() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends num>(T a) {
   a as String;
 }
@@ -232,7 +227,7 @@ void f<T extends num>(T a) {
   }
 
   test_typeParameter_noBound() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {
   a as num;
 }

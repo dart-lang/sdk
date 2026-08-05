@@ -883,6 +883,35 @@ void main() {
     );
   }, skip: isRunningOnIA32);
 
+  test('Compile wasm standalone', () async {
+    final p = project(
+      mainSrc: '''
+void main() {
+  print('hello world');
+}
+''',
+    );
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'standalone.wasm'));
+
+    final result = await p.run([
+      'compile',
+      'wasm',
+      '--standalone',
+      '-o',
+      outFile,
+      inFile,
+    ]);
+
+    expect(result.stdout, isNot(contains('.mjs')));
+    expect(result.stdout, contains('standalone option is experimental'));
+    expect(
+      File(outFile).existsSync(),
+      true,
+      reason: 'Expected output file to exist: $outFile',
+    );
+  }, skip: isRunningOnIA32);
+
   test('Compile JS with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -1494,8 +1523,18 @@ void main() {
       skip: isRunningOnIA32,
     );
     test(
+      'compile jit-snapshot',
+      () => testDepFileGeneration('jit-snapshot'),
+      skip: isRunningOnIA32,
+    );
+    test(
       'compile kernel',
       () => testDepFileGeneration('kernel'),
+      skip: isRunningOnIA32,
+    );
+    test(
+      'compile wasm',
+      () => testDepFileGeneration('wasm'),
       skip: isRunningOnIA32,
     );
   });

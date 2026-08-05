@@ -20,38 +20,38 @@ typedef TTA4 = self::A4;
 typedef TA4 = self::A4;
 class A1 extends core::Object {
   final field core::String foo;
-  constructor •(core::String foo) → self::A1
+  constructor •(initializing-formal core::String foo) → self::A1
     ;
 }
 class D1 extends self::A1 {
-  constructor •(core::String foo) → self::D1
+  constructor •(super-initializing-formal core::String foo) → self::D1
     ;
 }
 class A2 extends core::Object {
   final field core::String foo;
-  constructor •({core::String foo = "bar"}) → self::A2
+  constructor •({initializing-formal core::String foo = "bar"}) → self::A2
     ;
 }
 class D2 extends self::A2 {
-  constructor •({core::String foo = "bar"}) → self::D2
+  constructor •({super-initializing-formal core::String foo = "bar"}) → self::D2
     ;
 }
 class A3 extends core::Object {
   final field core::String foo;
-  constructor •([core::String foo = "bar"]) → self::A3
+  constructor •([initializing-formal core::String foo = "bar"]) → self::A3
     ;
 }
 class D3 extends self::A3 {
-  constructor •([core::String foo = "bar"]) → self::D3
+  constructor •([super-initializing-formal core::String foo = "bar"]) → self::D3
     ;
 }
 class D4 extends self::A4 {
-  constructor •([core::String foo = "bar"]) → self::D4
+  constructor •([super-initializing-formal core::String foo = "bar"]) → self::D4
     ;
 }
 class A4 extends core::Object {
   final field core::String foo;
-  constructor •([core::String foo = "bar"]) → self::A4
+  constructor •([initializing-formal core::String foo = "bar"]) → self::A4
     ;
 }
 static method main() → dynamic

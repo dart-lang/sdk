@@ -22,22 +22,22 @@ library;
 //   new(); // Error
 //   ^
 //
-// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:32:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:34:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
 // Try making the constructor redirect to the primary constructor, or remove the primary constructor.
 //   const E1.other(); // Error
 //         ^
 //
-// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:37:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:42:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
 // Try making the constructor redirect to the primary constructor, or remove the primary constructor.
 //   const new other1(); // Error
 //             ^
 //
-// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:38:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:43:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
 // Try making the constructor redirect to the primary constructor, or remove the primary constructor.
 //   const new other2(); // Error
 //             ^
 //
-// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:53:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:64:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
 // Try making the constructor redirect to the primary constructor, or remove the primary constructor.
 //   const new(); // Error
 //         ^
@@ -206,19 +206,19 @@ extension type ET4(core::int i) {
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(i);
-static extension-type-member method ET1|constructor#other(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#other(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ET1|constructor#_#other#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#other(i);
-static extension-type-member method E2T|constructor#(core::int i) → self::E2T% /* erasure=core::int, declared=! */ {
+static extension-type-member method E2T|constructor#(initializing-formal core::int i) → self::E2T% /* erasure=core::int, declared=! */ {
   lowered final self::E2T% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -231,19 +231,19 @@ static extension-type-member method E2T|constructor#other(core::int i) → self:
 }
 static extension-type-member synthetic method E2T|constructor#_#other#tearOff(core::int i) → self::E2T% /* erasure=core::int, declared=! */
   return self::E2T|constructor#other(i);
-static extension-type-member method ET3|constructor#primary(core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET3|constructor#primary(initializing-formal core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
   lowered final self::ET3% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ET3|constructor#_#primary#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#primary(i);
-static extension-type-member method ET3|constructor#(core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET3|constructor#(initializing-formal core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
   lowered final self::ET3% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(i);
-static extension-type-member method ET4|constructor#primary(core::int i) → self::ET4% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET4|constructor#primary(initializing-formal core::int i) → self::ET4% /* erasure=core::int, declared=! */ {
   lowered final self::ET4% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -291,15 +291,15 @@ org-dartlang-testcase:///primary_and_generative.dart:
 - E1. (from org-dartlang-testcase:///primary_and_generative.dart:30:8)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E1.other (from org-dartlang-testcase:///primary_and_generative.dart:32:9)
-- E2. (from org-dartlang-testcase:///primary_and_generative.dart:35:8)
-- E2.other1 (from org-dartlang-testcase:///primary_and_generative.dart:37:13)
-- E2.other2 (from org-dartlang-testcase:///primary_and_generative.dart:38:13)
-- E3. (from org-dartlang-testcase:///primary_and_generative.dart:41:8)
-- E3.other (from org-dartlang-testcase:///primary_and_generative.dart:43:13)
-- E4. (from org-dartlang-testcase:///primary_and_generative.dart:46:8)
-- E4.other (from org-dartlang-testcase:///primary_and_generative.dart:48:13)
-- E5. (from org-dartlang-testcase:///primary_and_generative.dart:53:9)
-- E5.primary (from org-dartlang-testcase:///primary_and_generative.dart:51:9)
-- E6. (from org-dartlang-testcase:///primary_and_generative.dart:58:9)
-- E6.primary (from org-dartlang-testcase:///primary_and_generative.dart:56:9)
+- E1.other (from org-dartlang-testcase:///primary_and_generative.dart:34:9)
+- E2. (from org-dartlang-testcase:///primary_and_generative.dart:37:8)
+- E2.other1 (from org-dartlang-testcase:///primary_and_generative.dart:42:13)
+- E2.other2 (from org-dartlang-testcase:///primary_and_generative.dart:43:13)
+- E3. (from org-dartlang-testcase:///primary_and_generative.dart:46:8)
+- E3.other (from org-dartlang-testcase:///primary_and_generative.dart:50:13)
+- E4. (from org-dartlang-testcase:///primary_and_generative.dart:53:8)
+- E4.other (from org-dartlang-testcase:///primary_and_generative.dart:57:13)
+- E5. (from org-dartlang-testcase:///primary_and_generative.dart:64:9)
+- E5.primary (from org-dartlang-testcase:///primary_and_generative.dart:60:9)
+- E6. (from org-dartlang-testcase:///primary_and_generative.dart:71:9)
+- E6.primary (from org-dartlang-testcase:///primary_and_generative.dart:67:9)

@@ -1,1 +1,1 @@
-extension type (final int a, final int b);
+extension type E(final int a, final int b);

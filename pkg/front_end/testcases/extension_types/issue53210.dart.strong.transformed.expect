@@ -23,7 +23,7 @@ extension type ET1(core::int id) {
   static factory f2 = self::ET1|constructor#f2;
   static factory tearoff f2 = self::ET1|constructor#_#f2#tearOff;
 }
-static extension-type-member method ET1|constructor#c0(core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#c0(initializing-formal core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
@@ -36,7 +36,7 @@ static extension-type-member method ET1|constructor#c1() → self::ET1% /* erasu
 }
 static extension-type-member synthetic method ET1|constructor#_#c1#tearOff() → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#c1();
-static extension-type-member method ET1|constructor#c2(core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#c2(initializing-formal core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }

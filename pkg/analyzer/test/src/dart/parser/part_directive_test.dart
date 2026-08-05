@@ -2,25 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PartDirectiveParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PartDirectiveParserTest extends ParserDiagnosticsTest {
   test_afterPartOf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 part 'b.dart';
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''
@@ -33,10 +33,9 @@ PartDirective
   }
 
   test_it() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part 'a.dart';
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''
@@ -49,12 +48,12 @@ PartDirective
   }
 
   test_language305_afterPartOf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 part of 'a.dart';
 part 'b.dart';
+// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
 ''');
-    parseResult.assertErrors([error(diag.nonPartOfDirectiveInPart, 33, 4)]);
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''
@@ -67,12 +66,12 @@ PartDirective
   }
 
   test_language305_beforePartOf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 part 'b.dart';
 part of 'a.dart';
+// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
 ''');
-    parseResult.assertErrors([error(diag.nonPartOfDirectiveInPart, 30, 4)]);
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''
@@ -85,10 +84,11 @@ PartDirective
   }
 
   test_noSemicolon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part 'a.dart'
+//   ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 5, 8)]);
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''
@@ -101,10 +101,11 @@ PartDirective
   }
 
   test_noUri_hasSemicolon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part ;
+//   ^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([error(diag.expectedStringLiteral, 5, 1)]);
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''
@@ -117,13 +118,12 @@ PartDirective
   }
 
   test_noUri_noSemicolon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part
+// [diag.expectedToken][column 1][length 4] Expected to find ';'.
+//  ^
+// [diag.expectedStringLiteral][column 5][length 0] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 4),
-      error(diag.expectedStringLiteral, 5, 0),
-    ]);
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''

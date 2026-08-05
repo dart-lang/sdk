@@ -21,11 +21,11 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
 
-  AddFieldFormalParameters({required super.context})
+  new({required super.context})
     : _style = _Style.base,
       fixKind = DartFixKind.addInitializingFormalParameters;
 
-  AddFieldFormalParameters.requiredNamed({required super.context})
+  new requiredNamed({required super.context})
     : _style = _Style.requiredNamed,
       fixKind = DartFixKind.addInitializingFormalNamedParameters;
 
@@ -142,9 +142,8 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
       // Insert the "{" to begin the named parameters if needed.
       var addCurlyBraces =
           firstNamedParameter == null && _style == _Style.requiredNamed;
-      var parametersAtCurly = getCodeStyleOptions(
-        unitResult.file,
-      ).requiredNamedParametersFirst;
+      var parametersAtCurly = getCodeStyleOptions(unitResult.file)
+          .requiredNamedParametersFirst;
 
       if (addCurlyBraces && !parametersAtCurly) {
         var curlyOpen = lastRequiredPositionalParameter == null ? '{' : ', {';

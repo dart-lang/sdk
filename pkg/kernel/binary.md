@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 130;
+  UInt32 formatVersion = 138;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -401,11 +401,14 @@ type Field extends Member {
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
                 isInternalImplementation, isEnumElement, isExtensionTypeMember,
-                isErroneous);
+                isErroneous, HasSuperCalls);
   Name name;
+  UInt scopeSize;
   List<Expression> annotations;
   DartType type;
+  Option<Variable> thisVariable;
   Option<Expression> initializer;
+  Option<Scope> scope;
 }
 
 type Constructor extends Member {
@@ -415,7 +418,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic, isErroneous);
+  Byte flags (isConst, isExternal, isSynthetic, isErroneous, HasSuperCalls);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -456,8 +459,8 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isExtensionMember, isSynthetic, isInternalImplementation,
-              isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField,
-              isErroneous);
+              isExtensionTypeMember, hasWeakTearoffReferencePragma,
+              isErroneous, isExternalEffect, HasSuperCalls);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -500,7 +503,7 @@ type RedirectingInitializer extends Initializer {
 type LocalInitializer extends Initializer {
   Byte tag = 11;
   FileOffset fileOffset;
-  VariableDeclarationPlain variable;
+  Variable variable;
 }
 
 type AssertInitializer extends Initializer {
@@ -524,15 +527,19 @@ type FunctionNode {
   FileOffset fileEndOffset;
   Byte asyncMarker; // Index into AsyncMarker above.
   Byte dartAsyncMarker; // Index into AsyncMarker above.
+  UInt scopeSize;
   List<TypeParameter> typeParameters;
+  Option<Variable> thisVariable;
   UInt parameterCount; // positionalParameters.length + namedParameters.length.
   UInt requiredParameterCount;
-  List<VariableDeclarationPlain> positionalParameters;
-  List<VariableDeclarationPlain> namedParameters;
+  List<PositionalParameter> positionalParameters;
+  List<NamedParameter> namedParameters;
   DartType returnType;
   Option<DartType> emittedValueType;
   Option<RedirectingFactoryTarget> redirectingFactoryTarget;
   Option<Statement> body;
+  Option<Scope> scope;
+  Option<List<VariableContextReference>> capturedContexts;
 }
 
 type RedirectingFactoryTarget {
@@ -791,6 +798,7 @@ type InstanceInvocation extends Expression {
   Name name;
   Arguments arguments;
   DartType functionType;
+  DartType resultType;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
@@ -1181,15 +1189,17 @@ type FunctionExpression extends Expression {
 type Let extends Expression {
   Byte tag = 53;
   FileOffset fileOffset;
-  VariableDeclarationPlain variable;
+  Variable variable;
   Expression body;
 }
 
 type BlockExpression extends Expression {
   Byte tag = 82;
   FileOffset fileOffset;
+  UInt scopeSize;
   List<Statement> body;
   Expression value;
+  Option<Scope> scope;
 }
 
 type Instantiation extends Expression {
@@ -1342,7 +1352,20 @@ type Block extends Statement {
   Byte tag = 62;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
+  UInt scopeSize;
   List<Statement> statements;
+  Option<Scope> scope;
+}
+
+type Scope {
+  List<VariableContext> contexts;
+}
+
+enum CaptureKind { notCaptured = 0, directCaptured = 1, assertCaptured = 2, }
+
+type VariableContext {
+  CaptureKind captureKind;
+  List<VariableReference> variables;
 }
 
 type AssertBlock extends Statement {
@@ -1382,8 +1405,10 @@ type BreakStatement extends Statement {
 type WhileStatement extends Statement {
   Byte tag = 67;
   FileOffset fileOffset;
+  UInt scopeSize;
   Expression condition;
   Statement body;
+  Option<Scope> scope;
 }
 
 type DoStatement extends Statement {
@@ -1396,26 +1421,30 @@ type DoStatement extends Statement {
 type ForStatement extends Statement {
   Byte tag = 69;
   FileOffset fileOffset;
-  List<VariableDeclarationPlain> variables;
+  UInt scopeSize;
+  List<VariableDeclaration> variables;
   Option<Expression> condition;
   List<Expression> updates;
   Statement body;
+  Option<Scope> scope;
 }
 
 type ForInStatement extends Statement {
   Byte tag = 70;
   FileOffset fileOffset;
   FileOffset bodyOffset;
-  VariableDeclarationPlain variable;
+  UInt scopeSize;
+  Variable variable;
   Expression iterable;
   Statement body;
+  Option<Scope> scope;
 }
 
 type AsyncForInStatement extends Statement {
   Byte tag = 80; // Note: tag is out of order.
   FileOffset fileOffset;
   FileOffset bodyOffset;
-  VariableDeclarationPlain variable;
+  Variable variable;
   Expression iterable;
   Statement body;
 }
@@ -1480,10 +1509,12 @@ type TryCatch extends Statement {
 
 type Catch {
   FileOffset fileOffset;
+  UInt scopeSize;
   DartType guard;
-  Option<VariableDeclarationPlain> exception;
-  Option<VariableDeclarationPlain> stackTrace;
+  Option<Variable> exception;
+  Option<Variable> stackTrace;
   Statement body;
+  Option<Scope> scope;
 }
 
 type TryFinally extends Statement {
@@ -1500,12 +1531,68 @@ type YieldStatement extends Statement {
   Expression expression;
 }
 
-type VariableDeclaration extends Statement {
+type VariableStatement extends Statement {
   Byte tag = 78;
-  VariableDeclarationPlain variable;
+  FileOffset fileOffset;
+  VariableDeclaration declaration;
 }
 
-type VariableDeclarationPlain {
+type VariableDeclaration extends Node {
+  Byte tag = 154;
+  FileOffset fileOffset;
+  // Variables captured by the initializer of the late variable.
+  Option<List<VariableContextReference>> capturedContexts;
+  Variable variable;
+}
+
+abstract type Variable extends Node {}
+
+type LocalVariable extends Variable {
+  Byte tag = 155;
+  VariableInternal variable;
+}
+
+type LateVariable extends Variable {
+  Byte tag = 156;
+  VariableInternal variable;
+}
+
+type LocalFunctionVariable extends Variable {
+  Byte tag = 162;
+  VariableInternal variable;
+}
+
+type ConstVariable extends Variable {
+  Byte tag = 163;
+  VariableInternal variable;
+}
+
+type SyntheticVariable extends Variable {
+  Byte tag = 157;
+  VariableInternal variable;
+}
+
+type CatchVariable extends Variable {
+  Byte tag = 158;
+  VariableInternal variable;
+}
+
+type PositionalParameter extends Variable {
+  Byte tag = 159;
+  VariableInternal variable;
+}
+
+type NamedParameter extends Variable {
+  Byte tag = 160;
+  VariableInternal variable;
+}
+
+type ThisVariable extends Variable {
+  Byte tag = 161;
+  VariableInternal variable;
+}
+
+type VariableInternal {
   // The offset for the variable declaration, i.e. the offset of the start of
   // the declaration.
   FileOffset fileOffset;
@@ -1519,8 +1606,9 @@ type VariableDeclarationPlain {
   UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
               isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
               isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal,
-              isErroneouslyInitialized);
-  // For named parameters, this is the parameter name.
+              isErroneouslyInitialized, isRenamedPrivateNamedParameter);
+  // For named parameters, this is the parameter name (which has been renamed if
+  // isRenamedPrivateNamedParameter is set).
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
   StringReference name;
@@ -1532,6 +1620,14 @@ type VariableDeclarationPlain {
   Option<Expression> initializer;
 }
 
+type VariableContextReference {
+  // Reference to the Nth variable context in the enclosing scopes, with 0 being
+  // the first variable context declared in the outermost enclosing scope, and
+  // larger numbers being the variable contexts declared later in a given scope,
+  // or in a more deeply nested scope.
+  UInt stackIndex;
+}
+
 type FunctionDeclaration extends Statement {
   Byte tag = 79;
   FileOffset fileOffset;
@@ -1539,7 +1635,7 @@ type FunctionDeclaration extends Statement {
   // within the function for use as a self-reference.
   // Some of the fields in the variable are redundant, but its presence here
   // simplifies the rule for variable indexing.
-  VariableDeclarationPlain variable;
+  Variable variable;
   // Identifier of the local function within an enclosing member.
   UInt id;
   FunctionNode function;
@@ -1694,6 +1790,7 @@ type AssignedVariablePattern extends Pattern {
   Byte tag = 129;
   FileOffset fileOffset;
   VariableReference variable;
+  Option<VariableReference> setter;
   Option<DartType> matchedType;
   Byte needsCast;
 }
@@ -1718,7 +1815,7 @@ type InvalidPattern extends Pattern {
   Byte tag = 132;
   FileOffset fileOffset;
   Expression invalidExpression;
-  List<VariableDeclarationPlain> declaredVariables;
+  List<Variable> declaredVariables;
 }
 
 type ListPattern extends Pattern {
@@ -1884,7 +1981,7 @@ type VariablePattern extends Pattern {
   Byte tag = 143;
   FileOffset fileOffset;
   Option<DartType> type;
-  VariableDeclaration variable;
+  Variable variable;
   Option<DartType> matchedType;
 }
 
@@ -1952,7 +2049,7 @@ type PatternSwitchStatement extends Statement {
 
 type PatternSwitchCase extends TreeNode {
   // Note: there is no tag on PatternSwitchCase
-  List<VariableDeclaration> jointVariables;
+  List<Variable> jointVariables;
   List<Pair<FileOffset, PatternGuard>> patternGuards;
   Byte flags; // {isDefault, hasLabel}
   Statement body;

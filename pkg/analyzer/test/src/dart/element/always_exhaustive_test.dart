@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,87 +26,81 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
   }
 
   test_class_bool() {
-    isAlwaysExhaustive(boolNone);
-    isAlwaysExhaustive(boolQuestion);
+    isAlwaysExhaustive(parseType('bool'));
+    isAlwaysExhaustive(parseType('bool?'));
   }
 
   test_class_int() {
-    isNotAlwaysExhaustive(intNone);
-    isNotAlwaysExhaustive(intQuestion);
+    isNotAlwaysExhaustive(parseType('int'));
+    isNotAlwaysExhaustive(parseType('int?'));
   }
 
   test_class_Null() {
-    isAlwaysExhaustive(nullNone);
+    isAlwaysExhaustive(parseType('Null'));
   }
 
   test_class_sealed() {
-    var A = class_2(name: 'A', isSealed: true);
-    isAlwaysExhaustive(interfaceTypeNone(A));
-    isAlwaysExhaustive(interfaceTypeQuestion(A));
+    buildTestLibrary(classes: [ClassSpec('sealed class A')]);
+    isAlwaysExhaustive(parseType('A'));
+    isAlwaysExhaustive(parseType('A?'));
   }
 
   test_enum() {
-    var E = enum_2(name: 'E', constants: []);
-    isAlwaysExhaustive(interfaceTypeNone(E));
-    isAlwaysExhaustive(interfaceTypeQuestion(E));
+    buildTestLibrary(enums: [EnumSpec('enum E')]);
+    isAlwaysExhaustive(parseType('E'));
+    isAlwaysExhaustive(parseType('E?'));
   }
 
   test_extensionType() {
-    isAlwaysExhaustive(
-      interfaceTypeNone(extensionType2('A', representationType: boolNone)),
+    buildTestLibrary(
+      extensionTypes: [
+        ExtensionTypeSpec('extension type A(bool it)'),
+        ExtensionTypeSpec('extension type B(bool? it)'),
+        ExtensionTypeSpec('extension type C(int it)'),
+      ],
     );
-
-    isAlwaysExhaustive(
-      interfaceTypeNone(extensionType2('A', representationType: boolQuestion)),
-    );
-
-    isNotAlwaysExhaustive(
-      interfaceTypeNone(extensionType2('A', representationType: intNone)),
-    );
+    isAlwaysExhaustive(parseType('A'));
+    isAlwaysExhaustive(parseType('B'));
+    isNotAlwaysExhaustive(parseType('C'));
   }
 
   test_futureOr() {
-    isAlwaysExhaustive(futureOrNone(boolNone));
-    isAlwaysExhaustive(futureOrQuestion(boolNone));
+    isAlwaysExhaustive(parseType('FutureOr<bool>'));
+    isAlwaysExhaustive(parseType('FutureOr<bool>?'));
 
-    isAlwaysExhaustive(futureOrNone(boolQuestion));
-    isAlwaysExhaustive(futureOrQuestion(boolQuestion));
+    isAlwaysExhaustive(parseType('FutureOr<bool?>'));
+    isAlwaysExhaustive(parseType('FutureOr<bool?>?'));
 
-    isNotAlwaysExhaustive(futureOrNone(intNone));
-    isNotAlwaysExhaustive(futureOrQuestion(intNone));
+    isNotAlwaysExhaustive(parseType('FutureOr<int>'));
+    isNotAlwaysExhaustive(parseType('FutureOr<int>?'));
   }
 
   test_recordType() {
-    isAlwaysExhaustive(recordTypeNone(positionalTypes: [boolNone]));
+    isAlwaysExhaustive(parseType('(bool,)'));
 
-    isAlwaysExhaustive(recordTypeNone(namedTypes: {'f0': boolNone}));
+    isAlwaysExhaustive(parseType('({bool f0})'));
 
-    isNotAlwaysExhaustive(recordTypeNone(positionalTypes: [intNone]));
+    isNotAlwaysExhaustive(parseType('(int,)'));
 
-    isNotAlwaysExhaustive(recordTypeNone(positionalTypes: [boolNone, intNone]));
+    isNotAlwaysExhaustive(parseType('(bool, int)'));
 
-    isNotAlwaysExhaustive(recordTypeNone(namedTypes: {'f0': intNone}));
+    isNotAlwaysExhaustive(parseType('({int f0})'));
 
-    isNotAlwaysExhaustive(
-      recordTypeNone(namedTypes: {'f0': boolNone, 'f1': intNone}),
-    );
+    isNotAlwaysExhaustive(parseType('({bool f0, int f1})'));
   }
 
   test_typeParameter() {
-    isAlwaysExhaustive(
-      typeParameterTypeNone(typeParameter('T', bound: boolNone)),
-    );
+    withTypeParameterScope('T extends bool', (scope) {
+      isAlwaysExhaustive(scope.parseType('T'));
+    });
 
-    isNotAlwaysExhaustive(
-      typeParameterTypeNone(typeParameter('T', bound: numNone)),
-    );
+    withTypeParameterScope('T extends num', (scope) {
+      isNotAlwaysExhaustive(scope.parseType('T'));
+    });
 
-    isAlwaysExhaustive(
-      typeParameterTypeNone(typeParameter('T'), promotedBound: boolNone),
-    );
-
-    isNotAlwaysExhaustive(
-      typeParameterTypeNone(typeParameter('T'), promotedBound: intNone),
-    );
+    withTypeParameterScope('T', (scope) {
+      isAlwaysExhaustive(scope.parseType('T & bool'));
+      isNotAlwaysExhaustive(scope.parseType('T & int'));
+    });
   }
 }

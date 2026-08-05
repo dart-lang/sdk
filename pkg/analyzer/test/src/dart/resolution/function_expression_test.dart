@@ -2,27 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FunctionExpressionResolutionTest extends PubPackageResolutionTest {
   test_genericFunctionExpression_fBoundedDefaultType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   <T extends List<T>>() {};
 }
 ''');
 
-    var node = findNode.functionExpression('<T extends');
+    var node = result.findNode.functionExpression('<T extends');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   typeParameters: TypeParameterList
@@ -61,13 +62,13 @@ FunctionExpression
   }
 
   test_genericFunctionExpression_simpleDefaultType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   <T extends num>() {};
 }
 ''');
 
-    var node = findNode.functionExpression('<T extends');
+    var node = result.findNode.functionExpression('<T extends');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   typeParameters: TypeParameterList
@@ -98,14 +99,13 @@ FunctionExpression
   }
 
   test_signatureScope_noFormalParameters() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 var f = ({int x = x}) {};
-''',
-      [error(diag.undefinedIdentifier, 18, 1)],
-    );
+//                ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
+''');
 
-    var node = findNode.singleFormalParameterList;
+    var node = result.findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (

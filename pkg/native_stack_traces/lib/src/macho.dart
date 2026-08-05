@@ -835,11 +835,12 @@ class MachO extends DwarfContainer {
       _dwarfSegment?.sections['__debug_info']?.shrink(containerReader);
 
   @override
-  int? get vmStartAddress => _symbolTable[constants.vmSymbolName]?.value;
+  int? get vmStartAddress => _symbolTable[constants.oldVmSymbolName]?.value;
 
   @override
   int? get isolateStartAddress =>
-      _symbolTable[constants.isolateSymbolName]?.value;
+      _symbolTable[constants.textSymbolName]?.value ??
+      _symbolTable[constants.oldIsolateSymbolName]?.value;
 
   @override
   String? get buildId =>

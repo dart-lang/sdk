@@ -19,129 +19,121 @@ class AvoidAnnotatingWithDynamicTest extends LintRuleTest {
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
-  void f(dynamic o) { }
+  void f([!dynamic o!]) { }
 }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(46, 9)]);
   }
 
   test_augmentationTopLevelFunction() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
-void f(dynamic o) { }
+void f([!dynamic o!]) { }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(26, 9)]);
   }
 
   test_augmentationTopLevelFunction_localDynamic() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
-void f(int i) {}
+void f(int i);
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment void f(int i) {
-  var g = (dynamic x) {};
+  var g = ([!dynamic x!]) {};
   g(i);
 }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(54, 9)]);
   }
 
   test_augmentedMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment class A {
+  augment void f(dynamic o);
+}
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class A {
-  void f(dynamic o) { }
+  void f([!dynamic o!]) { }
 }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment class A {
-  augment void f(dynamic o) { }
-}
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(35, 9)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment void f(dynamic o);
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
-void f(dynamic o) { }
+void f([!dynamic o!]) { }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment void f(dynamic o) { }
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(23, 9)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction_multiple() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment void f(dynamic o);
+augment void f(dynamic o);
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
-void f(dynamic o) { }
+void f([!dynamic o!]) { }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment void f(dynamic o) { }
-augment void f(dynamic o) { }
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(23, 9)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
-  // TODO(srawlins): Test parameter of function-typed typedef (both old and
-  // new style).
-  // Test parameter of function-typed parameter (`f(void g(dynamic x))`).
-  // Test parameter with a default value.
-
   test_fieldFormals() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   var a;
-  A(dynamic this.a);
+  A([!dynamic this.a!]);
 }
-''',
-      [lint(23, 14)],
-    );
+''');
+  }
+
+  test_functionTypedParameter() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(void g([!dynamic x!])) {}
+''');
+  }
+
+  test_genericTypedef() async {
+    await assertDiagnosticsFromMarkup(r'''
+typedef F = void Function([!dynamic x!]);
+''');
   }
 
   test_implicitDynamic() async {
@@ -151,31 +143,31 @@ void f(p) {}
   }
 
   test_optionalNamedParameter() async {
-    await assertDiagnostics(
-      r'''
-void f({dynamic p}) {}
-''',
-      [lint(8, 9)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+void f({[!dynamic p!]}) {}
+''');
   }
 
   test_optionalParameter() async {
-    await assertDiagnostics(
-      r'''
-void f([dynamic p]) {}
-''',
-      [lint(8, 9)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+void f([[!dynamic p!]]) {}
+''');
+  }
+
+  test_parameter_defaultValue() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f([[!dynamic x = 1!]]) {}
+''');
   }
 
   test_primaryConstructor_declaringParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!final dynamic a!]);
 ''');
   }
 
   test_primaryConstructor_fieldFormalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!dynamic this.a!]) {
   var a;
 }
@@ -183,13 +175,13 @@ class C([!dynamic this.a!]) {
   }
 
   test_primaryConstructor_simpleParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!dynamic a!]);
 ''');
   }
 
   test_primaryConstructor_superParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A(this.a, this.b) {
   var a;
   var b;
@@ -199,12 +191,9 @@ class B(/*[0*/dynamic super.a/*0]*/, /*[1*/dynamic super.b/*1]*/) extends A;
   }
 
   test_requiredParameter() async {
-    await assertDiagnostics(
-      r'''
-void f(dynamic p) {}
-''',
-      [lint(7, 9)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+void f([!dynamic p!]) {}
+''');
   }
 
   test_returnType() async {
@@ -216,18 +205,21 @@ dynamic f() {
   }
 
   test_super() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   var a;
   var b;
   A(this.a, this.b);
 }
 class B extends A {
-  B(dynamic super.a, dynamic super.b);
+  B(/*[0*/dynamic super.a/*0]*/, /*[1*/dynamic super.b/*1]*/);
 }
-''',
-      [lint(75, 15), lint(92, 15)],
-    );
+''');
+  }
+
+  test_typedef() async {
+    await assertDiagnosticsFromMarkup(r'''
+typedef void F([!dynamic x!]);
+''');
   }
 }

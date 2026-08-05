@@ -25,7 +25,7 @@ DartType computeNonNull(DartType type) {
 ///
 /// The visitor returns `null` if `NonNull(T) = T`.
 class _NonNullVisitor implements DartTypeVisitor<DartType?> {
-  const _NonNullVisitor();
+  const new();
 
   @override
   DartType? visitAuxiliaryType(AuxiliaryType node) {

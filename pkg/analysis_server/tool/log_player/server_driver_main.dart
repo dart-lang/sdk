@@ -8,6 +8,7 @@ import 'dart:io' hide File;
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/log_entry.dart';
+import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:path/path.dart' as p;
@@ -52,7 +53,11 @@ void replayLogFile(String path, ServerDriver driver) {
     throw ArgumentError('Log file does not exist: ${logFile.path}');
   }
   print('Replaying log file at: $path with workspace folder: ${p.current}');
-  var log = Log.fromFile(logFile, {'{{workspaceFolder-0}}': p.current});
+  var normalizer = LogNormalizer()
+    ..addReplacementsForPath(p.current, 'workspaceFolder-0')
+    ..addReplacementsForPath(p.current, 'rootPath')
+    ..addReplacementsForPath(p.current, 'rootUri');
+  var log = Log.fromFile(logFile, normalizer.denormalize);
 
   print('ready, hit enter to send next message');
   var entriesIterator = log.entries.iterator;

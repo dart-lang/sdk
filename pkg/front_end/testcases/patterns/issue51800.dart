@@ -3,22 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class ExpansionTile {
-  const ExpansionTile({
-    this.expandedCrossAxisAlignment,
-  }) : assert(expandedCrossAxisAlignment != CrossAxisAlignment.baseline);
+  const ExpansionTile({this.expandedCrossAxisAlignment})
+    : assert(expandedCrossAxisAlignment != CrossAxisAlignment.baseline);
 
   final CrossAxisAlignment? expandedCrossAxisAlignment;
 }
 
-enum CrossAxisAlignment {
-  start,
-  end,
-  center,
-  stretch,
-  baseline,
-}
+enum CrossAxisAlignment { start, end, center, stretch, baseline }
 
 void main() {
-  print(const ExpansionTile(
-      expandedCrossAxisAlignment: CrossAxisAlignment.start));
+  print(
+    const ExpansionTile(expandedCrossAxisAlignment: CrossAxisAlignment.start),
+  );
 }

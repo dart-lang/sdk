@@ -18,7 +18,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   @override
   final CorrectionApplicability applicability;
 
-  UseCurlyBraces({required super.context})
+  new({required super.context})
     : applicability = CorrectionApplicability.acrossFiles;
 
   /// Create an instance that is prevented from being applied automatically in
@@ -27,7 +27,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   /// This is used in places where "Use Curly Braces" is a valid manual fix, but
   /// not clearly the only/correct fix to apply automatically, such as the
   /// `always_put_control_body_on_new_line` lint.
-  UseCurlyBraces.nonBulk({required super.context})
+  new nonBulk({required super.context})
     : applicability = CorrectionApplicability.acrossSingleFile;
 
   @override

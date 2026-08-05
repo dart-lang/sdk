@@ -2,51 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:developer';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'eval_issue_49209_lib.dart' as testee_lib;
 
-void testFunction() {
-  final a = A<C>();
-  print(a.runtimeType);
-  debugger();
-}
-
-class A<T> {
-  A();
-}
-
-class B<T> {
-  final T data;
-  B(this.data);
-}
-
-class C extends B<C> {
-  C(super.data);
-}
-
-var tests = <IsolateTest>[
-  hasStoppedAtBreakpoint,
-
-  // Evaluate against top frame.
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final topFrame = 0;
-    final dynamic result = await service.evaluateInFrame(
-      isolateId,
-      topFrame,
-      'a.runtimeType.toString()',
-    );
-    print(result);
-    expect(result.valueAsString, equals('A<C>'));
-  },
-];
-
-Future<void> main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'eval_issue_49209_test.dart',
-      testeeConcurrent: testFunction,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('eval_issue_49209_lib.dart', args)
+        .hasStoppedAtBreakpoint()
+        // Evaluate against top frame.
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final topFrame = 0;
+      final dynamic result = await service.evaluateInFrame(
+        isolateId,
+        topFrame,
+        'a.runtimeType.toString()',
+      );
+      print(result);
+      expect(result.valueAsString, equals('A<C>'));
+    }).run(testeeMain: testee_lib.main);

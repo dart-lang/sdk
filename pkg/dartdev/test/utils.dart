@@ -198,7 +198,9 @@ class TestProject {
       Platform.resolvedExecutable,
       [...arguments],
       workingDirectory: workingDir ?? dir.path,
-      environment: {'PUB_CACHE': pubCachePath},
+      environment: {
+        'PUB_CACHE': pubCachePath,
+      },
     )..then((p) => _process = p);
   }
 

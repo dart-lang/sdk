@@ -116,10 +116,7 @@ class LoadedLibrariesImpl implements LoadedLibraries {
   final List<CompilationUnit> rootCompilationUnits;
   final Map<Uri, CompilationUnit> compilationUnits = {};
 
-  LoadedLibrariesImpl(
-    this.rootCompilationUnits,
-    Iterable<CompilationUnit> compilationUnits,
-  ) {
+  new(this.rootCompilationUnits, Iterable<CompilationUnit> compilationUnits) {
     compilationUnits.forEach((CompilationUnit compilationUnit) {
       this.compilationUnits[compilationUnit.importUri] = compilationUnit;
     });
@@ -221,7 +218,7 @@ abstract class CodeLocation {
   /// Returns the uri of this location relative to [baseUri].
   String relativize(Uri baseUri);
 
-  factory CodeLocation(Uri uri) {
+  factory(Uri uri) {
     if (uri.isScheme('package')) {
       int slashPos = uri.path.indexOf('/');
       if (slashPos != -1) {
@@ -241,11 +238,7 @@ abstract class CodeLocation {
 /// A code location defined by the scheme of the uri.
 ///
 /// Used for non-package uris, such as 'dart', 'file', and 'http'.
-class SchemeLocation implements CodeLocation {
-  final Uri uri;
-
-  SchemeLocation(this.uri);
-
+class SchemeLocation(final Uri uri) implements CodeLocation {
   @override
   bool inSameLocation(Uri uri) {
     return this.uri.scheme == uri.scheme;
@@ -261,11 +254,7 @@ class SchemeLocation implements CodeLocation {
 ///
 /// Used for package uris, separated by their `package names`, that is, the
 /// 'foo' of 'package:foo/bar.dart'.
-class PackageLocation implements CodeLocation {
-  final String packageName;
-
-  PackageLocation(this.packageName);
-
+class PackageLocation(final String packageName) implements CodeLocation {
   @override
   bool inSameLocation(Uri uri) {
     return uri.scheme == 'package' && uri.path.startsWith('$packageName/');
@@ -278,11 +267,7 @@ class PackageLocation implements CodeLocation {
 /// A code location defined by the whole uri.
 ///
 /// Used for package uris with no package name. For instance 'package:foo.dart'.
-class UriLocation implements CodeLocation {
-  final Uri uri;
-
-  UriLocation(this.uri);
-
+class UriLocation(final Uri uri) implements CodeLocation {
   @override
   bool inSameLocation(Uri uri) => this.uri == uri;
 

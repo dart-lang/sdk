@@ -28,23 +28,24 @@ typedef S6 = G<Class<ConcreteClass>>; // Ok
 typedef S7 = G<Object>; // Error
 typedef S8 = G<int>; // Error
 
-typedef Typedef1 = void Function<
-    T1 extends F, // Error
-    T2 extends F<dynamic>, // Ok
-    T3 extends F<Class>, // Ok
-    T4 extends F<Class<dynamic>>, // Ok
-    T5 extends F<ConcreteClass>, // Ok
-    T6 extends F<Class<ConcreteClass>>, // Ok
-    T7 extends F<Object>, // Error
-    T8 extends F<int>, // Error
-    S1 extends G, // Error
-    S2 extends G<dynamic>, // Ok
-    S3 extends G<Class>, // Ok
-    S4 extends G<Class<dynamic>>, // Ok
-    S5 extends G<ConcreteClass>, // Ok
-    S6 extends G<Class<ConcreteClass>>, // Ok
-    S7 extends G<Object>, // Error
-    S8 extends G<int> // Error
+typedef Typedef1 =
+    void Function<
+      T1 extends F, // Error
+      T2 extends F<dynamic>, // Ok
+      T3 extends F<Class>, // Ok
+      T4 extends F<Class<dynamic>>, // Ok
+      T5 extends F<ConcreteClass>, // Ok
+      T6 extends F<Class<ConcreteClass>>, // Ok
+      T7 extends F<Object>, // Error
+      T8 extends F<int>, // Error
+      S1 extends G, // Error
+      S2 extends G<dynamic>, // Ok
+      S3 extends G<Class>, // Ok
+      S4 extends G<Class<dynamic>>, // Ok
+      S5 extends G<ConcreteClass>, // Ok
+      S6 extends G<Class<ConcreteClass>>, // Ok
+      S7 extends G<Object>, // Error
+      S8 extends G<int> // Error
     >();
 
 main() {}

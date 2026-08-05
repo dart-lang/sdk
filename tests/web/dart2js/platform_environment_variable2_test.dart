@@ -5,6 +5,7 @@
 // No -D options.
 
 import 'dart:_js_helper' show testingGetPlatformEnvironmentVariable;
+
 import 'package:expect/expect.dart';
 
 main() {

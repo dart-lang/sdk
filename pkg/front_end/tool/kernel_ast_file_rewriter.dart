@@ -400,7 +400,7 @@ class Replacement {
   final Token endToken;
   final String replacement;
 
-  Replacement(this.beginToken, this.endToken, this.replacement);
+  new(this.beginToken, this.endToken, this.replacement);
 }
 
 String? getExtends(TopLevelDeclarationEnd cls) {

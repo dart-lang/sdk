@@ -5,7 +5,8 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../common/test_helper.dart';
+import '../common/service_test_common.dart';
+import 'native_metrics_lib.dart' as testee_lib;
 
 class Metric {
   static Metric? parse(Map<String, dynamic>? json) =>
@@ -64,51 +65,44 @@ extension on VmService {
   }
 }
 
-void script() {}
-
 const kTestMetric = 'heap.old.capacity';
 
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final metricList = await service.getIsolateMetricList(isolateId);
-    expect(metricList.metrics.length, greaterThan(1));
-    final foundOldHeapCapacity = metricList.metrics.any(
-      (m) => m.name == kTestMetric,
-    );
-    expect(foundOldHeapCapacity, true);
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final metric = await service.getIsolateMetric(
-      isolateId,
-      'metrics/native/$kTestMetric',
-    );
-    expect(metric.type, 'Counter');
-    expect(metric.name, kTestMetric);
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    bool caughtException = false;
-    try {
-      await service.getIsolateMetric(isolateId, 'metrics/native/doesnotexist');
-      fail('Unreachable');
-    } on RPCError catch (e) {
-      caughtException = true;
-      expect(e.code, RPCErrorKind.kInvalidParams.code);
-      expect(
-        e.details,
-        "_getIsolateMetric: invalid 'metricId' "
-        'parameter: metrics/native/doesnotexist',
-      );
-    }
-    expect(caughtException, true);
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'native_metrics_lib.dart',
       args,
-      tests,
-      'native_metrics_test.dart',
-      testeeBefore: script,
-    );
+    ).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final metricList = await service.getIsolateMetricList(isolateId);
+      expect(metricList.metrics.length, greaterThan(1));
+      final foundOldHeapCapacity = metricList.metrics.any(
+        (m) => m.name == kTestMetric,
+      );
+      expect(foundOldHeapCapacity, true);
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final metric = await service.getIsolateMetric(
+        isolateId,
+        'metrics/native/$kTestMetric',
+      );
+      expect(metric.type, 'Counter');
+      expect(metric.name, kTestMetric);
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      bool caughtException = false;
+      try {
+        await service.getIsolateMetric(
+          isolateId,
+          'metrics/native/doesnotexist',
+        );
+        fail('Unreachable');
+      } on RPCError catch (e) {
+        caughtException = true;
+        expect(e.code, RPCErrorKind.kInvalidParams.code);
+        expect(
+          e.details,
+          "_getIsolateMetric: invalid 'metricId' "
+          'parameter: metrics/native/doesnotexist',
+        );
+      }
+      expect(caughtException, true);
+    }).run(testeeMain: testee_lib.main);

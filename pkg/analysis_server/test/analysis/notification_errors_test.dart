@@ -6,8 +6,8 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/rules.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
@@ -96,7 +96,7 @@ include: package:lints/lints.yaml
     );
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'lints', rootPath: lintsRootPath),
+        ..add(name: 'lints', rootFolder: getFolder(lintsRootPath)),
     );
 
     // Ensure the errors disappear.
@@ -182,8 +182,8 @@ analyzer:
 
     // Add the generated project into package_config.json.
     var config = PackageConfigFileBuilder();
-    config.add(name: 'foo', rootPath: generatedProject);
-    newFile(configPath, config.toContent(pathContext: pathContext));
+    config.add(name: 'foo', rootFolder: getFolder(generatedProject));
+    newFile(configPath, config.toContent());
 
     // Set up project that references the class prior to initial analysis.
     var generatedFile = newFile(generatedFilePath, 'class A {}');
@@ -311,9 +311,8 @@ analyzer:
 
     // Opening the file should still generate no errors.
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams([
-        excludedFile.path,
-      ]).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([excludedFile.path])
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -398,9 +397,8 @@ void f() {
     // Add and overlay and give chance for the file to be analyzed (if
     // it would).
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: AddContentOverlay('err')})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -419,9 +417,8 @@ void f() {
 
     // Add and overlay and give chance for the file to be analyzed.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: AddContentOverlay('err')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -431,9 +428,8 @@ void f() {
 
     // Remove the overlay (this file no longer exists anywhere).
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: RemoveContentOverlay(),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: RemoveContentOverlay()})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
 
     await waitForTasksFinished();
@@ -456,9 +452,8 @@ void f() {
 
     // Add and overlay and give chance for the file to be analyzed.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: AddContentOverlay('err')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -473,9 +468,8 @@ void f() {
 
     // Remove the overlay.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: RemoveContentOverlay(),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: RemoveContentOverlay()})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);

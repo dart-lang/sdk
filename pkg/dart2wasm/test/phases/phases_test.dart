@@ -15,12 +15,19 @@ final String tfaDillName = 'main.tfa.dill';
 final String wasmOutName = 'main.wasm';
 final String wasmOptOutName = 'main.opt.wasm';
 
+const List<List<String>> extraArgs = [
+  [],
+  ['--enable-deferred-loading'],
+];
+
 Future<void> main() async {
-  await testSuccessCases();
-  await testFailureCases();
+  for (final args in extraArgs) {
+    await testSuccessCases(args);
+    await testFailureCases(args);
+  }
 }
 
-Future<void> testSuccessCases() async {
+Future<void> testSuccessCases(List<String> extraArgs) async {
   await withTempDir((tmpDirPath) async {
     final cfeDill = File(path.join(tmpDirPath, cfeDillName));
     final tfaDill = File(path.join(tmpDirPath, tfaDillName));
@@ -33,6 +40,7 @@ Future<void> testSuccessCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=cfe',
+      ...extraArgs,
       mainDart,
       cfeDill.path,
     ]);
@@ -45,6 +53,7 @@ Future<void> testSuccessCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=tfa',
+      ...extraArgs,
       cfeDill.path,
       tfaDill.path,
     ]);
@@ -57,6 +66,7 @@ Future<void> testSuccessCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=codegen',
+      ...extraArgs,
       tfaDill.path,
       wasmOut.path,
     ]);
@@ -70,6 +80,7 @@ Future<void> testSuccessCases() async {
       '--platform=$platformDill',
       '--phases=opt',
       '--wasm-opt=$wasmOptExecutable',
+      ...extraArgs,
       wasmOut.path,
       wasmOptOut.path,
     ]);
@@ -87,6 +98,7 @@ Future<void> testSuccessCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=cfe,tfa',
+      ...extraArgs,
       mainDart,
       tfaDill.path,
     ]);
@@ -99,6 +111,7 @@ Future<void> testSuccessCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=codegen',
+      ...extraArgs,
       tfaDill.path,
       wasmOut.path,
     ]);
@@ -116,6 +129,7 @@ Future<void> testSuccessCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=cfe',
+      ...extraArgs,
       mainDart,
       cfeDill.path,
     ]);
@@ -128,6 +142,7 @@ Future<void> testSuccessCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=tfa,codegen',
+      ...extraArgs,
       cfeDill.path,
       wasmOut.path,
     ]);
@@ -144,6 +159,7 @@ Future<void> testSuccessCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=cfe,tfa,codegen',
+      ...extraArgs,
       mainDart,
       wasmOut.path,
     ]);
@@ -161,6 +177,7 @@ Future<void> testSuccessCases() async {
       '--platform=$platformDill',
       '--phases=cfe,tfa,codegen,opt',
       '--wasm-opt=$wasmOptExecutable',
+      ...extraArgs,
       mainDart,
       wasmOptOut.path,
     ]);
@@ -169,7 +186,7 @@ Future<void> testSuccessCases() async {
   });
 }
 
-Future<void> testFailureCases() async {
+Future<void> testFailureCases(List<String> extraArgs) async {
   await withTempDir((tmpDirPath) async {
     final cfeDill = File(path.join(tmpDirPath, cfeDillName));
     final tfaDill = File(path.join(tmpDirPath, tfaDillName));
@@ -182,6 +199,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=cfe',
+      ...extraArgs,
       tfaDill.path,
       cfeDill.path,
     ], 'Input to cfe phase must be a .dart file');
@@ -191,6 +209,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=cfe',
+      ...extraArgs,
       mainDart,
       wasmOut.path,
     ], 'Output from cfe phase must be a .dill file');
@@ -201,6 +220,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=tfa',
+      ...extraArgs,
       mainDart,
       tfaDill.path,
     ], 'Input to tfa phase must be a .dill file');
@@ -210,6 +230,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=tfa',
+      ...extraArgs,
       cfeDill.path,
       wasmOut.path,
     ], 'Output from tfa phase must be a .dill file');
@@ -220,6 +241,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=codegen',
+      ...extraArgs,
       mainDart,
       wasmOut.path,
     ], 'Input to codegen phase must be a .dill file');
@@ -229,6 +251,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=codegen',
+      ...extraArgs,
       tfaDill.path,
       cfeDill.path,
     ], 'Output from codegen phase must be a .wasm file');
@@ -239,6 +262,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=opt',
+      ...extraArgs,
       mainDart,
       wasmOptOut.path,
     ], 'Input to opt phase must be a .wasm file');
@@ -248,6 +272,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=opt',
+      ...extraArgs,
       wasmOut.path,
       cfeDill.path,
     ], 'Output from opt phase must be a .wasm file');
@@ -258,6 +283,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=cfe,codegen',
+      ...extraArgs,
       mainDart,
       wasmOut.path,
     ], 'must contain consecutive phases');
@@ -267,6 +293,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=notReal',
+      ...extraArgs,
       mainDart,
       cfeDill.path,
     ], 'Invalid compiler phase name');
@@ -276,6 +303,7 @@ Future<void> testFailureCases() async {
       dart2wasmSnapshot,
       '--platform=$platformDill',
       '--phases=opt',
+      ...extraArgs,
       '-O0',
       wasmOut.path,
       wasmOptOut.path,

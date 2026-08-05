@@ -22,7 +22,7 @@ extension type _EConst(core::int x) {
 }
 static final field self::_E% /* erasure=core::int, declared=! */ one;
 static const field self::_EConst% /* erasure=core::int, declared=! */ constOne = const self::_EConst|constructor#(1);
-static extension-type-member method _E|constructor#(core::int x) → self::_E% /* erasure=core::int, declared=! */
+static extension-type-member method _E|constructor#(initializing-formal core::int x) → self::_E% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method _E|constructor#_#new#tearOff(core::int x) → self::_E% /* erasure=core::int, declared=! */
   return self::_E|constructor#(x);
@@ -30,17 +30,17 @@ static extension-type-member get _E|getter() → self::_E% /* erasure=core::int,
   ;
 static extension-type-member method _E|method() → self::_E% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method _E|constructor#named(core::int x) → self::_E% /* erasure=core::int, declared=! */
+static extension-type-member method _E|constructor#named(initializing-formal core::int x) → self::_E% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method _E|constructor#_#named#tearOff(core::int x) → self::_E% /* erasure=core::int, declared=! */
   return self::_E|constructor#named(x);
-static extension-type-member const method _EConst|constructor#(core::int x) → self::_EConst% /* erasure=core::int, declared=! */ {
+static extension-type-member const method _EConst|constructor#(initializing-formal core::int x) → self::_EConst% /* erasure=core::int, declared=! */ {
   lowered final self::_EConst% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }
 static extension-type-member synthetic method _EConst|constructor#_#new#tearOff(core::int x) → self::_EConst% /* erasure=core::int, declared=! */
   return self::_EConst|constructor#(x);
-static extension-type-member const method _EConst|constructor#named(core::int x) → self::_EConst% /* erasure=core::int, declared=! */ {
+static extension-type-member const method _EConst|constructor#named(initializing-formal core::int x) → self::_EConst% /* erasure=core::int, declared=! */ {
   lowered final self::_EConst% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }

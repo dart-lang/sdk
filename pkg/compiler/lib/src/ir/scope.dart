@@ -28,18 +28,18 @@ class ScopeModel {
 
 abstract class VariableScopeModel {
   VariableScope getScopeFor(ir.TreeNode node);
-  Iterable<ir.VariableDeclaration> get assignedVariables;
+  Iterable<ir.Variable> get assignedVariables;
 }
 
 class VariableScopeModelImpl implements VariableScopeModel {
   final Map<ir.TreeNode, VariableScopeImpl> _scopeMap = {};
-  Set<ir.VariableDeclaration>? _assignedVariables;
+  Set<ir.Variable>? _assignedVariables;
 
   VariableScopeImpl createScopeFor(ir.TreeNode node) {
     return _scopeMap[node] ??= VariableScopeImpl();
   }
 
-  void registerAssignedVariable(ir.VariableDeclaration node) {
+  void registerAssignedVariable(ir.Variable node) {
     (_assignedVariables ??= {}).add(node);
   }
 
@@ -49,15 +49,15 @@ class VariableScopeModelImpl implements VariableScopeModel {
   }
 
   @override
-  Iterable<ir.VariableDeclaration> get assignedVariables =>
-      _assignedVariables ?? <ir.VariableDeclaration>[];
+  Iterable<ir.Variable> get assignedVariables =>
+      _assignedVariables ?? <ir.Variable>[];
 }
 
 /// Variable information for a scope.
 abstract class VariableScope {
-  /// Returns the set of [ir.VariableDeclaration]s that have been assigned to in
+  /// Returns the set of [ir.Variable]s that have been assigned to in
   /// this scope.
-  Iterable<ir.VariableDeclaration> get assignedVariables;
+  Iterable<ir.Variable> get assignedVariables;
 
   /// Returns `true` if this scope has a [ir.ContinueSwitchStatement].
   bool get hasContinueSwitch;
@@ -65,7 +65,7 @@ abstract class VariableScope {
 
 class VariableScopeImpl implements VariableScope {
   List<VariableScope>? _subScopes;
-  Set<ir.VariableDeclaration>? _assignedVariables;
+  Set<ir.Variable>? _assignedVariables;
   @override
   bool hasContinueSwitch = false;
 
@@ -74,13 +74,13 @@ class VariableScopeImpl implements VariableScope {
     _subScopes!.add(scope);
   }
 
-  void registerAssignedVariable(ir.VariableDeclaration variable) {
-    _assignedVariables ??= <ir.VariableDeclaration>{};
+  void registerAssignedVariable(ir.Variable variable) {
+    _assignedVariables ??= <ir.Variable>{};
     _assignedVariables!.add(variable);
   }
 
   @override
-  Iterable<ir.VariableDeclaration> get assignedVariables sync* {
+  Iterable<ir.Variable> get assignedVariables sync* {
     if (_assignedVariables != null) {
       yield* _assignedVariables!;
     }
@@ -106,7 +106,7 @@ mixin VariableCollectorMixin {
     currentVariableScope = oldScope;
   }
 
-  void registerAssignedVariable(ir.VariableDeclaration node) {
+  void registerAssignedVariable(ir.Variable node) {
     currentVariableScope?.registerAssignedVariable(node);
     variableScopeModel.registerAssignedVariable(node);
   }

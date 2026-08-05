@@ -69,7 +69,7 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   /// If `null` is returned, [node] has no associated data.
   T? computeNodeValue(Id id, TreeNode node) => null;
 
-  DataExtractor(this.actualMap);
+  new(this.actualMap);
 
   void computeForLibrary(Library library) {
     LibraryId id = new LibraryId(library.fileUri);
@@ -334,8 +334,8 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.name != null && node.parent is! FunctionDeclaration) {
+  void defaultVariable(Variable node) {
+    if (node.cosmeticName != null && node.parent is! FunctionDeclaration) {
       // Skip synthetic variables and function declaration variables.
       computeForNode(
         node,
@@ -430,6 +430,12 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   void visitTryFinally(TryFinally node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitTryFinally(node);
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitYieldStatement(node);
   }
 
   @override

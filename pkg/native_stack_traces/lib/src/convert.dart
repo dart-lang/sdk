@@ -119,7 +119,7 @@ class StackTraceHeader {
   int? get isolateStart => _isolateStart;
   int? get isolateDsoBase => _isolateDsoBase;
 
-  static StackTraceHeader fromStarts(int isolateStart, int vmStart,
+  static StackTraceHeader fromStarts(int isolateStart, int? vmStart,
           {String? architecture}) =>
       StackTraceHeader()
         .._isolateStart = isolateStart
@@ -375,9 +375,11 @@ class StackTraceHeader {
   }
   if (offset == null) return null;
   switch (symbolString) {
-    case constants.vmSymbolName:
+    case constants.oldVmSymbolName:
       return (InstructionsSection.vm, offset);
-    case constants.isolateSymbolName:
+    case constants.oldIsolateSymbolName:
+      return (InstructionsSection.isolate, offset);
+    case constants.dataSymbolName:
       return (InstructionsSection.isolate, offset);
     default:
       break;
@@ -420,9 +422,11 @@ PCOffset? tryParseSymbolOffset(String s,
 ///     - The path to the snapshot, if it was loaded as a dynamic library,
 ///       otherwise the string `"<unknown>"`.
 const _symbolOffsetREString = r'(?<symbol>' +
-    constants.vmSymbolName +
+    constants.textSymbolName +
     r'|' +
-    constants.isolateSymbolName +
+    constants.oldVmSymbolName +
+    r'|' +
+    constants.oldIsolateSymbolName +
     r')\+(?<offset>(?:0x)?[\da-f]+)';
 final _symbolOffsetRE = RegExp(_symbolOffsetREString);
 final _traceLineRE = RegExp(r'\s*#(\d+) abs (?<absolute>[\da-f]+)'

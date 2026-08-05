@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,8 +15,7 @@ main() {
 @reflectiveTest
 class ConstWithNonConstTest extends PubPackageResolutionTest {
   test_inConstContext() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(x);
 }
@@ -25,14 +23,14 @@ class B {
 }
 main() {
   const A(B());
+//        ^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
 }
-''',
-      [error(diag.constWithNonConst, 57, 3)],
-    );
+''');
   }
 
   test_mixinApplication_constSuperConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class A {
   const A();
@@ -43,8 +41,7 @@ const b = const B();
   }
 
   test_mixinApplication_constSuperConstructor_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int i = 0;
 }
@@ -53,13 +50,13 @@ class A {
 }
 class B = A with M;
 var b = const B();
-''',
-      [error(diag.constWithNonConst, 78, 5)],
-    );
+//      ^^^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
+''');
   }
 
   test_mixinApplication_constSuperConstructor_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get i => 0;
 }
@@ -72,7 +69,7 @@ var b = const B();
   }
 
   test_mixinApplication_constSuperConstructor_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set(int i) {}
 }
@@ -85,20 +82,19 @@ var b = const B();
   }
 
   test_nonConst_factory() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A(int a) => throw 0;
 }
 
 void f() {
   const A(0);
+//^^^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
 }
-''',
-      [error(diag.constWithNonConst, 57, 5)],
-    );
+''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: const
@@ -121,20 +117,19 @@ InstanceCreationExpression
   }
 
   test_nonConst_generative() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }
 
 void f() {
   const A(0);
+//^^^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
 }
-''',
-      [error(diag.constWithNonConst, 38, 5)],
-    );
+''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: const

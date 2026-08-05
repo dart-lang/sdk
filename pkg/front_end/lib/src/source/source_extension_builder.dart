@@ -60,7 +60,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   final List<ExtensionFragment> _augmentations;
 
-  SourceExtensionBuilder({
+  new({
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required this.fileUri,
     required int startOffset,
@@ -337,4 +337,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   int resolveConstructors(SourceLibraryBuilder library) {
     return 0;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

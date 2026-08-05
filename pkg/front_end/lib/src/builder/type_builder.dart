@@ -305,7 +305,7 @@ enum TypeUse {
 
 // TODO(johnniwinther): Change from sealed to abstract.
 sealed class TypeBuilder {
-  const TypeBuilder();
+  const new();
 
   TypeDeclarationBuilder? get declaration => null;
 
@@ -497,7 +497,7 @@ sealed class TypeBuilder {
     Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
     Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
     TypeParameterFactory typeParameterFactory, {
-    final Variance variance = Variance.covariant,
+    Variance variance = Variance.covariant,
   });
 
   TypeBuilder? unaliasAndErase();
@@ -512,7 +512,7 @@ sealed class TypeBuilder {
 }
 
 abstract class OmittedTypeBuilder extends TypeBuilder {
-  const OmittedTypeBuilder();
+  const new();
 
   bool get hasType;
 
@@ -580,7 +580,7 @@ abstract class RecordTypeBuilder extends TypeBuilder {
 }
 
 abstract class FixedTypeBuilder extends TypeBuilder {
-  const FixedTypeBuilder();
+  const new();
 }
 
 /// The name of a named type as used by the [NamedTypeBuilder].
@@ -618,7 +618,7 @@ class PredefinedTypeName implements TypeName {
   @override
   final String name;
 
-  const PredefinedTypeName(this.name);
+  const new(this.name);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -657,7 +657,7 @@ class SyntheticTypeName implements TypeName {
   @override
   final int nameOffset;
 
-  SyntheticTypeName(this.name, this.nameOffset);
+  new(this.name, this.nameOffset);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -684,7 +684,7 @@ class IdentifierTypeName implements TypeName {
   @override
   final int nameOffset;
 
-  IdentifierTypeName(this.name, this.nameOffset);
+  new(this.name, this.nameOffset);
 
   @override
   int get nameLength => name.length;
@@ -715,12 +715,7 @@ class QualifiedTypeName implements TypeName {
   @override
   final int nameOffset;
 
-  QualifiedTypeName(
-    this.qualifier,
-    this.qualifierOffset,
-    this.name,
-    this.nameOffset,
-  );
+  new(this.qualifier, this.qualifierOffset, this.name, this.nameOffset);
 
   @override
   int get nameLength => name.length;

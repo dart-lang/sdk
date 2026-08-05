@@ -31,7 +31,7 @@ Matcher isSimpleType(String name) => SimpleTypeMatcher(name);
 
 class ArrayTypeMatcher extends Matcher {
   final Matcher _elementTypeMatcher;
-  const ArrayTypeMatcher(this._elementTypeMatcher);
+  const new(this._elementTypeMatcher);
 
   @override
   Description describe(Description description) =>
@@ -66,7 +66,7 @@ class ArrayTypeMatcher extends Matcher {
 class LiteralTypeMatcher extends Matcher {
   final Matcher _typeMatcher;
   final String _value;
-  LiteralTypeMatcher(this._typeMatcher, this._value);
+  new(this._typeMatcher, this._value);
 
   @override
   Description describe(Description description) => description
@@ -84,7 +84,7 @@ class LiteralTypeMatcher extends Matcher {
 
 class MapTypeMatcher extends Matcher {
   final Matcher _indexMatcher, _valueMatcher;
-  const MapTypeMatcher(this._indexMatcher, this._valueMatcher);
+  const new(this._indexMatcher, this._valueMatcher);
 
   @override
   Description describe(Description description) => description
@@ -103,7 +103,7 @@ class MapTypeMatcher extends Matcher {
 
 class SimpleTypeMatcher extends Matcher {
   final String _expectedName;
-  const SimpleTypeMatcher(this._expectedName);
+  const new(this._expectedName);
 
   @override
   Description describe(Description description) =>

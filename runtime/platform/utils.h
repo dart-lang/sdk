@@ -189,6 +189,11 @@ class Utils {
   static int CountTrailingZeros64(uint64_t x) { return std::countr_zero(x); }
   static int CountTrailingZerosWord(uword x) { return std::countr_zero(x); }
 
+  template <typename T>
+  static constexpr int CountLeadingOnes(T x) {
+    return std::countl_one(x);
+  }
+
   static uint64_t ReverseBits64(uint64_t x);
   static uint32_t ReverseBits32(uint32_t x);
 
@@ -207,6 +212,7 @@ class Utils {
 
   // Computes a hash value for the given series of bytes.
   static uint32_t StringHash(const void* data, int length);
+  static uint64_t StringHash64(const void* data, int length);
 
   // Computes a hash value for the given word.
   static uint32_t WordHash(intptr_t key);

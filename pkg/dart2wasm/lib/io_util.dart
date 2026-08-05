@@ -65,11 +65,29 @@ class CompilerPhaseInputOutputManager {
     ).readComponent(component);
   }
 
+  final Set<String> _createdDirectories = {};
+
+  void _createDirIfNecessary(String filePath) {
+    final dirPath = path.dirname(filePath);
+    // Exit early if we've already created/checked this directory. For I/O heavy
+    // compilations (e.g. deferred loading with many modules), this can avoid
+    // a lot of redundant directory checks.
+    if (_createdDirectories.contains(dirPath)) return;
+    final Directory dir = Directory(dirPath);
+    // Do this synchronously to make sure it happens before subsequent async
+    // operations.
+    if (!dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
+    _createdDirectories.add(dirPath);
+  }
+
   Future<void> writeComponent(
     Component component,
     String path, {
     bool includeSource = true,
   }) {
+    _createDirIfNecessary(path);
     return writeComponentToBinary(
       component,
       path,
@@ -78,37 +96,38 @@ class CompilerPhaseInputOutputManager {
   }
 
   void writeComponentAsText(Component component, String path) {
+    _createDirIfNecessary(path);
     writeComponentToText(component, path: path, showMetadata: true);
   }
 
   Future<void> writeWasmModule(Uint8List wasmModule, String moduleName) {
     final wasmFileName = _moduleNameToWasmFile(options.outputFile, moduleName);
-    final Directory dir = Directory(path.dirname(wasmFileName));
-    // Do this synchronously to make sure it happens before subsequent async
-    // operations.
-    if (!dir.existsSync()) {
-      dir.createSync(recursive: true);
-    }
-
+    _createDirIfNecessary(wasmFileName);
     return File(wasmFileName).writeAsBytes(wasmModule);
   }
 
   Future<void> writeWasmSourceMap(String sourceMap, String moduleName) {
-    return File(
-      _moduleNameToSourceMapFile(options.outputFile, moduleName),
-    ).writeAsString(sourceMap);
+    final sourceMapFileName = _moduleNameToSourceMapFile(
+      options.outputFile,
+      moduleName,
+    );
+    _createDirIfNecessary(sourceMapFileName);
+    return File(sourceMapFileName).writeAsString(sourceMap);
   }
 
   Future<void> writeJsRuntime(String jsRuntime) {
-    return File(
-      path.setExtension(options.outputFile, '.mjs'),
-    ).writeAsString(jsRuntime);
+    final jsRuntimeFileName = path.setExtension(options.outputFile, '.mjs');
+    _createDirIfNecessary(jsRuntimeFileName);
+    return File(jsRuntimeFileName).writeAsString(jsRuntime);
   }
 
   Future<void> writeSupportJs(String supportJs) {
-    return File(
-      path.setExtension(options.outputFile, '.support.js'),
-    ).writeAsString(supportJs);
+    final supportJsFileName = path.setExtension(
+      options.outputFile,
+      '.support.js',
+    );
+    _createDirIfNecessary(supportJsFileName);
+    return File(supportJsFileName).writeAsString(supportJs);
   }
 
   Future<void> runWasmOpt(
@@ -116,9 +135,12 @@ class CompilerPhaseInputOutputManager {
     int moduleId,
     List<String> flags,
   ) async {
-    final inputModuleName = options.moduleNameForId(mainWasmModule, moduleId);
+    final inputModuleName = WasmCompilerOptions.moduleNameForId(
+      mainWasmModule,
+      moduleId,
+    );
 
-    final outputModuleName = options.moduleNameForId(
+    final outputModuleName = WasmCompilerOptions.moduleNameForId(
       options.outputFile,
       moduleId,
     );
@@ -205,7 +227,7 @@ class CompilerPhaseInputOutputManager {
     final moduleIds = <int>{};
     for (final file in files) {
       if (file is! File) continue;
-      final moduleId = options.idForModuleName(
+      final moduleId = WasmCompilerOptions.idForModuleName(
         mainWasmFilename,
         path.basename(file.path),
       );
@@ -214,30 +236,6 @@ class CompilerPhaseInputOutputManager {
       }
     }
     return moduleIds;
-  }
-
-  Future<Uint8List> readMainDynModuleMetadataBytes() async {
-    final filename =
-        options.dynamicModuleMetadataFile ??
-        Uri.parse(
-          path.setExtension(
-            options.dynamicMainModuleUri!.toFilePath(),
-            '.dyndata',
-          ),
-        );
-    return await File.fromUri(filename).readAsBytes();
-  }
-
-  Future<void> writeMainDynModuleMetadataBytes(Uint8List bytes) async {
-    final filename =
-        options.dynamicModuleMetadataFile ??
-        Uri.parse(
-          path.setExtension(
-            options.dynamicMainModuleUri!.toFilePath(),
-            '.dyndata',
-          ),
-        );
-    await File.fromUri(filename).writeAsBytes(bytes);
   }
 
   Future<Uri?> resolveUri(Uri? uri) async {

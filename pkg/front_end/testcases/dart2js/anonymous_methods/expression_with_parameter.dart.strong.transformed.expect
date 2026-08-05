@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    core::int p = 1;
+    core::int #t1;
+    #t1 = 1;
+  }
+  {
+    core::int p = 1;
+    core::int #t2;
+    #t2 = p;
+  }
+  {
+    core::int p = 1;
+    core::bool #t3;
+    #t3 = p.{core::int::isEven}{core::bool};
+  }
+}

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'multi_export_lib.dart';
+
 //export 'multi_export_lib.dart' show Extension;
 
 class SubClass1 extends Class {}

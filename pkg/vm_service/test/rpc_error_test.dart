@@ -5,31 +5,30 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'rpc_error_lib.dart' as testee_lib;
 
-var tests = <VMTest>[
-  (VmService vm) async {
-    // Invoke a nonexistent RPC.
-    try {
-      final res = await vm.callMethod('foo');
-      fail('Expected RPCError, got $res');
-    } on RPCError catch (e, st) {
-      // Ensure stack trace contains actual invocation path.
-      final stack = st.toString().split('\n');
-      expect(stack.where((e) => e.contains('VmService.callMethod')).length, 1);
-      // Call to vm.callMethod('foo').
-      expect(
-        stack.where((e) => e.contains('test/rpc_error_test.dart')).length,
-        1,
-      );
-    } catch (e) {
-      fail('Expected RPCError, got $e');
-    }
-  },
-];
-
-Future<void> main([args = const <String>[]]) async => await runVMTests(
+Future<void> main([args = const <String>[]]) async => await VMTestHarness(
+      'rpc_error_lib.dart',
       args,
-      tests,
-      'rpc_error_test.dart',
-    );
+    ).addTest((VmService vm) async {
+      // Invoke a nonexistent RPC.
+      try {
+        final res = await vm.callMethod('foo');
+        fail('Expected RPCError, got $res');
+      } on RPCError catch (e, st) {
+        // Ensure stack trace contains actual invocation path.
+        final stack = st.toString().split('\n');
+        expect(
+          stack.where((e) => e.contains('VmService.callMethod')).length,
+          1,
+        );
+        // Call to vm.callMethod('foo').
+        expect(
+          stack.where((e) => e.contains('test/rpc_error_test.dart')).length,
+          1,
+        );
+      } catch (e) {
+        fail('Expected RPCError, got $e');
+      }
+    }).run(testeeMain: testee_lib.main);

@@ -9,7 +9,7 @@ extension type E(core::List<dynamic> it) {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(core::List<dynamic> it) → self::E% /* erasure=core::List<dynamic>, declared=! */ {
+static extension-type-member method E|constructor#(initializing-formal core::List<dynamic> it) → self::E% /* erasure=core::List<dynamic>, declared=! */ {
   lowered final self::E% /* erasure=core::List<dynamic>, declared=! */ #this = it;
   return #this;
 }

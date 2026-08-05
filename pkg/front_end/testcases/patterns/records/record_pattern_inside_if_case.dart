@@ -12,7 +12,6 @@ test1(Record x) {
   } else {
     return 1;
   }
-
 }
 
 test2((int, int) x) {
@@ -34,5 +33,4 @@ test5((int, double, {String foo, dynamic bar}) x) {
   } else {
     return 1;
   }
-
 }

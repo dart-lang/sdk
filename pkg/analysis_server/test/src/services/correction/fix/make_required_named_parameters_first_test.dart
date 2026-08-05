@@ -96,6 +96,15 @@ void f({required int b /* b1 */ /* b2 */, int? a /* a */}) {}
 ''');
   }
 
+  Future<void> test_declaringParameter() async {
+    await resolveTestCode('''
+class C({int? b, required final int a}) {}
+''');
+    await assertHasFix('''
+class C({required final int a, int? b}) {}
+''');
+  }
+
   Future<void> test_single() async {
     await resolveTestCode('''
 void f({int? b, required int a}) {}

@@ -59,7 +59,12 @@ main() async {
       if (uri == '') {
         // We don't verify non-user-visible objects.
       } else if (uri.startsWith('dart') &&
-          ['Array', 'List', 'Record'].any((p) => klass.name.contains(p))) {
+          [
+            'Array',
+            'Closure',
+            'List',
+            'Record',
+          ].any((p) => klass.name.contains(p))) {
         Expect.isTrue(fields.length <= object.references.length);
       } else {
         // For objects with vm-defined layouts, this fails if a new field is

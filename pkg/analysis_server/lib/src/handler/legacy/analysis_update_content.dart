@@ -14,12 +14,7 @@ import 'package:analysis_server/src/utilities/extensions/resource_provider.dart'
 class AnalysisUpdateContentHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  AnalysisUpdateContentHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -36,16 +31,13 @@ class AnalysisUpdateContentHandler extends LegacyHandler {
     }
 
     server.updateContent(request.id, params.files);
-    //
+
     // Forward the request to the plugins.
-    //
-    var converter = RequestConverter();
     server.pluginManager.setAnalysisUpdateContentParams(
-      converter.convertAnalysisUpdateContentParams(params),
+      params.asPluginProtocol,
     );
-    //
+
     // Send the response.
-    //
     sendResult(AnalysisUpdateContentResult());
   }
 }

@@ -1084,7 +1084,9 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
     }
   // Label we jump to in DISPATCH(). There must be no instructions between the
   // end of the switch, this label and the end of the loop.
-  switch_dispatch_continuation: {}
+  switch_dispatch_continuation:
+    {
+    }
 #endif  // V8_USE_COMPUTED_GOTO
   }
 }

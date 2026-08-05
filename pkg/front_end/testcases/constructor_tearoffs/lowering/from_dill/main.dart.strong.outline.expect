@@ -34,7 +34,7 @@ class Class2 extends core::Object {
 }
 class Class3 extends core::Object {
   final field core::int field;
-  constructor •(core::int field) → self2::Class3
+  constructor •(initializing-formal core::int field) → self2::Class3
     ;
   static synthetic method _#new#tearOff(core::int field) → self2::Class3
     return new self2::Class3::•(field);

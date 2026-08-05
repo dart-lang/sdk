@@ -1,30 +1,30 @@
 typedef Nullable = Object?;
 
 exhaustiveByValue(Null n) => switch (n) {
-      null => 0,
-    };
+  null => 0,
+};
 
 exhaustiveByType(Null n) => switch (n) {
-      Null() => 0,
-    };
+  Null() => 0,
+};
 
 exhaustiveWithField(Null n) => switch (n) {
-      Null(:var hashCode) => hashCode,
-    };
+  Null(:var hashCode) => hashCode,
+};
 
 nonExhaustiveRestrictedField(Null n) => switch (n) {
-      Null(hashCode: 5) => 0,
-    };
+  Null(hashCode: 5) => 0,
+};
 
 exhaustiveNullable(Object? o) => switch (o) {
-      Object() => 0,
-      Null() => 1,
-    };
+  Object() => 0,
+  Null() => 1,
+};
 
 nonExhaustiveNullable(Object? o) => switch (o) {
-      Object() => 1,
-    };
+  Object() => 1,
+};
 
 nonExhaustiveNullableRestricted(Object? o) => switch (o) {
-      Nullable(hashCode: 5) => 1,
-    };
+  Nullable(hashCode: 5) => 1,
+};

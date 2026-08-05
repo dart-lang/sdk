@@ -15,7 +15,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 /// report.
 class UpdateDiagnosticInformationHandler
     extends SharedMessageHandler<Map<String, Object?>?, void> {
-  UpdateDiagnosticInformationHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.updateDiagnosticInformation;

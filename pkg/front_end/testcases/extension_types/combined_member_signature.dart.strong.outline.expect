@@ -43,7 +43,7 @@ static field (core::Object?, core::Object?) g;
 static field (core::Object?, core::Object?) g1;
 static field (core::Object?, core::int) g2;
 static field (core::int, core::Object?) g3;
-static extension-type-member method E|constructor#(self::C c) → self::E /* erasure=self::C */
+static extension-type-member method E|constructor#(initializing-formal self::C c) → self::E /* erasure=self::C */
   ;
 static extension-type-member synthetic method E|constructor#_#new#tearOff(self::C c) → self::E /* erasure=self::C */
   return self::E|constructor#(c);

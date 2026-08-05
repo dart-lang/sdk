@@ -5,21 +5,23 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryDirectiveResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LibraryDirectiveResolutionTest extends PubPackageResolutionTest {
   test_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library foo.bar;
 ''');
 
-    var node = findNode.singleLibraryDirective;
+    var node = result.findNode.singleLibraryDirective;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
@@ -34,11 +36,11 @@ LibraryDirective
   }
 
   test_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library;
 ''');
 
-    var node = findNode.singleLibraryDirective;
+    var node = result.findNode.singleLibraryDirective;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library

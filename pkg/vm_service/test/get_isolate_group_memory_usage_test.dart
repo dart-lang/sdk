@@ -5,37 +5,31 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'get_isolate_group_memory_usage_lib.dart' as testee_lib;
 
-var tests = <VMTest>[
-  (VmService service) async {
-    final vm = await service.getVM();
-    final result =
-        await service.getIsolateGroupMemoryUsage(vm.isolateGroups!.first.id!);
-    expect(result.heapUsage, isPositive);
-    expect(result.heapCapacity, isPositive);
-    expect(result.externalUsage, isNonNegative);
-  },
-  (VmService service) async {
-    bool? caughtException;
-    try {
-      await service.getMemoryUsage('badid');
-      fail('Unreachable');
-    } on RPCError catch (e) {
-      caughtException = true;
-      expect(
-        e.details,
-        contains(
-          "getMemoryUsage: invalid 'isolateId' parameter: badid",
-        ),
-      );
-    }
-    expect(caughtException, isTrue);
-  },
-];
-
-void main([args = const <String>[]]) => runVMTests(
-      args,
-      tests,
-      'get_isolate_group_memory_usage_test.dart',
-    );
+void main([args = const <String>[]]) =>
+    VMTestHarness('get_isolate_group_memory_usage_lib.dart', args)
+        .addTest((VmService service) async {
+      final vm = await service.getVM();
+      final result =
+          await service.getIsolateGroupMemoryUsage(vm.isolateGroups!.first.id!);
+      expect(result.heapUsage, isPositive);
+      expect(result.heapCapacity, isPositive);
+      expect(result.externalUsage, isNonNegative);
+    }).addTest((VmService service) async {
+      bool? caughtException;
+      try {
+        await service.getMemoryUsage('badid');
+        fail('Unreachable');
+      } on RPCError catch (e) {
+        caughtException = true;
+        expect(
+          e.details,
+          contains(
+            "getMemoryUsage: invalid 'isolateId' parameter: badid",
+          ),
+        );
+      }
+      expect(caughtException, isTrue);
+    }).run(testeeMain: testee_lib.main);

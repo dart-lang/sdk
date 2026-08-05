@@ -60,9 +60,9 @@ Future<void> checkStackTrace(
   print("Raw stack trace:");
   print(rawStack);
 
-  final rawLines = await Stream.value(
-    rawStack,
-  ).transform(const LineSplitter()).toList();
+  final rawLines = await Stream.value(rawStack)
+      .transform(const LineSplitter())
+      .toList();
 
   final pcOffsets = collectPCOffsets(rawLines).toList();
   Expect.isNotEmpty(pcOffsets);

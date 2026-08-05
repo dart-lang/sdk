@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "variance_from_dill_lib.dart";
+
 typedef G<T> = Function(F<T>);
 
 main() {

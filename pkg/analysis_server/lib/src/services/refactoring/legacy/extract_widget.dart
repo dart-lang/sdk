@@ -72,12 +72,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// and [_method] parameters.
   final List<_Parameter> _parameters = [];
 
-  ExtractWidgetRefactoringImpl(
-    this.searchEngine,
-    this.resolveResult,
-    this.offset,
-    this.length,
-  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session),
+  new(this.searchEngine, this.resolveResult, this.offset, this.length)
+    : sessionHelper = AnalysisSessionHelper(resolveResult.session),
       utils = CorrectionUtils(resolveResult);
 
   @override
@@ -87,6 +83,29 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   FeatureSet get _featureSet {
     return resolveResult.unit.featureSet;
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    await builder.addDartFileEdit(resolveResult.path, (builder) {
+      var expression = _expression;
+      var statements = _statements;
+      if (expression != null) {
+        builder.addReplacement(range.node(expression), (builder) {
+          _writeWidgetInstantiation(builder);
+        });
+      } else if (statements != null) {
+        builder.addReplacement(_statementsRange!, (builder) {
+          builder.write('return ');
+          _writeWidgetInstantiation(builder);
+          builder.write(';');
+        });
+      } else {
+        _removeMethodDeclaration(builder);
+        _replaceInvocationsWithInstantiations(builder);
+      }
+
+      _writeWidgetDeclaration(builder);
+    });
   }
 
   @override
@@ -142,30 +161,13 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange({ChangeBuilder? builder}) async {
     builder ??= ChangeBuilder(
-      session: sessionHelper.session,
+      session: resolveResult.session,
       defaultEol: utils.endOfLine,
     );
-    await builder.addDartFileEdit(resolveResult.path, (builder) {
-      var expression = _expression;
-      var statements = _statements;
-      if (expression != null) {
-        builder.addReplacement(range.node(expression), (builder) {
-          _writeWidgetInstantiation(builder);
-        });
-      } else if (statements != null) {
-        builder.addReplacement(_statementsRange!, (builder) {
-          builder.write('return ');
-          _writeWidgetInstantiation(builder);
-          builder.write(';');
-        });
-      } else {
-        _removeMethodDeclaration(builder);
-        _replaceInvocationsWithInstantiations(builder);
-      }
-
-      _writeWidgetDeclaration(builder);
-    });
-    return builder.sourceChange;
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return sourceChange;
   }
 
   @override
@@ -311,12 +313,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       if (parameterList != null) {
         for (var parameter in parameterList.parameters) {
           var isRequired = parameter.isRequired;
-          parameter = parameter.notDefault;
-          if (parameter is NormalFormalParameter) {
+          if (parameter.name case var name?) {
             var element = parameter.declaredFragment!.element;
             _parameters.add(
               _Parameter(
-                element.name!,
+                name.lexeme,
                 element.type,
                 isMethodParameter: true,
                 isRequired: isRequired,
@@ -421,10 +422,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           // argument is always non-null for method parameters because otherwise
           // we have continued above.
           if (parameter.isMethodParameter && argument != null) {
-            if (argument is NamedExpression) {
-              argument = argument.expression;
-            }
-            builder.write(utils.getNodeText(argument));
+            builder.write(utils.getNodeText(argument.argumentExpression));
           } else {
             builder.write(parameter.name);
           }
@@ -612,7 +610,7 @@ class _MethodInvocationsCollector extends RecursiveAstVisitor<void> {
   final ExecutableElement methodElement;
   final List<MethodInvocation> invocations = [];
 
-  _MethodInvocationsCollector(this.methodElement);
+  new(this.methodElement);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -641,7 +639,7 @@ class _Parameter {
   /// constructor. If the [name] is already public, then the [name].
   late String constructorName;
 
-  _Parameter(
+  new(
     this.name,
     this.type, {
     this.isMethodParameter = false,
@@ -659,7 +657,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
   List<InterfaceElement>? enclosingClasses;
 
-  _ParametersCollector(this.enclosingClass, this.expressionRange);
+  new(this.enclosingClass, this.expressionRange);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

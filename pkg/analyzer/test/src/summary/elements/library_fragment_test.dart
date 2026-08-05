@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../../dart/resolution/node_text_expectations.dart';
 import '../elements_base.dart';
@@ -309,6 +310,7 @@ extension B on int {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 extension Z on int {}
 ''');
 
@@ -347,6 +349,7 @@ package:test/aa.dart
   test_scope_accessibleExtensions_unnamed() async {
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 extension on int {}
 ''');
 
@@ -360,7 +363,7 @@ package:test/test.dart
   <empty>
     getter: <null>
   accessibleExtensions
-    <testLibrary>::@extension::0
+    <testLibrary>::@extension::#0
     dart:core::@extension::EnumName
 ''',
     );
@@ -383,12 +386,12 @@ part 'a.dart';
       r'''
 package:test/test.dart
   prefix.exitCode
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: dart:io::@getter::exitCode
     setter: dart:io::@setter::exitCode
 package:test/a.dart
   prefix.exitCode
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: dart:io::@getter::exitCode
     setter: dart:io::@setter::exitCode
 ''',
@@ -428,31 +431,31 @@ part 'a.dart';
       r'''
 package:test/test.dart
   prefix.File
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: <null>
 package:test/a.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:math::@class::Random
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:math::@class::Random
 package:test/aaa.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -485,24 +488,24 @@ part 'a.dart';
       r'''
 package:test/test.dart
   prefix.File
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: <null>
 package:test/a.dart
   prefix.File
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: <null>
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -538,28 +541,28 @@ package:test/test.dart
   loadLibrary
     getter: <null>
   prefix.File
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Random
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: <null>
 package:test/a.dart
   loadLibrary
     getter: <null>
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: <null>
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:math::@class::Random
 package:test/aa.dart
   loadLibrary
     getter: <null>
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
     getter: <null>
   prefix.Random
-    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
     getter: dart:math::@class::Random
 ''',
     );
@@ -586,7 +589,7 @@ import 'b.dart' as prefix;
       r'''
 package:test/test.dart
   prefix.A
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: <null>
 ''',
     );
@@ -613,7 +616,7 @@ import 'b.dart' as prefix;
       r'''
 package:test/test.dart
   prefix.foo
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: multiplyDefinedElement
       package:test/a.dart::@getter::foo
       package:test/b.dart::@getter::foo
@@ -641,7 +644,7 @@ import 'dart:math' as prefix;
       r'''
 package:test/test.dart
   prefix.pi
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: package:test/a.dart::@getter::pi
     setter: package:test/a.dart::@setter::pi
 ''',
@@ -665,7 +668,7 @@ import 'a.dart' as prefix;
       r'''
 package:test/test.dart
   prefix.pi
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: package:test/a.dart::@getter::pi
     setter: package:test/a.dart::@setter::pi
 ''',
@@ -693,7 +696,7 @@ import 'b.dart' as prefix;
       r'''
 package:test/test.dart
   prefix.foo
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: package:test/a.dart::@getter::foo
     setter: package:test/a.dart::@setter::foo
 ''',
@@ -721,17 +724,17 @@ import 'b.dart' as prefix2;
       r'''
 package:test/test.dart
   prefix.foo
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: package:test/a.dart::@getter::foo
     setter: package:test/a.dart::@setter::foo
   prefix.bar
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: <null>
   prefix2.foo
-    prefix2: <testLibraryFragment>::@prefix2::prefix2
+    prefix2: <testLibraryFragment>::@prefix::prefix2
     getter: <null>
   prefix2.bar
-    prefix2: <testLibraryFragment>::@prefix2::prefix2
+    prefix2: <testLibraryFragment>::@prefix::prefix2
     getter: package:test/b.dart::@getter::bar
     setter: package:test/b.dart::@setter::bar
 ''',
@@ -750,7 +753,7 @@ import 'dart:math' as math;
       r'''
 package:test/test.dart
   math.noSuchElement
-    math: <testLibraryFragment>::@prefix2::math
+    math: <testLibraryFragment>::@prefix::math
     getter: <null>
 ''',
     );
@@ -768,10 +771,10 @@ import 'dart:math' as math hide sin;
       r'''
 package:test/test.dart
   math.sin
-    math: <testLibraryFragment>::@prefix2::math
+    math: <testLibraryFragment>::@prefix::math
     getter: <null>
   math.cos
-    math: <testLibraryFragment>::@prefix2::math
+    math: <testLibraryFragment>::@prefix::math
     getter: dart:math::@function::cos
 ''',
     );
@@ -789,10 +792,10 @@ import 'dart:math' as math show sin;
       r'''
 package:test/test.dart
   math.sin
-    math: <testLibraryFragment>::@prefix2::math
+    math: <testLibraryFragment>::@prefix::math
     getter: dart:math::@function::sin
   math.cos
-    math: <testLibraryFragment>::@prefix2::math
+    math: <testLibraryFragment>::@prefix::math
     getter: <null>
 ''',
     );
@@ -830,24 +833,24 @@ part 'a.dart';
       r'''
 package:test/test.dart
   prefix.File
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Directory
-    prefix: <testLibraryFragment>::@prefix2::prefix
+    prefix: <testLibraryFragment>::@prefix::prefix
     getter: dart:io::@class::Directory
 package:test/a.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Directory
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: package:test/x.dart::@class::Directory
 package:test/aa.dart
   prefix.File
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: dart:io::@class::File
   prefix.Directory
-    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix2::prefix
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
     getter: package:test/x.dart::@class::Directory
 ''',
     );
@@ -1316,6 +1319,7 @@ class B {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 class Z {}
 ''');
 
@@ -1362,6 +1366,7 @@ set _foo(int _) {}
 
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 class _Z {}
 ''');
 
@@ -1474,14 +1479,14 @@ part 'a.dart';
       r'''
 package:test/test.dart
   _.X
-    _: <testLibraryFragment>::@prefix2::_
+    _: <testLibraryFragment>::@prefix::_
     getter: package:test/x.dart::@extension::X
   accessibleExtensions
     dart:core::@extension::EnumName
     package:test/x.dart::@extension::X
 package:test/a.dart
   _.X
-    _: <testLibraryFragment>::@prefix2::_
+    _: <testLibraryFragment>::@prefix::_
     getter: package:test/x.dart::@extension::X
   accessibleExtensions
     dart:core::@extension::EnumName
@@ -1567,11 +1572,12 @@ package:test/a.dart
 
     var actual = buffer.toString();
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 }
 

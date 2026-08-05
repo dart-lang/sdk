@@ -16,7 +16,7 @@ import 'package:analyzer/src/utilities/extensions/results.dart';
 
 class ImportsHandler
     extends SharedMessageHandler<TextDocumentPositionParams, List<Location>?> {
-  ImportsHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.imports;
@@ -76,9 +76,8 @@ class ImportsHandler
           when prefix != node && prefix.element is PrefixElement) {
         prefixName = prefix.name;
       } else if (node is SimpleIdentifier) {
-        if (node.parent case MethodInvocation(
-          target: SimpleIdentifier target?,
-        ) when target.element is PrefixElement) {
+        if (node.parent case MethodInvocation(target: SimpleIdentifier target?)
+            when target.element is PrefixElement) {
           prefixName = target.name;
         }
       }

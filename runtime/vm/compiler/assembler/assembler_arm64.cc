@@ -304,6 +304,7 @@ void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
       ldr(TMP, compiler::Address(
                    THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
       break;
+    case kFourBytes:
     case kUnsignedFourBytes:
       ldr(TMP, compiler::Address(
                    THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
@@ -317,7 +318,7 @@ void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
   str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
   SetupCSPFromThread(THR);
 
-  MoveRegister(dst, R0);
+  ExtendValue(dst, R0, size);
 
   AddImmediate(SP, FP, -registers.SpillSize());
   PopRegisters(registers);

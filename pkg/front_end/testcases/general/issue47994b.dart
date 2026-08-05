@@ -11,46 +11,85 @@ class Class {
 }
 
 main() {
-  expect(null, test(() {
-    assert(false);
-  }));
-  expect(null, test(() {
-    assert(false, null);
-  }));
-  expect('foo', test(() {
-    assert(false, 'foo');
-  }));
-  expect(0, test(() {
-    assert(false, 0);
-  }));
-  expect(const {}, test(() {
-    assert(false, const {});
-  }));
-  expect(#_symbol, test(() {
-    assert(false, #_symbol);
-  }));
-  expect(const Const(), test(() {
-    assert(false, const Const());
-  }));
+  expect(
+    null,
+    test(() {
+      assert(false);
+    }),
+  );
+  expect(
+    null,
+    test(() {
+      assert(false, null);
+    }),
+  );
+  expect(
+    'foo',
+    test(() {
+      assert(false, 'foo');
+    }),
+  );
+  expect(
+    0,
+    test(() {
+      assert(false, 0);
+    }),
+  );
+  expect(
+    const {},
+    test(() {
+      assert(false, const {});
+    }),
+  );
+  expect(
+    #_symbol,
+    test(() {
+      assert(false, #_symbol);
+    }),
+  );
+  expect(
+    const Const(),
+    test(() {
+      assert(false, const Const());
+    }),
+  );
 
-  expect(null, test(() {
-    Class(null);
-  }));
-  expect('foo', test(() {
-    Class('foo');
-  }));
-  expect(0, test(() {
-    Class(0);
-  }));
-  expect(const {}, test(() {
-    Class(const {});
-  }));
-  expect(#_symbol, test(() {
-    Class(#_symbol);
-  }));
-  expect(const Const(), test(() {
-    Class(const Const());
-  }));
+  expect(
+    null,
+    test(() {
+      Class(null);
+    }),
+  );
+  expect(
+    'foo',
+    test(() {
+      Class('foo');
+    }),
+  );
+  expect(
+    0,
+    test(() {
+      Class(0);
+    }),
+  );
+  expect(
+    const {},
+    test(() {
+      Class(const {});
+    }),
+  );
+  expect(
+    #_symbol,
+    test(() {
+      Class(#_symbol);
+    }),
+  );
+  expect(
+    const Const(),
+    test(() {
+      Class(const Const());
+    }),
+  );
 }
 
 expect(expected, actual) {

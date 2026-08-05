@@ -20,7 +20,7 @@ class ElementLocation {
   /// this location is a [_MemberElementLocation].
   final String _topLevelName;
 
-  factory ElementLocation.decode(String encoded) {
+  factory decode(String encoded) {
     var components = encoded.split(';');
     return switch (components) {
       [String library, String topName] => ElementLocation._(library, topName),
@@ -34,7 +34,7 @@ class ElementLocation {
     };
   }
 
-  ElementLocation._(this._libraryUri, this._topLevelName);
+  new _(this._libraryUri, this._topLevelName);
 
   String get encoding => '$_libraryUri;$_topLevelName';
 
@@ -81,11 +81,7 @@ class _MemberElementLocation extends ElementLocation {
   /// The [Element.lookupName] for this member within [_topLevelName].
   final String _memberName;
 
-  _MemberElementLocation._(
-    super.libraryUri,
-    super.topLevelName,
-    this._memberName,
-  ) : super._();
+  new _(super.libraryUri, super.topLevelName, this._memberName) : super._();
 
   @override
   String get encoding => '${super.encoding};$_memberName';

@@ -194,12 +194,10 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
 
-  NominalParameterBuilder({
-    Variance? variableVariance,
-    Nullability? nullability,
-  }) : _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
-         variableVariance ?? Variance.covariant,
-       ) {
+  new({Variance? variableVariance, Nullability? nullability})
+    : _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
+        variableVariance ?? Variance.covariant,
+      ) {
     _nullabilityFromParameterBound = nullability;
   }
 
@@ -487,7 +485,7 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
 
-  StructuralParameterBuilder({Nullability? nullability}) {
+  new({Nullability? nullability}) {
     _nullabilityFromParameterBound = nullability;
   }
 
@@ -678,10 +676,7 @@ class TypeParameterCyclicDependency {
   /// variable.
   final List<TypeParameterBuilder>? viaTypeParameters;
 
-  TypeParameterCyclicDependency(
-    this.typeParameterBoundOfItself, {
-    this.viaTypeParameters,
-  });
+  new(this.typeParameterBoundOfItself, {this.viaTypeParameters});
 
   @override
   String toString() {

@@ -9,7 +9,7 @@ class _Y<T extends core::Object? = dynamic> extends core::Object /*hasConstConst
 }
 class A<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::_Y<self::A::T%> x;
-  constructor •(self::_Y<self::A::T%> x) → self::A<self::A::T%>
+  constructor •(initializing-formal self::_Y<self::A::T%> x) → self::A<self::A::T%>
     : self::A::x = x, super core::Object::•()
     ;
 }

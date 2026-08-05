@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedHiddenNameTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,21 +18,21 @@ main() {
 class UndefinedHiddenNameTest extends PubPackageResolutionTest {
   test_export() async {
     newFile('$testPackageLibPath/lib1.dart', '');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart' hide a;
-''',
-      [error(diag.undefinedHiddenName, 24, 1)],
-    );
+//                      ^
+// [diag.undefinedHiddenName] The library 'package:test/lib1.dart' doesn't export a member with the hidden name 'a'.
+''');
   }
 
   test_import() async {
     newFile('$testPackageLibPath/lib1.dart', '');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' hide a;
-''',
-      [error(diag.unusedImport, 7, 11), error(diag.undefinedHiddenName, 24, 1)],
-    );
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib1.dart'.
+//                      ^
+// [diag.undefinedHiddenName] The library 'package:test/lib1.dart' doesn't export a member with the hidden name 'a'.
+''');
   }
 }

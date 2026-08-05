@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -264,7 +264,7 @@ class A {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
 
     await indexTestUnit('''
@@ -280,8 +280,7 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          "The class 'A' is defined outside of the project, so cannot be renamed.",
+      expectedMessage: "The class 'A' is defined outside of the project, so cannot be renamed.",
     );
   }
 
@@ -445,6 +444,29 @@ class Other {
 void f() {
   NewName t1 = new NewName();
   NewName t2 = new NewName.named();
+}
+''');
+  }
+
+  Future<void> test_createChange_ClassElement_annotationReferences() async {
+    await indexTestUnit('''
+import '' as self;
+@self.Foo()
+@Foo()
+class Fo^o {
+  const new();
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import '' as self;
+@self.NewName()
+@NewName()
+class NewName {
+  const new();
 }
 ''');
   }

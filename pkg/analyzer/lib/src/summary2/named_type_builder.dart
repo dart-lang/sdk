@@ -179,7 +179,7 @@ class NamedTypeBuilder extends TypeBuilder {
       if (node is GenericFunctionType) {
         return _buildType(node.typeOrThrow);
       } else {
-        return FunctionTypeImpl.v2(
+        return FunctionTypeImpl(
           typeParameters: const <TypeParameterElementImpl>[],
           formalParameters: const <InternalFormalParameterElement>[],
           returnType: _dynamicType,
@@ -211,17 +211,17 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  TypeImpl _buildFormalParameterType(FormalParameter node) {
-    if (node is DefaultFormalParameter) {
-      return _buildFormalParameterType(node.parameter);
-    } else if (node is FunctionTypedFormalParameterImpl) {
+  TypeImpl _buildFormalParameterType(FormalParameterImpl node) {
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
       return _buildFunctionType(
-        typeParameterList: node.typeParameters,
-        returnTypeNode: node.returnType,
-        parameterList: node.parameters,
-        hasQuestion: node.question != null,
+        typeParameterList: functionTypedSuffix.typeParameters,
+        returnTypeNode: node.type,
+        formalParameterList: functionTypedSuffix.formalParameters,
+        nullabilitySuffix: functionTypedSuffix.question != null
+            ? NullabilitySuffix.question
+            : NullabilitySuffix.none,
       );
-    } else if (node is SimpleFormalParameterImpl) {
+    } else if (node is RegularFormalParameterImpl) {
       return _buildNodeType(node.type);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
@@ -231,18 +231,18 @@ class NamedTypeBuilder extends TypeBuilder {
   FunctionTypeImpl _buildFunctionType({
     required TypeParameterListImpl? typeParameterList,
     required TypeAnnotationImpl? returnTypeNode,
-    required FormalParameterList parameterList,
-    required bool hasQuestion,
+    required FormalParameterList formalParameterList,
+    required NullabilitySuffix nullabilitySuffix,
   }) {
     var returnType = _buildNodeType(returnTypeNode);
     var typeParameters = _typeParameters(typeParameterList);
-    var formalParameters = _formalParameters(parameterList);
+    var formalParameters = _formalParameters(formalParameterList);
 
-    return FunctionTypeImpl.v2(
+    return FunctionTypeImpl(
       typeParameters: typeParameters,
       formalParameters: formalParameters,
       returnType: returnType,
-      nullabilitySuffix: _getNullabilitySuffix(hasQuestion),
+      nullabilitySuffix: nullabilitySuffix,
     );
   }
 
@@ -270,7 +270,7 @@ class NamedTypeBuilder extends TypeBuilder {
       return element.aliasedType;
     }
 
-    var typedefNode = linker.getLinkingNode2(element.firstFragment)!;
+    var typedefNode = linker.getLinkingNode(element.firstFragment)!;
 
     // Break a possible recursion.
     var existing = element.aliasedTypeRaw;
@@ -284,8 +284,8 @@ class NamedTypeBuilder extends TypeBuilder {
       var result = _buildFunctionType(
         typeParameterList: null,
         returnTypeNode: typedefNode.returnType,
-        parameterList: typedefNode.parameters,
-        hasQuestion: false,
+        formalParameterList: typedefNode.parameters,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
       element.aliasedType = result;
       return result;
@@ -296,14 +296,6 @@ class NamedTypeBuilder extends TypeBuilder {
       return aliasedType;
     } else {
       throw StateError('(${element.runtimeType}) $element');
-    }
-  }
-
-  NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
-    if (hasQuestion) {
-      return NullabilitySuffix.question;
-    } else {
-      return NullabilitySuffix.none;
     }
   }
 

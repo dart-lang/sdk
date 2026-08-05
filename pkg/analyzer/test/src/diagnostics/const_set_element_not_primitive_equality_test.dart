@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,8 +15,7 @@ main() {
 @reflectiveTest
 class ConstSetElementNotPrimitiveEqualityTest extends PubPackageResolutionTest {
   test_implementsEqEq_constField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const a = const A();
   const A();
@@ -25,33 +23,31 @@ class A {
 }
 main() {
   const {A.a};
+//       ^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'A' does.
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 104, 3)],
-    );
+''');
   }
 
   test_implementsEqEq_direct() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;
 }
 main() {
   const {const A()};
+//       ^^^^^^^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'A' does.
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 74, 9)],
-    );
+''');
   }
 
   test_implementsEqEq_dynamic() async {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -61,15 +57,14 @@ class B {
 }
 main() {
   const {B.a};
+//       ^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'A' does.
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 116, 3)],
-    );
+''');
   }
 
   test_implementsEqEq_factory() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A { const factory A() = B; }
 
 class B implements A {
@@ -80,16 +75,15 @@ class B implements A {
 
 main() {
   var m = const {const A()};
+//               ^^^^^^^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'B' does.
   print(m);
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 128, 9)],
-    );
+''');
   }
 
   test_implementsEqEq_nestedIn_instanceCreation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 
@@ -102,15 +96,14 @@ class B {
 
 main() {
   const B({A()});
+//         ^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'A' does.
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 110, 3)],
-    );
+''');
   }
 
   test_implementsEqEq_record_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -118,15 +111,14 @@ class A {
 
 const x = {
   (a: 0, b: const A()),
+//^^^^^^^^^^^^^^^^^^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type '({int a, A b})' does.
 };
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 71, 20)],
-    );
+''');
   }
 
   test_implementsEqEq_record_positional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -134,15 +126,14 @@ class A {
 
 const x = {
   (0, const A()),
+//^^^^^^^^^^^^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type '(int, A)' does.
 };
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 71, 14)],
-    );
+''');
   }
 
   test_implementsEqEq_spread_intoList_set() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -150,15 +141,14 @@ class A {
 
 main() {
   const [...{A()}];
+//           ^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'A' does.
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 79, 3)],
-    );
+''');
   }
 
   test_implementsEqEq_spread_intoSet_list() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -166,15 +156,14 @@ class A {
 
 main() {
   const {...[A()]};
+//       ^^^^^^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'List<A>' does.
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 75, 8)],
-    );
+''');
   }
 
   test_implementsEqEq_spread_intoSet_set() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -182,15 +171,14 @@ class A {
 
 main() {
   const {...{A()}};
+//           ^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'A' does.
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 79, 3)],
-    );
+''');
   }
 
   test_implementsEqEq_super() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -200,52 +188,51 @@ class B extends A {
 }
 main() {
   const {const B()};
+//       ^^^^^^^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'B' does.
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 109, 9)],
-    );
+''');
   }
 
   test_implementsHashCode_direct() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const v = {A()};
+//         ^^^
+// [diag.constSetElementNotPrimitiveEquality] An element in a constant set can't override the '==' operator, or 'hashCode', but the type 'A' does.
 
 class A {
   const A();
   int get hashCode => 0;
 }
-''',
-      [error(diag.constSetElementNotPrimitiveEquality, 11, 3)],
-    );
+''');
   }
 
   test_implementsNone_record_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
 
 const x = {
-  (a: 0, b: const A()),
+  (a: 0, b: const A()): 0,
 };
 ''');
   }
 
   test_implementsNone_record_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
 
 const x = {
-  (0, const A()),
+  (0, const A()): 0,
 };
 ''');
   }
 
   test_listLiteral_spread() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   operator ==(other) => false;

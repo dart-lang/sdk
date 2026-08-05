@@ -2,64 +2,61 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuiltInIdentifierAsExtensionNameTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class BuiltInIdentifierAsExtensionNameTest extends PubPackageResolutionTest {
   test_as() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension as on Object {}
-''',
-      [error(diag.builtInIdentifierAsExtensionName, 10, 2)],
-    );
+//        ^^
+// [diag.builtInIdentifierAsExtensionName] The built-in identifier 'as' can't be used as an extension name.
+''');
   }
 
   test_Function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension Function on Object {}
-''',
-      [error(diag.builtInIdentifierAsExtensionName, 10, 8)],
-    );
+//        ^^^^^^^^
+// [diag.builtInIdentifierAsExtensionName] The built-in identifier 'Function' can't be used as an extension name.
+''');
   }
 
   test_inout() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension inout on Object {}
-''',
-      [error(diag.builtInIdentifierAsExtensionName, 10, 5)],
-    );
+//        ^^^^^
+// [diag.builtInIdentifierAsExtensionName] The built-in identifier 'inout' can't be used as an extension name.
+''');
   }
 
   test_inout_language310() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension inout on Object {}
 ''');
   }
 
   test_out() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension out on Object {}
-''',
-      [error(diag.builtInIdentifierAsExtensionName, 10, 3)],
-    );
+//        ^^^
+// [diag.builtInIdentifierAsExtensionName] The built-in identifier 'out' can't be used as an extension name.
+''');
   }
 
   test_out_language310() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension out on Object {}
 ''');

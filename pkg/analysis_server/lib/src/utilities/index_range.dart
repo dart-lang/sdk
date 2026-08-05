@@ -12,7 +12,7 @@ class IndexRange {
   final int upper;
 
   /// Initialize a newly created range.
-  IndexRange(this.lower, this.upper);
+  new(this.lower, this.upper);
 
   /// Return the number of indices in this range.
   int get count => upper - lower + 1;

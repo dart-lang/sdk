@@ -37,7 +37,7 @@ class SuggestionCollector {
   /// - reduces the amount of memory used during completion
   /// - reduces the number of suggestions that need to have relevance scores and
   ///   that need to be converted to the form used by the protocol
-  SuggestionCollector({required this.maxSuggestions});
+  new({required this.maxSuggestions});
 
   /// Adds the candidate [suggestion] to the list of suggestions.
   ///

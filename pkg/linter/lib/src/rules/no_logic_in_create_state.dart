@@ -16,8 +16,7 @@ import '../util/flutter_utils.dart';
 const _desc = r"Don't put any logic in createState.";
 
 class NoLogicInCreateState extends AnalysisRule {
-  NoLogicInCreateState()
-    : super(name: LintNames.no_logic_in_create_state, description: _desc);
+  new() : super(name: LintNames.no_logic_in_create_state, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.noLogicInCreateState;
@@ -35,7 +34,7 @@ class NoLogicInCreateState extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

@@ -145,6 +145,21 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // information for the function retrieved at runtime from the closure.
   Fragment BuildClosureCallArgumentTypeChecks(const ClosureCallInfo& info);
 
+  // Generate fragment which loads an optional element from an unknown closure.
+  //
+  // 1) Test if element is present: ([length_and_flags] & [present_mask]) != 0.
+  // 2a) If present and [element_offset] >= 0, then load element using offset.
+  // 2b) If present and [element_offset] < 0, then load element using
+  //    ([length_and_flags] & [index_mask] >> [index_shift]) index.
+  // 3) If element is absent, the [result] is set to null.
+  Fragment BuildLoadDynamicClosureElement(LocalVariable* closure,
+                                          LocalVariable* length_and_flags,
+                                          LocalVariable* result,
+                                          intptr_t present_mask,
+                                          intptr_t element_offset,
+                                          intptr_t index_mask,
+                                          intptr_t index_shift);
+
   // Main entry point for building checks.
   Fragment BuildDynamicClosureCallChecks(LocalVariable* closure);
 

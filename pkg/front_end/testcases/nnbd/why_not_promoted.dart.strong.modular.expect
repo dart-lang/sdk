@@ -1,0 +1,206 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:15:5: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+// Try accessing using ?. instead.
+//   i.isEven;
+//     ^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:14:3: Context: Variable 'i' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   i = j;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:21:5: Error: Property 'cProperty' cannot be accessed on 'C?' because it is potentially null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd/why_not_promoted.dart'.
+// Try accessing using ?. instead.
+//   c.cProperty;
+//     ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:20:3: Context: Variable 'c' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   c += i;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:27:5: Error: Property 'cProperty' cannot be accessed on 'C?' because it is potentially null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd/why_not_promoted.dart'.
+// Try accessing using ?. instead.
+//   c.cProperty;
+//     ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:26:3: Context: Variable 'c' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   c++;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:33:5: Error: Property 'cProperty' cannot be accessed on 'C?' because it is potentially null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd/why_not_promoted.dart'.
+// Try accessing using ?. instead.
+//   c.cProperty;
+//     ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:32:5: Context: Variable 'c' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   ++c;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:39:7: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+// Try accessing using ?. instead.
+//     i.isEven;
+//       ^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:38:8: Context: Variable 'i' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   for (i in list) {
+//        ^
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:45:22: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+// Try accessing using ?. instead.
+//   [for (i in list) i.isEven];
+//                      ^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:45:9: Context: Variable 'i' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   [for (i in list) i.isEven];
+//         ^
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:50:23: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+// Try accessing using ?. instead.
+//   ({for (i in list) i.isEven});
+//                       ^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:50:10: Context: Variable 'i' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   ({for (i in list) i.isEven});
+//          ^
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:55:23: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+// Try accessing using ?. instead.
+//   ({for (i in list) i.isEven: null});
+//                       ^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:55:10: Context: Variable 'i' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   ({for (i in list) i.isEven: null});
+//          ^
+//
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:60:29: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+// Try accessing using ?. instead.
+//   ({for (i in list) null: i.isEven});
+//                             ^^^^^^
+// pkg/front_end/testcases/nnbd/why_not_promoted.dart:60:10: Context: Variable 'i' could not be promoted due to an assignment.
+// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+//   ({for (i in list) null: i.isEven});
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+abstract class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  abstract operator +(core::int i) → self::C?;
+  get cProperty() → core::int
+    return 0;
+}
+static method direct_assignment(core::int? i, core::int? j) → dynamic {
+  if(i == null)
+    return;
+  i = j;
+  invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:15:5: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+Try accessing using ?. instead.
+  i.isEven;
+    ^^^^^^" in i.{core::int::isEven}{<nullable>}.{core::bool};
+}
+static method compound_assignment(self::C? c, core::int i) → dynamic {
+  if(c == null)
+    return;
+  c = c{self::C}.{self::C::+}(i){(core::int) → self::C?};
+  invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:21:5: Error: Property 'cProperty' cannot be accessed on 'C?' because it is potentially null.
+ - 'C' is from 'pkg/front_end/testcases/nnbd/why_not_promoted.dart'.
+Try accessing using ?. instead.
+  c.cProperty;
+    ^^^^^^^^^" in c.{self::C::cProperty}{<nullable>}.{core::int};
+}
+static method via_postfix_op(self::C? c) → dynamic {
+  if(c == null)
+    return;
+  c = c{self::C}.{self::C::+}(1){(core::int) → self::C?};
+  invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:27:5: Error: Property 'cProperty' cannot be accessed on 'C?' because it is potentially null.
+ - 'C' is from 'pkg/front_end/testcases/nnbd/why_not_promoted.dart'.
+Try accessing using ?. instead.
+  c.cProperty;
+    ^^^^^^^^^" in c.{self::C::cProperty}{<nullable>}.{core::int};
+}
+static method via_prefix_op(self::C? c) → dynamic {
+  if(c == null)
+    return;
+  c = c{self::C}.{self::C::+}(1){(core::int) → self::C?};
+  invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:33:5: Error: Property 'cProperty' cannot be accessed on 'C?' because it is potentially null.
+ - 'C' is from 'pkg/front_end/testcases/nnbd/why_not_promoted.dart'.
+Try accessing using ?. instead.
+  c.cProperty;
+    ^^^^^^^^^" in c.{self::C::cProperty}{<nullable>}.{core::int};
+}
+static method via_for_each_statement(core::int? i, core::List<core::int?> list) → dynamic {
+  if(i == null)
+    return;
+  for (final core::int? #t1 in list) {
+    i = #t1;
+    invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:39:7: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+Try accessing using ?. instead.
+    i.isEven;
+      ^^^^^^" in i.{core::int::isEven}{<nullable>}.{core::bool};
+  }
+}
+static method via_for_each_list_element(core::int? i, core::List<core::int?> list) → dynamic {
+  if(i == null)
+    return;
+  {
+    final core::List<core::bool> #t2 = <core::bool>[];
+    for (final core::int? #t3 in list) {
+      i = #t3;
+      #t2.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:45:22: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+Try accessing using ?. instead.
+  [for (i in list) i.isEven];
+                     ^^^^^^" in i.{core::int::isEven}{<nullable>}.{core::bool}){(core::bool) → void};
+    }
+  }
+}
+static method via_for_each_set_element(core::int? i, core::List<core::int?> list) → dynamic {
+  if(i == null)
+    return;
+  {
+    final core::Set<core::bool> #t4 = col::LinkedHashSet::•<core::bool>();
+    for (final core::int? #t5 in list) {
+      i = #t5;
+      #t4.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:50:23: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+Try accessing using ?. instead.
+  ({for (i in list) i.isEven});
+                      ^^^^^^" in i.{core::int::isEven}{<nullable>}.{core::bool}){(core::bool) → core::bool};
+    }
+  }
+}
+static method via_for_each_map_key(core::int? i, core::List<core::int?> list) → dynamic {
+  if(i == null)
+    return;
+  {
+    final core::Map<core::bool, Null> #t6 = <core::bool, Null>{};
+    for (final core::int? #t7 in list) {
+      i = #t7;
+      #t6.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:55:23: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+Try accessing using ?. instead.
+  ({for (i in list) i.isEven: null});
+                      ^^^^^^" in i.{core::int::isEven}{<nullable>}.{core::bool}, null){(core::bool, Null) → void};
+    }
+  }
+}
+static method via_for_each_map_value(core::int? i, core::List<core::int?> list) → dynamic {
+  if(i == null)
+    return;
+  {
+    final core::Map<Null, core::bool> #t8 = <Null, core::bool>{};
+    for (final core::int? #t9 in list) {
+      i = #t9;
+      #t8.{core::Map::[]=}{Invariant}(null, invalid-expression "pkg/front_end/testcases/nnbd/why_not_promoted.dart:60:29: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+Try accessing using ?. instead.
+  ({for (i in list) null: i.isEven});
+                            ^^^^^^" in i.{core::int::isEven}{<nullable>}.{core::bool}){(Null, core::bool) → void};
+    }
+  }
+}

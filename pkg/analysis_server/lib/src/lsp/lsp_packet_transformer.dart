@@ -10,7 +10,7 @@ import 'package:collection/collection.dart';
 
 class InvalidEncodingError {
   final String headers;
-  InvalidEncodingError(this.headers);
+  new(this.headers);
 
   @override
   String toString() =>
@@ -21,7 +21,7 @@ class LspHeaders {
   final String rawHeaders;
   final int contentLength;
   final String? encoding;
-  LspHeaders(this.rawHeaders, this.contentLength, this.encoding);
+  new(this.rawHeaders, this.contentLength, this.encoding);
 }
 
 /// Transforms a stream of LSP data in the form:
@@ -129,7 +129,7 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
 class _LspPacketTransformerListenData {
   final StreamSubscription<int> input;
 
-  _LspPacketTransformerListenData(this.input);
+  new(this.input);
 }
 
 /// The marker class for [StreamController.onPause].

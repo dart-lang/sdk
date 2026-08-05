@@ -1,0 +1,126 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    core::int p = 1;
+    Null #t1;
+    #L1:
+    {
+      p;
+      {
+        #t1 = null;
+        break #L1;
+      }
+    }
+  }
+  let core::int #t2 = 1 in #t2 == null ?{Null} null : block {
+    core::int p = #t2 as{Unchecked} core::int;
+    Null #t3;
+    #L2:
+    {
+      p;
+      {
+        #t3 = null;
+        break #L2;
+      }
+    }
+  } =>#t3;
+  let final core::int #t4 = 1 in block {
+    {
+      core::int p = #t4;
+      Null #t5;
+      #L3:
+      {
+        p;
+        {
+          #t5 = null;
+          break #L3;
+        }
+      }
+    }
+  } =>#t4;
+  let final core::int #t6 = 1 in #t6 == null ?{core::int} #t6 : block {
+    {
+      core::int p = #t6 as{Unchecked} core::int;
+      Null #t7;
+      #L4:
+      {
+        p;
+        {
+          #t7 = null;
+          break #L4;
+        }
+      }
+    }
+  } =>#t6;
+  {
+    core::int p = 1;
+    core::int #t8;
+    #L5:
+    {
+      {
+        #t8 = p;
+        break #L5;
+      }
+    }
+  }
+  let core::int #t9 = 1 in #t9 == null ?{core::int?} null : block {
+    core::int p = #t9 as{Unchecked} core::int;
+    core::int #t10;
+    #L6:
+    {
+      {
+        #t10 = p;
+        break #L6;
+      }
+    }
+  } =>#t10;
+  let final core::int #t11 = 1 in block {
+    {
+      core::int p = #t11;
+      core::int #t12;
+      #L7:
+      {
+        {
+          #t12 = p;
+          break #L7;
+        }
+      }
+    }
+  } =>#t11;
+  let final core::int #t13 = 1 in #t13 == null ?{core::int} #t13 : block {
+    {
+      core::int p = #t13 as{Unchecked} core::int;
+      core::int #t14;
+      #L8:
+      {
+        {
+          #t14 = p;
+          break #L8;
+        }
+      }
+    }
+  } =>#t13;
+}
+
+
+Extra constant evaluation status:
+Evaluated: EqualsNull @ org-dartlang-testcase:///block_explicitly_typed.dart:10:11 -> BoolConstant(false)
+Evaluated: AsExpression @ org-dartlang-testcase:///block_explicitly_typed.dart:10:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_typed.dart:14:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_typed.dart:14:3 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///block_explicitly_typed.dart:18:3 -> BoolConstant(false)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_typed.dart:18:3 -> IntConstant(1)
+Evaluated: AsExpression @ org-dartlang-testcase:///block_explicitly_typed.dart:18:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_typed.dart:18:3 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///block_explicitly_typed.dart:25:11 -> BoolConstant(false)
+Evaluated: AsExpression @ org-dartlang-testcase:///block_explicitly_typed.dart:25:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_typed.dart:28:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_typed.dart:28:3 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///block_explicitly_typed.dart:31:3 -> BoolConstant(false)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_typed.dart:31:3 -> IntConstant(1)
+Evaluated: AsExpression @ org-dartlang-testcase:///block_explicitly_typed.dart:31:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_typed.dart:31:3 -> IntConstant(1)
+Extra constant evaluation: evaluated: 50, effectively constant: 16

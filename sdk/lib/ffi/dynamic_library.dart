@@ -32,6 +32,22 @@ final class DynamicLibrary {
   /// which are equal (`==`), but not [identical].
   external factory DynamicLibrary.open(String path);
 
+  /// Loads a code asset registered with [assetId] in a build hook.
+  ///
+  /// EXPERIMENAL: Not available yet in Flutter under Dart 3.13.
+  ///
+  /// See [Build hooks](https://dart.dev/tools/hooks) for information about
+  /// registering code assets.
+  ///
+  /// If the asset is statically linked into the current process or executable,
+  /// this call can still succeed, but [lookup] only succeeds for symbols
+  /// available for dynamic lookup, and [close] is not supported.
+  ///
+  /// Calling this function multiple times with the same [assetId] only loads
+  /// the library once.
+  @Since('3.14')
+  external factory DynamicLibrary.codeAsset(String assetId);
+
   /// Looks up a symbol in the [DynamicLibrary] and returns its address in
   /// memory.
   ///

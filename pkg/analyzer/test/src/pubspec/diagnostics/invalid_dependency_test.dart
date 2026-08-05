@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidDependencyTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,7 +18,7 @@ main() {
 class InvalidDependencyTest extends PubspecDiagnosticTest {
   test_dependencyGit_malformed_empty() {
     // TODO(pq): consider validating.
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -27,7 +28,7 @@ dependencies:
 
   test_dependencyGit_malformed_list() {
     // TODO(pq): consider validating.
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -38,7 +39,7 @@ dependencies:
 
   test_dependencyGit_malformed_scalar() {
     // TODO(pq): consider validating.
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -47,7 +48,7 @@ dependencies:
   }
 
   test_dependencyGit_noVersion_valid() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -58,22 +59,21 @@ dependencies:
   }
 
   test_dependencyGit_version_error() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 version: 0.1.0
 dependencies:
   foo:
     git:
+//  ^^^
+// [diag.invalidDependency] Publishable packages can't have 'git' dependencies.
       url: git@github.com:foo/foo.git
       path: path/to/foo
-''',
-      [diag.invalidDependency],
-    );
+''');
   }
 
   test_dependencyGit_version_valid() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 version: 0.1.0
 publish_to: none
@@ -87,7 +87,7 @@ dependencies:
 
   test_dependencyGitPath() {
     // git paths are not validated
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -99,7 +99,7 @@ dependencies:
 
   test_dependencyPath_malformed_empty() {
     // TODO(pq): consider validating.
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -109,7 +109,7 @@ dependencies:
 
   test_dependencyPath_malformed_list() {
     // TODO(pq): consider validating.
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -123,7 +123,7 @@ dependencies:
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -136,7 +136,7 @@ dependencies:
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -149,7 +149,7 @@ dependencies:
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
@@ -162,16 +162,15 @@ dependencies:
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 version: 0.1.0
 dependencies:
   foo:
     path: /foo
-''',
-      [diag.invalidDependency],
-    );
+//  ^^^^
+// [diag.invalidDependency] Publishable packages can't have 'path' dependencies.
+''');
   }
 
   test_dependencyPath_version_valid() {
@@ -179,7 +178,7 @@ dependencies:
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 version: 0.1.0
 publish_to: none
@@ -190,14 +189,14 @@ dependencies:
   }
 
   test_devDependenciesField_empty() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dev_dependencies:
 ''');
   }
 
   test_devDependenciesFieldNotMap_dev_noError() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dev_dependencies:
   a: any
@@ -206,7 +205,7 @@ dev_dependencies:
 
   test_devDependencyGit_version_no_error() {
     // Git paths are OK in dev_dependencies
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 version: 0.1.0
 dev_dependencies:

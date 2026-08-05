@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveNameFromDeclarationClause extends ResolvedCorrectionProducer {
   String _fixMessage = '';
 
-  RemoveNameFromDeclarationClause({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

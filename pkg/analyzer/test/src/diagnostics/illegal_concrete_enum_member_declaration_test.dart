@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,29 +18,27 @@ main() {
 class IllegalConcreteEnumMemberDeclarationClassTest
     extends PubPackageResolutionTest {
   test_hashCode_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   int hashCode = 0;
+//    ^^^^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'hashCode' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 41, 8)],
-    );
+''');
   }
 
   test_hashCode_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   int get hashCode => 0;
+//        ^^^^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'hashCode' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 45, 8)],
-    );
+''');
   }
 
   test_hashCode_getter_abstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   int get hashCode;
 }
@@ -49,7 +46,7 @@ abstract class A implements Enum {
   }
 
   test_hashCode_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   set hashCode(int _) {}
 }
@@ -57,29 +54,27 @@ abstract class A implements Enum {
   }
 
   test_index_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   int index = 0;
+//    ^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'index' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 41, 5)],
-    );
+''');
   }
 
   test_index_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   int get index => 0;
+//        ^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'index' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 45, 5)],
-    );
+''');
   }
 
   test_index_getter_abstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   int get index;
 }
@@ -87,7 +82,7 @@ abstract class A implements Enum {
   }
 
   test_index_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   set index(int _) {}
 }
@@ -95,14 +90,13 @@ abstract class A implements Enum {
   }
 
   test_operatorEqEq() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Enum {
   bool operator ==(Object other) => false;
+//              ^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named '==' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 51, 2)],
-    );
+''');
   }
 }
 
@@ -110,44 +104,41 @@ abstract class A implements Enum {
 class IllegalConcreteEnumMemberDeclarationEnumTest
     extends PubPackageResolutionTest {
   test_index_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final int index = 0;
+//          ^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'index' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 26, 5)],
-    );
+''');
   }
 
   test_index_field_notInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final int index;
+//          ^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'index' can't be declared in a class that implements 'Enum'.
   const E();
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 26, 5)],
-    );
+''');
   }
 
   test_index_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   int get index => 0;
+//        ^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'index' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 24, 5)],
-    );
+''');
   }
 
   test_index_getter_abstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   int get index;
@@ -156,7 +147,7 @@ enum E {
   }
 
   test_index_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   set index(int _) {}
@@ -165,15 +156,14 @@ enum E {
   }
 
   test_operatorEqEq() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   bool operator ==(Object other) => false;
+//              ^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named '==' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 30, 2)],
-    );
+''');
   }
 }
 
@@ -181,29 +171,27 @@ enum E {
 class IllegalConcreteEnumMemberDeclarationMixinTest
     extends PubPackageResolutionTest {
   test_index_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   int index = 0;
+//    ^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'index' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 24, 5)],
-    );
+''');
   }
 
   test_index_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   int get index => 0;
+//        ^^^^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named 'index' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 28, 5)],
-    );
+''');
   }
 
   test_index_getter_abstract() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   int get index;
 }
@@ -211,7 +199,7 @@ mixin M on Enum {
   }
 
   test_index_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   set index(int _) {}
 }
@@ -219,13 +207,12 @@ mixin M on Enum {
   }
 
   test_operatorEqEq() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   bool operator ==(Object other) => false;
+//              ^^
+// [diag.illegalConcreteEnumMemberDeclaration] A concrete instance member named '==' can't be declared in a class that implements 'Enum'.
 }
-''',
-      [error(diag.illegalConcreteEnumMemberDeclaration, 34, 2)],
-    );
+''');
   }
 }

@@ -8,6 +8,7 @@ library;
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'

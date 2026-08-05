@@ -58,15 +58,16 @@ class RunnerOptions {
   ///   * %name is replaced with the test name.
   final String reproTemplate;
 
-  RunnerOptions(
-      {required this.suiteName,
-      this.configurationName,
-      this.filter,
-      this.logDir,
-      required this.shard,
-      required this.shards,
-      required this.verbose,
-      required this.reproTemplate});
+  RunnerOptions({
+    required this.suiteName,
+    this.configurationName,
+    this.filter,
+    this.logDir,
+    required this.shard,
+    required this.shards,
+    required this.verbose,
+    required this.reproTemplate,
+  });
 }
 
 class _TestOutcome {
@@ -169,9 +170,11 @@ Future<void> runSuite<T>(List<Test> tests, RunnerOptions options) async {
   var logDir = Directory.fromUri(options.logDir!).uri;
   var resultJsonUri = logDir.resolve('results.json');
   var logsJsonUri = logDir.resolve('logs.json');
-  File.fromUri(resultJsonUri)
-      .writeAsStringSync(results.map((s) => '$s\n').join(), flush: true);
-  File.fromUri(logsJsonUri)
-      .writeAsStringSync(logs.map((s) => '$s\n').join(), flush: true);
+  File.fromUri(
+    resultJsonUri,
+  ).writeAsStringSync(results.map((s) => '$s\n').join(), flush: true);
+  File.fromUri(
+    logsJsonUri,
+  ).writeAsStringSync(logs.map((s) => '$s\n').join(), flush: true);
   print('log files emitted to $resultJsonUri and $logsJsonUri');
 }

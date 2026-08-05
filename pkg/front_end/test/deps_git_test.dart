@@ -81,9 +81,8 @@ Future<bool> main() async {
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
 
   Uri frontendLibUri = repoDir.resolve("pkg/front_end/lib/");
-  List<FileSystemEntity> entities = new Directory.fromUri(
-    frontendLibUri,
-  ).listSync(recursive: true);
+  List<FileSystemEntity> entities = new Directory.fromUri(frontendLibUri)
+      .listSync(recursive: true);
   for (FileSystemEntity entity in entities) {
     if (entity is File && entity.path.endsWith(".dart")) {
       options.inputs.add(entity.uri);

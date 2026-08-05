@@ -6,7 +6,7 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
@@ -100,10 +100,8 @@ class CommandLineOptions {
   final bool trainSnapshot;
 
   /// Initialize options from the given parsed [args].
-  CommandLineOptions._fromArgs(
-    ResourceProvider resourceProvider,
-    ArgResults args,
-  ) : _argResults = args,
+  new _fromArgs(ResourceProvider resourceProvider, ArgResults args)
+    : _argResults = args,
       dartSdkPath = args.option(_sdkPathOption),
       disableCacheFlushing = args.flag('disable-cache-flushing'),
       displayVersion = args.flag('version'),
@@ -157,19 +155,19 @@ class CommandLineOptions {
     return _argResults.multiOption(_enableExperimentOption);
   }
 
-  /// Update the [analysisOptions] with flags that the user specified
-  /// explicitly. The [analysisOptions] are usually loaded from one of
-  /// `analysis_options.yaml` files, possibly with includes. We consider
-  /// flags that the user specified as command line options more important,
-  /// so override the corresponding options.
-  void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
+  /// Configure the [analysisOptionsBuilder] with flags that the user specified
+  /// explicitly. The builder is usually initialized from one of
+  /// `analysis_options.yaml` files, possibly with includes. We consider flags
+  /// that the user specified as command line options more important, so
+  /// override the corresponding options.
+  void configureAnalysisOptionsBuilder(
+    AnalysisOptionsBuilder analysisOptionsBuilder,
+  ) {
     if (enabledExperiments.isNotEmpty) {
-      analysisOptions.contextFeatures =
-          FeatureSet.fromEnableFlags2(
-                sdkLanguageVersion: ExperimentStatus.currentVersion,
-                flags: enabledExperiments,
-              )
-              as ExperimentStatus;
+      analysisOptionsBuilder.contextFeatures = FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: enabledExperiments,
+      ) as ExperimentStatus;
     }
   }
 
@@ -246,11 +244,12 @@ class CommandLineOptions {
 
     // Check SDK.
     {
+      var pathContext = resourceProvider.pathContext;
       var sdkPath = options.dartSdkPath;
 
-      // Check that SDK is existing directory.
       if (sdkPath != null) {
-        if (!io.Directory(sdkPath).existsSync()) {
+        var normalized = file_paths.absoluteNormalized(pathContext, sdkPath);
+        if (!resourceProvider.getFolder(normalized).exists) {
           printAndFail('Invalid Dart SDK path: $sdkPath');
           return null; // Only reachable in testing.
         }
@@ -259,7 +258,6 @@ class CommandLineOptions {
       // Infer if unspecified.
       sdkPath ??= getSdkPath();
 
-      var pathContext = resourceProvider.pathContext;
       options.dartSdkPath = file_paths.absoluteNormalized(pathContext, sdkPath);
     }
 

@@ -2,20 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UriDoesNotExistTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UriDoesNotExistTest extends PubPackageResolutionTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51407')
+  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/51407')
   test_doubleSlash() async {
     newFolder('$testPackageLibPath/c');
     newFile('$testPackageLibPath/c/d.dart', '''''
@@ -25,64 +26,56 @@ class D {}
 import 'c/d.dart';
 void g(D d) {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 import 'c//d.dart';
 
 void f() {
   g(D());
 }
-''',
-      [error(diag.uriDoesNotExist, 24, 11)],
-    );
+''');
   }
 
   test_libraryExport() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 export 'unknown.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 14)],
-    );
+//     ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'unknown.dart'.
+''');
   }
 
   test_libraryExport_cannotResolve() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'dart:foo';
-''',
-      [error(diag.uriDoesNotExist, 7, 10)],
-    );
+//     ^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'dart:foo'.
+''');
   }
 
   test_libraryExport_dart() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 export 'dart:math/bar.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 20)],
-    );
+//     ^^^^^^^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'dart:math/bar.dart'.
+''');
   }
 
   test_libraryImport() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'unknown.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 14)],
-    );
+//     ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'unknown.dart'.
+''');
   }
 
   test_libraryImport_appearsAfterDeletingTarget() async {
     String filePath = newFile('$testPackageLibPath/target.dart', '').path;
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'target.dart';
-''',
-      [error(diag.unusedImport, 7, 13)],
-    );
+//     ^^^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'target.dart'.
+''');
 
     // Remove the overlay in the same way as AnalysisServer.
     deleteFile(filePath);
@@ -91,74 +84,74 @@ import 'target.dart';
     analysisDriver.removeFile(filePath);
     await analysisDriver.applyPendingFileChanges();
 
-    await resolveTestFile();
-    assertErrorsInResult([error(diag.uriDoesNotExist, 7, 13)]);
+    await resolveFileWithDiagnostics(testFile, '''
+import 'target.dart';
+//     ^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'target.dart'.
+''');
   }
 
   test_libraryImport_cannotResolve() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:foo';
-''',
-      [error(diag.uriDoesNotExist, 7, 10)],
-    );
+//     ^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'dart:foo'.
+''');
   }
 
   test_libraryImport_dart() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:math/bar.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 20)],
-    );
+//     ^^^^^^^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'dart:math/bar.dart'.
+''');
   }
 
   test_libraryImport_deferredWithInvalidUri() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import '[invalid uri]' deferred as p;
+//     ^^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: '[invalid uri]'.
 main() {
   p.loadLibrary();
 }
-''',
-      [error(diag.uriDoesNotExist, 7, 15)],
-    );
+''');
   }
 
-  @failingTest
   test_libraryImport_disappears_when_fixed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'target.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 13)],
-    );
+//     ^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'target.dart'.
+''');
 
-    newFile('$testPackageLibPath/target.dart', '');
+    var targetFile = newFile('$testPackageLibPath/target.dart', '');
 
-    // Make sure the error goes away.
-    // TODO(brianwilkerson): The error does not go away, possibly because the
-    //  file is not being reanalyzed.
-    await resolveTestFile();
-    assertErrorsInResult([error(diag.unusedImport, 0, 0)]);
+    var analysisDriver = driverFor(testFile);
+    analysisDriver.changeFile2(targetFile);
+    await analysisDriver.applyPendingFileChanges();
+
+    await resolveFileWithDiagnostics(testFile, '''
+import 'target.dart';
+//     ^^^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'target.dart'.
+''');
   }
 
   test_part() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library lib;
 part 'unknown.dart';
-''',
-      [error(diag.uriDoesNotExist, 18, 14)],
-    );
+//   ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/unknown.dart'.
+''');
   }
 
   test_part_cannotResolve() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'dart:foo';
-''',
-      [error(diag.uriDoesNotExist, 5, 10)],
-    );
+//   ^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'dart:foo'.
+''');
   }
 }

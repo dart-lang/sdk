@@ -1047,8 +1047,14 @@ void Simulator::Interpret(CInstr instr) {
         } else if (instr.rs2() == ZR) {
           // JALR
           uintx_t target = get_xreg(instr.rs1());
+          // Set RA first so that the profiler does not get confused by
+          // observing the update to PC without the update to RA when we are
+          // calling out of the entry stub, i.e., failing to indentify the entry
+          // stub. On real hardware, the profiler's signal handler cannot
+          // observe a partially execute JALR.
           set_xreg(RA, pc_ + instr.length());
           pc_ = target;
+          CheckLandingPad(instr.rs1());
           return;
         } else {
           // ADD
@@ -1063,6 +1069,7 @@ void Simulator::Interpret(CInstr instr) {
         } else {
           // JR
           pc_ = get_xreg(instr.rs1());
+          CheckLandingPad(instr.rs1());
           return;
         }
       }
@@ -1293,8 +1300,14 @@ DART_FORCE_INLINE
 void Simulator::InterpretJALR(Instr instr) {
   uintx_t base = get_xreg(instr.rs1());
   uintx_t offset = static_cast<uintx_t>(instr.itype_imm());
+  // Set RA first so that the profiler does not get confused by
+  // observing the update to PC without the update to RA when we are
+  // calling out of the entry stub, i.e., failing to indentify the entry
+  // stub. On real hardware, the profiler's signal handler cannot
+  // observe a partially execute JALR.
   set_xreg(instr.rd(), pc_ + instr.length());
   pc_ = base + offset;
+  CheckLandingPad(instr.rs1());
 }
 
 DART_FORCE_INLINE
@@ -3720,6 +3733,24 @@ void Simulator::Fault(const char* message) {
   PrintRegisters();
   PrintStack();
   FATAL("%s", message);
+}
+
+void Simulator::CheckLandingPad(Register rs1) {
+  if (!lp_enabled_) return;
+  if ((rs1 == Register(1)) || (rs1 == Register(5)) || (rs1 == Register(7))) {
+    return;
+  }
+  if ((pc_ & 3) != 0) {
+    Fault("Landing pad misaligned");
+  }
+  Instr instr(*reinterpret_cast<uint32_t*>(pc_));
+  if ((instr.opcode() != AUIPC) || (instr.rd() != ZR)) {
+    Fault("Landing pad expected");
+  }
+  uintx_t label = instr.utype_imm();
+  if ((label != 0) && ((label ^ get_xreg(Register(7))) & 0xFFFFF000) != 0) {
+    Fault("Landing pad mismatch");
+  }
 }
 
 template <typename type>

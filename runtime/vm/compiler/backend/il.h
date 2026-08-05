@@ -1984,8 +1984,8 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
 
   DECLARE_INSTRUCTION(GraphEntry)
 
-  virtual intptr_t PredecessorCount() const { return 0; }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  intptr_t PredecessorCount() const final { return 0; }
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     UNREACHABLE();
     return nullptr;
   }
@@ -2082,8 +2082,8 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   DECLARE_INSTRUCTION(JoinEntry)
 
-  virtual intptr_t PredecessorCount() const { return predecessors_.length(); }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  intptr_t PredecessorCount() const final { return predecessors_.length(); }
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     return predecessors_[index];
   }
 
@@ -2167,10 +2167,10 @@ class TargetEntryInstr : public BlockEntryInstr {
   void set_edge_weight(double weight) { edge_weight_ = weight; }
   void adjust_edge_weight(double scale_factor) { edge_weight_ *= scale_factor; }
 
-  virtual intptr_t PredecessorCount() const {
+  intptr_t PredecessorCount() const final {
     return (predecessor_ == nullptr) ? 0 : 1;
   }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
@@ -2221,10 +2221,10 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
 
   DECLARE_INSTRUCTION(FunctionEntry)
 
-  virtual intptr_t PredecessorCount() const {
+  intptr_t PredecessorCount() const final {
     return (graph_entry_ == nullptr) ? 0 : 1;
   }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     ASSERT(index == 0 && graph_entry_ != nullptr);
     return graph_entry_;
   }
@@ -2295,10 +2295,10 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
 
   DECLARE_INSTRUCTION(OsrEntry)
 
-  virtual intptr_t PredecessorCount() const {
+  intptr_t PredecessorCount() const final {
     return (graph_entry_ == nullptr) ? 0 : 1;
   }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     ASSERT(index == 0 && graph_entry_ != nullptr);
     return graph_entry_;
   }
@@ -2430,10 +2430,10 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
-  virtual intptr_t PredecessorCount() const {
+  intptr_t PredecessorCount() const final {
     return (predecessor_ == nullptr) ? 0 : 1;
   }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
@@ -7253,7 +7253,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
 class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  RecordCoverageInstr(const Array& coverage_array,
+  RecordCoverageInstr(const TypedData& coverage_array,
                       intptr_t coverage_index,
                       const InstructionSource& source)
       : TemplateInstruction(source),
@@ -7270,7 +7270,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
 #define FIELD_LIST(F)                                                          \
-  F(const Array&, coverage_array_)                                             \
+  F(const TypedData&, coverage_array_)                                         \
   F(const intptr_t, coverage_index_)                                           \
   F(const TokenPosition, token_pos_)
 
@@ -7584,48 +7584,52 @@ class AllocateObjectInstr : public AllocationInstr {
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
-// Allocates and null initializes a closure object, given the closure function
-// and the context as values.
-class AllocateClosureInstr : public TemplateAllocation<3> {
+// Allocates and null initializes a closure object.
+class AllocateClosureInstr : public TemplateAllocation<2> {
  public:
   enum Inputs {
     kFunctionPos = 0,
     kContextPos = 1,
-    kInstantiatorTypeArgsPos = 2,
   };
   AllocateClosureInstr(const InstructionSource& source,
                        Value* closure_function,
                        Value* context,
-                       Value* instantiator_type_args,  // Optional.
-                       bool is_generic,
+                       bool has_delayed_type_args,
+                       bool has_instantiator_type_args,
+                       bool has_function_type_args,
                        bool is_tear_off,
                        intptr_t deopt_id)
       : TemplateAllocation(source, deopt_id),
-        has_instantiator_type_args_(instantiator_type_args != nullptr),
-        is_generic_(is_generic),
+        has_delayed_type_args_(has_delayed_type_args),
+        has_instantiator_type_args_(has_instantiator_type_args),
+        has_function_type_args_(has_function_type_args),
         is_tear_off_(is_tear_off) {
     SetInputAt(kFunctionPos, closure_function);
     SetInputAt(kContextPos, context);
-    if (has_instantiator_type_args_) {
-      SetInputAt(kInstantiatorTypeArgsPos, instantiator_type_args);
-    }
   }
 
   DECLARE_INSTRUCTION(AllocateClosure)
   virtual CompileType ComputeType() const;
 
-  virtual intptr_t InputCount() const {
-    return has_instantiator_type_args() ? 3 : 2;
-  }
+  virtual intptr_t InputCount() const { return 2; }
 
   Value* closure_function() const { return inputs_[kFunctionPos]; }
   Value* context() const { return inputs_[kContextPos]; }
 
-  bool has_instantiator_type_args() const {
-    return has_instantiator_type_args_;
-  }
-  bool is_generic() const { return is_generic_; }
   bool is_tear_off() const { return is_tear_off_; }
+
+  intptr_t NumElements() const {
+    return UntaggedClosure::ContextIndex(has_delayed_type_args_,
+                                         has_instantiator_type_args_,
+                                         has_function_type_args_) +
+           1;
+  }
+
+  intptr_t EncodedLengthAndFlags() const {
+    return UntaggedClosure::EncodeLengthAndFlags(
+        has_delayed_type_args_, has_instantiator_type_args_,
+        has_function_type_args_, NumElements());
+  }
 
   const Function& known_function() const {
     Value* const value = closure_function();
@@ -7641,11 +7645,12 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
       case kFunctionPos:
         return &Slot::Closure_function();
       case kContextPos:
-        return &Slot::Closure_context();
-      case kInstantiatorTypeArgsPos:
-        return has_instantiator_type_args()
-                   ? &Slot::Closure_instantiator_type_arguments()
-                   : nullptr;
+        return &Slot::GetClosureElementSlot(
+            Thread::Current(),
+            compiler::target::Closure::element_offset(
+                UntaggedClosure::ContextIndex(has_delayed_type_args_,
+                                              has_instantiator_type_args_,
+                                              has_function_type_args_)));
       default:
         return TemplateAllocation::SlotForInput(pos);
     }
@@ -7659,20 +7664,22 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
 
   virtual bool AttributesEqual(const Instruction& other) const {
     const auto other_ac = other.AsAllocateClosure();
-    return (other_ac->has_instantiator_type_args() ==
-            has_instantiator_type_args()) &&
-           (other_ac->is_generic() == is_generic()) &&
+    return (other_ac->has_delayed_type_args_ == has_delayed_type_args_) &&
+           (other_ac->has_instantiator_type_args_ ==
+            has_instantiator_type_args_) &&
+           (other_ac->has_function_type_args_ == has_function_type_args_) &&
            (other_ac->is_tear_off() == is_tear_off());
   }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return compiler::target::Heap::IsAllocatableInNewSpace(
-        compiler::target::Closure::InstanceSize());
+        compiler::target::Closure::InstanceSize(NumElements()));
   }
 
 #define FIELD_LIST(F)                                                          \
+  F(const bool, has_delayed_type_args_)                                        \
   F(const bool, has_instantiator_type_args_)                                   \
-  F(const bool, is_generic_)                                                   \
+  F(const bool, has_function_type_args_)                                       \
   F(const bool, is_tear_off_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateClosureInstr,
@@ -9193,7 +9200,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnaryIntegerOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id), op_kind_(op_kind) {
-    ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
+    ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT) ||
+           (op_kind == Token::kPOPCNT) || (op_kind == Token::kCTZ));
     SetInputAt(0, value);
   }
 
@@ -9287,8 +9295,11 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
  public:
   UnaryInt64OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
-    ASSERT(op_kind == Token::kBIT_NOT || op_kind == Token::kNEGATE);
+    ASSERT(op_kind == Token::kBIT_NOT || op_kind == Token::kNEGATE ||
+           op_kind == Token::kPOPCNT || op_kind == Token::kCTZ);
   }
+
+  static bool IsSupported(Token::Kind op_kind);
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -11171,6 +11182,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   SIMD_BINARY_INTEGER_OP_LIST(M, BINARY_OP, Int32x4)                           \
   SIMD_PER_COMPONENT_XYZW(M, 1, Float32x4Get, (Float32x4), Double)             \
   SIMD_PER_COMPONENT_XYZW(M, 2, Float32x4With, (Double, Float32x4), Float32x4) \
+  SIMD_PER_COMPONENT_XYZW(M, 1, Int32x4Get, (Int32x4), Int32)                  \
   SIMD_PER_COMPONENT_XYZW(M, 1, Int32x4GetFlag, (Int32x4), Bool)               \
   SIMD_PER_COMPONENT_XYZW(M, 2, Int32x4WithFlag, (Int32x4, Bool), Int32x4)     \
   M(1, MASK, Float32x4Shuffle, (Float32x4), Float32x4)                         \

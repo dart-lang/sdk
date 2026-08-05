@@ -49,7 +49,7 @@ class PubApi {
         ' (+https://github.com/dart-lang/sdk)',
   };
 
-  PubApi(
+  new(
     this.instrumentationService,
     http.Client? httpClient,
     String? envPubHostedUrl,
@@ -168,7 +168,7 @@ class PubApi {
 class PubApiPackage {
   final String packageName;
 
-  PubApiPackage(this.packageName);
+  new(this.packageName);
 }
 
 class PubApiPackageDetails {
@@ -176,7 +176,7 @@ class PubApiPackageDetails {
   final String? description;
   final String? latestVersion;
 
-  PubApiPackageDetails(this.packageName, this.description, this.latestVersion);
+  new(this.packageName, this.description, this.latestVersion);
 }
 
 /// A wrapper over a package:http Client that does not pass on calls to [close].
@@ -186,7 +186,7 @@ class PubApiPackageDetails {
 class _NoCloseHttpClient extends http.BaseClient {
   final http.Client client;
 
-  _NoCloseHttpClient(this.client);
+  new(this.client);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) =>

@@ -2,75 +2,75 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:17:6: Error: Can't declare a member that conflicts with an inherited one.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:20:6: Error: Can't declare a member that conflicts with an inherited one.
 // enum E2 with A2 { // Error.
 //      ^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:14:11: Context: This is the inherited member.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:17:11: Context: This is the inherited member.
 //   int get values => 42;
 //           ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:49:6: Error: Can't declare a member that conflicts with an inherited one.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:52:6: Error: Can't declare a member that conflicts with an inherited one.
 // enum E6 with M6 { // Error.
 //      ^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:46:11: Context: This is the inherited member.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:49:11: Context: This is the inherited member.
 //   int get values => 42;
 //           ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:9:6: Error: An enum can't inherit a member named 'hashCode'.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:12:6: Error: An enum can't inherit a member named 'hashCode'.
 // enum E1 with A1 { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:6:11: Context: This is the inherited member
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:9:11: Context: This is the inherited member
 //   int get hashCode => 42;
 //           ^^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:17:6: Error: An enum can't inherit a member named 'values'.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:20:6: Error: An enum can't inherit a member named 'values'.
 // enum E2 with A2 { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:14:11: Context: This is the inherited member
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:17:11: Context: This is the inherited member
 //   int get values => 42;
 //           ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:25:6: Error: An enum can't inherit a member named 'index'.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:28:6: Error: An enum can't inherit a member named 'index'.
 // enum E3 with A3 { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:22:11: Context: This is the inherited member
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:25:11: Context: This is the inherited member
 //   int get index => 42;
 //           ^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:33:6: Error: An enum can't inherit a member named '=='.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:36:6: Error: An enum can't inherit a member named '=='.
 // enum E4 with A4 { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:30:16: Context: This is the inherited member
-//   bool operator==(Object other) => true;
-//                ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:33:17: Context: This is the inherited member
+//   bool operator ==(Object other) => true;
+//                 ^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:41:6: Error: An enum can't inherit a member named 'hashCode'.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:44:6: Error: An enum can't inherit a member named 'hashCode'.
 // enum E5 with M5 { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:38:11: Context: This is the inherited member
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:41:11: Context: This is the inherited member
 //   int get hashCode => 42;
 //           ^^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:49:6: Error: An enum can't inherit a member named 'values'.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:52:6: Error: An enum can't inherit a member named 'values'.
 // enum E6 with M6 { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:46:11: Context: This is the inherited member
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:49:11: Context: This is the inherited member
 //   int get values => 42;
 //           ^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:57:6: Error: An enum can't inherit a member named 'index'.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:60:6: Error: An enum can't inherit a member named 'index'.
 // enum E7 with M7 { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:54:11: Context: This is the inherited member
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:57:11: Context: This is the inherited member
 //   int get index => 42;
 //           ^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:65:6: Error: An enum can't inherit a member named '=='.
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:68:6: Error: An enum can't inherit a member named '=='.
 // enum E8 with M8 { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:62:16: Context: This is the inherited member
-//   bool operator==(Object other) => true;
-//                ^^
+// pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:65:17: Context: This is the inherited member
+//   bool operator ==(Object other) => true;
+//                 ^^
 //
 import self as self;
 import "dart:core" as core;
@@ -324,25 +324,25 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///inherited_restricted_members.dart:
-- E1. (from org-dartlang-testcase:///inherited_restricted_members.dart:9:6)
-- _E1&_Enum&A1. (from org-dartlang-testcase:///inherited_restricted_members.dart:9:6)
+- E1. (from org-dartlang-testcase:///inherited_restricted_members.dart:12:6)
+- _E1&_Enum&A1. (from org-dartlang-testcase:///inherited_restricted_members.dart:12:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E2. (from org-dartlang-testcase:///inherited_restricted_members.dart:17:6)
-- _E2&_Enum&A2. (from org-dartlang-testcase:///inherited_restricted_members.dart:17:6)
-- E3. (from org-dartlang-testcase:///inherited_restricted_members.dart:25:6)
-- _E3&_Enum&A3. (from org-dartlang-testcase:///inherited_restricted_members.dart:25:6)
-- E4. (from org-dartlang-testcase:///inherited_restricted_members.dart:33:6)
-- _E4&_Enum&A4. (from org-dartlang-testcase:///inherited_restricted_members.dart:33:6)
-- E5. (from org-dartlang-testcase:///inherited_restricted_members.dart:41:6)
-- _E5&_Enum&M5. (from org-dartlang-testcase:///inherited_restricted_members.dart:41:6)
-- E6. (from org-dartlang-testcase:///inherited_restricted_members.dart:49:6)
-- _E6&_Enum&M6. (from org-dartlang-testcase:///inherited_restricted_members.dart:49:6)
-- E7. (from org-dartlang-testcase:///inherited_restricted_members.dart:57:6)
-- _E7&_Enum&M7. (from org-dartlang-testcase:///inherited_restricted_members.dart:57:6)
-- E8. (from org-dartlang-testcase:///inherited_restricted_members.dart:65:6)
-- _E8&_Enum&M8. (from org-dartlang-testcase:///inherited_restricted_members.dart:65:6)
-- E9. (from org-dartlang-testcase:///inherited_restricted_members.dart:75:6)
-- _E9&_Enum&A9. (from org-dartlang-testcase:///inherited_restricted_members.dart:75:6)
-- E10. (from org-dartlang-testcase:///inherited_restricted_members.dart:85:6)
-- _E10&_Enum&M10. (from org-dartlang-testcase:///inherited_restricted_members.dart:85:6)
+- E2. (from org-dartlang-testcase:///inherited_restricted_members.dart:20:6)
+- _E2&_Enum&A2. (from org-dartlang-testcase:///inherited_restricted_members.dart:20:6)
+- E3. (from org-dartlang-testcase:///inherited_restricted_members.dart:28:6)
+- _E3&_Enum&A3. (from org-dartlang-testcase:///inherited_restricted_members.dart:28:6)
+- E4. (from org-dartlang-testcase:///inherited_restricted_members.dart:36:6)
+- _E4&_Enum&A4. (from org-dartlang-testcase:///inherited_restricted_members.dart:36:6)
+- E5. (from org-dartlang-testcase:///inherited_restricted_members.dart:44:6)
+- _E5&_Enum&M5. (from org-dartlang-testcase:///inherited_restricted_members.dart:44:6)
+- E6. (from org-dartlang-testcase:///inherited_restricted_members.dart:52:6)
+- _E6&_Enum&M6. (from org-dartlang-testcase:///inherited_restricted_members.dart:52:6)
+- E7. (from org-dartlang-testcase:///inherited_restricted_members.dart:60:6)
+- _E7&_Enum&M7. (from org-dartlang-testcase:///inherited_restricted_members.dart:60:6)
+- E8. (from org-dartlang-testcase:///inherited_restricted_members.dart:68:6)
+- _E8&_Enum&M8. (from org-dartlang-testcase:///inherited_restricted_members.dart:68:6)
+- E9. (from org-dartlang-testcase:///inherited_restricted_members.dart:78:6)
+- _E9&_Enum&A9. (from org-dartlang-testcase:///inherited_restricted_members.dart:78:6)
+- E10. (from org-dartlang-testcase:///inherited_restricted_members.dart:88:6)
+- _E10&_Enum&M10. (from org-dartlang-testcase:///inherited_restricted_members.dart:88:6)

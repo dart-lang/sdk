@@ -40,6 +40,7 @@ namespace dart {
   V(CoreLibrary, _GrowableList, []=, GrowableArraySetIndexed, 0x3a23c6fa)      \
   V(CoreLibrary, _GrowableList, get:_emptyList, GrowableArrayGetEmptyList,     \
     0x735785f0)                                                                \
+  V(CoreLibrary, _Closure, get:_hash, Closure_hash, 0x6e92d1d5)                \
   V(CoreLibrary, _Record, get:_fieldNames, Record_fieldNames, 0x68c8319e)      \
   V(CoreLibrary, _Record, get:_numFields, Record_numFields, 0x7ba4f393)        \
   V(CoreLibrary, _Record, get:_shape, Record_shape, 0x70c40933)                \
@@ -75,33 +76,37 @@ namespace dart {
   V(CoreLibrary, _WeakReference, set:_target, WeakReference_setTarget,         \
     0xc70c51ba)                                                                \
   V(CoreLibrary, _Smi, get:hashCode, Smi_hashCode, 0x75c3b512)                 \
+  V(CoreLibrary, _IntegerImplementation, get:trailingZeroBitCount,             \
+    Integer_trailingZeroBitCount, 0xea8b2826)                                  \
+  V(CoreLibrary, _IntegerImplementation, get:oneBitCount,                      \
+    Integer_oneBitCount, 0x60c41821)                                           \
   V(CoreLibrary, _Mint, get:hashCode, Mint_hashCode, 0x75c3b512)               \
   V(CoreLibrary, _Double, get:hashCode, Double_hashCode, 0x75c3b8d3)           \
-  V(CompactHashLibrary, _HashVMBase, get:_index, LinkedHashBase_getIndex,      \
+  V(CompactHashLibrary, _LinkedHashBase, get:_index, LinkedHashBase_getIndex,  \
     0xb49e7210)                                                                \
-  V(CompactHashLibrary, _HashVMBase, set:_index, LinkedHashBase_setIndex,      \
+  V(CompactHashLibrary, _LinkedHashBase, set:_index, LinkedHashBase_setIndex,  \
     0xcf36944c)                                                                \
-  V(CompactHashLibrary, _HashVMBase, get:_data, LinkedHashBase_getData,        \
+  V(CompactHashLibrary, _LinkedHashBase, get:_data, LinkedHashBase_getData,    \
     0x82aeadd7)                                                                \
-  V(CompactHashLibrary, _HashVMBase, set:_data, LinkedHashBase_setData,        \
+  V(CompactHashLibrary, _LinkedHashBase, set:_data, LinkedHashBase_setData,    \
     0xc1465c93)                                                                \
-  V(CompactHashLibrary, _HashVMBase, get:_usedData,                            \
+  V(CompactHashLibrary, _LinkedHashBase, get:_usedData,                        \
     LinkedHashBase_getUsedData, 0x74808f38)                                    \
-  V(CompactHashLibrary, _HashVMBase, set:_usedData,                            \
+  V(CompactHashLibrary, _LinkedHashBase, set:_usedData,                        \
     LinkedHashBase_setUsedData, 0xe14082f4)                                    \
-  V(CompactHashLibrary, _HashVMBase, get:_hashMask,                            \
+  V(CompactHashLibrary, _LinkedHashBase, get:_hashMask,                        \
     LinkedHashBase_getHashMask, 0x53cd6dce)                                    \
-  V(CompactHashLibrary, _HashVMBase, set:_hashMask,                            \
+  V(CompactHashLibrary, _LinkedHashBase, set:_hashMask,                        \
     LinkedHashBase_setHashMask, 0xc08d618a)                                    \
-  V(CompactHashLibrary, _HashVMBase, get:_deletedKeys,                         \
+  V(CompactHashLibrary, _LinkedHashBase, get:_deletedKeys,                     \
     LinkedHashBase_getDeletedKeys, 0x75eeb895)                                 \
-  V(CompactHashLibrary, _HashVMBase, set:_deletedKeys,                         \
+  V(CompactHashLibrary, _LinkedHashBase, set:_deletedKeys,                     \
     LinkedHashBase_setDeletedKeys, 0xe2aeac51)                                 \
-  V(CompactHashLibrary, _HashVMImmutableBase, get:_data,                       \
+  V(CompactHashLibrary, _LinkedHashImmutableBase, get:_data,                   \
     ImmutableLinkedHashBase_getData, 0x82aeadd7)                               \
-  V(CompactHashLibrary, _HashVMImmutableBase, get:_indexNullable,              \
+  V(CompactHashLibrary, _LinkedHashImmutableBase, get:_indexNullable,          \
     ImmutableLinkedHashBase_getIndex, 0xfe7649ae)                              \
-  V(CompactHashLibrary, _HashVMImmutableBase, set:_index,                      \
+  V(CompactHashLibrary, _LinkedHashImmutableBase, set:_index,                  \
     ImmutableLinkedHashBase_setIndexStoreRelease, 0xcf36944c)                  \
   V(CompactHashLibrary, ::, get:_uninitializedIndex,                           \
     CompactHash_uninitializedIndex, 0xa25a79e6)                                \
@@ -163,7 +168,7 @@ namespace dart {
   V(FfiLibrary, ::, _storeDoubleUnaligned, FfiStoreDoubleUnaligned,            \
     0x49ce5c4f)                                                                \
   V(FfiLibrary, ::, _storePointer, FfiStorePointer, 0xa08098b2)                \
-  V(FfiLibrary, ::, _fromAddress, FfiFromAddress, 0x941575ee)                  \
+  V(FfiLibrary, ::, _fromAddress, FfiFromAddress, 0x9415722d)                  \
   V(FfiLibrary, Pointer, get:address, FfiGetAddress, 0x7cc16ffe)               \
   V(FfiLibrary, Native, _addressOf, FfiNativeAddressOf, 0x7f8597d3)            \
   V(FfiLibrary, ::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8,      \
@@ -190,7 +195,6 @@ namespace dart {
   V(FfiLibrary, ::, _checkNotDeeplyImmutable, CheckNotDeeplyImmutable,         \
     0x34e4da90)                                                                \
   V(InternalLibrary, ClassID, getID, ClassIDgetID, 0xdc6e70ca)                 \
-  V(InternalLibrary, ::, _nativeEffect, NativeEffect, 0x61c2f399)              \
   V(InternalLibrary, ::, reachabilityFence, ReachabilityFence, 0x72f213bf)     \
   V(InternalLibrary, ::, get:has63BitSmis, Has63BitSmis, 0xf5fe3f31)           \
   V(InternalLibrary, ::, copyRangeFromUint8ListToOneByteString,                \
@@ -519,6 +523,10 @@ namespace dart {
     0x89c00421)                                                                \
   V(TypedDataLibrary, Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4,  \
     0x45555da1)                                                                \
+  V(TypedDataLibrary, _Int32x4, get:x, Int32x4GetX, 0x55b951d5)                \
+  V(TypedDataLibrary, _Int32x4, get:y, Int32x4GetY, 0x434aacf8)                \
+  V(TypedDataLibrary, _Int32x4, get:z, Int32x4GetZ, 0x7916188e)                \
+  V(TypedDataLibrary, _Int32x4, get:w, Int32x4GetW, 0x5b565d10)                \
   V(TypedDataLibrary, _Int32x4, get:flagX, Int32x4GetFlagX, 0xc281ec18)        \
   V(TypedDataLibrary, _Int32x4, get:flagY, Int32x4GetFlagY, 0xddf222f8)        \
   V(TypedDataLibrary, _Int32x4, get:flagZ, Int32x4GetFlagZ, 0xeb9bbe4b)        \
@@ -575,8 +583,8 @@ namespace dart {
     0x75c3bc94)                                                                \
   V(CoreLibrary, _OneByteString, _substringUncheckedNative,                    \
     OneByteString_substringUnchecked, 0x9afb019e)                              \
-  V(CoreLibrary, _OneByteString, ==, OneByteString_equality, 0x82728a15)       \
-  V(CoreLibrary, _TwoByteString, ==, TwoByteString_equality, 0x82728a15)       \
+  V(CoreLibrary, _OneByteString, ==, OneByteString_equality, 0x86158215)       \
+  V(CoreLibrary, _TwoByteString, ==, TwoByteString_equality, 0x86158215)       \
   V(CoreLibrary, _AbstractType, get:hashCode, AbstractType_getHashCode,        \
     0x75c3bc94)                                                                \
   V(CoreLibrary, _AbstractType, ==, AbstractType_equality, 0x463b50ee)         \
@@ -663,6 +671,11 @@ namespace dart {
   V(TypedDataLibrary, _Float32x4, /, Float32x4Div, 0xc08217a2)                 \
   V(TypedDataLibrary, _Float32x4, -, Float32x4Sub, 0xdd15548a)                 \
   V(TypedDataLibrary, _Float32x4, +, Float32x4Add, 0xb7dc8a19)                 \
+  V(TypedDataLibrary, _Int32x4, +, Int32x4Add, 0xe9107b19)                     \
+  V(TypedDataLibrary, _Int32x4, -, Int32x4Sub, 0x0e49458a)                     \
+  V(TypedDataLibrary, _Int32x4, |, Int32x4BitOr, 0xf30a0ef5)                   \
+  V(TypedDataLibrary, _Int32x4, &, Int32x4BitAnd, 0x0da1c43d)                  \
+  V(TypedDataLibrary, _Int32x4, ^, Int32x4BitXor, 0x0c49417c)                  \
   V(TypedDataLibrary, _Float64x2, *, Float64x2Mul, 0x37439ec6)                 \
   V(TypedDataLibrary, _Float64x2, /, Float64x2Div, 0x12925562)                 \
   V(TypedDataLibrary, _Float64x2, -, Float64x2Sub, 0x2f258e89)                 \

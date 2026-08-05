@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class ConvertIntoAsyncBody extends ResolvedCorrectionProducer {
-  ConvertIntoAsyncBody({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -42,7 +42,7 @@ class ConvertIntoAsyncBody extends ResolvedCorrectionProducer {
     }
 
     var parent = body.parent;
-    if (parent is ConstructorDeclaration) {
+    if (parent is ConstructorDeclaration || parent is PrimaryConstructorBody) {
       return;
     }
     if (parent is FunctionExpression && parent.parent is! FunctionDeclaration) {

@@ -66,13 +66,16 @@ class FileSystemService extends InternalService {
     _ideWorkspaceRoots.clear();
   }
 
-  void _ensureIDEWorkspaceRootsContainUri(Uri uri) {
+  Future<void> _ensureIDEWorkspaceRootsContainUri(Uri uri) async {
     // If in unrestricted mode, no need to do these checks.
     if (unrestrictedMode) return;
 
-    final requestedPath = uri.toFilePath();
-    if (_ideWorkspaceRoots.any((root) {
-      final rootPath = root.toFilePath();
+    final requestedPath = await _resolveNearestExistingPath(uri.toFilePath());
+    final resolvedWorkspaceRoots = await Future.wait(
+      _ideWorkspaceRoots.map(_resolveWorkspaceRootPath),
+    );
+
+    if (resolvedWorkspaceRoots.any((rootPath) {
       return path.isWithin(rootPath, requestedPath) ||
           path.equals(rootPath, requestedPath);
     })) {
@@ -80,6 +83,63 @@ class FileSystemService extends InternalService {
     }
 
     throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kPermissionDenied);
+  }
+
+  Future<String> _resolveWorkspaceRootPath(Uri root) async {
+    final rootPath = root.toFilePath();
+    final type = await FileSystemEntity.type(rootPath, followLinks: true);
+    if (type == FileSystemEntityType.file) {
+      return File(rootPath).resolveSymbolicLinks();
+    }
+    if (type == FileSystemEntityType.directory) {
+      return Directory(rootPath).resolveSymbolicLinks();
+    }
+    if (type == FileSystemEntityType.link) {
+      return Link(rootPath).resolveSymbolicLinks();
+    }
+    return path.normalize(rootPath);
+  }
+
+  /// Safely resolves symbolic links for [requestedPath] by traversing up the
+  /// tree until an existing entity is found, resolving its links, and then
+  /// appending the relative path components that do not yet exist on disk.
+  /// This ensures that non-existent dummy paths (common in tests) do not lose
+  /// their skipped suffixes when their nearest existing ancestor is resolved,
+  /// which would otherwise cause incorrectly resolved roots during validations.
+  Future<String> _resolveNearestExistingPath(String requestedPath) async {
+    var currentPath = requestedPath;
+    while (true) {
+      final type = await FileSystemEntity.type(currentPath, followLinks: true);
+      if (type != FileSystemEntityType.notFound) {
+        String resolvedPath;
+        if (type == FileSystemEntityType.file) {
+          resolvedPath = await File(currentPath).resolveSymbolicLinks();
+        } else if (type == FileSystemEntityType.directory) {
+          resolvedPath = await Directory(currentPath).resolveSymbolicLinks();
+        } else if (type == FileSystemEntityType.link) {
+          resolvedPath = await Link(currentPath).resolveSymbolicLinks();
+        } else {
+          throw StateError('Unexpected file system entity type: $type');
+        }
+
+        if (currentPath == requestedPath) {
+          return resolvedPath;
+        }
+        // Re-append the relative skipped components to the resolved base path.
+        // This preserves the paths used for mock dummy structures in tests.
+        final relative = path.relative(requestedPath, from: currentPath);
+        return path.join(resolvedPath, relative);
+      }
+
+      final parentPath = path.dirname(currentPath);
+      if (path.equals(parentPath, currentPath)) {
+        // Reached the file system root without finding an existing parent
+        // entity. Append the fully skipped path components to the root path.
+        final relative = path.relative(requestedPath, from: currentPath);
+        return path.join(path.normalize(currentPath), relative);
+      }
+      currentPath = parentPath;
+    }
   }
 
   Map<String, Object?> _setIDEWorkspaceRoots(Parameters parameters) {
@@ -157,7 +217,7 @@ class FileSystemService extends InternalService {
 
   Future<Map<String, Object?>> _readFileAsString(Parameters parameters) async {
     final uri = _extractUri(parameters);
-    _ensureIDEWorkspaceRootsContainUri(uri);
+    await _ensureIDEWorkspaceRootsContainUri(uri);
     final file = File.fromUri(uri);
 
     if (!(await file.exists())) {
@@ -187,7 +247,7 @@ class FileSystemService extends InternalService {
       parameters[DtdParameters.encoding].asString,
     )!;
 
-    _ensureIDEWorkspaceRootsContainUri(uri);
+    await _ensureIDEWorkspaceRootsContainUri(uri);
     final file = File.fromUri(uri);
     if (!(await file.exists())) {
       await file.create(recursive: true);
@@ -202,7 +262,7 @@ class FileSystemService extends InternalService {
     Parameters parameters,
   ) async {
     final uri = _extractUri(parameters);
-    _ensureIDEWorkspaceRootsContainUri(uri);
+    await _ensureIDEWorkspaceRootsContainUri(uri);
     final dir = Directory.fromUri(uri);
     if (!(await dir.exists())) {
       throw RpcErrorCodes.buildRpcException(

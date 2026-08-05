@@ -8,7 +8,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
   }
   abstract class B extends dart.core::Object {
     final field lib::E _field;
-    constructor named(lib::E _field) → lib::B
+    constructor named(initializing-formal lib::E _field) → lib::B
       : lib::B::_field = _field, super dart.core::Object::•()
       ;
   }

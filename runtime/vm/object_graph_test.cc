@@ -70,9 +70,12 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
     ObjectGraph graph(thread);
     {
       HeapIterationScope iteration_scope(thread, true);
+      // Not pointer equals to any object.
+      ObjectPtr nothing =
+          static_cast<ObjectPtr>(static_cast<uword>(kHeapObjectTag));
       {
         // Compare count and size when 'b' is/isn't skipped.
-        CounterVisitor with(Object::null(), Object::null());
+        CounterVisitor with(nothing, nothing);
         graph.IterateObjectsFrom(a, &with);
         CounterVisitor without(b_raw, a.ptr());
         graph.IterateObjectsFrom(a, &without);
@@ -83,7 +86,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
       {
         // Like above, but iterate over the entire isolate. The counts and sizes
         // are thus larger, but the difference should still be just 'b' and 'c'.
-        CounterVisitor with(Object::null(), Object::null());
+        CounterVisitor with(nothing, nothing);
         graph.IterateObjects(&with);
         CounterVisitor without(b_raw, a.ptr());
         graph.IterateObjects(&without);

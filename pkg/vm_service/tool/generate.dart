@@ -27,7 +27,7 @@ Future<void> main(List<String> args) async {
   );
   final document = Document();
   final buf = StringBuffer(file.readAsStringSync());
-  final nodes = document.parseLines(buf.toString().split('\n'));
+  final nodes = document.parseLines(buf.toString().split(RegExp('\r?\n')));
   print('Parsed ${file.path}.');
   print('Service protocol version ${ApiParseUtil.parseVersionString(nodes)}.');
 
@@ -111,7 +111,8 @@ Future<String> _generateDartCommon({
 }
 
 Future<void> _runDartFormat(String outDirPath) async {
-  ProcessResult result = Process.runSync('dart', ['format', outDirPath]);
+  ProcessResult result =
+      Process.runSync(Platform.resolvedExecutable, ['format', outDirPath]);
   if (result.exitCode != 0) {
     print('dart format: ${result.stdout}\n${result.stderr}');
     throw result.exitCode;
@@ -122,10 +123,13 @@ Future<void> _generateJava(String codeGeneratorDir, List<Node> nodes) async {
   var srcDirPath = normalize(join(codeGeneratorDir, '..', 'java', 'src'));
   var generator = java.JavaGenerator(srcDirPath);
 
+  // We might be on Windows, but we always write paths with forward slashes.
   final scriptPath = Platform.script.toFilePath();
-  final kSdk = '/sdk/';
-  final scriptLocation =
-      scriptPath.substring(scriptPath.indexOf(kSdk) + kSdk.length);
+  final kSdk = [Platform.pathSeparator, 'sdk', Platform.pathSeparator].join();
+  final scriptLocation = scriptPath
+      .substring(scriptPath.indexOf(kSdk) + kSdk.length)
+      .replaceAll(Platform.pathSeparator, '/');
+
   java.api = java.Api(scriptLocation);
   java.api.parse(nodes);
   java.api.generate(generator);
@@ -135,6 +139,7 @@ Future<void> _generateJava(String codeGeneratorDir, List<Node> nodes) async {
   // directory are).
   List<String> generatedPaths = generator.allWrittenFiles
       .map((path) => relative(path, from: 'java'))
+      .map((path) => path.replaceAll(Platform.pathSeparator, '/'))
       .toList();
   generatedPaths.sort();
   File gitignoreFile = File(join(codeGeneratorDir, '..', 'java', '.gitignore'));

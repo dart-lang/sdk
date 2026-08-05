@@ -15,7 +15,7 @@ class CompletionResponsePrinter {
 
   String _indent = '';
 
-  CompletionResponsePrinter({
+  new({
     required this.buffer,
     required this.configuration,
     required this.response,
@@ -419,7 +419,7 @@ class Configuration {
   bool withSelection;
   bool Function(CompletionSuggestion suggestion) filter;
 
-  Configuration({
+  new({
     this.sorting = Sorting.relevanceThenCompletionThenKind,
     this.withDeclaringType = false,
     this.withDefaultArgumentList = false,

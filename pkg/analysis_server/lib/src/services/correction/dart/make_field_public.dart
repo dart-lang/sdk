@@ -17,7 +17,7 @@ import 'package:collection/collection.dart';
 class MakeFieldPublic extends ResolvedCorrectionProducer {
   late String _fieldName;
 
-  MakeFieldPublic({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

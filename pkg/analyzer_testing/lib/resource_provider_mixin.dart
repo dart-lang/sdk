@@ -9,7 +9,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 // TODO(srawlins): Move this into public API.
 // ignore: implementation_imports
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -147,7 +147,7 @@ mixin ResourceProviderMixin {
     String directoryPath,
     PackageConfigFileBuilder builder,
   ) {
-    var content = builder.toContent(pathContext: pathContext);
+    var content = builder.toContent();
     return newPackageConfigJsonFile(directoryPath, content);
   }
 
@@ -164,7 +164,7 @@ mixin ResourceProviderMixin {
     required String name,
   }) {
     var builder = PackageConfigFileBuilder()
-      ..add(name: name, rootPath: packagePath);
+      ..add(name: name, rootFolder: getFolder(packagePath));
     newPackageConfigJsonFileFromBuilder(packagePath, builder);
   }
 

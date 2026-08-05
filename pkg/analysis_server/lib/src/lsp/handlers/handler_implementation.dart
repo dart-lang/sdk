@@ -19,7 +19,7 @@ typedef StaticOptions =
 
 class ImplementationHandler
     extends SharedMessageHandler<TextDocumentPositionParams, List<Location>> {
-  ImplementationHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_implementation;
@@ -126,7 +126,7 @@ class ImplementationHandler
 
 class ImplementationRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  ImplementationRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>

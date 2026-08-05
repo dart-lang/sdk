@@ -77,7 +77,7 @@ class FileContentPair {
   final Uri uri;
   final String content;
 
-  FileContentPair(this.uri, this.content);
+  new(this.uri, this.content);
 }
 
 class LspManyAssistCalls extends DartLanguageServerBenchmark {
@@ -88,12 +88,8 @@ class LspManyAssistCalls extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LspManyAssistCalls(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: true);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: true);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;
@@ -155,7 +151,7 @@ class RunDetails {
   final String lineEnding;
   final FileContentPair mainFile;
 
-  RunDetails({required this.mainFile, required this.lineEnding});
+  new({required this.mainFile, required this.lineEnding});
 }
 
 enum _LineEndings { windows, unix }

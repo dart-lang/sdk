@@ -34,7 +34,8 @@ import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field dynamic x = null;
-  constructor named1() → self::A
+  const constructor named1() → self::A
+    : super core::Object::•()
     ;
   const constructor named2() → self::A
     : invalid-initializer "pkg/front_end/testcases/general/many_errors.dart:10:22: Error: 'x' is a final instance variable that was initialized at the declaration.

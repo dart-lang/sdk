@@ -19,7 +19,7 @@ extension type Foo(core::int _x) {
   constructor secondConstructor = self::Foo|constructor#secondConstructor;
   constructor tearoff secondConstructor = self::Foo|constructor#_#secondConstructor#tearOff;
 }
-static extension-type-member method Foo|constructor#(core::int _x) → self::Foo% /* erasure=core::int, declared=! */ {
+static extension-type-member method Foo|constructor#(initializing-formal core::int _x) → self::Foo% /* erasure=core::int, declared=! */ {
   lowered final self::Foo% /* erasure=core::int, declared=! */ #this = _x;
   return #this;
 }

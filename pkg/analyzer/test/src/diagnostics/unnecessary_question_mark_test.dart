@@ -2,78 +2,74 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryQuestionMarkTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnnecessaryQuestionMarkTest extends PubPackageResolutionTest {
   test_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 dynamic a;
 ''');
   }
 
   test_dynamicQuestionMark() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 dynamic? a;
-''',
-      [error(diag.unnecessaryQuestionMark, 7, 1)],
-    );
+//     ^
+// [diag.unnecessaryQuestionMark] The '?' is unnecessary because 'dynamic' is nullable without it.
+''');
   }
 
   test_dynamicQuestionMark_inVariableDeclarationPattern() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(List<Object> a) {
   var [dynamic? _] = a;
+//            ^
+// [diag.unnecessaryQuestionMark] The '?' is unnecessary because 'dynamic' is nullable without it.
 }
-''',
-      [error(diag.unnecessaryQuestionMark, 39, 1)],
-    );
+''');
   }
 
   test_Null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Null a;
 ''');
   }
 
   test_NullQuestionMark() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Null? a;
-''',
-      [error(diag.unnecessaryQuestionMark, 4, 1)],
-    );
+//  ^
+// [diag.unnecessaryQuestionMark] The '?' is unnecessary because 'Null' is nullable without it.
+''');
   }
 
   test_NullQuestionMark_inCastPattern() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f(Object a) {
   switch (a) {
     case var _ as Null?:
+//                ^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'Object' can never match the required type 'Null'.
+//                    ^
+// [diag.unnecessaryQuestionMark] The '?' is unnecessary because 'Null' is nullable without it.
   }
 }
-''',
-      [
-        error(diag.patternNeverMatchesValueType, 52, 5),
-        error(diag.unnecessaryQuestionMark, 56, 1),
-      ],
-    );
+''');
   }
 
   test_typeAliasQuestionMark() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef n = Null;
 n? a;
 ''');

@@ -151,6 +151,12 @@ class ReturnTypeVerifier {
               .withArguments(actualType: S, expectedType: T)
               .at(expression),
         );
+      } else if (enclosingExecutable.thenOnErrorReturnType != null) {
+        _diagnosticReporter.report(
+          diag.returnOfInvalidTypeFromThen
+              .withArguments(actualType: S, expectedType: T)
+              .at(expression),
+        );
       } else if (enclosingExecutable.isClosure) {
         _diagnosticReporter.report(
           diag.returnOfInvalidTypeFromClosure

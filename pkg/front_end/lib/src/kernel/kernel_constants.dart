@@ -10,7 +10,7 @@ import 'constant_evaluator.dart' show ErrorReporter;
 class KernelConstantErrorReporter extends ErrorReporter {
   final SourceLoader loader;
 
-  KernelConstantErrorReporter(this.loader);
+  new(this.loader);
 
   @override
   // Coverage-ignore(suite): Not run.

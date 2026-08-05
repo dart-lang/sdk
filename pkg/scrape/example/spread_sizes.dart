@@ -34,8 +34,12 @@ class SpreadVisitor extends ScrapeVisitor {
     super.visitMethodInvocation(node);
   }
 
-  void _countCall(Expression node, SimpleIdentifier name, Expression? target,
-      ArgumentList args) {
+  void _countCall(
+    Expression node,
+    SimpleIdentifier name,
+    Expression? target,
+    ArgumentList args,
+  ) {
     if (name.name != 'addAll') return;
 
     // See if the target is a collection literal.

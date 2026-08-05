@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Unnecessary raw string.';
 
 class UnnecessaryRawStrings extends AnalysisRule {
-  UnnecessaryRawStrings()
-    : super(name: LintNames.unnecessary_raw_strings, description: _desc);
+  new() : super(name: LintNames.unnecessary_raw_strings, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryRawStrings;
@@ -34,7 +33,7 @@ class UnnecessaryRawStrings extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {

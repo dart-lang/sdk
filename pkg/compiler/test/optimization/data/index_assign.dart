@@ -4,7 +4,7 @@
 
 /*member: dynamicIndexAssign:Specializer=[!IndexAssign]*/
 @pragma('dart2js:noInline')
-dynamicIndexAssign(var list) {
+dynamicIndexAssign(list) {
   list[0] = 1;
 }
 

@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:linter/src/diagnostic.dart' as diag;
 
 class AddConst extends ResolvedCorrectionProducer {
-  AddConst({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -109,15 +109,13 @@ class AddConst extends ResolvedCorrectionProducer {
               :var parent,
               constKeyword: var keyword,
             )) {
-      var constDeclarations = getCodeStyleOptions(
-        unitResult.file,
-      ).preferConstDeclarations;
+      var constDeclarations = getCodeStyleOptions(unitResult.file)
+          .preferConstDeclarations;
 
       if (parent is VariableDeclaration && constDeclarations) {
-        if (parent.parent case VariableDeclarationList(
-          :var finalKeyword?,
-          :var variables,
-        ) when _declarationListIsFullyConst(variables)) {
+        if (parent.parent
+            case VariableDeclarationList(:var finalKeyword?, :var variables)
+            when _declarationListIsFullyConst(variables)) {
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(range.token(finalKeyword), 'const');
           });

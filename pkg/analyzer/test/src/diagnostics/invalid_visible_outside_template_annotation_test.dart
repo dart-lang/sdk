@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,181 +28,162 @@ class InvalidVisibleOutsideTemplateAnnotationTest
   }
 
   test_invalid_classConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 class C {
   @visibleOutsideTemplate
+// ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibleOutsideTemplateAnnotation] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
   C();
 }
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
-    );
+''');
   }
 
   test_invalid_classDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleOutsideTemplate
+// [diag.invalidVisibleOutsideTemplateAnnotation][column 2][length 22] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
 class C {}
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
-    );
+''');
   }
 
   test_invalid_classField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 class C {
   @visibleOutsideTemplate
+// ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibleOutsideTemplateAnnotation] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
   int a = 0;
 }
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
-    );
+''');
   }
 
   test_invalid_classMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 class C {
   @visibleOutsideTemplate
+// ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibleOutsideTemplateAnnotation] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
   void m() {}
 }
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
-    );
+''');
   }
 
   test_invalid_enumClassMember() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 enum E {
   v;
   @visibleOutsideTemplate
+// ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibleOutsideTemplateAnnotation] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
   void test() {}
 }
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 67, 22)],
-    );
+''');
   }
 
   test_invalid_enumConstant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 enum E {
   @visibleOutsideTemplate
+// ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibleOutsideTemplateAnnotation] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
   a,
   b,
 }
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 62, 22)],
-    );
+''');
   }
 
   test_invalid_mixinClassDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleOutsideTemplate
+// [diag.invalidVisibleOutsideTemplateAnnotation][column 2][length 22] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
 mixin class M2 {}
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
-    );
+''');
   }
 
   test_invalid_mixinClassMember() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 mixin class M2 {
   @visibleOutsideTemplate
+// ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibleOutsideTemplateAnnotation] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
   int m() => 1;
 }
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 70, 22)],
-    );
+''');
   }
 
   test_invalid_mixinDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleOutsideTemplate
+// [diag.invalidVisibleOutsideTemplateAnnotation][column 2][length 22] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
 mixin M {}
 class C2 with M {}
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
-    );
+''');
   }
 
   test_invalid_mixinMember() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 mixin M {
   @visibleOutsideTemplate
+// ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidVisibleOutsideTemplateAnnotation] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
   int m() => 1;
 }
 class C2 with M {}
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
-    );
+''');
   }
 
   test_invalid_topLevelFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleOutsideTemplate
+// [diag.invalidVisibleOutsideTemplateAnnotation][column 2][length 22] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
 void foo() {}
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
-    );
+''');
   }
 
   test_invalid_topLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleOutsideTemplate
+// [diag.invalidVisibleOutsideTemplateAnnotation][column 2][length 22] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
 final a = 1;
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
-    );
+''');
   }
 
   test_invalid_topLevelVariable_multi() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleOutsideTemplate
+// [diag.invalidVisibleOutsideTemplateAnnotation][column 2][length 22] The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'.
 var a = 1, b;
-''',
-      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
-    );
+''');
   }
 
   test_valid_classConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
@@ -215,7 +195,7 @@ class C {
   }
 
   test_valid_classField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
@@ -227,7 +207,7 @@ class C {
   }
 
   test_valid_classMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
@@ -239,7 +219,7 @@ class C {
   }
 
   test_valid_enumClassMember() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
@@ -252,7 +232,7 @@ enum E {
   }
 
   test_valid_enumConstant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
@@ -265,7 +245,7 @@ enum E {
   }
 
   test_valid_mixinClassMember() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
@@ -277,7 +257,7 @@ mixin class M2 {
   }
 
   test_valid_mixinMember() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate

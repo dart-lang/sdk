@@ -14,7 +14,7 @@ typedef StaticOptions = Either2<bool, WorkspaceSymbolOptions>;
 class WorkspaceSymbolHandler
     extends
         SharedMessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
-  WorkspaceSymbolHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.workspace_symbol;
 
@@ -136,7 +136,7 @@ class WorkspaceSymbolHandler
 
 class WorkspaceSymbolRegistrations extends FeatureRegistration
     with StaticRegistration<StaticOptions> {
-  WorkspaceSymbolRegistrations(super.info);
+  new(super.info);
 
   @override
   List<LspDynamicRegistration> get dynamicRegistrations => [];

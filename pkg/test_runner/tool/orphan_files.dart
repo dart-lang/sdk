@@ -64,9 +64,7 @@ void _checkTestDirectory(Directory directory) {
 }
 
 void _initAnalysisContext() {
-  var collection = AnalysisContextCollection(
-    includedPaths: ['test'],
-  );
+  var collection = AnalysisContextCollection(includedPaths: ['test']);
 
   if (collection.contexts.length != 1) {
     throw StateError(

@@ -16,7 +16,7 @@ class C extends core::Object {
 }
 class D extends core::Object implements self::C {
   field Never n;
-  constructor •(Never n) → self::D
+  constructor •(initializing-formal Never n) → self::D
     : self::D::n = n, super core::Object::•()
     ;
 }

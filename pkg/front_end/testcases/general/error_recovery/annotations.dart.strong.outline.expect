@@ -15,7 +15,7 @@ import "dart:core" as core;
 
 class Annotation extends core::Object /*hasConstConstructor*/  {
   final field core::String message;
-  const constructor •(core::String message) → self::Annotation
+  const constructor •(initializing-formal core::String message) → self::Annotation
     : self::Annotation::message = message, super core::Object::•()
     ;
 }

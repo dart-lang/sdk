@@ -18,7 +18,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
-  DestructureLocalVariableAssignment({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -177,7 +177,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 class NamedField extends RecordField {
   final String field;
   final String? variable;
-  NamedField({required this.field, this.variable});
+  new({required this.field, this.variable});
 
   @override
   void write(EditBuilder builder, String groupName) {
@@ -204,7 +204,7 @@ class NamedField extends RecordField {
 class ObjectFieldName {
   final String varName;
   final String fieldName;
-  ObjectFieldName._(this.varName, this.fieldName);
+  new _(this.varName, this.fieldName);
 
   bool get isDefault => varName == fieldName;
 
@@ -234,7 +234,7 @@ class ObjectFieldName {
 
 class PositionalField extends RecordField {
   final String variable;
-  PositionalField(this.variable);
+  new(this.variable);
 
   @override
   void write(EditBuilder builder, String groupName) {
@@ -257,7 +257,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   final objectReferences = <AstNode>[];
   final propertyReferences = <String, List<AstNode>>{};
 
-  _ReferenceFinder(this.element);
+  new(this.element);
 
   ({
     List<AstNode> objectReferences,

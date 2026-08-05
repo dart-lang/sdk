@@ -1657,7 +1657,7 @@ class _SnapshotGraph implements SnapshotGraph {
     var workStack = _newUint32Array(N);
     var workStackTop = 0;
 
-    mergeChildrenAndSort(var parent1, var end) {
+    mergeChildrenAndSort(parent1, end) {
       assert(parent1 != _SENTINEL);
       if (next[parent1] == end) return;
 

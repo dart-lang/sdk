@@ -527,6 +527,86 @@ void main() {
         });
       });
     });
+
+    group('file system service', () {
+      test('denies symlink escapes from IDE workspace roots', () async {
+        final tempRoot = await Directory.systemTemp.createTemp('dtd_test.');
+        final workspace = Directory('${tempRoot.path}/workspace')..createSync();
+        final outside = Directory('${tempRoot.path}/outside')..createSync();
+        final secretFile = File('${outside.path}/secret.txt')
+          ..createSync()
+          ..writeAsStringSync('TOP-SECRET');
+        final escapeLink = Link('${workspace.path}/escape-link')
+          ..createSync(outside.path, recursive: true);
+
+        addTearDown(() async {
+          if (tempRoot.existsSync()) {
+            await tempRoot.delete(recursive: true);
+          }
+        });
+
+        await client.sendRequest(
+          '${FileSystemServiceConstants.serviceName}.'
+          '${FileSystemServiceConstants.setIDEWorkspaceRoots}',
+          {
+            'secret': dtd!.secret,
+            'roots': [workspace.uri.toString()],
+          },
+        );
+
+        expect(
+          () => client.sendRequest(
+            '${FileSystemServiceConstants.serviceName}.'
+            '${FileSystemServiceConstants.readFileAsString}',
+            {'uri': File('${escapeLink.path}/secret.txt').uri.toString()},
+          ),
+          throwsA(
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kPermissionDenied,
+            ),
+          ),
+        );
+
+        expect(
+          () => client.sendRequest(
+            '${FileSystemServiceConstants.serviceName}.'
+            '${FileSystemServiceConstants.writeFileAsString}',
+            {
+              'uri': File('${escapeLink.path}/created.txt').uri.toString(),
+              'contents': 'WRITE-THROUGH-LINK',
+              'encoding': 'utf-8',
+            },
+          ),
+          throwsA(
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kPermissionDenied,
+            ),
+          ),
+        );
+
+        expect(
+          () => client.sendRequest(
+            '${FileSystemServiceConstants.serviceName}.'
+            '${FileSystemServiceConstants.listDirectoryContents}',
+            {'uri': Directory(escapeLink.path).uri.toString()},
+          ),
+          throwsA(
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kPermissionDenied,
+            ),
+          ),
+        );
+
+        expect(secretFile.readAsStringSync(), 'TOP-SECRET');
+        expect(File('${outside.path}/created.txt').existsSync(), isFalse);
+      });
+    });
   });
 
   group('dtd arguments', () {

@@ -214,7 +214,7 @@ class A {
 
   Future<void> test_class_mix() async {
     await parseTestCode(r'''
-class A {
+class A.m() {
   /// static field public
   static int nnn;
   /// static field private
@@ -259,11 +259,13 @@ class A {
   A._nnn();
   /// constructor factory private
   factory A._ooo() => A();
+  /// primary constructor body
+  this {}
 }
 ''');
     // validate change
     _assertSort(r'''
-class A {
+class A.m() {
   /// static field public
   static int nnn;
   /// static field private
@@ -280,6 +282,8 @@ class A {
   int nnn;
   /// instance field private
   int _nnn;
+  /// primary constructor body
+  this {}
   /// constructor generative unnamed
   A();
   /// constructor factory unnamed
@@ -1072,6 +1076,26 @@ class Z {
     _assertSort(r'''
 class Z {
   Z();
+  var a = '';
+}
+''');
+  }
+
+  Future<void> test_lint_constructorsFirst_withPrimaryConstructorBody() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await parseTestCode(r'''
+class C() {
+  var a = '';
+  new c();
+  new b();
+  this {}
+}
+''');
+    _assertSort(r'''
+class C() {
+  this {}
+  new b();
+  new c();
   var a = '';
 }
 ''');

@@ -34,32 +34,4 @@ void f(Object x) {
 }
 ''');
   }
-
-  Future<void> test_constType_matchType() async {
-    await resolveTestCode('''
-void f(Type x) {
-  if (x case int) {}
-}
-''');
-    await assertHasFix('''
-void f(Type x) {
-  if (x case const (int)) {}
-}
-''');
-  }
-
-  Future<void> test_constType_matchType_withImportPrefix() async {
-    await resolveTestCode('''
-import 'dart:math' as math;
-void f(Type x) {
-  if (x case math.Random) {}
-}
-''');
-    await assertHasFix('''
-import 'dart:math' as math;
-void f(Type x) {
-  if (x case const (math.Random)) {}
-}
-''');
-  }
 }

@@ -114,8 +114,6 @@ abstract class RuleVisitorRegistry {
     AstVisitor visitor,
   );
 
-  void addDefaultFormalParameter(AbstractAnalysisRule rule, AstVisitor visitor);
-
   void addDoStatement(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addDotShorthandConstructorInvocation(
@@ -191,6 +189,11 @@ abstract class RuleVisitorRegistry {
 
   void addForElement(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addFormalParameterDefaultClause(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  );
+
   void addFormalParameterList(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addForPartsWithDeclarations(
@@ -222,7 +225,7 @@ abstract class RuleVisitorRegistry {
 
   void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor visitor);
 
-  void addFunctionTypedFormalParameter(
+  void addFunctionTypedFormalParameterSuffix(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
   );
@@ -269,6 +272,8 @@ abstract class RuleVisitorRegistry {
 
   void addLabeledStatement(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addLabelReference(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addLibraryDirective(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addListLiteral(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -293,7 +298,7 @@ abstract class RuleVisitorRegistry {
 
   void addMixinOnClause(AbstractAnalysisRule rule, AstVisitor visitor);
 
-  void addNamedExpression(AbstractAnalysisRule rule, AstVisitor visitor);
+  void addNamedArgument(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addNamedType(AbstractAnalysisRule rule, AstVisitor visitor);
 
@@ -359,6 +364,11 @@ abstract class RuleVisitorRegistry {
 
   void addRecordLiteral(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addRecordLiteralNamedField(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  );
+
   void addRecordPattern(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addRecordTypeAnnotation(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -383,6 +393,8 @@ abstract class RuleVisitorRegistry {
     AstVisitor visitor,
   );
 
+  void addRegularFormalParameter(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addRelationalPattern(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addRestPatternElement(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -396,8 +408,6 @@ abstract class RuleVisitorRegistry {
   void addSetOrMapLiteral(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addShowCombinator(AbstractAnalysisRule rule, AstVisitor visitor);
-
-  void addSimpleFormalParameter(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addSimpleIdentifier(AbstractAnalysisRule rule, AstVisitor visitor);
 

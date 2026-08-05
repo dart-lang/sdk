@@ -2,51 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapValueTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class NonConstantMapValueTest extends PubPackageResolutionTest
-    with NonConstantMapValueTestCases {}
-
-mixin NonConstantMapValueTestCases on PubPackageResolutionTest {
+class NonConstantMapValueTest extends PubPackageResolutionTest {
   test_const_ifTrue_elseFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a': 'b', 'c' : a};
-''',
-      [error(diag.nonConstantMapValue, 81, 1)],
-    );
+//                                       ^
+// [diag.nonConstantMapValue] The values in a const map literal must be constant.
+''');
   }
 
   test_const_ifTrue_thenFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a' : a};
-''',
-      [error(diag.nonConstantMapValue, 71, 1)],
-    );
+//                             ^
+// [diag.nonConstantMapValue] The values in a const map literal must be constant.
+''');
   }
 
   test_const_topLevel() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final dynamic a = 0;
 var v = const {'a' : a};
-''',
-      [error(diag.nonConstantMapValue, 42, 1)],
-    );
+//                   ^
+// [diag.nonConstantMapValue] The values in a const map literal must be constant.
+''');
   }
 }

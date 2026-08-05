@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../dart/resolution/node_text_expectations.dart';
@@ -18,13 +17,13 @@ main() {
 @reflectiveTest
 class SwitchStatementTest extends ParserDiagnosticsTest {
   void test_switch_statement_expression_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a assert (true); }
+//              ^^^^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.expectedSwitchStatementBody, 16, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -59,10 +58,11 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a {} }
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 19, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -90,14 +90,14 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a break; }
+//              ^^^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
-      error(diag.expectedSwitchStatementBody, 16, 5),
-      error(diag.breakOutsideOfLoop, 16, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -128,14 +128,14 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a continue; }
+//              ^^^^^^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 26, 1),
-      error(diag.expectedSwitchStatementBody, 16, 8),
-      error(diag.continueOutsideOfLoop, 16, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -166,13 +166,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a do {} while (true); }
+//              ^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedSwitchStatementBody, 16, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -211,13 +211,12 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a }
+//              ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 16, 1),
-      error(diag.expectedSwitchStatementBody, 16, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -245,13 +244,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a for (var x in y) {} }
+//              ^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedSwitchStatementBody, 16, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -293,13 +292,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a if (true) {} }
+//              ^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.expectedSwitchStatementBody, 16, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -336,13 +335,12 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a l: {} }
+//              ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
-      error(diag.expectedSwitchStatementBody, 16, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -368,8 +366,7 @@ CompilationUnit
               LabeledStatement
                 labels
                   Label
-                    label: SimpleIdentifier
-                      token: l
+                    name: l
                     colon: :
                 statement: Block
                   leftBracket: {
@@ -379,13 +376,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a int f() {} }
+//              ^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.expectedSwitchStatementBody, 16, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -426,13 +423,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a void f() {} }
+//              ^^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
-      error(diag.expectedSwitchStatementBody, 16, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -473,13 +470,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a var x; }
+//              ^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
-      error(diag.expectedSwitchStatementBody, 16, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -514,13 +511,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a return; }
+//              ^^^^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.expectedSwitchStatementBody, 16, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -551,13 +548,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a switch (x) {} }
+//              ^^^^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 30, 1),
-      error(diag.expectedSwitchStatementBody, 16, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -593,13 +590,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a try {} finally {} }
+//              ^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.expectedSwitchStatementBody, 16, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -636,13 +633,13 @@ CompilationUnit
   }
 
   void test_switch_statement_expression_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a while (true) {} }
+//              ^^^^^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.expectedSwitchStatementBody, 16, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -679,14 +676,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch assert (true); }
+//           ^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 6),
-      error(diag.missingIdentifier, 13, 6),
-      error(diag.expectedSwitchStatementBody, 13, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -721,13 +717,12 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch {} }
+//           ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 1),
-      error(diag.missingIdentifier, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -755,15 +750,14 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch break; }
+//           ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 5),
-      error(diag.missingIdentifier, 13, 5),
-      error(diag.expectedSwitchStatementBody, 13, 5),
-      error(diag.breakOutsideOfLoop, 13, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -794,15 +788,14 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch continue; }
+//           ^^^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 8),
-      error(diag.missingIdentifier, 13, 8),
-      error(diag.expectedSwitchStatementBody, 13, 8),
-      error(diag.continueOutsideOfLoop, 13, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -833,14 +826,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch do {} while (true); }
+//           ^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 2),
-      error(diag.missingIdentifier, 13, 2),
-      error(diag.expectedSwitchStatementBody, 13, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -879,14 +871,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch }
+//           ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 1),
-      error(diag.missingIdentifier, 13, 1),
-      error(diag.expectedSwitchStatementBody, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -914,14 +905,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch for (var x in y) {} }
+//           ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 3),
-      error(diag.missingIdentifier, 13, 3),
-      error(diag.expectedSwitchStatementBody, 13, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -963,14 +953,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch if (true) {} }
+//           ^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 2),
-      error(diag.missingIdentifier, 13, 2),
-      error(diag.expectedSwitchStatementBody, 13, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1007,14 +996,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch l: {} }
+//           ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 1),
-      error(diag.missingIdentifier, 13, 1),
-      error(diag.expectedSwitchStatementBody, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1040,8 +1028,7 @@ CompilationUnit
               LabeledStatement
                 labels
                   Label
-                    label: SimpleIdentifier
-                      token: l
+                    name: l
                     colon: :
                 statement: Block
                   leftBracket: {
@@ -1051,14 +1038,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch int f() {} }
+//           ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 3),
-      error(diag.missingIdentifier, 13, 3),
-      error(diag.expectedSwitchStatementBody, 13, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1099,14 +1085,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch void f() {} }
+//           ^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 4),
-      error(diag.missingIdentifier, 13, 4),
-      error(diag.expectedSwitchStatementBody, 13, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1147,14 +1132,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch var x; }
+//           ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 3),
-      error(diag.missingIdentifier, 13, 3),
-      error(diag.expectedSwitchStatementBody, 13, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1189,14 +1173,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch return; }
+//           ^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 6),
-      error(diag.missingIdentifier, 13, 6),
-      error(diag.expectedSwitchStatementBody, 13, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1227,14 +1210,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch switch (x) {} }
+//           ^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 6),
-      error(diag.missingIdentifier, 13, 6),
-      error(diag.expectedSwitchStatementBody, 13, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1270,14 +1252,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch try {} finally {} }
+//           ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 3),
-      error(diag.missingIdentifier, 13, 3),
-      error(diag.expectedSwitchStatementBody, 13, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1314,14 +1295,13 @@ CompilationUnit
   }
 
   void test_switch_statement_keyword_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch while (true) {} }
+//           ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 5),
-      error(diag.missingIdentifier, 13, 5),
-      error(diag.expectedSwitchStatementBody, 13, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1358,13 +1338,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { assert (true); }
+//                 ^^^^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 36][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedToken, 19, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1392,13 +1371,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { {} }
+//                 ^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 24][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.expectedToken, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1426,13 +1404,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { break; }
+//                 ^^^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 28][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
-      error(diag.expectedToken, 19, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1460,13 +1437,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { continue; }
+//                 ^^^^^^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 31][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.expectedToken, 19, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1494,13 +1470,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { do {} while (true); }
+//                 ^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 41][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 41, 1),
-      error(diag.expectedToken, 19, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1528,10 +1503,10 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { }
+// [diag.expectedToken][column 21][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 21, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1559,13 +1534,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { for (var x in y) {} }
+//                 ^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 41][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 41, 1),
-      error(diag.expectedToken, 19, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1593,13 +1567,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { if (true) {} }
+//                 ^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 34][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.expectedToken, 19, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1627,13 +1600,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { l: {} }
+//                    ^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 27][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1661,13 +1633,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { int f() {} }
+//                 ^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 32][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.expectedToken, 19, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1695,13 +1666,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { void f() {} }
+//                 ^^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 33][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedToken, 19, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1729,13 +1699,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { var x; }
+//                 ^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 28][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
-      error(diag.expectedToken, 19, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1763,13 +1732,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { return; }
+//                 ^^^^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 29][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.expectedToken, 19, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1797,13 +1765,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { switch (x) {} }
+//                 ^^^^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 35][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.expectedToken, 19, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1831,13 +1798,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { try {} finally {} }
+//                 ^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 39][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 39, 1),
-      error(diag.expectedToken, 19, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1865,13 +1831,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftBrace_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) { while (true) {} }
+//                 ^^^^^
+// [diag.expectedToken] Expected to find 'case'.
+// [diag.expectedToken][column 37][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.expectedToken, 19, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1899,13 +1864,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( assert (true); }
+//                          ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 30, 1),
-      error(diag.expectedSwitchStatementBody, 28, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1942,13 +1906,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( {} }
+//                ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
-      error(diag.expectedSwitchStatementBody, 18, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1978,15 +1941,15 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( break; }
+//             ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+//             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
-      error(diag.missingIdentifier, 15, 5),
-      error(diag.expectedSwitchStatementBody, 15, 5),
-      error(diag.breakOutsideOfLoop, 15, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2017,15 +1980,15 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( continue; }
+//             ^^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
+//             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 25, 1),
-      error(diag.missingIdentifier, 15, 8),
-      error(diag.expectedSwitchStatementBody, 15, 8),
-      error(diag.continueOutsideOfLoop, 15, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2056,14 +2019,14 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( do {} while (true); }
+//             ^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.missingIdentifier, 15, 2),
-      error(diag.expectedSwitchStatementBody, 15, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2102,14 +2065,13 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( }
+//             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 15, 1),
-      error(diag.missingIdentifier, 15, 1),
-      error(diag.expectedSwitchStatementBody, 15, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2137,14 +2099,14 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( for (var x in y) {} }
+//             ^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.missingIdentifier, 15, 3),
-      error(diag.expectedSwitchStatementBody, 15, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2186,14 +2148,14 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( if (true) {} }
+//             ^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
-      error(diag.missingIdentifier, 15, 2),
-      error(diag.expectedSwitchStatementBody, 15, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2230,16 +2192,16 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( l: {} }
+//             ^
+// [diag.expectedToken] Expected to find ';'.
+//              ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
-      error(diag.expectedSwitchStatementBody, 16, 1),
-      error(diag.missingIdentifier, 16, 1),
-      error(diag.expectedToken, 15, 1),
-      error(diag.unexpectedToken, 16, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2274,14 +2236,14 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( int f() {} }
+//                 ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                        ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 26, 1),
-      error(diag.namedFunctionExpression, 19, 1),
-      error(diag.expectedSwitchStatementBody, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2315,14 +2277,14 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( void f() {} }
+//                  ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                         ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.namedFunctionExpression, 20, 1),
-      error(diag.expectedSwitchStatementBody, 27, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2356,14 +2318,14 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( var x; }
+//             ^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
-      error(diag.missingIdentifier, 15, 3),
-      error(diag.expectedSwitchStatementBody, 15, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2398,15 +2360,15 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( return; }
+//             ^^^^^^
+// [diag.unexpectedToken] Unexpected text 'return'.
+//                   ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
-      error(diag.unexpectedToken, 15, 6),
-      error(diag.missingIdentifier, 21, 1),
-      error(diag.expectedSwitchStatementBody, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2436,13 +2398,12 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( switch (x) {} }
+//                           ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.expectedSwitchStatementBody, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2476,14 +2437,14 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( try {} finally {} }
+//             ^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.missingIdentifier, 15, 3),
-      error(diag.expectedSwitchStatementBody, 15, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2520,14 +2481,14 @@ CompilationUnit
   }
 
   void test_switch_statement_leftParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch ( while (true) {} }
+//             ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//             ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.missingIdentifier, 15, 5),
-      error(diag.expectedSwitchStatementBody, 15, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2564,10 +2525,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) assert (true); }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2602,10 +2564,9 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) {} }
 ''');
-    parseResult.assertErrors([]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2633,13 +2594,13 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) break; }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//               ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedSwitchStatementBody, 15, 1),
-      error(diag.breakOutsideOfLoop, 17, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2670,13 +2631,13 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) continue; }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
+//               ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedSwitchStatementBody, 15, 1),
-      error(diag.continueOutsideOfLoop, 17, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2707,10 +2668,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) do {} while (true); }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2749,10 +2711,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2780,10 +2743,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) for (var x in y) {} }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2825,10 +2789,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) if (true) {} }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2865,10 +2830,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) l: {} }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2894,8 +2860,7 @@ CompilationUnit
               LabeledStatement
                 labels
                   Label
-                    label: SimpleIdentifier
-                      token: l
+                    name: l
                     colon: :
                 statement: Block
                   leftBracket: {
@@ -2905,10 +2870,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) int f() {} }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2949,10 +2915,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) void f() {} }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2993,10 +2960,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) var x; }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3031,10 +2999,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) return; }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3065,10 +3034,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) switch (x) {} }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3104,10 +3074,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) try {} finally {} }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3144,10 +3115,11 @@ CompilationUnit
   }
 
   void test_switch_statement_rightParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { switch (a) while (true) {} }
+//             ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 15, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

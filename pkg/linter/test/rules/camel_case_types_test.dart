@@ -31,7 +31,6 @@ augment class a {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationEnum_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -50,7 +49,11 @@ augment enum e {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There are unexpected diagnostics.',
+  )
+  // TODO(scheglov): implement augmentation
   test_augmentationExtensionType_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -87,21 +90,15 @@ class $FooBar
   }
 
   test_class_lowerCamel() async {
-    await assertDiagnostics(
-      r'''
-class fooBar {}
-''',
-      [lint(6, 6)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+class [!fooBar!] {}
+''');
   }
 
   test_class_primaryConstructor_test_class_lowerCamel() async {
-    await assertDiagnostics(
-      r'''
-class fooBar(var int x);
-''',
-      [lint(6, 6)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+class [!fooBar!](var int x);
+''');
   }
 
   test_class_primaryConstructor_upperCamel() async {
@@ -141,30 +138,21 @@ class AA {}
   }
 
   test_class_upperSnake() async {
-    await assertDiagnostics(
-      r'''
-class Foo_Bar {}
-''',
-      [lint(6, 7)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+class [!Foo_Bar!] {}
+''');
   }
 
   test_enum_lowerCamel() async {
-    await assertDiagnostics(
-      r'''
-enum foooBar { a }
-''',
-      [lint(5, 7)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+enum [!foooBar!] { a }
+''');
   }
 
   test_enum_primaryConstructor_lowerCamel() async {
-    await assertDiagnostics(
-      r'''
-enum fooBar(final String name) { a('') }
-''',
-      [lint(5, 6)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+enum [!fooBar!](final String name) { a('') }
+''');
   }
 
   test_enum_primaryConstructor_upperCamel() async {
@@ -182,12 +170,9 @@ enum FoooBar { a }
   test_extensionType_lowerCase() async {
     // No need to test all the variations. Name checking is shared with other
     // declaration types.
-    await assertDiagnostics(
-      r'''
-extension type fooBar(int i) {}
-''',
-      [lint(15, 6)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+extension type [!fooBar!](int i) {}
+''');
   }
 
   test_extensionType_wellFormed() async {
@@ -197,41 +182,29 @@ extension type FooBar(int i) {}
   }
 
   test_mixin_lowerCase() async {
-    await assertDiagnostics(
-      r'''
-mixin m {}
-''',
-      [lint(6, 1)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+mixin [!m!] {}
+''');
   }
 
   test_mixinApplication_lower() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M {}
-class c = Object with M;
-''',
-      [lint(17, 1)],
-    );
+class [!c!] = Object with M;
+''');
   }
 
   test_typedef_newFormat_lower() async {
-    await assertDiagnostics(
-      r'''
-typedef f = void Function();
-''',
-      [lint(8, 1)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+typedef [!f!] = void Function();
+''');
   }
 
   test_typedef_newFormat_lowerCamel() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkup(r'''
 class Foo {}
-typedef foo = Foo;
-''',
-      [lint(21, 3)],
-    );
+typedef [!foo!] = Foo;
+''');
   }
 
   test_typedef_newFormat_upperCamel() async {
@@ -242,12 +215,9 @@ typedef F = Foo;
   }
 
   test_typedef_oldFormat_lowerCamel() async {
-    await assertDiagnostics(
-      r'''
-typedef bool predicate();
-''',
-      [lint(13, 9)],
-    );
+    await assertDiagnosticsFromMarkup(r'''
+typedef bool [!predicate!]();
+''');
   }
 
   test_typedef_oldFormat_upperCamel() async {

@@ -4,13 +4,15 @@
 
 int nonNullableTopLevelFieldReads = 0;
 
-late final int nonNullableTopLevelField =
-    nonNullableTopLevelFieldReads++ == 0 ? nonNullableTopLevelField + 1 : 0;
+late final int nonNullableTopLevelField = nonNullableTopLevelFieldReads++ == 0
+    ? nonNullableTopLevelField + 1
+    : 0;
 
 int nullableTopLevelFieldReads = 0;
 
-late final int? nullableTopLevelField =
-    nullableTopLevelFieldReads++ == 0 ? nullableTopLevelField.hashCode : 0;
+late final int? nullableTopLevelField = nullableTopLevelFieldReads++ == 0
+    ? nullableTopLevelField.hashCode
+    : 0;
 
 class Class {
   static int nonNullableStaticFieldReads = 0;
@@ -20,18 +22,21 @@ class Class {
 
   static int nullableStaticFieldReads = 0;
 
-  static late final int? nullableStaticField =
-      nullableStaticFieldReads++ == 0 ? nullableStaticField.hashCode : 0;
+  static late final int? nullableStaticField = nullableStaticFieldReads++ == 0
+      ? nullableStaticField.hashCode
+      : 0;
 
   int nonNullableInstanceFieldReads = 0;
 
-  late final int nonNullableInstanceField =
-      nonNullableInstanceFieldReads++ == 0 ? nonNullableInstanceField + 1 : 0;
+  late final int nonNullableInstanceField = nonNullableInstanceFieldReads++ == 0
+      ? nonNullableInstanceField + 1
+      : 0;
 
   int nullableInstanceFieldReads = 0;
 
-  late final int? nullableInstanceField =
-      nullableInstanceFieldReads++ == 0 ? nullableInstanceField.hashCode : 0;
+  late final int? nullableInstanceField = nullableInstanceFieldReads++ == 0
+      ? nullableInstanceField.hashCode
+      : 0;
 }
 
 void main() {
@@ -39,8 +44,10 @@ void main() {
   throws(() => nullableTopLevelField, "Read nullableTopLevelField");
   throws(() => Class.nonNullableStaticField, "Read nonNullableStaticField");
   throws(() => Class.nullableStaticField, "Read nullableStaticField");
-  throws(() => new Class().nonNullableInstanceField,
-      "Read nonNullableInstanceField");
+  throws(
+    () => new Class().nonNullableInstanceField,
+    "Read nonNullableInstanceField",
+  );
   throws(() => new Class().nullableInstanceField, "Read nullableInstanceField");
 }
 

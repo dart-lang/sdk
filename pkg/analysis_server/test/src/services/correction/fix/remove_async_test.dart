@@ -184,6 +184,15 @@ class A {
 ''');
   }
 
+  Future<void> test_object() async {
+    await resolveTestCode('''
+Object test() async => Future.value(null);
+''');
+    await assertHasFix('''
+Object test() => Future.value(null);
+''');
+  }
+
   Future<void> test_void() async {
     await resolveTestCode('''
 void test() async {}

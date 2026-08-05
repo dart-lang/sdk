@@ -403,7 +403,7 @@ class JClosedWorldBuilder {
     MemberEntity member,
     ir.FunctionNode originalClosureFunctionNode,
     JLibrary enclosingLibrary,
-    Map<ir.VariableDeclaration, JContextField> boxedVariables,
+    Map<ir.Variable, JContextField> boxedVariables,
     KernelScopeInfo info, {
     required bool createSignatureMethod,
   }) {

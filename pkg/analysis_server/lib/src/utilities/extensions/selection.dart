@@ -64,7 +64,7 @@ extension SelectionExtension on Selection {
     } else if (node is NamedType) {
       var parent = node.parent;
       if (parent is ConstructorName) {
-        if (!meetsRequirements(node.name)) return null;
+        if (!meetsRequirements(parent.name)) return null;
         return parent.element;
       }
     } else if (node is ConstructorName) {
@@ -72,5 +72,39 @@ extension SelectionExtension on Selection {
       return node.element;
     }
     return null;
+  }
+
+  /// Returns the [LibraryImport] at the given [selection].
+  ///
+  /// Returns `null` if
+  /// - the selection doesn't identify an import directive, or
+  /// - [mustHavePrefix] is `true` and the directive doesn't have a
+  ///   prefix, or
+  /// - [mustNotHavePrefix] is `true` and the directive has a prefix, or
+  /// - the AST has not been resolved so the node has no `libraryImport`.
+  /// - [mustNotBeDeferred] is `true` and the directive is deferred, or
+  /// - the AST has not been resolved so the node has no `libraryImport`.
+  LibraryImport? importDirective({
+    bool mustHavePrefix = false,
+    bool mustNotHavePrefix = false,
+    bool mustNotBeDeferred = false,
+  }) {
+    var node = coveringNode.thisOrAncestorOfType<ImportDirective>();
+    if (node == null) {
+      return null;
+    }
+
+    var hasPrefix = node.prefix != null;
+    var isDeferred = node.deferredKeyword != null;
+
+    if (mustHavePrefix && !hasPrefix) {
+      return null;
+    } else if (mustNotHavePrefix && hasPrefix) {
+      return null;
+    } else if (mustNotBeDeferred && isDeferred) {
+      return null;
+    } else {
+      return node.libraryImport;
+    }
   }
 }

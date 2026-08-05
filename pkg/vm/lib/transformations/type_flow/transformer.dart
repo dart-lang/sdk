@@ -266,13 +266,7 @@ class MoveFieldInitializers {
           }
         }
         final Initializer newInit = initializedFields.contains(f)
-            ? LocalInitializer(
-                VariableDeclaration(
-                  null,
-                  initializer: initExpr,
-                  isSynthesized: true,
-                ),
-              )
+            ? LocalInitializer(SyntheticVariable(initializer: initExpr))
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
@@ -314,7 +308,7 @@ class CleanupAnnotations extends RecursiveVisitor {
   }
 
   void _cleanupAnnotations(Node node, List<Expression> annotations) {
-    if (node is VariableDeclaration ||
+    if (node is Variable ||
         node is Member ||
         node is Class ||
         node is Library) {
@@ -899,12 +893,12 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  defaultVariable(Variable node) {
     final inferredType = _typeFlowAnalysis.capturedVariableType(node);
     if (inferredType != null) {
       _setInferredType(node, inferredType);
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override
@@ -1150,7 +1144,7 @@ class TreeShaker {
     }
   }
 
-  void addUsedParameters(List<VariableDeclaration> params) {
+  void addUsedParameters(List<FunctionParameter> params) {
     for (var param in params) {
       // Do not visit initializer (default value) of a parameter as it is
       // going to be removed during pass 2.
@@ -1207,8 +1201,8 @@ class FieldMorpher {
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter =
-          new VariableDeclaration(
-              'value',
+          new PositionalParameter(
+              cosmeticName: 'value',
               type: field.type,
               isSynthesized: true,
             )
@@ -1436,11 +1430,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
     return new LocalInitializer(
-      new VariableDeclaration(
-        null,
-        initializer: _makeUnreachableCall(args),
-        isSynthesized: true,
-      ),
+      new SyntheticVariable(initializer: _makeUnreachableCall(args)),
     );
   }
 
@@ -1916,10 +1906,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       if (!shaker.retainField(field)) {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
-            VariableDeclaration(
-              null,
+            SyntheticVariable(
               initializer: node.value,
-              isSynthesized: true,
               type: visitDartType(field.type, cannotRemoveSentinel),
             ),
           );
@@ -2504,10 +2492,10 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
   void _removeDefaultValuesOfParameters(FunctionNode function) {
     for (var p in function.positionalParameters) {
-      p.initializer = null;
+      p.defaultValue = null;
     }
     for (var p in function.namedParameters) {
-      p.initializer = null;
+      p.defaultValue = null;
     }
   }
 

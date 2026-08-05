@@ -31,7 +31,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
-  DillExtensionBuilder(this.extension, this.libraryBuilder) {
+  new(this.extension, this.libraryBuilder) {
     Map<String, MemberLookupResult> content = {};
 
     bool isPrivateFromOtherLibrary(Member member) {
@@ -269,4 +269,8 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   List<TypeParameter> get typeParameterNodes => extension.typeParameters;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

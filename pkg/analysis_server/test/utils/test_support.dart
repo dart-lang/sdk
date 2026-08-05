@@ -29,7 +29,7 @@ class ExpectedContextMessage {
   /// The message text for the error.
   final String? text;
 
-  ExpectedContextMessage(this.filePath, this.offset, this.length, {this.text});
+  new(this.filePath, this.offset, this.length, {this.text});
 
   /// Return `true` if the [message] matches this description of what the state
   /// of the [message] is expected to be.
@@ -68,7 +68,7 @@ class ExpectedError {
   final List<ExpectedContextMessage> expectedContextMessages;
 
   /// Initialize a newly created error description.
-  ExpectedError(
+  new(
     this.code,
     this.offset,
     this.length, {
@@ -127,7 +127,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
   final Map<Source, LineInfo> _lineInfoMap = <Source, LineInfo>{};
 
   /// Initialize a newly created diagnostic listener to collect diagnostics.
-  GatheringDiagnosticListener({this.checkRanges = true});
+  new({this.checkRanges = true});
 
   /// The diagnostics that were collected.
   List<Diagnostic> get diagnostics => _diagnostics;

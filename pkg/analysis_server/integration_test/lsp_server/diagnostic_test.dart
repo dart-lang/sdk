@@ -6,6 +6,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../test/utils/lsp_protocol_extensions.dart';
 import '../../test/utils/test_code_extensions.dart';
 import 'integration_tests.dart';
 
@@ -42,7 +43,7 @@ void f() {
     expect(diagnostics, hasLength(1));
     var diagnostic = diagnostics.first;
     expect(
-      diagnostic.message,
+      diagnostic.message.asString,
       startsWith(
         "Local variable 'x' can't be referenced before it is declared",
       ),

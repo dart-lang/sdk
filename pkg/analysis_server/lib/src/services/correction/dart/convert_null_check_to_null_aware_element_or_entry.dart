@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertNullCheckToNullAwareElementOrEntry
     extends ResolvedCorrectionProducer {
-  ConvertNullCheckToNullAwareElementOrEntry({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

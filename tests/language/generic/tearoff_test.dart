@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 import 'dart:math' show min; // <-- generic: <T extends num>(T, T) -> T
+
 import 'package:expect/expect.dart';
 
 class C {

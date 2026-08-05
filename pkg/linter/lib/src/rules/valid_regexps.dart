@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use valid regular expression syntax.';
 
 class ValidRegexps extends AnalysisRule {
-  ValidRegexps() : super(name: LintNames.valid_regexps, description: _desc);
+  new() : super(name: LintNames.valid_regexps, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.validRegexps;
@@ -33,7 +33,7 @@ class ValidRegexps extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -48,9 +48,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       var unicode = args.any(
         (arg) =>
-            arg is NamedExpression &&
-            arg.name.label.name == 'unicode' &&
-            isTrue(arg.expression),
+            arg is NamedArgument &&
+            arg.name.lexeme == 'unicode' &&
+            isTrue(arg.argumentExpression),
       );
 
       var sourceExpression = args.first;

@@ -150,15 +150,15 @@ extension type ET4(core::int i) {
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member method ET1|constructor#(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(i);
-static extension-type-member method ET1|constructor#other(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member method ET1|constructor#other(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#other#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#other(i);
-static extension-type-member method E2T|constructor#(core::int i) → self::E2T% /* erasure=core::int, declared=! */
+static extension-type-member method E2T|constructor#(initializing-formal core::int i) → self::E2T% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method E2T|constructor#_#new#tearOff(core::int i) → self::E2T% /* erasure=core::int, declared=! */
   return self::E2T|constructor#(i);
@@ -166,15 +166,15 @@ static extension-type-member method E2T|constructor#other(core::int i) → self:
   ;
 static extension-type-member synthetic method E2T|constructor#_#other#tearOff(core::int i) → self::E2T% /* erasure=core::int, declared=! */
   return self::E2T|constructor#other(i);
-static extension-type-member method ET3|constructor#primary(core::int i) → self::ET3% /* erasure=core::int, declared=! */
+static extension-type-member method ET3|constructor#primary(initializing-formal core::int i) → self::ET3% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET3|constructor#_#primary#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#primary(i);
-static extension-type-member method ET3|constructor#(core::int i) → self::ET3% /* erasure=core::int, declared=! */
+static extension-type-member method ET3|constructor#(initializing-formal core::int i) → self::ET3% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(i);
-static extension-type-member method ET4|constructor#primary(core::int i) → self::ET4% /* erasure=core::int, declared=! */
+static extension-type-member method ET4|constructor#primary(initializing-formal core::int i) → self::ET4% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET4|constructor#_#primary#tearOff(core::int i) → self::ET4% /* erasure=core::int, declared=! */
   return self::ET4|constructor#primary(i);
@@ -186,22 +186,22 @@ static extension-type-member synthetic method ET4|constructor#_#new#tearOff(core
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:31:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:31:10 -> InstanceConstant(const E1{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:32:5 -> InstanceConstant(const E1{_Enum.index: 1, _Enum._name: "b"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:30:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "a"}, const E1{_Enum.index: 1, _Enum._name: "b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:36:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:36:10 -> InstanceConstant(const E2{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:36:22 -> InstanceConstant(const E2{_Enum.index: 2, _Enum._name: "c"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:35:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "a"}, const E2{_Enum.index: 1, _Enum._name: "b"}, const E2{_Enum.index: 2, _Enum._name: "c"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:42:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:42:10 -> InstanceConstant(const E3{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:41:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "a"}, const E3{_Enum.index: 1, _Enum._name: "b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:47:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:47:10 -> InstanceConstant(const E4{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:46:6 -> ListConstant(const <E4>[const E4{_Enum.index: 0, _Enum._name: "a"}, const E4{_Enum.index: 1, _Enum._name: "b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:52:3 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:52:10 -> InstanceConstant(const E5{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:51:6 -> ListConstant(const <E5>[const E5{_Enum.index: 0, _Enum._name: "a"}, const E5{_Enum.index: 1, _Enum._name: "b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:57:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:57:10 -> InstanceConstant(const E6{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:56:6 -> ListConstant(const <E6>[const E6{_Enum.index: 0, _Enum._name: "a"}, const E6{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:38:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:39:5 -> InstanceConstant(const E2{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:40:5 -> InstanceConstant(const E2{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:37:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "a"}, const E2{_Enum.index: 1, _Enum._name: "b"}, const E2{_Enum.index: 2, _Enum._name: "c"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:47:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:48:5 -> InstanceConstant(const E3{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:46:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "a"}, const E3{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:54:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:55:5 -> InstanceConstant(const E4{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:53:6 -> ListConstant(const <E4>[const E4{_Enum.index: 0, _Enum._name: "a"}, const E4{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:61:3 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:62:5 -> InstanceConstant(const E5{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:60:6 -> ListConstant(const <E5>[const E5{_Enum.index: 0, _Enum._name: "a"}, const E5{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:68:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_and_generative.dart:69:5 -> InstanceConstant(const E6{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///primary_and_generative.dart:67:6 -> ListConstant(const <E6>[const E6{_Enum.index: 0, _Enum._name: "a"}, const E6{_Enum.index: 1, _Enum._name: "b"}])
 Extra constant evaluation: evaluated: 79, effectively constant: 19

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,24 +15,22 @@ main() {
 @reflectiveTest
 class ConstInstanceFieldTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   const int f = 0;
+//^^^^^
+// [diag.constInstanceField] Only static fields can be declared as const.
 }
-''',
-      [error(diag.constInstanceField, 12, 5)],
-    );
+''');
   }
 
   test_mixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin C {
   const int f = 0;
+//^^^^^
+// [diag.constInstanceField] Only static fields can be declared as const.
 }
-''',
-      [error(diag.constInstanceField, 12, 5)],
-    );
+''');
   }
 }

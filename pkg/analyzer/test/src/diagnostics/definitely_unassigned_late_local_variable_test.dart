@@ -2,53 +2,47 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DefinitelyUnassignedLateLocalVariableTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class DefinitelyUnassignedLateLocalVariableTest
     extends PubPackageResolutionTest {
-  DiagnosticCode get _errorCode {
-    return diag.definitelyUnassignedLateLocalVariable;
-  }
-
   test_definitelyAssigned_after_compoundAssignment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int v;
   v += 1;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'v' is definitely unassigned at this point.
   v;
 }
-''',
-      [error(_errorCode, 27, 1)],
-    );
+''');
   }
 
   test_definitelyAssigned_after_postfixExpression_increment() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int v;
   v++;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'v' is definitely unassigned at this point.
   v;
 }
-''',
-      [error(_errorCode, 27, 1)],
-    );
+''');
   }
 
   test_mightBeAssigned_byPatternAssignment() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   late String s;
   () {
@@ -60,7 +54,7 @@ void main() {
   }
 
   test_mightBeAssigned_if_else() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   late int v;
   if (c) {
@@ -74,7 +68,7 @@ void f(bool c) {
   }
 
   test_mightBeAssigned_if_then() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   late int v;
   if (c) {
@@ -86,7 +80,7 @@ void f(bool c) {
   }
 
   test_mightBeAssigned_while() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   late int v;
   while (c) {
@@ -98,74 +92,74 @@ void f(bool c) {
   }
 
   test_neverAssigned_assignment_compound() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int v;
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
   v += 1;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'v' is definitely unassigned at this point.
 }
-''',
-      [error(diag.unusedLocalVariable, 22, 1), error(_errorCode, 27, 1)],
-    );
+''');
   }
 
   test_neverAssigned_assignment_pure() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int v;
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
   v = 0;
 }
-''',
-      [error(diag.unusedLocalVariable, 22, 1)],
-    );
+''');
   }
 
   test_neverAssigned_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int? v;
   v;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'v' is definitely unassigned at this point.
 }
-''',
-      [error(_errorCode, 28, 1)],
-    );
+''');
   }
 
   test_neverAssigned_prefixExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int v;
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
   ++v;
+//  ^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'v' is definitely unassigned at this point.
 }
-''',
-      [error(diag.unusedLocalVariable, 22, 1), error(_errorCode, 29, 1)],
-    );
+''');
   }
 
   test_neverAssigned_read() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int v;
   v;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'v' is definitely unassigned at this point.
 }
-''',
-      [error(_errorCode, 27, 1)],
-    );
+''');
   }
 
   test_neverAssigned_suffixExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int v;
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
   v++;
+//^
+// [diag.definitelyUnassignedLateLocalVariable] The late local variable 'v' is definitely unassigned at this point.
 }
-''',
-      [error(diag.unusedLocalVariable, 22, 1), error(_errorCode, 27, 1)],
-    );
+''');
   }
 }

@@ -430,6 +430,19 @@ void Platform::SetCoreDumpResourceLimit(int value) {
   // Not supported.
 }
 
+bool Platform::SetEnvironmentVariable(const char* name, const char* value) {
+  std::unique_ptr<wchar_t[]> name_w = Utf8ToWideChar(name);
+  if (value == nullptr) {
+    return ::SetEnvironmentVariableW(name_w.get(), nullptr) != 0;
+  }
+  DWORD ret = ::GetEnvironmentVariableW(name_w.get(), nullptr, 0);
+  if (ret == 0 && ::GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
+    std::unique_ptr<wchar_t[]> value_w = Utf8ToWideChar(value);
+    return ::SetEnvironmentVariableW(name_w.get(), value_w.get()) != 0;
+  }
+  return true;
+}
+
 }  // namespace bin
 }  // namespace dart
 

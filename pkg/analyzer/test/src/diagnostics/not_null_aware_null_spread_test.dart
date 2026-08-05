@@ -2,128 +2,111 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotNullAwareNullSpreadTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NotNullAwareNullSpreadTest extends PubPackageResolutionTest {
   test_listLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = [...null];
-''',
-      [
-        error(diag.invalidUseOfNullValue, 12, 4),
-        error(diag.notNullAwareNullSpread, 12, 4),
-      ],
-    );
+//          ^^^^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
+// [diag.notNullAwareNullSpread] The Null-typed expression can't be used with a non-null-aware spread.
+''');
   }
 
   test_listLiteral_notNullAware_nullTyped() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Null a = null;
 var v = [...a];
-''',
-      [
-        error(diag.invalidUseOfNullValue, 27, 1),
-        error(diag.notNullAwareNullSpread, 27, 1),
-      ],
-    );
+//          ^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
+// [diag.notNullAwareNullSpread] The Null-typed expression can't be used with a non-null-aware spread.
+''');
   }
 
   test_listLiteral_nullAware_nullLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = [...?null];
 ''');
   }
 
   test_listLiteral_nullAware_nullTyped() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Null a = null;
 var v = [...?a];
 ''');
   }
 
   test_mapLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = <int, int>{...null};
-''',
-      [
-        error(diag.invalidUseOfNullValue, 22, 4),
-        error(diag.notNullAwareNullSpread, 22, 4),
-      ],
-    );
+//                    ^^^^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
+// [diag.notNullAwareNullSpread] The Null-typed expression can't be used with a non-null-aware spread.
+''');
   }
 
   test_mapLiteral_notNullAware_nullType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Null a = null;
 var v = <int, int>{...a};
-''',
-      [
-        error(diag.invalidUseOfNullValue, 37, 1),
-        error(diag.notNullAwareNullSpread, 37, 1),
-      ],
-    );
+//                    ^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
+// [diag.notNullAwareNullSpread] The Null-typed expression can't be used with a non-null-aware spread.
+''');
   }
 
   test_mapLiteral_nullAware_nullLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = <int, int>{...?null};
 ''');
   }
 
   test_mapLiteral_nullAware_nullType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Null a = null;
 var v = <int, int>{...?a};
 ''');
   }
 
   test_setLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = <int>{...null};
-''',
-      [
-        error(diag.invalidUseOfNullValue, 17, 4),
-        error(diag.notNullAwareNullSpread, 17, 4),
-      ],
-    );
+//               ^^^^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
+// [diag.notNullAwareNullSpread] The Null-typed expression can't be used with a non-null-aware spread.
+''');
   }
 
   test_setLiteral_notNullAware_nullTyped() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 Null a = null;
 var v = <int>{...a};
-''',
-      [
-        error(diag.invalidUseOfNullValue, 32, 1),
-        error(diag.notNullAwareNullSpread, 32, 1),
-      ],
-    );
+//               ^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
+// [diag.notNullAwareNullSpread] The Null-typed expression can't be used with a non-null-aware spread.
+''');
   }
 
   test_setLiteral_nullAware_nullLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = <int>{...?null};
 ''');
   }
 
   test_setLiteral_nullAware_nullTyped() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Null a = null;
 var v = <int>{...?a};
 ''');

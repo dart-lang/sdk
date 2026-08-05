@@ -355,6 +355,7 @@ class ListIterator<E> implements Iterator<E> {
       _length = iterable.length,
       _index = 0;
 
+  @pragma("wasm:prefer-inline")
   E get current => _current as E;
 
   @pragma("vm:prefer-inline")

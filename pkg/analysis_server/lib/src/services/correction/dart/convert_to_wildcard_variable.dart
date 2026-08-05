@@ -20,11 +20,11 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
   @override
   final FixKind? multiFixKind;
 
-  ConvertToWildcardVariable({required super.context})
+  new({required super.context})
     : multiFixKind = null,
       applicability = .singleLocation;
 
-  ConvertToWildcardVariable.automatically({required super.context})
+  new automatically({required super.context})
     : multiFixKind = DartFixKind.convertToWildcardVariableMulti,
       applicability = .automatically;
 

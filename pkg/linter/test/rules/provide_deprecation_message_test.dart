@@ -25,12 +25,9 @@ class C {}
   }
 
   test_withoutMessage() async {
-    await assertDiagnostics(
-      r'''
-@deprecated
+    await assertDiagnosticsFromMarkup(r'''
+[!@deprecated!]
 class C {}
-''',
-      [lint(0, 11)],
-    );
+''');
   }
 }

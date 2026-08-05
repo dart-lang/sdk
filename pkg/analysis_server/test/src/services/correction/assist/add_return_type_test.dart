@@ -184,6 +184,45 @@ String f() {
 ''');
   }
 
+  Future<void> test_topLevelFunction_block_async() async {
+    await resolveTestCode('''
+^f(String? s) async {
+  return s;
+}
+''');
+    await assertHasAssist('''
+Future<String?> f(String? s) async {
+  return s;
+}
+''');
+  }
+
+  Future<void> test_topLevelFunction_block_asyncStar() async {
+    await resolveTestCode('''
+^f(String? s) async* {
+  yield s;
+}
+''');
+    await assertHasAssist('''
+Stream<String?> f(String? s) async* {
+  yield s;
+}
+''');
+  }
+
+  Future<void> test_topLevelFunction_block_syncStar() async {
+    await resolveTestCode('''
+^f(String? s) sync* {
+  yield s;
+}
+''');
+    await assertHasAssist('''
+Iterable<String?> f(String? s) sync* {
+  yield s;
+}
+''');
+  }
+
   Future<void> test_topLevelFunction_expression() async {
     await resolveTestCode('''
 ^f() => '';

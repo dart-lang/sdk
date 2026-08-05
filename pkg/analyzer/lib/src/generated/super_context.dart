@@ -23,6 +23,10 @@ class SuperContext {
   static const SuperContext static = SuperContext._('static');
 
   /// An indication that the super expression is in a context in which it is
+  /// invalid because it is in the body of a parameterless anonymous method.
+  static const SuperContext anonymousMethod = SuperContext._('anonymousMethod');
+
+  /// An indication that the super expression is in a context in which it is
   /// valid.
   static const SuperContext valid = SuperContext._('valid');
 
@@ -35,6 +39,10 @@ class SuperContext {
     for (AstNode? node = expression; node != null; node = node.parent) {
       if (node is Annotation) {
         return SuperContext.annotation;
+      } else if (node is AnonymousMethodBody &&
+          node.parent is AnonymousMethodInvocation &&
+          (node.parent as AnonymousMethodInvocation).parameters == null) {
+        return SuperContext.anonymousMethod;
       } else if (node is ClassDeclaration) {
         return SuperContext.valid;
       } else if (node is CompilationUnit) {

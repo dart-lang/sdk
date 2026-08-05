@@ -5,7 +5,9 @@
 library main;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
+
 import 'private_symbol_mangling_lib.dart';
 
 var _privateGlobalField = 1;

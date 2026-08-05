@@ -58,7 +58,7 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
   CorrectionUtils utils,
   AstNode contextNode,
   Expression? targetExpression,
-  List<Expression> arguments,
+  List<Argument> arguments,
   Set<String> previouslyIntroducedVariableNames,
   Map<FormalParameterElement, String> parameterToVariableName,
 ) async {
@@ -105,12 +105,9 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
       // Compare using names because parameter elements may not be the same
       // instance for methods with generic type arguments.
       if (arg.correspondingParameter?.name == parameter.name) {
-        argument = arg;
+        argument = arg.argumentExpression;
         break;
       }
-    }
-    if (argument is NamedExpression) {
-      argument = argument.expression;
     }
     // prepare argument properties
     Precedence argumentPrecedence;
@@ -120,7 +117,7 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
       argumentSource = utils.getNodeText(argument);
     } else {
       // report about a missing required parameter
-      if (parameter.isRequiredPositional) {
+      if (parameter.isRequired) {
         status.addError(
           'No argument for the parameter "${parameter.name}".',
           newLocation_fromNode(contextNode),
@@ -334,7 +331,13 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final int offset;
   final AnalysisSessionHelper sessionHelper;
   final CorrectionUtils utils;
-  late SourceChange change;
+
+  /// The builder used to build the edits.
+  ///
+  /// This refactor is unusual in that it builds the edits as part of checking
+  /// the final conditions rather than waiting until [buildChange] is called. It
+  /// also creates the builder while checking the initial conditions.
+  late ChangeBuilder builder;
 
   @override
   bool isDeclaration = false;
@@ -360,7 +363,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   /// calls into the same block.
   final Map<AstNode, Set<String>> _introducedVariablesByBlock = {};
 
-  InlineMethodRefactoringImpl(this.searchEngine, this.unitResult, this.offset)
+  new(this.searchEngine, this.unitResult, this.offset)
     : sessionHelper = AnalysisSessionHelper(unitResult.session),
       utils = CorrectionUtils(unitResult);
 
@@ -389,7 +392,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    change = SourceChange(refactoringName);
     var result = RefactoringStatus();
     // check for compatibility of "deleteSource" and "inlineAll"
     if (deleteSource && !inlineAll) {
@@ -406,18 +408,18 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         methodRange,
         skipLeadingEmptyLines: true,
       );
-      doSourceChange_addFragmentEdit(
-        change,
-        _methodElement!.firstFragment,
-        newSourceEdit_range(linesRange, ''),
-      );
+      var fragment = _methodElement!.firstFragment;
+      var filePath = fragment.libraryFragment.source.fullName;
+      await builder.addDartFileEdit(filePath, (builder) {
+        builder.addDeletion(linesRange);
+      });
     }
-    // done
     return result;
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
+    builder = ChangeBuilder(session: unitResult.session);
     var result = RefactoringStatus();
     // prepare method information
     result.addStatus(await _prepareMethod());
@@ -457,7 +459,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     var references = await searchEngine.searchReferences(methodElement);
     _referenceProcessors.clear();
     for (var reference in references) {
-      var processor = _ReferenceProcessor(this, reference);
+      var processor = _ReferenceProcessor(this, reference, builder);
       await processor.init();
       _referenceProcessors.add(processor);
     }
@@ -466,7 +468,11 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange({ChangeBuilder? builder}) {
-    return Future.value(change);
+    // The parameter `builder` is unused because the edits were already built
+    // in [checkFinalConditions].
+    var sourceChange = this.builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return Future.value(sourceChange);
   }
 
   @override
@@ -657,7 +663,7 @@ class _InlineMethodResult {
   final String source;
   final List<_VariableDeclaration> variableDeclarations;
 
-  _InlineMethodResult(this.source, this.variableDeclarations);
+  new(this.source, this.variableDeclarations);
 }
 
 class _ParameterOccurrence {
@@ -666,7 +672,7 @@ class _ParameterOccurrence {
   final Precedence parentPrecedence;
   final bool inStringInterpolation;
 
-  _ParameterOccurrence({
+  new({
     required this.baseOffset,
     required this.identifier,
     required this.parentPrecedence,
@@ -678,6 +684,7 @@ class _ParameterOccurrence {
 class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
   final SearchMatch reference;
+  final ChangeBuilder builder;
   final Map<TypeParameterElement, DartType> _argumentTypes = {};
   final Map<TypeParameterElement, DartType> _instanceArgumentTypes = {};
 
@@ -687,7 +694,7 @@ class _ReferenceProcessor {
   SourceRange? _refLineRange;
   late String _refPrefix;
 
-  _ReferenceProcessor(this.ref, this.reference);
+  new(this.ref, this.reference, this.builder);
 
   Future<void> init() async {
     refElement = reference.element;
@@ -707,10 +714,6 @@ class _ReferenceProcessor {
       _refLineRange = null;
       _refPrefix = _refUtils.getLinePrefix(_node.offset);
     }
-  }
-
-  void _addRefEdit(SourceEdit edit) {
-    doSourceChange_addSourceEdit(ref.change, reference.unitSource, edit);
   }
 
   bool _canInlineBody(AstNode usage) {
@@ -765,7 +768,7 @@ class _ReferenceProcessor {
     Expression usage,
     bool cascaded,
     Expression? target,
-    List<Expression> arguments,
+    List<Argument> arguments,
   ) async {
     // we don't support cascade
     if (cascaded) {
@@ -817,7 +820,7 @@ class _ReferenceProcessor {
         );
 
         // If there are variable declarations, insert them before the statement.
-        _insertVariableDeclarations(
+        await _insertVariableDeclarations(
           result.variableDeclarations,
           introducedVariableNames,
           _refLineRange,
@@ -831,11 +834,9 @@ class _ReferenceProcessor {
           ensureTrailingNewline: true,
         );
         // do insert
-        var edit = newSourceEdit_range(
-          SourceRange(_refLineRange!.offset, 0),
-          source,
-        );
-        _addRefEdit(edit);
+        await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+          builder.addSimpleInsertion(_refLineRange!.offset, source);
+        });
       }
       // replace invocation with return expression
       if (ref._methodExpressionPart != null) {
@@ -859,7 +860,7 @@ class _ReferenceProcessor {
         );
 
         // If there are variable declarations, insert them before the statement.
-        _insertVariableDeclarations(
+        await _insertVariableDeclarations(
           result.variableDeclarations,
           introducedVariableNames,
           _refLineRange,
@@ -902,11 +903,13 @@ class _ReferenceProcessor {
           ref._methodExpressionPart!._prefix,
           _refPrefix,
         );
-        var edit = newSourceEdit_range(nodeToReplaceRange, source);
-        _addRefEdit(edit);
+        await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+          builder.addSimpleReplacement(nodeToReplaceRange, source);
+        });
       } else {
-        var edit = newSourceEdit_range(_refLineRange!, '');
-        _addRefEdit(edit);
+        await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+          builder.addDeletion(_refLineRange!);
+        });
       }
       return;
     }
@@ -921,16 +924,17 @@ class _ReferenceProcessor {
       source = source.trim();
     }
     // do insert
-    var edit = newSourceEdit_range(range.node(_node), source);
-    _addRefEdit(edit);
+    await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+      builder.addSimpleReplacement(range.node(_node), source);
+    });
   }
 
   /// Inserts [variableDeclarations] in front of the code at [refLineRange].
-  void _insertVariableDeclarations(
+  Future<void> _insertVariableDeclarations(
     List<_VariableDeclaration> variableDeclarations,
     Set<String> introducedVariableNames,
     SourceRange? refLineRange,
-  ) {
+  ) async {
     if (variableDeclarations.isEmpty) return;
 
     var offset = _refLineRange?.offset ?? _node.offset;
@@ -946,7 +950,9 @@ class _ReferenceProcessor {
         '${_refPrefix}var ${variable.name} = ${variable.initializer};${_refUtils.endOfLine}',
       );
     }
-    _addRefEdit(SourceEdit(insertOffset, 0, buffer.toString()));
+    await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+      builder.addSimpleInsertion(insertOffset, buffer.toString());
+    });
   }
 
   Future<void> _process(RefactoringStatus status) async {
@@ -985,8 +991,11 @@ class _ReferenceProcessor {
             }
           }
           if (ref._alreadyMadeAsync.add(refElement)) {
-            var bodyStart = range.startLength(body, 0);
-            _addRefEdit(newSourceEdit_range(bodyStart, 'async '));
+            await builder.addDartFileEdit(reference.unitSource.fullName, (
+              builder,
+            ) {
+              builder.addSimpleInsertion(body.offset, 'async ');
+            });
           }
         }
       }
@@ -995,7 +1004,7 @@ class _ReferenceProcessor {
     if (nodeParent is MethodInvocation) {
       var invocation = nodeParent;
       var target = invocation.target;
-      List<Expression> arguments = invocation.argumentList.arguments;
+      List<Argument> arguments = invocation.argumentList.arguments;
       await _inlineMethodInvocation(
         status,
         invocation,
@@ -1068,8 +1077,9 @@ class _ReferenceProcessor {
         source = removeEnd(source, ';')!;
       }
       // do insert
-      var edit = newSourceEdit_range(range.node(_node), source);
-      _addRefEdit(edit);
+      await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+        builder.addSimpleReplacement(range.node(_node), source);
+      });
     }
   }
 
@@ -1108,7 +1118,7 @@ class _ReturnsValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
   int _numReturns = 0;
 
-  _ReturnsValidatorVisitor(this.result);
+  new(this.result);
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
@@ -1156,7 +1166,7 @@ class _SourcePart {
   /// The offsets of the implicit class references in static member references.
   final Map<String, List<int>> _implicitClassNameOffsets = {};
 
-  _SourcePart(this._base, this._source, this._prefix);
+  new(this._base, this._source, this._prefix);
 
   void addExplicitThisOffset(int offset) {
     _explicitThisOffsets.add(offset - _base);
@@ -1217,7 +1227,7 @@ class _VariableDeclaration {
   final String name;
   final String initializer;
 
-  _VariableDeclaration(this.name, this.initializer);
+  new(this.name, this.initializer);
 }
 
 /// A visitor that fills [_SourcePart] with fields, parameters and variables.
@@ -1234,12 +1244,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   /// The body [Scope] of the method being inlined.
   final Scope? scope;
 
-  _VariablesVisitor(
-    this.methodElement,
-    this.bodyRange,
-    this.result,
-    this.scope,
-  );
+  new(this.methodElement, this.bodyRange, this.result, this.scope);
 
   @override
   void visitNode(AstNode node) {

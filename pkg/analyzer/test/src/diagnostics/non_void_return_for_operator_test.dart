@@ -2,31 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonVoidReturnForOperatorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonVoidReturnForOperatorTest extends PubPackageResolutionTest {
   test_indexSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int operator []=(a, b) { return a; }
-}''',
-      [error(diag.nonVoidReturnForOperator, 12, 3)],
-    );
+//^^^
+// [diag.nonVoidReturnForOperator] The return type of the operator []= must be 'void'.
+}''');
   }
 
   test_no_return() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   operator []=(a, b) {}
 }
@@ -34,7 +34,7 @@ class A {
   }
 
   test_void() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator []=(a, b) {}
 }

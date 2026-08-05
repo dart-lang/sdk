@@ -27,7 +27,7 @@ class BlobDiff {
   /// command (the [input]).
   ///
   /// This is only intended to be invoked from [GitRepository.getBlobDiff].
-  BlobDiff._(List<String> input) {
+  new _(List<String> input) {
     _parseInput(input);
   }
 
@@ -79,7 +79,7 @@ class CommitDelta {
   /// command (the [diffResults]).
   ///
   /// This is only intended to be invoked from [GitRepository.getBlobDiff].
-  CommitDelta._(this.repository, String diffResults) {
+  new _(this.repository, String diffResults) {
     _parseInput(diffResults);
   }
 
@@ -213,7 +213,7 @@ class DiffHunk {
 
   /// Initialize a newly created hunk. The lines will be added after the object
   /// has been created.
-  DiffHunk(this.diffSrcLine, this.diffDstLine);
+  new(this.diffSrcLine, this.diffDstLine);
 
   /// Return the index of the first line that was changed in the dst. Unlike the
   /// [diffDstLine] field, this getter adjusts the line number to be consistent
@@ -264,7 +264,7 @@ class DiffRecord {
   final String? dstPath;
 
   /// Initialize a newly created diff record.
-  DiffRecord(
+  new(
     this.repository,
     this.srcBlob,
     this.dstBlob,
@@ -320,7 +320,7 @@ class GitRepository {
   /// the given [path].
   ///
   /// If a [commandSink] is provided, any calls to git will be written to it.
-  GitRepository(this.path, {this.logger});
+  new(this.path, {this.logger});
 
   /// Checkout the given [commit] from the repository. This is done by running
   /// the command `git checkout <sha>`.
@@ -389,7 +389,7 @@ class LinearCommitHistory {
 
   /// Initialize a commit history for the given [repository] to have the given
   /// [commitIds].
-  LinearCommitHistory(this.repository, this.commitIds);
+  new(this.repository, this.commitIds);
 
   /// Return an iterator that can be used to iterate over this commit history.
   LinearCommitHistoryIterator iterator() {
@@ -407,7 +407,7 @@ class LinearCommitHistoryIterator {
 
   /// Initialize a newly created iterator to iterate over the commits with the
   /// given [commitIds];
-  LinearCommitHistoryIterator(this.history) {
+  new(this.history) {
     currentCommit = history.commitIds.length;
   }
 

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideOfNonVirtualMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,8 +23,7 @@ class InvalidOverrideOfNonVirtualMemberTest extends PubPackageResolutionTest {
   }
 
   test_class_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -34,22 +34,14 @@ class C {
 class B extends C  {
   @override
   int g = 0;
+//    ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [
-        error(
-          diag.invalidOverrideOfNonVirtualMember,
-          113,
-          1,
-          messageContains: ["member 'g'", "in 'C'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_field_2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -59,15 +51,14 @@ class C {
 
 class B extends C  {
   int g = 0, h = 1;
+//    ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [error(diag.invalidOverrideOfNonVirtualMember, 101, 1)],
-    );
+''');
   }
 
   test_class_field_overriddenByGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -78,22 +69,14 @@ class C {
 class B extends C  {
   @override
   int get g => 0;
+//        ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [
-        error(
-          diag.invalidOverrideOfNonVirtualMember,
-          117,
-          1,
-          messageContains: ["member 'g'", "in 'C'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_field_overriddenBySetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -104,15 +87,14 @@ class C {
 class B extends C  {
   @override
   set g(int v) {}
+//    ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [error(diag.invalidOverrideOfNonVirtualMember, 113, 1)],
-    );
+''');
   }
 
   test_class_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -123,15 +105,14 @@ class C {
 class B extends C  {
   @override
   int get g => 0;
+//        ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [error(diag.invalidOverrideOfNonVirtualMember, 122, 1)],
-    );
+''');
   }
 
   test_class_getter_overriddenByField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -142,14 +123,14 @@ class C {
 class B extends C  {
   @override
   int g = 0;
+//    ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [error(diag.invalidOverrideOfNonVirtualMember, 118, 1)],
-    );
+''');
   }
 
   test_class_implements_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -165,7 +146,7 @@ class B implements C  {
   }
 
   test_class_implements_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -181,8 +162,7 @@ class B implements C  {
   }
 
   test_class_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -193,15 +173,14 @@ class C {
 class B extends C  {
   @override
   void f() {}
+//     ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'f' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [error(diag.invalidOverrideOfNonVirtualMember, 115, 1)],
-    );
+''');
   }
 
   test_class_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -212,15 +191,14 @@ class C {
 class B extends C  {
   @override
   set g(int v) {}
+//    ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [error(diag.invalidOverrideOfNonVirtualMember, 118, 1)],
-    );
+''');
   }
 
   test_class_setter_overriddenByField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -231,15 +209,14 @@ class C {
 class B extends C  {
   @override
   int g = 0;
+//    ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'C' and can't be overridden in subclasses.
 }
-''',
-      [error(diag.invalidOverrideOfNonVirtualMember, 118, 1)],
-    );
+''');
   }
 
   test_mixin_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -250,22 +227,14 @@ mixin M {
 class B with M {
   @override
   void f() {}
+//     ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'f' is declared non-virtual in 'M' and can't be overridden in subclasses.
 }
-''',
-      [
-        error(
-          diag.invalidOverrideOfNonVirtualMember,
-          111,
-          1,
-          messageContains: ["member 'f'", "in 'M'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_mixin_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -276,9 +245,9 @@ mixin M {
 class B with M {
   @override
   set g(int v) {}
+//    ^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'g' is declared non-virtual in 'M' and can't be overridden in subclasses.
 }
-''',
-      [error(diag.invalidOverrideOfNonVirtualMember, 114, 1)],
-    );
+''');
   }
 }

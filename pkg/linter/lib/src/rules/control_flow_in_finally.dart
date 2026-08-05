@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid control flow in `finally` blocks.';
 
 class ControlFlowInFinally extends AnalysisRule {
-  ControlFlowInFinally()
-    : super(name: LintNames.control_flow_in_finally, description: _desc);
+  new() : super(name: LintNames.control_flow_in_finally, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.controlFlowInFinally;
@@ -90,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void>
   @override
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBreakStatement(BreakStatement node) {

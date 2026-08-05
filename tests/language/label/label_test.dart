@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test check that we can parse labels.
 
+// See https://github.com/dart-lang/dart_style/issues/1863.
+// dart format off
+
 import "package:expect/expect.dart";
 
 class Helper {

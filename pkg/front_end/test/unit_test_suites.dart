@@ -63,7 +63,7 @@ class Options {
   final bool onlyTestsThatRequireGit;
   final int numberOfWorkers;
 
-  Options(
+  new(
     this.configurationName,
     this.verbose,
     this.printFailureLog,
@@ -203,7 +203,7 @@ class ResultLogger implements Logger {
   final Set<String> seenTests = {};
   bool gotFrameworkError = false;
 
-  ResultLogger(
+  new(
     this.prefix,
     this.resultsPort,
     this.logsPort,
@@ -435,7 +435,7 @@ class Suite {
   final String prefix;
   final bool requiresGit;
 
-  const Suite(
+  const new(
     this.prefix,
     this.createContext,
     this.testingRootPath, {
@@ -544,6 +544,7 @@ const List<Suite> suites = [
     textual_outline.createContext,
     "../testing.json",
     shardCount: 1,
+    requiresGit: true,
   ),
   const Suite(
     "coverage_merger",
@@ -572,7 +573,7 @@ class SuiteConfiguration {
   final List<String> environmentOptions;
   final int shard;
 
-  const SuiteConfiguration(
+  const new(
     this.suite,
     this.resultsPort,
     this.logsPort,

@@ -7,7 +7,8 @@ class A {
 }
 
 class B {
-  String Function() get call => () => "My name is B";
+  String Function() get call =>
+      () => "My name is B";
 }
 
 extension on int {
@@ -19,7 +20,8 @@ extension on num {
 }
 
 extension on String {
-  String Function() get call => () => "My name is String";
+  String Function() get call =>
+      () => "My name is String";
 }
 
 main() {

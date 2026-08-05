@@ -69,7 +69,7 @@ class ConstantTransformer extends Transformer {
       node.value = newInitializer;
       newInitializer.parent = node;
     } else if (newInitializer is VariableGet) {
-      VariableDeclaration parameter = newInitializer.variable;
+      Variable parameter = newInitializer.variable;
       final parameterInitializer = parameter.initializer;
       if (parameterInitializer != null) {
         Expression newParameterInitializer = _evaluateAndWrapOrNode(

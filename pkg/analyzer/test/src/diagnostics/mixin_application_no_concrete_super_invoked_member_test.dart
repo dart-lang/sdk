@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinApplicationNoConcreteSuperInvokedMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,8 +18,7 @@ main() {
 class MixinApplicationNoConcreteSuperInvokedMemberTest
     extends PubPackageResolutionTest {
   test_class_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int get foo;
 }
@@ -30,14 +30,13 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''',
-      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 121, 1)],
-    );
+//                              ^
+// [diag.mixinApplicationNoConcreteSuperInvokedMember] The class doesn't have a concrete implementation of the super-invoked member 'foo'.
+''');
   }
 
   test_class_inNextMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   void foo();
 }
@@ -53,14 +52,13 @@ mixin M2 on A {
 }
 
 class X extends A with M1, M2 {}
-''',
-      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 149, 2)],
-    );
+//                     ^^
+// [diag.mixinApplicationNoConcreteSuperInvokedMember] The class doesn't have a concrete implementation of the super-invoked member 'foo'.
+''');
   }
 
   test_class_inSameMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   void foo();
 }
@@ -72,14 +70,13 @@ mixin M on A {
 }
 
 class X extends A with M {}
-''',
-      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 113, 1)],
-    );
+//                     ^
+// [diag.mixinApplicationNoConcreteSuperInvokedMember] The class doesn't have a concrete implementation of the super-invoked member 'foo'.
+''');
   }
 
   test_class_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo();
 }
@@ -91,13 +88,13 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''',
-      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 122, 1)],
-    );
+//                              ^
+// [diag.mixinApplicationNoConcreteSuperInvokedMember] The class doesn't have a concrete implementation of the super-invoked member 'foo'.
+''');
   }
 
   test_class_OK_hasNSM() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo();
 }
@@ -117,7 +114,7 @@ class X extends C with M {}
   }
 
   test_class_OK_hasNSM2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo();
 }
@@ -141,7 +138,7 @@ class X extends C with M {}
   }
 
   test_class_OK_inPreviousMixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo();
 }
@@ -161,7 +158,7 @@ class X extends A with M1, M2 {}
   }
 
   test_class_OK_inSuper_fromMixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo();
 }
@@ -183,7 +180,7 @@ class X extends B with M2 {}
   }
 
   test_class_OK_notInvoked() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo();
 }
@@ -195,7 +192,7 @@ abstract class X extends A with M {}
   }
 
   test_class_OK_super_covariant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   bar(num n) {}
 }
@@ -215,8 +212,7 @@ class C extends B with M {}
   }
 
   test_class_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void set foo(_);
 }
@@ -228,14 +224,13 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''',
-      [error(diag.mixinApplicationNoConcreteSuperInvokedSetter, 129, 1)],
-    );
+//                              ^
+// [diag.mixinApplicationNoConcreteSuperInvokedSetter] The class doesn't have a concrete implementation of the super-invoked setter 'foo'.
+''');
   }
 
   test_enum_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {
   int get foo;
 }
@@ -247,16 +242,16 @@ mixin M2 on M1 {
 }
 
 enum E with M1, M2 {
+//              ^^
+// [diag.mixinApplicationNoConcreteSuperInvokedMember] The class doesn't have a concrete implementation of the super-invoked member 'foo'.
   v;
   int get foo => 0;
 }
-''',
-      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 99, 2)],
-    );
+''');
   }
 
   test_enum_getter_exists() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {
   int get foo => 0;
 }
@@ -274,7 +269,7 @@ enum E with M1, M2 {
   }
 
   test_enum_getter_index() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M on Enum {
   void foo() {
     super.index;
@@ -288,8 +283,7 @@ enum E with M {
   }
 
   test_enum_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {
   void foo();
 }
@@ -301,16 +295,16 @@ mixin M2 on M1 {
 }
 
 enum E with M1, M2 {
+//              ^^
+// [diag.mixinApplicationNoConcreteSuperInvokedMember] The class doesn't have a concrete implementation of the super-invoked member 'foo'.
   v;
   void foo() {}
 }
-''',
-      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 100, 2)],
-    );
+''');
   }
 
   test_enum_method_exists() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {
   void foo() {}
 }
@@ -328,7 +322,7 @@ enum E with M1, M2 {
   }
 
   test_enum_OK_getter_inPreviousMixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {
   int get foo => 0;
 }
@@ -346,8 +340,7 @@ enum E with M1, M2 {
   }
 
   test_enum_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {
   set foo(int _);
 }
@@ -359,11 +352,11 @@ mixin M2 on M1 {
 }
 
 enum E with M1, M2 {
+//              ^^
+// [diag.mixinApplicationNoConcreteSuperInvokedSetter] The class doesn't have a concrete implementation of the super-invoked setter 'foo'.
   v;
   set foo(int _) {}
 }
-''',
-      [error(diag.mixinApplicationNoConcreteSuperInvokedSetter, 106, 2)],
-    );
+''');
   }
 }

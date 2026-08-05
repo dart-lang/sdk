@@ -31,8 +31,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get declaresConstConstructor;
 
-  bool get isMixinClass;
-
   bool get isMixinDeclaration;
 
   bool get isMixinApplication;
@@ -344,5 +342,5 @@ class ConstructorRedirection {
   String target;
   bool cycleReported;
 
-  ConstructorRedirection(this.target) : cycleReported = false;
+  new(this.target) : cycleReported = false;
 }

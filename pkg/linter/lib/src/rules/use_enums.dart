@@ -19,7 +19,7 @@ import '../extensions.dart';
 const _desc = r'Use enums rather than classes that behave like enums.';
 
 class UseEnums extends AnalysisRule {
-  UseEnums() : super(name: LintNames.use_enums, description: _desc);
+  new() : super(name: LintNames.use_enums, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.useEnums;
@@ -41,7 +41,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
   /// The element representing the enum declaration that's being visited.
   final ClassElement classElement;
 
-  _BaseVisitor(this.classElement);
+  new(this.classElement);
 
   /// Return `true` if the given [node] is an invocation of a generative
   /// constructor from the class being converted.
@@ -65,7 +65,7 @@ class _EnumVisitor extends _BaseVisitor {
 
   List<VariableDeclaration> variableDeclarations;
 
-  _EnumVisitor(super.classElement, this.variableDeclarations);
+  new(super.classElement, this.variableDeclarations);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -100,7 +100,7 @@ class _InvalidEnumException implements Exception {}
 class _NonEnumVisitor extends _BaseVisitor {
   /// Initialize a newly created visitor to visit everything except the class
   /// declaration corresponding to the given [classElement].
-  _NonEnumVisitor(super.classElement);
+  new(super.classElement);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -138,7 +138,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   visitClassDeclaration(ClassDeclaration node) {

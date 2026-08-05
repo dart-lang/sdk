@@ -5,17 +5,17 @@
 enum E1 {
   element;
 
-  bool operator==(Object other) => true; // Error.
+  bool operator ==(Object other) => true; // Error.
 }
 
 enum E2 {
   element;
 
-  bool operator==(Object other); // Ok.
+  bool operator ==(Object other); // Ok.
 }
 
 abstract class I3 {
-  bool operator==(Object other);
+  bool operator ==(Object other);
 }
 
 enum E3 implements I3 { element } // Ok.

@@ -46,6 +46,15 @@ void handleFile(HttpRequest request) {
     return;
   }
 
+  // Prevent path traversal and absolute path injection.
+  // Source references in source maps are relative to the map file; there is
+  // no legitimate reason for a /file request to escape the map's directory.
+  if (path.contains('..') || path.startsWith('/') || path.startsWith('file:')) {
+    request.response.statusCode = HttpStatus.FORBIDDEN;
+    request.response.close();
+    return;
+  }
+
   Uri uri = sourceMapFile.resolve(path);
   new File.fromUri(uri)
       .openRead()

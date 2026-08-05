@@ -335,6 +335,73 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_initializer_reference() async {
+    await resolveTestCode('''
+class Foo {
+  final int ^a;
+  final int b;
+
+  Foo(this.a) : b = a + 1 {}
+}
+''');
+    await assertHasAssist('''
+class Foo {
+  int _a;
+
+  int get a => _a;
+  final int b;
+
+  Foo(this._a) : b = _a + 1 {}
+}
+''');
+  }
+
+  Future<void> test_initializer_reference_noPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.10
+
+class Foo {
+  final int ^a;
+  final int b;
+
+  Foo({required this.a}) : b = a + 1 {}
+}
+''');
+    await assertHasAssist('''
+// @dart=3.10
+
+class Foo {
+  int _a;
+
+  int get a => _a;
+  final int b;
+
+  Foo({required int a}) : _a = a, b = a + 1 {}
+}
+''');
+  }
+
+  Future<void> test_initializer_reference_privateNamedParameters() async {
+    await resolveTestCode('''
+class Foo {
+  final int ^a;
+  final int b;
+
+  Foo({required this.a}) : b = a + 1 {}
+}
+''');
+    await assertHasAssist('''
+class Foo {
+  int _a;
+
+  int get a => _a;
+  final int b;
+
+  Foo({required this._a}) : b = _a + 1 {}
+}
+''');
+  }
+
   Future<void> test_mixin_hasType() async {
     await resolveTestCode('''
 mixin M {
@@ -647,6 +714,77 @@ class A {
     _field = value;
   }
   A([this._field]);
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_final_blockBody() async {
+    await resolveTestCode('''
+class A([final int ^test = 42]) {
+  void f() {}
+}
+''');
+    await assertHasAssist('''
+class A([var int _test = 42]) {
+  void f() {}
+
+  int get test => _test;
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_final_emptyBody() async {
+    await resolveTestCode('''
+class A([final int ^test = 42]);
+''');
+    await assertHasAssist('''
+class A([var int _test = 42]) {
+  int get test => _test;
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_initializer() async {
+    await resolveTestCode('''
+class A() {
+  this : test = 1 {}
+
+  int ^test;
+}
+''');
+    await assertHasAssist('''
+class A() {
+  this : _test = 1 {}
+
+  int _test;
+
+  int get test => _test;
+
+  set test(int value) {
+    _test = value;
+  }
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_nonDeclaring() async {
+    await resolveTestCode('''
+class A([int ^test = 42]);
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_primaryConstructor_var() async {
+    await resolveTestCode('''
+class A([var int ^test = 42]);
+''');
+    await assertHasAssist('''
+class A([var int _test = 42]) {
+  int get test => _test;
+
+  set test(int value) {
+    _test = value;
+  }
 }
 ''');
   }

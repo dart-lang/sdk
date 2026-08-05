@@ -9,6 +9,7 @@ import 'add_digit_separators_test.dart' as add_digit_separators;
 import 'add_late_test.dart' as add_late;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
+import 'add_type_name_test.dart' as add_type_name;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
 import 'bind_all_to_fields_test.dart' as bind_all_to_fields_test;
 import 'bind_to_field_test.dart' as bind_to_field_test;
@@ -41,6 +42,8 @@ import 'convert_to_if_case_statement_chain_test.dart'
     as convert_to_if_case_statement_chain;
 import 'convert_to_if_case_statement_test.dart' as convert_to_if_case_statement;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
+import 'convert_to_in_body_constructor_test.dart'
+    as convert_to_in_body_constructor;
 import 'convert_to_initializing_formal_test.dart'
     as convert_to_initializing_formal;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
@@ -50,8 +53,6 @@ import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
 import 'convert_to_primary_constructor_test.dart'
     as convert_to_primary_constructor;
-import 'convert_to_secondary_constructor_test.dart'
-    as convert_to_secondary_constructor;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
@@ -97,6 +98,8 @@ import 'join_else_with_if_test.dart' as join_else_with_if;
 import 'join_if_with_inner_test.dart' as join_if_with_inner;
 import 'join_if_with_outer_test.dart' as join_if_with_outer;
 import 'join_variable_declaration_test.dart' as join_variable_declaration;
+import 'move_initialization_to_field_declaration_test.dart'
+    as move_initialization_to_field_declaration;
 import 'remove_async_test.dart' as remove_async;
 import 'remove_digit_separators_test.dart' as remove_digit_separators;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
@@ -127,6 +130,7 @@ void main() {
     add_late.main();
     add_return_type.main();
     add_type_annotation.main();
+    add_type_name.main();
     assign_to_local_variable.main();
     bind_all_to_fields_test.main();
     bind_to_field_test.main();
@@ -159,7 +163,7 @@ void main() {
     convert_to_null_aware.main();
     convert_to_package_import.main();
     convert_to_primary_constructor.main();
-    convert_to_secondary_constructor.main();
+    convert_to_in_body_constructor.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
@@ -198,6 +202,7 @@ void main() {
     join_if_with_inner.main();
     join_if_with_outer.main();
     join_variable_declaration.main();
+    move_initialization_to_field_declaration.main();
     remove_async.main();
     remove_digit_separators.main();
     remove_unnecessary_name.main();

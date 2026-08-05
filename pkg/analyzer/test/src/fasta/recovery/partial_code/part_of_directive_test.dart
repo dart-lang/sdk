@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../dart/resolution/node_text_expectations.dart';
@@ -18,10 +17,11 @@ main() {
 @reflectiveTest
 class PartOfDirectivesTest extends ParserDiagnosticsTest {
   void test_part_of_directive_emptyUri_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' class A {}
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -44,10 +44,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' const a = 0;
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -73,10 +74,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' enum E { v }
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -102,10 +104,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of ''
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -120,10 +123,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' final a = 0;
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -149,10 +153,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' int f() {}
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -180,10 +185,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' void f() {}
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -211,10 +217,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' int get a => 0;
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -241,10 +248,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' mixin M {}
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -266,10 +274,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' set a(b) {}
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -298,10 +307,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' typedef A = B Function(C, D);
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -335,10 +345,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_emptyUri_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of '' var a;
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -361,13 +372,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of class A {}
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^^^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedStringLiteral, 8, 5),
-      error(diag.expectedToken, 5, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -390,13 +401,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of const a = 0;
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^^^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedStringLiteral, 8, 5),
-      error(diag.expectedToken, 5, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -422,13 +433,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of enum E { v }
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedStringLiteral, 8, 4),
-      error(diag.expectedToken, 5, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -454,13 +465,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//     ^
+// [diag.expectedStringLiteral][column 8][length 0] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedStringLiteral, 8, 0),
-      error(diag.expectedToken, 5, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -475,13 +486,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of final a = 0;
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^^^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedStringLiteral, 8, 5),
-      error(diag.expectedToken, 5, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -507,13 +518,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of int f() {}
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -540,13 +550,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of void f() {}
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedStringLiteral, 8, 4),
-      error(diag.expectedToken, 5, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -574,13 +584,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of int get a => 0;
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -606,14 +615,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of mixin M {}
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//      ^
+// [diag.partOfName][column 9][length 0] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 8, 5),
-      error(diag.expectedToken, 5, 2),
-      error(diag.partOfName, 8, 0),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -636,14 +646,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of set a(b) {}
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//      ^
+// [diag.partOfName][column 9][length 0] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 8, 3),
-      error(diag.expectedToken, 5, 2),
-      error(diag.partOfName, 8, 0),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -673,14 +684,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of typedef A = B Function(C, D);
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//      ^
+// [diag.partOfName][column 9][length 0] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 8, 7),
-      error(diag.expectedToken, 5, 2),
-      error(diag.partOfName, 8, 0),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -715,13 +727,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_keyword_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of var a;
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedStringLiteral, 8, 3),
-      error(diag.expectedToken, 5, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -744,13 +756,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib class A {}
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -774,13 +785,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib const a = 0;
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -807,13 +817,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib enum E { v }
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -840,13 +849,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -862,13 +870,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib final a = 0;
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -895,13 +902,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib int f() {}
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -930,13 +936,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib void f() {}
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -965,13 +970,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib int get a => 0;
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -999,13 +1003,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib mixin M {}
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1028,13 +1031,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib set a(b) {}
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1064,13 +1066,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib typedef A = B Function(C, D);
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1105,13 +1106,12 @@ CompilationUnit
   }
 
   void test_part_of_directive_name_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib var a;
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 3),
-      error(diag.partOfName, 8, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1135,14 +1135,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. class A {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 5),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1168,14 +1169,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. const a = 0;
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 5),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1204,14 +1206,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. enum E { v }
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 4),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1240,14 +1243,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.
+//      ^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.missingIdentifier][column 13][length 0] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 0),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1265,14 +1269,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. final a = 0;
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 5),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1301,13 +1306,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. int f() {}
+//      ^^^^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//           ^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 3),
-      error(diag.partOfName, 8, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1336,14 +1341,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. void f() {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 4),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1374,13 +1380,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. int get a => 0;
+//      ^^^^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//           ^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 3),
-      error(diag.partOfName, 8, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1408,14 +1414,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. mixin M {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 5),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1440,14 +1447,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. set a(b) {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 3),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1479,14 +1487,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. typedef A = B Function(C, D);
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 7),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1523,14 +1532,15 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDot_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib. var a;
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 3),
-      error(diag.expectedToken, 11, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1556,13 +1566,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a class A {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1588,13 +1598,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a const a = 0;
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1623,13 +1633,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a enum E { v }
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1658,13 +1668,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1682,13 +1692,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a final a = 0;
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1717,13 +1727,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a int f() {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1754,13 +1764,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a void f() {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1791,13 +1801,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a int get a => 0;
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1827,13 +1837,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a mixin M {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1858,13 +1868,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a set a(b) {}
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1896,13 +1906,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a typedef A = B Function(C, D);
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1939,13 +1949,13 @@ CompilationUnit
   }
 
   void test_part_of_directive_nameDotName_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of lib.a var a;
+//      ^^^^^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.partOfName, 8, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1971,10 +1981,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' class A {}
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1997,10 +2008,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' const a = 0;
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2026,10 +2038,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' enum E { v }
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2055,10 +2068,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart'
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2073,10 +2087,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' final a = 0;
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2102,10 +2117,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' int f() {}
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2133,10 +2149,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' void f() {}
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2164,10 +2181,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' int get a => 0;
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2194,10 +2212,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' mixin M {}
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2219,10 +2238,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' set a(b) {}
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2251,10 +2271,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' typedef A = B Function(C, D);
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2288,10 +2309,11 @@ CompilationUnit
   }
 
   void test_part_of_directive_uri_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 part of 'a.dart' var a;
+//      ^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 8, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

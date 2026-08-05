@@ -21,26 +21,25 @@ import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 @pragma('vm:shared')
-late final Mutex mutex;
+final Mutex mutex = Mutex();
 
 @pragma('vm:shared')
-late final String shared_late_final_string = () {
+final String shared_late_final_string = () {
   return "${int.parse('123') + 42}";
 }();
 
 @pragma('vm:shared')
-late final String shared_late_final_throw = () {
+final String shared_late_final_throw = () {
   throw "${int.parse('123') + 42}";
 }();
 
 @pragma('vm:shared')
-late final String foo = () {
+final String foo = () {
   return "${int.parse('123') + 42}";
 }();
 
 testInitStrings() async {
   const int nWorkers = 100;
-  mutex = Mutex();
   final rp = ReceivePort();
   final rpExitAndErrors = ReceivePort()
     ..listen((e) {
@@ -124,7 +123,7 @@ testInitThrows() async {
 }
 
 @pragma('vm:shared')
-late final String foo_bar = () {
+final String foo_bar = () {
   return "${int.parse('123') + 42} $foo";
 }();
 

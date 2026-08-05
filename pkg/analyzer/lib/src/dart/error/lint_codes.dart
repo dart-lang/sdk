@@ -8,8 +8,9 @@ library;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 
-export 'package:_fe_analyzer_shared/src/base/errors.dart'
+export 'package:analyzer/src/diagnostic/diagnostic.dart'
     show
         DiagnosticWithArguments,
         DiagnosticWithoutArguments,

@@ -9,10 +9,10 @@ class A {
   Object? field;
   method() {}
   Object? call() => null;
-  Object? operator[](int index) => null;
-  void operator[]=(int index, Object? value) {}
-  A operator+(A other) => this;
-  A operator-() => this;
+  Object? operator [](int index) => null;
+  void operator []=(int index, Object? value) {}
+  A operator +(A other) => this;
+  A operator -() => this;
 
   notCapturedMethodCall() {
     method();
@@ -91,7 +91,9 @@ class A {
   }
 
   capturedPropertySet() {
-    return () { field = null; };
+    return () {
+      field = null;
+    };
   }
 
   capturedCall() {
@@ -103,7 +105,9 @@ class A {
   }
 
   capturedIndexSet() {
-    return () { this[0] = null; };
+    return () {
+      this[0] = null;
+    };
   }
 
   capturedUnary() {
@@ -231,7 +235,9 @@ class B extends A {
 
   @override
   capturedPropertySet() {
-    return () { super.field = null; };
+    return () {
+      super.field = null;
+    };
   }
 
   @override
@@ -246,7 +252,9 @@ class B extends A {
 
   @override
   capturedIndexSet() {
-    return () { super[0] = null; };
+    return () {
+      super[0] = null;
+    };
   }
 
   @override

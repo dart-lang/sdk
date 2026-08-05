@@ -55,6 +55,15 @@ final class RuleState {
     : _type = _RuleStateType.stable,
       replacedBy = null;
 
+  /// Initializes a state that marks an analysis rule as
+  /// being tested internally.
+  ///
+  /// Rules in this state are experimental, temporary,
+  /// and have no stability guarantees.
+  /// They're not limited to being used within the Dart SDK,
+  /// but they're not recommended for general use.
+  const RuleState.testing({this.since}) : _type = .testing, replacedBy = null;
+
   /// Whether this state marks an analysis rule as deprecated.
   bool get isDeprecated => _type == _RuleStateType.deprecated;
 
@@ -67,10 +76,20 @@ final class RuleState {
   /// Whether this state marks an analysis rule as removed.
   bool get isRemoved => _type == _RuleStateType.removed;
 
+  /// Whether this state marks an analysis rule as being tested internally.
+  bool get isTesting => _type == _RuleStateType.testing;
+
   /// A short description, suitable for displaying in documentation or a
   /// diagnostic message.
   String get label => _type.name;
 }
 
 /// The type of a rule state.
-enum _RuleStateType { deprecated, experimental, internal, removed, stable }
+enum _RuleStateType {
+  deprecated,
+  experimental,
+  internal,
+  removed,
+  stable,
+  testing,
+}

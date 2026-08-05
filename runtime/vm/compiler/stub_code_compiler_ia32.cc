@@ -173,13 +173,6 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
-                                            Register dst,
-                                            Register tmp) {
-  // Only used in AOT.
-  __ Breakpoint();
-}
-
 // Calls a native function inside a safepoint.
 //
 // On entry:
@@ -242,13 +235,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ Bind(&body);
 
-  // Save THR and EBX which are callee-saved.
+  // Save THR, EBX and EDI which are callee-saved.
   __ pushl(THR);
   __ pushl(EBX);
   __ pushl(ECX);
+  __ pushl(EDI);
 
   // THR & return address
-  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 6);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
@@ -256,7 +250,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // code size on this shared stub.
   {
     __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(5 * target::kWordSize);
+    // "8" to keep 16-byte alignment
+    __ ReserveAlignedFrameSpace(8 * target::kWordSize);
+    // SP[6] CallbackMetadata.caller_isolate_group
+    // SP[5] CallbackMetadata.caller_isolate
     // SP[4] CallbackMetadata.epilogue
     // SP[3] CallbackMetadata.is_tail
     // SP[2] CallbackMetadata.entry_point
@@ -276,6 +273,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ movl(EAX, Address(SPREG, 2 * target::kWordSize));  // entry_point
     __ movl(ECX, Address(SPREG, 3 * target::kWordSize));  // is_tail
     __ movl(EBX, Address(SPREG, 4 * target::kWordSize));  // epilogue
+    __ movl(EDI, Address(SPREG, 5 * target::kWordSize));  // caller_isolate
+    __ movl(EDX,
+            Address(SPREG, 6 * target::kWordSize));  // caller_isolate_group
 
     __ LeaveFrame();
   }
@@ -291,7 +291,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   {
     __ Bind(&call);
+    __ pushl(EDX);
     __ call(EAX);  // entry_point
+    __ popl(ECX);
 
     __ pushl(CallingConventions::kReturnReg);
     __ pushl(CallingConventions::kSecondReturnReg);
@@ -299,8 +301,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ movsd(Address(ESP, 0), CallingConventions::kReturnFpuReg);
     // 4 + 4 + 8 = 16 (stack alignment)
 
+    __ pushl(ECX);
+    __ pushl(EDI);
     __ pushl(THR);
     __ call(EBX);  // DLRT_ExitSyncCallback, etc
+    __ popl(EAX);
+    __ popl(EAX);
     __ popl(EAX);
 
     __ movsd(CallingConventions::kReturnFpuReg, Address(ESP, 0));
@@ -308,6 +314,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ popl(CallingConventions::kSecondReturnReg);
     __ popl(CallingConventions::kReturnReg);
 
+    __ popl(EDI);
     __ popl(ECX);
     __ popl(EBX);
     __ popl(THR);
@@ -315,7 +322,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
   {
     __ Bind(&call_ret4);
+    __ pushl(ECX);
     __ call(EAX);  // entry_point
+    __ popl(ECX);
 
     __ pushl(CallingConventions::kReturnReg);
     __ pushl(CallingConventions::kSecondReturnReg);
@@ -323,8 +332,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ movsd(Address(ESP, 0), CallingConventions::kReturnFpuReg);
     // 4 + 4 + 8 = 16 (stack alignment)
 
+    __ pushl(ECX);
+    __ pushl(EDI);
     __ pushl(THR);
     __ call(EBX);  // DLRT_ExitSyncCallback, etc
+    __ popl(EAX);
+    __ popl(EAX);
     __ popl(EAX);
 
     __ movsd(CallingConventions::kReturnFpuReg, Address(ESP, 0));
@@ -332,6 +345,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ popl(CallingConventions::kSecondReturnReg);
     __ popl(CallingConventions::kReturnReg);
 
+    __ popl(EDI);
     __ popl(ECX);
     __ popl(EBX);
     __ popl(THR);
@@ -339,8 +353,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
   {
     __ Bind(&tail);
+    __ pushl(ECX);
     __ call(EAX);  // entry_point
+    __ popl(ECX);
     __ movl(EAX, EBX);
+    __ popl(EDI);
     __ popl(ECX);
     __ popl(EBX);
     __ popl(THR);
@@ -2407,9 +2424,9 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub() {
-  GenerateNArgsCheckInlineCacheStub(
-      2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kUnoptimized, kStaticCall, kIgnoreExactness);
+  GenerateNArgsCheckInlineCacheStub(1, kStaticCallMissHandlerOneArgRuntimeEntry,
+                                    Token::kILLEGAL, kUnoptimized, kStaticCall,
+                                    kIgnoreExactness);
 }
 
 // ECX: ICData
@@ -2787,20 +2804,72 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
     __ movl(STCInternal::kInstanceCidOrSignatureReg,
             FieldAddress(STCInternal::kInstanceCidOrSignatureReg,
                          target::Function::signature_offset()));
+
     if (n >= 2) {
-      __ movl(
+      __ movl(STCInternal::kScratchReg,
+              FieldAddress(TypeTestABI::kInstanceReg,
+                           target::Closure::length_and_flags_offset()));
+
+      Label load_function_type_arguments, load_delayed_type_arguments;
+      __ movl(STCInternal::kInstanceInstantiatorTypeArgumentsReg, raw_null);
+      __ BranchIfBit(
+          STCInternal::kScratchReg,
+          UntaggedClosure::kHasInstantiatorTypeArgumentsBit + kSmiTagShift,
+          ZERO, (n >= 5) ? &load_function_type_arguments : &loop);
+      __ ExtractBitField(
+          STCInternal::kInstanceInstantiatorTypeArgumentsReg,
+          STCInternal::kScratchReg,
+          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::shift() +
+              kSmiTagShift,
+          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::bitsize());
+      __ Load(
           STCInternal::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::instantiator_type_arguments_offset()));
+                       STCInternal::kInstanceInstantiatorTypeArgumentsReg,
+                       TIMES_WORD_SIZE, target::Closure::element_offset(0)));
+      if (n >= 5) {
+        Label no_function_type_arguments;
+        __ Bind(&load_function_type_arguments);
+
+        __ BranchIfBit(
+            STCInternal::kScratchReg,
+            UntaggedClosure::kHasFunctionTypeArgumentsBit + kSmiTagShift, ZERO,
+            &no_function_type_arguments);
+        __ ExtractBitField(
+            STCInternal::kScratchReg, STCInternal::kScratchReg,
+            UntaggedClosure::FunctionTypeArgumentsIndexBits::shift() +
+                kSmiTagShift,
+            UntaggedClosure::FunctionTypeArgumentsIndexBits::bitsize());
+        __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
+                              STCInternal::kScratchReg, TIMES_WORD_SIZE,
+                              target::Closure::element_offset(0)));
+        __ jmp((n >= 6) ? &load_delayed_type_arguments : &loop,
+               Assembler::kNearJump);
+
+        __ Bind(&no_function_type_arguments);
+        __ pushl(raw_null);
+      }
+
+      if (n >= 6) {
+        Label no_delayed_type_arguments;
+        __ Bind(&load_delayed_type_arguments);
+
+        __ testl(FieldAddress(TypeTestABI::kInstanceReg,
+                              target::Closure::length_and_flags_offset()),
+                 Immediate(UntaggedClosure::kHasDelayedTypeArgumentsBit +
+                           kSmiTagShift));
+        __ j(ZERO, &no_delayed_type_arguments, Assembler::kNearJump);
+        __ pushl(
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::element_offset(
+                             UntaggedClosure::kDelayedTypeArgumentsIndex)));
+        __ jmp(&loop, Assembler::kNearJump);
+
+        __ Bind(&no_delayed_type_arguments);
+        __ pushl(raw_null);
+      }
     }
-    if (n >= 5) {
-      __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
-                            target::Closure::function_type_arguments_offset()));
-    }
-    if (n >= 6) {
-      __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
-                            target::Closure::delayed_type_arguments_offset()));
-    }
+
     __ jmp(&loop, Assembler::kNearJump);
   }
 

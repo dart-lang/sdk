@@ -38,8 +38,8 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
     SourceFactory sourceFactory = SourceFactory([
       DartUriResolver(FolderBasedDartSdk(resourceProvider, sdkRoot)),
       PackageMapUriResolver(resourceProvider, {
-        'foo': [fooFolder],
-        'bar': [barFolder],
+        'foo': fooFolder,
+        'bar': barFolder,
       }),
       ResourceUriResolver(resourceProvider),
     ]);

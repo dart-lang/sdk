@@ -16,7 +16,7 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  await withTempDir((String temp) async {
+  await withTempDir("snapshot-depfile", (String temp) async {
     final snapshotPath = p.join(temp, 'snapshot_depfile_test.snapshot');
     final depfilePath = p.join(temp, 'snapshot_depfile_test.snapshot.d');
 

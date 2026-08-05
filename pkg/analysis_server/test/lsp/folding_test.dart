@@ -78,9 +78,9 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_class() async {
     var content = '''
-class MyClass2/*[0*/ {
+class MyClass2 {/*[0*/
   // Class content
-}/*0]*/
+/*0]*/}
 ''';
 
     await computeRanges(content);
@@ -95,7 +95,7 @@ class MyClass2 {}
 ''';
 
     await computeRanges(content);
-    expectRanges({0: FoldingRangeKind.Comment});
+    expectRanges({0: .Comment});
   }
 
   Future<void> test_doLoop() async {
@@ -159,9 +159,9 @@ void f() {
     const content = '''
 // /*[0*/contributed by fake plugin/*0]*/
 
-class AnnotatedDartClass/*[1*/ {
+class AnnotatedDartClass {/*[1*/
   // content of dart class, contributed by server
-}/*1]*/
+/*1]*/}
 ''';
 
     initializePlugin() {
@@ -183,7 +183,7 @@ class AnnotatedDartClass/*[1*/ {
       initializePlugin: initializePlugin,
     );
     expectRanges({
-      0: FoldingRangeKind.Imports, // From plugin
+      0: .Imports, // From plugin
       1: noFoldingKind, // From server
     });
   }
@@ -247,11 +247,7 @@ void f() {}
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: FoldingRangeKind.Comment,
-      1: FoldingRangeKind.Imports,
-      2: FoldingRangeKind.Comment,
-    });
+    expectRanges({0: .Comment, 1: .Imports, 2: .Comment});
   }
 
   Future<void> test_ifElseElseIf() async {
@@ -327,13 +323,13 @@ var ix = """/*[2*/
 
   Future<void> test_nested() async {
     var content = '''
-class MyClass2/*[0*/ {
+class MyClass2 {/*[0*/
   void f/*[1*/() {
     void g/*[2*/() {
       //
     }/*2]*/
   }/*1]*/
-}/*0]*/
+/*0]*/}
 ''';
 
     await computeRanges(content);
@@ -363,7 +359,7 @@ class MyClass2 {/*[0*/
 
   /// When the client supports columns (not "lineFoldingOnly"), we can end
   /// one range on the same line as the next one starts.
-  Future<void> test_overlapLines_columnsSupported() async {
+  Future<void> test_overlapLines_columnsSupported_consecutive() async {
     var content = '''
 void f/*[0*/() {
   //
@@ -379,7 +375,30 @@ void f/*[0*/() {
   /// When the client supports lineFoldingOnly, we cannot end a range on the
   /// same line that the next one starts. Instead, it should be shortened to end
   /// on the previous line.
-  Future<void> test_overlapLines_lineFoldingOnly() async {
+  ///
+  /// This test checks this for when the overlapped ranges are not consecutive
+  /// because there is a foldable comment in between.
+  ///
+  Future<void> test_overlapLines_columnsSupported_nonConsecutive() async {
+    var content = '''
+class C(/*[0*/
+  var int x,
+  /// comment line 1/*[1*/
+  /// comment line 2/*1]*/
+  var int y/*0]*/) {/*[2*/
+  void m1() {}
+  void m2() {}
+/*2]*/}
+''';
+
+    await computeRanges(content);
+    expectRanges({0: noFoldingKind, 1: .Comment, 2: noFoldingKind});
+  }
+
+  /// When the client supports lineFoldingOnly, we cannot end a range on the
+  /// same line that the next one starts. Instead, it should be shortened to end
+  /// on the previous line.
+  Future<void> test_overlapLines_lineFoldingOnly_consecutive() async {
     lineFoldingOnly = true;
     var content = '''
 void f/*[0*/() {
@@ -391,6 +410,30 @@ void f/*[0*/() {
 
     await computeRanges(content);
     expectRanges({0: noFoldingKind, 1: noFoldingKind});
+  }
+
+  /// When the client supports lineFoldingOnly, we cannot end a range on the
+  /// same line that the next one starts. Instead, it should be shortened to end
+  /// on the previous line.
+  ///
+  /// This test checks this for when the overlapped ranges are not consecutive
+  /// because there is a foldable comment in between.
+  ///
+  Future<void> test_overlapLines_lineFoldingOnly_nonConsecutive() async {
+    lineFoldingOnly = true;
+    var content = '''
+class C(/*[0*/
+  var int x,
+  /// comment line 1/*[1*/
+  /// comment line 2/*1]*//*0]*/
+  var int y) {/*[2*/
+  void m1() {}
+  void m2() {}
+/*2]*/}
+''';
+
+    await computeRanges(content);
+    expectRanges({0: noFoldingKind, 1: .Comment, 2: noFoldingKind});
   }
 
   Future<void> test_recordLiteral() async {

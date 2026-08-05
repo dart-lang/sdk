@@ -312,9 +312,6 @@ void Become::Forward() {
     if (after->IsImmediateObject()) {
       InvalidForwarding(before, after, "Cannot target immediates");
     }
-    if (before->untag()->InVMIsolateHeap()) {
-      InvalidForwarding(before, after, "Cannot forward VM heap objects");
-    }
     if (before->IsForwardingCorpse() && !IsDummyObject(before)) {
       InvalidForwarding(before, after, "Cannot forward to multiple targets");
     }

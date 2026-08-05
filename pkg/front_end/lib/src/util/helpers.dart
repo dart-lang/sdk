@@ -87,5 +87,5 @@ class FieldInitialization {
   /// it is through an explicit initializer.
   final bool fromInitializingFormal;
 
-  FieldInitialization(this.uriOffset, {required this.fromInitializingFormal});
+  new(this.uriOffset, {required this.fromInitializingFormal});
 }

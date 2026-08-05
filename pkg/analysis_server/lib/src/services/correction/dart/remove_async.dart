@@ -19,9 +19,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveAsync extends ResolvedCorrectionProducer {
   final _Type _type;
 
-  RemoveAsync({required super.context}) : _type = _Type.other;
+  new({required super.context}) : _type = _Type.other;
 
-  RemoveAsync.unnecessary({required super.context}) : _type = _Type.unnecessary;
+  new unnecessary({required super.context}) : _type = _Type.unnecessary;
 
   @override
   CorrectionApplicability get applicability =>
@@ -155,7 +155,7 @@ class _VisitorTester extends RecursiveAstVisitor<void> {
   bool _processingFuture = false;
 
   /// Initialize a newly created visitor.
-  _VisitorTester(this.typeSystem, this.typeProvider, this.argumentType);
+  new(this.typeSystem, this.typeProvider, this.argumentType);
 
   /// A flag indicating whether an await expression was found.
   bool get foundAwait => _foundAwait;

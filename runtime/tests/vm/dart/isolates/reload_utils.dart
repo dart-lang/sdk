@@ -174,7 +174,7 @@ class Reloader {
     final line = await waitUntilStdoutContains(needle);
     final start = line.indexOf(needle);
     final Uri uri = Uri.parse(line.substring(start + needle.length));
-    _remoteVm = RemoteVm(uri.port);
+    _remoteVm = RemoteVm(uri.port, uri.host);
   }
 
   Future writeToStdin(String line) async {

@@ -20,7 +20,7 @@ class LogFileInputConverter extends CommonInputConverter {
   static final _nine = '9'.codeUnitAt(0);
   static final _zero = '0'.codeUnitAt(0);
 
-  LogFileInputConverter(super.tmpSrcDirPath, super.srcPathMap);
+  new(super.tmpSrcDirPath, super.srcPathMap);
 
   @override
   Operation? convert(String line) {

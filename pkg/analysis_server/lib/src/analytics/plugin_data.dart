@@ -110,7 +110,7 @@ class PluginDataPerIsolate {
   /// are registered in each plugin.
   PercentileCalculator assistCounts = PercentileCalculator();
 
-  PluginDataPerIsolate({required this.pluginCount});
+  new({required this.pluginCount});
 }
 
 extension on String {

@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as server;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -180,8 +181,8 @@ class SourceEditMappingTest extends AbstractLspAnalysisServerTest {
 
     /// For LSP, offsets relate to the original document and inserts with the
     /// same offset appear in the order they will appear in the final document.
-    var edit0 = _unwrapEdit(edit.edits[0]);
-    var edit1 = _unwrapEdit(edit.edits[1]);
+    var edit0 = edit.edits[0].extractTextEdit();
+    var edit1 = edit.edits[1].extractTextEdit();
     expect(edit0.newText, 'FIRST');
     expect(edit1.newText, 'SECOND');
   }
@@ -194,12 +195,5 @@ class SourceEditMappingTest extends AbstractLspAnalysisServerTest {
     /// same offset appear in the order they will appear in the final document.
     expect(edit[0].newText, 'FIRST');
     expect(edit[1].newText, 'SECOND');
-  }
-
-  lsp.TextEdit _unwrapEdit(
-    lsp.Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit> edit,
-  ) {
-    // All types extend from TextEdit.
-    return edit.map((e) => e, (e) => e, (e) => e);
   }
 }

@@ -17,6 +17,8 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   @override
   Uri get fileUri;
 
+  bool get isMixinClass;
+
   /// Lookup a member accessed statically through this declaration.
   MemberLookupResult? findStaticBuilder(
     String name,

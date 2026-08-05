@@ -9,7 +9,6 @@ import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
-import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -149,5 +148,5 @@ class _CorrectionContext {
   final int line;
   final int character;
 
-  _CorrectionContext(this.content, this.offset, this.line, this.character);
+  new(this.content, this.offset, this.line, this.character);
 }

@@ -19,7 +19,7 @@ export '../base/incremental_serializer.dart' show IncrementalSerializer;
 
 // Coverage-ignore(suite): Not run.
 abstract class IncrementalKernelGenerator {
-  factory IncrementalKernelGenerator(
+  factory(
     CompilerOptions options,
     List<Uri> entryPoints, [
     Uri? initializeFromDillUri,
@@ -40,7 +40,7 @@ abstract class IncrementalKernelGenerator {
   ///
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
-  factory IncrementalKernelGenerator.fromComponent(
+  factory fromComponent(
     CompilerOptions options,
     List<Uri> entryPoints,
     Component? component, [
@@ -67,7 +67,7 @@ abstract class IncrementalKernelGenerator {
   ///
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
-  factory IncrementalKernelGenerator.forExpressionCompilationOnly(
+  factory forExpressionCompilationOnly(
     CompilerOptions options,
     List<Uri> entryPoints,
     Component component,
@@ -143,6 +143,7 @@ abstract class IncrementalKernelGenerator {
     List<TypeParameter> typeDefinitions,
     String syntheticProcedureName,
     Uri libraryUri, {
+    Set<String>? definitionsAddedByUser,
     String? className,
     String? methodName,
     int offset = -1,
@@ -161,16 +162,10 @@ bool isLegalIdentifier(String identifier) {
   return StringScanner.isLegalIdentifier(identifier);
 }
 
-class IncrementalCompilerResult {
-  final Component component;
-  final ClassHierarchy classHierarchy;
-  final CoreTypes coreTypes;
-  final Set<Library>? neededDillLibraries;
-
-  IncrementalCompilerResult(
-    this.component, {
-    required this.classHierarchy,
-    required this.coreTypes,
-    this.neededDillLibraries,
-  });
-}
+class IncrementalCompilerResult(
+  final Component component, {
+  required final ClassHierarchy classHierarchy,
+  required final CoreTypes coreTypes,
+  final Set<Library>? neededDillLibraries,
+  final List<Component> loadedComponents = const [],
+});

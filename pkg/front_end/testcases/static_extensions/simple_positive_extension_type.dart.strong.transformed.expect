@@ -18,7 +18,7 @@ extension type A(core::Object? it) {
   constructor • = self::A|constructor#;
   constructor tearoff • = self::A|constructor#_#new#tearOff;
 }
-static extension-type-member method A|constructor#(core::Object? it) → self::A% /* erasure=core::Object?, declared=! */ {
+static extension-type-member method A|constructor#(initializing-formal core::Object? it) → self::A% /* erasure=core::Object?, declared=! */ {
   lowered final self::A% /* erasure=core::Object?, declared=! */ #this = it;
   return #this;
 }

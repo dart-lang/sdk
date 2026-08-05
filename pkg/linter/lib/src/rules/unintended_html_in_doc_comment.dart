@@ -123,7 +123,7 @@ const _validHtmlTags = [
 ];
 
 class UnintendedHtmlInDocComment extends AnalysisRule {
-  UnintendedHtmlInDocComment()
+  new()
     : super(name: LintNames.unintended_html_in_doc_comment, description: _desc);
 
   @override
@@ -144,7 +144,7 @@ class UnintendedHtmlInDocComment extends AnalysisRule {
 class _UnintendedTag {
   final int offset;
   final int length;
-  _UnintendedTag(this.offset, this.length);
+  new(this.offset, this.length);
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -198,7 +198,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitComment(Comment node) {

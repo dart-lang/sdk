@@ -150,10 +150,19 @@ void testCookieSameSite() {
   );
   Expect.equals(cookie4.sameSite, SameSite.lax);
   Cookie cookie5 = Cookie.fromSetCookieValue(
-    "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
-    "Path=/; sAmEsItE= nOnE",
+    "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; Secure; "
+    "HttpOnly; Path=/; sAmEsItE= nOnE",
   );
   Expect.equals(cookie5.sameSite, SameSite.none);
+  Expect.throws<HttpException>(
+    () => Cookie.fromSetCookieValue(
+      "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "
+      "Path=/; SameSite=None",
+    ),
+    (e) =>
+        e.message ==
+        "Cookie with 'SameSite=None' must also have the 'Secure' attribute.",
+  );
   Expect.throws<HttpException>(
     () => Cookie.fromSetCookieValue(
       "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; HttpOnly; "

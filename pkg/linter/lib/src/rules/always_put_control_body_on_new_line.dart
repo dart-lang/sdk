@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Separate the control structure expression from its statement.';
 
 class AlwaysPutControlBodyOnNewLine extends AnalysisRule {
-  AlwaysPutControlBodyOnNewLine()
+  new()
     : super(
         name: LintNames.always_put_control_body_on_new_line,
         description: _desc,
@@ -40,7 +40,7 @@ class AlwaysPutControlBodyOnNewLine extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitDoStatement(DoStatement node) {

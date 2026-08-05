@@ -2,29 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplementsRepeatedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ImplementsRepeatedTest extends PubPackageResolutionTest {
   test_class_implements_2times() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B implements A, A {}
-''',
-      [error(diag.implementsRepeated, 33, 1)],
-    );
+//                    ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -40,37 +40,47 @@ ImplementsClause
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_implements_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+class B implements A {}
+augment class B implements A {}
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
+  }
+
+  test_class_implements_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 class A {}
 class B implements A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class B implements A {}
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 46, 1)]);
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''',
+    });
   }
 
   test_class_implements_2times_viaTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef B = A;
 class C implements A, B {}
-''',
-      [error(diag.implementsRepeated, 48, 1)],
-    );
+//                    ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -88,31 +98,29 @@ ImplementsClause
   }
 
   test_class_implements_4times() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {} class C{}
 class B implements A, A, A, A {}
-''',
-      [
-        error(diag.implementsRepeated, 43, 1),
-        error(diag.implementsRepeated, 46, 1),
-        error(diag.implementsRepeated, 49, 1),
-      ],
-    );
+//                    ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+//                       ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+//                          ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
   }
 
   test_enum_implements_2times() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 enum E implements A, A {
+//                   ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
   v
 }
-''',
-      [error(diag.implementsRepeated, 32, 1)],
-    );
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -128,39 +136,49 @@ ImplementsClause
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_implements_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+enum E implements A {v}
+augment enum E implements A {}
+//                        ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
+  }
+
+  test_enum_implements_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 class A {}
 enum E implements A {v}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment enum E implements A {}
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 45, 1)]);
+//                        ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''',
+    });
   }
 
   test_enum_implements_2times_viaTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef B = A;
 enum E implements A, B {
+//                   ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
   v
 }
-''',
-      [error(diag.implementsRepeated, 47, 1)],
-    );
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -178,30 +196,28 @@ ImplementsClause
   }
 
   test_enum_implements_4times() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {} class C{}
 enum E implements A, A, A, A {
+//                   ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+//                      ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
   v
 }
-''',
-      [
-        error(diag.implementsRepeated, 42, 1),
-        error(diag.implementsRepeated, 45, 1),
-        error(diag.implementsRepeated, 48, 1),
-      ],
-    );
+''');
   }
 
   test_extensionType_implements_2times() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements int, int {}
-''',
-      [error(diag.implementsRepeated, 41, 3)],
-    );
+//                                       ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -217,35 +233,44 @@ ImplementsClause
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_implements_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    await resolveTestCodeWithDiagnostics(r'''
+extension type A(int it) implements int {}
+augment extension type A implements int {}
+//                                  ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+''');
+  }
+
+  test_extensionType_implements_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 extension type A(int it) implements int {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
-augment extension type A(int it) implements int {}
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 63, 3)]);
+augment extension type A implements int {}
+//                                  ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+''',
+    });
   }
 
   test_extensionType_implements_2times_viaTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 extension type B(int it) implements int, A {}
-''',
-      [error(diag.implementsRepeated, 58, 1)],
-    );
+//                                       ^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -263,59 +288,67 @@ ImplementsClause
   }
 
   test_extensionType_implements_4times() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements int, int, int, int {}
-''',
-      [
-        error(diag.implementsRepeated, 41, 3),
-        error(diag.implementsRepeated, 46, 3),
-        error(diag.implementsRepeated, 51, 3),
-      ],
-    );
+//                                       ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+//                                            ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+//                                                 ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+''');
   }
 
   test_mixin_implements_2times() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M implements A, A {}
-''',
-      [error(diag.implementsRepeated, 33, 1)],
-    );
+//                    ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_implements_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+mixin M implements A {}
+augment mixin M implements A {}
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
+  }
+
+  test_mixin_implements_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 class A {}
 mixin M implements A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment mixin M implements A {}
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 46, 1)]);
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''',
+    });
   }
 
   test_mixin_implements_4times() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M implements A, A, A, A {}
-''',
-      [
-        error(diag.implementsRepeated, 33, 1),
-        error(diag.implementsRepeated, 36, 1),
-        error(diag.implementsRepeated, 39, 1),
-      ],
-    );
+//                    ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+//                       ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+//                          ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
   }
 }

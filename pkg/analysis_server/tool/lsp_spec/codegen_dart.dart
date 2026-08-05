@@ -6,14 +6,13 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
-import 'generate_all.dart';
 import 'meta_model.dart';
 
 final formatter = DartFormatter(
@@ -163,7 +162,7 @@ String _formatCode(String code) {
   try {
     code = formatter.format(code);
   } catch (e) {
-    print('Failed to format code, returning unformatted code.');
+    print('Failed to format code, returning unformatted code: $e');
   }
   return code;
 }
@@ -189,6 +188,21 @@ Map<String, Field> _getAllFieldsMap(Interface? interface) {
       ..._getAllFieldsMap(_interfaces[baseType.name]),
     for (final field in interface.members.whereType<Field>()) field.name: field,
   };
+}
+
+/// A helper to get the count of fields in an interface, including subtypes.
+int _getFieldCount(String interfaceName, {required bool required}) {
+  var interface = _interfaces[interfaceName]!;
+
+  var thisCount = interface.members
+      .whereType<Field>()
+      .where((field) => field.isRequired == required)
+      .length;
+  var baseCount = interface.baseTypes
+      .map((baseType) => _getFieldCount(baseType.name, required: required))
+      .fold(0, (acc, item) => acc + item);
+
+  return thisCount + baseCount;
 }
 
 /// Returns a copy of the list sorted by name with duplicates (by name+type) removed.
@@ -275,7 +289,9 @@ String _makeValidIdentifier(String identifier) {
     'Object': 'Obj',
     'String': 'Str',
     'class': 'class_',
+    'default': 'defaultValue',
     'enum': 'enum_',
+    'new': 'new_',
     'null': 'null_',
   };
   return map[identifier] ?? identifier;
@@ -321,17 +337,22 @@ String _rewriteCommentReference(String comment) {
 
 /// Sorts [content] as a Dart library.
 String _sortContent(String content) {
-  var parseResult = parseString(content: content);
-  var codeOptions = CodeStyleOptionsImpl(useFormatter: true);
-  codeOptions.options = AnalysisOptionsImpl();
-  var sorter = MemberSorter(
-    content,
-    parseResult.unit,
-    codeOptions,
-    parseResult.lineInfo,
-  );
-  var edits = sorter.sort();
-  return SourceEdit.applySequence(content, edits);
+  try {
+    var parseResult = parseString(content: content);
+    var codeOptions = CodeStyleOptionsImpl(useFormatter: true);
+    codeOptions.options = AnalysisOptionsImpl();
+    var sorter = MemberSorter(
+      content,
+      parseResult.unit,
+      codeOptions,
+      parseResult.lineInfo,
+    );
+    var edits = sorter.sort();
+    return SourceEdit.applySequence(content, edits);
+  } catch (e) {
+    print('Failed to sort code, returning unsorted code: $e');
+  }
+  return content;
 }
 
 /// Sorts subtypes into a consistent order.
@@ -339,16 +360,11 @@ String _sortContent(String content) {
 /// Subtypes will be sorted such that types with the most required fields appear
 /// first to ensure `fromJson` constructors delegate to the most specific type.
 void _sortSubtypes() {
-  int requiredFieldCount(String interfaceName) => _interfaces[interfaceName]!
-      .members
-      .whereType<Field>()
-      .where((field) => !field.allowsUndefined && !field.allowsNull)
-      .length;
-  int optionalFieldCount(String interfaceName) => _interfaces[interfaceName]!
-      .members
-      .whereType<Field>()
-      .where((field) => field.allowsUndefined || field.allowsNull)
-      .length;
+  int requiredFieldCount(String interfaceName) =>
+      _getFieldCount(interfaceName, required: true);
+  int optionalFieldCount(String interfaceName) =>
+      _getFieldCount(interfaceName, required: false);
+
   for (var entry in _subtypes.entries) {
     var subtypes = entry.value;
     subtypes.sort((subtype1, subtype2) {
@@ -356,6 +372,7 @@ void _sortSubtypes() {
       var requiredFields2 = requiredFieldCount(subtype2);
       var optionalFields1 = optionalFieldCount(subtype1);
       var optionalFields2 = optionalFieldCount(subtype2);
+
       return requiredFields1 != requiredFields2
           ? requiredFields2.compareTo(requiredFields1)
           : optionalFields1 != optionalFields2
@@ -418,9 +435,9 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   // In order to consider this valid for parsing, all fields that must not be
   // undefined must be present and also type check for the correct type.
   // Any fields that are optional but present, must still type check.
-  var fields = _getAllFields(
-    interface,
-  ).whereNot((f) => isNullableAnyType(f.type)).toList();
+  var fields = _getAllFields(interface)
+      .whereNot((f) => isNullableAnyType(f.type))
+      .toList();
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
     var type = field.type;
@@ -540,9 +557,11 @@ void _writeCanParseType(
   buffer.writeln('}');
 }
 
-void _writeConst(IndentableStringBuffer buffer, Constant cons) {
-  _writeDocCommentsAndAnnotations(buffer, cons);
-  buffer.writeIndentedln('static const ${cons.name} = ${cons.valueAsLiteral};');
+void _writeConst(IndentableStringBuffer buffer, Constant constant) {
+  _writeDocCommentsAndAnnotations(buffer, constant);
+  buffer.writeIndentedln(
+    'static const ${constant.name} = ${constant.valueAsLiteral};',
+  );
 }
 
 void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
@@ -564,7 +583,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
         var valueCode = isLiteral
             ? ' = ${(field.type as LiteralType).valueAsLiteral}'
             : '';
-        return '$requiredKeyword this.${field.name}$valueCode, ';
+        return '$requiredKeyword this.${field.dartSafeName}$valueCode, ';
       }).join(),
     )
     ..write('})');
@@ -625,7 +644,7 @@ void _writeDocCommentsAndAnnotations(
 
 void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
   _writeDocCommentsAndAnnotations(buffer, namespace);
-  var consts = namespace.members.cast<Constant>().toList();
+  var consts = namespace.constants;
   var namespaceName = namespace.name;
   var typeOfValues = namespace.typeOfValues;
   var allowsAnyValue = enumClassAllowsAnyValue(namespaceName);
@@ -666,18 +685,34 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
       ..outdent()
       ..writeIndentedln('}');
   }
-  namespace.members.whereType<Constant>().forEach((cons) {
+  for (var cons in consts) {
     // We don't use any deprecated enum values, so omit them entirely.
     if (cons.isDeprecated) {
-      return;
+      continue;
     }
     _writeDocCommentsAndAnnotations(buffer, cons);
-    var memberName = _makeValidIdentifier(cons.name);
+    var memberName = cons.dartSafeName;
     var value = cons.valueAsLiteral;
     buffer.writeIndentedln(
       'static const $memberName = $namespaceName$constructorName($value);',
     );
-  });
+  }
+  if (namespace.flags) {
+    buffer
+      ..writeln()
+      ..writeIndentedln(
+        'static $namespaceName combine(List<$namespaceName> values) =>',
+      )
+      ..indent()
+      ..writeIndentedln(
+        '$namespaceName$constructorName(values.fold<$dartType>(0, (combinedValue, value) => combinedValue | value._value));',
+      )
+      ..outdent()
+      ..writeln()
+      ..writeIndentedln(
+        'bool hasFlag($namespaceName value) => (_value & value._value) == value._value;',
+      );
+  }
   buffer
     ..writeln()
     ..writeIndentedln('@override $dartType toJson() => _value;')
@@ -709,8 +744,8 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
   for (var field in _getAllFields(interface)) {
     buffer.write(' && ');
     var type = resolveTypeAlias(field.type);
-    var thisName = field.name;
-    var otherName = 'other.${field.name}';
+    var thisName = field.dartSafeName;
+    var otherName = 'other.${field.dartSafeName}';
     if (type is ArrayType || type is MapType) {
       buffer.write(
         'const DeepCollectionEquality().equals($thisName, $otherName)',
@@ -732,6 +767,7 @@ void _writeField(
   Field field,
 ) {
   _writeDocCommentsAndAnnotations(buffer, field);
+  var fieldName = field.dartSafeName;
   var needsNullable =
       (field.allowsNull || field.allowsUndefined) &&
       !isNullableAnyType(field.type);
@@ -742,7 +778,7 @@ void _writeField(
     ..writeIndented('final ')
     ..write(field.type.dartTypeWithTypeArgs)
     ..write(needsNullable ? '?' : '')
-    ..writeln(' ${field.name};');
+    ..writeln(' $fieldName;');
 }
 
 void _writeFromJsonCode(
@@ -940,7 +976,7 @@ void _writeFromJsonConstructor(
       ..outdent()
       ..writeIndentedln('}');
   }
-  if (interface.abstract) {
+  if (interface.abstract || interface.sealed) {
     buffer.writeIndentedln(
       'throw ArgumentError('
       "'Supplied map is not valid for any subclass of ${interface.name}'"
@@ -949,7 +985,7 @@ void _writeFromJsonConstructor(
   } else {
     for (var field in allFields) {
       // Add a local variable to allow type promotion (and avoid multiple lookups).
-      var localName = _makeValidIdentifier(field.name);
+      var localName = field.dartSafeName;
       var localNameJson = '${localName}Json';
       buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
       buffer.writeIndented('final $localName = ');
@@ -963,7 +999,11 @@ void _writeFromJsonConstructor(
     }
     buffer
       ..writeIndented('return ${interface.name}(')
-      ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
+      ..write(
+        allFields
+            .map((field) => '${field.dartSafeName}: ${field.dartSafeName}, ')
+            .join(),
+      )
       ..writeln(');');
   }
   buffer
@@ -1006,9 +1046,9 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
         return 'lspHashCode(${field.name})';
       } else {
         if (fields.length == 1) {
-          return '${field.name}.hashCode';
+          return '${field.dartSafeName}.hashCode';
         }
-        return field.name;
+        return field.dartSafeName;
       }
     }),
     ',',
@@ -1024,6 +1064,7 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
 
   buffer
     ..writeIndented(interface.abstract ? 'abstract ' : '')
+    ..write(interface.sealed ? 'sealed ' : '')
     ..write('class ${interface.name} ');
   var allBaseTypes = interface.baseTypes
       .map((t) => t.dartTypeWithTypeArgs)
@@ -1087,13 +1128,13 @@ void _writeJsonMapAssignment(
   var shouldBeOmittedIfNoValue = field.allowsUndefined;
   if (shouldBeOmittedIfNoValue) {
     buffer
-      ..writeIndentedln('if (${field.name} != null) {')
+      ..writeIndentedln('if (${field.dartSafeName} != null) {')
       ..indent();
   }
   // Use the correct null operator depending on whether the value could be null.
   var nullOp = field.allowsNull || field.allowsUndefined ? '?' : '';
   buffer.writeIndented('''$mapName['${field.name}'] = ''');
-  _writeToJsonCode(buffer, field.type, field.name, nullOp);
+  _writeToJsonCode(buffer, field.type, field.dartSafeName, nullOp);
   buffer.writeln(';');
   if (shouldBeOmittedIfNoValue) {
     buffer
@@ -1401,4 +1442,8 @@ class IndentableStringBuffer extends StringBuffer {
     write(_indentString);
     writeln(obj);
   }
+}
+
+extension on LspEntity {
+  String get dartSafeName => _makeValidIdentifier(name);
 }

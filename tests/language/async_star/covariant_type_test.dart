@@ -5,6 +5,7 @@
 // Test that TypeErrors for async* methods happen without using returned Stream.
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 
 class D<T> {

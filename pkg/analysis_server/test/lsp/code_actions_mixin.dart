@@ -24,6 +24,11 @@ mixin CodeActionsTestMixin
         LspVerifyEditHelpersMixin {
   final String simplePubspecContent = 'name: my_project';
 
+  /// Whether the client supports the "windows/showMessage" notification
+  /// (currently LSP-only, as LSP-over-Legaacy only supports the request version
+  /// showMessageRequest).
+  bool get clientSupportsShowMessageNotification;
+
   /// Whether the server supports the "Fix All" command (currently LSP-only).
   bool get serverSupportsFixAll => true;
 

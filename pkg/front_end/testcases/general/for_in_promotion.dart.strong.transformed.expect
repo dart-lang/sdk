@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(core::int? n) → dynamic {
+  if(!(n == null)) {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(42).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t1 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          n = #t1;
+          n{core::int}.{core::int::isEven}{core::bool};
+        }
+      }
+    }
+    n{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method main() → dynamic {
+  self::test(42);
+  self::test(null);
+}

@@ -640,16 +640,14 @@ void AssemblerBase::Stop(const char* message) {
 uword ObjIndexPair::Hash(Key key) {
   switch (key.type()) {
     case ObjectPoolBuilderEntry::kImmediate128:
-      return key.imm128_.int_storage[0] ^ key.imm128_.int_storage[1] ^
-             key.imm128_.int_storage[2] ^ key.imm128_.int_storage[3];
-
+      return HashBytes(&key.imm128_, sizeof(key.imm128_));
 #if defined(TARGET_ARCH_IS_32_BIT)
     case ObjectPoolBuilderEntry::kImmediate64:
-      return key.imm64_;
+      return HashBytes(&key.imm64_, sizeof(key.imm64_));
 #endif
     case ObjectPoolBuilderEntry::kImmediate:
     case ObjectPoolBuilderEntry::kNativeFunction:
-      return key.imm_;
+      return HashBytes(&key.imm_, sizeof(key.imm_));
     case ObjectPoolBuilderEntry::kTaggedObject:
       return ObjectHash(*key.obj_);
   }

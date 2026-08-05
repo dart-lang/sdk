@@ -33,7 +33,7 @@ static method test1() → <X extends self::E /* erasure=core::num */ = dynamic>(
   return throw 0;
 static method test2() → <X extends self::E /* erasure=core::num */ = dynamic>() → self::A<core::Object, X>
   return throw 0;
-static extension-type-member method E|constructor#(core::num it) → self::E /* erasure=core::num */ {
+static extension-type-member method E|constructor#(initializing-formal core::num it) → self::E /* erasure=core::num */ {
   lowered final self::E /* erasure=core::num */ #this = it;
   return #this;
 }

@@ -43,7 +43,7 @@ class DartTypeParser {
   final Map<String, /* TypeParameter | StructuralParameter */ Object>
   localTypeParameters = <String, Object>{};
 
-  DartTypeParser(this.string, this.environment);
+  new(this.string, this.environment);
 
   /* TreeNode? | StructuralParameter? */
   Object? lookupType(String name) {
@@ -386,7 +386,7 @@ class LazyTypeEnvironment {
   late final Library dummyLibrary;
   final Component component = new Component();
 
-  LazyTypeEnvironment() {
+  new() {
     Uri uri = Uri.parse('file://dummy.dart');
     dummyLibrary = new Library(uri, fileUri: uri);
     component.libraries.add(dummyLibrary..parent = component);

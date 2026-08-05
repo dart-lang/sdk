@@ -14,12 +14,12 @@ library;
 //   throws(() => (n1?.nonNullable1Method()).nullable1);
 //                                           ^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/null_shorting.dart:220:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
+// pkg/front_end/testcases/nnbd/null_shorting.dart:221:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
 //  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
 //   throws(() => n1?.nonNullable1 + 0);
 //                                 ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting.dart:221:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
+// pkg/front_end/testcases/nnbd/null_shorting.dart:222:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
 //  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
 //   throws(() => -n1?.nonNullable1);
 //                ^
@@ -232,11 +232,11 @@ static method indexAccess(self::Class1? n1, self::Class2? n2, self::Class3? n3) 
 }
 static method operatorAccess(self::Class1? n1, self::Class2? n2) → void {
   self::Class2? nullable2 = n2;
-  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:220:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
+  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:221:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
   throws(() => n1?.nonNullable1 + 0);
                                 ^" in (let final self::Class1? #t239 = n1 in #t239 == null ?{self::Class1?} null : #t239{self::Class1}.{self::Class1::nonNullable1}{self::Class1}).{self::Class1::+}(0){(core::int) → self::Class1?});
-  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:221:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
+  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:222:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
   throws(() => -n1?.nonNullable1);
                ^" in (let final self::Class1? #t240 = n1 in #t240 == null ?{self::Class1?} null : #t240{self::Class1}.{self::Class1::nonNullable1}{self::Class1}).{self::Class1::unary-}(){() → self::Class1?});

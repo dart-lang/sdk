@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:front_end/src/kernel/dynamic_module_validator.dart';
@@ -160,7 +161,7 @@ class Trimmer extends RecursiveVisitor {
   /// hence member bodies need to be preserved.
   bool preserveMemberBodies = false;
 
-  Trimmer(this.librariesToClear, this.isExtendable);
+  new(this.librariesToClear, this.isExtendable);
 
   @override
   void visitLibrary(Library node) {
@@ -306,7 +307,7 @@ class TrimOptions {
   /// to be present in the dill file for other reasons.
   final Set<String> librariesToClear;
 
-  TrimOptions({
+  new({
     required this.inputAppPath,
     required this.inputPlatformPath,
     required this.outputAppPath,

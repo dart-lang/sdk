@@ -57,9 +57,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitArgumentList(ArgumentList node) {
     // Check (optional) positional arguments.
-    // Named arguments are checked in [NamedExpression].
+    // Named arguments are checked in [NamedArgument].
     for (var argument in node.arguments) {
-      if (argument is! NamedExpression) {
+      if (argument is! NamedArgument) {
         var parameter = argument.correspondingParameter;
         _checkSinceSdkVersion(parameter, node, errorEntity: argument);
       }
@@ -121,6 +121,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     _checkSinceSdkVersion(node.methodName.element, node);
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitNamedArgument(NamedArgument node) {
+    _checkSinceSdkVersion(
+      node.correspondingParameter,
+      node,
+      errorEntity: node.name,
+    );
+    super.visitNamedArgument(node);
   }
 
   @override

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedResultTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,7 +23,7 @@ class UnusedResultTest extends PubPackageResolutionTest {
   }
 
   test_as() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {}
@@ -40,8 +41,7 @@ A createA() {
   }
 
   test_as_without_usage() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {}
@@ -49,20 +49,19 @@ class B extends A {}
 
 void test() {
   createA() as B;
+//^^^^^^^
+// [diag.unusedResult] The value of 'createA' should be used.
 }
 
 @UseResult('')
 A createA() {
   return B();
 }
-''',
-      [error(diag.unusedResult, 83, 7)],
-    );
+''');
   }
 
   test_callable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -73,22 +72,14 @@ class A {
 
 void f(A a) {
   a();
+//^
+// [diag.unusedResult] The value of 'a' should be used.
 }
-''',
-      [
-        error(
-          diag.unusedResult,
-          96,
-          1,
-          text: "The value of 'a' should be used.",
-        ),
-      ],
-    );
+''');
   }
 
   test_callable_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -101,22 +92,14 @@ class B {
 
 void f(A a) {
   a.b()(5);
+//  ^
+// [diag.unusedResult] The value of 'b' should be used.
 }
-''',
-      [
-        error(
-          diag.unusedResult,
-          130,
-          1,
-          text: "The value of 'b' should be used.",
-        ),
-      ],
-    );
+''');
   }
 
   test_callable_propertyAccess() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -129,22 +112,14 @@ class B {
 
 void f(A a) {
   a.b();
+//  ^
+// [diag.unusedResult] The value of 'b' should be used.
 }
-''',
-      [
-        error(
-          diag.unusedResult,
-          127,
-          1,
-          text: "The value of 'b' should be used.",
-        ),
-      ],
-    );
+''');
   }
 
   test_callable_recursive() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -159,22 +134,14 @@ class C {
 }
 void f(A a) {
   a([])()('');
+//^
+// [diag.unusedResult] The value of 'a' should be used.
 }
-''',
-      [
-        error(
-          diag.unusedResult,
-          170,
-          1,
-          text: "The value of 'a' should be used.",
-        ),
-      ],
-    );
+''');
   }
 
   test_constructor_primary_result_notUsed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A() {
@@ -184,14 +151,14 @@ class A() {
 
 void f() {
   A();
+//^^^
+// [diag.unusedResult] The value of 'A' should be used.
 }
-''',
-      [error(diag.unusedResult, 83, 3)],
-    );
+''');
   }
 
   test_constructor_result_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -207,8 +174,7 @@ void f() {
   }
 
   test_constructor_result_notUsed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -218,14 +184,14 @@ class A {
 
 void f() {
   A();
+//^^^
+// [diag.unusedResult] The value of 'A' should be used.
 }
-''',
-      [error(diag.unusedResult, 80, 3)],
-    );
+''');
   }
 
   test_field_result_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -241,7 +207,7 @@ void main() {
   }
 
   test_field_result_assigned_conditional_else() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -257,7 +223,7 @@ void f(bool b) {
   }
 
   test_field_result_assigned_conditional_if() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -273,7 +239,7 @@ void f(bool b) {
   }
 
   test_field_result_assigned_conditional_if_parens() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -289,7 +255,7 @@ void f(bool b) {
   }
 
   test_field_result_assigned_parenthesized() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -305,8 +271,7 @@ void main() {
   }
 
   test_field_result_functionExpression_unused() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -316,14 +281,14 @@ class A {
 
 void main() {
   A().foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 104, 3)],
-    );
+''');
   }
 
   test_field_result_functionExpression_used() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -338,7 +303,7 @@ void main() {
   }
 
   test_field_result_returned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -354,7 +319,7 @@ int f2() {
   }
 
   test_field_result_targetedMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -369,7 +334,7 @@ void main() {
   }
 
   test_field_result_targetedProperty() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -384,8 +349,7 @@ void main() {
   }
 
   test_field_result_unassigned() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -395,15 +359,14 @@ class A {
 
 void main() {
   A().foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 95, 3)],
-    );
+''');
   }
 
   test_field_result_unassigned_conditional_if() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -413,15 +376,14 @@ class A {
 
 void f(bool b) {
   b ? A().foo : 0;
+//        ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 102, 3)],
-    );
+''');
   }
 
   test_field_result_unassigned_conditional_if_parens() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -431,15 +393,14 @@ class A {
 
 void f(bool b) {
   b ? (A().foo) : 0;
+//         ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 103, 3)],
-    );
+''');
   }
 
   test_field_result_unassigned_in_closure() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -452,30 +413,29 @@ void f(Function g) { }
 void main() {
   f(() {
     A().foo;
+//      ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
   });
 }
-''',
-      [error(diag.unusedResult, 130, 3)],
-    );
+''');
   }
 
   test_field_result_unassigned_originPrimaryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A(@useResult var int foo);
 
 void f(A a) {
   a.foo;
+//  ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 86, 3)],
-    );
+''');
   }
 
   test_field_result_used_conditional_if_parens() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -490,7 +450,7 @@ void f(bool b) {
   }
 
   test_field_result_used_listLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -507,7 +467,7 @@ void main() {
   }
 
   test_field_result_used_mapLiteral_key() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -523,7 +483,7 @@ void main() {
   }
 
   test_field_result_used_mapLiteral_value() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -539,7 +499,7 @@ void main() {
   }
 
   test_field_result_used_setLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -555,7 +515,7 @@ void main() {
   }
 
   test_field_result_usedAsArgument_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -570,8 +530,7 @@ void main() {
   }
 
   test_field_static_result_unassigned() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -581,14 +540,14 @@ class A {
 
 void main() {
   A.foo;
+//  ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 100, 3)],
-    );
+''');
   }
 
   test_getter_expressionStatement_id_dotResult_dotId() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -603,8 +562,7 @@ void f(A a) {
   }
 
   test_getter_expressionStatement_result() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -612,14 +570,14 @@ int get foo => 0;
 
 void f() {
   foo;
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 77, 3)],
-    );
+''');
   }
 
   test_getter_expressionStatement_result_dotId() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -632,7 +590,7 @@ void f() {
   }
 
   test_getter_expressionStatement_result_dotId_dotId() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -645,7 +603,7 @@ void f() {
   }
 
   test_getter_result_returned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -661,7 +619,7 @@ int f2() {
   }
 
   test_getter_result_targetedMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -676,7 +634,7 @@ void main() {
   }
 
   test_getter_result_targetedProperty() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -691,8 +649,7 @@ void main() {
   }
 
   test_getter_result_unassigned() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -702,14 +659,14 @@ class A {
 
 void main() {
   A().foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 100, 3)],
-    );
+''');
   }
 
   test_getter_result_usedAsArgument_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -733,7 +690,7 @@ bool foo() => true;
 bool bar() => true;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' hide foo;
 
 bool f() {
@@ -750,7 +707,7 @@ import 'package:meta/meta.dart';
 bool foo() => true;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' show foo;
 
 bool f() {
@@ -760,7 +717,7 @@ bool f() {
   }
 
   test_interpolationExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -771,7 +728,7 @@ String g() => '$f';
   }
 
   test_method_result_assertInitializer() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -787,7 +744,7 @@ class B {
   }
 
   test_method_result_assertStatement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -802,7 +759,7 @@ void f(A a) {
   }
 
   test_method_result_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -817,7 +774,7 @@ void f(int bar) {
   }
 
   test_method_result_assigned_wildcard_unused() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -832,7 +789,7 @@ void main() {
   }
 
   test_method_result_assigned_wildcard_unused_preWildcards() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -850,7 +807,7 @@ void main() {
   }
 
   test_method_result_assignedInDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -866,7 +823,7 @@ void f(A a) {
   }
 
   test_method_result_assignedInDeclarationPattern() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -882,7 +839,7 @@ void f(A a) {
   }
 
   test_method_result_assignedInPattern() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -897,7 +854,7 @@ void f(A a, int bar, int baz) {
   }
 
   test_method_result_binaryExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -912,7 +869,7 @@ void f(A a) {
   }
 
   test_method_result_conditional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -927,7 +884,7 @@ void f(A a) {
   }
 
   test_method_result_constructorCall() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -946,7 +903,7 @@ void f(A a) {
   }
 
   test_method_result_doWhile() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -962,7 +919,7 @@ void f(A a) {
   }
 
   test_method_result_fieldInitializer() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -978,7 +935,7 @@ class B {
   }
 
   test_method_result_for() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -993,8 +950,7 @@ void f(A a) {
   }
 
   test_method_result_for_updaters() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1004,14 +960,14 @@ class A {
 
 void f(A a) {
   for (var i = 1; i < 7; a.foo()) {}
+//                         ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 119, 3)],
-    );
+''');
   }
 
   test_method_result_forElement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1030,7 +986,7 @@ void f(A a) {
   }
 
   test_method_result_forIn() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1045,7 +1001,7 @@ void f(A a) {
   }
 
   test_method_result_ifElement() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1064,7 +1020,7 @@ void f(A a) {
   }
 
   test_method_result_ifNull() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1079,7 +1035,7 @@ int f(A a) {
   }
 
   test_method_result_indexExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1094,7 +1050,7 @@ void f(A a, List<int> list) {
   }
 
   test_method_result_listPattern_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 f() {
@@ -1108,7 +1064,7 @@ List<String> g() => [];
   }
 
   test_method_result_mapPattern_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 f() {
@@ -1122,7 +1078,7 @@ Map<String, String> g() => {};
   }
 
   test_method_result_nullCheck_isUsed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1137,8 +1093,7 @@ int f(A a) {
   }
 
   test_method_result_nullCheck_notUsed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1148,14 +1103,14 @@ class A {
 
 void f(A a) {
   a.foo()!;
+//  ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 97, 3)],
-    );
+''');
   }
 
   test_method_result_objectPattern_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1173,23 +1128,22 @@ A g() => A(1);
   }
 
   test_method_result_recordPattern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 f() {
   g();
+//^
+// [diag.unusedResult] The value of 'g' should be used.
 }
 
 @useResult
 (int, int) g() => (0, 0);
-''',
-      [error(diag.unusedResult, 42, 1)],
-    );
+''');
   }
 
   test_method_result_recordPattern_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 f() {
@@ -1203,7 +1157,7 @@ f() {
   }
 
   test_method_result_returned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1219,7 +1173,7 @@ int f2() {
   }
 
   test_method_result_spread() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1236,7 +1190,7 @@ void f(A a) {
   }
 
   test_method_result_superInitializer() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1255,7 +1209,7 @@ class C extends B {
   }
 
   test_method_result_switchCondition() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1272,7 +1226,7 @@ void f(A a) {
   }
 
   test_method_result_switchCondition_language219() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 import 'package:meta/meta.dart';
 
@@ -1288,7 +1242,7 @@ void f(A a) {
   }
 
   test_method_result_targetedMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @useResult
@@ -1301,7 +1255,7 @@ void main() {
   }
 
   test_method_result_targetedProperty() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1316,7 +1270,7 @@ void main() {
   }
 
   test_method_result_thrown() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1331,8 +1285,7 @@ void f(A a) {
   }
 
   test_method_result_unassigned() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1342,22 +1295,14 @@ class A {
 
 void main() {
   A().foo();
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [
-        error(
-          diag.unusedResult,
-          98,
-          3,
-          text: "The value of 'foo' should be used.",
-        ),
-      ],
-    );
+''');
   }
 
   test_method_result_unassigned_cascade() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1368,22 +1313,15 @@ class C {
 
   void m3() {
     m2()..m1();
+//        ^^
+// [diag.unusedResult] The value of 'm1' should be used.
   }
 }
-''',
-      [
-        error(
-          diag.unusedResult,
-          127,
-          2,
-          text: "The value of 'm1' should be used.",
-        ),
-      ],
-    );
+''');
   }
 
   test_method_result_unassigned_parameterDefined() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1398,7 +1336,7 @@ void main() {
   }
 
   test_method_result_unassigned_parameterNotDefinedAndCascaded() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1413,7 +1351,7 @@ void main() {
   }
 
   test_method_result_usedAsArgument_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1430,7 +1368,7 @@ void f() {
   }
 
   test_method_result_usedAsArgument_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1445,7 +1383,7 @@ void main() {
   }
 
   test_method_result_while() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1460,7 +1398,7 @@ void f(A a) {
   }
 
   test_method_result_yield() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1476,7 +1414,7 @@ Stream<int> f(A a) async* {
 
   /// https://github.com/dart-lang/sdk/issues/47181
   test_prefixed_classMember() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1500,7 +1438,7 @@ class A {
 }
  ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'c.dart' as c;
 
 /// [c.A.b].
@@ -1509,7 +1447,7 @@ const a = 'a';
   }
 
   test_recordLiteral_namedField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1524,7 +1462,7 @@ class C {
   }
 
   test_recordLiteral_positionalField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1539,7 +1477,7 @@ class C {
   }
 
   test_switchExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 void main() {
@@ -1556,7 +1494,7 @@ bool methodWithAnnotation() => true;
 
   /// https://github.com/dart-lang/sdk/issues/52314
   test_switchExpressionCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1574,7 +1512,7 @@ class C {
   }
 
   test_topLevelFunction_prefixExpression_bang() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1587,7 +1525,7 @@ bool f() {
   }
 
   test_topLevelFunction_prefixExpression_decrement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1600,7 +1538,7 @@ int f() {
   }
 
   test_topLevelFunction_prefixExpression_increment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1613,7 +1551,7 @@ int f() {
   }
 
   test_topLevelFunction_prefixExpression_minus() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1626,7 +1564,7 @@ int f() {
   }
 
   test_topLevelFunction_prefixExpression_tilde() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1639,7 +1577,7 @@ int f() {
   }
 
   test_topLevelFunction_result_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1653,7 +1591,7 @@ void main() {
   }
 
   test_topLevelFunction_result_assigned_cascade() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1668,7 +1606,7 @@ void main() {
 
   /// https://github.com/dart-lang/sdk/issues/47473
   test_topLevelFunction_result_assigned_if() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1683,7 +1621,7 @@ String f(bool b) {
   }
 
   test_topLevelFunction_result_awaited_future_usedAsArgument_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1697,7 +1635,7 @@ void f() async {
   }
 
   test_topLevelFunction_result_optionNamedParam_unassigned_parameterDefined() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @UseResult.unless(parameterDefined: 'value')
@@ -1710,7 +1648,7 @@ void main() {
   }
 
   test_topLevelFunction_result_targetedMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1723,7 +1661,7 @@ void main() {
   }
 
   test_topLevelFunction_result_targetedProperty() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1736,8 +1674,7 @@ void main() {
   }
 
   test_topLevelFunction_result_unassigned() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1747,16 +1684,16 @@ int baz() => 0;
 
 void main() {
   foo();
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
   bar(); // OK
   baz(); // OK
 }
-''',
-      [error(diag.unusedResult, 108, 3)],
-    );
+''');
   }
 
   test_topLevelFunction_result_unassigned_parameterDefined() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @UseResult.unless(parameterDefined: 'value')
@@ -1769,8 +1706,7 @@ void main() {
   }
 
   test_topLevelFunction_result_unassigned_parameterUnDefined() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @UseResult.unless(parameterDefined: 'value')
@@ -1778,15 +1714,14 @@ int foo([int? value]) => value ?? 0;
 
 void main() {
   foo();
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 133, 3)],
-    );
+''');
   }
 
   test_topLevelFunction_result_unassigned_parameterUnDefined2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @UseResult.unless(parameterDefined: 'value')
@@ -1794,14 +1729,14 @@ int foo([String? msg, int? value]) => value ?? 0;
 
 void main() {
   foo('none');
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 146, 3)],
-    );
+''');
   }
 
   test_topLevelFunction_result_used_in_cascade() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1814,7 +1749,7 @@ void main() {
   }
 
   test_topLevelFunction_result_usedAsArgument_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1827,7 +1762,7 @@ void main() {
   }
 
   test_topLevelVariable_assigned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1842,7 +1777,7 @@ void main() {
 
   test_topLevelVariable_result_unusedInDoc() async {
     // https://github.com/dart-lang/sdk/issues/47181
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1854,7 +1789,7 @@ int g = 1;
   }
 
   test_topLevelVariable_returned() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1868,8 +1803,7 @@ int baz() {
   }
 
   test_topLevelVariable_unused() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1877,14 +1811,14 @@ int foo = 0;
 
 void main() {
   foo;
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
 }
-''',
-      [error(diag.unusedResult, 75, 3)],
-    );
+''');
   }
 
   test_topLevelVariable_usedAsArgument_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1897,7 +1831,7 @@ void main() {
   }
 
   test_whenClause() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {

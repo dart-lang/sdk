@@ -10,7 +10,7 @@ enum E1 {
 
 enum E2 {
   element,
-  element; // Error.
+  element, // Error.
 }
 
 enum E3 {
@@ -48,7 +48,7 @@ mixin A8 {
 }
 
 enum E8 with A8 {
-  element // Error.
+  element, // Error.
 }
 
 mixin A9 {
@@ -56,7 +56,7 @@ mixin A9 {
 }
 
 enum E9 with A9 {
-  element // Error.
+  element, // Error.
 }
 
 mixin A10 {
@@ -64,7 +64,7 @@ mixin A10 {
 }
 
 enum E10 with A10 {
-  element // Error.
+  element, // Error.
 }
 
 main() {}

@@ -47,7 +47,7 @@ class Test {
   final String output;
   final String? typeParameters;
 
-  const Test(this.input, this.output, [this.typeParameters]);
+  const new(this.input, this.output, [this.typeParameters]);
 }
 
 void main() {

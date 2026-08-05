@@ -52,12 +52,19 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateGroupBound, 1, 2) {
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
   return Pointer::New(
-      isolate->CreateIsolateGroupBoundFfiCallback(zone, trampoline, target));
+      thread->isolate_group()->CreateIsolateGroupBoundFfiCallback(
+          zone, trampoline, target));
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_deleteNativeCallable, 1, 1) {
   const auto& pointer = Pointer::CheckedHandle(zone, arguments->NativeArg0());
   isolate->DeleteFfiCallback(pointer.NativeAddress());
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_deleteIsolateGroupNativeCallable, 1, 1) {
+  const auto& pointer = Pointer::CheckedHandle(zone, arguments->NativeArg0());
+  thread->isolate_group()->DeleteFfiCallback(pointer.NativeAddress());
   return Object::null();
 }
 

@@ -13,6 +13,7 @@ library;
 
 import '../api_prototype/lowering_predicates.dart';
 import '../codes/diagnostic.dart' as diag;
+
 import 'package:kernel/ast.dart';
 
 import 'constant_evaluator.dart' show ErrorReporter;

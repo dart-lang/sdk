@@ -128,5 +128,5 @@ class CloneResult {
   final String directory;
   final int exitCode;
   final String msg;
-  CloneResult(this.exitCode, this.directory, {this.msg = ''});
+  new(this.exitCode, this.directory, {this.msg = ''});
 }

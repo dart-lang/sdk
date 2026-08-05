@@ -10,12 +10,11 @@ import 'package:analyzer/src/generated/source.dart' show UriResolver;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import 'workspace_test_support.dart';
 
 main() {
@@ -73,11 +72,8 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     newFolder(testPackageGeneratedLibPath);
     newPubspecYamlFile(testPackageRootPath, 'name: test');
     var config = PackageConfigFileBuilder();
-    config.add(name: 'test', rootPath: convertPath(testPackageRootPath));
-    newPackageConfigJsonFile(
-      testPackageRootPath,
-      config.toContent(pathContext: pathContext),
-    );
+    config.add(name: 'test', rootFolder: getFolder(testPackageRootPath));
+    newPackageConfigJsonFile(testPackageRootPath, config.toContent());
 
     workspace = PackageConfigWorkspace.find(
       resourceProvider,
@@ -225,11 +221,8 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
       }
     }
     var config = PackageConfigFileBuilder();
-    config.add(name: 'project', rootPath: '/workspace');
-    newPackageConfigJsonFile(
-      workspacePath,
-      config.toContent(pathContext: pathContext),
-    );
+    config.add(name: 'project', rootFolder: getFolder('/workspace'));
+    newPackageConfigJsonFile(workspacePath, config.toContent());
     workspace = PackageConfigWorkspace.find(
       resourceProvider,
       Packages.empty,
@@ -603,9 +596,9 @@ workspace:
   ) {
     var config = PackageConfigFileBuilder();
     for (var name in packageNames) {
-      config.add(name: name, rootPath: convertPath('/packages/$name'));
+      config.add(name: name, rootFolder: getFolder('/packages/$name'));
     }
-    newPackageConfigJsonFile(root, config.toContent(pathContext: pathContext));
+    newPackageConfigJsonFile(root, config.toContent());
     return PackageConfigWorkspace.find(
       resourceProvider,
       Packages.empty,
@@ -641,12 +634,9 @@ class PubPackageTest extends WorkspacePackageTest {
     // workspace 1 with packages 'p1' and 'workspace'
     newPubspecYamlFile('/workspace', 'name: project');
     var config = PackageConfigFileBuilder();
-    config.add(name: 'p1', rootPath: '/.pubcache/p1');
-    config.add(name: 'workspace', rootPath: '/workspace');
-    newPackageConfigJsonFile(
-      '/workspace',
-      config.toContent(pathContext: pathContext),
-    );
+    config.add(name: 'p1', rootFolder: getFolder('/.pubcache/p1'));
+    config.add(name: 'workspace', rootFolder: getFolder('/workspace'));
+    newPackageConfigJsonFile('/workspace', config.toContent());
     workspace = PackageConfigWorkspace.find(
       resourceProvider,
       Packages.empty,
@@ -657,12 +647,9 @@ class PubPackageTest extends WorkspacePackageTest {
     // workspace 2 with packages 'my' and 'foo'
     newPubspecYamlFile(myPackageRootPath, 'name: my');
     config = PackageConfigFileBuilder();
-    config.add(name: 'my', rootPath: myPackageRootPath);
-    config.add(name: 'foo', rootPath: fooPackageRootPath);
-    newPackageConfigJsonFile(
-      myPackageRootPath,
-      config.toContent(pathContext: pathContext),
-    );
+    config.add(name: 'my', rootFolder: getFolder(myPackageRootPath));
+    config.add(name: 'foo', rootFolder: getFolder(fooPackageRootPath));
+    newPackageConfigJsonFile(myPackageRootPath, config.toContent());
     newFolder(myPackageGeneratedPath);
     myWorkspace = PackageConfigWorkspace.find(
       resourceProvider,
@@ -679,7 +666,7 @@ class PubPackageTest extends WorkspacePackageTest {
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
       package.contains(
-        TestSource(convertPath('$myWorkspacePath/project/lib/file.dart')),
+        FileSource(newFile('$myWorkspacePath/project/lib/file.dart', '')),
       ),
       isFalse,
     );
@@ -717,19 +704,19 @@ class PubPackageTest extends WorkspacePackageTest {
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
       package.contains(
-        TestSource(convertPath('/workspace/project/lib/file2.dart')),
+        FileSource(newFile('/workspace/project/lib/file2.dart', '')),
       ),
       isTrue,
     );
     expect(
       package.contains(
-        TestSource(convertPath('/workspace/project/bin/bin.dart')),
+        FileSource(newFile('/workspace/project/bin/bin.dart', '')),
       ),
       isTrue,
     );
     expect(
       package.contains(
-        TestSource(convertPath('/workspace/project/test/test.dart')),
+        FileSource(newFile('/workspace/project/test/test.dart', '')),
       ),
       isTrue,
     );
@@ -829,6 +816,71 @@ class PubPackageTest extends WorkspacePackageTest {
       pubPackage.isInTestDirectory(getFile('$myPackageRootPath/test/a.dart')),
       isTrue,
     );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageRootPath/integration_test/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageRootPath/test_driver/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageRootPath/testing/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/lib/a.dart'),
+      ),
+      isFalse,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/test/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/integration_test/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/test_driver/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageGeneratedPath/my/testing/a.dart'),
+      ),
+      isTrue,
+    );
+
+    // Note, workspace-root relative path.
+    // Even though it has `test` segment, it has nothing with out package.
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myWorkspacePath/test/my/lib/a.dart'),
+      ),
+      isFalse,
+    );
   }
 
   void test_packagesAvailableTo() {
@@ -841,29 +893,28 @@ class PubPackageTest extends WorkspacePackageTest {
     );
   }
 
+  test_sourceIsInPublicApi() {
+    var pubPackage = myPackage as PubPackage;
+
+    bool isInPublicApi(String path) {
+      return pubPackage.sourceIsInPublicApi(FileSource(newFile(path, '')));
+    }
+
+    expect(isInPublicApi('$myPackageRootPath/lib/a.dart'), isTrue);
+    expect(isInPublicApi('$myPackageRootPath/lib/src/a.dart'), isFalse);
+    expect(isInPublicApi('$myPackageRootPath/test/a.dart'), isFalse);
+
+    expect(isInPublicApi('$myPackageGeneratedPath/my/lib/a.dart'), isTrue);
+    expect(isInPublicApi('$myPackageGeneratedPath/my/lib/src/a.dart'), isFalse);
+    expect(isInPublicApi('$myPackageGeneratedPath/test/lib/a.dart'), isFalse);
+  }
+
   Source _sourceWithFileUri(String path) {
-    return _MockSource(path: convertPath(path), uri: toUri(path));
+    return FileSource(newFile(path, ''), toUri(path));
   }
 
   Source _sourceWithPackageUriWithoutPath(String uriStr) {
     var uri = Uri.parse(uriStr);
-    return _MockSource(path: convertPath('/test/lib/test.dart'), uri: uri);
+    return FileSource(newFile('/test/lib/test.dart', ''), uri);
   }
-}
-
-class _MockSource implements Source {
-  final String path;
-
-  @override
-  final Uri uri;
-
-  _MockSource({required this.path, required this.uri});
-
-  @override
-  String get fullName {
-    return path;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

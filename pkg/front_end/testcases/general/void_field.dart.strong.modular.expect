@@ -7,7 +7,7 @@ class C extends core::Object {
   field void field1;
   field void field2 = self::value;
   field void field3;
-  constructor •(void field1) → self::C
+  constructor •(initializing-formal void field1) → self::C
     : self::C::field1 = field1, self::C::field3 = self::value, super core::Object::•()
     ;
 }

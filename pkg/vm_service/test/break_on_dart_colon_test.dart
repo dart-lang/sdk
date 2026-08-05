@@ -3,23 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--verbose_debug
 
-import 'dart:developer';
-
 import 'package:vm_service/vm_service.dart';
 
+import 'break_on_dart_colon_lib.dart' as testee_lib;
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
-
-// Line in core/print.dart
-const int LINE_A = 19;
-
-void testMain() {
-  debugger();
-  print('1');
-  print('2');
-  print('3');
-  print('Done');
-}
 
 IsolateTest expectHitBreakpoint(String uri, int line) {
   return (VmService service, IsolateRef isolateRef) async {
@@ -33,22 +20,18 @@ IsolateTest expectHitBreakpoint(String uri, int line) {
   };
 }
 
-final tests = <IsolateTest>[
-  hasStoppedAtBreakpoint,
-
-  // Dart libraries are not debuggable by default
-  markDartColonLibrariesDebuggable,
-
-  expectHitBreakpoint('org-dartlang-sdk:///sdk/lib/core/print.dart', LINE_A),
-  expectHitBreakpoint('dart:core/print.dart', LINE_A),
-  expectHitBreakpoint('/core/print.dart', LINE_A),
-
-  resumeIsolate,
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'break_on_dart_colon_test.dart',
-      testeeConcurrent: testMain,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('break_on_dart_colon_lib.dart', args)
+        .hasStoppedAtBreakpoint()
+        // Dart libraries are not debuggable by default
+        .markDartColonLibrariesDebuggable()
+        .addCustomTest(
+          expectHitBreakpoint(
+            'org-dartlang-sdk:///sdk/lib/core/print.dart',
+            19, // Line in core/print.dart
+          ),
+        )
+        .addCustomTest(expectHitBreakpoint('dart:core/print.dart', 19))
+        .addCustomTest(expectHitBreakpoint('/core/print.dart', 19))
+        .resumeIsolate()
+        .run(testeeMain: testee_lib.main);

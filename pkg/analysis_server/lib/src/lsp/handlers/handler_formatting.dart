@@ -14,7 +14,7 @@ typedef StaticOptions = Either2<bool, DocumentFormattingOptions>;
 
 class FormattingHandler
     extends SharedMessageHandler<DocumentFormattingParams, List<TextEdit>?> {
-  FormattingHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_formatting;
@@ -69,7 +69,7 @@ class FormattingHandler
 
 class FormattingRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  FormattingRegistrations(super.info);
+  new(super.info);
 
   bool get enableFormatter => clientConfiguration.global.enableSdkFormatter;
 

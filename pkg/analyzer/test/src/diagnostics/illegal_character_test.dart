@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,45 +15,24 @@ main() {
 @reflectiveTest
 class IllegalCharacterTest extends PubPackageResolutionTest {
   test_asciiControlCharacter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 \f
-''',
-      [
-        error(diag.illegalCharacter, 0, 1, messageContains: ["character '12'"]),
-      ],
-    );
+// [diag.illegalCharacter][column 1][length 1] Illegal character '12'.
+''');
   }
 
   test_nonAsciiIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 piskefløde() {}
-''',
-      [
-        error(
-          diag.illegalCharacter,
-          7,
-          1,
-          messageContains: ["character '248'"],
-        ),
-      ],
-    );
+//     ^
+// [diag.illegalCharacter] Illegal character '248'.
+''');
   }
 
   test_nonAsciiWhitespace() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 \u00a0
-''',
-      [
-        error(
-          diag.illegalCharacter,
-          0,
-          1,
-          messageContains: ["character '160'"],
-        ),
-      ],
-    );
+// [diag.illegalCharacter][column 1][length 1] Illegal character '160'.
+''');
   }
 }

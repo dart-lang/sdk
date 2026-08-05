@@ -71,7 +71,7 @@ flutter:
   fonts:
     ^
 ''');
-    assertSuggestion('family: ');
+    assertSuggestion('- family: ');
   }
 
   void test_environment() {
@@ -158,8 +158,8 @@ flutter:
   fonts:
     ^
 ''');
-    assertSuggestion('family: ');
-    assertSuggestion('fonts:');
+    assertSuggestion('- family: ');
+    assertSuggestion('- fonts:');
   }
 
   void test_flutter_fonts_fonts() {
@@ -169,7 +169,7 @@ flutter:
     - fonts:
         ^
 ''');
-    assertSuggestion('asset: ');
+    assertSuggestion('- asset: ');
   }
 
   void test_flutter_fonts_fonts_style() {
@@ -365,9 +365,12 @@ dependencies:
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 0, json, '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 0, json, '');
 
     pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
     await pumpEventQueue(times: 500);

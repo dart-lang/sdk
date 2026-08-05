@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
-  ReplaceNullWithClosure({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -30,10 +30,10 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
     var parameters = const <FormalParameterElement>[];
 
     var coveringNode = this.coveringNode;
-    if (coveringNode is NamedExpression) {
-      var expression = coveringNode.expression;
+    if (coveringNode is NamedArgument) {
+      var expression = coveringNode.argumentExpression;
       if (expression is NullLiteral) {
-        var element = coveringNode.element;
+        var element = coveringNode.correspondingParameter;
         if (element is FormalParameterElement) {
           var type = element.type;
           if (type is FunctionType) {

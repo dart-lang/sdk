@@ -5,7 +5,6 @@
 /// @docImport 'complex_parser_test.dart';
 library;
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/node_text_expectations.dart';
@@ -26,10 +25,9 @@ main() {
 @reflectiveTest
 class SimpleParserTest extends ParserDiagnosticsTest {
   void test_classDeclaration_complexTypeParam() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<@Foo.bar(const [], const [1], const {"": r""}, 0xFF + 2, .3, 4.5) T> {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -97,16 +95,16 @@ CompilationUnit
   }
 
   void test_classDeclaration_invalid_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   C() : super.const();
+//      ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
+//            ^^^^^
+// [diag.expectedIdentifierButGotKeyword] 'const' can't be used as an identifier because it's a keyword.
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidSuperInInitializer, 18, 5),
-      error(diag.expectedIdentifierButGotKeyword, 24, 5),
-      error(diag.missingIdentifier, 24, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -138,18 +136,19 @@ CompilationUnit
   }
 
   void test_classDeclaration_invalid_this() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   C() : this.const();
+//      ^^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//           ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.missingFunctionBody] A function body must be provided.
+// [diag.constMethod] Getters, setters and methods can't be declared to be 'const'.
+//                ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingAssignmentInInitializer, 18, 4),
-      error(diag.missingIdentifier, 23, 5),
-      error(diag.missingFunctionBody, 23, 5),
-      error(diag.constMethod, 23, 5),
-      error(diag.missingIdentifier, 28, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -195,12 +194,13 @@ CompilationUnit
   }
 
   void test_method_name_notNull_37733() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   f(<T>());
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -236,11 +236,10 @@ CompilationUnit
   }
 
   void test_parseAnnotation_n1() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleAnnotation;
     assertParsedNodeText(node, r'''
 Annotation
@@ -251,11 +250,10 @@ Annotation
   }
 
   void test_parseAnnotation_n1_a() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A(x, y)
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleAnnotation;
     assertParsedNodeText(node, r'''
 Annotation
@@ -274,11 +272,10 @@ Annotation
   }
 
   void test_parseAnnotation_n2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A.B
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleAnnotation;
     assertParsedNodeText(node, r'''
 Annotation
@@ -293,11 +290,10 @@ Annotation
   }
 
   void test_parseAnnotation_n2_a() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A.B(x, y)
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleAnnotation;
     assertParsedNodeText(node, r'''
 Annotation
@@ -320,11 +316,10 @@ Annotation
   }
 
   void test_parseAnnotation_n3() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A.B.C
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleAnnotation;
     assertParsedNodeText(node, r'''
 Annotation
@@ -342,11 +337,10 @@ Annotation
   }
 
   void test_parseAnnotation_n3_a() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A.B.C(x, y)
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleAnnotation;
     assertParsedNodeText(node, r'''
 Annotation
@@ -372,10 +366,9 @@ Annotation
   }
 
   test_parseArgument() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(3);
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
     assertParsedNodeText(node, r'''
@@ -385,28 +378,24 @@ IntegerLiteral
   }
 
   test_parseArgument_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(foo: "a");
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
     assertParsedNodeText(node, r'''
-NamedExpression
-  name: Label
-    label: SimpleIdentifier
-      token: foo
-    colon: :
-  expression: SimpleStringLiteral
+NamedArgument
+  name: foo
+  colon: :
+  argumentExpression: SimpleStringLiteral
     literal: "a"
 ''');
   }
 
   void test_parseArgumentList_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.methodInvocation('m(').argumentList;
     assertParsedNodeText(node, r'''
 ArgumentList
@@ -416,10 +405,9 @@ ArgumentList
   }
 
   void test_parseArgumentList_mixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(w, x, y: y, z: z);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.methodInvocation('m(').argumentList;
     assertParsedNodeText(node, r'''
 ArgumentList
@@ -429,29 +417,24 @@ ArgumentList
       token: w
     SimpleIdentifier
       token: x
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: y
-        colon: :
-      expression: SimpleIdentifier
+    NamedArgument
+      name: y
+      colon: :
+      argumentExpression: SimpleIdentifier
         token: y
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: z
-        colon: :
-      expression: SimpleIdentifier
+    NamedArgument
+      name: z
+      colon: :
+      argumentExpression: SimpleIdentifier
         token: z
   rightParenthesis: )
 ''');
   }
 
   void test_parseArgumentList_noNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(x, y, z);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.methodInvocation('m(').argumentList;
     assertParsedNodeText(node, r'''
 ArgumentList
@@ -468,38 +451,32 @@ ArgumentList
   }
 
   void test_parseArgumentList_onlyNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(x: x, y: y);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.methodInvocation('m(').argumentList;
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
   arguments
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: x
-        colon: :
-      expression: SimpleIdentifier
+    NamedArgument
+      name: x
+      colon: :
+      argumentExpression: SimpleIdentifier
         token: x
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: y
-        colon: :
-      expression: SimpleIdentifier
+    NamedArgument
+      name: y
+      colon: :
+      argumentExpression: SimpleIdentifier
         token: y
   rightParenthesis: )
 ''');
   }
 
   void test_parseArgumentList_trailing_comma() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(x, y, z);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.methodInvocation('m(').argumentList;
     assertParsedNodeText(node, r'''
 ArgumentList
@@ -516,10 +493,9 @@ ArgumentList
   }
 
   void test_parseArgumentList_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(a<b, c>(d));
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.methodInvocation('m(').argumentList;
     assertParsedNodeText(node, r'''
 ArgumentList
@@ -547,10 +523,9 @@ ArgumentList
   }
 
   void test_parseArgumentList_typeArguments_none() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(a < b, p.q.c > (d));
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.methodInvocation('m(').argumentList;
     assertParsedNodeText(node, r'''
 ArgumentList
@@ -584,10 +559,9 @@ ArgumentList
   }
 
   void test_parseArgumentList_typeArguments_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(a<b, p.c>(d));
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.methodInvocation('m(').argumentList;
     assertParsedNodeText(node, r'''
 ArgumentList
@@ -618,10 +592,9 @@ ArgumentList
   }
 
   void test_parseCombinators_h() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' hide a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
@@ -639,10 +612,9 @@ ImportDirective
   }
 
   void test_parseCombinators_hs() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' hide a show b;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
@@ -665,10 +637,9 @@ ImportDirective
   }
 
   void test_parseCombinators_hshs() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' hide a show b hide c show d;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
@@ -701,10 +672,9 @@ ImportDirective
   }
 
   void test_parseCombinators_s() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' show a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
@@ -722,11 +692,10 @@ ImportDirective
   }
 
   void test_parseCommentAndMetadata_c() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** 1 */
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -745,13 +714,12 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_cmc() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** 1 */
 @A
 /** 2 */
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -775,14 +743,13 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_cmcm() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** 1 */
 @A
 /** 2 */
 @B
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -810,13 +777,12 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_cmm() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** 1 */
 @A
 @B
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -844,11 +810,10 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_m() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -869,13 +834,12 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_mcm() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A
 /** 1 */
 @B
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -903,14 +867,13 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_mcmc() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A
 /** 1 */
 @B
 /** 2 */
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -938,7 +901,7 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_mix1() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /**
  * aaa
  */
@@ -947,7 +910,6 @@ CompilationUnit
  */
 class A {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -968,7 +930,7 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_mix2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /**
  * aaa
  */
@@ -976,7 +938,6 @@ CompilationUnit
 /// ccc
 class B {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -996,7 +957,7 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_mix3() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// aaa
 /// bbb
 /**
@@ -1004,7 +965,6 @@ CompilationUnit
  */
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1025,7 +985,7 @@ CompilationUnit
   }
 
   test_parseCommentAndMetadata_mix4() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// aaa
 /// bbb
 /**
@@ -1034,7 +994,6 @@ CompilationUnit
 /// ddd
 class D {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1053,14 +1012,13 @@ CompilationUnit
   }
 
   test_parseCommentAndMetadata_mix5() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /**
  * aaa
  */
 // bbb
 class E {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1081,12 +1039,11 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_mm() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @A
 @B(x)
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1117,10 +1074,9 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_none() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1136,12 +1092,11 @@ CompilationUnit
   }
 
   void test_parseCommentAndMetadata_singleLine() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// 1
 /// 2
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1161,11 +1116,10 @@ CompilationUnit
   }
 
   void test_parseCommentReferences_notClosed_noIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** [ some text */
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -1186,10 +1140,9 @@ ClassDeclaration
   }
 
   void test_parseConfiguration_noOperator_dottedIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' if (a.b) 'c.dart';
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConfiguration;
     assertParsedNodeText(node, r'''
 Configuration
@@ -1208,10 +1161,9 @@ Configuration
   }
 
   void test_parseConfiguration_noOperator_simpleIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' if (a) 'b.dart';
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConfiguration;
     assertParsedNodeText(node, r'''
 Configuration
@@ -1228,10 +1180,9 @@ Configuration
   }
 
   void test_parseConfiguration_operator_dottedIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' if (a.b == 'c') 'd.dart';
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConfiguration;
     assertParsedNodeText(node, r'''
 Configuration
@@ -1253,10 +1204,9 @@ Configuration
   }
 
   void test_parseConfiguration_operator_simpleIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' if (a == 'b') 'c.dart';
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConfiguration;
     assertParsedNodeText(node, r'''
 Configuration
@@ -1276,10 +1226,9 @@ Configuration
   }
 
   void test_parseConstructorName_named_noPrefix() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new A.n();
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleInstanceCreationExpression.constructorName;
     assertParsedNodeText(node, r'''
@@ -1293,10 +1242,9 @@ ConstructorName
   }
 
   void test_parseConstructorName_named_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new p.A.n();
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleInstanceCreationExpression.constructorName;
     assertParsedNodeText(node, r'''
@@ -1313,10 +1261,9 @@ ConstructorName
   }
 
   void test_parseConstructorName_unnamed_noPrefix() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new A();
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleInstanceCreationExpression.constructorName;
     assertParsedNodeText(node, r'''
@@ -1327,10 +1274,9 @@ ConstructorName
   }
 
   void test_parseConstructorName_unnamed_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new p.A();
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleInstanceCreationExpression.constructorName;
     assertParsedNodeText(node, r'''
@@ -1344,11 +1290,10 @@ ConstructorName
   }
 
   void test_parseDocumentationComment_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** */
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1367,11 +1312,10 @@ CompilationUnit
   }
 
   void test_parseDocumentationComment_block_withReference() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** [a] */
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1394,12 +1338,11 @@ CompilationUnit
   }
 
   void test_parseDocumentationComment_endOfLine() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 ///
 ///
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1419,10 +1362,9 @@ CompilationUnit
   }
 
   void test_parseExtendsClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class TestClass extends B {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -1440,10 +1382,9 @@ ClassDeclaration
   }
 
   void test_parseFunctionBody_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {}
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
     assertParsedNodeText(node, r'''
@@ -1455,10 +1396,9 @@ BlockFunctionBody
   }
 
   void test_parseFunctionBody_block_async() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async {}
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
     assertParsedNodeText(node, r'''
@@ -1471,10 +1411,9 @@ BlockFunctionBody
   }
 
   void test_parseFunctionBody_block_asyncGenerator() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async* {}
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
     assertParsedNodeText(node, r'''
@@ -1488,10 +1427,9 @@ BlockFunctionBody
   }
 
   void test_parseFunctionBody_block_syncGenerator() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() sync* {}
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
     assertParsedNodeText(node, r'''
@@ -1505,10 +1443,9 @@ BlockFunctionBody
   }
 
   void test_parseFunctionBody_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() ;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1527,11 +1464,12 @@ CompilationUnit
   }
 
   void test_parseFunctionBody_empty_language305() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.5
 void f() ;
+//       ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1550,10 +1488,9 @@ CompilationUnit
   }
 
   void test_parseFunctionBody_expression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() => y;
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
     assertParsedNodeText(node, r'''
@@ -1566,10 +1503,9 @@ ExpressionFunctionBody
   }
 
   void test_parseFunctionBody_expression_async() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async => y;
 ''');
-    parseResult.assertNoErrors();
     var node =
         parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
     assertParsedNodeText(node, r'''
@@ -1583,10 +1519,9 @@ ExpressionFunctionBody
   }
 
   void test_parseIdentifierList_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' show a, b, c;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
@@ -1608,10 +1543,9 @@ ImportDirective
   }
 
   void test_parseIdentifierList_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' show a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
@@ -1629,10 +1563,9 @@ ImportDirective
   }
 
   void test_parseImplementsClause_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class TestClass implements A, B, C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -1655,10 +1588,9 @@ ClassDeclaration
   }
 
   void test_parseImplementsClause_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class TestClass implements A {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -1677,10 +1609,9 @@ ClassDeclaration
   }
 
   void test_parseInstanceCreation_keyword_33647() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var c = new Future<int>.sync(() => 3).then<int>((e) => e);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1747,10 +1678,9 @@ CompilationUnit
   }
 
   void test_parseInstanceCreation_noKeyword_33647() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var c = Future<int>.sync(() => 3).then<int>((e) => e);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1816,10 +1746,9 @@ CompilationUnit
   }
 
   void test_parseInstanceCreation_noKeyword_noPrefix() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => C<E>.n();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1853,10 +1782,9 @@ CompilationUnit
   }
 
   void test_parseInstanceCreation_noKeyword_noPrefix_34403() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => C<E>.n<B>();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1896,10 +1824,9 @@ CompilationUnit
   }
 
   void test_parseInstanceCreation_noKeyword_prefix() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => p.C<E>.n();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1936,14 +1863,13 @@ CompilationUnit
   }
 
   void test_parseInstanceCreation_noKeyword_varInit() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<T, S> {}
 
 void main() {
   final c = C<int, int Function(String)>();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2010,10 +1936,9 @@ CompilationUnit
   }
 
   void test_parseLibraryIdentifier_builtin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 library $name;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleLibraryDirective;
     assertParsedNodeText(node, r'''
 LibraryDirective
@@ -2026,10 +1951,10 @@ LibraryDirective
   }
 
   void test_parseLibraryIdentifier_invalid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 library <myLibId>;
+// [diag.missingFunctionParameters][column 1][length 7] Functions must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionParameters, 0, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2052,10 +1977,9 @@ CompilationUnit
   }
 
   void test_parseLibraryIdentifier_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 library $name;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleLibraryDirective;
     assertParsedNodeText(node, r'''
 LibraryDirective
@@ -2068,10 +1992,9 @@ LibraryDirective
   }
 
   void test_parseLibraryIdentifier_pseudo() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 library $name;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleLibraryDirective;
     assertParsedNodeText(node, r'''
 LibraryDirective
@@ -2084,10 +2007,9 @@ LibraryDirective
   }
 
   void test_parseLibraryIdentifier_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 library $name;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleLibraryDirective;
     assertParsedNodeText(node, r'''
 LibraryDirective
@@ -2104,12 +2026,11 @@ LibraryDirective
   }
 
   void test_parseReturnStatement_noValue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 ReturnStatement
@@ -2119,12 +2040,11 @@ ReturnStatement
   }
 
   void test_parseReturnStatement_value() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return x;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 ReturnStatement
@@ -2136,12 +2056,11 @@ ReturnStatement
   }
 
   void test_parseStatement_function_noReturnType() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   Function<A>(core.List<core.int> x) m() => null;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, '''
 FunctionDeclarationStatement
@@ -2187,13 +2106,12 @@ FunctionDeclarationStatement
   }
 
   void test_parseStatements_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return;
   return;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock;
     assertParsedNodeText(node, r'''
 Block
@@ -2210,12 +2128,11 @@ Block
   }
 
   void test_parseStatements_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock;
     assertParsedNodeText(node, r'''
 Block
@@ -2229,10 +2146,9 @@ Block
   }
 
   void test_parseTypeAnnotation_function_noReturnType_noParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(Function() x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2246,10 +2162,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_noReturnType_parameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(Function(int, int) x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2269,10 +2184,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(Function<S, T>() x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2295,10 +2209,9 @@ RegularFormalParameter
 
   void
   test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(Function<T>(String, {T t}) x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2327,10 +2240,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_returnType_classFunction() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(Function x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2341,10 +2253,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_returnType_function() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(A Function(B, C) Function(D) x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2374,10 +2285,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_returnType_noParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(List<int> Function() x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2399,10 +2309,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_returnType_parameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(List<int> Function(String s, int i) x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2432,10 +2341,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_returnType_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(A Function(B, C) x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2457,10 +2365,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_returnType_typeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(List<T> Function<T>() x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2489,10 +2396,9 @@ RegularFormalParameter
 
   void
   test_parseTypeAnnotation_function_returnType_typeParameters_parameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(List<T> Function<T>(String s, [T]) x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2529,10 +2435,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_function_returnType_withArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(A<B> Function(C) x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2557,10 +2462,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeAnnotation_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(A<B> x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2577,12 +2481,13 @@ RegularFormalParameter
   }
 
   void test_parseTypeArgumentList_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(
   C<> x,
+//  ^
+// [diag.expectedTypeName] Expected a type name.
 ) {}
 ''');
-    parseResult.assertErrors([error(diag.expectedTypeName, 12, 1)]);
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2599,10 +2504,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeArgumentList_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(C<int, int, int> x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2623,10 +2527,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeArgumentList_nested() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(C<A<B>> x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2649,10 +2552,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeArgumentList_nested_withComment_double() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(C<A<B /* 0 */>> x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2675,10 +2577,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeArgumentList_nested_withComment_tripple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(C<A<B<C /* 0 */>>> x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2707,10 +2608,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeArgumentList_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(C<int> x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2727,10 +2627,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeName_parameterized() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(List<int> x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2747,10 +2646,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeName_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(int x) {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -2761,10 +2659,9 @@ RegularFormalParameter
   }
 
   void test_parseTypeParameter_bounded_functionType_noReturn() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A extends Function(int)> {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -2793,10 +2690,9 @@ ClassDeclaration
   }
 
   void test_parseTypeParameter_bounded_functionType_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A extends String Function(int)> {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -2827,10 +2723,9 @@ ClassDeclaration
   }
 
   void test_parseTypeParameter_bounded_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A extends B<C>> {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -2859,10 +2754,9 @@ ClassDeclaration
   }
 
   void test_parseTypeParameter_bounded_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A extends B> {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -2885,10 +2779,9 @@ ClassDeclaration
   }
 
   void test_parseTypeParameter_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A> {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -2908,10 +2801,9 @@ ClassDeclaration
   }
 
   void test_parseTypeParameterList_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A, B extends C, D> {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2940,15 +2832,15 @@ CompilationUnit
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A extends B<E>>= {}
+//                     ^
+// [diag.expectedToken] Expected to find ';'.
+//                       ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedToken] Expected to find 'with'.
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
-      error(diag.expectedTypeName, 25, 1),
-      error(diag.expectedToken, 25, 1),
-      error(diag.expectedExecutable, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2984,15 +2876,15 @@ CompilationUnit
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A extends B<E /* foo */ >>= {}
+//                                ^
+// [diag.expectedToken] Expected to find ';'.
+//                                  ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedToken] Expected to find 'with'.
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.expectedTypeName, 36, 1),
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedExecutable, 36, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3028,17 +2920,20 @@ CompilationUnit
   }
 
   void test_parseTypeParameterList_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<<A> {}
+//    ^
+// [diag.expectedClassBody] A class declaration must have a body, even if it is empty.
+//     ^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//       ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
+//        ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//          ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedClassBody, 6, 1),
-      error(diag.expectedExecutable, 7, 2),
-      error(diag.missingConstFinalVarOrType, 9, 1),
-      error(diag.expectedToken, 9, 1),
-      error(diag.expectedExecutable, 10, 1),
-      error(diag.expectedExecutable, 12, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3060,15 +2955,15 @@ CompilationUnit
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C<A>= {}
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedToken] Expected to find 'with'.
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 1),
-      error(diag.expectedToken, 12, 1),
-      error(diag.expectedExecutable, 12, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3095,10 +2990,9 @@ CompilationUnit
   }
 
   void test_parseVariableDeclaration_equals() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var a = b;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration;
     assertParsedNodeText(node, r'''
 VariableDeclaration
@@ -3110,12 +3004,13 @@ VariableDeclaration
   }
 
   void test_parseVariableDeclaration_final_late() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   final late a;
+//      ^^^^
+// [diag.modifierOutOfOrder] The modifier 'late' should be before the modifier 'final'.
 }
 ''');
-    parseResult.assertErrors([error(diag.modifierOutOfOrder, 19, 4)]);
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
@@ -3130,12 +3025,13 @@ VariableDeclarationStatement
   }
 
   void test_parseVariableDeclaration_late() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   late a;
+//     ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 18, 1)]);
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
@@ -3149,12 +3045,11 @@ VariableDeclarationStatement
   }
 
   void test_parseVariableDeclaration_late_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   late final a;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
@@ -3169,12 +3064,13 @@ VariableDeclarationStatement
   }
 
   void test_parseVariableDeclaration_late_init() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   late a = 0;
+//     ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 18, 1)]);
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
@@ -3191,12 +3087,11 @@ VariableDeclarationStatement
   }
 
   void test_parseVariableDeclaration_late_type() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   late A a;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
@@ -3212,12 +3107,11 @@ VariableDeclarationStatement
   }
 
   void test_parseVariableDeclaration_late_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   late var a;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
@@ -3232,12 +3126,11 @@ VariableDeclarationStatement
   }
 
   void test_parseVariableDeclaration_late_var_init() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   late var a = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.firstBlock.statements[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
@@ -3255,10 +3148,9 @@ VariableDeclarationStatement
   }
 
   void test_parseVariableDeclaration_noEquals() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration;
     assertParsedNodeText(node, r'''
 VariableDeclaration
@@ -3267,10 +3159,9 @@ VariableDeclaration
   }
 
   void test_parseWithClause_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class TestClass extends Object with A, B, C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -3297,10 +3188,9 @@ ClassDeclaration
   }
 
   void test_parseWithClause_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class TestClass extends Object with M {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
@@ -3323,16 +3213,17 @@ ClassDeclaration
   }
 
   void test_typeAlias_37733() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 typedef K=Function(<>($
+//                 ^
+// [diag.invalidInlineFunctionType] Inline function types can't be used for parameters in a generic function type.
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.missingIdentifier] Expected an identifier.
+//                    ^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.expectedToken][column 24][length 1] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidInlineFunctionType, 19, 1),
-      error(diag.missingIdentifier, 19, 1),
-      error(diag.missingIdentifier, 20, 1),
-      error(diag.expectedToken, 22, 1),
-      error(diag.expectedToken, 24, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3365,13 +3256,12 @@ CompilationUnit
   }
 
   void test_typeAlias_parameter_missingIdentifier_37733() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 typedef T=Function(<S>());
+//                 ^
+// [diag.invalidInlineFunctionType] Inline function types can't be used for parameters in a generic function type.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidInlineFunctionType, 19, 1),
-      error(diag.missingIdentifier, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

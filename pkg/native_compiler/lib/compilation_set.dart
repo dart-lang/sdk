@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/front_end/ast_scopes.dart';
 import 'package:cfg/front_end/ast_to_ir.dart';
+import 'package:cfg/front_end/computed_scopes.dart';
 import 'package:cfg/front_end/recognized_methods.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
@@ -118,8 +120,15 @@ class CompilationSet {
         function,
         functionRegistry,
         recognizedMethods,
+        onLocalFunction: addFunction,
         enableAsserts: config.enableAsserts,
         typeParametersStyle: .separateFunctionAndClassTypeParameters,
+        scopes: config.useAstScopes
+            ? AstScopes()
+            : ComputedScopes(
+                function.member,
+                enableAsserts: config.enableAsserts,
+              ),
       ).buildFlowGraph();
     } catch (_) {
       print('Compiler crashed while compiling $function');

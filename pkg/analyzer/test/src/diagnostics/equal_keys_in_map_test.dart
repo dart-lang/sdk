@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,32 +15,29 @@ main() {
 @reflectiveTest
 class EqualKeysInMapTest extends PubPackageResolutionTest {
   test_constant_constant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 1;
 const b = 1;
 var s = {a: 2, b: 3};
-''',
-      [error(diag.equalKeysInMap, 41, 1)],
-    );
+//             ^
+// [diag.equalKeysInMap] Two keys in a map literal shouldn't be equal.
+''');
   }
 
   test_literal_constant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const one = 1;
 var s = {1: 2, one: 3};
-''',
-      [error(diag.equalKeysInMap, 30, 3)],
-    );
+//             ^^^
+// [diag.equalKeysInMap] Two keys in a map literal shouldn't be equal.
+''');
   }
 
   test_literal_literal() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var s = {1: 2, 1: 3};
-''',
-      [error(diag.equalKeysInMap, 15, 1)],
-    );
+//             ^
+// [diag.equalKeysInMap] Two keys in a map literal shouldn't be equal.
+''');
   }
 }

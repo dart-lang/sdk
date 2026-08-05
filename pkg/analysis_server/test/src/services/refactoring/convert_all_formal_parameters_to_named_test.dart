@@ -17,7 +17,8 @@ void main() {
 @reflectiveTest
 class ConvertAllFormalParametersToNamedTest extends RefactoringTest {
   @override
-  String get refactoringName => ConvertAllFormalParametersToNamed.commandName;
+  String get refactoringCommandId =>
+      ConvertAllFormalParametersToNamed.commandName;
 
   Future<void> test_constructor_factoryKeyword() async {
     addTestSource(r'''

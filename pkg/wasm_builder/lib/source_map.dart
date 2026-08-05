@@ -18,8 +18,12 @@ class SourceMapping {
   SourceMapping._(this.instructionOffset, this.sourceInfo);
 
   SourceMapping(
-      this.instructionOffset, Uri fileUri, int line, int col, String? name)
-      : sourceInfo = SourceInfo(fileUri, line, col, name);
+    this.instructionOffset,
+    Uri fileUri,
+    int line,
+    int col,
+    String? name,
+  ) : sourceInfo = SourceInfo(fileUri, line, col, name);
 
   SourceMapping.unmapped(this.instructionOffset) : sourceInfo = null;
 
@@ -81,10 +85,9 @@ class SourceMapSerializer {
 
   void copyMappings(SourceMapSerializer other, int offset) {
     for (final mapping in other.mappings) {
-      mappings.add(SourceMapping._(
-        mapping.instructionOffset + offset,
-        mapping.sourceInfo,
-      ));
+      mappings.add(
+        SourceMapping._(mapping.instructionOffset + offset, mapping.sourceInfo),
+      );
     }
   }
 
@@ -148,16 +151,22 @@ Map<String, Object?> _sourceMapToJson(List<SourceMapping> mappings) {
 
     first = false;
 
-    lastTargetColumn =
-        _encodeVLQ(mappingsStr, mapping.instructionOffset, lastTargetColumn);
+    lastTargetColumn = _encodeVLQ(
+      mappingsStr,
+      mapping.instructionOffset,
+      lastTargetColumn,
+    );
 
     if (sourceInfo != null) {
       final sourceIndex = sourceIndices[sourceInfo.fileUri]!;
 
       lastSourceIndex = _encodeVLQ(mappingsStr, sourceIndex, lastSourceIndex);
       lastSourceLine = _encodeVLQ(mappingsStr, sourceInfo.line, lastSourceLine);
-      lastSourceColumn =
-          _encodeVLQ(mappingsStr, sourceInfo.col, lastSourceColumn);
+      lastSourceColumn = _encodeVLQ(
+        mappingsStr,
+        sourceInfo.col,
+        lastSourceColumn,
+      );
 
       if (sourceInfo.name != null) {
         final nameIndex = nameIndices[sourceInfo.name!]!;
@@ -202,5 +211,6 @@ int _encodeVLQ(StringSink output, int value, int offset) {
 const int _vlqBaseShift = 5;
 const int _vlqBaseMask = (1 << 5) - 1;
 const int _vlqContinuationBit = 1 << 5;
-const String _base64Digits = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
+const String _base64Digits =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
     'opqrstuvwxyz0123456789+/';

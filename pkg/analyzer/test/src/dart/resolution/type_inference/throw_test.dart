@@ -5,24 +5,26 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ThrowTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ThrowTest extends PubPackageResolutionTest {
   test_downward() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   throw a();
 }
 T a<T>() => throw '';
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

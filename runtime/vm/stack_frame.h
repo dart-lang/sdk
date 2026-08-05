@@ -224,7 +224,7 @@ class ExitFrame : public StackFrame {
 class EntryFrame : public StackFrame {
  public:
   bool IsValid() const {
-    return StubCode::InInvocationStub(pc(), is_interpreted());
+    return StubCode::InInvocationStub(thread(), pc(), is_interpreted());
   }
   bool IsDartFrame(bool validate = true) const { return false; }
   bool IsStubFrame() const { return false; }
@@ -298,7 +298,7 @@ class StackFrameIterator {
           sp_ +
           ((is_interpreted() ? kKBCSavedPcSlotFromSp : kSavedPcSlotFromSp) *
            kWordSize)));
-      return !StubCode::InInvocationStub(pc, is_interpreted());
+      return !StubCode::InInvocationStub(thread_, pc, is_interpreted());
     }
 
     // Get next non entry/exit frame in the set (assumes a next frame exists).

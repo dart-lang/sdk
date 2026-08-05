@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
 class SortMembersCommandHandler extends SimpleEditCommandHandler {
-  SortMembersCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Sort Members';

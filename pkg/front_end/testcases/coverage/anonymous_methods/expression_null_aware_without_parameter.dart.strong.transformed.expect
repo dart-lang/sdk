@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::int? i = null;
+static method main() → void {
+  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this = let core::int? #t1 = anonymous#receiver in #t1 == null ?{core::int} #t1 as core::int : #t1{core::int} in 1;
+  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this = let core::int? #t2 = anonymous#receiver in #t2 == null ?{core::int} #t2 as core::int : #t2{core::int} in anonymous#this{core::int};
+  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::bool?} null : let final synthesized core::int anonymous#this = let core::int? #t3 = anonymous#receiver in #t3 == null ?{core::int} #t3 as core::int : #t3{core::int} in anonymous#this{core::int}.{core::int::isEven}{core::bool};
+  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::bool?} null : let final synthesized core::int anonymous#this = let core::int? #t4 = anonymous#receiver in #t4 == null ?{core::int} #t4 as core::int : #t4{core::int} in anonymous#this{core::int}.{core::int::isEven}{core::bool};
+}

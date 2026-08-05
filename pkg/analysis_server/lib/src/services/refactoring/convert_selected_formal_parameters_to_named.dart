@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
     show ArgumentsTrailingComma;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:language_server_protocol/protocol_custom_generated.dart';
 
 /// The refactoring that converts selected formal parameters into required
 /// named.
@@ -20,13 +19,10 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
   static const String constTitle =
       'Convert selected formal parameter(s) to named';
 
-  ConvertSelectedFormalParametersToNamed(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => true;
-
-  @override
-  List<CommandParameter> get parameters => const <CommandParameter>[];
 
   @override
   String get title => constTitle;

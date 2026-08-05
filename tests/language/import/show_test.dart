@@ -5,6 +5,7 @@
 library import_show_test;
 
 import "package:expect/expect.dart";
+
 import "show_lib.dart" show theEnd;
 
 main() {

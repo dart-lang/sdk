@@ -7,8 +7,8 @@
 #include "platform/elf.h"
 #include "platform/unwinding_records.h"
 #include "vm/cpu.h"
+#include "vm/debug_info_stream.h"
 #include "vm/dwarf.h"
-#include "vm/dwarf_so_writer.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
 #include "vm/stack_frame.h"
@@ -863,11 +863,11 @@ class BitsContainer : public ElfSection {
 
   // Returns the hash for the portion corresponding to symbol_name.
   // Returns 0 if the portion has no bytes or no portions have that name.
-  uint32_t Hash(const char* symbol_name) const {
+  uint64_t Hash(const char* symbol_name) const {
     for (const auto& portion : portions_) {
       if (strcmp(symbol_name, portion.symbol_name) == 0) {
         if (portion.bytes == nullptr) return 0;
-        const uint32_t hash = Utils::StringHash(portion.bytes, portion.size);
+        const uint64_t hash = Utils::StringHash64(portion.bytes, portion.size);
         // Ensure a non-zero return.
         return hash == 0 ? 1 : hash;
       }
@@ -1157,42 +1157,25 @@ void ElfWriter::CreateBSS() {
   ASSERT(text_section->IsTextSection());
 
   auto* const bss_container = new (zone_) BssSection(type_);
-  for (const auto& portion : text_section->AsBitsContainer()->portions()) {
-    size_t size;
-    const char* symbol_name;
-    intptr_t label;
-    // First determine whether this is the VM's text portion or the isolate's.
-    if (strcmp(portion.symbol_name, kVmSnapshotInstructionsAsmSymbol) == 0) {
-      size = BSS::kVmEntryCount * compiler::target::kWordSize;
-      symbol_name = kVmSnapshotBssAsmSymbol;
-      label = kVmBssLabel;
-    } else if (strcmp(portion.symbol_name,
-                      kIsolateSnapshotInstructionsAsmSymbol) == 0) {
-      size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
-      symbol_name = kIsolateSnapshotBssAsmSymbol;
-      label = kIsolateBssLabel;
-    } else {
-      // Not VM or isolate text.
-      UNREACHABLE();
-    }
-
-    uint8_t* bytes = nullptr;
-    if (type_ == Type::Snapshot) {
-      // Ideally the BSS segment would take no space in the object, but
-      // Android's "strip" utility truncates the memory-size of our segments to
-      // their file-size.
-      //
-      // Therefore we must insert zero-filled data for the BSS.
-      bytes = zone_->Alloc<uint8_t>(size);
-      memset(bytes, 0, size);
-    }
-    // For the BSS section, we add the section symbols as local symbols in the
-    // static symbol table, as these addresses are only used for relocation.
-    // (This matches the behavior in the assembly output.)
-    auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray();
-    symbols->Add({symbol_name, SymbolData::Type::Section, 0, size, label});
-    bss_container->AddPortion(bytes, size, /*relocations=*/nullptr, symbols);
+  const size_t size =
+      BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
+  uint8_t* bytes = nullptr;
+  if (type_ == Type::Snapshot) {
+    // Ideally the BSS segment would take no space in the object, but
+    // Android's "strip" utility truncates the memory-size of our segments to
+    // their file-size.
+    //
+    // Therefore we must insert zero-filled data for the BSS.
+    bytes = zone_->Alloc<uint8_t>(size);
+    memset(bytes, 0, size);
   }
+  // For the BSS section, we add the section symbols as local symbols in the
+  // static symbol table, as these addresses are only used for relocation.
+  // (This matches the behavior in the assembly output.)
+  auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray();
+  symbols->Add({kSnapshotBssAsmSymbol, SymbolData::Type::Section, 0, size,
+                kIsolateBssLabel});
+  bss_container->AddPortion(bytes, size, /*relocations=*/nullptr, symbols);
 
   section_table_->Add(bss_container, kBssName);
 }
@@ -1284,8 +1267,8 @@ void ElfWriter::FinalizeEhFrame() {
     fdes.Add({portion.label, portion.size});
   }
 
-  ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-  DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+  ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+  DebugInfoStream dwarf_stream(zone_, &stream);
   Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
 
   auto* const eh_frame = new (zone_)
@@ -1324,8 +1307,7 @@ void ElfWriter::FinalizeDwarfSections() {
   // Currently we only output DWARF information involving code.
   ASSERT(section_table_->HasSectionNamed(kTextName));
 
-  auto add_debug = [&](const char* name,
-                       const DwarfSharedObjectStream& stream) {
+  auto add_debug = [&](const char* name, const DebugInfoStream& stream) {
     auto const container =
         new (zone_) BitsContainer(elf::SectionHeaderType::SHT_PROGBITS);
     container->AddPortion(stream.buffer(), stream.bytes_written(),
@@ -1333,22 +1315,22 @@ void ElfWriter::FinalizeDwarfSections() {
     section_table_->Add(container, name);
   };
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteAbbreviations(&dwarf_stream);
     add_debug(".debug_abbrev", dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteDebugInfo(&dwarf_stream);
     add_debug(".debug_info", dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
     add_debug(".debug_line", dwarf_stream);
   }
@@ -1711,15 +1693,13 @@ void ElfWriter::AssertConsistency(const ElfWriter* snapshot,
   FATAL("Mismatch between snapshot and debug info ELF was detected");
 }
 
-// For the build ID, we generate a 128-bit hash, where each 32 bits is a hash of
+// For the build ID, we generate a 128-bit hash, where each 64 bits is a hash of
 // the contents of the following segments in order:
 //
-// .text(VM) | .text(Isolate) | .rodata(VM) | .rodata(Isolate)
+// .text(Isolate) | .rodata(Isolate)
 static constexpr const char* kBuildIdSegmentNames[]{
-    kVmSnapshotInstructionsAsmSymbol,
-    kIsolateSnapshotInstructionsAsmSymbol,
-    kVmSnapshotDataAsmSymbol,
-    kIsolateSnapshotDataAsmSymbol,
+    kSnapshotTextAsmSymbol,
+    kSnapshotDataAsmSymbol,
 };
 static constexpr intptr_t kBuildIdSegmentNamesLength =
     ARRAY_SIZE(kBuildIdSegmentNames);
@@ -1730,7 +1710,7 @@ static constexpr intptr_t kBuildIdHeaderSize =
 void ElfWriter::GenerateBuildId() {
   // Not idempotent.
   ASSERT(section_table_->Find(kBuildIdNoteName) == nullptr);
-  uint32_t hashes[kBuildIdSegmentNamesLength];
+  uint64_t hashes[kBuildIdSegmentNamesLength];
   // Currently, we construct the build ID out of data from two different
   // sections: the .text section and the .rodata section.
   //

@@ -15,7 +15,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
-  AugmentationCodeLensProvider(super.server);
+  new(super.server);
 
   LspClientCodeLensConfiguration get codeLens =>
       server.lspClientConfiguration.global.codeLens;

@@ -54,21 +54,17 @@ sealed class MemberResult {
 }
 
 // Coverage-ignore(suite): Not run.
-class TypeDeclarationInstanceMemberResult implements MemberResult {
-  final Member member;
-  final ClassMemberKind kind;
-  @override
-  final bool isDeclaredAsField;
-
-  TypeDeclarationInstanceMemberResult(
-    this.member,
-    this.kind, {
-    required this.isDeclaredAsField,
-  }) : assert(
-         member.enclosingTypeDeclaration != null,
-         "Type declaration member without enclosing type "
-         "declaration $member.",
-       );
+class TypeDeclarationInstanceMemberResult(
+  final Member member,
+  final ClassMemberKind kind, {
+  @override required final bool isDeclaredAsField,
+}) implements MemberResult {
+  this
+    : assert(
+        member.enclosingTypeDeclaration != null,
+        "Type declaration member without enclosing type "
+        "declaration $member.",
+      );
 
   @override
   String get fullName {
@@ -113,21 +109,12 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
 }
 
 // Coverage-ignore(suite): Not run.
-class StaticMemberResult implements MemberResult {
-  final Member member;
-  final ClassMemberKind kind;
-  @override
-  final bool isDeclaredAsField;
-  @override
-  final String fullName;
-
-  StaticMemberResult(
-    this.member,
-    this.kind, {
-    required this.isDeclaredAsField,
-    required this.fullName,
-  });
-
+class StaticMemberResult(
+  final Member member,
+  final ClassMemberKind kind, {
+  @override required final bool isDeclaredAsField,
+  @override required final String fullName,
+}) implements MemberResult {
   @override
   int get fileOffset {
     Member origin = member.memberSignatureOrigin ?? member;
@@ -154,21 +141,14 @@ class StaticMemberResult implements MemberResult {
 }
 
 // Coverage-ignore(suite): Not run.
-class ExtensionTypeMemberResult implements MemberResult {
-  final ExtensionTypeDeclaration extensionTypeDeclaration;
-  final Member member;
-  final ClassMemberKind kind;
-  final Name name;
-  @override
-  final bool isDeclaredAsField;
-
-  ExtensionTypeMemberResult(
-    this.extensionTypeDeclaration,
-    this.member,
-    this.kind,
-    this.name, {
-    required this.isDeclaredAsField,
-  }) : assert(member.isExtensionTypeMember);
+class ExtensionTypeMemberResult(
+  final ExtensionTypeDeclaration extensionTypeDeclaration,
+  final Member member,
+  final ClassMemberKind kind,
+  final Name name, {
+  @override required final bool isDeclaredAsField,
+}) implements MemberResult {
+  this : assert(member.isExtensionTypeMember);
 
   @override
   String get fullName {
@@ -368,7 +348,7 @@ abstract class SynthesizedMember extends ClassMember {
   @override
   final ClassMemberKind memberKind;
 
-  SynthesizedMember(this.name, this.memberKind);
+  new(this.name, this.memberKind);
 
   @override
   bool get forSetter => memberKind == ClassMemberKind.Setter;
@@ -534,7 +514,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
 
   ClassMember? _noSuchMethodTarget;
 
-  SynthesizedInterfaceMember(
+  new(
     this.classBuilder,
     Name name,
     this.declarations, {
@@ -772,7 +752,7 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   Member? _member;
   Covariance? _covariance;
 
-  InheritedClassMemberImplementsInterface(
+  new(
     this.classBuilder,
     Name name, {
     required this.inheritedClassMember,
@@ -980,7 +960,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   /// If `true`, a stub should be inserted, if needed.
   final bool _shouldModifyKernel;
 
-  SynthesizedNonExtensionTypeMember(
+  new(
     this.extensionTypeDeclarationBuilder,
     Name name,
     this.declarations, {

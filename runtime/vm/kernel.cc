@@ -322,9 +322,8 @@ class MetadataEvaluator : public KernelReaderHelper {
       } else if (tag == kFunctionDeclaration) {
         ReadTag();
         ReadPosition();  // fileOffset
-        VariableDeclarationHelper variable_declaration_helper(this);
-        variable_declaration_helper.ReadUntilExcluding(
-            VariableDeclarationHelper::kAnnotations);
+        VariableHelper variable_helper(this);
+        variable_helper.ReadUntilExcluding(VariableHelper::kAnnotations);
       } else {
         FATAL("No support for metadata on this type of kernel node: %" Pd32
               "\n",
@@ -411,8 +410,8 @@ ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
 
     // Read ith variable declaration.
     intptr_t param_kernel_offset = reader_.offset();
-    VariableDeclarationHelper helper(this);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
+    VariableHelper helper(this);
+    helper.ReadUntilExcluding(VariableHelper::kInitializer);
     param_descriptor.SetAt(entry_start + Parser::kParameterIsFinalOffset,
                            helper.IsFinal() ? Bool::True() : Bool::False());
 
@@ -433,8 +432,8 @@ ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
 
     if (FLAG_enable_mirrors && (helper.annotation_count_ > 0)) {
       AlternativeReadingScope alt(&reader_, param_kernel_offset);
-      VariableDeclarationHelper helper(this);
-      helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+      VariableHelper helper(this);
+      helper.ReadUntilExcluding(VariableHelper::kAnnotations);
       Object& metadata =
           Object::ZoneHandle(zone_, constant_reader_.ReadAnnotations());
       param_descriptor.SetAt(entry_start + Parser::kParameterMetadataOffset,
@@ -505,8 +504,8 @@ void ReadParameterCovariance(const Function& function,
   const intptr_t num_positional_params = reader_helper.ReadListLength();
   intptr_t param_index = function.NumImplicitParameters();
   for (intptr_t i = 0; i < num_positional_params; ++i, ++param_index) {
-    VariableDeclarationHelper helper(&reader_helper);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
+    VariableHelper helper(&reader_helper);
+    helper.ReadUntilExcluding(VariableHelper::kEnd);
 
     if (helper.IsCovariant()) {
       is_covariant->Add(param_index);
@@ -519,8 +518,8 @@ void ReadParameterCovariance(const Function& function,
   // Named.
   const intptr_t num_named_params = reader_helper.ReadListLength();
   for (intptr_t i = 0; i < num_named_params; ++i, ++param_index) {
-    VariableDeclarationHelper helper(&reader_helper);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
+    VariableHelper helper(&reader_helper);
+    helper.ReadUntilExcluding(VariableHelper::kEnd);
 
     if (helper.IsCovariant()) {
       is_covariant->Add(param_index);

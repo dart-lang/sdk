@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 class Super extends core::Object {
   final field core::int? _field;
-  constructor •(core::int? _field) → self::Super
+  constructor •(initializing-formal core::int? _field) → self::Super
     : self::Super::_field = _field, super core::Object::•()
     ;
   set _field(wildcard dynamic _#wc0#formal) → void {}
 }
 class Sub extends self::Super {
-  constructor •(core::int? _field) → self::Sub
+  constructor •(super-initializing-formal core::int? _field) → self::Sub
     : super self::Super::•(_field)
     ;
   method method() → void {

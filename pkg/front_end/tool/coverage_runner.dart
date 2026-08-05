@@ -10,7 +10,7 @@ import '../test/vm_service_helper.dart';
 
 Uri? coverageUri;
 
-Future<void> main(final List<String> args) async {
+Future<void> main(List<String> args) async {
   String? coverage = Platform.environment["CFE_COVERAGE"];
   if (coverage != null) {
     coverageUri = Uri.base.resolveUri(Uri.file(coverage));
@@ -33,7 +33,7 @@ class MyLaunchingVMServiceHelper extends LaunchingVMServiceHelper {
   final List<String> args;
   final Completer<int> exitCompleter = new Completer<int>();
 
-  MyLaunchingVMServiceHelper(this.args);
+  new(this.args);
 
   @override
   void processExited(int code) {

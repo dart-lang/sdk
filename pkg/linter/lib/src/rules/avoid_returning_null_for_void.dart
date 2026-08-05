@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid returning `null` for `void`.';
 
 class AvoidReturningNullForVoid extends MultiAnalysisRule {
-  AvoidReturningNullForVoid()
+  new()
     : super(name: LintNames.avoid_returning_null_for_void, description: _desc);
 
   @override
@@ -39,7 +39,7 @@ class AvoidReturningNullForVoid extends MultiAnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {

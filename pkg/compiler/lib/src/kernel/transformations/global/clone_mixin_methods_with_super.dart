@@ -46,7 +46,6 @@ void transformClass(Class cls) {
         existingSetter?.reference,
       );
       cls.addField(clone);
-      clone.transformerFlags = field.transformerFlags;
       if (existingGetter != null) {
         cls.procedures.remove(existingGetter);
       }
@@ -76,7 +75,6 @@ void transformClass(Class cls) {
         existingProcedure?.reference,
       );
       cls.addProcedure(clone);
-      clone.transformerFlags = procedure.transformerFlags;
       continue;
     }
   }

@@ -438,5 +438,5 @@ class ReferenceNameObject {
   final ReferenceName referenceName;
   final Object object;
 
-  ReferenceNameObject(this.referenceName, this.object);
+  new(this.referenceName, this.object);
 }

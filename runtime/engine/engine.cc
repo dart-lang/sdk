@@ -69,17 +69,10 @@ DartEngine_SnapshotData Engine::AotFromFile(const char* path, char** error) {
   void* library =
       Utils::LoadDynamicLibrary(path, /*search_dll_load_dir=*/false, error);
 
-  result.vm_snapshot_data = reinterpret_cast<const uint8_t*>(
-      Utils::ResolveSymbolInDynamicLibrary(library, kVmSnapshotDataCSymbol));
-  result.vm_snapshot_instructions =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kVmSnapshotInstructionsCSymbol));
-  result.vm_isolate_data =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kIsolateSnapshotDataCSymbol));
-  result.vm_isolate_instructions =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kIsolateSnapshotInstructionsCSymbol));
+  result.snapshot_data = reinterpret_cast<const uint8_t*>(
+      Utils::ResolveSymbolInDynamicLibrary(library, kSnapshotDataCSymbol));
+  result.snapshot_text = reinterpret_cast<const uint8_t*>(
+      Utils::ResolveSymbolInDynamicLibrary(library, kSnapshotTextCSymbol));
 
   if (*error != nullptr) {
     return result;
@@ -153,12 +146,6 @@ Dart_Isolate Engine::StartIsolate(DartEngine_SnapshotData snapshot,
     MutexLocker ml(&engine_lifecycle_);
     if (!first_isolate_started_) {
       Dart_InitializeParams initialize_params = CreateInitializeParams();
-
-      if (Dart_IsPrecompiledRuntime()) {
-        initialize_params.vm_snapshot_data = snapshot.vm_snapshot_data;
-        initialize_params.vm_snapshot_instructions =
-            snapshot.vm_snapshot_instructions;
-      }
       *error = Dart_Initialize(&initialize_params);
       if (*error != nullptr) {
         return nullptr;
@@ -176,8 +163,8 @@ Dart_Isolate Engine::StartIsolate(DartEngine_SnapshotData snapshot,
     // Automatically sets the root library for the isolate.
     isolate = Dart_CreateIsolateGroup(
         snapshot.script_uri, strrchr(snapshot.script_uri, '/'),
-        snapshot.vm_isolate_data, snapshot.vm_isolate_instructions,
-        &isolate_flags, nullptr, nullptr, error);
+        snapshot.snapshot_data, snapshot.snapshot_text, &isolate_flags, nullptr,
+        nullptr, error);
   } else {
     isolate = Dart_CreateIsolateGroupFromKernel(
         snapshot.script_uri, snapshot.script_uri, snapshot.kernel_buffer,

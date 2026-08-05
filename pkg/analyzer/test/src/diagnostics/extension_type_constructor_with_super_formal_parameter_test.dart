@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,16 +16,15 @@ main() {
 class ExtensionTypeConstructorWithSuperFormalParameterTest
     extends PubPackageResolutionTest {
   test_named() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named(this.it, {super.foo});
+//                  ^^^^^
+// [diag.extensionTypeConstructorWithSuperFormalParameter] Extension type constructors can't declare super formal parameters.
 }
-''',
-      [error(diag.extensionTypeConstructorWithSuperFormalParameter, 47, 5)],
-    );
+''');
 
-    var node = findNode.formalParameterList('super.foo');
+    var node = result.findNode.formalParameterList('super.foo');
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -52,16 +50,15 @@ FormalParameterList
   }
 
   test_positional() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named(this.it, super.foo);
+//                 ^^^^^
+// [diag.extensionTypeConstructorWithSuperFormalParameter] Extension type constructors can't declare super formal parameters.
 }
-''',
-      [error(diag.extensionTypeConstructorWithSuperFormalParameter, 46, 5)],
-    );
+''');
 
-    var node = findNode.formalParameterList('super.foo');
+    var node = result.findNode.formalParameterList('super.foo');
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (

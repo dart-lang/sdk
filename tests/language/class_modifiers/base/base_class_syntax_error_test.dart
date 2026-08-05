@@ -42,6 +42,7 @@ base base class BaseDuplicateClass {}
 //   ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
+// [context 1] The first definition of this name.
 
 base abstract class BaseAbstractClass {}
 // [error column 1, length 4]
@@ -76,7 +77,7 @@ base enum Enum { x }
 
 base typedef EnumTypedef = Enum;
 // [error column 1, length 4]
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+// [analyzer 1] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
 // [cfe] 'base' is already declared in this scope.

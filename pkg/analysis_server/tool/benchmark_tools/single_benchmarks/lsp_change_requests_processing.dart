@@ -65,7 +65,7 @@ class FileContentPair {
   final Uri uri;
   final String content;
 
-  FileContentPair(this.uri, this.content);
+  new(this.uri, this.content);
 }
 
 class LspTypingInBigFileAskForCompletion extends DartLanguageServerBenchmark {
@@ -76,12 +76,8 @@ class LspTypingInBigFileAskForCompletion extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LspTypingInBigFileAskForCompletion(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: true);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: true);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;
@@ -131,9 +127,9 @@ class LspTypingInBigFileAskForCompletion extends DartLanguageServerBenchmark {
     if (response.statusCode != 200) {
       throw 'Got status ${response.statusCode}';
     }
-    var requestData =
-        json.decode(await utf8.decodeStream(response.cast<List<int>>()))
-            as List;
+    var requestData = json.decode(
+      await utf8.decodeStream(response.cast<List<int>>()),
+    ) as List;
     List<int> didChangeElapsed = [];
     int sum = 0;
     for (var entry in requestData) {
@@ -166,5 +162,5 @@ class RunDetails {
   final FileContentPair mainFile;
   final int addAtLine;
 
-  RunDetails({required this.mainFile, required this.addAtLine});
+  new({required this.mainFile, required this.addAtLine});
 }

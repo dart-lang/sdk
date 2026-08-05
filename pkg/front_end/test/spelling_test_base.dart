@@ -26,7 +26,7 @@ abstract class SpellContext extends ChainContext {
   final bool interactive;
   final bool onlyInGit;
 
-  SpellContext({required this.interactive, required this.onlyInGit});
+  new({required this.interactive, required this.onlyInGit});
 
   List<spell.Dictionaries> get dictionaries;
 
@@ -63,7 +63,7 @@ abstract class SpellContext extends ChainContext {
 }
 
 class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
-  const SpellTest();
+  const new();
 
   @override
   String get name => "spell test";

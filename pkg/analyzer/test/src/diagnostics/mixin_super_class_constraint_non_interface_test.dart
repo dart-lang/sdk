@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinSuperClassConstraintNonInterfaceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,14 +18,13 @@ main() {
 class MixinSuperClassConstraintNonInterfaceTest
     extends PubPackageResolutionTest {
   test_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M on dynamic {}
-''',
-      [error(diag.mixinSuperClassConstraintNonInterface, 11, 7)],
-    );
+//         ^^^^^^^
+// [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
+''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -37,15 +37,14 @@ MixinOnClause
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { v }
 mixin M on E {}
-''',
-      [error(diag.mixinSuperClassConstraintNonInterface, 24, 1)],
-    );
+//         ^
+// [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
+''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -58,15 +57,14 @@ MixinOnClause
   }
 
   test_extensionType() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 mixin M on A {}
-''',
-      [error(diag.mixinSuperClassConstraintNonInterface, 39, 1)],
-    );
+//         ^
+// [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
+''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -79,14 +77,13 @@ MixinOnClause
   }
 
   test_Never() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 mixin M on Never {}
-''',
-      [error(diag.mixinSuperClassConstraintNonInterface, 11, 5)],
-    );
+//         ^^^^^
+// [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
+''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -99,17 +96,14 @@ MixinOnClause
   }
 
   test_void() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M on void {}
-''',
-      [
-        error(diag.expectedTypeName, 11, 4),
-        error(diag.mixinSuperClassConstraintNonInterface, 11, 4),
-      ],
-    );
+//         ^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
+''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on

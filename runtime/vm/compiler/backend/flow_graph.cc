@@ -1477,8 +1477,7 @@ intptr_t FlowGraph::ComputeLocationsOfFixedParameters(
     compiler::ParameterInfoArray* parameter_info /* = nullptr */) {
   return compiler::ComputeCallingConvention(
       zone, function, function.num_fixed_parameters(),
-      [&](intptr_t i) {
-        const intptr_t index = (function.IsFactory() ? (i - 1) : i);
+      [&](intptr_t index) {
         return index >= 0 ? ParameterRepresentationAt(function, index)
                           : kTagged;
       },
@@ -2087,6 +2086,18 @@ BitVector* FlowGraph::FindLoopBlocks(BlockEntryInstr* m,
       if (!loop_blocks->Contains(q->preorder_number())) {
         loop_blocks->Add(q->preorder_number());
         stack.Add(q);
+      }
+    }
+    if (auto catch_entry = p->AsCatchBlockEntry()) {
+      // Blocks from the try body are implicit predecessors of a catch block.
+      const intptr_t try_index = catch_entry->catch_try_index();
+      for (auto block : reverse_postorder()) {
+        if (block->try_index() == try_index) {
+          if (!loop_blocks->Contains(block->preorder_number())) {
+            loop_blocks->Add(block->preorder_number());
+            stack.Add(block);
+          }
+        }
       }
     }
   }

@@ -48,7 +48,7 @@ SwitchHeadDefault get default_ =>
 ConstExpression get nullLiteral =>
     new NullLiteral._(location: computeLocation());
 
-Expression get this_ => new This._(location: computeLocation());
+This get this_ => new This._(location: computeLocation());
 
 Statement assert_(ProtoExpression condition, [ProtoExpression? message]) {
   var location = computeLocation();
@@ -750,7 +750,7 @@ class AwaitExpression extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    var result = h.typeAnalyzer.analyzeAwaitExpression(operand, schema);
+    var result = h.typeAnalyzer.analyzeAwaitExpression(this, operand, schema);
     h.irBuilder.apply(
       'awaitExpr',
       [Kind.expression],
@@ -1877,6 +1877,8 @@ class Harness {
 
   bool? _inferenceUpdate4Enabled;
 
+  bool? _thisPromotionEnabled;
+
   bool? _soundFlowAnalysisEnabled;
 
   bool? _patternsEnabled;
@@ -1916,6 +1918,8 @@ class Harness {
   bool get patternsEnabled => _patternsEnabled ?? true;
 
   bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
+
+  bool get thisPromotionEnabled => _thisPromotionEnabled ?? true;
 
   set thisType(String type) {
     assert(!_started);
@@ -2003,6 +2007,7 @@ class Harness {
             _respectImplicitlyTypedVarInitializers,
         fieldPromotionEnabled: _fieldPromotionEnabled,
         inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+        thisPromotionEnabled: thisPromotionEnabled,
         soundFlowAnalysisEnabled: soundFlowAnalysisEnabled,
       );
 
@@ -2034,6 +2039,11 @@ class Harness {
   void disableSoundFlowAnalysis() {
     assert(!_started);
     _soundFlowAnalysisEnabled = false;
+  }
+
+  void disableThisPromotion() {
+    assert(!_started);
+    _thisPromotionEnabled = false;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
@@ -2453,17 +2463,26 @@ class InvokeAnonymousMethod extends Expression {
 
   final bool isNullAware;
 
+  final bool isParameterless;
+
+  final Var? parameter;
+
   InvokeAnonymousMethod._(
     this.target,
     this.body, {
     required this.returnType,
     required this.isNullAware,
+    required this.isParameterless,
+    this.parameter,
     required super.location,
   });
 
   @override
   void preVisit(PreVisitor visitor) {
     target.preVisit(visitor);
+    if (parameter != null) {
+      visitor._assignedVariables.declare(parameter!);
+    }
     body.preVisit(visitor);
   }
 
@@ -2484,10 +2503,40 @@ class InvokeAnonymousMethod extends Expression {
     if (isNullAware) {
       targetResult = h.typeAnalyzer.createNullAwareGuard(target, targetResult);
     }
+    var targetInfo = targetResult.flowAnalysisInfo;
+    var previousThisType = h._thisType;
+    if (isParameterless) {
+      h.flow.thisBinding_begin(targetInfo);
+      h._thisType = targetResult.type.unwrapTypeView();
+    }
     h.flow.anonymousBlockBody_begin();
+    if (parameter != null) {
+      bool isImplicitlyTyped = parameter!._type == null;
+      if (parameter!._type == null) {
+        parameter!._type = targetResult.type.unwrapTypeView<Type>();
+      }
+      h.flow.declare(
+        parameter!,
+        SharedTypeView(parameter!.type),
+        initialized: false,
+      );
+      h.flow.initialize(
+        parameter!,
+        targetResult.type,
+        targetInfo,
+        isFinal: false,
+        isLate: false,
+        isImplicitlyTyped: isImplicitlyTyped,
+        inheritPromotableProperties: isParameterless,
+      );
+    }
     // Analyze the block, and generate its IR.
     body.visit(h);
     h.flow.anonymousBlockBody_end();
+    if (isParameterless) {
+      h._thisType = previousThisType;
+      h.flow.thisBinding_end();
+    }
     // Form the IR for the anonymous method invocation.
     h.irBuilder.apply(
       'anonymous-method',
@@ -3911,6 +3960,15 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
     covariant _PropertyElement property,
   ) => property.whyNotPromotable;
+
+  @override
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  ) {
+    // TODO(cstefantsova): implement lookupMemberTypeInternal
+    throw UnimplementedError();
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -4971,6 +5029,8 @@ mixin ProtoExpression
     List<ProtoStatement> body, {
     required String returnType,
     bool isNullAware = false,
+    bool isParameterless = true,
+    Var? parameter,
   }) {
     var location = computeLocation();
     return new InvokeAnonymousMethod._(
@@ -4978,6 +5038,8 @@ mixin ProtoExpression
       Block._(body, location: location),
       returnType: Type(returnType),
       isNullAware: isNullAware,
+      isParameterless: isParameterless,
+      parameter: parameter,
       location: location,
     );
   }
@@ -5578,7 +5640,7 @@ class SwitchStatementMember extends Node {
   }
 }
 
-class This extends Expression {
+class This extends Expression implements Promotable {
   This._({required super.location});
 
   @override
@@ -5592,6 +5654,20 @@ class This extends Expression {
     var result = h.typeAnalyzer.analyzeThis(this);
     h.irBuilder.atom('this', Kind.expression, location: location);
     return result;
+  }
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    h.irBuilder.atom('this', Kind.expression, location: location);
+    return h.flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    h.irBuilder.atom('this', Kind.expression, location: location);
+    var promotedTypeOfThis =
+        h.flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    return promotedTypeOfThis == null ? const [] : [promotedTypeOfThis];
   }
 }
 
@@ -6424,6 +6500,7 @@ class YieldStatement extends Statement {
   @override
   StatementTypeAnalysisResult visit(Harness h) {
     var result = h.typeAnalyzer.analyzeYieldStatement(
+      this,
       operand,
       isYieldStar: isYieldStar,
     );
@@ -7124,7 +7201,8 @@ class _MiniAstTypeAnalyzer
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
-    var thisType = this.thisType;
+    var promotedTypeOfThis = flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    var thisType = promotedTypeOfThis ?? this.thisType;
     var flowAnalysisInfo = flow.thisOrSuper(
       SharedTypeView(thisType),
       isSuper: false,
@@ -7306,6 +7384,7 @@ class _MiniAstTypeAnalyzer
     Expression expression,
     SharedTypeSchemaView schema, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     if (expression._expectedSchema case var expectedSchema?) {
       expect(schema.unwrapTypeSchemaView<Type>().type, expectedSchema);

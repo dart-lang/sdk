@@ -6,8 +6,8 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -21,11 +21,11 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
@@ -40,6 +40,9 @@ import 'resolution.dart';
 // TODO(FMorschel): Review both PubPackageResolutionTest classes
 export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
     show ExpectedDiagnostic;
+
+export 'resolution.dart'
+    show ResolvedUnitResultExtension, TestResolvedUnitResult;
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
@@ -84,6 +87,10 @@ abstract class ContextResolutionTest
   MemoryByteStore _byteStore = _sharedByteStore;
 
   Map<String, String> _declaredVariables = {};
+
+  /// Whether indexing is enabled.
+  bool enableIndex = true;
+
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
   /// If not `null`, [resolveFile] will use the context that corresponds
@@ -121,7 +128,7 @@ abstract class ContextResolutionTest
     collection = AnalysisContextCollectionImpl(
       byteStore: _byteStore,
       declaredVariables: _declaredVariables,
-      enableIndex: true,
+      enableIndex: enableIndex,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       retainDataForTesting: retainDataForTesting,
@@ -181,7 +188,9 @@ abstract class ContextResolutionTest
 
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -305,7 +314,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
     writePackageConfig(
       rootFolder.path,
-      PackageConfigFileBuilder()..add(name: 'foo', rootPath: rootFolder.path),
+      PackageConfigFileBuilder()..add(name: 'foo', rootFolder: rootFolder),
     );
 
     for (var entry in files.entries) {
@@ -343,7 +352,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
     String directoryPath,
     PackageConfigFileBuilder config,
   ) {
-    var content = config.toContent(pathContext: pathContext);
+    var content = config.toContent();
     newPackageConfigJsonFile(directoryPath, content);
   }
 
@@ -373,7 +382,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
     config.add(
       name: 'test',
-      rootPath: testPackageRootPath,
+      rootFolder: getFolder(testPackageRootPath),
       languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
 
@@ -395,25 +404,28 @@ class _VisibleOutsideTemplate {
   const _VisibleOutsideTemplate();
 }
 ''');
-      config.add(name: 'angular_meta', rootPath: angularMetaRootPath);
+      config.add(
+        name: 'angular_meta',
+        rootFolder: getFolder(angularMetaRootPath),
+      );
     }
 
     if (ffi) {
       var ffiPath = addFfi().parent.path;
-      config.add(name: 'ffi', rootPath: ffiPath);
+      config.add(name: 'ffi', rootFolder: getFolder(ffiPath));
     }
 
     if (flutter) {
       var skyEnginePath = addSkyEngine(sdkPath: sdkRoot.path).parent.path;
-      config.add(name: 'sky_engine', rootPath: skyEnginePath);
+      config.add(name: 'sky_engine', rootFolder: getFolder(skyEnginePath));
 
       var flutterPath = addFlutter().parent.path;
-      config.add(name: 'flutter', rootPath: flutterPath);
+      config.add(name: 'flutter', rootFolder: getFolder(flutterPath));
     }
 
     if (meta || flutter) {
       var metaPath = addMeta().parent.path;
-      config.add(name: 'meta', rootPath: metaPath);
+      config.add(name: 'meta', rootFolder: getFolder(metaPath));
     }
 
     writePackageConfig(testPackageRootPath, config);
@@ -450,14 +462,11 @@ mixin WithoutPrivateNamedParametersMixin on PubPackageResolutionTest {
 
 mixin WithStrictCastsMixin on PubPackageResolutionTest {
   /// Asserts that no errors are reported in [code] when implicit casts are
-  /// allowed, and that [expectedErrors] are reported for the same [code] when
-  /// implicit casts are not allowed.
-  Future<void> assertErrorsWithStrictCasts(
-    String code,
-    List<ExpectedError> expectedErrors,
-  ) async {
-    await resolveTestCode(code);
-    assertNoErrorsInResult();
+  /// allowed, and that the inline diagnostic expectations are reported for the
+  /// same [code] when implicit casts are not allowed.
+  Future<void> assertTestCodeWithStrictCastsDiagnostics(String code) async {
+    var cleanCode = removeDiagnosticExpectations(code);
+    await resolveTestCodeWithDiagnostics(cleanCode);
 
     await disposeAnalysisContextCollection();
 
@@ -465,12 +474,6 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
       analysisOptionsContent(experiments: experiments, strictCasts: true),
     );
 
-    await resolveTestFile();
-    assertErrorsInResult(expectedErrors);
+    await resolveTestCodeWithDiagnostics(code);
   }
-
-  /// Asserts that no errors are reported in [code], both when implicit casts
-  /// are allowed and when implicit casts are not allowed.
-  Future<void> assertNoErrorsWithStrictCasts(String code) async =>
-      assertErrorsWithStrictCasts(code, []);
 }

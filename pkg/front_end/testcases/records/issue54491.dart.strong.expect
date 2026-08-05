@@ -24,7 +24,7 @@ static method main() → void {
   #C1;
   #C1;
 }
-static extension-type-member const method Ex|constructor#(core::Object? value) → self::Ex% /* erasure=core::Object?, declared=! */ {
+static extension-type-member const method Ex|constructor#(initializing-formal core::Object? value) → self::Ex% /* erasure=core::Object?, declared=! */ {
   lowered final self::Ex% /* erasure=core::Object?, declared=! */ #this = value;
   return #this;
 }
@@ -38,5 +38,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///issue54491.dart:
-- Chk. (from org-dartlang-testcase:///issue54491.dart:18:9)
+- Chk. (from org-dartlang-testcase:///issue54491.dart:19:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

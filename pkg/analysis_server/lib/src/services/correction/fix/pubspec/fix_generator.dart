@@ -19,7 +19,6 @@ import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dar
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.
@@ -55,7 +54,7 @@ class PubspecFixGenerator {
   /// The end-of-line marker to be used in this `pubspec.yaml` file.
   final String endOfLine;
 
-  PubspecFixGenerator(
+  new(
     this.resourceProvider,
     this.diagnostic,
     this.content,
@@ -375,7 +374,7 @@ class _NonDartChangeWorkspace implements ChangeWorkspace {
   @override
   ResourceProvider resourceProvider;
 
-  _NonDartChangeWorkspace(this.resourceProvider);
+  new(this.resourceProvider);
 
   @override
   bool containsFile(String path) {
@@ -392,5 +391,5 @@ class _Range {
   int startOffset;
   int endOffset;
 
-  _Range(this.startOffset, this.endOffset);
+  new(this.startOffset, this.endOffset);
 }

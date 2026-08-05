@@ -22,8 +22,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Document ignore comments.';
 
 class DocumentIgnores extends AnalysisRule {
-  DocumentIgnores()
-    : super(name: LintNames.document_ignores, description: _desc);
+  new() : super(name: LintNames.document_ignores, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.documentIgnores;
@@ -42,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

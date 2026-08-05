@@ -8,11 +8,11 @@ part 'the_part.dart';
 part 'the_part_2.dart';
 
 void barz() {
-  print('in bar!');
+  print('in bar!'); // LINE_B
 }
 
 void fooz() {
-  print('in foo!');
+  print('in foo!'); // LINE_A
   bar();
 }
 

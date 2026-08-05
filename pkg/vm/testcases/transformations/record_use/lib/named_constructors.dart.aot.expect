@@ -9,7 +9,7 @@ import "package:meta/meta.dart" show RecordUse;
 final class C extends core::Object {
 
   [@vm.unboxing-info.metadata=[!regcc]]
-  constructor named(core::int i) → self::C
+  constructor named(initializing-formal core::int i) → self::C
     : super core::Object::•()
     ;
 

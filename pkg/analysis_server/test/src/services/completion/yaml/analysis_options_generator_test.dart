@@ -44,7 +44,69 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest
 analyzer:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.enableExperiment}:');
+    assertSuggestion('${AnalysisOptionsFileKeys.enableExperiment}:');
+  }
+
+  void test_analyzer_afterInner() {
+    getCompletions('''
+analyzer:
+  exclude:
+    - '*.g.dart'
+  ^
+''');
+    assertSuggestion('errors: ');
+  }
+
+  // 4-space indent equivalents — sub-keys at col 4, list items at col 8.
+
+  void test_analyzer_afterInner_4spaces() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+    ^
+''');
+    assertSuggestion('errors: ');
+  }
+
+  void test_analyzer_afterInner_4spaces_incorrectIndent_1() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+  ^
+''');
+    assertSuggestion('formatter: ');
+  }
+
+  void test_analyzer_afterInner_4spaces_incorrectIndent_2() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+      ^
+''');
+    assertSuggestion('errors: ');
+  }
+
+  void test_analyzer_afterInner_incorrectIndent_1() {
+    getCompletions('''
+analyzer:
+  exclude:
+    - '*.g.dart'
+ ^
+''');
+    assertSuggestion('formatter: ');
+  }
+
+  void test_analyzer_afterInner_incorrectIndent_2() {
+    getCompletions('''
+analyzer:
+  exclude:
+    - '*.g.dart'
+   ^
+''');
+    assertSuggestion('errors: ');
   }
 
   void test_analyzer_enableExperiment() {
@@ -53,8 +115,8 @@ analyzer:
   enable-experiment:
     ^
 ''');
-    assertSuggestion('macros');
-    assertNoSuggestion('super-parameters');
+    assertSuggestion('- macros');
+    assertNoSuggestion('- super-parameters');
   }
 
   void test_analyzer_enableExperiment_nonDuplicate() {
@@ -88,6 +150,18 @@ analyzer:
     assertNoSuggestion('dead_code');
   }
 
+  void test_analyzer_errors_internal() {
+    registerLintRule(_InternalRule());
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('internal_lint: ');
+  }
+
   void test_analyzer_errors_noDuplicates() {
     getCompletions('''
 analyzer:
@@ -101,6 +175,20 @@ analyzer:
     expect(duplicateCompletions, isEmpty);
   }
 
+  void test_analyzer_errors_removed() {
+    registerLintRule(
+      RemovedAnalysisRule(name: 'removed_rule_lint', description: ''),
+    );
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('removed_rule_lint: ');
+  }
+
   void test_analyzer_errors_severity() {
     getCompletions('''
 analyzer:
@@ -111,6 +199,18 @@ analyzer:
     assertSuggestion('info');
     assertSuggestion('warning');
     assertSuggestion('error');
+  }
+
+  void test_analyzer_errors_testing() {
+    registerLintRule(_TestingRule());
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('testing_lint: ');
   }
 
   void test_analyzer_language_strictCasts() {
@@ -148,7 +248,7 @@ analyzer:
 code-style:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.format}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.format}: ');
   }
 
   void test_codeStyle_format() {
@@ -162,10 +262,10 @@ code-style:
 
   void test_empty() {
     getCompletions('^');
-    assertSuggestion('${AnalysisOptionsFile.analyzer}: ');
-    assertSuggestion('${AnalysisOptionsFile.codeStyle}: ');
-    assertSuggestion('${AnalysisOptionsFile.formatter}: ');
-    assertSuggestion('${AnalysisOptionsFile.include}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.analyzer}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.codeStyle}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.formatter}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
     // TODO(brianwilkerson): Replace this with a constant.
     assertSuggestion('linter: ');
   }
@@ -175,8 +275,8 @@ code-style:
 formatter:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.pageWidth}: ');
-    assertSuggestion('${AnalysisOptionsFile.trailingCommas}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.pageWidth}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.trailingCommas}: ');
   }
 
   void test_formatter_trailingCommas() {
@@ -202,12 +302,14 @@ linter:
   rules:
     ^
 ''');
-    var completion = assertSuggestion('annotate_overrides');
+    var completion = assertSuggestion('- annotate_overrides');
+    expect(completion.docComplete, contains('Annotate overridden members.'));
+    completion = assertSuggestion('annotate_overrides: ');
     expect(completion.docComplete, contains('Annotate overridden members.'));
   }
 
   void test_linter_rules_internal() {
-    registerLintRule(InternalRule());
+    registerLintRule(_InternalRule());
 
     getCompletions('''
 linter:
@@ -215,7 +317,7 @@ linter:
     ^
 ''');
 
-    assertNoSuggestion('internal_lint');
+    assertNoSuggestion('- internal_lint');
   }
 
   void test_linter_rules_listItem_first() {
@@ -253,6 +355,19 @@ linter:
     assertNoSuggestion('avoid_empty_else');
   }
 
+  void test_linter_rules_listItem_noMapSuggestions() {
+    getCompletions('''
+linter:
+  rules:
+    - avoid_print
+    ^
+''');
+    expect(
+      results.map((s) => s.completion),
+      everyElement(isNot(contains(':'))),
+    );
+  }
+
   void test_linter_rules_listItem_nonDuplicate() {
     getCompletions('''
 linter:
@@ -261,6 +376,20 @@ linter:
     - ^
 ''');
     assertNoSuggestion('annotate_overrides');
+  }
+
+  @FailingTest(
+    reason: 'Parser fails',
+    issue: 'https://github.com/dart-lang/tools/issues/2426',
+  )
+  void test_linter_rules_listItem_noPrefix() {
+    getCompletions('''
+linter:
+  rules:
+    - annotate_overrides
+    alway^
+''');
+    assertSuggestion('- always_declare_return_types');
   }
 
   void test_linter_rules_listItem_only() {
@@ -281,6 +410,116 @@ linter:
     assertSuggestion('annotate_overrides');
   }
 
+  void test_linter_rules_listItem_partial_nonDuplicate() {
+    getCompletions('''
+linter:
+  rules:
+    - sort_constructors_first
+    - sort^
+''');
+    assertSuggestion('sort_unnamed_constructors_first');
+    assertNoSuggestion('sort_constructors_first');
+  }
+
+  void test_linter_rules_listItemAfter_noDuplicate() {
+    getCompletions('''
+linter:
+  rules:
+    ^
+    - avoid_print
+''');
+    assertNoSuggestion('- avoid_print');
+  }
+
+  void test_linter_rules_listItemAfter_noMapSuggestions() {
+    getCompletions('''
+linter:
+  rules:
+    ^
+    - avoid_print
+''');
+    expect(
+      results.map((s) => s.completion),
+      everyElement(isNot(contains(':'))),
+    );
+    assertSuggestion('- annotate_overrides');
+  }
+
+  void test_linter_rules_mapKey_excludesExisting() {
+    getCompletions('''
+linter:
+  rules:
+    annotate_overrides: true
+    ^
+''');
+    assertSuggestion('always_declare_return_types: ');
+    assertNoSuggestion('annotate_overrides: ');
+    assertNoSuggestion('annotate_overrides');
+  }
+
+  void test_linter_rules_mapKey_noListSuggestions() {
+    getCompletions('''
+linter:
+  rules:
+    annotate_overrides: true
+    ^
+''');
+    expect(
+      results.map((s) => s.completion),
+      everyElement(isNot(startsWith('- '))),
+    );
+  }
+
+  void test_linter_rules_mapKey_partial() {
+    getCompletions('''
+linter:
+  rules:
+    annotate_overrides: true
+    alw^
+''');
+    assertSuggestion('always_declare_return_types: ');
+    assertNoSuggestion('annotate_overrides: ');
+    assertNoSuggestion('annotate_overrides');
+  }
+
+  void test_linter_rules_mapKeyAfter_noDuplicate() {
+    getCompletions('''
+linter:
+  rules:
+    ^
+    annotate_overrides: true
+''');
+    assertNoSuggestion('annotate_overrides: ');
+  }
+
+  void test_linter_rules_mapKeyAfter_noListSuggestions() {
+    getCompletions('''
+linter:
+  rules:
+    ^
+    annotate_overrides: true
+''');
+    expect(
+      results.map((s) => s.completion),
+      everyElement(isNot(startsWith('- '))),
+    );
+    assertSuggestion('avoid_print: ');
+  }
+
+  void test_linter_rules_mapValue() {
+    getCompletions('''
+linter:
+  rules:
+    annotate_overrides: ^
+''');
+    assertSuggestion('true');
+    assertSuggestion('false');
+    assertSuggestion('ignore');
+    assertSuggestion('error');
+    assertSuggestion('info');
+    assertSuggestion('warning');
+  }
+
   void test_linter_rules_removed() {
     registerLintRule(
       RemovedAnalysisRule(name: 'removed_lint', description: ''),
@@ -292,45 +531,110 @@ linter:
     ^
 ''');
 
-    assertNoSuggestion('removed_lint');
+    assertNoSuggestion('- removed_lint');
   }
 
-  @failingTest
+  void test_linter_rules_testing() {
+    registerLintRule(_TestingRule());
+
+    getCompletions('''
+linter:
+  rules:
+    ^
+''');
+
+    assertNoSuggestion('testing_lint');
+  }
+
+  void test_plugins_git_keys() {
+    getCompletions('''
+plugins:
+  my_plugin:
+    git:
+      ^
+''');
+    assertSuggestion('${AnalysisOptionsFileKeys.url}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.ref}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.path}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.tagPattern}: ');
+  }
+
+  void test_plugins_keys() {
+    getCompletions('''
+plugins:
+  my_plugin:
+    ^
+''');
+    assertSuggestion('${AnalysisOptionsFileKeys.diagnostics}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.git}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.path}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.version}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.hosted}: ');
+  }
+
   void test_topLevel_afterOtherKeys() {
-    // This test fails because the cursor is considered to be inside the exclude
-    // list, and we don't suggest values there.
     getCompletions('''
 analyzer:
   exclude:
     - '*.g.dart'
 ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.include}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
   }
 
-  @failingTest
+  void test_topLevel_afterOtherKeys_4spaces() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+^
+''');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
+  }
+
   void test_topLevel_afterOtherKeys_partial() {
-    // This test fails because the YAML parser can't recover from this kind of
-    // invalid input.
     getCompletions('''
 analyzer:
   exclude:
     - '*.g.dart'
 li^
 ''');
-    assertSuggestion('linter');
+    assertSuggestion('linter: ');
+  }
+
+  void test_topLevel_afterOtherKeys_partial_4spaces() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+li^
+''');
+    assertSuggestion('linter: ');
+  }
+
+  void test_topLevel_notSuggestExisting() {
+    getCompletions('''
+analyzer:
+  exclude:
+    - '*.g.dart'
+^
+''');
+    assertNoSuggestion('analyzer: ');
+  }
+
+  void test_topLevel_notSuggestExisting_4spaces() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+^
+''');
+    assertNoSuggestion('analyzer: ');
   }
 }
 
-class InternalRule extends AnalysisRule {
-  static const LintCode code = LintCode(
-    'internal_rule',
-    'Internal rule.',
-    correctionMessage: 'Try internal rule.',
-    uniqueName: 'LintCode.internal_rule',
-  );
-
-  InternalRule()
+class _InternalRule extends AnalysisRule {
+  new()
     : super(
         name: 'internal_lint',
         state: RuleState.internal(),
@@ -338,5 +642,21 @@ class InternalRule extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => code;
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'internal_rule',
+    'Internal rule.',
+    uniqueName: 'LintCode.internal_rule',
+  );
+}
+
+class _TestingRule extends AnalysisRule {
+  new()
+    : super(name: 'testing_lint', state: RuleState.testing(), description: '');
+
+  @override
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'testing_rule',
+    'Testing rule.',
+    uniqueName: 'LintCode.testing_rule',
+  );
 }

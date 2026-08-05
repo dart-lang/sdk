@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 class CancelableToken extends CancellationToken {
-  bool _isCancelled = false;
+  final Completer<void> _cancelCompleter = Completer<void>();
   int? _cancellationCode;
   String? _cancellationReason;
 
@@ -14,10 +16,15 @@ class CancelableToken extends CancellationToken {
   String? get cancellationReason => _cancellationReason;
 
   @override
-  bool get isCancellationRequested => _isCancelled;
+  bool get isCancellationRequested => _cancelCompleter.isCompleted;
+
+  @override
+  Future<void> get whenCancelled => _cancelCompleter.future;
 
   void cancel({int? code, String? reason}) {
-    _isCancelled = true;
+    if (!_cancelCompleter.isCompleted) {
+      _cancelCompleter.complete();
+    }
     _cancellationCode = code;
     _cancellationReason = reason;
   }
@@ -27,11 +34,18 @@ class CancelableToken extends CancellationToken {
 /// to be skipped when a caller is no longer interested in the result, for example
 /// when a $/cancel request is received for an in-progress request.
 abstract class CancellationToken {
+  /// Whether cancellation has been requested.
   bool get isCancellationRequested;
+
+  /// A [Future] that completes if/when cancellation is requested.
+  Future<void> get whenCancelled;
 }
 
 /// A [CancellationToken] that cannot be cancelled.
 class NotCancelableToken extends CancellationToken {
+  @override
+  final Future<void> whenCancelled = Completer<void>().future;
+
   @override
   bool get isCancellationRequested => false;
 }

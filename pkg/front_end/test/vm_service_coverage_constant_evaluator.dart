@@ -19,7 +19,7 @@ Future<void> main(List<String> args) async {
 }
 
 class CoverageHelper extends helper.CoverageHelper {
-  CoverageHelper() : super(printHits: false);
+  new() : super(printHits: false);
 
   @override
   bool includeCoverageFor(Uri uri) {

@@ -590,13 +590,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     /// #fromTypedDataBase(Object #typedDataBase, int #offsetInBytes) :
     ///   super._fromTypedDataBase(#typedDataBase, #offsetInBytes);
     /// ```
-    final VariableDeclaration typedDataBase = VariableDeclaration(
-      "#typedDataBase",
+    final PositionalParameter typedDataBase = PositionalParameter(
+      cosmeticName: "#typedDataBase",
       type: coreTypes.objectNonNullableRawType,
       isSynthesized: true,
     );
-    final VariableDeclaration offsetInBytes = VariableDeclaration(
-      "#offsetInBytes",
+    final PositionalParameter offsetInBytes = PositionalParameter(
+      cosmeticName: "#offsetInBytes",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
     );
@@ -636,8 +636,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ///   super.sizeInBytes,
       /// ) : super._fromTypedData();
       /// ```
-      final VariableDeclaration typedData = VariableDeclaration(
-        "#typedData",
+      final PositionalParameter typedData = PositionalParameter(
+        cosmeticName: "#typedData",
         type: InterfaceType(
           typedDataClass,
           Nullability.nonNullable,
@@ -645,13 +645,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ),
         isSynthesized: true,
       );
-      final VariableDeclaration offset = VariableDeclaration(
-        "#offset",
+      final PositionalParameter offset = PositionalParameter(
+        cosmeticName: "#offset",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
-      final VariableDeclaration sizeInBytes = VariableDeclaration(
-        "#sizeInBytes",
+      final PositionalParameter sizeInBytes = PositionalParameter(
+        cosmeticName: "#sizeInBytes",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
@@ -1095,8 +1095,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         setterReference == field.setterReference,
         "Unexpected setter reference for ${field}, found $setterReference.",
       );
-      final VariableDeclaration argument = VariableDeclaration(
-        '#v',
+      final PositionalParameter argument = PositionalParameter(
+        cosmeticName: '#v',
         type: field.type,
         isSynthesized: true,
       )..fileOffset = field.fileOffset;

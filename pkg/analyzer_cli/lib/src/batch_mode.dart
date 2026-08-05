@@ -7,8 +7,9 @@ import 'dart:io' show exitCode, stdin;
 
 import 'package:analyzer/error/error.dart';
 
-typedef BatchRunnerHandler =
-    Future<DiagnosticSeverity> Function(List<String> args);
+typedef BatchRunnerHandler = Future<DiagnosticSeverity> Function(
+  List<String> args,
+);
 
 /// Provides a framework to read command line options from stdin and feed them
 /// to a callback.
@@ -16,7 +17,7 @@ class BatchRunner {
   final StringSink outSink;
   final StringSink errorSink;
 
-  BatchRunner(this.outSink, this.errorSink);
+  new(this.outSink, this.errorSink);
 
   /// Run the tool in 'batch' mode, receiving command lines through stdin and
   /// returning pass/fail status through stdout. This feature is intended for

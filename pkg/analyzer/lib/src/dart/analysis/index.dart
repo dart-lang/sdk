@@ -6,6 +6,10 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/analysis/analyzer_diagnostic_expectations.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -13,7 +17,11 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
-Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
+Element? declaredNamedArgumentParameter(
+  String parameterName,
+  AstNode namedArgument,
+  Element? element,
+) {
   if (element == null || element.enclosingElement != null) {
     return element;
   }
@@ -27,72 +35,25 @@ Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
       return null;
     }
 
-    var parameterName = node.name;
     return executable.baseElement.formalParameters.where((parameter) {
       return parameter.isNamed && parameter.name == parameterName;
-    }).first;
+    }).firstOrNull;
   }
 
-  var parent = node.parent;
-  if (parent is Label && parent.label == node) {
-    var namedExpression = parent.parent;
-    if (namedExpression is NamedExpression && namedExpression.name == parent) {
-      var argumentList = namedExpression.parent;
-      if (argumentList is ArgumentList) {
-        var invocation = argumentList.parent;
-        if (invocation is InstanceCreationExpression) {
-          var executable = invocation.constructorName.element;
-          return namedParameterElement(executable);
-        } else if (invocation is MethodInvocation) {
-          var executable = invocation.methodName.element;
-          if (executable is ExecutableElement) {
-            return namedParameterElement(executable);
-          }
-        }
+  var argumentList = namedArgument.parent;
+  if (argumentList is ArgumentList) {
+    var invocation = argumentList.parent;
+    if (invocation is InstanceCreationExpression) {
+      return namedParameterElement(invocation.constructorName.element);
+    } else if (invocation is MethodInvocation) {
+      var executable = invocation.methodName.element;
+      if (executable is ExecutableElement) {
+        return namedParameterElement(executable);
       }
-    }
-  }
-
-  return element;
-}
-
-Element? declaredParameterElement2(SimpleIdentifier node, Element? element) {
-  if (element == null || element.enclosingElement != null) {
-    return element;
-  }
-
-  /// When we instantiate the [FunctionType] of an executable, we use
-  /// synthetic [ParameterElement]s, disconnected from the rest of the
-  /// element model. But we want to index these parameter references
-  /// as references to declared parameters.
-  FormalParameterElement? namedParameterElement(ExecutableElement? executable) {
-    if (executable == null) {
-      return null;
-    }
-
-    var parameterName = node.name;
-    return executable.baseElement.formalParameters.where((parameter) {
-      return parameter.isNamed && parameter.name == parameterName;
-    }).first;
-  }
-
-  var parent = node.parent;
-  if (parent is Label && parent.label == node) {
-    var namedExpression = parent.parent;
-    if (namedExpression is NamedExpression && namedExpression.name == parent) {
-      var argumentList = namedExpression.parent;
-      if (argumentList is ArgumentList) {
-        var invocation = argumentList.parent;
-        if (invocation is InstanceCreationExpression) {
-          var executable = invocation.constructorName.element;
-          return namedParameterElement(executable);
-        } else if (invocation is MethodInvocation) {
-          var executable = invocation.methodName.element;
-          if (executable is ExecutableElement) {
-            return namedParameterElement(executable);
-          }
-        }
-      }
+    } else if (invocation is RedirectingConstructorInvocation) {
+      return namedParameterElement(invocation.element);
+    } else if (invocation is SuperConstructorInvocation) {
+      return namedParameterElement(invocation.element);
     }
   }
 
@@ -186,6 +147,38 @@ class IndexElementInfo {
   IndexElementInfo._(this.element, this.kind);
 }
 
+/// The identifier of an interface element in the subtype index.
+///
+/// It combines the library path, the path of the file containing the
+/// declaration, and the element name. The name is kept separately because
+/// search uses it as a file-state prefilter before matching the full [id].
+class SubtypeIndexElementId {
+  final String name;
+  final String id;
+
+  SubtypeIndexElementId({
+    required Source librarySource,
+    required Source declarationSource,
+    required this.name,
+  }) : id =
+           '${librarySource.mustBeFile.path};'
+           '${declarationSource.mustBeFile.path};'
+           '$name';
+
+  static SubtypeIndexElementId? fromElement(InterfaceElement element) {
+    var name = element.name;
+    if (name == null) {
+      return null;
+    }
+
+    return SubtypeIndexElementId(
+      librarySource: element.library.firstFragment.source,
+      declarationSource: element.firstFragment.libraryFragment.source,
+      name: name,
+    );
+  }
+}
+
 /// Information about an element referenced in index.
 class _ElementInfo {
   /// The identifier of the [LibraryFragmentImpl] containing the first
@@ -256,21 +249,21 @@ class _IndexAssembler {
   final Map<Element, _ElementInfo> elementMap = {};
 
   /// Map associating [LibraryFragmentImpl]s with their identifiers,
-  /// which are indices into [unitLibraryUris] and [unitUnitUris].
+  /// which are indices into [unitLibraryPaths] and [unitUnitPaths].
   final Map<LibraryFragmentImpl, int> unitMap = {};
 
-  /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
+  /// The fields [unitLibraryPaths] and [unitUnitPaths] are used together to
   /// describe each unique [LibraryFragmentImpl].
   ///
-  /// This field contains the library URI of a unit.
-  final List<_StringInfo> unitLibraryUris = [];
+  /// This field contains the path of the library file for a unit.
+  final List<_StringInfo> unitLibraryPaths = [];
 
-  /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
+  /// The fields [unitLibraryPaths] and [unitUnitPaths] are used together to
   /// describe each unique [LibraryFragmentImpl].
   ///
-  /// This field contains the unit URI of a unit, which might be the same as
-  /// the library URI for the defining unit, or a different one for a part.
-  final List<_StringInfo> unitUnitUris = [];
+  /// This field contains the path of a unit, which might be the same as the
+  /// library path for the defining unit, or a different one for a part.
+  final List<_StringInfo> unitUnitPaths = [];
 
   /// Map associating strings with their [_StringInfo]s.
   final Map<String, _StringInfo> stringMap = {};
@@ -364,7 +357,7 @@ class _IndexAssembler {
 
   /// Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
   AnalysisDriverUnitIndexBuilder assemble(CompilationUnit unit) {
-    unit.accept(_IndexContributor(this));
+    unit.accept(_IndexContributor(this, unit));
 
     // Sort strings and set IDs.
     List<_StringInfo> stringInfoList = stringMap.values.toList(growable: false);
@@ -414,8 +407,10 @@ class _IndexAssembler {
     return AnalysisDriverUnitIndexBuilder(
       strings: stringInfoList.map((s) => s.value).toList(growable: false),
       nullStringId: nullString.id,
-      unitLibraryUris: unitLibraryUris.map((s) => s.id).toList(growable: false),
-      unitUnitUris: unitUnitUris.map((s) => s.id).toList(growable: false),
+      unitLibraryPaths: unitLibraryPaths
+          .map((s) => s.id)
+          .toList(growable: false),
+      unitUnitPaths: unitUnitPaths.map((s) => s.id).toList(growable: false),
       elementImportPrefixes: elementInfoList
           .map((e) => e.importPrefixes.toList(growable: false).join(','))
           .toList(growable: false),
@@ -493,6 +488,13 @@ class _IndexAssembler {
     });
   }
 
+  /// Return the unique [_StringInfo] corresponding to [source].  The field
+  /// [_StringInfo.id] is filled by [assemble] during final sorting.
+  _StringInfo _getSourceInfo(Source source) {
+    var filePath = source.mustBeFile.path;
+    return _getStringInfo(filePath);
+  }
+
   /// Return the unique [_StringInfo] corresponding the given [string].  The
   /// field [_StringInfo.id] is filled by [assemble] during final sorting.
   _StringInfo _getStringInfo(String? string) {
@@ -505,24 +507,19 @@ class _IndexAssembler {
     });
   }
 
-  /// Add information about [libraryFragment] to [unitUnitUris] and
-  /// [unitLibraryUris] if necessary, and return the location in those
+  /// Add information about [libraryFragment] to [unitUnitPaths] and
+  /// [unitLibraryPaths] if necessary, and return the location in those
   /// arrays representing [libraryFragment].
   int _getUnitId(LibraryFragmentImpl libraryFragment) {
     return unitMap.putIfAbsent(libraryFragment, () {
-      assert(unitLibraryUris.length == unitUnitUris.length);
-      int id = unitUnitUris.length;
-      unitLibraryUris.add(_getUriInfo(libraryFragment.library.uri));
-      unitUnitUris.add(_getUriInfo(libraryFragment.source.uri));
+      assert(unitLibraryPaths.length == unitUnitPaths.length);
+      int id = unitUnitPaths.length;
+      unitLibraryPaths.add(
+        _getSourceInfo(libraryFragment.element.firstFragment.source),
+      );
+      unitUnitPaths.add(_getSourceInfo(libraryFragment.source));
       return id;
     });
-  }
-
-  /// Return the unique [_StringInfo] corresponding [uri].  The field
-  /// [_StringInfo.id] is filled by [assemble] during final sorting.
-  _StringInfo _getUriInfo(Uri uri) {
-    String str = uri.toString();
-    return _getStringInfo(str);
   }
 
   /// Return a new [_ElementInfo] for the given [element] in the given [unitId].
@@ -545,8 +542,15 @@ class _IndexAssembler {
 /// Visits a resolved AST and adds relationships into the [assembler].
 class _IndexContributor extends GeneralizingAstVisitor {
   final _IndexAssembler assembler;
+  final CompilationUnit unit;
 
-  _IndexContributor(this.assembler);
+  /// Caches the diagnostic library if the unit being indexed is an analyzer
+  /// test file. This enables synthetic indexing of expectation comments
+  /// embedded in string literals (e.g. `// [diag.foo]`).
+  late final LibraryElementImpl? _analyzerDiagnosticLibrary =
+      _findAnalyzerDiagnosticLibrary();
+
+  _IndexContributor(this.assembler, this.unit);
 
   /// Record that the name [node] has a relation of the given [kind].
   void recordNameRelation(
@@ -659,6 +663,57 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   void recordUriReference(Element? element, StringLiteral uri) {
     recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, uri, true);
+  }
+
+  @override
+  void visitAnnotation(Annotation node) {
+    if (node.element case ConstructorElement element) {
+      var baseElement = _getActualConstructorElement(element.baseElement);
+      if (node.constructorName case var constructorName?) {
+        var offset = node.period!.offset;
+        recordRelationOffset(
+          baseElement,
+          IndexRelationKind.IS_INVOKED_BY,
+          offset,
+          constructorName.end - offset,
+          true,
+        );
+      } else if (node.name case PrefixedIdentifier(
+        :var period,
+        identifier: SimpleIdentifier(element: ConstructorElement()),
+      )) {
+        recordRelationOffset(
+          baseElement,
+          IndexRelationKind.IS_INVOKED_BY,
+          period.offset,
+          node.name.end - period.offset,
+          true,
+        );
+      } else {
+        var offset = node.typeArguments?.end ?? node.name.end;
+        recordRelationOffset(
+          baseElement,
+          IndexRelationKind.IS_INVOKED_BY,
+          offset,
+          0,
+          true,
+        );
+      }
+
+      if (node.name case PrefixedIdentifier(
+        prefix: var prefix,
+        identifier: SimpleIdentifier(element: ConstructorElement()),
+      )) {
+        prefix.accept(this);
+      } else {
+        node.name.accept(this);
+      }
+      node.typeArguments?.accept(this);
+      node.arguments?.accept(this);
+      return;
+    }
+
+    super.visitAnnotation(node);
   }
 
   @override
@@ -942,7 +997,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     _addSubtype(
-      node.primaryConstructor.typeName.lexeme,
+      node.namePart.typeName.lexeme,
       implementsClause: node.implementsClause,
       memberNodes: node.body.members,
     );
@@ -953,9 +1008,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     var element = node.declaredFragment!.element;
-    var field = element.field;
-    if (field != null) {
-      recordRelation(field, IndexRelationKind.IS_WRITTEN_BY, node.name, true);
+    if (element is FieldFormalParameterElementImpl) {
+      var field = element.field;
+      if (field != null) {
+        recordRelation(field, IndexRelationKind.IS_WRITTEN_BY, node.name, true);
+      }
     }
 
     return super.visitFieldFormalParameter(node);
@@ -995,6 +1052,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitLabelReference(LabelReference node) {
+    var element = node.element;
+    recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, node, false);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     var element = name.element;
@@ -1025,6 +1088,23 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordSuperType(namedType, IndexRelationKind.CONSTRAINS);
       namedType.accept(this);
     }
+  }
+
+  @override
+  void visitNamedArgument(NamedArgument node) {
+    var element = declaredNamedArgumentParameter(
+      node.name.lexeme,
+      node,
+      node.correspondingParameter,
+    );
+    if (element != null) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT,
+        node.name,
+      );
+    }
+    super.visitNamedArgument(node);
   }
 
   @override
@@ -1136,9 +1216,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     var element = node.writeOrReadElement;
-    if (element is FormalParameterElementImpl) {
-      element = declaredParameterElement(node, element);
-    }
 
     var parent = node.parent;
     if (element != null &&
@@ -1171,8 +1248,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var isSet = node.inSetterContext();
       if (parent is CommentReference) {
         kind = IndexRelationKind.IS_REFERENCED_BY;
-      } else if (parent is Label && parent.parent is NamedExpression) {
-        kind = IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT;
       } else if (isGet && isSet) {
         kind = IndexRelationKind.IS_READ_WRITTEN_BY;
       } else if (isGet) {
@@ -1188,6 +1263,29 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     // record specific relations
     recordRelation(element, kind, node, isQualified);
+  }
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    // Index analyzer diagnostic expectations inside string literals.
+    if (_analyzerDiagnosticLibrary case var diagnosticLibrary?) {
+      var lexeme = node.literal.lexeme;
+      var tokenOffset = node.literal.offset;
+      for (var reference in analyzerDiagnosticExpectationReferences(lexeme)) {
+        var element = diagnosticLibrary.exportNamespace.get2(reference.name);
+        if (element is GetterElement) {
+          recordRelationOffset(
+            element.variable,
+            IndexRelationKind.IS_REFERENCED_BY,
+            tokenOffset + reference.offsetInLexeme,
+            reference.name.length,
+            true,
+          );
+        }
+      }
+    }
+
+    super.visitSimpleStringLiteral(node);
   }
 
   @override
@@ -1256,18 +1354,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> supertypes = [];
     List<String> members = [];
 
-    String getInterfaceElementId(InterfaceElement element) {
-      var libraryUri = element.library.uri;
-      var libraryFragment = element.firstFragment.libraryFragment;
-      var libraryFragmentUri = libraryFragment.source.uri;
-      return '$libraryUri;$libraryFragmentUri;${element.name}';
-    }
-
     void addSupertype(NamedType? type) {
       var element = type?.element;
       if (element is InterfaceElement) {
-        String id = getInterfaceElementId(element);
-        supertypes.add(id);
+        var supertypeId = SubtypeIndexElementId.fromElement(element)?.id;
+        if (supertypeId != null) {
+          supertypes.add(supertypeId);
+        }
       }
     }
 
@@ -1329,6 +1422,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
       implementsClause: node.implementsClause,
       memberNodes: node.body.members,
     );
+  }
+
+  LibraryElementImpl? _findAnalyzerDiagnosticLibrary() {
+    var unitLibrary = unit.declaredFragment!.element;
+
+    var uriStr = unitLibrary.uri.toString();
+    if (!canContainAnalyzerDiagnosticExpectations(uriStr)) {
+      return null;
+    }
+
+    if (unitLibrary is LibraryElementImpl) {
+      var elementFactory = unitLibrary.session.elementFactory;
+      var diagnosticLibrary = elementFactory.libraryOfUri(
+        Uri.parse('package:analyzer/src/diagnostic/diagnostic.dart'),
+      );
+      if (diagnosticLibrary != null) {
+        return diagnosticLibrary;
+      }
+    }
+    return null;
   }
 
   /// If the given [constructor] is a synthetic constructor created for a
@@ -1452,14 +1565,21 @@ class _SubtypeInfo {
 
 extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
   int getLibraryFragmentId(LibraryFragmentImpl fragment) {
-    var libraryUriId = getUriId(fragment.element.uri);
-    var unitUriId = getUriId(fragment.source.uri);
-    for (var i = 0; i < unitLibraryUris.length; i++) {
-      if (unitLibraryUris[i] == libraryUriId && unitUnitUris[i] == unitUriId) {
+    var libraryPathId = getSourceId(fragment.element.firstFragment.source);
+    var unitPathId = getSourceId(fragment.source);
+    for (var i = 0; i < unitLibraryPaths.length; i++) {
+      if (unitLibraryPaths[i] == libraryPathId &&
+          unitUnitPaths[i] == unitPathId) {
         return i;
       }
     }
     return -1;
+  }
+
+  /// Returns the identifier of [source], or `-1` if not used.
+  int getSourceId(Source source) {
+    var filePath = source.mustBeFile.path;
+    return getStringId(filePath);
   }
 
   /// Returns the identifier of [str], or `-1` if not used.
@@ -1470,10 +1590,15 @@ extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
 
     return binarySearch(strings, str);
   }
+}
 
-  /// Returns the identifier of the [uri], or `-1` if not used.
-  int getUriId(Uri uri) {
-    var str = uri.toString();
-    return getStringId(str);
+extension _SourceExtension on Source {
+  /// Returns the [File] for this source.
+  ///
+  /// This assumes that the source is a [FileSource], which is safe because
+  /// index and search are only supported in DAS, where all sources are file
+  /// based.
+  File get mustBeFile {
+    return (this as FileSource).file;
   }
 }

@@ -116,12 +116,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
-    node.scope = nameScope;
-    node.parameter.accept(this);
-  }
-
-  @override
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
@@ -142,7 +136,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     for (var field in fragment.fields) {
       if (field.isEnumConstant || field.isOriginEnumValues) {
-        var fieldNode = linker.elementNodes[field];
+        var fieldNode = linker.getLinkingNode(field);
         fieldNode as VariableDeclarationImpl;
         fieldNode.initializerScope = node.bodyScope;
       }
@@ -178,14 +172,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    node.visitChildren(this);
+    _scopeContext.visitFieldDeclaration(node, visitor: this);
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
-    _scopeContext.visitFieldFormalParameter(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
+    _visitFormalParameter(node);
   }
+
+  @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {}
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
@@ -201,14 +197,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     _scopeContext.visitFunctionTypeAlias(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
-  ) {
-    _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 
@@ -283,9 +271,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
     } else if (element is TypeParameterElementImpl) {
-      node.type = TypeParameterTypeImpl(
+      node.type = _scopeContext.instantiateTypeParameter(
         element: element,
-        nullabilitySuffix: nullabilitySuffix,
+        nullability: nullabilitySuffix,
       );
     } else {
       var builder = NamedTypeBuilder.of(
@@ -352,15 +340,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    node.type?.accept(this);
-    nodesToBuildType.addDeclaration(node);
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
+    _visitFormalParameter(node);
   }
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
-    _scopeContext.visitSuperFormalParameter(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
+    _visitFormalParameter(node);
   }
 
   @override
@@ -415,5 +401,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     } else {
       return NullabilitySuffix.none;
     }
+  }
+
+  void _visitFormalParameter(FormalParameterImpl node) {
+    _scopeContext.visitFormalParameter(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 }

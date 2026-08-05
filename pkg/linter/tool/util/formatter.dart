@@ -34,7 +34,7 @@ class ReportFormatter {
 
   int diagnosticCount = 0;
 
-  ReportFormatter(this.diagnostics, this.out);
+  new(this.diagnostics, this.out);
 
   /// Override to influence diagnostic sorting.
   int compare(Diagnostic diagnostic1, Diagnostic diagnostic2) {

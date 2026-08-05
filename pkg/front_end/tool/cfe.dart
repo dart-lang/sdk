@@ -14,7 +14,6 @@ import 'compile_platform.dart' as compile_platform;
 import 'generate_experimental_flags.dart' as generate_experimental_flags;
 import 'generate_messages.dart' as generate_messages;
 import 'log_analyzer.dart' as log_analyzer;
-import 'log_collector.dart' as log_collector;
 import 'outline.dart' as outline;
 import 'parser.dart' as parser;
 import 'scanner.dart' as scanner;
@@ -66,10 +65,6 @@ Future<void> main(List<String> args) async {
     case 'log':
       mainFunction = log_analyzer.main;
       script = '${toolDir}/log_analyzer.dart';
-      break;
-    case 'logd':
-      mainFunction = log_collector.main;
-      script = '${toolDir}/log_collector.dart';
       break;
     case 'outline':
       mainFunction = outline.main;

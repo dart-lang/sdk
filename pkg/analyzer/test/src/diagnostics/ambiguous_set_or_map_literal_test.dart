@@ -2,22 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousSetOrMapLiteralBothTest);
     defineReflectiveTests(AmbiguousSetOrMapLiteralEitherTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AmbiguousSetOrMapLiteralBothTest extends PubPackageResolutionTest {
   test_map() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Map<int, int> map) {
   return {...map};
 }
@@ -25,7 +26,7 @@ f(Map<int, int> map) {
   }
 
   test_map_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Map map) {
   return {...map};
 }
@@ -33,7 +34,7 @@ f(Map map) {
   }
 
   test_map_keyNonNullable_valueNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Map<int, int?> map) {
   return {...map};
 }
@@ -41,7 +42,7 @@ f(Map<int, int?> map) {
   }
 
   test_map_keyNullable_valueNonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Map<int?, int> map) {
   return {...map};
 }
@@ -49,7 +50,7 @@ f(Map<int?, int> map) {
   }
 
   test_map_keyNullable_valueNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Map<int?, int?> map) {
   return {...map};
 }
@@ -57,7 +58,7 @@ f(Map<int?, int?> map) {
   }
 
   test_set() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Set<int> set) {
   return {...set};
 }
@@ -65,7 +66,7 @@ f(Set<int> set) {
   }
 
   test_set_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Set set) {
   return {...set};
 }
@@ -73,7 +74,7 @@ f(Set set) {
   }
 
   test_set_elementNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Set<int?> set) {
   return {...set};
 }
@@ -81,25 +82,23 @@ f(Set<int?> set) {
   }
 
   test_setAndMap() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Map<int, int> map, Set<int> set) {
   return {...set, ...map};
+//       ^^^^^^^^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralBoth] The literal can't be either a map or a set because it contains at least one literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these.
 }
-''',
-      [error(diag.ambiguousSetOrMapLiteralBoth, 46, 16)],
-    );
+''');
   }
 
   test_setAndMap_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Map<int?, int> map, Set<int?> set) {
   return {...set, ...map};
+//       ^^^^^^^^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralBoth] The literal can't be either a map or a set because it contains at least one literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these.
 }
-''',
-      [error(diag.ambiguousSetOrMapLiteralBoth, 48, 16)],
-    );
+''');
   }
 }
 
@@ -107,22 +106,20 @@ f(Map<int?, int> map, Set<int?> set) {
 class AmbiguousSetOrMapLiteralEitherTest extends PubPackageResolutionTest {
   test_invalidPrefixOperator() async {
     // Guard against an exception being thrown.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 union(a, b) => !{...a, ...b};
-''',
-      [error(diag.ambiguousSetOrMapLiteralEither, 16, 12)],
-    );
+//              ^^^^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralEither] This literal must be either a map or a set, but the elements don't have enough information for type inference to work.
+''');
   }
 
   test_setAndMap() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var map;
 var set;
 var c = {...set, ...map};
-''',
-      [error(diag.ambiguousSetOrMapLiteralEither, 26, 16)],
-    );
+//      ^^^^^^^^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralEither] This literal must be either a map or a set, but the elements don't have enough information for type inference to work.
+''');
   }
 }

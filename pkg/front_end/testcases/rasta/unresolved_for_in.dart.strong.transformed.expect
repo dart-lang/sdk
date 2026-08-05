@@ -102,11 +102,7 @@ class Fisk extends core::Object {
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'key'.
     for (key in x) {
-         ^^^" in this.{<unresolved>}key = invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the type 'Fisk'.
- - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'key'.
-    for (key in x) {
-         ^^^";
+         ^^^" in this.{<unresolved>}key = #t1;
           core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:12:13: Error: The getter 'key' isn't defined for the type 'Fisk'.
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'key'.
@@ -162,9 +158,6 @@ Try correcting the name to the name of an existing getter, or defining a getter 
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           final dynamic #t5 = :sync-for-iterator.{core::Iterator::current}{dynamic};
           {
-            invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
-    for (1 in x) {
-         ^";
             1;
             core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:24:13: Error: The getter 'key' isn't defined for the type 'Fisk'.
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
@@ -240,9 +233,6 @@ static method main(dynamic arguments) → dynamic {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
-  for (1 in arguments) {
-       ^";
           1;
           core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Undefined name 'key'.
     print(key);

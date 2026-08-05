@@ -545,15 +545,15 @@ int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
   return st.st_size;
 }
 
-static int64_t TimespecToMilliseconds(const struct timespec& t) {
-  return static_cast<int64_t>(t.tv_sec) * 1000L +
-         static_cast<int64_t>(t.tv_nsec) / 1000000L;
+static int64_t TimespecToMicroseconds(const struct timespec& t) {
+  return static_cast<int64_t>(t.tv_sec) * kMicrosecondsPerSecond +
+         static_cast<int64_t>(t.tv_nsec) / 1000L;
 }
 
-static void MillisecondsToTimespec(int64_t millis, struct timespec* t) {
+static void MicrosecondsToTimespec(int64_t micros, struct timespec* t) {
   ASSERT(t != nullptr);
-  t->tv_sec = millis / kMillisecondsPerSecond;
-  t->tv_nsec = (millis % kMillisecondsPerSecond) * 1000L;
+  t->tv_sec = micros / kMicrosecondsPerSecond;
+  t->tv_nsec = (micros % kMicrosecondsPerSecond) * 1000L;
 }
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
@@ -573,9 +573,9 @@ void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
     } else {
       data[kType] = kDoesNotExist;
     }
-    data[kCreatedTime] = TimespecToMilliseconds(st.st_ctim);
-    data[kModifiedTime] = TimespecToMilliseconds(st.st_mtim);
-    data[kAccessedTime] = TimespecToMilliseconds(st.st_atim);
+    data[kCreatedTime] = TimespecToMicroseconds(st.st_ctim);
+    data[kModifiedTime] = TimespecToMicroseconds(st.st_mtim);
+    data[kAccessedTime] = TimespecToMicroseconds(st.st_atim);
     data[kMode] = st.st_mode;
     data[kSize] = st.st_size;
   } else {
@@ -583,25 +583,25 @@ void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
   }
 }
 
-time_t File::LastModified(Namespace* namespc, const char* name) {
+int64_t File::LastModified(Namespace* namespc, const char* name) {
   struct stat64 st;
   if (!StatHelper(namespc, name, &st)) {
     return -1;
   }
-  return st.st_mtime;
+  return TimespecToMicroseconds(st.st_mtim);
 }
 
-time_t File::LastAccessed(Namespace* namespc, const char* name) {
+int64_t File::LastAccessed(Namespace* namespc, const char* name) {
   struct stat64 st;
   if (!StatHelper(namespc, name, &st)) {
     return -1;
   }
-  return st.st_atime;
+  return TimespecToMicroseconds(st.st_atim);
 }
 
 bool File::SetLastAccessed(Namespace* namespc,
                            const char* name,
-                           int64_t millis) {
+                           int64_t micros) {
   // First get the current times.
   struct stat64 st;
   if (!StatHelper(namespc, name, &st)) {
@@ -611,14 +611,14 @@ bool File::SetLastAccessed(Namespace* namespc,
   // Set the new time:
   NamespaceScope ns(namespc, name);
   struct timespec times[2];
-  MillisecondsToTimespec(millis, &times[0]);
+  MicrosecondsToTimespec(micros, &times[0]);
   times[1] = st.st_mtim;
   return utimensat(ns.fd(), ns.path(), times, 0) == 0;
 }
 
 bool File::SetLastModified(Namespace* namespc,
                            const char* name,
-                           int64_t millis) {
+                           int64_t micros) {
   // First get the current times.
   struct stat64 st;
   if (!StatHelper(namespc, name, &st)) {
@@ -629,7 +629,7 @@ bool File::SetLastModified(Namespace* namespc,
   NamespaceScope ns(namespc, name);
   struct timespec times[2];
   times[0] = st.st_atim;
-  MillisecondsToTimespec(millis, &times[1]);
+  MicrosecondsToTimespec(micros, &times[1]);
   return utimensat(ns.fd(), ns.path(), times, 0) == 0;
 }
 

@@ -6,8 +6,6 @@
 // constructor, but the body contains a primary constructor body.
 // It is also an error to have multiple primary constructor bodies.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C1 {
   this : assert(1 != 2);
   // [error column 3, length 4]
@@ -39,6 +37,7 @@ class C3 {
 
 enum E1 {
   e;
+
   this : assert(1 != 2);
   // [error column 3, length 4]
   // [analyzer] COMPILE_TIME_ERROR.PRIMARY_CONSTRUCTOR_BODY_WITHOUT_DECLARATION
@@ -47,6 +46,7 @@ enum E1 {
 
 enum E2(int x) {
   e(1);
+
   this;
 
   this : assert(x != 2);

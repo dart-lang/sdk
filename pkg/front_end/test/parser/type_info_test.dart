@@ -34,11 +34,7 @@ void main() {
 }
 
 ScannerResult scanString(String source, {bool includeComments = false}) =>
-    scanner.scanString(
-      source,
-      configuration: const ScannerConfiguration(enableTripleShift: true),
-      includeComments: includeComments,
-    );
+    scanner.scanString(source, includeComments: includeComments);
 
 @reflectiveTest
 class NoTypeInfoTest {
@@ -3224,15 +3220,13 @@ ComplexTypeInfo computeComplex(
   List<ExpectedError>? expectedErrors,
 ) {
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  ComplexTypeInfo typeInfo =
-      compute(
-            const TypeMatcher<ComplexTypeInfo>(),
-            source,
-            start,
-            required,
-            inDeclaration: inDeclaration,
-          )
-          as ComplexTypeInfo;
+  ComplexTypeInfo typeInfo = compute(
+    const TypeMatcher<ComplexTypeInfo>(),
+    source,
+    start,
+    required,
+    inDeclaration: inDeclaration,
+  ) as ComplexTypeInfo;
   expect(typeInfo.start, start.next, reason: source);
   expect(typeInfo.couldBeExpression, couldBeExpression);
   expectEnd(expectedAfter, typeInfo.skipType(start));
@@ -3270,14 +3264,12 @@ void expectComplexTypeArg(
 }) {
   Token start = scan(source);
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  ComplexTypeParamOrArgInfo typeVarInfo =
-      computeVar(
-            const TypeMatcher<ComplexTypeParamOrArgInfo>(),
-            source,
-            start,
-            inDeclaration,
-          )
-          as ComplexTypeParamOrArgInfo;
+  ComplexTypeParamOrArgInfo typeVarInfo = computeVar(
+    const TypeMatcher<ComplexTypeParamOrArgInfo>(),
+    source,
+    start,
+    inDeclaration,
+  ) as ComplexTypeParamOrArgInfo;
 
   expect(typeVarInfo.start, start.next, reason: source);
   expectEnd(expectedAfter, typeVarInfo.skip(start));
@@ -3317,14 +3309,12 @@ void expectComplexTypeParam(
 }) {
   Token start = scan(source);
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  ComplexTypeParamOrArgInfo typeVarInfo =
-      computeVar(
-            const TypeMatcher<ComplexTypeParamOrArgInfo>(),
-            source,
-            start,
-            inDeclaration,
-          )
-          as ComplexTypeParamOrArgInfo;
+  ComplexTypeParamOrArgInfo typeVarInfo = computeVar(
+    const TypeMatcher<ComplexTypeParamOrArgInfo>(),
+    source,
+    start,
+    inDeclaration,
+  ) as ComplexTypeParamOrArgInfo;
 
   expect(typeVarInfo.start, start.next, reason: source);
   expectEnd(expectedAfter, typeVarInfo.skip(start));
@@ -3442,7 +3432,7 @@ class TypeInfoListener implements Listener {
   List<ExpectedError>? errors;
   Token? firstToken;
 
-  TypeInfoListener({this.firstToken, this.metadataAllowed = false}) {
+  new({this.firstToken, this.metadataAllowed = false}) {
     if (firstToken != null && firstToken!.isEof) {
       firstToken = firstToken!.next;
     }
@@ -3699,7 +3689,7 @@ class ExpectedError {
   final int start;
   final int length;
 
-  ExpectedError(this.code, this.start, this.length);
+  new(this.code, this.start, this.length);
 
   @override
   bool operator ==(other) =>

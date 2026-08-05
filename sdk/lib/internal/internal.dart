@@ -1157,7 +1157,7 @@ class TypeTest<T> {
 /// Should be moved to dart:isolate when --experimental-shared-data
 /// flag is removed.
 abstract interface class IsolateGroup {
-  external static Object _runSync(Object computation);
+  external static Object? _runSync(Object computation);
 
   /// Runs [computation] in isolate-group bound context.
   static R runSync<R>(R computation()) => _runSync(computation) as R;

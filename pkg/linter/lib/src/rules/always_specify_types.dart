@@ -19,8 +19,7 @@ import '../util/ascii_utils.dart';
 const _desc = r'Specify type annotations.';
 
 class AlwaysSpecifyTypes extends MultiAnalysisRule {
-  AlwaysSpecifyTypes()
-    : super(name: LintNames.always_specify_types, description: _desc);
+  new() : super(name: LintNames.always_specify_types, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
@@ -47,7 +46,7 @@ class AlwaysSpecifyTypes extends MultiAnalysisRule {
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);
-    registry.addSimpleFormalParameter(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
     registry.addNamedType(this, visitor);
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -57,7 +56,7 @@ class AlwaysSpecifyTypes extends MultiAnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void checkLiteral(TypedLiteral literal) {
     if (literal.typeArguments == null) {
@@ -137,15 +136,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral literal) {
-    checkLiteral(literal);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter param) {
+  void visitRegularFormalParameter(RegularFormalParameter param) {
     var name = param.name;
     if (name != null && param.type == null && !name.lexeme.isJustUnderscores) {
-      var keyword = param.keyword;
+      var keyword = param.constFinalOrVarKeyword;
       var type = param.declaredFragment?.element.type;
       if (keyword != null) {
         if (keyword.type == Keyword.VAR &&
@@ -177,6 +171,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
     }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral literal) {
+    checkLiteral(literal);
   }
 
   @override

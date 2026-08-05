@@ -39,7 +39,7 @@ class ImportAnalyzer {
   ///
   /// The declarations being moved are in the file at the given [path] in the
   /// given [ranges].
-  ImportAnalyzer(this.result, String path, List<SourceRange> ranges) {
+  new(this.result, String path, List<SourceRange> ranges) {
     for (var unit in result.units) {
       var finder = _ReferenceFinder(
         unit,
@@ -95,7 +95,7 @@ class _ElementRecorder {
   /// Initialize a newly created recorder to use the [analyzer] to record
   /// declarations of and references to elements, based on whether the reference
   /// is within the [ranges].
-  _ElementRecorder(this.analyzer, this.ranges);
+  new(this.analyzer, this.ranges);
 
   /// Record that the [declaredElement] is declared in the library.
   ///
@@ -176,7 +176,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   final _importsByPrefix = <String, Set<LibraryImport>>{};
 
   /// Initialize a newly created finder to send information to the [recorder].
-  _ReferenceFinder(this.unit, this.recorder) {
+  new(this.unit, this.recorder) {
     for (var import in unit.libraryElement.firstFragment.libraryImports) {
       _importsByPrefix
           .putIfAbsent(import.prefix?.element.name ?? '', () => {})

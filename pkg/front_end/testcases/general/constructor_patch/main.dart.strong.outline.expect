@@ -19,10 +19,10 @@ import "dart:_internal";
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
   @_in::patch
-  constructor /* from org-dartlang-testcase:///patch_lib.dart */ generative({core::bool defaultValue = true}) → self2::Class
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ generative({initializing-formal core::bool defaultValue = true}) → self2::Class
     ;
   @_in::patch
-  const constructor /* from org-dartlang-testcase:///patch_lib.dart */ constGenerative({core::bool defaultValue = true}) → self2::Class
+  const constructor /* from org-dartlang-testcase:///patch_lib.dart */ constGenerative({initializing-formal core::bool defaultValue = true}) → self2::Class
     : self2::Class::defaultValue = defaultValue, super core::Object::•()
     ;
   @_in::patch
@@ -40,7 +40,7 @@ class Class2 extends core::Object {
   field core::int field;
   final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   @_in::patch
-  constructor /* from org-dartlang-testcase:///patch_lib.dart */ •(core::int field) → self2::Class2
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ •(initializing-formal core::int field) → self2::Class2
     ;
 }
 class Subclass extends self2::Class {

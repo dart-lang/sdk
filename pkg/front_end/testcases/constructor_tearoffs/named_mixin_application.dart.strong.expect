@@ -41,10 +41,10 @@ abstract class Interface extends core::Object {
 }
 class Class<T extends core::Object? = dynamic> extends core::Object implements self::Interface {
   field core::int field;
-  constructor •([core::int field = #C1]) → self::Class<self::Class::T%>
+  constructor •([initializing-formal core::int field = #C1]) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
     ;
-  constructor named(core::int field) → self::Class<self::Class::T%>
+  constructor named(initializing-formal core::int field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
     ;
   constructor redirectingGenerative(core::int field) → self::Class<self::Class::T%>

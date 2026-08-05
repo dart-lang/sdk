@@ -17,8 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid using unnecessary statements.';
 
 class UnnecessaryStatements extends AnalysisRule {
-  UnnecessaryStatements()
-    : super(name: LintNames.unnecessary_statements, description: _desc);
+  new() : super(name: LintNames.unnecessary_statements, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryStatements;
@@ -52,7 +51,7 @@ class UnnecessaryStatements extends AnalysisRule {
 class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
   final AnalysisRule rule;
 
-  _ReportNoClearEffectVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitAsExpression(AsExpression node) {
@@ -190,7 +189,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final _ReportNoClearEffectVisitor reportNoClearEffect;
 
-  _Visitor(this.reportNoClearEffect);
+  new(this.reportNoClearEffect);
   @override
   void visitCascadeExpression(CascadeExpression node) {
     for (var section in node.cascadeSections) {

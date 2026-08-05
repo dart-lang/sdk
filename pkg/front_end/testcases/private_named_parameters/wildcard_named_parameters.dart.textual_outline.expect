@@ -1,0 +1,10 @@
+void f1({int _ = 0}) {}
+
+void f2({int _ = 0, String _ = ''}) {}
+
+class C {
+  int _;
+  C({this._ = 0});
+}
+
+test() {}

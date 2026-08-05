@@ -4,8 +4,8 @@
 
 String test1(List list) {
   return switch (list) {
-    <int>[1, 2, 3, 4, ... var r1] => r1.toString(),
-    _ => "default"
+    <int>[1, 2, 3, 4, ...var r1] => r1.toString(),
+    _ => "default",
   };
 }
 

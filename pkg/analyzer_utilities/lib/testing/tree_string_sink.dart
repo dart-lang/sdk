@@ -9,7 +9,7 @@ class TreeStringSink {
   final StringSink _sink;
   String _indent = '';
 
-  TreeStringSink({required this._sink, required this._indent});
+  new({required this._sink, required this._indent});
 
   void withIndent(void Function() f) {
     var indent = _indent;
@@ -47,6 +47,14 @@ class TreeStringSink {
           }
         }
       });
+    }
+  }
+
+  void writeHeaderFlags(Map<String, bool> flags) {
+    for (var entry in flags.entries.sortedBy((e) => e.key)) {
+      if (entry.value) {
+        write('${entry.key} ');
+      }
     }
   }
 

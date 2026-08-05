@@ -21,6 +21,8 @@ main() {
   C5 c10 = C5<T Function<T extends S Function<S>(S)>(T)>();
 
   C6 c11 = C6();
-  C6 c12 = C6<
-      T Function<T, S>(T, S, V Function<V extends S, U>(T, U, V, Map<S, U>))>();
+  C6 c12 =
+      C6<
+        T Function<T, S>(T, S, V Function<V extends S, U>(T, U, V, Map<S, U>))
+      >();
 }

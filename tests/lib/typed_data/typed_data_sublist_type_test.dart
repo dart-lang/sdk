@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:typed_data';
+
 import 'package:expect/expect.dart';
 
 // Test that the sublist of a typed_data list is of the same type.

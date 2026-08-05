@@ -1,0 +1,5 @@
+Stream<int> method0() async* {}
+
+Future<void> method1() async {}
+
+void method2() {}

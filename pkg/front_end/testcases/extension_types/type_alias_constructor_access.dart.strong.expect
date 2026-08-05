@@ -16,7 +16,7 @@ extension type ExtensionType<X extends core::Object? = dynamic>(core::int i) {
 }
 static method method1() → dynamic
   return new self::Class::•<core::num>();
-static extension-type-member method ExtensionType|constructor#<X extends core::Object? = dynamic>(core::int i) → self::ExtensionType<self::ExtensionType|constructor#::X%>% /* erasure=core::int, declared=! */ {
+static extension-type-member method ExtensionType|constructor#<X extends core::Object? = dynamic>(initializing-formal core::int i) → self::ExtensionType<self::ExtensionType|constructor#::X%>% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType<self::ExtensionType|constructor#::X%>% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

@@ -4,18 +4,10 @@
 
 import 'main_lib.dart' as a;
 
-const map = <int, String>{
-  ...a.map,
-};
+const map = <int, String>{...a.map};
 
-const set = <int>{
-  ...a.set,
-  ...a.list,
-};
+const set = <int>{...a.set, ...a.list};
 
-const list = <int>[
-  ...a.list,
-  ...a.set,
-];
+const list = <int>[...a.list, ...a.set];
 
 main() {}

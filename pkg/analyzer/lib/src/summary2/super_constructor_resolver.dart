@@ -57,7 +57,7 @@ class SuperConstructorResolver {
     }
 
     for (var fragment in element.fragments) {
-      var node = _linker.getLinkingNode2(fragment);
+      var node = _linker.getLinkingNode(fragment);
       if (node is ConstructorDeclaration) {
         handleInitializers(node.initializers);
       } else if (node is PrimaryConstructorDeclaration) {

@@ -31,11 +31,12 @@ declare_args() {
   # Available options are: arm, arm64, x64, ia32, riscv32, riscv64.
   dart_target_arch = target_cpu
 
-  # Force use of the simulator even when the Dart target arch matches the current cpu.
+  # Force use of the simulator even when the Dart target arch matches the
+  # current cpu.
   dart_force_simulator = false
 
-  # The optimization level to use for debug builds. Defaults to 0 for builds with
-  # code coverage enabled.
+  # The optimization level to use for debug builds. Defaults to 0 for builds
+  # with code coverage enabled.
   dart_debug_optimization_level = "2"
 
   # The optimization level to use for non-debug builds.
@@ -43,10 +44,6 @@ declare_args() {
 
   # Whether to enable code coverage for the standalone VM.
   dart_vm_code_coverage = false
-
-  # Whether to fall back to built-in root certificates when they cannot be
-  # verified at the operating system level.
-  dart_use_fallback_root_certificates = false
 
   # Whether to disable support for secure sockets in the Dart IO library.
   dart_disable_secure_socket = false
@@ -107,7 +104,8 @@ declare_args() {
 if (is_fuchsia) {
   declare_args() {
     # In case some repo uses build rules in dart/sdk, but put fuchsia-gn-sdk in
-    # a different folder, this gn arg can specify the location of fuchsia-gn-sdk.
+    # a different folder, this gn arg can specify the location of
+    # fuchsia-gn-sdk.
     if (!defined(fuchsia_gn_sdk)) {
       fuchsia_gn_sdk = "//third_party/fuchsia/gn-sdk"
     }

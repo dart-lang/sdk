@@ -11,7 +11,7 @@ class C extends core::Object {
 }
 class Checker<X extends core::Object? = dynamic> extends core::Object {
   final field self::Checker::X% x;
-  constructor •(self::Checker::X% x) → self::Checker<self::Checker::X%>
+  constructor •(initializing-formal self::Checker::X% x) → self::Checker<self::Checker::X%>
     ;
   method expectStaticType<covariant-by-class Y extends (self::Checker::X%) → self::Checker::X%>() → self::Checker::X%
     ;

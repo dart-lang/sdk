@@ -13,7 +13,7 @@ class CodeLensHandler
     extends SharedMessageHandler<CodeLensParams, List<CodeLens>> {
   final List<AbstractCodeLensProvider> codeLensProviders;
 
-  CodeLensHandler(super.server)
+  new(super.server)
     : codeLensProviders = [AugmentationCodeLensProvider(server)];
 
   @override
@@ -68,7 +68,7 @@ class CodeLensRegistrations extends FeatureRegistration
   @override
   final staticOptions = CodeLensOptions();
 
-  CodeLensRegistrations(super.info);
+  new(super.info);
 
   @override
   Method get registrationMethod => Method.textDocument_codeLens;

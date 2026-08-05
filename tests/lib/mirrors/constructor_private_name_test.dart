@@ -33,7 +33,5 @@ main() {
 // have privacy.
 Symbol constructorNameFor(ClassMirror cm, String name) =>
     (cm.declarations.values.firstWhere(
-              (d) => MirrorSystem.getName(d.simpleName) == name,
-            )
-            as MethodMirror)
-        .constructorName;
+      (d) => MirrorSystem.getName(d.simpleName) == name,
+    ) as MethodMirror).constructorName;

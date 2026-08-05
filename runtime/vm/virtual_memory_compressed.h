@@ -22,51 +22,50 @@ static constexpr intptr_t kCompressedHeapNumPages =
 static constexpr intptr_t kCompressedHeapBitmapSize =
     kCompressedHeapNumPages / 8;
 
-#if !defined(DART_HOST_OS_FUCHSIA)
-#define DART_COMPRESSED_HEAP
-#endif  // !defined(DART_HOST_OS_FUCHSIA)
-#endif  // defined(DART_COMPRESSED_POINTERS)
+DECLARE_FLAG(bool, pointer_cage);
 
-#if defined(DART_COMPRESSED_HEAP)
-
-// Utilities for allocating memory within a contiguous region of memory, for use
-// with compressed pointers.
-class VirtualMemoryCompressedHeap : public AllStatic {
+// |-----------------------| <- outer_vmar_, reservation_
+// | Lower guard, 32 GB    |
+// |-----------------------| <- inner_vmar_, base_
+// | Compressed heap, 4 GB |
+// |-----------------------|
+// | Upper guard, 32 GB    |
+// |-----------------------|
+class Cage : public MallocAllocated {
  public:
-  // Initializes the compressed heap. The callee must allocate a region of
-  // kCompressedHeapSize bytes, aligned to kCompressedHeapSize.
-  static void Init(void* compressed_heap_region, size_t size);
+  Cage();
+  ~Cage();
 
-  // Cleans up the compressed heap. The callee is responsible for freeing the
-  // region's memory.
-  static void Cleanup();
+  VirtualMemory* Allocate(intptr_t size, intptr_t alignment);
+  void Free(void* address, intptr_t size);
 
-  // Allocates a segment of the compressed heap with the given size. Returns a
-  // heap memory region if a large enough free segment can't be found.
-  static MemoryRegion Allocate(intptr_t size, intptr_t alignment);
+  void* GetRegion();
 
-  // Frees a segment.
-  static void Free(void* address, intptr_t size);
-
-  // Returns whether the address is within the compressed heap.
-  static bool Contains(void* address);
-
-  // Returns a pointer to the compressed heap region.
-  static void* GetRegion();
+  PageCache* cache() { return &cache_; }
 
  private:
-  static bool IsPageUsed(uword page_id);
-  static void SetPageUsed(uword page_id);
-  static void ClearPageUsed(uword page_id);
+  void Init(void* compressed_heap_region, size_t size);
+  bool IsPageUsed(uword page_id);
+  void SetPageUsed(uword page_id);
+  void ClearPageUsed(uword page_id);
 
-  static uword base_;
-  static uword size_;
-  static uint8_t* pages_;
-  static uword minimum_free_page_id_;
-  static Mutex* mutex_;
+#if defined(DART_HOST_OS_FUCHSIA)
+  zx_handle_t outer_vmar_ = ZX_HANDLE_INVALID;
+  zx_handle_t inner_vmar_ = ZX_HANDLE_INVALID;
+  uword outer_addr_ = 0;
+  uword inner_addr_ = 0;
+#else
+  VirtualMemory* reservation_ = nullptr;
+  uword base_ = 0;
+  uword size_ = 0;
+  uint8_t* pages_ = nullptr;
+  uword minimum_free_page_id_ = 0;
+  Mutex mutex_;
+#endif
+  PageCache cache_;
 };
 
-#endif  // defined(DART_COMPRESSED_HEAP)
+#endif  // defined(DART_COMPRESSED_POINTERS)
 
 }  // namespace dart
 

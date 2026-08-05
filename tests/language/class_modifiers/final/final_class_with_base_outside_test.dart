@@ -5,6 +5,7 @@
 // Allow `final` class with a `base` mixin outside its library.
 
 import 'package:expect/expect.dart';
+
 import 'final_class_base_class_lib.dart';
 
 final class A with BaseMixin {}

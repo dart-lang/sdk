@@ -5,6 +5,7 @@
 // Tests runtime type semantics for functions with required named parameters
 // in strong mode.
 import 'package:expect/expect.dart';
+
 import 'required_named_args_lib.dart';
 
 main() {

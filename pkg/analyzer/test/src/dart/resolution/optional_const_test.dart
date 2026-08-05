@@ -7,10 +7,12 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionalConstResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -28,11 +30,11 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
@@ -51,7 +53,7 @@ InstanceCreationExpression
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
@@ -70,18 +72,18 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
@@ -100,11 +102,11 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
@@ -162,7 +164,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: A
       element: package:test/a.dart::@class::A
       type: A
@@ -188,7 +190,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: A
       element: package:test/a.dart::@class::A
       type: A
@@ -207,13 +209,13 @@ class C<T> {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 
 const x = p.C<int>();
 ''');
 
-    var node = findNode.instanceCreation('p.C<int>()');
+    var node = result.findNode.instanceCreation('p.C<int>()');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -221,7 +223,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -233,7 +235,7 @@ InstanceCreationExpression
         rightBracket: >
       element: package:test/a.dart::@class::C
       type: C<int>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::C::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
@@ -270,12 +272,13 @@ const a = $expr;
 ''');
     }
 
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 import 'b.dart';
 var v = a;
 ''');
 
-    var vg = findNode.simple('a;').element as PropertyAccessorElementImpl;
+    var vg =
+        result.findNode.simple('a;').element as PropertyAccessorElementImpl;
     var v = vg.variable.firstFragment;
 
     var creation = v.constantInitializer as InstanceCreationExpression;

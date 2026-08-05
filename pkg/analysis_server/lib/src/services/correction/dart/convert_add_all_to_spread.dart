@@ -22,7 +22,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
 
   final MethodInvocation? _invocation;
 
-  factory ConvertAddAllToSpread({required CorrectionProducerContext context}) {
+  factory({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
       return ConvertAddAllToSpread._(
         context: context,
@@ -61,7 +61,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
     );
   }
 
-  ConvertAddAllToSpread._({
+  new _({
     required super.context,
     required this._invocation,
     required this._isInlineInvocation,
@@ -128,7 +128,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
       elementText = utils.getText(startOffset, endOffset - startOffset);
       _args = ['addAll'];
     } else {
-      elementText = _computeElementText(argument);
+      elementText = _computeElementText(argument.argumentExpression);
     }
 
     await builder.addDartFileEdit(file, (builder) {

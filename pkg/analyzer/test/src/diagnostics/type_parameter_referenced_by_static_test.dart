@@ -2,146 +2,136 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeParameterReferencedByStaticTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class TypeParameterReferencedByStaticTest extends PubPackageResolutionTest {
   test_class_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static T? foo;
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 22, 1)],
-    );
+''');
   }
 
   test_class_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static T? get foo => null;
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 22, 1)],
-    );
+''');
   }
 
   test_class_method_bodyReference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static foo() {
     // ignore:unused_local_variable
     T v;
+//  ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
   }
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 70, 1)],
-    );
+''');
   }
 
   test_class_method_closure() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static Object foo() {
     return (T a) {};
+//          ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
   }
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 49, 1)],
-    );
+''');
   }
 
   test_class_method_parameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static foo(T a) {}
+//           ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 26, 1)],
-    );
+''');
   }
 
   test_class_method_return() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static T foo() {
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
     throw 0;
   }
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 22, 1)],
-    );
+''');
   }
 
   test_class_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static set foo(T _) {}
+//               ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 30, 1)],
-    );
+''');
   }
 
   test_expression_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static foo() {
     T;
+//  ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
   }
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 34, 1)],
-    );
+''');
   }
 
   test_extension_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E<T> on int {
   static T? foo;
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 33, 1)],
-    );
+''');
   }
 
   test_extension_method_return() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E<T> on int {
   static T foo() => throw 0;
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 33, 1)],
-    );
+''');
   }
 
   test_mixin_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A<T> {
   static T? foo;
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
 }
-''',
-      [error(diag.typeParameterReferencedByStatic, 22, 1)],
-    );
+''');
   }
 }

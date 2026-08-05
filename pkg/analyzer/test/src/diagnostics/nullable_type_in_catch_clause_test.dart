@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NullableTypeInCatchClauseTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NullableTypeInCatchClauseTest extends PubPackageResolutionTest {
   test_noOnClause() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   try {
   } catch (e) {
@@ -26,21 +27,20 @@ f() {
   }
 
   test_on_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 f() {
   try {
   } on dynamic {
+//     ^^^^^^^
+// [diag.nullableTypeInCatchClause] A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression.
   }
 }
-''',
-      [error(diag.nullableTypeInCatchClause, 32, 7)],
-    );
+''');
   }
 
   test_on_functionType_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   try {
   } on void Function() {
@@ -50,20 +50,19 @@ f() {
   }
 
   test_on_functionType_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   try {
   } on void Function()? {
+//     ^^^^^^^^^^^^^^^^
+// [diag.nullableTypeInCatchClause] A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression.
   }
 }
-''',
-      [error(diag.nullableTypeInCatchClause, 21, 16)],
-    );
+''');
   }
 
   test_on_interfaceType_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   try {
   } on int {
@@ -73,20 +72,19 @@ f() {
   }
 
   test_on_interfaceType_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   try {
   } on int? {
+//     ^^^^
+// [diag.nullableTypeInCatchClause] A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression.
   }
 }
-''',
-      [error(diag.nullableTypeInCatchClause, 21, 4)],
-    );
+''');
   }
 
   test_on_typeParameter_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<B extends Object> {
   m() {
     try {
@@ -98,17 +96,16 @@ class A<B extends Object> {
   }
 
   test_on_typeParameter_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<B> {
   m() {
     try {
     } on B {
+//       ^
+// [diag.nullableTypeInCatchClause] A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression.
     }
   }
 }
-''',
-      [error(diag.nullableTypeInCatchClause, 40, 1)],
-    );
+''');
   }
 }

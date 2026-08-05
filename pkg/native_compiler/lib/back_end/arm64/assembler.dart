@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
@@ -94,6 +95,10 @@ const Register heapBitsReg = R28;
 
 /// Dart null object.
 const Register nullReg = R22;
+
+/// Exception handler parameter registers.
+const Register exceptionObjectReg = R0;
+const Register stackTraceObjectReg = R1;
 
 const Set<Register> allRegisters = {
   R0,
@@ -259,49 +264,38 @@ enum Extend {
 enum Shift { LSL, LSR, ASR, ROR }
 
 /// reg (LSL|LSR|ASR) #imm operand.
-class ShiftedRegOperand implements Operand {
-  final Register reg;
-  final Shift shift;
-  final int shiftAmount;
-  const ShiftedRegOperand(this.reg, this.shift, this.shiftAmount);
-}
+class const ShiftedRegOperand(
+  final Register reg,
+  final Shift shift,
+  final int shiftAmount,
+) implements Operand;
 
 /// reg (U|S)XT(B|H|W|X) #imm operand.
-class ExtRegOperand implements Operand {
-  final Register reg;
-  final Extend ext;
-  final int shiftAmount;
-  const ExtRegOperand(this.reg, this.ext, [this.shiftAmount = 0])
-    : assert(0 <= shiftAmount && shiftAmount <= 4);
+class const ExtRegOperand(
+  final Register reg,
+  final Extend ext, [
+  final int shiftAmount = 0,
+]) implements Operand {
+  this : assert(0 <= shiftAmount && shiftAmount <= 4);
 }
 
 /// [base + reg LSL #imm] address operand.
-class RegRegAddress implements Address {
-  final Register base;
-  final Register reg;
-  final int shift;
-  RegRegAddress(this.base, this.reg, this.shift);
-}
+class RegRegAddress(final Register base, final Register reg, final int shift)
+    implements Address;
 
 /// [base + reg (S|U)XTW {imm}] address operand.
-class RegExtRegAddress implements Address {
-  final Register base;
-  final Register reg;
-  final Extend ext;
-  final bool scaled;
-  RegExtRegAddress(this.base, this.reg, this.ext, {this.scaled = false});
-}
+class RegExtRegAddress(
+  final Register base,
+  final Register reg,
+  final Extend ext, {
+  final bool scaled = false,
+}) implements Address;
 
-class WritebackRegOffsetAddress implements Address {
-  final Register base;
-  final int offset;
-  final bool isPostIndexed;
-  WritebackRegOffsetAddress(
-    this.base,
-    this.offset, {
-    required this.isPostIndexed,
-  });
-}
+class WritebackRegOffsetAddress(
+  final Register base,
+  final int offset, {
+  required final bool isPostIndexed,
+}) implements Address;
 
 // Bits to simplify encoding of the instructions.
 const int B0 = (1 << 0);
@@ -351,7 +345,10 @@ const int B31 = (1 << 31);
 final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   final ObjectLayout objectLayout;
 
-  Arm64Assembler(super.vmOffsets, this.objectLayout);
+  Arm64Assembler(super.vmOffsets, super.addCallSiteMetadata, this.objectLayout);
+
+  @override
+  int get currentPcOffset => length << 2;
 
   /// Create a [base + offset] address for arbitrary offset,
   /// generating extra code if necessary.
@@ -523,6 +520,17 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   }
 
   @override
+  void branchIfBoolIs(Register left, bool right, Label label) {
+    // Test bool value bit: 0 = true, 1 = false.
+    final boolValueBit = boolValueBitPosition(log2wordSize);
+    if (right) {
+      tbz(left, boolValueBit, label);
+    } else {
+      tbnz(left, boolValueBit, label);
+    }
+  }
+
+  @override
   void loadFromPool(Register reg, Object obj) {
     int poolIndex = objectPool.getObject(obj);
     ldr(
@@ -555,6 +563,16 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       } else {
         loadFromPool(reg, value as Object);
       }
+    } else if (value.isNull) {
+      mov(reg, nullReg);
+    } else if (value.isBool) {
+      addImmediate(
+        reg,
+        nullReg,
+        value.boolValue
+            ? trueOffsetFromNull(wordSize)
+            : falseOffsetFromNull(wordSize),
+      );
     } else {
       loadFromPool(reg, value as Object);
     }
@@ -619,6 +637,24 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       }
     }
     assert(initialized);
+  }
+
+  @override
+  void loadDoubleImmediate(FPRegister reg, double v) {
+    final imm = Immediate(doubleToIntBits(v));
+    if (imm.tryEncodingFpImm(.s64) != null) {
+      fmov(reg, imm);
+      return;
+    }
+    if (imm.value == 0) {
+      fmov(reg, ZR);
+      return;
+    }
+    int poolIndex = objectPool.getObject(UnboxedDoubleConstant(v));
+    fldr(
+      reg,
+      address(poolPointerReg, vmOffsets.ObjectPool_elementOffset(poolIndex)),
+    );
   }
 
   bool canEncodeImm12(int value) =>
@@ -743,6 +779,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       address(threadReg, vmOffsets.Thread_call_to_runtime_entry_point_offset),
     );
     blr(LR);
+    addCallSiteMetadata?.call();
   }
 
   @override
@@ -755,6 +792,22 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, stub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
+    addCallSiteMetadata?.call();
+  }
+
+  // TODO: remove after all stubs are implemented in the compiler
+  void callVmStub(StubCode vmStub) {
+    loadFromPool(codeReg, vmStub);
+    ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
+    blr(LR);
+    addCallSiteMetadata?.call();
+  }
+
+  // TODO: remove after all stubs are implemented in the compiler
+  void jumpVmStub(StubCode vmStub) {
+    loadFromPool(codeReg, vmStub);
+    ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
+    br(LR);
   }
 
   @override
@@ -762,6 +815,11 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadConstant(R0, ConstantValue.fromString(message));
     push(R0);
     callRuntime(RuntimeEntry.FatalError, 1);
+  }
+
+  @override
+  void breakpoint() {
+    brk(0);
   }
 
   /// Generate code for inline object allocation.
@@ -905,6 +963,14 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
 
   void cmn(Register rn, Operand o, [OperandSize sz = OperandSize.s64]) {
     adds(ZR, rn, o, sz);
+  }
+
+  void neg(Register rd, Operand o, [OperandSize sz = OperandSize.s64]) {
+    sub(rd, ZR, o, sz);
+  }
+
+  void negs(Register rd, Operand o, [OperandSize sz = OperandSize.s64]) {
+    subs(rd, ZR, o, sz);
   }
 
   void _emitAddSub(
@@ -1065,6 +1131,86 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
+  void csel(
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitConditionalSelect(B23 | B25 | B27 | B28, rd, rn, rm, condition, sz);
+  }
+
+  void csinc(
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitConditionalSelect(
+      B10 | B23 | B25 | B27 | B28,
+      rd,
+      rn,
+      rm,
+      condition,
+      sz,
+    );
+  }
+
+  void csinv(
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitConditionalSelect(
+      B23 | B25 | B27 | B28 | B30,
+      rd,
+      rn,
+      rm,
+      condition,
+      sz,
+    );
+  }
+
+  void csneg(
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitConditionalSelect(
+      B10 | B23 | B25 | B27 | B28 | B30,
+      rd,
+      rn,
+      rm,
+      condition,
+      sz,
+    );
+  }
+
+  void _emitConditionalSelect(
+    int opcode,
+    Register rd,
+    Register rn,
+    Register rm,
+    Condition condition,
+    OperandSize sz,
+  ) {
+    assert(sz.is32or64);
+    emit(
+      opcode |
+          rd.encodingRd() |
+          rn.encodingRn() |
+          rm.encodingRm() |
+          (condition.encoding << 12) |
+          (sz.is64 ? B31 : 0),
+    );
+  }
+
   void bfm(
     Register rd,
     Register rn,
@@ -1201,6 +1347,34 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
   }
 
+  void lsl(
+    Register rd,
+    Register rn,
+    int shift, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert((0 <= shift) && (shift < sz.bitWidth));
+    if (shift == 0) {
+      mov(rd, rn, sz);
+    } else {
+      ubfm(rd, rn, sz.bitWidth - shift, sz.bitWidth - shift - 1, sz);
+    }
+  }
+
+  void lsr(
+    Register rd,
+    Register rn,
+    int shift, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert((0 <= shift) && (shift < sz.bitWidth));
+    if (shift == 0) {
+      mov(rd, rn, sz);
+    } else {
+      ubfm(rd, rn, shift, sz.bitWidth - 1, sz);
+    }
+  }
+
   void _emitBitfieldMove(
     int opcode,
     Register rd,
@@ -1219,6 +1393,51 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
           (immS << 10) |
           (immR << 16) |
           (sz.is64 ? (B31 | B22) : 0),
+    );
+  }
+
+  void asrv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitVariableShift(B11, rd, rn, rm, sz);
+  }
+
+  void lslv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitVariableShift(0, rd, rn, rm, sz);
+  }
+
+  void lsrv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitVariableShift(B10, rd, rn, rm, sz);
+  }
+
+  void _emitVariableShift(
+    int opcode,
+    Register rd,
+    Register rn,
+    Register rm,
+    OperandSize sz,
+  ) {
+    assert(sz.is32or64);
+    emit(
+      (B13 | B22 | B23 | B25 | B27 | B28) |
+          opcode |
+          rd.encodingRd() |
+          rn.encodingRn() |
+          rm.encodingRm() |
+          (sz.is64 ? B31 : 0),
     );
   }
 
@@ -1682,6 +1901,181 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
           rn.encodingRn(),
     );
   }
+
+  void brk(int imm) {
+    assert(_isUint(16, imm));
+    emit(B31 | B30 | B28 | B26 | B21 | (imm << 5));
+  }
+
+  void scvtf(
+    FPRegister rd,
+    Register rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    assert(srcSize.is32or64);
+    assert(dstSize.is16or32or64);
+    emit(
+      B17 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          rd.encodingRd |
+          rn.encodingRn() |
+          (dstSize.is64 ? B22 : (dstSize.is32 ? 0 : (B22 | B23))) |
+          (srcSize.is64 ? B31 : 0),
+    );
+  }
+
+  void fmov(FPRegister rd, Operand o, [OperandSize sz = OperandSize.s64]) {
+    assert(sz.is16or32or64);
+    switch (o) {
+      case FPRegister():
+        emit(
+          B14 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              rd.encodingRd |
+              o.encodingRn |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+        break;
+      case Register():
+        emit(
+          B16 |
+              B17 |
+              B18 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              rd.encodingRd |
+              o.encodingRn() |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))) |
+              (sz.is64 ? B31 : 0),
+        );
+        break;
+      case Immediate():
+        emit(
+          B12 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              rd.encodingRd |
+              (o.encodingFpImm(sz) << 13) |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+        break;
+      default:
+        throw 'Unexpect operand ${o.runtimeType}';
+    }
+  }
+
+  void fadd(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B13, rd, rn, rm, sz);
+  }
+
+  void fsub(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B12 | B13, rd, rn, rm, sz);
+  }
+
+  void fmul(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(0, rd, rn, rm, sz);
+  }
+
+  void fdiv(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B12, rd, rn, rm, sz);
+  }
+
+  void _emitFPBinary(
+    int opcode,
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm,
+    OperandSize sz,
+  ) {
+    assert(sz.is16or32or64);
+    emit(
+      B11 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          opcode |
+          rd.encodingRd |
+          rn.encodingRn |
+          rm.encodingRm |
+          (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+    );
+  }
+
+  void fcmp(FPRegister rn, Operand o, [OperandSize sz = OperandSize.s64]) {
+    _emitFPCompare(0, rn, o, sz);
+  }
+
+  void _emitFPCompare(int opcode, FPRegister rn, Operand o, OperandSize sz) {
+    assert(sz.is16or32or64);
+    switch (o) {
+      case FPRegister():
+        emit(
+          B13 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              opcode |
+              rn.encodingRn |
+              o.encodingRm |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+      case Immediate(value: 0):
+        emit(
+          B3 |
+              B13 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              opcode |
+              rn.encodingRn |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+
+      default:
+        throw 'Unexpect operand ${o.runtimeType} $o';
+    }
+  }
 }
 
 bool _isUint(int numBits, int value) => (value >>> numBits) == 0;
@@ -1710,7 +2104,10 @@ extension on Register {
 }
 
 extension on FPRegister {
+  int get encodingRd => index;
   int get encodingRt => index;
+  int get encodingRn => index << 5;
+  int get encodingRm => index << 16;
 }
 
 extension on Immediate {
@@ -1855,6 +2252,30 @@ extension on Immediate {
     value =
         ((value >>> 32) & 0x00000000ffffffff) + (value & 0x00000000ffffffff);
     return value;
+  }
+
+  int encodingFpImm(OperandSize sz) =>
+      tryEncodingFpImm(sz) ??
+      (throw 'Immediate $value cannot be encoded as FP immediate');
+
+  int? tryEncodingFpImm(OperandSize sz) {
+    if (!sz.is64) {
+      throw 'Unimplemented FP immediates of size $sz';
+    }
+    // value: aBbbbbbb bbcdefgh 00000000 00000000 00000000 00000000 00000000 00000000
+    // encoded as: abcdefgh (where B = NOT(b)).
+    final int value = this.value;
+    if (value & ((1 << 48) - 1) != 0) {
+      return null;
+    }
+    final int bitB = (value >> 62) & 0x1;
+    const int maskb = 0xff << 54;
+    if ((value & maskb) != ((bitB - 1) & maskb)) {
+      return null;
+    }
+    return (((value >> 63) & 0x1) << 7) |
+        ((((~value) >> 62) & 0x1) << 6) |
+        ((value >> 48) & 0x3f);
   }
 }
 

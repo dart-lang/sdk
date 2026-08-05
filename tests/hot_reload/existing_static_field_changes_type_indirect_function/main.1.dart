@@ -15,7 +15,8 @@ class B {}
 typedef bool Predicate(B b);
 
 Predicate value = init();
-init() => (A a) => true;
+init() =>
+    (A a) => true;
 
 String helper() {
   try {

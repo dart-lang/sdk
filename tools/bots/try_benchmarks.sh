@@ -78,8 +78,12 @@ for command; do
       -K 'kDartVmSnapshotInstructions' \
       -K 'kDartCoreIsolateSnapshotData' \
       -K 'kDartCoreIsolateSnapshotInstructions' \
+      -K 'kDartCoreSnapshotData' \
+      -K 'kDartCoreSnapshotText' \
       -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
       -K '_ZN4dart3bin7Builtin*_paths_E' \
+      -K '_ZN4dart3bin18core_snapshot_dataE' \
+      -K '_ZN4dart3bin18core_snapshot_textE' \
       -K '_ZN4dart3binL17vm_snapshot_data_E' \
       -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
       -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
@@ -94,8 +98,12 @@ for command; do
       -K 'kDartVmSnapshotInstructions' \
       -K 'kDartCoreIsolateSnapshotData' \
       -K 'kDartCoreIsolateSnapshotInstructions' \
+      -K 'kDartCoreSnapshotData' \
+      -K 'kDartCoreSnapshotText' \
       -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
       -K '_ZN4dart3bin7Builtin*_paths_E' \
+      -K '_ZN4dart3bin18core_snapshot_dataE' \
+      -K '_ZN4dart3bin18core_snapshot_textE' \
       -K '_ZN4dart3binL17vm_snapshot_data_E' \
       -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
       -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
@@ -110,8 +118,12 @@ for command; do
       -K 'kDartVmSnapshotInstructions' \
       -K 'kDartCoreIsolateSnapshotData' \
       -K 'kDartCoreIsolateSnapshotInstructions' \
+      -K 'kDartCoreSnapshotData' \
+      -K 'kDartCoreSnapshotText' \
       -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
       -K '_ZN4dart3bin7Builtin*_paths_E' \
+      -K '_ZN4dart3bin18core_snapshot_dataE' \
+      -K '_ZN4dart3bin18core_snapshot_textE' \
       -K '_ZN4dart3binL17vm_snapshot_data_E' \
       -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
       -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
@@ -126,8 +138,12 @@ for command; do
       -K 'kDartVmSnapshotInstructions' \
       -K 'kDartCoreIsolateSnapshotData' \
       -K 'kDartCoreIsolateSnapshotInstructions' \
+      -K 'kDartCoreSnapshotData' \
+      -K 'kDartCoreSnapshotText' \
       -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
       -K '_ZN4dart3bin7Builtin*_paths_E' \
+      -K '_ZN4dart3bin18core_snapshot_dataE' \
+      -K '_ZN4dart3bin18core_snapshot_textE' \
       -K '_ZN4dart3binL17vm_snapshot_data_E' \
       -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
       -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \

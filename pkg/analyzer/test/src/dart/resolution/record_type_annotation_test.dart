@@ -2,27 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecordTypeAnnotationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class RecordTypeAnnotationResolutionTest extends PubPackageResolutionTest {
   test_class_method_formalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo((int, String) a) {}
 }
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -43,13 +44,13 @@ RecordTypeAnnotation
   }
 
   test_class_method_returnType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   (int, String) foo() => throw 0;
 }
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -70,15 +71,14 @@ RecordTypeAnnotation
   }
 
   test_language219_named() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f(({int f1, String f2}) x) {}
-''',
-      [error(diag.experimentNotEnabled, 23, 1)],
-    );
+//     ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
 
-    var node = findNode.singleFormalParameterList;
+    var node = result.findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -96,15 +96,14 @@ FormalParameterList
   }
 
   test_language219_positional() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f((int, String) x) {}
-''',
-      [error(diag.experimentNotEnabled, 23, 1)],
-    );
+//     ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
 
-    var node = findNode.singleFormalParameterList;
+    var node = result.findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -122,14 +121,14 @@ FormalParameterList
   }
 
   test_localFunction_formalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_element
   void g((int, String) a) {}
 }
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -150,14 +149,14 @@ RecordTypeAnnotation
   }
 
   test_localFunction_returnType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_element
   (int, String) g() => throw 0;
 }
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -178,14 +177,14 @@ RecordTypeAnnotation
   }
 
   test_localVariable_mixed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   (int, String, {bool f3}) x;
 }
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -216,14 +215,14 @@ RecordTypeAnnotation
   }
 
   test_localVariable_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   ({int f1, String f2}) x;
 }
 ''');
 
-    var node = findNode.recordTypeAnnotation('({int');
+    var node = result.findNode.recordTypeAnnotation('({int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -249,14 +248,14 @@ RecordTypeAnnotation
   }
 
   test_localVariable_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   (int, String) x;
 }
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -277,11 +276,11 @@ RecordTypeAnnotation
   }
 
   test_topFunction_formalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) a) {}
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -302,11 +301,11 @@ RecordTypeAnnotation
   }
 
   test_topFunction_nullable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 (int, String)? f() => throw 0;
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -328,11 +327,11 @@ RecordTypeAnnotation
   }
 
   test_topFunction_returnType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 (int, String) f() => throw 0;
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -353,14 +352,14 @@ RecordTypeAnnotation
   }
 
   test_typeArgument() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final x = <(int, String)>[];
 }
 ''');
 
-    var node = findNode.recordTypeAnnotation('(int');
+    var node = result.findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (

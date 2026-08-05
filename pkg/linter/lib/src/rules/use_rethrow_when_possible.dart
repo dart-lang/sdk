@@ -16,8 +16,7 @@ import '../extensions.dart';
 const _desc = r'Use rethrow to rethrow a caught exception.';
 
 class UseRethrowWhenPossible extends AnalysisRule {
-  UseRethrowWhenPossible()
-    : super(name: LintNames.use_rethrow_when_possible, description: _desc);
+  new() : super(name: LintNames.use_rethrow_when_possible, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.useRethrowWhenPossible;
@@ -35,7 +34,7 @@ class UseRethrowWhenPossible extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitThrowExpression(ThrowExpression node) {

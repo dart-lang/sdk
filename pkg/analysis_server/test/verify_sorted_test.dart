@@ -62,7 +62,6 @@ void buildTests({
 
   var collection = AnalysisContextCollection(
     includedPaths: <String>[packagePath],
-    excludedPaths: excludedPaths,
     resourceProvider: provider,
   );
   for (var context in collection.contexts) {

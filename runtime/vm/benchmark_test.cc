@@ -378,15 +378,13 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  MallocWriteStream vm_snapshot_data(FullSnapshotWriter::kInitialSize);
   MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
-  FullSnapshotWriter writer(
-      Snapshot::kFullCore, &vm_snapshot_data, &isolate_snapshot_data,
-      /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
+  FullSnapshotWriter writer(Snapshot::kFull, &isolate_snapshot_data,
+                            /*image_writer=*/nullptr);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
       Snapshot::SetupFromBuffer(isolate_snapshot_data.buffer());
-  ASSERT(snapshot->kind() == Snapshot::kFullCore);
+  ASSERT(snapshot->kind() == Snapshot::kFull);
   benchmark->set_score(snapshot->length());
 }
 
@@ -415,15 +413,13 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  MallocWriteStream vm_snapshot_data(FullSnapshotWriter::kInitialSize);
   MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
-  FullSnapshotWriter writer(
-      Snapshot::kFullCore, &vm_snapshot_data, &isolate_snapshot_data,
-      /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
+  FullSnapshotWriter writer(Snapshot::kFull, &isolate_snapshot_data,
+                            /*image_writer=*/nullptr);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
       Snapshot::SetupFromBuffer(isolate_snapshot_data.buffer());
-  ASSERT(snapshot->kind() == Snapshot::kFullCore);
+  ASSERT(snapshot->kind() == Snapshot::kFull);
   benchmark->set_score(snapshot->length());
 }
 
@@ -526,38 +522,6 @@ BENCHMARK(SimpleMessage) {
     std::unique_ptr<Message> message =
         WriteMessage(/* same_group */ false, array_object, ILLEGAL_PORT,
                      Message::kNormalPriority);
-
-    // Read object back from the snapshot.
-    ReadMessage(thread, message.get());
-  }
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-}
-
-BENCHMARK(LargeMap) {
-  const char* kScript =
-      "@pragma('vm:entry-point', 'call')\n"
-      "makeMap() {\n"
-      "  Map m = {};\n"
-      "  for (int i = 0; i < 100000; ++i) m[i*13+i*(i>>7)] = i;\n"
-      "  return m;\n"
-      "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, nullptr);
-  EXPECT_VALID(h_result);
-  TransitionNativeToVM transition(thread);
-  StackZone zone(thread);
-  Instance& map = Instance::Handle();
-  map ^= Api::UnwrapHandle(h_result);
-  const intptr_t kLoopCount = 100;
-  Timer timer;
-  timer.Start();
-  for (intptr_t i = 0; i < kLoopCount; i++) {
-    StackZone zone(thread);
-    std::unique_ptr<Message> message = WriteMessage(
-        /* same_group */ false, map, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());

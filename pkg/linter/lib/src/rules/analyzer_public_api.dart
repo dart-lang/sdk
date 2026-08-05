@@ -21,7 +21,7 @@ const _desc =
 class AnalyzerPublicApi extends MultiAnalysisRule {
   static const ruleName = 'analyzer_public_api';
 
-  AnalyzerPublicApi()
+  new()
     : super(
         name: ruleName,
         description: _desc,
@@ -63,7 +63,7 @@ enum _ProblematicTypeUseKind {
 class _PublicImport {
   final Element? Function(String name) lookup;
 
-  _PublicImport({required this.lookup});
+  new({required this.lookup});
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Cache for [_isPubliclyImported].
   Map<Element, bool> _isImportedMemo = Map.identity();
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -216,8 +216,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             isUsageSiteExperimental: isUsageSiteExperimental,
           );
         }
-        if (fragment case MixinFragment(:var superclassConstraints)) {
-          for (var t in superclassConstraints) {
+        if (fragment case MixinFragment(:var element)) {
+          for (var t in element.superclassConstraints) {
             _checkType(
               t,
               fragment: fragment,
@@ -330,13 +330,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     while (true) {
       if (fragment.element case PropertyAccessorElement element) {
         if (element.isOriginVariable) {
-          // ignore: parameter_assignments
           fragment = element.variable.firstFragment;
         }
       }
       if (fragment.element case FieldElement element) {
         if (element.isOriginDeclaringFormalParameter) {
-          // ignore:parameter_assignments
           fragment = element.declaringFormalParameter!.firstFragment;
         }
       }
@@ -356,7 +354,6 @@ class _Visitor extends SimpleAstVisitor<void> {
           length: fragment.enclosingFragment!.name!.length,
         );
       } else if (fragment.enclosingFragment case var enclosingFragment?) {
-        // ignore: parameter_assignments
         fragment = enclosingFragment;
       } else {
         // This should never happen. But if it does, make sure we generate a
@@ -447,22 +444,18 @@ extension on String {
 
 extension on Element {
   bool get isInAnalyzerPublicApi {
-    if (this case PropertyAccessorElement(
-      isOriginVariable: true,
-      :var variable,
-    ) when variable.isInAnalyzerPublicApi) {
+    if (this case PropertyAccessorElement(isOriginVariable: true, :var variable)
+        when variable.isInAnalyzerPublicApi) {
       return true;
     }
-    if (this case PropertyInducingElement(
-      isOriginGetterSetter: true,
-      :var getter?,
-    ) when getter.isInAnalyzerPublicApi) {
+    if (this
+        case PropertyInducingElement(isOriginGetterSetter: true, :var getter?)
+        when getter.isInAnalyzerPublicApi) {
       return true;
     }
-    if (this case PropertyInducingElement(
-      isOriginGetterSetter: true,
-      :var setter?,
-    ) when setter.isInAnalyzerPublicApi) {
+    if (this
+        case PropertyInducingElement(isOriginGetterSetter: true, :var setter?)
+        when setter.isInAnalyzerPublicApi) {
       return true;
     }
     if (metadata.annotations.any(_isPublicApiAnnotation)) {

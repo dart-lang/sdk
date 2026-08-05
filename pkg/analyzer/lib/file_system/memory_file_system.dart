@@ -360,7 +360,7 @@ class _MemoryFile extends _MemoryResource implements File {
   @override
   File copyTo(Folder parentFolder) {
     parentFolder.create();
-    File destination = parentFolder.getChildAssumingFile(shortName);
+    File destination = parentFolder.getFile(shortName);
     destination.writeAsBytesSync(readAsBytesSync());
     return destination;
   }
@@ -453,7 +453,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Folder copyTo(Folder parentFolder) {
-    Folder destination = parentFolder.getChildAssumingFolder(shortName);
+    Folder destination = parentFolder.getFolder(shortName);
     destination.create();
     for (Resource child in getChildren()) {
       child.copyTo(destination);
@@ -477,16 +477,16 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     return provider.getResource(path);
   }
 
+  @Deprecated('Use getFile instead.')
   @override
   _MemoryFile getChildAssumingFile(String relPath) {
-    var path = canonicalizePath(relPath);
-    return _MemoryFile(provider, path);
+    return getFile(relPath);
   }
 
+  @Deprecated('Use getFolder instead.')
   @override
   _MemoryFolder getChildAssumingFolder(String relPath) {
-    var path = canonicalizePath(relPath);
-    return _MemoryFolder(provider, path);
+    return getFolder(relPath);
   }
 
   @override
@@ -529,6 +529,18 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     });
 
     return children;
+  }
+
+  @override
+  _MemoryFile getFile(String relPath) {
+    var path = canonicalizePath(relPath);
+    return _MemoryFile(provider, path);
+  }
+
+  @override
+  _MemoryFolder getFolder(String relPath) {
+    var path = canonicalizePath(relPath);
+    return _MemoryFolder(provider, path);
   }
 
   @override

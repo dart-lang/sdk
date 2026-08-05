@@ -6,7 +6,6 @@
 // currently contains some classes called `TypeInstantiationTarget...` and some
 // called `InvocationTarget...`.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -30,7 +29,7 @@ class InvocationTargetConstructorElement
   InvocationTargetConstructorElement(super.element, this.rawType);
 
   @override
-  LocatableDiagnostic wrongNumberOfTypeArgumentsError({
+  diag.LocatableDiagnostic wrongNumberOfTypeArgumentsError({
     required int typeParameterCount,
     required int typeArgumentCount,
   }) {
@@ -68,7 +67,7 @@ class InvocationTargetExecutableElement extends TypeInstantiationTargetElement
       element.type as FunctionTypeImpl;
 
   @override
-  LocatableDiagnostic wrongNumberOfTypeArgumentsError({
+  diag.LocatableDiagnostic wrongNumberOfTypeArgumentsError({
     required int typeParameterCount,
     required int typeArgumentCount,
   }) {
@@ -102,7 +101,7 @@ class InvocationTargetExtensionOverride extends InvocationTarget {
   FunctionTypeImpl get rawType => type;
 
   @override
-  LocatableDiagnostic wrongNumberOfTypeArgumentsError({
+  diag.LocatableDiagnostic wrongNumberOfTypeArgumentsError({
     required int typeParameterCount,
     required int typeArgumentCount,
   }) {
@@ -132,7 +131,7 @@ class InvocationTargetFunctionTypedExpression extends InvocationTarget {
   FunctionTypeImpl get rawType => type;
 
   @override
-  LocatableDiagnostic wrongNumberOfTypeArgumentsError({
+  diag.LocatableDiagnostic wrongNumberOfTypeArgumentsError({
     required int typeParameterCount,
     required int typeArgumentCount,
   }) {
@@ -160,7 +159,7 @@ sealed class TypeInstantiationTarget {
 
   /// Creates the appropriate diagnostic message when the wrong number of type
   /// arguments is applied.
-  LocatableDiagnostic wrongNumberOfTypeArgumentsError({
+  diag.LocatableDiagnostic wrongNumberOfTypeArgumentsError({
     required int typeParameterCount,
     required int typeArgumentCount,
   });
@@ -215,7 +214,7 @@ sealed class TypeInstantiationTargetTypeDefiningElement
   const TypeInstantiationTargetTypeDefiningElement();
 
   @override
-  LocatableDiagnostic wrongNumberOfTypeArgumentsError({
+  diag.LocatableDiagnostic wrongNumberOfTypeArgumentsError({
     required int typeParameterCount,
     required int typeArgumentCount,
   }) {

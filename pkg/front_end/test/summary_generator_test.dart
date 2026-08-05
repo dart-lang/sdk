@@ -42,7 +42,7 @@ void main() {
     var summaryBC = await summarize(
       ['b.dart', 'c.dart'],
       sourcesWithA,
-      additionalDills: ['a.dill'],
+      additionalDillModules: ['a.dill'],
     );
 
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
@@ -53,7 +53,7 @@ void main() {
     var summaryD = await summarize(
       ['d.dart'],
       sourcesWithABC,
-      additionalDills: ['a.dill', 'bc.dill'],
+      additionalDillModules: ['a.dill', 'bc.dill'],
     );
 
     checkDSummary(summaryD!);
@@ -67,7 +67,7 @@ void main() {
     var summaryBC = await summarize(
       ['b.dart', 'c.dart'],
       sourcesWithA,
-      additionalDills: ['a.dill'],
+      additionalDillModules: ['a.dill'],
     );
 
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
@@ -80,7 +80,7 @@ void main() {
     var summaryD = await summarize(
       ['d.dart'],
       sourcesWithABC,
-      additionalDills: ['bc.dill', 'a.dill'],
+      additionalDillModules: ['bc.dill', 'a.dill'],
     );
     checkDSummary(summaryD!);
   });
@@ -100,7 +100,7 @@ void main() {
     var summaryB = await summarize(
       ['b.dart'],
       sourcesWithA,
-      additionalDills: ['a.dill'],
+      additionalDillModules: ['a.dill'],
       truncate: true,
     );
     component = loadComponentFromBytes(summaryB!);

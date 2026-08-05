@@ -18,6 +18,7 @@ mixin _PointerEventDescription on PointerEvent {
     super.debugFillProperties(properties);
   }
 }
+
 mixin _CopyPointerScrollEvent on PointerEvent {}
 
 class PointerScrollEvent extends PointerSignalEvent
@@ -29,6 +30,7 @@ class PointerScrollEvent extends PointerSignalEvent
 }
 
 main() {
-  new PointerScrollEvent()
-      .debugFillProperties(new DiagnosticPropertiesBuilder());
+  new PointerScrollEvent().debugFillProperties(
+    new DiagnosticPropertiesBuilder(),
+  );
 }

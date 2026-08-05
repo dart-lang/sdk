@@ -59,10 +59,10 @@ class MachOReader {
   /// Reads an unsigned integer of the given word size from the contained
   /// stream. Throws an [ArgumentError] for if [wordSize] is not 4 or 8.
   int readUword(int wordSize) => switch (wordSize) {
-        4 => readUint32(),
-        8 => readUint64(),
-        _ => throw ArgumentError('Unexpected word size: $wordSize', 'wordSize'),
-      };
+    4 => readUint32(),
+    8 => readUint64(),
+    _ => throw ArgumentError('Unexpected word size: $wordSize', 'wordSize'),
+  };
 
   /// Reads a fixed length string from the contained stream. The string may be
   /// null terminated, in which case the returned string may contain less
@@ -102,8 +102,10 @@ class MachOWriter {
       throw FormatException('Attempted to write a negative value $value');
     }
     if ((value >> 16) != 0) {
-      throw FormatException("Attempted to write an unsigned value that doesn't "
-          'fit in 16 bits: $value');
+      throw FormatException(
+        "Attempted to write an unsigned value that doesn't "
+        'fit in 16 bits: $value',
+      );
     }
     final buffer = ByteData(2)..setUint16(0, value, _endian);
     _stream.writeFromSync(Uint8List.sublistView(buffer));
@@ -116,8 +118,10 @@ class MachOWriter {
       throw FormatException('Attempted to write a negative value $value');
     }
     if ((value >> 32) != 0) {
-      throw FormatException("Attempted to write an unsigned value that doesn't "
-          'fit in 32 bits: $value');
+      throw FormatException(
+        "Attempted to write an unsigned value that doesn't "
+        'fit in 32 bits: $value',
+      );
     }
     final buffer = ByteData(4)..setUint32(0, value, _endian);
     _stream.writeFromSync(Uint8List.sublistView(buffer));
@@ -133,8 +137,10 @@ class MachOWriter {
   /// a [FormatException] if the signed value does not fit in 32 bits.
   void writeInt32(int value) {
     if (((value < 0 ? ~value : value) >> 31) != 0) {
-      throw FormatException("Attempted to write a signed value that doesn't "
-          'fit in 32 bits: $value');
+      throw FormatException(
+        "Attempted to write a signed value that doesn't "
+        'fit in 32 bits: $value',
+      );
     }
     final buffer = ByteData(4)..setInt32(0, value, _endian);
     _stream.writeFromSync(Uint8List.sublistView(buffer));
@@ -143,10 +149,10 @@ class MachOWriter {
   /// Writes an unsigned integer with a given word size to the contained
   /// stream. Throws an [ArgumentError] for if [wordSize] is not 4 or 8.
   void writeUword(int value, int wordSize) => switch (wordSize) {
-        4 => writeUint32(value),
-        8 => writeUint64(value),
-        _ => throw ArgumentError('Unexpected word size: $wordSize', 'wordSize'),
-      };
+    4 => writeUint32(value),
+    8 => writeUint64(value),
+    _ => throw ArgumentError('Unexpected word size: $wordSize', 'wordSize'),
+  };
 
   /// Writes the given string as an ASCII-encoded null terminated string
   /// with a given fixed length. Throws a format exception if the ASCII
@@ -157,8 +163,10 @@ class MachOWriter {
     final buffer = Uint8List(length);
     final encoded = ascii.encode(s);
     if (encoded.length > length) {
-      throw FormatException('Attempted to write a string longer than $length '
-          'characters: "$s"');
+      throw FormatException(
+        'Attempted to write a string longer than $length '
+        'characters: "$s"',
+      );
     }
     buffer.setRange(0, encoded.length, encoded);
     _stream.writeFromSync(buffer);

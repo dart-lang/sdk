@@ -420,8 +420,17 @@ class DartToolingDaemon {
   static String _generateSecret() {
     final kTokenByteSize = 8;
     var bytes = Uint8List(kTokenByteSize);
-    // Use a secure random number generator.
-    var rand = Random.secure();
+    Random rand;
+    // Random.secure() may throw UnsupportedError if the platform does not
+    // provide a cryptographically secure source of entropy (e.g., in some
+    // sandboxed CI environments). Fall back to a pseudo-random generator
+    // in this case.
+    try {
+      rand = Random.secure();
+      // ignore: avoid_catching_errors
+    } on UnsupportedError {
+      rand = Random();
+    }
 
     for (var i = 0; i < kTokenByteSize; i++) {
       bytes[i] = rand.nextInt(256);

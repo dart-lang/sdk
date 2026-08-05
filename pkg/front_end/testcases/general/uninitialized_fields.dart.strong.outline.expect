@@ -9,19 +9,19 @@ class Uninitialized extends core::Object {
 }
 class PartiallyInitialized extends core::Object {
   field core::int? x;
-  constructor •(core::int? x) → self::PartiallyInitialized
+  constructor •(initializing-formal core::int? x) → self::PartiallyInitialized
     ;
   constructor noInitializer() → self::PartiallyInitialized
     ;
 }
 class Initialized extends core::Object {
   field core::int? x;
-  constructor •(core::int? x) → self::Initialized
+  constructor •(initializing-formal core::int? x) → self::Initialized
     ;
 }
 class Forwarding extends core::Object {
   field core::int? x;
-  constructor initialize(core::int? x) → self::Forwarding
+  constructor initialize(initializing-formal core::int? x) → self::Forwarding
     ;
   constructor •(core::int? arg) → self::Forwarding
     ;

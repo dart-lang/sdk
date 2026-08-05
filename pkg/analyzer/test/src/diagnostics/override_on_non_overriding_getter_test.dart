@@ -2,33 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OverrideOnNonOverridingGetterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class OverrideOnNonOverridingGetterTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   @override
   int get foo => 0;
+//        ^^^
+// [diag.overrideOnNonOverridingGetter] The getter doesn't override an inherited getter.
 }
-''',
-      [error(diag.overrideOnNonOverridingGetter, 32, 3)],
-    );
+''');
   }
 
   test_class_extends() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -41,7 +41,7 @@ class B extends A {
   }
 
   test_class_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -54,32 +54,30 @@ class B implements A {
   }
 
   test_class_static() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   @override
   static int get foo => 0;
+//               ^^^
+// [diag.overrideOnNonOverridingGetter] The getter doesn't override an inherited getter.
 }
-''',
-      [error(diag.overrideOnNonOverridingGetter, 39, 3)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   @override
   int get foo => 0;
+//        ^^^
+// [diag.overrideOnNonOverridingGetter] The getter doesn't override an inherited getter.
 }
-''',
-      [error(diag.overrideOnNonOverridingGetter, 36, 3)],
-    );
+''');
   }
 
   test_enum_implements() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -93,7 +91,7 @@ enum E implements A {
   }
 
   test_enum_with() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
 }
@@ -107,36 +105,33 @@ enum E with M {
   }
 
   test_extension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   @override
   int get foo => 1;
+//        ^^^
+// [diag.overrideOnNonOverridingGetter] The getter doesn't override an inherited getter.
 }
-''',
-      [error(diag.overrideOnNonOverridingGetter, 43, 3)],
-    );
+''');
   }
 
   test_mixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   @override
   int get foo => 0;
+//        ^^^
+// [diag.overrideOnNonOverridingGetter] The getter doesn't override an inherited getter.
 }
-''',
-      [error(diag.overrideOnNonOverridingGetter, 32, 3)],
-    );
+''');
   }
 
   test_topLevel() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @override
 int get foo => 1;
-''',
-      [error(diag.overrideOnNonOverridingGetter, 18, 3)],
-    );
+//      ^^^
+// [diag.overrideOnNonOverridingGetter] The getter doesn't override an inherited getter.
+''');
   }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_rti' as rti;
+
 import "package:expect/expect.dart";
 
 void checkRtiIdentical(rti.Rti rti1, rti.Rti rti2) {

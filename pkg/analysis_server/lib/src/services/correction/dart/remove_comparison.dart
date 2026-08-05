@@ -22,12 +22,12 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   final FixKind multiFixKind;
 
   /// Initialize a newly created instance with [DartFixKind.removeComparison].
-  RemoveComparison({required super.context})
+  new({required super.context})
     : fixKind = DartFixKind.removeComparison,
       multiFixKind = DartFixKind.removeComparisonMulti;
 
   /// Initialize a newly created instance with [DartFixKind.removeTypeCheck].
-  RemoveComparison.typeCheck({required super.context})
+  new typeCheck({required super.context})
     : fixKind = DartFixKind.removeTypeCheck,
       multiFixKind = DartFixKind.removeTypeCheckMulti;
 

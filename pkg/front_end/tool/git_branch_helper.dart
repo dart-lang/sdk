@@ -88,7 +88,7 @@ class GitBranch {
   final List<GitBranch> children = [];
   String? tracking;
 
-  GitBranch(this.name);
+  new(this.name);
 
   void collectSelfAndChildrenNames(Set<String> names) {
     names.add(name);

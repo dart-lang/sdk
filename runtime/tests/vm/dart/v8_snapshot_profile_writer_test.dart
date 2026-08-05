@@ -73,13 +73,13 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
   await withTempDir('v8-snapshot-profile-$description', (String tempDir) async {
     // Generate the snapshot profile.
     final profilePath = path.join(tempDir, 'profile.heapsnapshot');
-    final vmDataPath = path.join(tempDir, 'vm_data.bin');
-    final isolateDataPath = path.join(tempDir, 'isolate_data.bin');
+    final snapshotDataPath = path.join(tempDir, 'snapshot_data.bin');
+    final snapshotTextPath = path.join(tempDir, 'snapshot_text.bin');
 
     await run(genSnapshot, <String>[
       '--snapshot-kind=$snapshotKind',
-      '--vm_snapshot_data=$vmDataPath',
-      '--isolate_snapshot_data=$isolateDataPath',
+      '--snapshot_data=$snapshotDataPath',
+      '--snapshot_text=$snapshotTextPath',
       "--write-v8-snapshot-profile-to=$profilePath",
       dillPath,
     ]);
@@ -92,7 +92,8 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
     // the same as the sum of the shallow sizes of all objects in the profile.
     // This ensures that all bytes are accounted for in some way.
     int actualSize =
-        await File(vmDataPath).length() + await File(isolateDataPath).length();
+        await File(snapshotDataPath).length() +
+        await File(snapshotTextPath).length();
     final expectedSize = profile.nodes.fold<int>(
       0,
       (size, n) => size + n.selfSize,
@@ -201,22 +202,12 @@ Future<void> testAOT(
       Expect.isNotNull(elf);
       elf!; // To refine type to non-nullable version.
 
-      final vmTextSectionSymbol = elf.dynamicSymbolFor(vmSymbolName);
-      Expect.isNotNull(vmTextSectionSymbol);
-      final vmDataSectionSymbol = elf.dynamicSymbolFor(vmDataSymbolName);
-      Expect.isNotNull(vmDataSectionSymbol);
-      final isolateTextSectionSymbol = elf.dynamicSymbolFor(isolateSymbolName);
-      Expect.isNotNull(isolateTextSectionSymbol);
-      final isolateDataSectionSymbol = elf.dynamicSymbolFor(
-        isolateDataSymbolName,
-      );
-      Expect.isNotNull(isolateDataSectionSymbol);
+      final textSectionSymbol = elf.dynamicSymbolFor(textSymbolName);
+      Expect.isNotNull(textSectionSymbol);
+      final dataSectionSymbol = elf.dynamicSymbolFor(dataSymbolName);
+      Expect.isNotNull(dataSectionSymbol);
 
-      final actualSize =
-          vmTextSectionSymbol!.size +
-          vmDataSectionSymbol!.size +
-          isolateTextSectionSymbol!.size +
-          isolateDataSectionSymbol!.size;
+      final actualSize = textSectionSymbol!.size + dataSectionSymbol!.size;
 
       Expect.equals(
         expectedSize,

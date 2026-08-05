@@ -235,7 +235,7 @@ extension type D1(core::int it) implements self::C1% /* erasure=core::int, decla
   constructor • = self::D1|constructor#;
   constructor tearoff • = self::D1|constructor#_#new#tearOff;
 }
-static extension-type-member method A|constructor#(core::int it) → self::A% /* erasure=core::int, declared=! */ {
+static extension-type-member method A|constructor#(initializing-formal core::int it) → self::A% /* erasure=core::int, declared=! */ {
   lowered final self::A% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
@@ -245,7 +245,7 @@ static extension-type-member method A|methodA(lowered final self::A% /* erasure=
   return (#this as{Unchecked} core::int).{core::num::+}(5){(core::num) → core::int};
 static extension-type-member method A|get#methodA(lowered final self::A% /* erasure=core::int, declared=! */ #this) → () → core::int
   return () → core::int => self::A|methodA(#this);
-static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(self::B|constructor#::T% it) → self::B<self::B|constructor#::T%>% /* erasure=self::B|constructor#::T%, declared=! */ {
+static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(initializing-formal self::B|constructor#::T% it) → self::B<self::B|constructor#::T%>% /* erasure=self::B|constructor#::T%, declared=! */ {
   lowered final self::B<self::B|constructor#::T%>% /* erasure=self::B|constructor#::T%, declared=! */ #this = it;
   return #this;
 }
@@ -255,7 +255,7 @@ static extension-type-member method B|methodB<T extends core::Object? = dynamic>
   return #this as{Unchecked} self::B|methodB::T%;
 static extension-type-member method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%>% /* erasure=self::B|get#methodB::T%, declared=! */ #this) → () → self::B|get#methodB::T%
   return () → self::B|get#methodB::T% => self::B|methodB<self::B|get#methodB::T%>(#this);
-static extension-type-member method C1|constructor#(core::int it) → self::C1% /* erasure=core::int, declared=! */ {
+static extension-type-member method C1|constructor#(initializing-formal core::int it) → self::C1% /* erasure=core::int, declared=! */ {
   lowered final self::C1% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
@@ -265,7 +265,7 @@ static extension-type-member method C1|methodC1(lowered final self::C1% /* erasu
   return (#this as{Unchecked} core::int).{core::num::+}(42){(core::num) → core::int};
 static extension-type-member method C1|get#methodC1(lowered final self::C1% /* erasure=core::int, declared=! */ #this) → () → core::int
   return () → core::int => self::C1|methodC1(#this);
-static extension-type-member method C2|constructor#(core::int it) → self::C2% /* erasure=core::int, declared=! */ {
+static extension-type-member method C2|constructor#(initializing-formal core::int it) → self::C2% /* erasure=core::int, declared=! */ {
   lowered final self::C2% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
@@ -275,7 +275,7 @@ static extension-type-member method C2|methodC2(lowered final self::C2% /* erasu
   return (#this as{Unchecked} core::int).{core::num::+}(87){(core::num) → core::int};
 static extension-type-member method C2|get#methodC2(lowered final self::C2% /* erasure=core::int, declared=! */ #this) → () → core::int
   return () → core::int => self::C2|methodC2(#this);
-static extension-type-member method D1|constructor#(core::int it) → self::D1% /* erasure=core::int, declared=! */ {
+static extension-type-member method D1|constructor#(initializing-formal core::int it) → self::D1% /* erasure=core::int, declared=! */ {
   lowered final self::D1% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }

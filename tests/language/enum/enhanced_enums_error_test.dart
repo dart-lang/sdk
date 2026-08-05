@@ -346,7 +346,7 @@ enum ConflictConstructorNameStaticEnumValue {
 enum ConflictClassStatic {
   e1;
 //^
-// [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+// [cfe] A const constructor can't have a body.
   static int ConflictClassStatic() => 37;
 //^^^^^^
 // [analyzer] SYNTACTIC_ERROR.STATIC_CONSTRUCTOR
@@ -354,11 +354,11 @@ enum ConflictClassStatic {
 //       ^^^
 // [analyzer] SYNTACTIC_ERROR.CONSTRUCTOR_WITH_RETURN_TYPE
 // [cfe] Constructors can't have a return type.
-//           ^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR
-// [cfe] Generative enum constructors must be marked as 'const'.
+//                                 ^^
+// [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
 //                                 ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
+// [cfe] A generative enum constructor can't have a body.
 //                                    ^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
 // [cfe] Constructors can't have a return type.
@@ -367,16 +367,16 @@ enum ConflictClassStatic {
 enum ConflictClassInstance {
   e1;
 //^
-// [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+// [cfe] A const constructor can't have a body.
   int ConflictClassInstance() => 37;
 //^^^
 // [analyzer] SYNTACTIC_ERROR.CONSTRUCTOR_WITH_RETURN_TYPE
 // [cfe] Constructors can't have a return type.
-//    ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR
-// [cfe] Generative enum constructors must be marked as 'const'.
+//                            ^^
+// [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
 //                            ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
+// [cfe] A generative enum constructor can't have a body.
 //                               ^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
 // [cfe] Constructors can't have a return type.
@@ -489,11 +489,8 @@ enum NoConstructorCalls {
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] Enums can't be instantiated.
 
-  // Generative constructors must be const.
+  // Generative constructors are implicitly const.
   NoConstructorCalls.notConst(this.x);
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR
-// [cfe] Generative enum constructors must be marked as 'const'.
 
   // As usual, redirecting generative constructors must redirect to
   // generative constructors.

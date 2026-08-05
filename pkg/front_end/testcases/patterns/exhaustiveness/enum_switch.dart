@@ -184,11 +184,7 @@ void unreachableCase4(Enum? e) {
   }
 }
 
-enum GenericEnum<T> {
-  a<int>(),
-  b<String>(),
-  c<bool>(),
-}
+enum GenericEnum<T> { a<int>(), b<String>(), c<bool>() }
 
 void exhaustiveGenericSwitch(GenericEnum<dynamic> e) {
   switch (e) /* Ok */ {

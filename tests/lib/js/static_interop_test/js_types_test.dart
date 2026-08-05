@@ -35,6 +35,9 @@ extension on SimpleObject {
   external JSString get foo;
 }
 
+@JS('Object.create')
+external JSObject create([JSObject? proto]);
+
 @JS()
 external JSFunction fun;
 
@@ -42,7 +45,11 @@ external JSFunction fun;
 external JSString doFun(JSString a, JSString b);
 
 @JS()
-external JSExportedDartFunction edf;
+external JSExportedDartFunction<JSString Function(JSString, JSString)> edf;
+
+@JS()
+external JSExportedDartFunction<JSString Function(JSObject, JSString, JSString)>
+edfWithThis;
 
 @JS()
 external JSArray arr;
@@ -169,6 +176,7 @@ class DartObject {
 @pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
+// TODO(srujzs): Split this test into multiple tests.
 void syncTests() {
   eval('''
     globalThis.obj = {
@@ -186,6 +194,13 @@ void syncTests() {
   Expect.isTrue(obj is JSObject);
   Expect.isTrue(confuse(obj) is JSObject);
   Expect.equals('bar', (obj as SimpleObject).foo.toDart);
+  Expect.isNull(JSObject.getPrototypeOf(create(null)));
+  final prototype = JSObject();
+  Expect.equals(prototype, JSObject.getPrototypeOf(create(prototype)));
+  // JS auto-boxes primitive values for `getPrototypeOf`.
+  final stringPrototype = JSObject.getPrototypeOf(''.toJS);
+  Expect.isNotNull(stringPrototype);
+  Expect.isTrue(stringPrototype!.has('charAt'));
 
   // [JSFunction]
   Expect.isTrue(fun is JSFunction);
@@ -196,17 +211,20 @@ void syncTests() {
     return (a.toDart + b.toDart).toJS;
   };
   edf = dartFunction.toJS;
+  // Should be able to assign to `JSFunction<T>`.
+  JSFunction<JSString Function(JSString, JSString)> _ = edf;
   Expect.equals('foobar', doFun('foo'.toJS, 'bar'.toJS).toDart);
-  Expect.equals(
-    'foobar',
-    (edf.toDart as JSString Function(JSString, JSString))(
-      'foo'.toJS,
-      'bar'.toJS,
-    ).toDart,
-  );
+  Expect.equals('foobar', edf.toDart('foo'.toJS, 'bar'.toJS).toDart);
   Expect.identical(edf.toDart, dartFunction);
+  // `toDart` with just `Function` should succeed.
+  Expect.identical(
+    (edf as JSExportedDartFunction<Function>).toDart,
+    dartFunction,
+  );
   // Two wrappers should not be the same.
   Expect.notEquals(edf, dartFunction.toJS);
+  // If the wrong function type, `toDart` should throw.
+  Expect.throws(() => (edf as JSExportedDartFunction<void Function()>).toDart);
   // Converting a non-function should throw.
   Expect.throws(() => ('foo'.toJS as JSExportedDartFunction).toDart);
   // `this` should be captured correctly in `toJSCaptureThis`.
@@ -215,13 +233,25 @@ void syncTests() {
     Expect.equals(this_, this__);
     return (a.toDart + b.toDart).toJS;
   };
-  edf = dartFunctionThis.toJSCaptureThis;
+  edfWithThis = dartFunctionThis.toJSCaptureThis;
   Expect.equals(
-    (edf.callAsFunction(this_, 'foo'.toJS, 'bar'.toJS) as JSString).toDart,
+    (edfWithThis.callAsFunction(
+      this_,
+      'foo'.toJS,
+      'bar'.toJS,
+    ) as JSString).toDart,
     'foobar',
   );
-  Expect.identical(edf.toDart, dartFunctionThis);
-  Expect.notEquals(edf, dartFunctionThis.toJSCaptureThis);
+  Expect.identical(edfWithThis.toDart, dartFunctionThis);
+  Expect.identical(
+    (edfWithThis as JSExportedDartFunction).toDart,
+    dartFunctionThis,
+  );
+  Expect.throws(
+    () =>
+        (edfWithThis as JSExportedDartFunction<int Function(JSString)>).toDart,
+  );
+  Expect.notEquals(edfWithThis, dartFunctionThis.toJSCaptureThis);
 
   // [JSIterable]
   final iterable = JSSet([1.toJS, 2.toJS].toJS);
@@ -386,9 +416,9 @@ void syncTests() {
   // test runner.
   if (supportsSharedArrayBuffer) {
     final sharedArrayBuffer = JSSharedArrayBuffer(4);
-    final sharedByteBuffer = JSUint8ArrayShared(
-      sharedArrayBuffer,
-    ).toDart.buffer;
+    final sharedByteBuffer = JSUint8ArrayShared(sharedArrayBuffer)
+        .toDart
+        .buffer;
     // Not a `JSArrayBuffer`.
     Expect.throws(() => sharedByteBuffer.toJS);
   }

@@ -120,7 +120,7 @@ class TypeParametersGraph implements Graph<int> {
   // type parameter with the index `i` in their bounds.
   late List<List<int>> edges;
 
-  TypeParametersGraph(this.parameters, this.bounds) {
+  new(this.parameters, this.bounds) {
     assert(parameters.length == bounds.length);
 
     vertices = new List<int>.generate(
@@ -234,7 +234,7 @@ class InBoundReferences {
   /// The references to other type parameters.
   final List<TypeBuilder> dependencies;
 
-  InBoundReferences(this.typeVariableBuilder, this.dependencies);
+  new(this.typeVariableBuilder, this.dependencies);
 }
 
 /// Finds those of [parameters] that reference other [parameters] in their
@@ -272,7 +272,7 @@ class TypeWithInBoundReferences {
   /// type parameters in their bounds.
   final List<InBoundReferences> inBoundReferences;
 
-  TypeWithInBoundReferences(this.typeBuilder, this.inBoundReferences);
+  new(this.typeBuilder, this.inBoundReferences);
 }
 
 /// Finds issues by raw generic types with inbound references in type
@@ -765,7 +765,7 @@ bool hasAnyTypeParameters(DartType type) {
 /// that either.
 // TODO(ahe): Remove this class.
 class TypeParameterSearch extends FindTypeVisitor {
-  const TypeParameterSearch();
+  const new();
 
   @override
   bool visitTypeParameterType(TypeParameterType node) => true;
@@ -805,7 +805,7 @@ class NonSimplicityIssue {
   /// elements from the cycle.
   final List<LocatedMessage>? context;
 
-  NonSimplicityIssue(this.declaration, this.message, this.context);
+  new(this.declaration, this.message, this.context);
 }
 
 /// Represents an element of a non-simple raw type cycle
@@ -830,7 +830,7 @@ class RawTypeCycleElement {
   /// non-simple raw type cycle.
   TypeParameterBuilder? typeParameterBuilder;
 
-  RawTypeCycleElement(this.type, this.typeParameterBuilder);
+  new(this.type, this.typeParameterBuilder);
 }
 
 class ComputeDefaultTypeContext {
@@ -840,7 +840,7 @@ class ComputeDefaultTypeContext {
   final TypeBuilder bottomType;
   final TypeParameterFactory typeParameterFactory;
 
-  ComputeDefaultTypeContext(
+  new(
     this._problemReporting,
     this.libraryFeatures,
     this.typeParameterFactory, {

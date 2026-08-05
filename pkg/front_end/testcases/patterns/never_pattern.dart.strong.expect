@@ -8,7 +8,8 @@ static method method(Never n) → dynamic {
     final synthesized Never #0#0 = n;
     final const synthesized core::int #0#1 = #C1;
     {
-      if(#0#0 =={core::Object::==}{(dynamic) → Never} #C1) {
+      hoisted Never hashCode;
+      if(#0#0 =={core::Object::==}{(dynamic) → Never} #C1 || (let final dynamic #t1 = hashCode = #0#0{Never}.hashCode in true)) {
       }
     }
   }

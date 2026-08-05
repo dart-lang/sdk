@@ -11,7 +11,7 @@ import 'package:path/path.dart' as path;
 
 class RefactoringsPage extends DiagnosticPageWithNav
     with PerformanceChartMixin {
-  RefactoringsPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'getRefactorings',

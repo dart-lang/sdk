@@ -18,109 +18,113 @@ typedef NativeQuadOpUnsigned = Uint64 Function(Uint8, Uint16, Uint32, Uint64);
 typedef NativeFunc4 = IntPtr Function(IntPtr);
 typedef NativeDoubleUnaryOp = Double Function(Double);
 typedef NativeFloatUnaryOp = Float Function(Float);
-typedef NativeDecenaryOp =
-    IntPtr Function(
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-    );
-typedef NativeDecenaryOp2 =
-    Int16 Function(
-      Int8,
-      Int16,
-      Int8,
-      Int16,
-      Int8,
-      Int16,
-      Int8,
-      Int16,
-      Int8,
-      Int16,
-    );
-typedef NativeDoubleDecenaryOp =
-    Double Function(
-      Double,
-      Double,
-      Double,
-      Double,
-      Double,
-      Double,
-      Double,
-      Double,
-      Double,
-      Double,
-    );
-typedef NativeVigesimalOp =
-    Double Function(
-      IntPtr,
-      Float,
-      IntPtr,
-      Double,
-      IntPtr,
-      Float,
-      IntPtr,
-      Double,
-      IntPtr,
-      Float,
-      IntPtr,
-      Double,
-      IntPtr,
-      Float,
-      IntPtr,
-      Double,
-      IntPtr,
-      Float,
-      IntPtr,
-      Double,
-    );
+typedef NativeDecenaryOp = IntPtr Function(
+  IntPtr,
+  IntPtr,
+  IntPtr,
+  IntPtr,
+  IntPtr,
+  IntPtr,
+  IntPtr,
+  IntPtr,
+  IntPtr,
+  IntPtr,
+);
+typedef NativeDecenaryOp2 = Int16 Function(
+  Int8,
+  Int16,
+  Int8,
+  Int16,
+  Int8,
+  Int16,
+  Int8,
+  Int16,
+  Int8,
+  Int16,
+);
+typedef NativeDoubleDecenaryOp = Double Function(
+  Double,
+  Double,
+  Double,
+  Double,
+  Double,
+  Double,
+  Double,
+  Double,
+  Double,
+  Double,
+);
+typedef NativeVigesimalOp = Double Function(
+  IntPtr,
+  Float,
+  IntPtr,
+  Double,
+  IntPtr,
+  Float,
+  IntPtr,
+  Double,
+  IntPtr,
+  Float,
+  IntPtr,
+  Double,
+  IntPtr,
+  Float,
+  IntPtr,
+  Double,
+  IntPtr,
+  Float,
+  IntPtr,
+  Double,
+);
 typedef Int64PointerUnOp = Pointer<Int64> Function(Pointer<Int64>);
 typedef QuadOp = int Function(int, int, int, int);
 typedef DoubleUnaryOp = double Function(double);
-typedef DecenaryOp =
-    int Function(int, int, int, int, int, int, int, int, int, int);
-typedef DoubleDecenaryOp =
-    double Function(
-      double,
-      double,
-      double,
-      double,
-      double,
-      double,
-      double,
-      double,
-      double,
-      double,
-    );
-typedef VigesimalOp =
-    double Function(
-      int,
-      double,
-      int,
-      double,
-      int,
-      double,
-      int,
-      double,
-      int,
-      double,
-      int,
-      double,
-      int,
-      double,
-      int,
-      double,
-      int,
-      double,
-      int,
-      double,
-    );
+typedef DecenaryOp = int Function(
+  int,
+  int,
+  int,
+  int,
+  int,
+  int,
+  int,
+  int,
+  int,
+  int,
+);
+typedef DoubleDecenaryOp = double Function(
+  double,
+  double,
+  double,
+  double,
+  double,
+  double,
+  double,
+  double,
+  double,
+  double,
+);
+typedef VigesimalOp = double Function(
+  int,
+  double,
+  int,
+  double,
+  int,
+  double,
+  int,
+  double,
+  int,
+  double,
+  int,
+  double,
+  int,
+  double,
+  int,
+  double,
+  int,
+  double,
+  int,
+  double,
+);
 
 main() {
   print('start main');

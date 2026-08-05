@@ -21,7 +21,7 @@ bool matchesOrIsPrefixedBy(String name, String prefix) =>
     name == prefix || name.startsWith('$prefix.');
 
 class PackagePrefixedLibraryNames extends AnalysisRule {
-  PackagePrefixedLibraryNames()
+  new()
     : super(name: LintNames.package_prefixed_library_names, description: _desc);
 
   @override
@@ -40,7 +40,7 @@ class PackagePrefixedLibraryNames extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final PackagePrefixedLibraryNames rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitLibraryDirective(LibraryDirective node) {

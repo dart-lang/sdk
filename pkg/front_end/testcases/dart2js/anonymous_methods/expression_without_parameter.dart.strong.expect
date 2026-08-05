@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::int #t1;
+    #t1 = 1;
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::int #t2;
+    #t2 = anonymous#this;
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::bool #t3;
+    #t3 = anonymous#this.{core::int::isEven}{core::bool};
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::bool #t4;
+    #t4 = anonymous#this.{core::int::isEven}{core::bool};
+  }
+}

@@ -6,8 +6,8 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -63,9 +63,8 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var response = await handleRequest(
-      AnalysisUpdateContentParams({
-        'test.dart': AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({'test.dart': AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     expect(
       response,
@@ -89,7 +88,7 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
     writePackageConfig(
       workspaceRootPath,
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
 
     var aaa = newFile('$workspaceRootPath/aaa/lib/aaa.dart', r'''
@@ -176,9 +175,8 @@ void g() {
 
     // Add `b.dart` overlay, analyzed.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        b.path: AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({b.path: AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     expect(filesErrors[a], isEmpty);
@@ -186,9 +184,8 @@ void g() {
 
     // Add `b.dart` overlay, analyzed.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        b.path: RemoveContentOverlay(),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({b.path: RemoveContentOverlay()})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     expect(filesErrors[a], isEmpty);

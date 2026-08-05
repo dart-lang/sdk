@@ -407,8 +407,8 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
     const AbstractType* type = nullptr;
     Definition* left = nullptr;
     if (is_simple_instance_of) {
-      ASSERT(call->ArgumentAt(1)->IsConstant());
-      const Object& type_obj = call->ArgumentAt(1)->AsConstant()->value();
+      ASSERT(call->ArgumentValueAt(1)->BindsToConstant());
+      const Object& type_obj = call->ArgumentValueAt(1)->BoundConstant();
       if (!type_obj.IsType()) {
         return;
       }
@@ -418,13 +418,10 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       type = &(instance_of->type());
       left = instance_of->value()->definition();
     }
-    if (!type->IsTopTypeForInstanceOf()) {
-      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter())
-                                   ? CompileType::kCanBeNull
-                                   : CompileType::kCannotBeNull;
+    if (!type->IsTopType()) {
       EnsureMoreAccurateRedefinition(
           true_successor, left,
-          CompileType::FromAbstractType(*type, is_nullable,
+          CompileType::FromAbstractType(*type, CompileType::kCanBeNull,
                                         CompileType::kCannotBeSentinel));
     }
   } else if (comparison->InputAt(0)->BindsToConstant() &&
@@ -871,7 +868,7 @@ const AbstractType* CompileType::ToAbstractType() {
 }
 
 bool CompileType::IsSubtypeOf(const AbstractType& other) {
-  if (other.IsTopTypeForSubtyping()) {
+  if (other.IsTopType()) {
     return true;
   }
   // If we allow comparisons against an uninstantiated type, then we can
@@ -1507,13 +1504,14 @@ static CompileType ComputeListFactoryType(CompileType* inferred_type,
   ASSERT(cid != kDynamicCid);
   if ((cid == kGrowableObjectArrayCid || cid == kArrayCid ||
        cid == kImmutableArrayCid) &&
-      type_args_value->BindsToConstant()) {
+      ((type_args_value == nullptr) || type_args_value->BindsToConstant())) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     const Class& cls =
         Class::Handle(zone, thread->isolate_group()->class_table()->At(cid));
     auto& type_args = TypeArguments::Handle(zone);
-    if (!type_args_value->BoundConstant().IsNull()) {
+    if (type_args_value != nullptr &&
+        !type_args_value->BoundConstant().IsNull()) {
       type_args ^= type_args_value->BoundConstant().ptr();
       ASSERT(type_args.Length() >= cls.NumTypeArguments());
       type_args = type_args.FromInstanceTypeArguments(thread, cls);
@@ -1533,7 +1531,8 @@ CompileType StaticCallInstr::ComputeType() const {
   // (in optimized mode) and avoid keeping separate result_type.
   CompileType* const inferred_type = result_type();
   if (is_known_list_constructor()) {
-    return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
+    Value* type_args_value = type_args_len() > 0 ? ArgumentValueAt(0) : nullptr;
+    return ComputeListFactoryType(inferred_type, type_args_value);
   }
 
   intptr_t inferred_cid = kDynamicCid;
@@ -1743,6 +1742,12 @@ CompileType DoubleTestOpInstr::ComputeType() const {
 
 static const intptr_t simd_op_result_cids[] = {
 #define kInt8Cid kSmiCid
+// Int32 lane getters produce an unboxed int32 whose boxed type depends on the
+// target word size (Smi on 64-bit, possibly Mint on 32-bit). The placeholder
+// keeps the table well-formed; ComputeType() below handles these kinds
+// directly using the unboxed representation so the type is correct on all
+// architectures.
+#define kInt32Cid kIllegalCid
 #define CASE(Arity, Mask, Name, Args, Result) k##Result##Cid,
     SIMD_OP_LIST(CASE, CASE)
 #undef CASE
@@ -1750,7 +1755,15 @@ static const intptr_t simd_op_result_cids[] = {
 };
 
 CompileType SimdOpInstr::ComputeType() const {
-  return CompileType::FromCid(simd_op_result_cids[kind()]);
+  switch (kind()) {
+    case kInt32x4GetX:
+    case kInt32x4GetY:
+    case kInt32x4GetZ:
+    case kInt32x4GetW:
+      return CompileType::FromUnboxedRepresentation(kUnboxedInt32);
+    default:
+      return CompileType::FromCid(simd_op_result_cids[kind()]);
+  }
 }
 
 CompileType MathMinMaxInstr::ComputeType() const {
@@ -1881,6 +1894,7 @@ CompileType LoadIndexedInstr::ComputeType() const {
                                            CompileType::kCannotBeNull,
                                            CompileType::kCannotBeSentinel);
 
+    case kClosureCid:
     case kRecordCid:
       return CompileType::Dynamic();
 

@@ -19,9 +19,9 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
   /// The range of characters that were selected.
   Range? _range;
 
-  /// Return the title of the refactoring command that is expected to be
+  /// Return the command ID of the refactoring command that is expected to be
   /// available.
-  String get refactoringName;
+  String get refactoringCommandId;
 
   void addTestSource(String markedCode) {
     var testCode = TestCode.parse(markedCode);
@@ -35,6 +35,47 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
       }
     }
     newFile(mainFilePath, testCode.code);
+  }
+
+  Future<void> assertNoRefactoring({
+    required String originalSource,
+    required String refactoringTitle,
+  }) async {
+    if (originalSource.contains('>>>>')) {
+      throw 'File content must not include >>>>>';
+    }
+    addTestSource(originalSource);
+
+    await initializeServer();
+
+    await expectNoCodeActionWithTitle(refactoringTitle);
+  }
+
+  Future<void> assertRefactoring({
+    required String originalSource,
+    required String expected,
+    required String refactoringTitle,
+    String? otherFilePath,
+    String? otherFileContent,
+    ProgressToken? commandWorkDoneToken,
+  }) async {
+    if (originalSource.contains('>>>>') ||
+        (otherFileContent?.contains('>>>>>') ?? false)) {
+      throw 'File content must not include >>>>>';
+    }
+    addTestSource(originalSource);
+    if (otherFilePath != null) {
+      newFile(otherFilePath, otherFileContent!);
+    }
+
+    await initializeServer();
+
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    await verifyCommandEdits(
+      action.command!,
+      expected,
+      workDoneToken: commandWorkDoneToken,
+    );
   }
 
   void assertTextExpectation(String actual, String expected) {
@@ -69,21 +110,17 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
       range: _range,
       kinds: const [CodeActionKind.Refactor],
     );
-    return findCommand(codeActions, refactoringName, title);
+    return findCommand(codeActions, refactoringCommandId, title);
   }
 
   /// Unwraps the 'arguments' field from the arguments object (which is the
   /// single argument for the command).
-  List<Object?> getRefactorCommandArguments(CodeAction action) {
-    var command = action.command!;
-    var commandArguments = command.arguments as List<Object?>;
+  List<Object?> getRefactorCommandArguments(List<Object?>? commandArguments) {
+    // Our refactor commands use a single object in their arguments so we can
+    // have named fields instead of positional arguments.
+    var argsObject = commandArguments!.single as Map<String, Object?>;
 
-    // Our refactor command uses a single object in its arguments so we can have
-    // named fields instead of having the client have to know which index
-    // corresponds to the parameters.
-    var argsObject = commandArguments.single as Map<String, Object?>;
-
-    // Within that object, the 'arguments' field is the List<Object?> that
+    // Within the object, the 'arguments' field is the List<Object?> that
     // contains the values for the parameters.
     var arguments = argsObject['arguments'] as List<Object?>;
 

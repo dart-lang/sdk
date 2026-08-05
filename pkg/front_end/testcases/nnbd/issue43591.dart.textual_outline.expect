@@ -1,5 +1,6 @@
 extension E<T> on T {
-  T Function(T) get f => (T t) => t;
+  T Function(T) get f =>
+      (T t) => t;
 }
 
 method1<S>(S s) {}

@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
+import 'heap_dumping_sssp_printing_leak_finder.dart';
 import "vm_service_heap_helper.dart" as helper;
 
 Future<void> main(List<String> args) async {
@@ -76,7 +78,7 @@ Future<void> main(List<String> args) async {
       Platform.script.resolve("incremental_suite.dart").toString(),
       "-DaddDebugBreaks=true",
       "--",
-      "incremental/no_outline_change_38",
+      "incremental/break_statement_leak",
     ]);
   }
 }
@@ -84,7 +86,7 @@ Future<void> main(List<String> args) async {
 helper.VMServiceHeapHelperSpecificExactLeakFinder createNewLeakFinder(
   List<helper.Interest> interests,
 ) {
-  return new helper.VMServiceHeapHelperSpecificExactLeakFinder(
+  return new HeapDumpingSsspPrintingLeakFinder(
     interests: interests,
     prettyPrints: [
       new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library", [

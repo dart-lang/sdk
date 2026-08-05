@@ -19,7 +19,7 @@ class B extends core::Object /*hasConstConstructor*/  {
 }
 class C extends core::Object /*hasConstConstructor*/  {
   final field core::int y;
-  const constructor •(core::int y) → self::C
+  const constructor •(initializing-formal core::int y) → self::C
     : self::C::y = y, super core::Object::•()
     ;
   method fn() → core::int

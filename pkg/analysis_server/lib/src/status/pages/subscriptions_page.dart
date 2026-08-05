@@ -12,7 +12,7 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
   @override
   LegacyAnalysisServer server;
 
-  SubscriptionsPage(DiagnosticsSite site, this.server)
+  new(DiagnosticsSite site, this.server)
     : super(
         site,
         'subscriptions',

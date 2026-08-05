@@ -11,9 +11,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class RemoveComment extends ResolvedCorrectionProducer {
-  RemoveComment({required super.context});
+  new({required super.context});
 
-  factory RemoveComment.ignore({required CorrectionProducerContext context}) =>
+  factory ignore({required CorrectionProducerContext context}) =>
       _RemoveIgnoreComment(context: context);
 
   @override
@@ -50,7 +50,7 @@ class RemoveComment extends ResolvedCorrectionProducer {
 }
 
 class _RemoveIgnoreComment extends RemoveComment {
-  _RemoveIgnoreComment({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

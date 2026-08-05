@@ -16,13 +16,13 @@ class RemoveLexeme extends ResolvedCorrectionProducer {
   // The kind of lexeme (e.g., 'keyword' vs. 'modifier').
   final String kind;
 
-  RemoveLexeme.keyword({required CorrectionProducerContext context})
+  new keyword({required CorrectionProducerContext context})
     : this._(context: context, kind: 'keyword');
 
-  RemoveLexeme.modifier({required CorrectionProducerContext context})
+  new modifier({required CorrectionProducerContext context})
     : this._(context: context, kind: 'modifier');
 
-  RemoveLexeme._({required super.context, required this.kind});
+  new _({required super.context, required this.kind});
 
   @override
   CorrectionApplicability get applicability =>

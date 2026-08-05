@@ -7,13 +7,11 @@
 import 'dart:async';
 import 'dart:concurrent';
 import 'dart:ffi';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
 
 void doWork(int i, SendPort results) {
   int result = 0;
@@ -36,30 +34,27 @@ void doWork(int i, SendPort results) {
 
 class SharedState {
   @pragma('vm:shared')
-  static late int totalProcessed;
+  static final totalProcessed = Uint16List(1);
 }
 
 int totalWorkItems = 10000;
 int numberOfWorkers = 8;
 
 @pragma('vm:shared')
-late Uint16List workItems;
+final workItems = Uint16List.fromList(
+  List<int>.generate(totalWorkItems, (i) => i + 1),
+);
 @pragma('vm:shared')
-late int lastProcessed;
+final lastProcessed = Uint16List(1);
 @pragma('vm:shared')
-late Mutex mutex;
+final mutex = Mutex();
 
 late var rpResults;
 late var results = <int, int>{};
 
 @pragma('vm:never-inline')
 void init() {
-  SharedState.totalProcessed = 0;
-  lastProcessed = 0;
-  workItems = Uint16List.fromList(
-    List<int>.generate(totalWorkItems, (i) => i + 1),
-  );
-  mutex = Mutex();
+  SharedState.totalProcessed[0] = 0;
 }
 
 final class Struct1Byte extends Struct {
@@ -68,7 +63,7 @@ final class Struct1Byte extends Struct {
 }
 
 @pragma('vm:shared')
-late Struct1Byte s1byte;
+final s1byte = Struct.create<Struct1Byte>();
 
 final class StructWithArrays extends Struct {
   @Array.multi([16])
@@ -76,7 +71,7 @@ final class StructWithArrays extends Struct {
 }
 
 @pragma('vm:shared')
-late StructWithArrays switharrays;
+final switharrays = Struct.create<StructWithArrays>();
 
 final class MyUnion extends Union {
   @Int32()
@@ -87,30 +82,13 @@ final class MyUnion extends Union {
 }
 
 @pragma('vm:shared')
-late MyUnion myUnion;
+final myUnion = Union.create<MyUnion>();
 
 @pragma('vm:shared')
-late Array myArray;
-
-void verifySharingOfStructsAndUnions() {
-  s1byte = Struct.create<Struct1Byte>();
-  switharrays = Struct.create<StructWithArrays>();
-  myUnion = Union.create<MyUnion>();
-  // TODO(dartbug.com/61126): Allow sharing of Arrays.
-  Expect.throws(
-    () {
-      myArray = switharrays.a;
-    },
-    (e) {
-      return e.toString().contains("Only trivially-immutable values");
-    },
-  );
-}
+final myArray = switharrays.a;
 
 void main(List<String> args) async {
   asyncStart();
-
-  verifySharingOfStructsAndUnions();
 
   if (args.length > 0) {
     totalWorkItems = int.parse(args[0]);
@@ -133,13 +111,13 @@ void main(List<String> args) async {
     (index) => Isolate.run(() async {
       int countProcessed = 0;
       while (true) {
-        var mine = mutex.runLocked(() => lastProcessed++);
+        var mine = mutex.runLocked(() => lastProcessed[0]++);
         if (mine >= workItems.length) {
           break;
         }
         doWork(workItems[mine], sendPort);
         countProcessed++;
-        mutex.runLocked(() => SharedState.totalProcessed++);
+        mutex.runLocked(() => SharedState.totalProcessed[0]++);
         await Future.delayed(Duration(seconds: 0));
       }
       print('worker $index processed $countProcessed items');
@@ -148,7 +126,7 @@ void main(List<String> args) async {
   await Future.wait(list);
   rpResults.close();
   Expect.equals(results.keys.length, totalWorkItems);
-  Expect.equals(SharedState.totalProcessed, totalWorkItems);
-  print('all ${SharedState.totalProcessed} done');
+  Expect.equals(SharedState.totalProcessed[0], totalWorkItems);
+  print('all ${SharedState.totalProcessed[0]} done');
   asyncEnd();
 }

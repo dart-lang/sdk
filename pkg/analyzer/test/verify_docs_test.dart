@@ -136,7 +136,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-Future<void> assertNoErrorsInCode(String s) async {}
+Future<void> resolveTestCodeWithDiagnostics(String s) async {}
 void test(String s, void Function() f) {}
 void group(String s, void Function() f) {}
 ''';

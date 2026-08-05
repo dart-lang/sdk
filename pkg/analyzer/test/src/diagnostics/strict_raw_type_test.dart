@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrictRawTypeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -25,7 +26,7 @@ class StrictRawTypeTest extends PubPackageResolutionTest {
   }
 
   test_asExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic x) {
   print(x as List);
 }
@@ -33,7 +34,7 @@ void f(dynamic x) {
   }
 
   test_asExpression_typeArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic x) {
   print(x as List<List>);
 }
@@ -41,7 +42,7 @@ void f(dynamic x) {
   }
 
   test_castPattern() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f([(Object, )? l]) {
   var (_ as List, ) = l!;
 }
@@ -49,7 +50,7 @@ void f([(Object, )? l]) {
   }
 
   test_castPattern_typeArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f([(Object, )? l]) {
   var (_ as List<List>, ) = l!;
 }
@@ -59,7 +60,7 @@ void f([(Object, )? l]) {
   test_constantPattern() async {
     // This is not considered a "strict raw type" here, but a "strict inference"
     // issue.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(C<int> c) {
   switch (c) {
     case const C():
@@ -74,7 +75,7 @@ class C<T> {
 
   test_functionParts_optionalTypeArg() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 class C<T> {}
@@ -84,20 +85,19 @@ void g(C a) {}
   }
 
   test_genericTypeArgument_extensionType_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E<T>(int i) {}
 
 void f() {
   <List<E>>[];
+//      ^
+// [diag.strictRawType] The generic type 'E<dynamic>' should have explicit type arguments but doesn't.
 }
-''',
-      [error(diag.strictRawType, 50, 1)],
-    );
+''');
   }
 
   test_genericTypeArgument_extensionType_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E<T>(int i) {}
 
 void f() {
@@ -107,70 +107,64 @@ void f() {
   }
 
   test_genericTypeArgument_extensionTypeImplements_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(List<int> i) implements Iterable {}
-''',
-      [error(diag.strictRawType, 41, 8)],
-    );
+//                                       ^^^^^^^^
+// [diag.strictRawType] The generic type 'Iterable<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_genericTypeArgument_extensionTypeImplementsExtensionType_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 
 extension type E<T>(Iterable<T> i) {}
 
 extension type F(List<int> j) implements E {}
-''',
-      [error(diag.strictRawType, 81, 1)],
-    );
+//                                       ^
+// [diag.strictRawType] The generic type 'E<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_genericTypeArgument_extensionTypeRepresentationType_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(List i) {}
-''',
-      [error(diag.strictRawType, 17, 4)],
-    );
+//               ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_genericTypeArgument_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var a = <List>[];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//         ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 17, 1),
-        error(diag.strictRawType, 22, 4),
-      ],
-    );
+''');
   }
 
   test_genericTypeArgument_withTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var a = <List<int>>[];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
   }
 
   test_instanceCreation() async {
     // This is not considered a "strict raw type" here, but a "strict inference"
     // issue.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = List.empty();
 ''');
   }
 
   test_isExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic x) {
   print(x is List);
   print(x is List<dynamic>);
@@ -180,50 +174,45 @@ void f(dynamic x) {
   }
 
   test_localVariable_extensionType_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E<T>(int i) {}
     
 void f() {
   E e = E(1);
+//^
+// [diag.strictRawType] The generic type 'E<dynamic>' should have explicit type arguments but doesn't.
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
 }
-''',
-      [
-        error(diag.strictRawType, 48, 1),
-        error(diag.unusedLocalVariable, 50, 1),
-      ],
-    );
+''');
   }
 
   test_localVariable_extensionType_withTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E<T>(int i) {}
     
 void f() {
   E<int> e = E<int>(1);
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 55, 1)],
-    );
+''');
   }
 
   test_localVariable_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   List a = [1, 2, 3];
+//^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [
-        error(diag.strictRawType, 13, 4),
-        error(diag.unusedLocalVariable, 18, 1),
-      ],
-    );
+''');
   }
 
   test_localVariable_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   List<Object> a = [1, 2, 3];
   print(a);
@@ -232,17 +221,16 @@ void f() {
   }
 
   test_mixinApplication_missing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class C<T> {}
 class D = Object with C;
-''',
-      [error(diag.strictRawType, 42, 1)],
-    );
+//                    ^
+// [diag.strictRawType] The generic type 'C<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_mixinApplication_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class C<T> {}
 class D = Object with C<int>;
 ''');
@@ -250,7 +238,7 @@ class D = Object with C<int>;
 
   test_nonFunctionTypeAlias_explicitTypeArg() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef List2<T> = List<T>;
 void f(List2<int> a) {}
 ''');
@@ -258,18 +246,17 @@ void f(List2<int> a) {}
 
   test_nonFunctionTypeAlias_missingTypeArg() async {
     writeTestPackageConfigWithMeta();
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef List2<T> = List<T>;
 void f(List2 a) {}
-''',
-      [error(diag.strictRawType, 35, 5)],
-    );
+//     ^^^^^
+// [diag.strictRawType] The generic type 'List2<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_nonFunctionTypeAlias_optionalTypeArgs() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 typedef List2<T> = List<T>;
@@ -280,7 +267,7 @@ void f(List2 a) {}
   test_objectPattern() async {
     // This is not considered a "strict raw type" here, but a "strict inference"
     // issue.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object o) {
   switch (o) {
     case List():
@@ -290,115 +277,103 @@ void f(Object o) {
   }
 
   test_parameter_default_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({List a = const []}) {}
-''',
-      [error(diag.strictRawType, 8, 4)],
-    );
+//      ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_parameter_fieldFormal_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   Object a;
   C(List this.a);
+//  ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
 }
-''',
-      [error(diag.strictRawType, 26, 4)],
-    );
+''');
   }
 
   test_parameter_functionTyped_parameter_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void a(List p)) {}
-''',
-      [error(diag.strictRawType, 14, 4)],
-    );
+//            ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_parameter_functionTyped_returnType_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(List a()) {}
-''',
-      [error(diag.strictRawType, 7, 4)],
-    );
+//     ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_parameter_primaryDeclaring_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C(final List a);
-''',
-      [error(diag.strictRawType, 14, 4)],
-    );
+//            ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_parameter_simple_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(List a) {}
-''',
-      [error(diag.strictRawType, 7, 4)],
-    );
+//     ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_parameter_super_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   Object a;
   C(this.a);
 }
 class D extends C {
   D(List super.a);
+//  ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
 }
-''',
-      [error(diag.strictRawType, 70, 4)],
-    );
+''');
   }
 
   test_returnType_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 List f(int a) => [1, 2, 3];
-''',
-      [error(diag.strictRawType, 0, 4)],
-    );
+// [diag.strictRawType][column 1][length 4] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_superclassWith_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class C<T> {}
 class D extends Object with C {}
-''',
-      [error(diag.strictRawType, 48, 1)],
-    );
+//                          ^
+// [diag.strictRawType] The generic type 'C<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_superclassWith_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class C<T> {}
 class D extends Object with C<int> {}
 ''');
   }
 
   test_topLevelField_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 List a = [];
-''',
-      [error(diag.strictRawType, 0, 4)],
-    );
+// [diag.strictRawType][column 1][length 4] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_topLevelField_optionalTypeArg() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 class C<T> {}
@@ -409,7 +384,7 @@ void set s(C a) {}
   }
 
   test_topLevelField_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 List<int> a = [];
 List<num> get g => [];
 void set s(List<double> a) {}
@@ -417,46 +392,39 @@ void set s(List<double> a) {}
   }
 
   test_topLevelGetter_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 List get g => [];
-''',
-      [error(diag.strictRawType, 0, 4)],
-    );
+// [diag.strictRawType][column 1][length 4] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_topLevelSetter_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void set s(List a) {}
-''',
-      [error(diag.strictRawType, 11, 4)],
-    );
+//         ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_typeAlias_classic_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef T F1<T>(T _);
 F1 func = (a) => a;
-''',
-      [error(diag.strictRawType, 22, 2)],
-    );
+// [diag.strictRawType][column 1][length 2] The generic type 'F1<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_typeAlias_modern_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F1<T> = T Function(T);
 F1 func = (a) => a;
-''',
-      [error(diag.strictRawType, 31, 2)],
-    );
+// [diag.strictRawType][column 1][length 2] The generic type 'F1<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_typeAlias_modern_optionalTypeArgs() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 typedef T F1<T>(T _);
@@ -468,7 +436,7 @@ F2 f2 = (a) => a;
   }
 
   test_typeAlias_modern_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef T F1<T>(T _);
 typedef F2<T> = T Function(T);
 typedef F3 = T Function<T>(T);
@@ -480,7 +448,7 @@ F3 f3 = <T>(T a) => a;
 
   test_typeInClassDeclaration_optionalTypeArgs() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 mixin class C<T> {}
@@ -492,7 +460,7 @@ class G implements C {}
   }
 
   test_typeInConstructorName() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
   C.named();
@@ -504,26 +472,24 @@ var d = C.named();
   }
 
   test_typeInExtendedType_anonymous_missing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension on List {}
-''',
-      [error(diag.strictRawType, 13, 4)],
-    );
+//           ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_typeInExtendedType_missing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on List {}
-''',
-      [error(diag.strictRawType, 15, 4)],
-    );
+//             ^^^^
+// [diag.strictRawType] The generic type 'List<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_typeInExtendedType_optionalTypeArgs() async {
     writeTestPackageConfigWithMeta();
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 class C<T> {}
@@ -533,48 +499,46 @@ extension on C {}
   }
 
   test_typeInExtendedType_present() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E<T> on List<T> {}
 extension F on List<int> {}
 ''');
   }
 
   test_typeInInterface_missing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 class D implements C {}
-''',
-      [error(diag.strictRawType, 33, 1)],
-    );
+//                 ^
+// [diag.strictRawType] The generic type 'C<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_typeInInterface_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 class D implements C<int> {}
 ''');
   }
 
   test_typeInSuperclass_missing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 class D extends C {}
-''',
-      [error(diag.strictRawType, 30, 1)],
-    );
+//              ^
+// [diag.strictRawType] The generic type 'C<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_typeInSuperclass_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 class D extends C<int> {}
 ''');
   }
 
   test_typeLiteral_raw() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var t = List;
   print(t);
@@ -583,17 +547,16 @@ void f() {
   }
 
   test_typeParameterBound_missingTypeArg() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 class D<T extends C> {}
-''',
-      [error(diag.strictRawType, 32, 1)],
-    );
+//                ^
+// [diag.strictRawType] The generic type 'C<dynamic>' should have explicit type arguments but doesn't.
+''');
   }
 
   test_typeParameterBound_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 class D<S, T extends C<S>> {}
 ''');

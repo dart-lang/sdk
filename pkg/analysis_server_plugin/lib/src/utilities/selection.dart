@@ -120,11 +120,6 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _fromList(node.metadata);
-  }
-
-  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _fromList(node.metadata);
   }
@@ -196,11 +191,6 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _fromList(node.metadata);
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _fromList(node.metadata);
   }
 
@@ -333,7 +323,7 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     _fromList(node.metadata);
   }
 

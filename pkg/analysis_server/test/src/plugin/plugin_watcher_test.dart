@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -51,7 +51,7 @@ analyzer:
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: convertPath('/foo')),
+        ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
 
     var driver = driverFor(testFile);

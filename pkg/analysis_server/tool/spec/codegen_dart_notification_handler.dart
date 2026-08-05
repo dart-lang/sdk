@@ -38,7 +38,7 @@ String _generateParamTypeName(String domainName, String event) =>
 /// Visitor which produces Dart code representing the API.
 class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
     with CodeGenerator {
-  CodegenNotificationHandlerVisitor(super.api) {
+  new(super.api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';
@@ -123,18 +123,13 @@ class _Notification {
   final String paramsTypeName;
   final List<String> dartdoc;
 
-  _Notification(
-    this.constName,
-    this.methodName,
-    this.paramsTypeName,
-    this.dartdoc,
-  );
+  new(this.constName, this.methodName, this.paramsTypeName, this.dartdoc);
 }
 
 class _NotificationVisitor extends HierarchicalApiVisitor {
   final notificationConstants = <_Notification>[];
 
-  _NotificationVisitor(super.api);
+  new(super.api);
 
   @override
   void visitNotification(Notification notification) {

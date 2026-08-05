@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,38 +15,36 @@ main() {
 @reflectiveTest
 class IllegalLanguageVersionOverrideTest extends PubPackageResolutionTest {
   test_hasOverride_equal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.12
 void f() {}
 ''');
   }
 
   test_hasOverride_greater() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.14
 void f() {}
 ''');
   }
 
   test_hasOverride_less() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.9
+// [diag.illegalLanguageVersionOverride][column 1][length 14] The language version must be >=2.12.0.
 int a = 0;
-''',
-      [error(diag.illegalLanguageVersionOverride, 0, 14)],
-    );
+''');
   }
 
   test_hasPackageLanguage_less_hasOverride_greater() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.14
 void f() {}
 ''');
   }
 
   test_noOverride() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {}
 ''');
   }

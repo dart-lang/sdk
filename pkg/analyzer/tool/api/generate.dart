@@ -9,9 +9,9 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
-import 'package:analyzer_utilities/src/api_summary/src/api_summary_customizer.dart';
 import 'package:analyzer_utilities/tool/api.dart';
 import 'package:analyzer_utilities/tools.dart';
+import 'package:api_summary/api_summary.dart';
 
 Future<void> main() async {
   await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);

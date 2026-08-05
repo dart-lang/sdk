@@ -4,8 +4,6 @@
 
 /// Private named parameters can be used on initializing formals.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 import 'package:expect/expect.dart';
 
 class C {

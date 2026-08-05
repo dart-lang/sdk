@@ -15,7 +15,7 @@ class DtdProcess {
   /// A completer for the DTD URI that is printed to stdout by the process.
   final Completer<Uri> _dtdUriCompleter = Completer<Uri>();
 
-  DtdProcess._(this._proc) {
+  new _(this._proc) {
     // Read output for the URI.
     _proc.stdout.transform(utf8.decoder).transform(LineSplitter()).listen((
       data,

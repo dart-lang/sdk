@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceReturnType extends ResolvedCorrectionProducer {
   String _newType = '';
 
-  ReplaceReturnType({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

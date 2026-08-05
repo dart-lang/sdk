@@ -14,7 +14,7 @@ class KeywordNavigationComputer {
   final NavigationCollector collector;
   final LibraryFragment libraryFrament;
 
-  KeywordNavigationComputer(this.collector, this.libraryFrament);
+  new(this.collector, this.libraryFrament);
 
   void compute(AstNode? node) {
     if (node is! Statement) return;
@@ -65,9 +65,12 @@ class KeywordNavigationComputer {
       MethodDeclaration() => function.name,
       ConstructorDeclaration() =>
         // For named constructors, return the name.
-        // For unnamed constructors, use the return type / class name.
-        // TODO(scheglov): support primary constructors
-        function.name ?? function.typeName!.beginToken,
+        // For unnamed constructors, use the return type / class name, or the
+        //  `new` or `factory` keyword.
+        function.name ??
+            function.typeName?.beginToken ??
+            function.newKeyword ??
+            function.factoryKeyword,
       _ => null,
     };
   }

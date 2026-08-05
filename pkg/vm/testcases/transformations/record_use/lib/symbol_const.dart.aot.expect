@@ -14,7 +14,7 @@ final class C extends core::Object /*hasConstConstructor*/  {
   final field core::Symbol s;
 
   [@vm.unreachable.metadata=]
-  const constructor •(core::Symbol s) → self::C
+  const constructor •(initializing-formal core::Symbol s) → self::C
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 

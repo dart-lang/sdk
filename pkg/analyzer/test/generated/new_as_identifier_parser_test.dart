@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,19 +20,21 @@ main() {
 @reflectiveTest
 class NewAsIdentifierParserTest extends ParserDiagnosticsTest {
   void test_constructor_field_initializer() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C {
   C() : this.new = null;
+//      ^^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//           ^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.missingFunctionBody] A function body must be provided.
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
+//               ^
+// [diag.redirectionInNonFactoryConstructor] Only factory constructor can specify '=' redirection.
+//                 ^^^^
+// [diag.expectedIdentifierButGotKeyword] 'null' can't be used as an identifier because it's a keyword.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingAssignmentInInitializer, 18, 4),
-      error(diag.missingIdentifier, 23, 3),
-      error(diag.missingFunctionBody, 23, 3),
-      error(diag.missingMethodParameters, 23, 3),
-      error(diag.redirectionInNonFactoryConstructor, 27, 1),
-      error(diag.expectedIdentifierButGotKeyword, 29, 4),
-    ]);
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -82,10 +83,9 @@ ClassDeclaration
   }
 
   void test_constructor_invocation_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = const C.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -103,10 +103,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_const_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = const C<int>.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -130,10 +129,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_const_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = const prefix.C.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -154,10 +152,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_const_prefixed_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = const prefix.C<int>.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -184,10 +181,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_explicit() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = new C.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -205,10 +201,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_explicit_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = new C<int>.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -232,10 +227,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_explicit_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = new prefix.C.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -256,10 +250,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_explicit_prefixed_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = new prefix.C<int>.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -286,10 +279,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_implicit() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -305,10 +297,9 @@ MethodInvocation
   }
 
   void test_constructor_invocation_implicit_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -331,10 +322,9 @@ InstanceCreationExpression
   }
 
   void test_constructor_invocation_implicit_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -354,10 +344,9 @@ MethodInvocation
   }
 
   void test_constructor_invocation_implicit_prefixed_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleInstanceCreationExpression;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -383,12 +372,11 @@ InstanceCreationExpression
   }
 
   void test_constructor_name() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C {
   C.new();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
@@ -405,13 +393,12 @@ ConstructorDeclaration
   }
 
   void test_constructor_name_factory() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C {
   factory C.new() => C._();
   C._();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.constructor('C.new');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
@@ -439,10 +426,9 @@ ConstructorDeclaration
   }
 
   void test_constructor_tearoff() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singlePrefixedIdentifier;
     assertParsedNodeText(node, r'''
 PrefixedIdentifier
@@ -455,10 +441,9 @@ PrefixedIdentifier
   }
 
   void test_constructor_tearoff_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -478,10 +463,9 @@ PropertyAccess
   }
 
   void test_constructor_tearoff_generic_method_invocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new.toString();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -508,11 +492,10 @@ MethodInvocation
   }
 
   void test_constructor_tearoff_in_comment_reference() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 /// [C.new]
 class C {}
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.commentReference('C.new');
     assertParsedNodeText(node, r'''
 CommentReference
@@ -526,10 +509,9 @@ CommentReference
   }
 
   void test_constructor_tearoff_method_invocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new.toString();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -549,10 +531,9 @@ MethodInvocation
   }
 
   void test_constructor_tearoff_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -569,10 +550,9 @@ PropertyAccess
   }
 
   void test_constructor_tearoff_prefixed_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -596,10 +576,9 @@ PropertyAccess
   }
 
   void test_constructor_tearoff_prefixed_generic_method_invocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new.toString();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -630,10 +609,9 @@ MethodInvocation
   }
 
   void test_constructor_tearoff_prefixed_method_invocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new.toString();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -657,10 +635,12 @@ MethodInvocation
   }
 
   void test_disabled() {
-    var parseResult = parseStringWithErrors(
+    var parseResult = parseTestCodeWithDiagnostics(
       '''
 class C {
   C.new();
+//  ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
 }
 ''',
       featureSet: FeatureSet.fromEnableFlags2(
@@ -668,7 +648,6 @@ class C {
         flags: [],
       ),
     );
-    parseResult.assertErrors([error(diag.experimentNotEnabled, 14, 3)]);
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
@@ -685,12 +664,11 @@ ConstructorDeclaration
   }
 
   void test_factory_redirection() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C {
   factory C() = D.new;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
@@ -713,12 +691,11 @@ ConstructorDeclaration
   }
 
   void test_factory_redirection_generic() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C {
   factory C() = D<int>.new;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
@@ -747,12 +724,11 @@ ConstructorDeclaration
   }
 
   void test_factory_redirection_prefixed() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C {
   factory C() = prefix.D.new;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
@@ -778,12 +754,11 @@ ConstructorDeclaration
   }
 
   void test_factory_redirection_prefixed_generic() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C {
   factory C() = prefix.D<int>.new;
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
@@ -815,12 +790,11 @@ ConstructorDeclaration
   }
 
   void test_super_invocation() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C extends B {
   C() : super.new();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
@@ -845,13 +819,12 @@ ConstructorDeclaration
   }
 
   void test_this_redirection() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class C {
   C.named() : this.new();
   C();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.constructor('named');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration

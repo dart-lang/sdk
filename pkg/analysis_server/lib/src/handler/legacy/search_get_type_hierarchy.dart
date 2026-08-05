@@ -13,12 +13,7 @@ import 'package:analysis_server/src/search/type_hierarchy.dart';
 class SearchGetTypeHierarchyHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  SearchGetTypeHierarchyHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -47,9 +42,8 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
     // prepare type hierarchy
     var computer = TypeHierarchyComputer(searchEngine, element);
     var items = await computer.compute();
-    var response = protocol.SearchGetTypeHierarchyResult(
-      hierarchyItems: items,
-    ).toResponse(request.id, clientUriConverter: server.uriConverter);
+    var response = protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+        .toResponse(request.id, clientUriConverter: server.uriConverter);
     server.sendResponse(response);
   }
 

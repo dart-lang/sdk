@@ -23,14 +23,11 @@ class LibraryIndex {
   final Map<String, _ContainerTable> _libraries = <String, _ContainerTable>{};
 
   /// Indexes the libraries with the URIs given in [libraryUris].
-  LibraryIndex(Component component, Iterable<String> libraryUris)
+  new(Component component, Iterable<String> libraryUris)
     : this.fromLibraries(component.libraries, libraryUris);
 
   /// Indexes the libraries with the URIs given in [libraryUris].
-  LibraryIndex.fromLibraries(
-    Iterable<Library> libraries,
-    Iterable<String> libraryUris,
-  ) {
+  new fromLibraries(Iterable<Library> libraries, Iterable<String> libraryUris) {
     Set<String> libraryUriSet = libraryUris.toSet();
     for (Library library in libraries) {
       String uri = '${library.importUri}';
@@ -41,7 +38,7 @@ class LibraryIndex {
   }
 
   /// Indexes `dart:` libraries.
-  LibraryIndex.coreLibraries(Component component) {
+  new coreLibraries(Component component) {
     for (Library library in component.libraries) {
       if (library.importUri.isScheme('dart')) {
         _libraries['${library.importUri}'] = new _ContainerTable(library);
@@ -53,7 +50,7 @@ class LibraryIndex {
   ///
   /// Consider using another constructor to only index the libraries that
   /// are needed.
-  LibraryIndex.all(Component component) {
+  new all(Component component) {
     for (Library library in component.libraries) {
       _libraries['${library.importUri}'] = new _ContainerTable(library);
     }
@@ -180,7 +177,7 @@ class _ContainerTable {
 
   Map<String, _MemberTable>? _containers;
 
-  _ContainerTable(this.library);
+  new(this.library);
 
   Map<String, _MemberTable> get containers {
     if (_containers == null) {
@@ -279,18 +276,16 @@ class _MemberTable {
 
   Library get library => parent.library;
 
-  _MemberTable.fromClass(this.parent, this.class_)
+  new fromClass(this.parent, this.class_)
     : extensionTypeDeclaration = null,
       extension_ = null;
-  _MemberTable.fromExtensionTypeDeclaration(
-    this.parent,
-    this.extensionTypeDeclaration,
-  ) : class_ = null,
+  new fromExtensionTypeDeclaration(this.parent, this.extensionTypeDeclaration)
+    : class_ = null,
       extension_ = null;
-  _MemberTable.fromExtension(this.parent, this.extension_)
+  new fromExtension(this.parent, this.extension_)
     : class_ = null,
       extensionTypeDeclaration = null;
-  _MemberTable.topLevel(this.parent)
+  new topLevel(this.parent)
     : class_ = null,
       extensionTypeDeclaration = null,
       extension_ = null;

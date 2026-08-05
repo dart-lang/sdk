@@ -17,7 +17,7 @@ library from "org-dartlang-test:///main.dart" as main {
     static redirecting-factory tearoff r = main::ExtensionType|constructor#_#r#tearOff;
   }
   static field dart.core::int ExtensionType|staticField = 42;
-  static extension-type-member method ExtensionType|constructor#(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */ {
+  static extension-type-member method ExtensionType|constructor#(initializing-formal dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */ {
     lowered final main::ExtensionType% /* erasure=dart.core::int, declared=! */ #this = i;
     return #this;
   }

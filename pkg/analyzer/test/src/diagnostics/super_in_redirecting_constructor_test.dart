@@ -2,64 +2,61 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperInRedirectingConstructorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SuperInRedirectingConstructorTest extends PubPackageResolutionTest {
   test_class_primary_redirectBeforeSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A() {
   A.named() : this();
   this : this.named(), super();
+//       ^^^^
+// [diag.primaryConstructorCannotRedirect] A primary constructor can't be a redirecting constructor.
 }
-''',
-      [error(diag.primaryConstructorCannotRedirect, 43, 4)],
-    );
+''');
   }
 
   test_class_primary_superBeforeRedirect() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A() {
   A.named() : this();
   this : super(), this.named();
+//                ^^^^
+// [diag.primaryConstructorCannotRedirect] A primary constructor can't be a redirecting constructor.
 }
-''',
-      [error(diag.primaryConstructorCannotRedirect, 52, 4)],
-    );
+''');
   }
 
   test_typeName_redirectionSuper() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() : this.name(), super();
+//                   ^^^^^^^
+// [diag.superInRedirectingConstructor] The redirecting constructor can't have a 'super' initializer.
   A.name() {}
 }
-''',
-      [error(diag.superInRedirectingConstructor, 31, 7)],
-    );
+''');
   }
 
   test_typeName_superRedirection() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() : super(), this.name();
+//      ^^^^^^^
+// [diag.superInRedirectingConstructor] The redirecting constructor can't have a 'super' initializer.
   A.name() {}
 }
-''',
-      [error(diag.superInRedirectingConstructor, 18, 7)],
-    );
+''');
   }
 }

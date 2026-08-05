@@ -1283,11 +1283,12 @@ class Elf extends DwarfContainer {
   }
 
   @override
-  int? get vmStartAddress => dynamicSymbolFor(constants.vmSymbolName)?.value;
+  int? get vmStartAddress => dynamicSymbolFor(constants.oldVmSymbolName)?.value;
 
   @override
   int? get isolateStartAddress =>
-      dynamicSymbolFor(constants.isolateSymbolName)?.value;
+      dynamicSymbolFor(constants.textSymbolName)?.value ??
+      dynamicSymbolFor(constants.oldIsolateSymbolName)?.value;
 
   @override
   String? get buildId {

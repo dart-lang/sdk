@@ -15,8 +15,7 @@ const _desc =
     r"Prefer double quotes where they won't require escape sequences.";
 
 class PreferDoubleQuotes extends AnalysisRule {
-  PreferDoubleQuotes()
-    : super(name: LintNames.prefer_double_quotes, description: _desc);
+  new() : super(name: LintNames.prefer_double_quotes, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferDoubleQuotes;

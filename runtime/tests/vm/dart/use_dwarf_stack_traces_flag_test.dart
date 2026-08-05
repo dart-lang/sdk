@@ -41,7 +41,8 @@ Future<void> main() async {
     ),
     runNonDwarf,
     [
-      runElf,
+      // Don't run ELF on MacOS since that requires allow-unsigned-executable-memory.
+      if (!Platform.isMacOS) runElf,
       runMachODylib,
       if (hasDsymutil) runMachODsym,
       // Don't run assembly on Windows since DLLs don't contain DWARF.
@@ -59,8 +60,13 @@ Future<NonDwarfState> runNonDwarf(String tempDir, String scriptDill) async {
     // other flags. This way, we limit the difference between the two
     // snapshots and also directly test the flag saved as a VM global flag.
     '--no-dwarf-stack-traces-mode',
-    '--snapshot-kind=app-aot-elf',
-    '--elf=$scriptNonDwarfSnapshot',
+    if (Platform.isMacOS) ...[
+      '--snapshot-kind=app-aot-macho-dylib',
+      '--macho=$scriptNonDwarfSnapshot',
+    ] else ...[
+      '--snapshot-kind=app-aot-elf',
+      '--elf=$scriptNonDwarfSnapshot',
+    ],
     scriptDill,
   ]);
 

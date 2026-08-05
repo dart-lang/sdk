@@ -74,19 +74,19 @@ class StatusFile {
 
   /// Constructor for creating a new [StatusFile]. Will not create the default
   /// section that status files have.
-  StatusFile(this.path);
+  new(this.path);
 
   /// Reads and parses the status file at [path].
   ///
   /// Throws a [SyntaxError] if the file could not be parsed.
-  StatusFile.read(this.path) {
+  new read(this.path) {
     _parse(File(path).readAsLinesSync());
   }
 
   /// Parses lines of strings coming from a status file at [path].
   ///
   /// Throws a [SyntaxError] if the file could not be parsed.
-  StatusFile.parse(this.path, List<String> lines) {
+  new parse(this.path, List<String> lines) {
     _parse(lines.map((line) => line.trim()).toList());
   }
 
@@ -165,8 +165,10 @@ class StatusFile {
       // Comments after the last empty line belong to the next section's header.
       // The empty line is not added to the section header, because it will be
       // added to the section's entries.
-      implicitSectionHeaderComments =
-          implicitSectionHeaderComments.sublist(0, lastEmptyLine - 1);
+      implicitSectionHeaderComments = implicitSectionHeaderComments.sublist(
+        0,
+        lastEmptyLine - 1,
+      );
       entries.add(sectionHeaderComments[lastEmptyLine - 1]);
       sectionHeaderComments = sectionHeaderComments.sublist(lastEmptyLine);
     } else {
@@ -176,8 +178,11 @@ class StatusFile {
 
     // The current section whose rules are being parsed. Initialized to an
     // implicit section that matches everything.
-    StatusSection section =
-        StatusSection(Expression.always, -1, implicitSectionHeaderComments);
+    StatusSection section = StatusSection(
+      Expression.always,
+      -1,
+      implicitSectionHeaderComments,
+    );
     section.entries.addAll(entries);
     sections.add(section);
 
@@ -223,11 +228,13 @@ class StatusFile {
           }
         });
         if (match[3] == null) {
-          section.entries
-              .add(StatusEntry(path, _lineCount, expectations, null));
+          section.entries.add(
+            StatusEntry(path, _lineCount, expectations, null),
+          );
         } else {
           section.entries.add(
-              StatusEntry(path, _lineCount, expectations, Comment(match[3]!)));
+            StatusEntry(path, _lineCount, expectations, Comment(match[3]!)),
+          );
         }
         continue;
       }
@@ -267,8 +274,13 @@ class StatusFile {
 
       if (errors.isNotEmpty) {
         var s = errors.length > 1 ? "s" : "";
-        throw SyntaxError(_shortPath, section.lineNumber,
-            "[ ${section.condition} ]", 'Validation error$s', errors);
+        throw SyntaxError(
+          _shortPath,
+          section.lineNumber,
+          "[ ${section.condition} ]",
+          'Validation error$s',
+          errors,
+        );
       }
     }
   }
@@ -293,26 +305,25 @@ class StatusFile {
 ///
 /// Contains the condition from the header that begins the section, then all of
 /// the entries within the section.
-class StatusSection {
+class StatusSection(
   /// The expression that determines when this section is applied.
   ///
   /// Will be [Expression.always] for paths that appear before any section
   /// header in the file. In that case, the section always applies.
-  final Expression condition;
+  final Expression condition,
 
   /// The one-based line number where the section appears in the file.
-  final int lineNumber;
+  final int lineNumber,
 
+  final List<Entry> sectionHeaderComments,
+) {
   /// Collection of all comment and status line entries.
   final List<Entry> entries = [];
-  final List<Entry> sectionHeaderComments;
 
   /// Returns true if this section should apply in the given [environment].
   bool isEnabled(Environment environment) => condition.evaluate(environment);
 
   bool isEmpty() => !entries.any((entry) => entry is StatusEntry);
-
-  StatusSection(this.condition, this.lineNumber, this.sectionHeaderComments);
 
   @override
   String toString() {
@@ -326,11 +337,7 @@ class StatusSection {
   }
 }
 
-class Comment {
-  final String _comment;
-
-  Comment(this._comment);
-
+class Comment(final String _comment) {
   /// Returns the issue number embedded in [comment] or `null` if there is none.
   int? issueNumber(String comment) {
     var match = _issuePattern.firstMatch(comment);
@@ -339,32 +346,20 @@ class Comment {
   }
 
   @override
-  String toString() {
-    return _comment;
-  }
+  String toString() => _comment;
 }
 
-abstract class Entry {
+abstract class Entry(
   /// The one-based line number where the entry appears in the file.
-  final int lineNumber;
+  final int lineNumber,
+);
 
-  Entry(this.lineNumber);
-}
-
-class EmptyEntry extends Entry {
-  EmptyEntry(super.lineNumber);
-
+class EmptyEntry(super.lineNumber) extends Entry {
   @override
-  String toString() {
-    return "";
-  }
+  String toString() => '';
 }
 
-class CommentEntry extends Entry {
-  final Comment comment;
-
-  CommentEntry(super.lineNumber, this.comment);
-
+class CommentEntry(super.lineNumber, final Comment comment) extends Entry {
   @override
   String toString() {
     return comment.toString();
@@ -372,13 +367,12 @@ class CommentEntry extends Entry {
 }
 
 /// Describes the test status of the file or files at a given path.
-class StatusEntry extends Entry {
-  final String path;
-  final List<Expectation> expectations;
-  final Comment? comment;
-
-  StatusEntry(this.path, super.lineNumber, this.expectations, this.comment);
-
+class StatusEntry(
+  final String path,
+  super.lineNumber,
+  final List<Expectation> expectations,
+  final Comment? comment,
+) extends Entry {
   @override
   String toString() {
     return comment == null

@@ -39,7 +39,7 @@ void foo42() {
     print(c);
   });
 
-  while(true) {
+  while (true) {
     int e = 50;
     int f = 60;
     int g = 70;

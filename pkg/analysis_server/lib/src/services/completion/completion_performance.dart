@@ -12,7 +12,7 @@ class CompletionPerformance extends RequestPerformance {
   int? computedSuggestionCount;
   int? transmittedSuggestionCount;
 
-  CompletionPerformance({
+  new({
     required super.performance,
     required this.path,
     super.requestLatency,

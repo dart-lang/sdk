@@ -21,7 +21,7 @@ import '../util/variance_checker.dart';
 const _desc = r'Unsafe type: Has a type variable in a non-covariant position.';
 
 class UnsafeVariance extends AnalysisRule {
-  UnsafeVariance()
+  new()
     : super(
         name: LintNames.unsafe_variance,
         description: _desc,
@@ -44,7 +44,7 @@ class UnsafeVariance extends AnalysisRule {
 
 class _UnsafeVarianceChecker extends VarianceChecker {
   final AnalysisRule rule;
-  _UnsafeVarianceChecker(this.rule);
+  new(this.rule);
 
   @override
   void checkNamedType(
@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final RuleContext context;
   final VarianceChecker checker;
 
-  _Visitor(this.rule, this.context) : checker = _UnsafeVarianceChecker(rule);
+  new(this.rule, this.context) : checker = _UnsafeVarianceChecker(rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

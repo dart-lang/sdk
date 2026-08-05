@@ -82,6 +82,7 @@ class VmExecutor implements TargetExecutor {
       '${repoRoot.toFilePath()}/.dart_tool/package_config.json',
       '-Ddart.vm.profile=false',
       '-Ddart.vm.product=true',
+      '-Ddynamic.modules.test.mode=${mode.name}',
       if (isAot) '--aot' else '--no-aot',
       '--no-embed-sources',
       '--platform',
@@ -191,10 +192,15 @@ class VmExecutor implements TargetExecutor {
       '${repoRoot.toFilePath()}/.dart_tool/package_config.json',
       '-Ddart.vm.profile=false',
       '-Ddart.vm.product=true',
+      '-Ddynamic.modules.test.mode=${mode.name}',
       '--import-dill',
       '${test.main}_no_aot_trimmed.dill',
       '--validate',
       '$rootScheme:/data/${test.name}/dynamic_interface.yaml',
+      // TODO(sigmund): provide a mechanism to specify options from each test.
+      '--bytecode-options=source-positions',
+      '--allow-dynamic-calls-in-dynamic-modules',
+      '--extra-selectors-allowed-in-dynamic-calls=m5,m6,m7,m10,m11,m15,m16,call',
       '--verbosity=all',
       '--filesystem-root',
       test.folder.resolve('../../').toFilePath(),
@@ -239,6 +245,7 @@ class VmExecutor implements TargetExecutor {
         VmMode.jit => jitRuntimeBin.toFilePath(),
       },
       [
+        if (mode == VmMode.jit) '--check-dynamic-calls',
         switch (mode) {
           VmMode.aot => '${test.main}.snapshot',
           VmMode.jit => '${test.main}_no_aot.dill',

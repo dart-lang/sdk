@@ -359,6 +359,7 @@ class Assembler : public AssemblerBase {
   REGULAR_INSTRUCTION(imul, 0xAF, 0x0F)
   REGULAR_INSTRUCTION(bsf, 0xBC, 0x0F)
   REGULAR_INSTRUCTION(bsr, 0xBD, 0x0F)
+  REGULAR_INSTRUCTION(rep_bsf, 0xBC, 0x0F, 0xF3)
   REGULAR_INSTRUCTION(popcnt, 0xB8, 0x0F, 0xF3)
   REGULAR_INSTRUCTION(lzcnt, 0xBD, 0x0F, 0xF3)
 #undef REGULAR_INSTRUCTION
@@ -978,6 +979,11 @@ class Assembler : public AssemblerBase {
   // if platform ABI requires that.
   void CallCFunction(Register reg, bool restore_rsp = false);
   void CallCFunction(Address address, bool restore_rsp = false);
+
+  void ExtractBitField(Register dst,
+                       Register src,
+                       intptr_t low_bit,
+                       intptr_t width) override;
 
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);

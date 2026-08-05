@@ -23,6 +23,7 @@
 #include <unistd.h>        // NOLINT
 
 #include "platform/memory_sanitizer.h"
+#include "platform/signal_blocker.h"
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/code_comments.h"
@@ -65,7 +66,6 @@ DEFINE_FLAG(bool,
             "mapping)");
 
 DECLARE_FLAG(bool, write_protect_code);
-DECLARE_FLAG(bool, write_protect_vm_isolate);
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, code_comments);
 #endif
@@ -178,11 +178,9 @@ class JitDumpCodeObserver : public CodeObserver {
     // writing all JIT generated code out.
     setvbuf(out_file_, nullptr, _IOFBF, 2 * MB);
 
-    // Disable code write protection and vm isolate write protection, because
-    // calling mprotect on the pages filled with JIT generated code objects
-    // confuses perf.
+    // Disable code write protection, because calling mprotect on the pages
+    // filled with JIT generated code objects confuses perf.
     FLAG_write_protect_code = false;
-    FLAG_write_protect_vm_isolate = false;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
     // Enable code comments.
@@ -557,6 +555,26 @@ uintptr_t OS::CurrentRSS() {
     return 0;
   }
   return current_rss_pages * getpagesize();
+}
+
+bool OS::SafeReadMemory(void* address,
+                        uint8_t* buffer,
+                        size_t size_in_bytes,
+                        const char** error) {
+  ThreadSignalBlocker tsb(SIGPROF);
+  int fd = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+      open("/proc/self/mem", O_RDONLY | O_CLOEXEC));
+  if (fd < 0) {
+    *error = strerror(errno);
+    return false;
+  }
+  ssize_t bytes_read = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+      pread64(fd, buffer, size_in_bytes, reinterpret_cast<off64_t>(address)));
+  if (bytes_read == -1) {
+    *error = strerror(errno);
+  }
+  close(fd);
+  return bytes_read == static_cast<ssize_t>(size_in_bytes);
 }
 
 void OS::Sleep(int64_t millis) {

@@ -13,7 +13,11 @@ import 'package:yaml/yaml.dart';
 
 /// Computes [DocumentLink]s for lint names in an 'analysis_options.yaml'.
 class AnalysisOptionLinkComputer {
-  static const _lintsUrl = 'https://dart.dev/tools/linter-rules/';
+  static final Uri _lintStatesUri = Uri.https(
+    'github.com',
+    'dart-lang/sdk/blob/main/pkg/linter/doc/lint-lifecycle.md',
+  );
+
   final String pubHostedUrl;
 
   AnalysisOptionLinkComputer(this.pubHostedUrl);
@@ -48,22 +52,32 @@ class AnalysisOptionLinkComputer {
       }
     }
 
-    var allPlugins = <YamlNode>[
+    var allPlugins = <(YamlNode, YamlNode)>[
       if (node.nodes['analyzer'] case YamlMap analyzer)
         if (analyzer.nodes['plugins'] case YamlNode plugins)
           ...switch (plugins) {
-            YamlMap(:var nodes) => nodes.keys.cast<YamlNode>(),
-            YamlList plugins => plugins.nodes,
-            _ => const <YamlNode>[],
+            YamlMap(:var nodes) => nodes.cast<YamlNode, YamlNode>().entries.map(
+              (e) => (e.key, e.value),
+            ),
+            YamlList plugins => plugins.nodes.map((n) => (n, n)),
+            _ => const <(YamlNode, YamlNode)>[],
           },
+      if (node.nodes['plugins'] case YamlNode plugins)
+        ...switch (plugins) {
+          YamlMap(:var nodes) => nodes.cast<YamlNode, YamlNode>().entries.map(
+            (e) => (e.key, e.value),
+          ),
+          YamlList plugins => plugins.nodes.map((n) => (n, n)),
+          _ => const <(YamlNode, YamlNode)>[],
+        },
     ];
 
-    for (final plugin in allPlugins) {
-      var pluginLink = _computePluginLink(plugin);
+    for (final (pluginName, pluginSource) in allPlugins) {
+      var pluginLink = _computePluginLink(pluginName, pluginSource);
 
       if (pluginLink != null) {
-        var offset = plugin.span.start.offset;
-        var length = plugin.span.length;
+        var offset = pluginName.span.start.offset;
+        var length = pluginName.span.length;
         links.add(DocumentLink(offset, length, pluginLink));
       }
     }
@@ -86,19 +100,29 @@ class AnalysisOptionLinkComputer {
     if (lint == null) {
       return null;
     }
+    var state = lint.state;
+    if (state.isInternal) return _lintStatesUri.replace(fragment: 'internal');
+    if (state.isRemoved) return _lintStatesUri.replace(fragment: 'removed');
+    if (state.isTesting) return _lintStatesUri.replace(fragment: 'testing');
 
-    return Uri.tryParse(_lintsUrl + name);
+    return Uri.https('dart.dev', 'lints/$name');
   }
 
-  /// Computes a link for the plugin named [plugin].
-  Uri? _computePluginLink(YamlNode plugin) {
-    if (plugin is! YamlScalar) return null;
-    var name = plugin.value;
-    if (name is! String || name.isEmpty) return null;
+  /// Computes a link for the plugin named [pluginName] with source [pluginSource].
+  Uri? _computePluginLink(YamlNode pluginName, YamlNode pluginSource) {
+    var computer = PubspecDocumentLinkComputer(pubHostedUrl);
+    var link = computer._computeLink(pluginName, pluginSource);
+    if (link != null) return link;
 
-    var separator = pubHostedUrl.endsWith('/') ? '' : '/';
-
-    return Uri.parse('$pubHostedUrl${separator}packages/$name');
+    // Fallback to pub.dev if it was not a git or hosted link but we have a name.
+    if (pluginName is YamlScalar) {
+      var name = pluginName.value;
+      if (name is String && name.isNotEmpty) {
+        var separator = pubHostedUrl.endsWith('/') ? '' : '/';
+        return Uri.parse('$pubHostedUrl${separator}packages/$name');
+      }
+    }
+    return null;
   }
 }
 
@@ -115,9 +139,7 @@ class DartDocumentLinkVisitor extends RecursiveAstVisitor<void> {
   late final Folder? folderWithExamplesApi = () {
     var file = resourceProvider.getFile(filePath);
     for (var parent in file.parent.withAncestors) {
-      var apiFolder = parent
-          .getChildAssumingFolder('examples')
-          .getChildAssumingFolder('api');
+      var apiFolder = parent.getFolder('examples').getFolder('api');
       if (apiFolder.exists) {
         return parent;
       }
@@ -177,7 +199,8 @@ class DartDocumentLinkVisitor extends RecursiveAstVisitor<void> {
         ]);
         var offset = contentsStart + startIndex;
         var length = endIndex - startIndex;
-        _documentLinks.add(DocumentLink(offset, length, Uri.file(examplePath)));
+        var exampleFile = resourceProvider.getFile(examplePath);
+        _documentLinks.add(DocumentLink(offset, length, exampleFile.toUri()));
       }
     }
   }

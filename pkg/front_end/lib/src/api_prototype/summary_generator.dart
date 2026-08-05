@@ -18,7 +18,7 @@ import 'compiler_options.dart';
 /// Intended to be a part of a modular compilation process.
 ///
 /// Any dependency of [sources] that is not listed in
-/// [CompilerOptions.additionalDills] and [CompilerOptions.sdkSummary] is
+/// [CompilerOptions.additionalDillModules] and [CompilerOptions.sdkSummary] is
 /// treated as an additional source file for the build unit.
 ///
 /// Any `part` declarations found in [sources] must refer to part files which

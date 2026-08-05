@@ -103,8 +103,11 @@ class LspClientCapabilities {
   final bool completionLabelDetails;
   final bool completionDefaultEditRange;
   final bool completionDefaultTextMode;
-  final bool experimentalSnippetTextEdit;
-  final Set<String> codeActionCommandParameterSupportedKinds;
+  final bool completionListApplyKind;
+  final bool legacySnippetTextEdit;
+  final bool snippetTextEdit;
+  final bool signatureHelpNullActiveParameter;
+  final Set<String> supportedInteractiveFormInputTypes;
   final bool supportsShowMessageRequest;
 
   /// A set of commands that exist on the client that the server may call.
@@ -113,7 +116,7 @@ class LspClientCapabilities {
   /// User-friendly error messages from parsing the experimental capabilities.
   final List<String> experimentalCapabilitiesErrors;
 
-  factory LspClientCapabilities(ClientCapabilities raw) {
+  factory(ClientCapabilities raw) {
     var workspace = raw.workspace;
     var workspaceEdit = workspace?.workspaceEdit;
     var resourceOperations = workspaceEdit?.resourceOperations;
@@ -137,6 +140,7 @@ class LspClientCapabilities {
     var codeActionKinds = _listToSet(
       codeActionLiteral?.codeActionKind.valueSet,
     );
+    var completionListApplyKind = completionList?.applyKindSupport ?? false;
     var completionDeprecatedFlag = completionItem?.deprecatedSupport ?? false;
     var completionDocumentationFormats = _listToNullableSet(
       completionItem?.documentationFormat,
@@ -182,6 +186,8 @@ class LspClientCapabilities {
     var signatureHelpDocumentationFormats = _listToNullableSet(
       signatureInformation?.documentationFormat,
     );
+    var signatureHelpNullActiveParameter =
+        signatureInformation?.noActiveParameterSupport ?? false;
     var workDoneProgress = raw.window?.workDoneProgress ?? false;
     var workspaceSymbolKinds = _listToSet(
       workspaceSymbol?.symbolKind?.valueSet,
@@ -220,18 +226,21 @@ class LspClientCapabilities {
       completionItemKinds: completionItemKinds,
       completionInsertTextModes: completionInsertTextModes,
       completionLabelDetails: completionLabelDetails,
+      completionListApplyKind: completionListApplyKind,
       completionDefaultEditRange: completionDefaultEditRange,
       completionDefaultTextMode: completionDefaultTextMode,
-      experimentalSnippetTextEdit: experimental.snippetTextEdit,
-      codeActionCommandParameterSupportedKinds:
-          experimental.commandParameterKinds,
+      legacySnippetTextEdit: experimental.legacySnippetTextEdit,
+      snippetTextEdit: workspaceEdit?.snippetEditSupport ?? false,
+      signatureHelpNullActiveParameter: signatureHelpNullActiveParameter,
+      supportedInteractiveFormInputTypes:
+          experimental.interactiveFormInputTypes,
       supportsShowMessageRequest: experimental.showMessageRequest,
       supportedCommands: experimental.commands,
       experimentalCapabilitiesErrors: experimental.errors,
     );
   }
 
-  LspClientCapabilities._(
+  new _(
     this.raw, {
     required this.documentChanges,
     required this.changeAnnotations,
@@ -261,10 +270,13 @@ class LspClientCapabilities {
     required this.completionItemKinds,
     required this.completionInsertTextModes,
     required this.completionLabelDetails,
+    required this.completionListApplyKind,
     required this.completionDefaultEditRange,
     required this.completionDefaultTextMode,
-    required this.experimentalSnippetTextEdit,
-    required this.codeActionCommandParameterSupportedKinds,
+    required this.legacySnippetTextEdit,
+    required this.snippetTextEdit,
+    required this.signatureHelpNullActiveParameter,
+    required this.supportedInteractiveFormInputTypes,
     required this.supportsShowMessageRequest,
     required this.supportedCommands,
     required this.experimentalCapabilitiesErrors,
@@ -289,14 +301,17 @@ class _ExperimentalClientCapabilities {
   /// User-friendly error messages from parsing the experimental capabilities.
   final List<String> errors;
 
-  final bool snippetTextEdit;
-  final Set<String> commandParameterKinds;
+  /// Legacy custom snippet support for text edits based on the Rust Analyzer
+  /// specification. This was replaced by proper snippet support in LSP v3.18.
+  final bool legacySnippetTextEdit;
+
+  final Set<String> interactiveFormInputTypes;
   final Set<String> commands;
   final bool showMessageRequest;
 
-  _ExperimentalClientCapabilities({
-    required this.snippetTextEdit,
-    required this.commandParameterKinds,
+  new({
+    required this.legacySnippetTextEdit,
+    required this.interactiveFormInputTypes,
     required this.commands,
     required this.showMessageRequest,
     required this.errors,
@@ -310,7 +325,7 @@ class _ExperimentalClientCapabilities {
   /// carefully and report a warning to the client if something looks wrong.
   ///
   /// Example: https://github.com/dart-lang/sdk/issues/55935
-  factory _ExperimentalClientCapabilities.parse(Object? raw) {
+  factory parse(Object? raw) {
     var errors = <String>[];
 
     /// Helper to ensure [object] is type [T] and otherwise records an error in
@@ -341,25 +356,22 @@ class _ExperimentalClientCapabilities {
     var experimental = expectMap('', raw) ?? const {};
 
     // Snippets.
-    var snippetTextEdit = expectBool(
+    var legacySnippetTextEdit = expectBool(
+      // The key name here is part of the spec so we can't rename it, but we
+      // use the "legacy" prefix in all code we can to avoid confusion with the
+      // now-standard (but slightly different) snippet support.
       '.snippetTextEdit',
       experimental['snippetTextEdit'],
     );
 
-    // Refactor command parameters.
-    var experimentalActions = expectMap(
-      '.dartCodeAction',
-      experimental['dartCodeAction'],
+    // Interactive Forms.
+    var interactiveForms = expectMap(
+      '.interactiveResolve',
+      experimental['interactiveResolve'],
     );
-    experimentalActions ??= const {};
-    var commandParameters = expectMap(
-      '.dartCodeAction.commandParameterSupport',
-      experimentalActions['commandParameterSupport'],
-    );
-    commandParameters ??= {};
-    var commandParameterKinds = expectNullableStringSet(
-      '.dartCodeAction.commandParameterSupport.supportedKinds',
-      commandParameters['supportedKinds'],
+    var interactiveFormInputTypes = expectNullableStringSet(
+      '.interactiveResolve.inputTypes',
+      interactiveForms?['inputTypes'],
     );
 
     // Executable commands.
@@ -382,8 +394,8 @@ class _ExperimentalClientCapabilities {
     );
 
     return _ExperimentalClientCapabilities(
-      snippetTextEdit: snippetTextEdit ?? false,
-      commandParameterKinds: commandParameterKinds ?? {},
+      legacySnippetTextEdit: legacySnippetTextEdit ?? false,
+      interactiveFormInputTypes: interactiveFormInputTypes ?? {},
       commands: commands ?? {},
       showMessageRequest: showMessageRequest ?? false,
       errors: errors,

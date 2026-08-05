@@ -16,7 +16,6 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
-import '../builder/augmentation_iterator.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -84,7 +83,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   Nullability? _nullability;
 
-  SourceExtensionTypeDeclarationBuilder({
+  new({
     required this.name,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required this.constructorReferences,
@@ -1055,15 +1054,6 @@ class SourceExtensionTypeDeclarationBuilder
     return result;
   }
 
-  // Coverage-ignore(suite): Not run.
-  /// Returns an iterator the origin extension type declaration and all
-  /// augmentations in application order.
-  Iterator<SourceExtensionTypeDeclarationBuilder> get declarationIterator =>
-      new AugmentationIterator<SourceExtensionTypeDeclarationBuilder>(
-        this,
-        null,
-      );
-
   @override
   // Coverage-ignore(suite): Not run.
   Reference get reference => _extensionTypeDeclaration.reference;
@@ -1072,4 +1062,8 @@ class SourceExtensionTypeDeclarationBuilder
   void onInferredType(DartType type) {
     _extensionTypeDeclaration.declaredRepresentationType = type;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

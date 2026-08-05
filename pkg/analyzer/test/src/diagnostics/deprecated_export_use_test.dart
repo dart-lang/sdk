@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,16 +26,15 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f() {
   A;
+//^
+// [diag.deprecatedExportUse] The ability to import 'A' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 31, 1)],
-    );
+''');
   }
 
   test_deprecated_class_asExpression_prefixed() async {
@@ -51,16 +49,15 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart' as prefix;
 
 void f() {
   prefix.A;
+//       ^
+// [diag.deprecatedExportUse] The ability to import 'A' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 48, 1)],
-    );
+''');
   }
 
   test_deprecated_class_asType() async {
@@ -75,14 +72,13 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f(A a) {}
-''',
-      [error(diag.deprecatedExportUse, 25, 1)],
-    );
+//     ^
+// [diag.deprecatedExportUse] The ability to import 'A' indirectly is deprecated.
+''');
   }
 
   test_deprecated_class_asType_prefixed() async {
@@ -97,14 +93,13 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart' as prefix;
 
 void f(prefix.A a) {}
-''',
-      [error(diag.deprecatedExportUse, 42, 1)],
-    );
+//            ^
+// [diag.deprecatedExportUse] The ability to import 'A' indirectly is deprecated.
+''');
   }
 
   test_deprecated_class_import_show() async {
@@ -119,14 +114,13 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart' show A;
 
 void f(A a) {}
-''',
-      [error(diag.deprecatedExportUse, 32, 1)],
-    );
+//     ^
+// [diag.deprecatedExportUse] The ability to import 'A' indirectly is deprecated.
+''');
   }
 
   test_deprecated_function() async {
@@ -141,16 +135,15 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f() {
   foo();
+//^^^
+// [diag.deprecatedExportUse] The ability to import 'foo' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 31, 3)],
-    );
+''');
   }
 
   test_deprecated_function_prefixed() async {
@@ -165,16 +158,15 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart' as prefix;
 
 void f() {
   prefix.foo();
+//       ^^^
+// [diag.deprecatedExportUse] The ability to import 'foo' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 48, 3)],
-    );
+''');
   }
 
   test_deprecated_getter() async {
@@ -192,16 +184,15 @@ export 'a.dart';
 set foo(int _) {}
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f() {
   foo;
+//^^^
+// [diag.deprecatedExportUse] The ability to import 'foo' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 31, 3)],
-    );
+''');
   }
 
   test_deprecated_getter_prefixed() async {
@@ -219,16 +210,15 @@ export 'a.dart';
 set foo(int _) {}
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart' as prefix;
 
 void f() {
   prefix.foo;
+//       ^^^
+// [diag.deprecatedExportUse] The ability to import 'foo' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 48, 3)],
-    );
+''');
   }
 
   /// While linking `b.dart` and `c.dart` library cycle, we build their
@@ -253,16 +243,15 @@ export 'a.dart';
 import 'b.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f() {
   foo();
+//^^^
+// [diag.deprecatedExportUse] The ability to import 'foo' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 31, 3)],
-    );
+''');
   }
 
   test_deprecated_setter() async {
@@ -280,16 +269,15 @@ export 'a.dart';
 int get foo => 0;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f() {
   foo = 0;
+//^^^
+// [diag.deprecatedExportUse] The ability to import 'foo' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 31, 3)],
-    );
+''');
   }
 
   test_deprecated_setter_prefixed() async {
@@ -307,16 +295,15 @@ export 'a.dart';
 int get foo => 0;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart' as prefix;
 
 void f() {
   prefix.foo = 0;
+//       ^^^
+// [diag.deprecatedExportUse] The ability to import 'foo' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 48, 3)],
-    );
+''');
   }
 
   test_deprecated_variable() async {
@@ -331,16 +318,15 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f() {
   foo;
+//^^^
+// [diag.deprecatedExportUse] The ability to import 'foo' indirectly is deprecated.
 }
-''',
-      [error(diag.deprecatedExportUse, 31, 3)],
-    );
+''');
   }
 
   test_notDeprecated_class_exportedFromPart() async {
@@ -357,7 +343,7 @@ export 'a.dart';
 part 'b.dart';
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'c.dart';
 
 void f(A a) {}
@@ -378,7 +364,7 @@ export 'a.dart';
 class B {}
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'b.dart';
 
@@ -401,7 +387,7 @@ export 'a.dart';
 export 'a.dart';
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f(A a) {}
@@ -422,7 +408,7 @@ export 'a.dart';
 class B {}
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'b.dart' hide A;
 
@@ -439,7 +425,7 @@ class A {}
 export 'a.dart';
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f(A a) {}
@@ -460,7 +446,7 @@ export 'a.dart';
 set foo(int _) {}
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f() {
@@ -483,7 +469,7 @@ export 'a.dart';
 set foo(int _) {}
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart' as prefix;
 
 void f() {
@@ -506,7 +492,7 @@ export 'a.dart';
 int get foo => 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f() {
@@ -529,7 +515,7 @@ export 'a.dart';
 int get foo => 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart' as prefix;
 
 void f() {

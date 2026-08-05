@@ -295,9 +295,9 @@ class _Link extends FileSystemEntity implements Link {
 
   Future<Link> _delete({bool recursive = false}) {
     if (recursive) {
-      return new Directory.fromRawPath(
-        _rawPath,
-      ).delete(recursive: true).then((_) => this);
+      return new Directory.fromRawPath(_rawPath)
+          .delete(recursive: true)
+          .then((_) => this);
     }
     return _File._dispatchWithNamespace(_IOService.fileDeleteLink, [
       null,

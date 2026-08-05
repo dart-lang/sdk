@@ -34,7 +34,7 @@ abstract class ClassDeclaration {
 class RegularClassDeclaration implements ClassDeclaration {
   final ClassFragment _fragment;
 
-  RegularClassDeclaration(this._fragment);
+  new(this._fragment);
 
   @override
   ExtensionScope get extensionScope =>
@@ -109,7 +109,7 @@ class EnumDeclaration implements ClassDeclaration {
   @override
   final TypeBuilder supertype;
 
-  EnumDeclaration(this._fragment, this.supertype);
+  new(this._fragment, this.supertype);
 
   @override
   ExtensionScope get extensionScope =>
@@ -181,7 +181,7 @@ class NamedMixinApplication implements ClassDeclaration {
   @override
   final List<TypeBuilder> mixedInTypes;
 
-  NamedMixinApplication(this._fragment, this.mixedInTypes);
+  new(this._fragment, this.mixedInTypes);
 
   @override
   ExtensionScope get extensionScope =>
@@ -279,7 +279,7 @@ class AnonymousMixinApplication implements ClassDeclaration {
   @override
   final List<TypeBuilder>? interfaces;
 
-  AnonymousMixinApplication({
+  new({
     required this.name,
     required this.extensionScope,
     required this.compilationUnitScope,
@@ -314,7 +314,7 @@ class AnonymousMixinApplication implements ClassDeclaration {
 class MixinDeclaration implements ClassDeclaration {
   final MixinFragment _fragment;
 
-  MixinDeclaration(this._fragment);
+  new(this._fragment);
 
   @override
   ExtensionScope get extensionScope =>

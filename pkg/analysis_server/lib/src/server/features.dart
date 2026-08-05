@@ -10,5 +10,5 @@ class FeatureSet {
   final bool completion;
   final bool search;
 
-  FeatureSet({this.completion = true, this.search = true});
+  new({this.completion = true, this.search = true});
 }

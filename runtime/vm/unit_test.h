@@ -56,7 +56,6 @@
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
     TransitionNativeToVM transition(__thread__);                               \
     StackZone __zone__(__thread__);                                            \
-    HandleScope __hs__(__thread__);                                            \
     Dart_TestHelper##name(__thread__);                                         \
   }                                                                            \
   static void Dart_TestHelper##name(Thread* thread)
@@ -76,7 +75,6 @@
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
     TransitionNativeToVM transition1(__thread__);                              \
     StackZone __zone__(__thread__);                                            \
-    HandleScope __hs__(__thread__);                                            \
     TransitionVMToNative transition2(__thread__);                              \
     Dart_TestHelper##name(__thread__);                                         \
   }                                                                            \
@@ -241,10 +239,8 @@ class VirtualMemory;
 
 namespace bin {
 // Snapshot pieces if we link in a snapshot, otherwise initialized to nullptr.
-extern const uint8_t* vm_snapshot_data;
-extern const uint8_t* vm_snapshot_instructions;
-extern const uint8_t* core_isolate_snapshot_data;
-extern const uint8_t* core_isolate_snapshot_instructions;
+extern const uint8_t* core_snapshot_data;
+extern const uint8_t* core_snapshot_text;
 }  // namespace bin
 
 extern const uint8_t* platform_dill;
@@ -252,7 +248,6 @@ extern const intptr_t platform_dill_size;
 
 class TesterState : public AllStatic {
  public:
-  static const uint8_t* vm_snapshot_data;
   static Dart_IsolateGroupCreateCallback create_callback;
   static Dart_IsolateShutdownCallback shutdown_callback;
   static Dart_IsolateGroupCleanupCallback group_cleanup_callback;

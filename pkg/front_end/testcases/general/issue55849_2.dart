@@ -9,7 +9,8 @@ class A {
 
 @A.redir(1)
 foo(@A.redir(2) String y) {
-  @A.redir(3) dynamic z;
+  @A.redir(3)
+  dynamic z;
 }
 
 main() {

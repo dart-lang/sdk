@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
@@ -18,14 +21,24 @@ void main() {
 }
 
 @reflectiveTest
-class DocumentLinkTest extends AbstractLspAnalysisServerTest {
+class DocumentLinkTest extends AbstractLspAnalysisServerTest
+    with LintRegistrationMixin {
   static const _pubBase = 'https://pub.dev/packages/';
-  static const _lintBase = 'https://dart.dev/tools/linter-rules/';
+  static const _lintBase = 'https://dart.dev/lints/';
+  static const _lintStatesBase =
+      'https://github.com/dart-lang/sdk/blob/main/'
+      'pkg/linter/doc/lint-lifecycle.md';
 
   @override
   void setUp() {
     registerLintRules();
     super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() async {
+    unregisterLintRules();
+    await super.tearDown();
   }
 
   Future<void> test_analysisOptions_empty() async {
@@ -34,7 +47,89 @@ class DocumentLinkTest extends AbstractLspAnalysisServerTest {
     await _test_analysisOptions_links(content, []);
   }
 
-  Future<void> test_analysisOptions_lint_links_list() async {
+  Future<void> test_analysisOptions_legacyPlugins() async {
+    var content = '''
+analyzer:
+  plugins:
+    - /*[0*/my_plugin/*0]*/
+''';
+
+    var expectedLinks = ['${_pubBase}my_plugin'];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_legacyPlugins_list() async {
+    var content = '''
+analyzer:
+  plugins:
+    - /*[0*/mockito_analyzer_plugin/*0]*/
+    - /*[1*/test_analyzer_plugin/*1]*/
+''';
+
+    var expectedLinks = [
+      '${_pubBase}mockito_analyzer_plugin',
+      '${_pubBase}test_analyzer_plugin',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_legacyPlugins_map() async {
+    var content = '''
+analyzer:
+  plugins:
+    /*[0*/mockito_analyzer_plugin/*0]*/:
+      enabled: true
+    /*[1*/test_analyzer_plugin/*1]*/:
+      options:
+        foo: bar
+''';
+
+    var expectedLinks = [
+      '${_pubBase}mockito_analyzer_plugin',
+      '${_pubBase}test_analyzer_plugin',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_linterRules_empty() async {
+    var content = '''
+linter:
+  rules:
+''';
+
+    await _test_pubspec_links(content, []);
+  }
+
+  Future<void> test_analysisOptions_linterRules_hiddenStates() async {
+    registerLintRule(_InternalRule());
+    registerLintRule(
+      RemovedAnalysisRule(name: 'removed_rule_lint', description: ''),
+    );
+    registerLintRule(_TestingRule());
+
+    var content = '''
+linter:
+  rules:
+    - /*[0*/internal_lint/*0]*/
+    - /*[1*/removed_rule_lint/*1]*/
+    - /*[2*/testing_lint/*2]*/
+    - /*[3*/prefer_single_quotes/*3]*/
+''';
+
+    var expectedLinks = [
+      '$_lintStatesBase#internal',
+      '$_lintStatesBase#removed',
+      '$_lintStatesBase#testing',
+      '${_lintBase}prefer_single_quotes',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_linterRules_list() async {
     var content = '''
 linter:
   rules:
@@ -54,7 +149,7 @@ linter:
     await _test_analysisOptions_links(content, expectedLinks);
   }
 
-  Future<void> test_analysisOptions_lint_links_map() async {
+  Future<void> test_analysisOptions_linterRules_map() async {
     var content = '''
 linter:
   rules:
@@ -72,29 +167,40 @@ linter:
     await _test_analysisOptions_links(content, expectedLinks);
   }
 
-  Future<void> test_analysisOptions_linterRules_empty() async {
+  Future<void> test_analysisOptions_plugins_git() async {
     var content = '''
-linter:
-  rules:
-''';
-
-    await _test_pubspec_links(content, []);
-  }
-
-  Future<void> test_analysisOptions_plugins_and_lints() async {
-    var content = '''
-analyzer:
-  plugins:
-    - /*[0*/my_plugin/*0]*/
-
-linter:
-  rules:
-    - /*[1*/await_only_futures/*1]*/
+plugins:
+  /*[0*/github_package_1/*0]*/:
+    git: https://github.com/dart-lang/sdk.git
+  /*[1*/github_package_2/*1]*/:
+    git: git@github.com:dart-lang/sdk.git
+  /*[2*/github_package_3/*2]*/:
+    git:
+      url: https://github.com/dart-lang/sdk.git
 ''';
 
     var expectedLinks = [
-      '${_pubBase}my_plugin',
-      '${_lintBase}await_only_futures',
+      'https://github.com/dart-lang/sdk.git',
+      'https://github.com/dart-lang/sdk.git',
+      'https://github.com/dart-lang/sdk.git',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_plugins_hosted() async {
+    var content = '''
+plugins:
+  /*[0*/hosted_package_1/*0]*/:
+    hosted: https://custom.dart.dev/
+  /*[1*/hosted_package_2/*1]*/:
+    hosted:
+      url: https://custom.dart.dev/
+''';
+
+    var expectedLinks = [
+      'https://custom.dart.dev/packages/hosted_package_1',
+      'https://custom.dart.dev/packages/hosted_package_2',
     ];
 
     await _test_analysisOptions_links(content, expectedLinks);
@@ -102,15 +208,14 @@ linter:
 
   Future<void> test_analysisOptions_plugins_list() async {
     var content = '''
-analyzer:
-  plugins:
-    - /*[0*/dart_code_metrics/*0]*/
-    - /*[1*/custom_lint/*1]*/
+plugins:
+  - /*[0*/mockito_analyzer_plugin/*0]*/
+  - /*[1*/test_analyzer_plugin/*1]*/
 ''';
 
     var expectedLinks = [
-      '${_pubBase}dart_code_metrics',
-      '${_pubBase}custom_lint',
+      '${_pubBase}mockito_analyzer_plugin',
+      '${_pubBase}test_analyzer_plugin',
     ];
 
     await _test_analysisOptions_links(content, expectedLinks);
@@ -118,18 +223,17 @@ analyzer:
 
   Future<void> test_analysisOptions_plugins_map() async {
     var content = '''
-analyzer:
-  plugins:
-    /*[0*/dart_code_metrics/*0]*/:
-      enabled: true
-    /*[1*/custom_lint/*1]*/:
-      options:
-        foo: bar
+plugins:
+  /*[0*/mockito_analyzer_plugin/*0]*/:
+    enabled: true
+  /*[1*/test_analyzer_plugin/*1]*/:
+    options:
+      foo: bar
 ''';
 
     var expectedLinks = [
-      '${_pubBase}dart_code_metrics',
-      '${_pubBase}custom_lint',
+      '${_pubBase}mockito_analyzer_plugin',
+      '${_pubBase}test_analyzer_plugin',
     ];
 
     await _test_analysisOptions_links(content, expectedLinks);
@@ -150,7 +254,7 @@ linter:
 
   Future<void> test_exampleLink() async {
     var exampleFolderPath = join(projectFolderPath, 'examples', 'api');
-    var exampleFileUri = Uri.file(join(exampleFolderPath, 'foo.dart'));
+    var exampleFileUri = toUri(join(exampleFolderPath, 'foo.dart'));
 
     var code = TestCode.parse('''
 /// {@tool dartpad}
@@ -333,4 +437,26 @@ dev_dependencies:
   ) async {
     await _test_file_links(pubspecFileUri, pubspecFilePath, content, expected);
   }
+}
+
+class _InternalRule extends AnalysisRule {
+  new() : super(name: 'internal_lint', state: .internal(), description: '');
+
+  @override
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'internal_rule',
+    'Internal rule.',
+    uniqueName: 'LintCode.internal_rule',
+  );
+}
+
+class _TestingRule extends AnalysisRule {
+  new() : super(name: 'testing_lint', state: .testing(), description: '');
+
+  @override
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'testing_rule',
+    'Testing rule.',
+    uniqueName: 'LintCode.testing_rule',
+  );
 }

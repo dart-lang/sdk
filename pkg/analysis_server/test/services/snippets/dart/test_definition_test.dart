@@ -26,7 +26,7 @@ class TestDefinitionTest extends DartSnippetProducerTest {
   String get prefix => TestDefinition.prefix;
 
   Future<void> test_import_dart() async {
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 void f() {
   test^
@@ -45,7 +45,7 @@ void f() {
   }
 
   Future<void> test_import_dart_existing() async {
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 import 'package:test/test.dart';
 
@@ -66,7 +66,7 @@ void f() {
   }
 
   Future<void> test_inTestFile() async {
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 void f() {
   test^
@@ -109,7 +109,7 @@ class TestWithFlutterDefinitionTest extends DartSnippetProducerTest {
   String get prefix => TestDefinition.prefix;
 
   Future<void> test_import_flutter() async {
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 void f() {
   test^
@@ -128,7 +128,7 @@ void f() {
   }
 
   Future<void> test_import_flutter_existing() async {
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 import 'package:flutter_test/flutter_test.dart';
 
@@ -151,7 +151,7 @@ void f() {
   /// Ensure we don't import package:flutter_test if package:test is already
   /// imported.
   Future<void> test_import_flutter_existingDart() async {
-    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 import 'package:test/test.dart';
 

@@ -1,0 +1,106 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  @#C3
+  method dcMethod1() → void {}
+  @#C3
+  method dcMethod2(core::String x, core::int y) → void {}
+  @#C3
+  get dcGetter1() → core::int
+    return 1;
+  @#C3
+  set dcSetter1(core::int value) → void {}
+  static method staticMethod1() → void {}
+  static factory factory() → self::A
+    return new self::A::•();
+}
+class A2 extends self::A {
+  synthetic constructor •() → self::A2
+    : super self::A::•()
+    ;
+  @#C4
+  @#C6
+  method dcMethod1() → void {
+    core::print("1");
+  }
+}
+class A3 extends core::Object implements self::A {
+  synthetic constructor •() → self::A3
+    : super core::Object::•()
+    ;
+  @#C4
+  @#C6
+  method dcMethod1() → void {
+    core::print("1");
+  }
+  @#C4
+  @#C6
+  method dcMethod2(core::String x, core::int y) → void {}
+  @#C4
+  @#C6
+  get dcGetter1() → core::int
+    return 1;
+  @#C4
+  @#C6
+  set dcSetter1(core::int value) → void {}
+}
+class B extends core::Object {
+  @#C3
+  final field core::int dcField1 = 1;
+  @#C3
+  field core::int dcField2 = 1;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  @#C3
+  method dcMethod3() → void {}
+  @#C3
+  method dcMethod4(core::String x, core::int y) → void {}
+  @#C3
+  get dcGetter2() → core::int
+    return 1;
+  @#C3
+  set dcSetter2(core::int value) → void {}
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method _dcPrivateMethod1() → core::int
+    return 1;
+}
+abstract class D extends self::C /*isMixinDeclaration*/  {
+  @#C3
+  method method1() → core::int
+    return (this as dynamic){dynamic}._dcPrivateMethod1() as{TypeError,ForDynamic} core::int;
+}
+class E extends core::Object {
+  @#C3
+  final field core::int dcField7 = 1;
+  @#C3
+  field core::int dcField8 = 1;
+  field core::int dcField9 = 1;
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+  @#C3
+  method dcMethod5() → void {}
+  @#C3
+  get dcGetter3() → core::int
+    return 1;
+  @#C3
+  set dcSetter3(core::int value) → void {}
+}
+constants  {
+  #C1 = "dyn-module:dynamically-callable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = core::_Override {}
+  #C5 = "dyn-module:implicitly-dynamically-callable"
+  #C6 = core::pragma {name:#C5, options:#C2}
+}

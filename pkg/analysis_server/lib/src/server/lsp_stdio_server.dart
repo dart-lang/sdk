@@ -17,7 +17,7 @@ class LspStdioAnalysisServer {
   LspSocketServer socketServer;
 
   /// Initialize a newly created stdio server.
-  LspStdioAnalysisServer(this.socketServer);
+  new(this.socketServer);
 
   /// Begin serving requests over stdio.
   ///

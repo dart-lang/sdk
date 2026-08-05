@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantRelationalPatternExpressionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -23,7 +24,7 @@ class NonConstantRelationalPatternExpressionTest
 const int a = 0;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 void f(int x) {
@@ -33,7 +34,7 @@ void f(int x) {
   }
 
   test_const_integerLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case > 0) {}
 }
@@ -41,7 +42,7 @@ void f(x) {
   }
 
   test_const_localVariable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case > a) {}
@@ -50,7 +51,7 @@ void f(x) {
   }
 
   test_const_topLevelVariable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 
 void f(x) {
@@ -60,26 +61,24 @@ void f(x) {
   }
 
   test_notConst_formalParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x, int a) {
   if (x case > a) {}
+//             ^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
 }
-''',
-      [error(diag.nonConstantRelationalPatternExpression, 34, 1)],
-    );
+''');
   }
 
   test_notConst_topLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final a = 0;
 
 void f(x) {
   if (x case > a) {}
+//             ^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
 }
-''',
-      [error(diag.nonConstantRelationalPatternExpression, 41, 1)],
-    );
+''');
   }
 }

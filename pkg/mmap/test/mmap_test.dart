@@ -15,7 +15,7 @@ final sizesToTest = [
   kPageSize - 1,
   kPageSize,
   2 * kPageSize - 1,
-  2 * kPageSize
+  2 * kPageSize,
 ];
 
 void main() {

@@ -17,12 +17,11 @@ main() {
 @reflectiveTest
 class CollectionLiteralParserTest extends ParserDiagnosticsTest {
   void test_listLiteral_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async {
   return [1, await for (var x in list) 2];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -49,7 +48,7 @@ ListLiteral
   }
 
   void test_listLiteral_forIf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async {
   return [
     1,
@@ -58,7 +57,6 @@ void f() async {
   ];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -91,7 +89,7 @@ ListLiteral
   }
 
   void test_listLiteral_forSpread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [
     1,
@@ -99,7 +97,6 @@ void f() {
   ];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -147,12 +144,11 @@ ListLiteral
   }
 
   void test_listLiteral_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [1, if (true) 2];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -173,12 +169,11 @@ ListLiteral
   }
 
   void test_listLiteral_ifElse() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [1, if (true) 2 else 5];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -202,12 +197,11 @@ ListLiteral
   }
 
   void test_listLiteral_ifElseFor() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [1, if (true) 2 else for (a in b) 5];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -241,7 +235,7 @@ ListLiteral
   }
 
   void test_listLiteral_ifElseSpread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [
     1,
@@ -249,7 +243,6 @@ void f() {
   ];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -285,7 +278,7 @@ ListLiteral
   }
 
   void test_listLiteral_ifFor() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [
     1,
@@ -294,7 +287,6 @@ void f() {
   ];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -325,7 +317,7 @@ ListLiteral
   }
 
   void test_listLiteral_ifSpread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [
     1,
@@ -333,7 +325,6 @@ void f() {
   ];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -360,7 +351,7 @@ ListLiteral
   }
 
   void test_listLiteral_spread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [
     1,
@@ -368,7 +359,6 @@ void f() {
   ];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -389,7 +379,7 @@ ListLiteral
   }
 
   void test_listLiteral_spreadQ() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return [
     1,
@@ -397,7 +387,6 @@ void f() {
   ];
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -418,12 +407,11 @@ ListLiteral
   }
 
   void test_mapLiteral_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async {
   return {1: 7, await for (y in list) 2: 3};
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -458,7 +446,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_forIf() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async {
   return {
     1: 7,
@@ -467,7 +455,6 @@ void f() async {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -508,7 +495,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_forSpread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     1: 7,
@@ -516,7 +503,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -571,12 +557,11 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {1: 1, if (true) 2: 4};
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -606,12 +591,11 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_ifElse() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {1: 1, if (true) 2: 4 else 5: 6};
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -648,12 +632,11 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_ifElseFor() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {1: 1, if (true) 2: 4 else for (c in d) 5: 6};
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -700,7 +683,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_ifElseSpread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     1: 7,
@@ -708,7 +691,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -759,7 +741,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_ifFor() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     1: 1,
@@ -768,7 +750,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -808,7 +789,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_ifSpread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     1: 1,
@@ -816,7 +797,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -853,7 +833,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_spread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     1: 2,
@@ -861,7 +841,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -892,7 +871,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_spread2_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return <int, int>{
     1: 2,
@@ -900,7 +879,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -939,14 +917,13 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_spread_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return <int, int>{
     ...{3: 4},
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -979,7 +956,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_spreadQ() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     1: 2,
@@ -987,7 +964,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1018,7 +994,7 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_spreadQ2_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return <int, int>{
     1: 2,
@@ -1026,7 +1002,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1065,14 +1040,13 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_spreadQ_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return <int, int>{
     ...?{3: 4},
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1105,12 +1079,11 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {1, if (true) 2};
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1132,12 +1105,11 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_ifElse() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {1, if (true) 2 else 5};
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1162,7 +1134,7 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_ifElseSpread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     1,
@@ -1170,7 +1142,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1208,7 +1179,7 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_ifSpread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     1,
@@ -1216,7 +1187,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1244,7 +1214,7 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_spread2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     3,
@@ -1252,7 +1222,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1274,7 +1243,7 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_spread2Q() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     3,
@@ -1282,7 +1251,6 @@ void f() {
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1304,14 +1272,13 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_spread_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return <int>{
     ...[3],
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1337,14 +1304,13 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_spreadQ_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return <int>{
     ...?[3],
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1370,14 +1336,13 @@ SetOrMapLiteral
   }
 
   void test_setOrMapLiteral_spread() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     ...{3: 4},
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1402,14 +1367,13 @@ SetOrMapLiteral
   }
 
   void test_setOrMapLiteral_spreadQ() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return {
     ...?{3: 4},
   };
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleReturnStatement.expression!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral

@@ -17,7 +17,7 @@ import 'service_extension_registry.dart';
 
 export 'service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '4.21.0';
+const String vmServiceVersion = '4.22.0';
 
 /// A class representation of the Dart VM Service Protocol.
 abstract interface class VmServiceInterface {
@@ -1477,7 +1477,7 @@ class VmServerConnection {
             params!['isolateId'],
             params['targetId'],
             params['selector'],
-            List<String>.from(params['argumentIds'] ?? []),
+            (params['argumentIds'] as List? ?? []).cast(),
             disableBreakpoints: params['disableBreakpoints'],
             idZoneId: params['idZoneId'],
           );
@@ -1487,7 +1487,7 @@ class VmServerConnection {
             params!['isolateId'],
             params['targetId'],
             params['expression'],
-            scope: params['scope']?.cast<String, String>(),
+            scope: (params['scope'] as Map?)?.cast(),
             disableBreakpoints: params['disableBreakpoints'],
             idZoneId: params['idZoneId'],
           );
@@ -1497,7 +1497,7 @@ class VmServerConnection {
             params!['isolateId'],
             params['frameIndex'],
             params['expression'],
-            scope: params['scope']?.cast<String, String>(),
+            scope: (params['scope'] as Map?)?.cast(),
             disableBreakpoints: params['disableBreakpoints'],
             idZoneId: params['idZoneId'],
           );
@@ -1645,14 +1645,15 @@ class VmServerConnection {
         case 'getSourceReport':
           response = await _serviceImplementation.getSourceReport(
             params!['isolateId'],
-            List<String>.from(params['reports'] ?? []),
+            (params['reports'] as List? ?? []).cast(),
             scriptId: params['scriptId'],
             tokenPos: params['tokenPos'],
             endTokenPos: params['endTokenPos'],
             forceCompile: params['forceCompile'],
             reportLines: params['reportLines'],
-            libraryFilters: params['libraryFilters'],
-            librariesAlreadyCompiled: params['librariesAlreadyCompiled'],
+            libraryFilters: (params['libraryFilters'] as List?)?.cast(),
+            librariesAlreadyCompiled:
+                (params['librariesAlreadyCompiled'] as List?)?.cast(),
           );
           break;
         case 'getVersion':
@@ -1686,14 +1687,14 @@ class VmServerConnection {
         case 'lookupResolvedPackageUris':
           response = await _serviceImplementation.lookupResolvedPackageUris(
             params!['isolateId'],
-            List<String>.from(params['uris'] ?? []),
+            (params['uris'] as List? ?? []).cast(),
             local: params['local'],
           );
           break;
         case 'lookupPackageUris':
           response = await _serviceImplementation.lookupPackageUris(
             params!['isolateId'],
-            List<String>.from(params['uris'] ?? []),
+            (params['uris'] as List? ?? []).cast(),
           );
           break;
         case 'reloadSources':
@@ -1777,7 +1778,7 @@ class VmServerConnection {
           break;
         case 'setVMTimelineFlags':
           response = await _serviceImplementation.setVMTimelineFlags(
-            List<String>.from(params!['recordedStreams'] ?? []),
+            (params!['recordedStreams'] as List? ?? []).cast(),
           );
           break;
         case 'streamCancel':
@@ -1797,7 +1798,7 @@ class VmServerConnection {
         case 'streamCpuSamplesWithUserTag':
           // ignore: deprecated_member_use_from_same_package
           response = await _serviceImplementation.streamCpuSamplesWithUserTag(
-            List<String>.from(params!['userTags'] ?? []),
+            (params!['userTags'] as List? ?? []).cast(),
           );
           break;
         case 'streamListen':

@@ -14,7 +14,7 @@ import 'package:analysis_server/src/server/driver.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class ServerStarter {
   /// Initialize a newly created starter to start up an analysis server.
-  factory ServerStarter() = Driver;
+  factory() = Driver;
 
   /// Set the new builder for attachments that should be included into crash
   /// reports.

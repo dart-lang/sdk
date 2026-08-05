@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -17,11 +16,37 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeDeclarationParserTest extends ParserDiagnosticsTest {
-  test_augment() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type A(int it) {}
+  test_augment_implementsClause() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E implements I {}
 ''');
-    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: I
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''',
+    );
+  }
+
+  test_augment_primaryConstructor() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type A(int it) {}
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+''');
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -29,7 +54,7 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -44,51 +69,17 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_augment_implementsClause() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) implements I {}
-''');
-    parseResult.assertNoErrors();
-    assertParsedNodeText(
-      parseResult.findNode.singleExtensionTypeDeclaration,
-      r'''
-ExtensionTypeDeclaration
-  augmentKeyword: augment
-  extensionKeyword: extension
-  typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
-    typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  implementsClause: ImplementsClause
-    implementsKeyword: implements
-    interfaces
-      NamedType
-        name: I
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''',
-    );
-  }
-
   test_body_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it);
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -103,12 +94,11 @@ ExtensionTypeDeclaration
   }
 
   test_constructor_factoryHead_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   factory named() => A(0);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -134,12 +124,11 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_named_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   const factory named() = B;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -160,12 +149,11 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   factory () => A(0);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -190,12 +178,11 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_unnamed_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   const factory () = B;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -215,12 +202,11 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   new named() : this.it = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -246,12 +232,11 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_named_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   const new named() : this.it = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -278,12 +263,11 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   new () : this.it = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -308,12 +292,11 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_unnamed_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   const new () : this.it = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -339,12 +322,11 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_factory_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   factory A.named() => A(0);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -373,12 +355,11 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_factory_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   factory A() => A(0);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -405,12 +386,11 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   A.named() : this.it = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -438,12 +418,11 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   A() : this.it = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -469,21 +448,20 @@ ConstructorDeclaration
   }
 
   test_error_formalParameterModifier_covariant_method_instance() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo(covariant int a) {}
+//         ^^^^^^^^^
+// [diag.extraneousModifierInExtensionType] Can't have modifier 'covariant' in an extension type.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifierInExtensionType, 38, 9),
-    ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -516,21 +494,20 @@ ExtensionTypeDeclaration
   }
 
   test_error_formalParameterModifier_covariant_method_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static void foo(covariant int a) {}
+//                ^^^^^^^^^
+// [diag.extraneousModifierInExtensionType] Can't have modifier 'covariant' in an extension type.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifierInExtensionType, 45, 9),
-    ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -564,13 +541,14 @@ ExtensionTypeDeclaration
   }
 
   test_featureNotEnabled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.1
 class A {}
 extension type B(int it) {}
+//        ^^^^
+// [diag.experimentNotEnabled] This requires the 'inline-class' language feature to be enabled.
 class C {}
 ''');
-    parseResult.assertErrors([error(diag.experimentNotEnabled, 36, 4)]);
 
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -594,19 +572,18 @@ CompilationUnit
   }
 
   test_members_constructor() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   A.named(this.it);
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -637,12 +614,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_constructor_augment() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment E.named();
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -650,15 +626,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -678,13 +647,44 @@ ExtensionTypeDeclaration
     );
   }
 
+  test_members_constructor_augment_factory_unnamed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
+  augment factory E() => E(0);
+}
+''');
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  augmentKeyword: augment
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: E
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    semicolon: ;
+''');
+  }
+
   test_members_field_augment() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment int foo = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -692,15 +692,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -722,12 +715,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_field_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment static int foo = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -735,15 +727,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -766,19 +751,18 @@ ExtensionTypeDeclaration
   }
 
   test_members_field_instance() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   final int foo = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -807,19 +791,18 @@ ExtensionTypeDeclaration
   }
 
   test_members_field_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   static int foo = 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -848,19 +831,18 @@ ExtensionTypeDeclaration
   }
 
   test_members_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -887,12 +869,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_getter_augment() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -900,15 +881,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -929,12 +903,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_getter_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment static int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -942,15 +915,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -972,19 +938,18 @@ ExtensionTypeDeclaration
   }
 
   test_members_method() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1012,12 +977,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_method_augment() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -1025,15 +989,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -1055,12 +1012,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_method_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment static void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -1068,15 +1024,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -1099,12 +1048,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_operator_augment() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment int operator+(int other) => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -1112,15 +1060,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -1148,19 +1089,18 @@ ExtensionTypeDeclaration
   }
 
   test_members_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   set foo(int _) {}
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1191,12 +1131,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_setter_augment() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -1204,15 +1143,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -1237,12 +1169,11 @@ ExtensionTypeDeclaration
   }
 
   test_members_setter_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
-augment extension type E(int it) {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension type E {
   augment static set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
@@ -1250,15 +1181,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: E
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members
@@ -1284,11 +1208,10 @@ ExtensionTypeDeclaration
   }
 
   test_metadata() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @foo
 extension type A(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -1300,7 +1223,7 @@ ExtensionTypeDeclaration
         token: foo
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1316,17 +1239,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_const_hasTypeParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type const A<T, U>.named(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     constKeyword: const
     typeName: A
     typeParameters: TypeParameterList
@@ -1354,17 +1276,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_const_hasTypeParameters_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type const A<T, U>(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     constKeyword: const
     typeName: A
     typeParameters: TypeParameterList
@@ -1389,17 +1310,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_const_noTypeParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type const A.named(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     constKeyword: const
     typeName: A
     constructorName: PrimaryConstructorName
@@ -1419,17 +1339,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_const_noTypeParameters_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type const A(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     constKeyword: const
     typeName: A
     formalParameters: FormalParameterList
@@ -1446,17 +1365,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_const_typeName_noFormalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type const E {}
+//                   ^
+// [diag.missingPrimaryConstructor] An extension type declaration must have a primary constructor declaration.
 ''');
-    parseResult.assertErrors([error(diag.missingPrimaryConstructor, 21, 1)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: ( <synthetic>
@@ -1468,17 +1388,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_defaultValue_optionalNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A({int a = 0}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1500,17 +1419,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_defaultValue_optionalPositional() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A([int a = 0]) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1532,20 +1450,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_documentationComment_requiredNamed_final_functionTyped() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(
   /// aaa
   final int a(String x)
 ) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1573,20 +1490,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_documentationComment_requiredNamed_final_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A({
   /// aaa
   required final int a = 0,
 }) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1613,20 +1529,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_documentationComment_requiredPositional_final_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(
   /// aaa
   final int a
 ) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1646,17 +1561,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_fieldFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(this.it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1672,17 +1586,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_functionTypedFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it()) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1702,17 +1615,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(const int it) {}
+//               ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 17, 5)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1729,19 +1643,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(covariant int it) {}
+//               ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidCovariantModifierInPrimaryConstructor, 17, 9),
-    ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1758,19 +1671,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(covariant final int it) {}
+//               ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidCovariantModifierInPrimaryConstructor, 17, 9),
-    ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1788,20 +1700,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(covariant int it) {}
+//               ^^^^^^^^^
+// [diag.extraneousModifierInPrimaryConstructor] Can't have modifier 'covariant' in a primary constructor.
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifierInPrimaryConstructor, 33, 9),
-    ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1818,17 +1729,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(covariant var int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1846,17 +1756,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_final_hasType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(final int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1873,18 +1782,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_final_hasType_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(final int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1901,17 +1809,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_final_noType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(final it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1926,18 +1833,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_final_noType_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(final it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1952,17 +1858,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_required() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(required int it) {}
+//               ^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'required' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 17, 8)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1979,17 +1886,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(static int it) {}
+//               ^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'static' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 17, 6)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2005,17 +1913,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(var it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2030,18 +1937,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_var_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(var it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2056,17 +1962,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A({int it = 0}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2088,18 +1993,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A({int it = 0}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2121,17 +2025,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A({int? a, int? b}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2155,18 +2058,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A({int? a, int? b}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2190,17 +2092,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed_requiredNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A({int? a, required int b}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2224,17 +2125,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalPositional() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A([int it = 0]) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2256,18 +2156,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalPositional_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A([int it = 0]) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2289,17 +2188,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A([int? a, int? b]) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2323,18 +2221,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A([int? a, int? b]) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2358,17 +2255,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A({required int it}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2387,18 +2283,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredNamed_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A({required int it}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2417,17 +2312,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredNamed_optionalNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A({required int a, int? b}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2451,17 +2345,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredNamed_requiredNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A({required int a, required int b}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2485,17 +2378,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2511,18 +2403,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2538,17 +2429,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int a, {int? b}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2571,18 +2461,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int a, {int? b}) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2605,17 +2494,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int a, [int? b]) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2638,18 +2526,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int a, [int? b]) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2672,17 +2559,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int a, int b) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2702,18 +2588,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int a, int b) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2733,17 +2618,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_memberWithClassName() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int A) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2759,17 +2643,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_metadata() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(@foo int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2790,17 +2673,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noFormalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A() {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2812,18 +2694,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noFormalParameters_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A() {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2835,17 +2716,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noTypeAnnotation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2859,18 +2739,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noTypeAnnotation_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2884,17 +2763,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noTypeAnnotation_withMetadata() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(@foo it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2913,17 +2791,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_superFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(super.it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2939,17 +2816,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_trailingComma() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it,) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2965,18 +2841,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_trailingComma_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int it,) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2992,17 +2867,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_missing() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type E {}
+//             ^
+// [diag.missingPrimaryConstructor] An extension type declaration must have a primary constructor declaration.
 ''');
-    parseResult.assertErrors([error(diag.missingPrimaryConstructor, 15, 1)]);
 
     var node = parseResult.findNode.extensionTypeDeclaration('E');
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension @0
   typeKeyword: type @10
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: E @15
     formalParameters: FormalParameterList
       leftParenthesis: ( @17 <synthetic>
@@ -3014,17 +2890,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_notConst_hasTypeParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A<T, U>.named(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <
@@ -3051,17 +2926,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_notConst_hasTypeParameters_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A<T, U>(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <
@@ -3085,17 +2959,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_notConst_noTypeParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     constructorName: PrimaryConstructorName
       period: .
@@ -3114,17 +2987,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_notConst_noTypeParameters_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3140,19 +3012,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructorBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   this;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3173,17 +3044,16 @@ ExtensionTypeDeclaration
   }
 
   test_withImplementsClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) implements B, C {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3206,17 +3076,16 @@ ExtensionTypeDeclaration
   }
 
   test_withTypeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <

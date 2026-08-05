@@ -7,6 +7,7 @@
 // construct a list containing `null`.  Verify that the runtime understands the
 // resulting type to be nullable by checking the reified list type.
 import 'package:expect/expect.dart';
+
 import 'dart:core';
 import 'dart:core' as core;
 

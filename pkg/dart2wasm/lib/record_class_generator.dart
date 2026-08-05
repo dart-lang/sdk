@@ -4,11 +4,10 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 
 import 'records.dart';
 import 'util.dart';
-
-const String dynamicModulesRecordsLibraryUri = 'dart:_dyn_mod_records';
 
 /// Generates a class extending `Record` for each record shape in the
 /// [Component].
@@ -84,29 +83,14 @@ const String dynamicModulesRecordsLibraryUri = 'dart:_dyn_mod_records';
 /// ```
 Map<RecordShape, Class> generateRecordClasses(
   Component component,
-  CoreTypes coreTypes, {
-  bool isDynamicMainModule = false,
-  bool isDynamicSubmodule = false,
-}) {
+  CoreTypes coreTypes,
+) {
   final Map<RecordShape, Class> recordClasses = {};
-  Library library;
-  if (isDynamicSubmodule) {
-    // Put new record classes in their own library so downstream we know to load
-    // them as new classes.
-    library = Library(
-      Uri.parse(dynamicModulesRecordsLibraryUri),
-      fileUri: coreTypes.coreLibrary.fileUri,
-    );
-    component.libraries.add(library);
-    library.parent = component;
-  } else {
-    library = coreTypes.coreLibrary;
-  }
+
   final recordClassGenerator = _RecordClassGenerator(
     recordClasses,
-    library,
+    coreTypes.coreLibrary,
     coreTypes,
-    isDynamicMainModule || isDynamicSubmodule,
   );
   final visitor = _RecordVisitor(recordClassGenerator);
   component.libraries.forEach(visitor.visitLibrary);
@@ -117,7 +101,6 @@ class _RecordClassGenerator {
   final CoreTypes coreTypes;
   final Map<RecordShape, Class> classes;
   final Library library;
-  final bool isDynamicModuleEnabled;
 
   late final Class typeRuntimetypeTypeClass = coreTypes.index.getClass(
     "dart:core",
@@ -195,7 +178,7 @@ class _RecordClassGenerator {
               .extensions
               .singleWhere((e) => e.name == 'WasmArrayExt')
               .memberDescriptors
-              .singleWhere((member) => member.name.text == '[]')
+              .singleWhere((member) => member.name == indexGetName)
               .memberReference!
               .node
           as Procedure;
@@ -252,20 +235,7 @@ class _RecordClassGenerator {
 
   DartType get intType => coreTypes.intNonNullableRawType;
 
-  late final Map<String, Class> _existingCoreClassNames = (() {
-    final map = <String, Class>{};
-    for (final cls in library.classes) {
-      map[cls.name] = cls;
-    }
-    return map;
-  })();
-
-  _RecordClassGenerator(
-    this.classes,
-    this.library,
-    this.coreTypes,
-    this.isDynamicModuleEnabled,
-  );
+  _RecordClassGenerator(this.classes, this.library, this.coreTypes);
 
   void generateClassForRecordType(RecordType recordType) {
     final shape = RecordShape.fromType(recordType);
@@ -280,11 +250,6 @@ class _RecordClassGenerator {
     if (shape.names.isNotEmpty) {
       className = '${className}_${shape.names.join('_')}';
     }
-
-    // If this is a dynamic submodule the loaded main module may already contain
-    // this class.
-    final existingClass = _existingCoreClassNames[className];
-    if (existingClass != null) return existingClass;
 
     final cls = addWasmEntryPointPragma(
       Class(
@@ -347,9 +312,9 @@ class _RecordClassGenerator {
   /// Generate a constructor with name `_`. Named fields are passed in sorted
   /// order.
   Constructor _generateConstructor(RecordShape shape, List<Field> fields) {
-    final List<VariableDeclaration> positionalParameters = List.generate(
+    final List<PositionalParameter> positionalParameters = List.generate(
       fields.length,
-      (i) => VariableDeclaration('field$i', isSynthesized: true),
+      (i) => PositionalParameter(cosmeticName: 'field$i', isSynthesized: true),
     );
 
     final List<Initializer> initializers = List.generate(
@@ -508,59 +473,26 @@ class _RecordClassGenerator {
       Nullability.nonNullable,
     );
 
-    final VariableDeclaration parameter = VariableDeclaration(
-      'other',
+    final PositionalParameter parameter = PositionalParameter(
+      cosmeticName: 'other',
       type: nullableObjectType,
       isSynthesized: true,
     );
 
     final List<Statement> statements = [];
 
-    if (isDynamicModuleEnabled) {
-      final checkInstance = coreTypes.index.getProcedure(
-        'dart:core',
-        '_RecordType',
-        '_checkInstance',
-      );
-      statements.add(
-        IfStatement(
-          Not(
-            InstanceInvocation(
-              InstanceAccessKind.Instance,
-              (InstanceGet(
-                InstanceAccessKind.Instance,
-                ThisExpression(),
-                getRti.name,
-                interfaceTarget: getRti,
-                resultType: InterfaceType(
-                  recordRuntimeTypeClass,
-                  Nullability.nonNullable,
-                ),
-              )),
-              checkInstance.name,
-              Arguments([VariableGet(parameter)]),
-              interfaceTarget: checkInstance,
-              functionType: checkInstance.computeSignatureOrFunctionType(),
-            ),
+    statements.add(
+      IfStatement(
+        Not(
+          IsExpression(
+            VariableGet(parameter),
+            InterfaceType(cls, Nullability.nonNullable),
           ),
-          ReturnStatement(BoolLiteral(false)),
-          null,
         ),
-      );
-    } else {
-      statements.add(
-        IfStatement(
-          Not(
-            IsExpression(
-              VariableGet(parameter),
-              InterfaceType(cls, Nullability.nonNullable),
-            ),
-          ),
-          ReturnStatement(BoolLiteral(false)),
-          null,
-        ),
-      );
-    }
+        ReturnStatement(BoolLiteral(false)),
+        null,
+      ),
+    );
 
     // Compare fields.
     for (Field field in fields) {
@@ -613,10 +545,15 @@ class _RecordClassGenerator {
 
   /// Generate `_checkRecordType` member.
   Procedure _generateCheckRecordType(RecordShape shape, List<Field> fields) {
-    final typesParameter = VariableDeclaration('types', type: wasmArrayOfType);
-    final namesParameter = VariableDeclaration(
-      'names',
+    final typesParameter = PositionalParameter(
+      cosmeticName: 'types',
+      type: wasmArrayOfType,
+      isSynthesized: true,
+    );
+    final namesParameter = PositionalParameter(
+      cosmeticName: 'names',
       type: immutableWasmArrayOfString,
+      isSynthesized: true,
     );
 
     final List<Statement> statements = [];

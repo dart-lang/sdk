@@ -8,7 +8,7 @@ import 'link_implementation.dart'
     show LinkBuilderImplementation, LinkEntry, LinkIterator, MappedLinkIterable;
 
 class Link<T> implements Iterable<T> {
-  const Link();
+  const new();
   // TODO(ahe): Remove this method?
   @override
   T get first {
@@ -187,7 +187,7 @@ class Link<T> implements Iterable<T> {
 /// Builder object for creating linked lists using [Link] or fixed-length [List]
 /// objects.
 abstract class LinkBuilder<T> {
-  factory LinkBuilder() = LinkBuilderImplementation<T>;
+  factory() = LinkBuilderImplementation<T>;
 
   /// Returns the first element in the list being built.
   T get first;

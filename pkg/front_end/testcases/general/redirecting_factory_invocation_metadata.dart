@@ -72,12 +72,16 @@ class Class<@Const() T> {
 }
 
 @Const()
-typedef Typedef1<@Const() T> = Function<@Const() T>(@Const() Class,
-    [@Const() Class]);
+typedef Typedef1<@Const() T> = Function<@Const() T>(
+  @Const() Class, [
+  @Const() Class,
+]);
 
 @Const()
-typedef Typedef2<@Const() T> = Function<@Const() T>(@Const() Class,
-    {@Const() Class o2});
+typedef Typedef2<@Const() T> = Function<@Const() T>(
+  @Const() Class, {
+  @Const() Class o2,
+});
 
 @Const()
 typedef void Typedef3<@Const() T>(@Const() o1, [@Const() o2]);

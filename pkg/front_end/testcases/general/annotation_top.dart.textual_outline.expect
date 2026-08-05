@@ -1,6 +1,5 @@
 @a
 @A(1)
-
 library test;
 
 const Object a = const Object();

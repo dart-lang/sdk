@@ -917,7 +917,7 @@ static extension-member method Extension|staticTest<S extends core::Object? = dy
   self::topLevelSetter = null;
   self::topLevelField = null;
 }
-static extension-type-member method ExtensionType|constructor#_<T extends core::Object? = dynamic>(self::Class<self::ExtensionType|constructor#_::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_::T%> /* erasure=self::Class<self::ExtensionType|constructor#_::T%> */ {
+static extension-type-member method ExtensionType|constructor#_<T extends core::Object? = dynamic>(initializing-formal self::Class<self::ExtensionType|constructor#_::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_::T%> /* erasure=self::Class<self::ExtensionType|constructor#_::T%> */ {
   lowered final self::ExtensionType<self::ExtensionType|constructor#_::T%> /* erasure=self::Class<self::ExtensionType|constructor#_::T%> */ #this = c;
   return #this;
 }

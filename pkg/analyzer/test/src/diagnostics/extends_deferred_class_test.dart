@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,15 +19,14 @@ class ExtendsDeferredClassTest extends PubPackageResolutionTest {
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 mixin M {}
 class C = a.A with M;
-''',
-      [error(diag.extendsDeferredClass, 69, 3)],
-    );
+//        ^^^
+// [diag.extendsDeferredClass] Classes can't extend deferred classes.
+''');
   }
 
   test_extends_deferred_class() async {
@@ -36,14 +34,13 @@ class C = a.A with M;
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B extends a.A {}
-''',
-      [error(diag.extendsDeferredClass, 64, 3)],
-    );
+//              ^^^
+// [diag.extendsDeferredClass] Classes can't extend deferred classes.
+''');
   }
 
   test_extends_deferred_interfaceTypeTypedef() async {
@@ -52,13 +49,12 @@ library lib1;
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B extends a.B {}
-''',
-      [error(diag.extendsDeferredClass, 64, 3)],
-    );
+//              ^^^
+// [diag.extendsDeferredClass] Classes can't extend deferred classes.
+''');
   }
 }

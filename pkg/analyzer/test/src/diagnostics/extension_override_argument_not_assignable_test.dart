@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,21 +16,20 @@ main() {
 class ExtensionOverrideArgumentNotAssignableTest
     extends PubPackageResolutionTest {
   test_override_onNonNullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   void m() {}
 }
 f() {
   E(null).m();
+//  ^^^^
+// [diag.extensionOverrideArgumentNotAssignable] The type of the argument to the extension override 'Null' isn't assignable to the extended type 'String'.
 }
-''',
-      [error(diag.extensionOverrideArgumentNotAssignable, 50, 4)],
-    );
+''');
   }
 
   test_override_onNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String? {
   void m() {}
 }
@@ -42,7 +40,7 @@ f() {
   }
 
   test_subtype() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 extension E on A {
@@ -55,8 +53,7 @@ void f(B b) {
   }
 
   test_supertype() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 extension E on B {
@@ -64,15 +61,14 @@ extension E on B {
 }
 void f(A a) {
   E(a).m();
+//  ^
+// [diag.extensionOverrideArgumentNotAssignable] The type of the argument to the extension override 'A' isn't assignable to the extended type 'B'.
 }
-''',
-      [error(diag.extensionOverrideArgumentNotAssignable, 85, 1)],
-    );
+''');
   }
 
   test_unrelated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B {}
 extension E on A {
@@ -80,9 +76,9 @@ extension E on A {
 }
 void f(B b) {
   E(b).m();
+//  ^
+// [diag.extensionOverrideArgumentNotAssignable] The type of the argument to the extension override 'B' isn't assignable to the extended type 'A'.
 }
-''',
-      [error(diag.extensionOverrideArgumentNotAssignable, 75, 1)],
-    );
+''');
   }
 }

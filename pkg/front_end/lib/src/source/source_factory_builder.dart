@@ -67,7 +67,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   final bool isConst;
 
-  SourceFactoryBuilder({
+  new({
     required this.name,
     required this.libraryBuilder,
     required this.declarationBuilder,
@@ -341,11 +341,7 @@ class InferableRedirectingFactory implements InferableMember {
   final ClassHierarchy _classHierarchy;
   final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners;
 
-  InferableRedirectingFactory(
-    this._builder,
-    this._classHierarchy,
-    this._delayedDefaultValueCloners,
-  );
+  new(this._builder, this._classHierarchy, this._delayedDefaultValueCloners);
 
   @override
   Member get member => _builder.invokeTarget;
@@ -397,7 +393,7 @@ class FactoryReferences {
   /// compilations during an incremental compilation, these are the references
   /// used for the same factory constructor and tear-off in the previous
   /// compilation.
-  FactoryReferences._({
+  new _({
     required Reference? preExistingFactoryReference,
     required Reference? preExistingTearOffReference,
     required bool hasTearOffLowering,
@@ -411,7 +407,7 @@ class FactoryReferences {
 
   /// Creates a [FactoryReferences] object preloaded with the pre-existing
   /// references from [indexedContainer], if available.
-  factory FactoryReferences({
+  factory({
     required String name,
     required NameScheme nameScheme,
     required IndexedContainer? indexedContainer,

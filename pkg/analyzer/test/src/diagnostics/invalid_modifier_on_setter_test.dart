@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,62 +15,56 @@ main() {
 @reflectiveTest
 class InvalidModifierOnSetterTest extends PubPackageResolutionTest {
   test_member_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(v) async {}
+//         ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
 }
-''',
-      [error(diag.invalidModifierOnSetter, 21, 5)],
-    );
+''');
   }
 
   test_member_asyncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(v) async* {}
+//         ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
 }
-''',
-      [error(diag.invalidModifierOnSetter, 21, 5)],
-    );
+''');
   }
 
   test_member_syncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(v) sync* {}
+//         ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
 }
-''',
-      [error(diag.invalidModifierOnSetter, 21, 4)],
-    );
+''');
   }
 
   test_topLevel_async() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 set x(v) async {}
-''',
-      [error(diag.invalidModifierOnSetter, 9, 5)],
-    );
+//       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
   }
 
   test_topLevel_asyncStar() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 set x(v) async* {}
-''',
-      [error(diag.invalidModifierOnSetter, 9, 5)],
-    );
+//       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
   }
 
   test_topLevel_syncStar() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 set x(v) sync* {}
-''',
-      [error(diag.invalidModifierOnSetter, 9, 4)],
-    );
+//       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
   }
 }

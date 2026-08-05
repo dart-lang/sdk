@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
@@ -37,9 +38,8 @@ ticker(period) async* {
 void main() {
   asyncStart();
   events.add("main");
-  final subscription = ticker(
-    const Duration(milliseconds: 20),
-  ).listen((val) {});
+  final subscription = ticker(const Duration(milliseconds: 20))
+      .listen((val) {});
 
   bool cancelFinished = false;
   new Timer(const Duration(milliseconds: 100), () async {

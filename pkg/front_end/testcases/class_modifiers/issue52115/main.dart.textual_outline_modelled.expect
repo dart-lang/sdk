@@ -1,4 +1,5 @@
 import "main_lib.dart";
+
 import 'dart:collection';
 
 abstract base class LegacyImplementBase<E extends LinkedListEntry<E>>

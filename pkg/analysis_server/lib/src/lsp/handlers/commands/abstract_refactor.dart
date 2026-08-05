@@ -20,12 +20,12 @@ import 'package:analyzer/dart/element/element.dart';
 
 final _manager = LspRefactorManager._();
 
-/// A base class for refactoring commands that need to create Refactorings from
-/// client-supplied arguments.
+/// A base class for the legacy refactoring commands (EXTRACT_WIDGET, etc.) that
+/// need to create [Refactoring]s from client-supplied arguments.
 abstract class AbstractRefactorCommandHandler
     extends SimpleEditCommandHandler<AnalysisServer>
     with PositionalArgCommandHandler {
-  AbstractRefactorCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Perform Refactor';
@@ -33,6 +33,7 @@ abstract class AbstractRefactorCommandHandler
   LspRefactorManager get manager => _manager;
 
   FutureOr<ErrorOr<void>> execute(
+    MessageInfo message,
     String path,
     String kind,
     int offset,
@@ -133,7 +134,7 @@ abstract class AbstractRefactorCommandHandler
         if (element is GetterElement) {
           var refactor = ConvertGetterToMethodRefactoring(
             server.refactoringWorkspace,
-            result.session,
+            result,
             element,
           );
           return success(refactor);
@@ -149,7 +150,7 @@ abstract class AbstractRefactorCommandHandler
         if (element is ExecutableElement) {
           var refactor = ConvertMethodToGetterRefactoring(
             server.refactoringWorkspace,
-            result.session,
+            result,
             element,
           );
           return success(refactor);
@@ -209,6 +210,7 @@ abstract class AbstractRefactorCommandHandler
     var options = parameters['options'] as Map<String, Object?>?;
 
     return execute(
+      message,
       path,
       kind,
       offset,
@@ -251,7 +253,7 @@ class LspRefactorManager {
   /// The cancellation token for the current in-progress refactor (or null).
   CancelableToken? _currentRefactoringCancellationToken;
 
-  LspRefactorManager._();
+  new _();
 
   /// Begins a new refactor, cancelling any other in-progress refactors.
   void begin(CancelableToken cancelToken) {

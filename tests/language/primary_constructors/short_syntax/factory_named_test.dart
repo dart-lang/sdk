@@ -5,8 +5,6 @@
 // Using `factory name()` to declare named factory constructors with new shorter
 // syntax.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import "package:expect/expect.dart";
 
 class C1 {

@@ -372,23 +372,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final nativeTypeCfe =
             NativeTypeCfe(this, typeArg) as AbiSpecificNativeTypeCfe;
 
-        final arrayVar = VariableDeclaration(
-          "#array",
+        final arrayVar = SyntheticVariable(
+          cosmeticName: "#array",
           initializer: NullCheck(node.arguments.positional[0]),
           type: InterfaceType(arrayClass, Nullability.nonNullable),
-          isSynthesized: true,
         )..fileOffset = node.fileOffset;
-        final indexVar = VariableDeclaration(
-          "#index",
+        final indexVar = SyntheticVariable(
+          cosmeticName: "#index",
           initializer: NullCheck(node.arguments.positional[1]),
           type: coreTypes.intNonNullableRawType,
-          isSynthesized: true,
         )..fileOffset = node.fileOffset;
 
         return BlockExpression(
           Block([
-            arrayVar,
-            indexVar,
+            VariableStatement(VariableDeclaration(arrayVar)),
+            VariableStatement(VariableDeclaration(indexVar)),
             ExpressionStatement(
               InstanceInvocation(
                 InstanceAccessKind.Instance,
@@ -653,6 +651,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           isLeaf,
           reportErrorOn: node,
         );
+        if (dartType is! FunctionType) {
+          throw FfiStaticTypeError();
+        }
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         if (_isMissingArguments(node)) {
@@ -681,6 +682,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           isLeaf,
           reportErrorOn: node,
         );
+        if (dartType is! FunctionType) {
+          throw FfiStaticTypeError();
+        }
         final DartType nativeSignature = nativeType.typeArguments[0];
 
         return _replaceAsFunction(
@@ -689,7 +693,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             nativeType,
           ]),
           nativeSignature: nativeSignature,
-          dartSignature: dartType as FunctionType,
+          dartSignature: dartType,
           isLeaf: isLeaf,
           fileOffset: node.fileOffset,
         );
@@ -718,16 +722,17 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final DartType dartType = func.getStaticType(staticTypeContext!);
 
         ensureNativeTypeValid(nativeType, node);
-        final ffiFuncType =
-            ensureNativeTypeMatch(
-                  FfiTypeCheckDirection.dartToNative,
-                  nativeType,
-                  dartType,
-                  node,
-                )
-                as FunctionType;
+        final ffiFuncType = ensureNativeTypeMatch(
+          FfiTypeCheckDirection.dartToNative,
+          nativeType,
+          dartType,
+          node,
+        );
+        if (ffiFuncType is! FunctionType || dartType is! FunctionType) {
+          throw FfiStaticTypeError();
+        }
 
-        final funcType = dartType as FunctionType;
+        final funcType = dartType;
 
         // Check return type.
         if (ffiFuncType.returnType != VoidType()) {
@@ -858,38 +863,40 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final closureName = '#ffiClosure$callCount';
     ++callCount;
 
-    final pointerVar = VariableDeclaration(
-      functionPointerVarName,
+    final pointerVar = SyntheticVariable(
+      cosmeticName: functionPointerVarName,
       initializer: functionPointer,
       type: pointerType,
-      isSynthesized: true,
       isFinal: true,
     );
 
     final positionalParameters = [
       for (int i = 0; i < dartSignature.positionalParameters.length; ++i)
-        VariableDeclaration(
-          'arg${i + 1}',
+        PositionalParameter(
+          cosmeticName: 'arg${i + 1}',
           type: dartSignature.positionalParameters[i],
         ),
     ];
 
     final closure = FunctionDeclaration(
-      VariableDeclaration(closureName, type: dartSignature, isSynthesized: true)
-        ..addAnnotation(
-          ConstantExpression(
-            InstanceConstant(coreTypes.pragmaClass.reference, [], {
-              coreTypes.pragmaName.fieldReference: StringConstant(
-                'vm:ffi:call-closure',
-              ),
-              coreTypes.pragmaOptions.fieldReference: InstanceConstant(
-                ffiCallClass.reference,
-                [nativeSignature],
-                {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
-              ),
-            }),
-          ),
+      LocalFunctionVariable(
+        name: closureName,
+        type: dartSignature,
+        isSynthesized: true,
+      )..addAnnotation(
+        ConstantExpression(
+          InstanceConstant(coreTypes.pragmaClass.reference, [], {
+            coreTypes.pragmaName.fieldReference: StringConstant(
+              'vm:ffi:call-closure',
+            ),
+            coreTypes.pragmaOptions.fieldReference: InstanceConstant(
+              ffiCallClass.reference,
+              [nativeSignature],
+              {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
+            ),
+          }),
         ),
+      ),
       FunctionNode(
         Block([
           for (final param in positionalParameters)
@@ -916,7 +923,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     )..fileOffset = fileOffset;
 
     final result = BlockExpression(
-      Block([pointerVar, closure]),
+      Block([VariableStatement(VariableDeclaration(pointerVar)), closure]),
       VariableGet(closure.variable),
     );
 
@@ -1126,8 +1133,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final targetType = node.arguments.types[0] as FunctionType;
 
     // void _handler(List args) => target(args[0], args[1], ...)
-    final args = VariableDeclaration('args', type: listType, isFinal: true)
-      ..fileOffset = node.fileOffset;
+    final args = PositionalParameter(
+      cosmeticName: 'args',
+      type: listType,
+      isFinal: true,
+    )..fileOffset = node.fileOffset;
     final targetArgs = <Expression>[];
     for (int i = 0; i < targetType.positionalParameters.length; ++i) {
       targetArgs.add(
@@ -1161,8 +1171,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     )..fileOffset = node.fileOffset;
 
     // final _callback = NativeCallable<T>._listener(_handler, debugName);
-    final nativeCallable = VariableDeclaration.forValue(
-      ConstructorInvocation(
+    final nativeCallable = SyntheticVariable(
+      initializer: ConstructorInvocation(
         nativeCallablePrivateListenerConstructor,
         Arguments(
           [
@@ -1209,7 +1219,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     // expression result: _callback;
     return BlockExpression(
-      Block([nativeCallable, pointerSetter]),
+      Block([
+        VariableStatement(VariableDeclaration(nativeCallable)),
+        pointerSetter,
+      ]),
       VariableGet(nativeCallable),
     );
   }
@@ -1305,16 +1318,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     ensureNativeTypeValid(nativeType, node);
-    final ffiFuncType =
-        ensureNativeTypeMatch(
-              FfiTypeCheckDirection.dartToNative,
-              nativeType,
-              dartType,
-              node,
-            )
-            as FunctionType;
+    final ffiFuncType = ensureNativeTypeMatch(
+      FfiTypeCheckDirection.dartToNative,
+      nativeType,
+      dartType,
+      node,
+    );
+    if (ffiFuncType is! FunctionType ||
+        dartType is! FunctionType ||
+        node.arguments.types[0] is! FunctionType) {
+      throw FfiStaticTypeError();
+    }
 
-    final funcType = dartType as FunctionType;
+    final funcType = dartType;
 
     // Check `exceptionalReturn`'s type.
     final Class expectedReturnClass =
@@ -1499,15 +1515,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       targetOffset = ConstantExpression(IntConstant(0));
     }
 
-    final sourceVar = VariableDeclaration(
-      "#source",
+    final sourceVar = SyntheticVariable(
+      cosmeticName: "#source",
       initializer: sourceStruct,
       type: sourceStructType,
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
 
     return BlockExpression(
-      Block([sourceVar]),
+      Block([VariableStatement(VariableDeclaration(sourceVar))]),
       referencedStruct.generateStore(
         sourceVar,
         dartType: node.arguments.types[0],
@@ -1573,23 +1588,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       (c) => c.name == Name("#fromTypedDataBase"),
     );
 
-    final arrayVar = VariableDeclaration(
-      "#array",
+    final arrayVar = SyntheticVariable(
+      cosmeticName: "#array",
       initializer: NullCheck(node.arguments.positional[0]),
       type: InterfaceType(arrayClass, Nullability.nonNullable),
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final indexVar = VariableDeclaration(
-      "#index",
+    final indexVar = SyntheticVariable(
+      cosmeticName: "#index",
       initializer: NullCheck(node.arguments.positional[1]),
       type: coreTypes.intNonNullableRawType,
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
 
     return BlockExpression(
       Block([
-        arrayVar,
-        indexVar,
+        VariableStatement(VariableDeclaration(arrayVar)),
+        VariableStatement(VariableDeclaration(indexVar)),
         ExpressionStatement(
           InstanceInvocation(
             InstanceAccessKind.Instance,
@@ -1688,13 +1701,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeTypeCfe =
         NativeTypeCfe(this, typeArg) as AbiSpecificNativeTypeCfe;
 
-    final arrayLoadVar = VariableDeclaration(
-      "#array",
+    final arrayLoadVar = PositionalParameter(
+      cosmeticName: "#array",
       type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final indexLoadVar = VariableDeclaration(
-      "#index",
+    final indexLoadVar = PositionalParameter(
+      cosmeticName: "#index",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
@@ -1720,18 +1733,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ),
     );
 
-    final arrayStoreVar = VariableDeclaration(
-      "#array",
+    final arrayStoreVar = PositionalParameter(
+      cosmeticName: "#array",
       type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final indexStoreVar = VariableDeclaration(
-      "#index",
+    final indexStoreVar = PositionalParameter(
+      cosmeticName: "#index",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final valueStoreVar = VariableDeclaration(
-      "#value",
+    final valueStoreVar = PositionalParameter(
+      cosmeticName: "#value",
       type: coreTypes.intNullableRawType,
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
@@ -1817,26 +1830,23 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final dartType = node.arguments.types[0];
     final elementType = arraySingleElementType(dartType as InterfaceType);
 
-    final arrayVar = VariableDeclaration(
-      "#array",
+    final arrayVar = SyntheticVariable(
+      cosmeticName: "#array",
       initializer: NullCheck(node.arguments.positional[0]),
       type: InterfaceType(arrayClass, Nullability.nonNullable),
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final indexVar = VariableDeclaration(
-      "#index",
+    final indexVar = SyntheticVariable(
+      cosmeticName: "#index",
       initializer: NullCheck(node.arguments.positional[1]),
       type: coreTypes.intNonNullableRawType,
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final singleElementSizeVar = VariableDeclaration(
-      "#singleElementSize",
+    final singleElementSizeVar = SyntheticVariable(
+      cosmeticName: "#singleElementSize",
       initializer: inlineSizeOf(elementType as InterfaceType),
       type: coreTypes.intNonNullableRawType,
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final elementSizeVar = VariableDeclaration(
-      "#elementSize",
+    final elementSizeVar = SyntheticVariable(
+      cosmeticName: "#elementSize",
       initializer: multiply(
         VariableGet(singleElementSizeVar),
         InstanceGet(
@@ -1848,18 +1858,16 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         ),
       ),
       type: coreTypes.intNonNullableRawType,
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final offsetVar = VariableDeclaration(
-      "#offset",
+    final offsetVar = SyntheticVariable(
+      cosmeticName: "#offset",
       initializer: multiply(VariableGet(elementSizeVar), VariableGet(indexVar)),
       type: coreTypes.intNonNullableRawType,
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
 
     final checkIndexAndLocalVars = [
-      arrayVar,
-      indexVar,
+      VariableStatement(VariableDeclaration(arrayVar)),
+      VariableStatement(VariableDeclaration(indexVar)),
       ExpressionStatement(
         InstanceInvocation(
           InstanceAccessKind.Instance,
@@ -1870,9 +1878,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           functionType: arrayCheckIndex.getterType as FunctionType,
         ),
       ),
-      singleElementSizeVar,
-      elementSizeVar,
-      offsetVar,
+      VariableStatement(VariableDeclaration(singleElementSizeVar)),
+      VariableStatement(VariableDeclaration(elementSizeVar)),
+      VariableStatement(VariableDeclaration(offsetVar)),
     ];
 
     if (!setter) {
@@ -1923,14 +1931,16 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     // `[]=`
-    final valueVar = VariableDeclaration(
-      "#value",
+    final valueVar = SyntheticVariable(
+      cosmeticName: "#value",
       initializer: NullCheck(node.arguments.positional[2]),
       type: InterfaceType(arrayClass, Nullability.nonNullable),
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
     return BlockExpression(
-      Block([...checkIndexAndLocalVars, valueVar]),
+      Block([
+        ...checkIndexAndLocalVars,
+        VariableStatement(VariableDeclaration(valueVar)),
+      ]),
       StaticInvocation(
         memCopy,
         Arguments([
@@ -2127,7 +2137,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final numParams = parameterTypes.length;
     String methodPostfix = '';
     final newArguments = <Expression>[];
-    final newParameters = <VariableDeclaration>[];
+    final newParameters = <PositionalParameter>[];
     bool isTransformed = false;
     for (int i = 0; i < numParams; i++) {
       final parameter = target.function.positionalParameters[i];
@@ -2147,7 +2157,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       if (postFix == 'C' || postFix == 'E' || postFix == 'T') {
         isTransformed = true;
       }
-      newParameters.add(VariableDeclaration(parameter.name, type: newType));
+      newParameters.add(
+        PositionalParameter(
+          cosmeticName: parameter.cosmeticName,
+          type: newType,
+        ),
+      );
       newArguments.add(newArgument);
     }
 
@@ -2205,7 +2220,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     Expression argument,
   )
   _replaceNativeCallParameterAndArgument(
-    VariableDeclaration parameter,
+    Variable parameter,
     DartType parameterType,
     Expression argument,
     int fileOffset,
@@ -2300,7 +2315,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               subExpression.receiver,
               StaticGet(offsetGetter),
               fileOffset,
-              variableName: "${parameter.name}#value",
+              variableName: "${parameter.cosmeticName}#value",
             ),
           );
         }
@@ -2340,7 +2355,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               subExpression.arguments.positional[1], // index.
             ),
             fileOffset,
-            variableName: "${parameter.name}#value",
+            variableName: "${parameter.cosmeticName}#value",
           ),
         );
 
@@ -2433,14 +2448,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       const <DartType>[],
     );
 
-    final valueVar = VariableDeclaration(
-      variableName,
+    final valueVar = SyntheticVariable(
+      cosmeticName: variableName,
       initializer: compound,
       type: compoundType,
-      isSynthesized: true,
     )..fileOffset = fileOffset;
     final newArgument = BlockExpression(
-      Block([valueVar]),
+      Block([VariableStatement(VariableDeclaration(valueVar))]),
       ConstructorInvocation(
         compoundFromTypedDataBase,
         Arguments([

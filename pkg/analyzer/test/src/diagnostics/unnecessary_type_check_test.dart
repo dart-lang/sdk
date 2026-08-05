@@ -2,42 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryTypeCheckFalseTest);
     defineReflectiveTests(UnnecessaryTypeCheckTrueTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest {
   test_null_isNot_Null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var b = null is! Null;
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 8, 13)],
-    );
+//      ^^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
+''');
   }
 
   test_typeNonNullable_isNot_same() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   a is! int;
+//^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 18, 9)],
-    );
+''');
   }
 
   test_typeNonNullable_isNot_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num a) {
   a is! int;
 }
@@ -45,29 +44,27 @@ void f(num a) {
   }
 
   test_typeNonNullable_isNot_supertype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   a is! num;
+//^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 18, 9)],
-    );
+''');
   }
 
   test_typeNullable_isNot_same() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a is! int?;
+//^^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 19, 10)],
-    );
+''');
   }
 
   test_typeNullable_isNot_same_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a is! int;
 }
@@ -75,7 +72,7 @@ void f(int? a) {
   }
 
   test_typeNullable_isNot_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num? a) {
   a is! int?;
 }
@@ -83,7 +80,7 @@ void f(num? a) {
   }
 
   test_typeNullable_isNot_subtype_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num? a) {
   a is! int;
 }
@@ -91,18 +88,17 @@ void f(num? a) {
   }
 
   test_typeNullable_isNot_supertype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a is! num?;
+//^^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 19, 10)],
-    );
+''');
   }
 
   test_typeNullable_isNot_supertype_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a is! num;
 }
@@ -110,18 +106,17 @@ void f(int? a) {
   }
 
   test_typeParameter_isNot_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {
   a is! dynamic;
+//^^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 19, 13)],
-    );
+''');
   }
 
   test_typeParameter_isNot_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {
   a is! Object;
 }
@@ -129,74 +124,68 @@ void f<T>(T a) {
   }
 
   test_typeParameter_isNot_objectQuestion() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {
   a is! Object?;
+//^^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckFalse] Unnecessary type check; the result is always 'false'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckFalse, 19, 13)],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest {
   test_expressionInvalidType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(A a) {
+//     ^
+// [diag.undefinedClass] Undefined class 'A'.
   a is num;
 }
-''',
-      [error(diag.undefinedClass, 7, 1)],
-    );
+''');
   }
 
   test_null_is_Null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var b = null is Null;
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 8, 12)],
-    );
+//      ^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
+''');
   }
 
   test_type_is_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   a is dynamic;
+//^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 18, 12)],
-    );
+''');
   }
 
   test_type_is_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   a is Unresolved;
+//     ^^^^^^^^^^
+// [diag.typeTestWithUndefinedName] The name 'Unresolved' isn't defined, so it can't be used in an 'is' expression.
 }
-''',
-      [error(diag.typeTestWithUndefinedName, 23, 10)],
-    );
+''');
   }
 
   test_typeNonNullable_is_same() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   a is int;
+//^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 18, 8)],
-    );
+''');
   }
 
   test_typeNonNullable_is_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num a) {
   a is int;
 }
@@ -204,29 +193,27 @@ void f(num a) {
   }
 
   test_typeNonNullable_is_supertype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   a is num;
+//^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 18, 8)],
-    );
+''');
   }
 
   test_typeNullable_is_same() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a is int?;
+//^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 19, 9)],
-    );
+''');
   }
 
   test_typeNullable_is_same_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a is int;
 }
@@ -234,7 +221,7 @@ void f(int? a) {
   }
 
   test_typeNullable_is_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num? a) {
   a is int?;
 }
@@ -242,7 +229,7 @@ void f(num? a) {
   }
 
   test_typeNullable_is_subtype_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(num? a) {
   a is int;
 }
@@ -250,18 +237,17 @@ void f(num? a) {
   }
 
   test_typeNullable_is_supertype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a is num?;
+//^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 19, 9)],
-    );
+''');
   }
 
   test_typeNullable_is_supertype_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   a is num;
 }
@@ -269,18 +255,17 @@ void f(int? a) {
   }
 
   test_typeParameter_is_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {
   a is dynamic;
+//^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 19, 12)],
-    );
+''');
   }
 
   test_typeParameter_is_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {
   a is Object;
 }
@@ -288,13 +273,12 @@ void f<T>(T a) {
   }
 
   test_typeParameter_is_objectQuestion() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {
   a is Object?;
+//^^^^^^^^^^^^
+// [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 }
-''',
-      [error(diag.unnecessaryTypeCheckTrue, 19, 12)],
-    );
+''');
   }
 }

@@ -5,6 +5,7 @@
 library test.instantiate_abstract_class;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 assertInstantiationErrorOnGenerativeConstructors(classMirror) {

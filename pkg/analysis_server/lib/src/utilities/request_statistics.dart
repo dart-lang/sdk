@@ -26,7 +26,7 @@ class RequestStatisticsHelper {
   /// Is `true` if the client subscribed for "server.log" notification.
   bool _isNotificationSubscribed = false;
 
-  RequestStatisticsHelper();
+  new();
 
   /// Set whether the client subscribed for "server.log" notification.
   set isNotificationSubscribed(bool value) {
@@ -176,12 +176,7 @@ class _RequestStatistics {
   final DateTime serverRequestTime;
   final List<_RequestStatisticsItem> items = [];
 
-  _RequestStatistics(
-    this.id,
-    this.method,
-    this.clientRequestTime,
-    this.serverRequestTime,
-  );
+  new(this.id, this.method, this.clientRequestTime, this.serverRequestTime);
 
   Map<String, Object> toJson(DateTime responseTime) {
     var map = {
@@ -202,7 +197,7 @@ class _RequestStatisticsItem {
   final String name;
   final DateTime? timeValue;
 
-  _RequestStatisticsItem(this.name, {this.timeValue});
+  new(this.name, {this.timeValue});
 
   Map<String, Object> toJson() {
     var timeValue = this.timeValue;
@@ -216,7 +211,7 @@ class _RequestStatisticsItem {
 class _ServerLogStringSink implements StringSink {
   final RequestStatisticsHelper helper;
 
-  _ServerLogStringSink(this.helper);
+  new(this.helper);
 
   @override
   void write(Object? obj) {

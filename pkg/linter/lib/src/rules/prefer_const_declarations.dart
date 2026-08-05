@@ -17,8 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer `const` over `final` for declarations.';
 
 class PreferConstDeclarations extends AnalysisRule {
-  PreferConstDeclarations()
-    : super(name: LintNames.prefer_const_declarations, description: _desc);
+  new() : super(name: LintNames.prefer_const_declarations, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferConstDeclarations;
@@ -38,7 +37,7 @@ class PreferConstDeclarations extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {

@@ -993,9 +993,9 @@ abstract class ImportAnalyzerTest extends PubPackageAnalysisServerTest {
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     ).contexts[0];
-    var result =
-        await context.currentSession.getResolvedLibrary(pathToInclude)
-            as ResolvedLibraryResult;
+    var result = await context.currentSession.getResolvedLibrary(
+      pathToInclude,
+    ) as ResolvedLibraryResult;
     var analyzer = ImportAnalyzer(result, pathToInclude, [
       testCode.range.sourceRange,
     ]);
@@ -1048,7 +1048,7 @@ abstract class ImportAnalyzerTest extends PubPackageAnalysisServerTest {
 class _ExpectedElement<T extends Element> {
   final String name;
 
-  _ExpectedElement({required this.name});
+  new({required this.name});
 
   void assertMatches(Element element) {
     expect(element, isA<T>());

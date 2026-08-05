@@ -14,7 +14,7 @@ const String _embedderFileName = '_embedder.yaml';
 /// If the file can be found, and contains a top level [YamlMap], then
 /// the [YamlMap] is returned. Otherwise, `null`` is returned.
 YamlMap? locateEmbedderYamlFor(Folder libFolder) {
-  File file = libFolder.getChildAssumingFile(_embedderFileName);
+  File file = libFolder.getFile(_embedderFileName);
   try {
     var embedderYaml = file.readAsStringSync();
     try {

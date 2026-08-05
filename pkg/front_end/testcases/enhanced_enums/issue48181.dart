@@ -5,6 +5,7 @@
 enum E {
   e1,
   e2;
+
   factory E.f(int i) => E.values[i];
 }
 
@@ -12,6 +13,7 @@ enum F {
   f1,
   f2(42),
   f3.foo();
+
   factory F(int i) => F.values[i];
 }
 

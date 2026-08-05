@@ -7,20 +7,17 @@ import 'dart:math' as math;
 import 'package:status_file/canonical_status_file.dart';
 import 'package:status_file/status_file_entries_file_checker.dart';
 
-class LintingError {
-  final int lineNumber;
-  final String message;
-  LintingError(this.lineNumber, this.message);
-
+class LintingError(final int lineNumber, final String message) {
   @override
-  String toString() {
-    return "Error at line $lineNumber: $message";
-  }
+  String toString() => "Error at line $lineNumber: $message";
 }
 
 /// Main function to check a status file for linting errors.
-List<LintingError> lint(StatusFile file,
-    {bool checkForDisjunctions = false, required bool checkForNonExisting}) {
+List<LintingError> lint(
+  StatusFile file, {
+  bool checkForDisjunctions = false,
+  required bool checkForNonExisting,
+}) {
   var errors = <LintingError>[];
   for (var section in file.sections) {
     errors
@@ -62,13 +59,16 @@ Iterable<LintingError> lintCommentLinesInSection(StatusSection section) {
       seenStatusEntry = seenStatusEntry || entry is StatusEntry;
       if (seenStatusEntry && entry is CommentEntry) {
         lintingErrors.add(
-            LintingError(entry.lineNumber, "Comment is on a line by itself."));
+          LintingError(entry.lineNumber, "Comment is on a line by itself."),
+        );
       }
     }
     return lintingErrors;
   }
-  return section.entries.whereType<CommentEntry>().map((entry) =>
-      LintingError(entry.lineNumber, "Comment is on a line by itself."));
+  return section.entries.whereType<CommentEntry>().map(
+    (entry) =>
+        LintingError(entry.lineNumber, "Comment is on a line by itself."),
+  );
 }
 
 /// Checks for disjunctions in headers. Disjunctions should be separated out.
@@ -91,9 +91,10 @@ Iterable<LintingError> lintDisjunctionsInHeader(StatusSection section) {
   if (section.condition.toString().contains("||")) {
     return [
       LintingError(
-          section.lineNumber,
-          "Expression contains '||'. Please split the expression into multiple "
-          "separate sections.")
+        section.lineNumber,
+        "Expression contains '||'. Please split the expression into multiple "
+        "separate sections.",
+      ),
     ];
   }
   return [];
@@ -111,9 +112,10 @@ Iterable<LintingError> lintAlphabeticalOrderingOfPaths(StatusSection section) {
   if (witness != null) {
     return [
       LintingError(
-          section.lineNumber,
-          "Test paths are not alphabetically ordered in section. "
-          "${witness.first} should come before ${witness.second}.")
+        section.lineNumber,
+        "Test paths are not alphabetically ordered in section. "
+        "${witness.first} should come before ${witness.second}.",
+      ),
     ];
   }
   return [];
@@ -126,7 +128,8 @@ Iterable<LintingError> lintEntryExists(StatusFile file, StatusSection section) {
   for (var entry in section.entries.whereType<StatusEntry>()) {
     if (isNonExistingEntry(statusFileUri, entry)) {
       errors.add(
-          LintingError(entry.lineNumber, "This path doesn't seem to exist."));
+        LintingError(entry.lineNumber, "This path doesn't seem to exist."),
+      );
     }
   }
 
@@ -140,9 +143,10 @@ Iterable<LintingError> lintNormalizedSection(StatusSection section) {
   if (nonNormalized != normalized) {
     return [
       LintingError(
-          section.lineNumber,
-          "Condition expression should be '$normalized' "
-          "but was '$nonNormalized'.")
+        section.lineNumber,
+        "Condition expression should be '$normalized' "
+        "but was '$nonNormalized'.",
+      ),
     ];
   }
   return const [];
@@ -151,8 +155,9 @@ Iterable<LintingError> lintNormalizedSection(StatusSection section) {
 /// Checks for duplicate section entries in the body of a section.
 Iterable<LintingError> lintSectionEntryDuplicates(StatusSection section) {
   var errors = <LintingError>[];
-  List<StatusEntry> statusEntries =
-      section.entries.whereType<StatusEntry>().toList();
+  List<StatusEntry> statusEntries = section.entries
+      .whereType<StatusEntry>()
+      .toList();
   for (var i = 0; i < statusEntries.length; i++) {
     var entry = statusEntries[i];
     for (var j = i + 1; j < statusEntries.length; j++) {
@@ -160,11 +165,14 @@ Iterable<LintingError> lintSectionEntryDuplicates(StatusSection section) {
       if (entry.path == otherEntry.path &&
           _findNotEqualWitness(entry.expectations, otherEntry.expectations) ==
               null) {
-        errors.add(LintingError(
+        errors.add(
+          LintingError(
             section.lineNumber,
             "The status entry "
             "'$entry' is duplicated on lines "
-            "${entry.lineNumber} and ${otherEntry.lineNumber}."));
+            "${entry.lineNumber} and ${otherEntry.lineNumber}.",
+          ),
+        );
       }
     }
   }
@@ -203,11 +211,12 @@ Iterable<LintingError> lintSectionHeaderOrdering(List<StatusSection> sections) {
   if (witness != null) {
     return [
       LintingError(
-          witness.second!.lineNumber,
-          "Section expressions are not correctly ordered in file. "
-          "'${witness.first!.condition}' on line ${witness.first!.lineNumber} "
-          "should come before '${witness.second!.condition}' at line "
-          "${witness.second!.lineNumber}.")
+        witness.second!.lineNumber,
+        "Section expressions are not correctly ordered in file. "
+        "'${witness.first!.condition}' on line ${witness.first!.lineNumber} "
+        "should come before '${witness.second!.condition}' at line "
+        "${witness.second!.lineNumber}.",
+      ),
     ];
   }
   return [];
@@ -215,7 +224,8 @@ Iterable<LintingError> lintSectionHeaderOrdering(List<StatusSection> sections) {
 
 /// Checks for duplicate section headers.
 Iterable<LintingError> lintSectionHeaderDuplicates(
-    List<StatusSection> sections) {
+  List<StatusSection> sections,
+) {
   var errors = <LintingError>[];
   var sorted = sections.toList()
     ..sort((a, b) => a.condition.compareTo(b.condition));
@@ -223,11 +233,14 @@ Iterable<LintingError> lintSectionHeaderDuplicates(
     var section = sorted[i];
     var previousSection = sorted[i - 1];
     if (section.condition.compareTo(previousSection.condition) == 0) {
-      errors.add(LintingError(
+      errors.add(
+        LintingError(
           section.lineNumber,
           "The condition "
           "'${section.condition}' is duplicated on lines "
-          "${previousSection.lineNumber} and ${section.lineNumber}."));
+          "${previousSection.lineNumber} and ${section.lineNumber}.",
+        ),
+      );
     }
   }
   return errors;
@@ -249,8 +262,4 @@ ListNotEqualWitness<T>? _findNotEqualWitness<T>(List<T> first, List<T> second) {
   return null;
 }
 
-class ListNotEqualWitness<T> {
-  final T? first;
-  final T? second;
-  ListNotEqualWitness(this.first, this.second);
-}
+class ListNotEqualWitness<T>(final T? first, final T? second);

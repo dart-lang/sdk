@@ -7,7 +7,9 @@
 
 import 'dart:js_interop';
 import 'dart:js_interop' as interop;
+
 import 'package:expect/expect.dart';
+
 import 'static_interop_library.dart';
 
 @JS()

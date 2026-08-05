@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 bad() {
-  for (int i = i;; false) {}
+  for (int i = i; ; false) {}
 }
 
 main() {}

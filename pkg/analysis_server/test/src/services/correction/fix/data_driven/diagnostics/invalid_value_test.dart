@@ -144,7 +144,7 @@ transforms:
       '''
 - 'rename'
 ''',
-      [error(diag.invalidValue, 0, 11)],
+      [error(diag.invalidValue, 0, 10)],
     );
   }
 

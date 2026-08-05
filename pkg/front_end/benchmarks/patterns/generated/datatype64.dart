@@ -2025,7 +2025,7 @@ abstract class Visitor64<R, A> {
 }
 
 class CounterVisitor64 implements Visitor64<void, Counter> {
-  const CounterVisitor64();
+  const new();
 
   @override
   void visitSub0(Sub0 sub, Counter counter) {
