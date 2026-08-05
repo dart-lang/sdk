@@ -1686,13 +1686,16 @@ void Assembler::TransitionGeneratedToNative(Register destination,
       // If we hit the slow path to enter the safepoint, the call into
       // MSAN-instrumented runtime code may have clobbered an earlier
       // MsanUnpoisonParam from FfiCall.
-      RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs,
-                                       kAbiVolatileFpuRegs);
-      PushRegisters(kVolatileRegisterSet);
+      RegisterSet spill_set(
+          (kAbiVolatileCpuRegs | (1 << CALLEE_SAVED_TEMP)) & ~(1 << SP),
+          kAbiVolatileFpuRegs);
+      PushRegisters(spill_set);
+      __ mov(CALLEE_SAVED_TEMP, SP);
       LoadImmediate(R0, CallingConventions::kNumArgRegs);
       CallCFunction(compiler::Address(
           THR, kMsanUnpoisonParamRuntimeEntry.OffsetFromThread()));
-      PopRegisters(kVolatileRegisterSet);
+      __ mov(SP, CALLEE_SAVED_TEMP);
+      PopRegisters(spill_set);
     }
   }
 }
