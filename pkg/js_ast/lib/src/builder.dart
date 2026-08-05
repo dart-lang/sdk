@@ -186,9 +186,7 @@ TemplateManager templateManager = TemplateManager();
 ///     argument should be splice or is intended as a single value.
 const JsBuilder js = JsBuilder();
 
-class JsBuilder {
-  const JsBuilder();
-
+class const JsBuilder() {
   /// Parses a bit of JavaScript, and returns an expression.
   ///
   /// See the MiniJsParser class.
