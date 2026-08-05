@@ -154,17 +154,23 @@ class SelectorInfo {
           named = const {};
           returns = [function.computeFunctionType(Nullability.nonNullable)];
         } else {
-          final typeForParam = translator.typeOfParameterVariable;
+          final isNoSuchMethodForwarder =
+              member is Procedure && member.isNoSuchMethodForwarder;
           positional = [
             for (int i = 0; i < function.positionalParameters.length; i++)
-              typeForParam(
+              translator.typeOfParameterVariable(
                 function.positionalParameters[i],
                 i < function.requiredParameterCount,
+                isNoSuchMethodForwarder: isNoSuchMethodForwarder,
               ),
           ];
           named = {
             for (NamedParameter param in function.namedParameters)
-              param.parameterName: typeForParam(param, param.isRequired),
+              param.parameterName: translator.typeOfParameterVariable(
+                param,
+                param.isRequired,
+                isNoSuchMethodForwarder: isNoSuchMethodForwarder,
+              ),
           };
           returns = returnCount == 0
               ? const []
