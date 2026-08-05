@@ -15457,9 +15457,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     // TODO(paulberry): remove this cast by changing the type of the parameter
     // `type`.
     _staticType = type as TypeImpl;
-    if (type.isBottom) {
-      resolver.flowAnalysis.flow?.handleExit();
-    }
     inferenceLogWriter?.recordStaticType(this, type);
   }
 

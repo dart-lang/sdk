@@ -4386,7 +4386,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     popRewrite();
     typeAnalyzer.visitThrowExpression(node);
-    flowAnalysis.flow?.handleExit();
+    // Note: it's not necessary to call `FlowAnalysis.handleExit`, because
+    // `TypeAnalyzer.analyzeExpression` calls it when the static type of the
+    // expression is `Never`.
     inferenceLogWriter?.exitExpression(node);
   }
 
