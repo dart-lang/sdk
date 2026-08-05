@@ -62,7 +62,6 @@ no_support_disassembler_test: SkipByDesign
 no_support_il_printer_test: SkipByDesign
 no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
-verbose_gc_to_bmu_test: SkipByDesign # No verbose_gc in product mode
 
 [ $runtime == dart_precompiled ]
 http_launch_test: Skip
@@ -70,7 +69,6 @@ io/addlatexhash_test: Skip
 io/issue_46436_test: SkipByDesign # Uses mirrors.
 io/print_test: SkipByDesign # Attempts to spawn dart using Platform.executable
 io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.executable
-verbose_gc_to_bmu_test: Skip # Attempts to spawn dart using Platform.executable
 
 [ $sanitizer == asan ]
 io/process_detached_test: Slow, Pass
@@ -80,6 +78,7 @@ io/https_client_certificate_test: Slow, Pass
 
 [ $system == fuchsia ]
 io/dart_std_io_pipe_test: Skip # Test harness doesn't support multitest with Fuchsia
+io/http_request_pipelining_test: Skip # Meta-flaky - #63797
 io/platform_resolved_executable_test: Skip # Test harness doesn't support multitest with Fuchsia
 io/signals_exception_test: Skip # Test harness doesn't support multitest with Fuchsia
 io/socket_ipv6_test: Skip # Test harness doesn't support multitest with Fuchsia
