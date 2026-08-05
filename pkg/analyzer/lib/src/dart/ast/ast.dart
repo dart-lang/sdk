@@ -7289,6 +7289,10 @@ sealed class Combinator implements AstNode {
   /// The `hide` or `show` keyword specifying what kind of processing is to be
   /// done on the names.
   Token get keyword;
+
+  /// The names to which this combinator applies.
+  @experimental
+  NodeList<CombinatorName> get names;
 }
 
 sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
@@ -7300,6 +7304,144 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
 
   @override
   Token get beginToken => keyword;
+
+  @override
+  NodeListImpl<CombinatorNameImpl> get names;
+}
+
+/// A name in a [Combinator].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class CombinatorName implements AstNode {
+  /// The element exported under [name], or `null` if there is no such element.
+  ///
+  /// This is the element in the ordinary namespace entry, which includes
+  /// getters, functions, variables, classes, mixins, and type aliases.
+  Element? get element;
+
+  /// The name in the combinator.
+  Token get name;
+
+  /// The setter exported under [name], or `null` if there is no such setter.
+  Element? get setterElement;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('name')],
+)
+final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
+  @generated
+  @override
+  final Token name;
+
+  Element? _element;
+
+  Element? _setterElement;
+
+  late final SimpleIdentifierImpl v1Projection =
+      SimpleIdentifierImpl.v1Projection(token: name);
+
+  @generated
+  CombinatorNameImpl({required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @override
+  Element? get element => _element;
+
+  set element(Element? value) {
+    _element = value;
+    _updateV1Projection();
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @override
+  Element? get setterElement => _setterElement;
+
+  set setterElement(Element? value) {
+    _setterElement = value;
+    _updateV1Projection();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('CombinatorName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('CombinatorName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCombinatorName(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('CombinatorName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('CombinatorName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+
+  void _updateV1Projection() {
+    var element = _element ?? _setterElement;
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
+    }
+    v1Projection.element = element;
+  }
 }
 
 /// A comment within the source code.
@@ -22953,31 +23095,47 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 /// in a given list.
 ///
 ///    hideCombinator ::=
-///        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
+///        'hide' [CombinatorName] (',' [CombinatorName])*
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class HideCombinator implements Combinator {
   /// The list of names from the library that are hidden by this combinator.
+  @ToBeDeprecated('Use names instead.')
   NodeList<SimpleIdentifier> get hiddenNames;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('keyword', isSuper: true),
-    GenerateNodeProperty('hiddenNames'),
+    GenerateNodeProperty(
+      'names',
+      v1Name: 'hiddenNames',
+      v1Projection: V1Projection.combinatorName,
+    ),
   ],
 )
 final class HideCombinatorImpl extends CombinatorImpl
     implements HideCombinator {
   @generated
+  @experimental
   @override
-  final NodeListImpl<SimpleIdentifierImpl> hiddenNames = NodeListImpl._();
+  final NodeListImpl<CombinatorNameImpl> names = NodeListImpl._();
+
+  @generated
+  @ToBeDeprecated('Use names instead.')
+  @override
+  late final NodeListImpl<SimpleIdentifierImpl> hiddenNames =
+      _V1ProjectedNodeListImpl(names, V1Projection.toV1CombinatorName);
 
   @generated
   HideCombinatorImpl({
     required super.keyword,
-    required List<SimpleIdentifierImpl> hiddenNames,
+    required List<CombinatorNameImpl> names,
   }) {
-    this.hiddenNames._initialize(this, hiddenNames);
+    this.names._initializeProjected(
+      this,
+      names,
+      V1Projection.toV1CombinatorName,
+    );
   }
 
   @generated
@@ -22989,7 +23147,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   @generated
   @override
   Token get endToken {
-    if (hiddenNames.endToken case var result?) {
+    if (names.endToken case var result?) {
       return result;
     }
     return keyword;
@@ -23005,7 +23163,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('keyword', keyword)
-    ..addNodeList('hiddenNames', hiddenNames);
+    ..addNodeList('names', names);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -23027,9 +23185,9 @@ final class HideCombinatorImpl extends CombinatorImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (hiddenNames.containsChild(oldNode)) {
+    if (names.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'hiddenNames' because NodeList cannot be resized.",
+        "Cannot remove child 'names' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -23038,7 +23196,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (hiddenNames.replaceChild(oldNode, newNode)) {
+    if (names.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -23055,7 +23213,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    hiddenNames.accept2(visitor);
+    names.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23067,12 +23225,12 @@ final class HideCombinatorImpl extends CombinatorImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(NodeListImpl<SimpleIdentifierImpl>)? visitHiddenNames,
+    void Function(NodeListImpl<CombinatorNameImpl>)? visitNames,
   }) {
-    if (visitHiddenNames != null) {
-      visitHiddenNames(hiddenNames);
+    if (visitNames != null) {
+      visitNames(names);
     } else {
-      hiddenNames.accept2(visitor);
+      names.accept2(visitor);
     }
   }
 
@@ -23089,8 +23247,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (hiddenNames._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
+    if (names._elementContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     return null;
@@ -24880,14 +25037,14 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     }
 
     bool areSameNames(
-      List<SimpleIdentifier> names1,
-      List<SimpleIdentifier> names2,
+      List<CombinatorName> names1,
+      List<CombinatorName> names2,
     ) {
       if (names1.length != names2.length) {
         return false;
       }
       for (var i = 0; i < names1.length; i++) {
-        if (names1[i].name != names2[i].name) {
+        if (names1[i].name.lexeme != names2[i].name.lexeme) {
           return false;
         }
       }
@@ -24903,12 +25060,12 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
       var combinator1 = combinators1[i];
       var combinator2 = combinators2[i];
       if (combinator1 is HideCombinator && combinator2 is HideCombinator) {
-        if (!areSameNames(combinator1.hiddenNames, combinator2.hiddenNames)) {
+        if (!areSameNames(combinator1.names, combinator2.names)) {
           return false;
         }
       } else if (combinator1 is ShowCombinator &&
           combinator2 is ShowCombinator) {
-        if (!areSameNames(combinator1.shownNames, combinator2.shownNames)) {
+        if (!areSameNames(combinator1.names, combinator2.names)) {
           return false;
         }
       } else {
@@ -40617,32 +40774,48 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 /// list.
 ///
 ///    showCombinator ::=
-///        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
+///        'show' [CombinatorName] (',' [CombinatorName])*
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ShowCombinator implements Combinator {
   /// The list of names from the library that are made visible by this
   /// combinator.
+  @ToBeDeprecated('Use names instead.')
   NodeList<SimpleIdentifier> get shownNames;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('keyword', isSuper: true),
-    GenerateNodeProperty('shownNames'),
+    GenerateNodeProperty(
+      'names',
+      v1Name: 'shownNames',
+      v1Projection: V1Projection.combinatorName,
+    ),
   ],
 )
 final class ShowCombinatorImpl extends CombinatorImpl
     implements ShowCombinator {
   @generated
+  @experimental
   @override
-  final NodeListImpl<SimpleIdentifierImpl> shownNames = NodeListImpl._();
+  final NodeListImpl<CombinatorNameImpl> names = NodeListImpl._();
+
+  @generated
+  @ToBeDeprecated('Use names instead.')
+  @override
+  late final NodeListImpl<SimpleIdentifierImpl> shownNames =
+      _V1ProjectedNodeListImpl(names, V1Projection.toV1CombinatorName);
 
   @generated
   ShowCombinatorImpl({
     required super.keyword,
-    required List<SimpleIdentifierImpl> shownNames,
+    required List<CombinatorNameImpl> names,
   }) {
-    this.shownNames._initialize(this, shownNames);
+    this.names._initializeProjected(
+      this,
+      names,
+      V1Projection.toV1CombinatorName,
+    );
   }
 
   @generated
@@ -40654,7 +40827,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @generated
   @override
   Token get endToken {
-    if (shownNames.endToken case var result?) {
+    if (names.endToken case var result?) {
       return result;
     }
     return keyword;
@@ -40670,7 +40843,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('keyword', keyword)
-    ..addNodeList('shownNames', shownNames);
+    ..addNodeList('names', names);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -40692,9 +40865,9 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (shownNames.containsChild(oldNode)) {
+    if (names.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'shownNames' because NodeList cannot be resized.",
+        "Cannot remove child 'names' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -40703,7 +40876,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (shownNames.replaceChild(oldNode, newNode)) {
+    if (names.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -40720,7 +40893,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    shownNames.accept2(visitor);
+    names.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -40732,12 +40905,12 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(NodeListImpl<SimpleIdentifierImpl>)? visitShownNames,
+    void Function(NodeListImpl<CombinatorNameImpl>)? visitNames,
   }) {
-    if (visitShownNames != null) {
-      visitShownNames(shownNames);
+    if (visitNames != null) {
+      visitNames(names);
     } else {
-      shownNames.accept2(visitor);
+      names.accept2(visitor);
     }
   }
 
@@ -40754,8 +40927,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (shownNames._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
+    if (names._elementContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
     return null;
@@ -46079,6 +46251,9 @@ enum V1Projection {
   /// Project a [CollectionElementImpl] child to the V1 collection view.
   collectionElement,
 
+  /// Project a [CombinatorNameImpl] child to a V1 identifier.
+  combinatorName,
+
   /// Project a [CommentReferableExpressionImpl] child to its V1 view.
   commentReferableExpression,
 
@@ -46102,6 +46277,10 @@ enum V1Projection {
       return toV1Expression(node);
     }
     return node;
+  }
+
+  static SimpleIdentifierImpl toV1CombinatorName(CombinatorNameImpl node) {
+    return node.v1Projection;
   }
 
   static CommentReferableExpressionImpl toV1CommentReferableExpression(

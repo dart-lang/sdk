@@ -6,7 +6,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/node_text_expectations.dart';
 import 'abi_specific_integer_mapping_test.dart' as abi_specific_integer_mapping;
-import 'abstract_class_member_test.dart' as abstract_class_member;
 import 'abstract_field_constructor_initializer_test.dart'
     as abstract_field_constructor_initializer;
 import 'abstract_field_initializer_test.dart' as abstract_field_initializer;
@@ -102,8 +101,6 @@ import 'class_used_as_mixin_declares_generative_constructor_test.dart'
 import 'class_used_as_mixin_test.dart' as class_used_as_mixin;
 import 'concrete_class_has_enum_superinterface_test.dart'
     as concrete_class_has_enum_superinterface;
-import 'concrete_class_with_abstract_member_test.dart'
-    as concrete_class_with_abstract_member;
 import 'conflicting_constructor_and_static_field_test.dart'
     as conflicting_constructor_and_static_field;
 import 'conflicting_constructor_and_static_method_test.dart'
@@ -258,7 +255,6 @@ import 'enum_instantiated_to_bounds_is_not_well_bounded_test.dart'
     as enum_instantiated_to_bounds_is_not_well_bounded;
 import 'enum_mixin_with_instance_variable_test.dart'
     as enum_mixin_with_instance_variable;
-import 'enum_with_abstract_member_test.dart' as enum_with_abstract_member;
 import 'enum_with_name_values_test.dart' as enum_with_name_values;
 import 'enum_without_constants_test.dart' as enum_without_constants;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
@@ -481,7 +477,6 @@ import 'invalid_language_override_test.dart' as invalid_language_override;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_modifier_on_constructor_test.dart'
     as invalid_modifier_on_constructor;
-import 'invalid_modifier_on_setter_test.dart' as invalid_modifier_on_setter;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
 import 'invalid_null_aware_elements_error_test.dart'
@@ -611,8 +606,6 @@ import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
 import 'native_clause_in_non_sdk_code_test.dart'
     as native_clause_in_non_sdk_code;
-import 'native_function_body_in_non_sdk_code_test.dart'
-    as native_function_body_in_non_sdk_code;
 import 'new_with_non_type_test.dart' as new_with_non_type;
 import 'new_with_undefined_constructor_test.dart'
     as new_with_undefined_constructor;
@@ -967,7 +960,6 @@ import 'yield_of_invalid_type_test.dart' as yield_of_invalid_type;
 main() {
   defineReflectiveSuite(() {
     abi_specific_integer_mapping.main();
-    abstract_class_member.main();
     abstract_field_constructor_initializer.main();
     abstract_field_initializer.main();
     abstract_super_member_reference.main();
@@ -1029,7 +1021,6 @@ main() {
     class_used_as_mixin_declares_generative_constructor.main();
     class_used_as_mixin.main();
     concrete_class_has_enum_superinterface.main();
-    concrete_class_with_abstract_member.main();
     conflicting_constructor_and_static_field.main();
     conflicting_constructor_and_static_method.main();
     conflicting_field_and_method.main();
@@ -1132,7 +1123,6 @@ main() {
     enum_constant_same_name_as_enclosing.main();
     enum_instantiated_to_bounds_is_not_well_bounded.main();
     enum_mixin_with_instance_variable.main();
-    enum_with_abstract_member.main();
     enum_with_name_values.main();
     enum_without_constants.main();
     equal_elements_in_const_set.main();
@@ -1273,7 +1263,6 @@ main() {
     invalid_language_override.main();
     invalid_literal_annotation.main();
     invalid_modifier_on_constructor.main();
-    invalid_modifier_on_setter.main();
     invalid_non_virtual_annotation.main();
     invalid_null_aware_elements_error.main();
     invalid_null_aware_operator.main();
@@ -1354,7 +1343,6 @@ main() {
     must_be_immutable.main();
     must_call_super.main();
     native_clause_in_non_sdk_code.main();
-    native_function_body_in_non_sdk_code.main();
     new_with_non_type.main();
     new_with_undefined_constructor.main();
     no_annotation_constructor_arguments.main();

@@ -559,6 +559,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addClassTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCombinatorName(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addComment(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addCommentReference(AbstractAnalysisRule rule, AstVisitor2 visitor);

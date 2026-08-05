@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -137,8 +136,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
   void _checkCombinator(LibraryElementImpl library, Combinator combinator) {
-    Namespace namespace = library.exportNamespace;
-    NodeList<SimpleIdentifier> names;
     DiagnosticWithArguments<
       LocatableDiagnostic Function({
         required String library,
@@ -147,17 +144,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
     >
     warningCode;
     if (combinator is HideCombinator) {
-      names = combinator.hiddenNames;
       warningCode = diag.undefinedHiddenName;
     } else {
-      names = (combinator as ShowCombinator).shownNames;
       warningCode = diag.undefinedShownName;
     }
-    for (SimpleIdentifier name in names) {
-      String nameStr = name.name;
-      Element? element = namespace.get2(nameStr);
-      element ??= namespace.get2("$nameStr=");
-      if (element == null) {
+    for (var name in combinator.names) {
+      if (name.element == null && name.setterElement == null) {
+        var nameStr = name.name.lexeme;
         _diagnosticReporter.report(
           warningCode
               .withArguments(library: '${library.uri}', name: nameStr)

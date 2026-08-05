@@ -783,6 +783,22 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitCombinatorName(CombinatorName node) {
+    recordRelation(
+      node.element,
+      IndexRelationKind.IS_REFERENCED_BY,
+      node,
+      true,
+    );
+    recordRelation(
+      node.setterElement,
+      IndexRelationKind.IS_REFERENCED_BY,
+      node,
+      true,
+    );
+  }
+
+  @override
   visitCommentReference(CommentReference node) {
     var expression = node.expression2;
     if (expression is Identifier) {

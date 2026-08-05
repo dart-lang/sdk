@@ -1105,7 +1105,7 @@ class FileState {
           keywordOffset: combinator.keyword.offset,
           endOffset: combinator.end,
           isShow: true,
-          names: combinator.shownNames.map((e) => e.name).toFixedList(),
+          names: combinator.names.map((e) => e.name.lexeme).toFixedList(),
         );
       } else {
         combinator as HideCombinator;
@@ -1113,7 +1113,7 @@ class FileState {
           keywordOffset: combinator.keyword.offset,
           endOffset: combinator.end,
           isShow: false,
-          names: combinator.hiddenNames.map((e) => e.name).toFixedList(),
+          names: combinator.names.map((e) => e.name.lexeme).toFixedList(),
         );
       }
     }).toFixedList();

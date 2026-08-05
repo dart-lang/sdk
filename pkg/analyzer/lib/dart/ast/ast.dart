@@ -78,6 +78,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ClassTypeAlias,
         CollectionElement,
         Combinator,
+        CombinatorName,
         Comment,
         CommentReferableExpression,
         CommentReference,

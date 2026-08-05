@@ -472,6 +472,9 @@ abstract class AstVisitor2<R> {
 
   R? visitClassTypeAlias(ClassTypeAlias node);
 
+  @experimental
+  R? visitCombinatorName(CombinatorName node);
+
   R? visitComment(Comment node);
 
   R? visitCommentReference(CommentReference node);

@@ -275,6 +275,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCombinatorName(CombinatorName node) {
+    _sink.writeln('CombinatorName');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeElement('setterElement', node.setterElement);
+    });
+  }
+
+  @override
   void visitComment(Comment node) {
     _sink.writeln('Comment');
     _sink.withIndent(() {

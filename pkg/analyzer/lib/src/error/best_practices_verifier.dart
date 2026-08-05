@@ -267,6 +267,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCombinatorName(CombinatorName node) {
+    _elementUsageFrontierDetector.combinatorName(node);
+    _invalidAccessVerifier.verifyCombinatorName(node);
+  }
+
+  @override
   void visitComment(Comment node) {
     for (var docImport in node.docImports) {
       _docCommentVerifier.docImport(docImport);
@@ -1728,6 +1734,27 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void verifyCombinatorName(CombinatorName node) {
+    if (node.parent2 is HideCombinator) {
+      return;
+    }
+
+    var element = node.element ?? node.setterElement;
+    if (element == null || _inCurrentLibrary(element)) {
+      return;
+    }
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
+    }
+
+    _checkForInvalidInternalAccess(
+      parent: node,
+      nameToken: node.name,
+      element: element,
+    );
+    _checkForOtherInvalidAccess(node, element);
+  }
+
   void verifyConstructorReference2(ConstructorReference2 node) {
     var element = node.element;
     if (element == null || _inCurrentLibrary(element)) {
@@ -2061,6 +2088,9 @@ class _InvalidAccessVerifier {
 
     if (node is Identifier) {
       name = node.name;
+    } else if (node is CombinatorName) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
     } else if (node is NamedType) {
       name = node.name.lexeme;
     } else if (node is NamedArgument) {

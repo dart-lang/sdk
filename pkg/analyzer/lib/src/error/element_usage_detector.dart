@@ -623,6 +623,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
+  void combinatorName(CombinatorName node) {
+    if (node.parent2 is HideCombinator) {
+      return;
+    }
+
+    var element = node.element ?? node.setterElement;
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
+    }
+    checkUsage(element, node);
+  }
+
   void constructorDeclaration(ConstructorDeclaration node) {
     // Check usage of any implicit super-constructor call.
     // There is only an implicit super-constructor if:

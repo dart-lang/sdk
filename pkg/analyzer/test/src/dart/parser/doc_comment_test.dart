@@ -723,6 +723,11 @@ Comment
         combinators
           ShowCombinator
             keyword: show
+            names
+              CombinatorName
+                name: Element
+              CombinatorName
+                name: HtmlElement
             shownNames
               SimpleIdentifier
                 token: Element

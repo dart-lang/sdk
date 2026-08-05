@@ -463,6 +463,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -497,6 +500,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -534,6 +540,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -571,6 +580,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -597,6 +609,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -628,6 +643,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -663,6 +681,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: int
           hiddenNames
             SimpleIdentifier
               token: int
@@ -700,6 +721,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -737,6 +761,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: int
           hiddenNames
             SimpleIdentifier
               token: int
@@ -773,6 +800,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -804,6 +834,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -837,6 +870,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -868,6 +904,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -914,6 +953,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -969,6 +1011,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -1003,6 +1048,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1039,6 +1089,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1078,6 +1133,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1117,6 +1177,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1145,6 +1210,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1178,6 +1248,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1215,6 +1290,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: int
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1254,6 +1334,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1293,6 +1378,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: int
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1331,6 +1421,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1364,6 +1459,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1399,6 +1499,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1432,6 +1537,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1480,6 +1590,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1537,6 +1652,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1571,6 +1691,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1605,6 +1730,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1642,6 +1772,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1679,6 +1814,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1705,6 +1845,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1736,6 +1881,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1773,6 +1923,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1812,6 +1967,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1851,6 +2011,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1889,6 +2054,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1920,6 +2090,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1953,6 +2128,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -1984,6 +2164,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2030,6 +2215,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2085,6 +2275,11 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2119,6 +2314,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2151,6 +2349,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2186,6 +2387,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2221,6 +2425,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2245,6 +2452,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2274,6 +2484,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2309,6 +2522,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2346,6 +2562,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2383,6 +2602,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2419,6 +2641,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2448,6 +2673,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2479,6 +2707,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2508,6 +2739,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2552,6 +2786,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2605,6 +2842,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
@@ -2639,11 +2879,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -2678,11 +2924,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -2720,11 +2972,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -2762,11 +3020,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -2793,11 +3057,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -2829,11 +3099,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -2869,11 +3145,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: int
           shownNames
             SimpleIdentifier
               token: int
@@ -2911,11 +3193,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -2953,11 +3241,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: int
           shownNames
             SimpleIdentifier
               token: int
@@ -2994,11 +3288,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3030,11 +3330,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3068,11 +3374,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3104,11 +3416,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3155,11 +3473,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3215,11 +3539,17 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: A
           hiddenNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3697,6 +4027,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3731,6 +4064,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3768,6 +4104,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3805,6 +4144,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3831,6 +4173,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3862,6 +4207,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3897,6 +4245,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: int
           shownNames
             SimpleIdentifier
               token: int
@@ -3934,6 +4285,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -3971,6 +4325,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: int
           shownNames
             SimpleIdentifier
               token: int
@@ -4007,6 +4364,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -4038,6 +4398,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -4071,6 +4434,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -4102,6 +4468,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -4148,6 +4517,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -4203,6 +4575,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -4237,6 +4612,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4273,6 +4653,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4312,6 +4697,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4351,6 +4741,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4379,6 +4774,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4412,6 +4812,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4449,6 +4854,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: int
           shownNames
             SimpleIdentifier
               token: A
@@ -4488,6 +4898,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4527,6 +4942,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: int
           shownNames
             SimpleIdentifier
               token: A
@@ -4565,6 +4985,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4598,6 +5023,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4633,6 +5063,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4666,6 +5101,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4714,6 +5154,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4771,6 +5216,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: A
@@ -4805,6 +5255,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -4839,6 +5294,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -4876,6 +5336,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -4913,6 +5378,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -4939,6 +5409,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -4970,6 +5445,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5007,6 +5487,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5046,6 +5531,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5085,6 +5575,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5123,6 +5618,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5154,6 +5654,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5187,6 +5692,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5218,6 +5728,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5264,6 +5779,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5319,6 +5839,11 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: A
@@ -5355,11 +5880,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5394,11 +5925,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5436,11 +5973,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5478,11 +6021,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5509,11 +6058,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5545,11 +6100,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5585,11 +6146,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: int
           hiddenNames
             SimpleIdentifier
               token: int
@@ -5627,11 +6194,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5669,11 +6242,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: int
           hiddenNames
             SimpleIdentifier
               token: int
@@ -5710,11 +6289,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5746,11 +6331,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5784,11 +6375,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5820,11 +6417,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5871,11 +6474,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5931,11 +6540,17 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           hiddenNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -5968,6 +6583,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6000,6 +6618,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6035,6 +6656,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6070,6 +6694,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6094,6 +6721,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6123,6 +6753,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6158,6 +6791,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6195,6 +6831,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6232,6 +6871,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6268,6 +6910,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6297,6 +6942,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6328,6 +6976,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6357,6 +7008,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6401,6 +7055,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
@@ -6454,6 +7111,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
