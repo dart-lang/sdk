@@ -23901,13 +23901,6 @@ export 'dart:core' show int, dynamic, Never;
       package:test/a.dart
         libraryMetadataId: #M5
         exportMapId: #M2
-        exportMap
-          Never: <null>
-          Never=: <null>
-          dynamic: <null>
-          dynamic=: <null>
-          int: <null>
-          int=: <null>
 [status] idle
 ''',
       updatedA: r'''

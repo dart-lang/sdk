@@ -4775,8 +4775,14 @@ import 'test.dart' show foo;
 int get foo => 0;
 void set foo(_) {}
 ''');
-    var element = result.findElement.topVar('foo');
-    assertElementIndexText(result, element, r'''
+
+    var getter = result.findElement.topGet('foo');
+    assertElementIndexText(result, getter, r'''
+24 1:25 |foo| IS_REFERENCED_BY qualified
+''');
+
+    var setter = result.findElement.topSet('foo');
+    assertElementIndexText(result, setter, r'''
 24 1:25 |foo| IS_REFERENCED_BY qualified
 ''');
   }
@@ -4789,8 +4795,8 @@ import 'test.dart' show foo;
 
 void set foo(_) {}
 ''');
-    var element = result.findElement.topVar('foo');
-    assertElementIndexText(result, element, r'''
+    var setter = result.findElement.topSet('foo');
+    assertElementIndexText(result, setter, r'''
 24 1:25 |foo| IS_REFERENCED_BY qualified
 ''');
   }

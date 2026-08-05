@@ -47,12 +47,12 @@ class ImportsVerifier {
   final List<ExportDirective> _duplicateExports = [];
 
   /// A map of names that are hidden more than once.
-  final Map<NamespaceDirective, List<SimpleIdentifier>>
-  _duplicateHiddenNamesMap = {};
+  final Map<NamespaceDirective, List<CombinatorName>> _duplicateHiddenNamesMap =
+      {};
 
   /// A map of names that are shown more than once.
-  final Map<NamespaceDirective, List<SimpleIdentifier>>
-  _duplicateShownNamesMap = {};
+  final Map<NamespaceDirective, List<CombinatorName>> _duplicateShownNamesMap =
+      {};
 
   ImportsVerifier({required this.fileAnalysis});
 
@@ -131,22 +131,20 @@ class ImportsVerifier {
   void generateDuplicateShownHiddenNameWarnings(DiagnosticReporter reporter) {
     _duplicateHiddenNamesMap.forEach((
       NamespaceDirective directive,
-      List<SimpleIdentifier> identifiers,
+      List<CombinatorName> names,
     ) {
-      int length = identifiers.length;
+      int length = names.length;
       for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        reporter.report(diag.duplicateHiddenName.at(identifier));
+        reporter.report(diag.duplicateHiddenName.at(names[i]));
       }
     });
     _duplicateShownNamesMap.forEach((
       NamespaceDirective directive,
-      List<SimpleIdentifier> identifiers,
+      List<CombinatorName> names,
     ) {
-      int length = identifiers.length;
+      int length = names.length;
       for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        reporter.report(diag.duplicateShownName.at(identifier));
+        reporter.report(diag.duplicateShownName.at(names[i]));
       }
     });
   }
@@ -301,23 +299,21 @@ class ImportsVerifier {
 
       for (var combinator in importDirective.combinators) {
         if (combinator is ShowCombinatorImpl) {
-          for (var identifier in combinator.shownNames) {
-            var element = identifier.element;
-            if (element != null) {
+          for (var name in combinator.names) {
+            var element = name.element;
+            var setterElement = name.setterElement;
+            if (element != null || setterElement != null) {
               var importElements = importsTracking.elementsOf(importElement);
 
-              var isUsed = importElements.contains(element);
-              if (element is PropertyInducingElement) {
-                isUsed =
-                    importElements.contains(element.getter) ||
-                    importElements.contains(element.setter);
-              }
+              var isUsed =
+                  importElements.contains(element) ||
+                  importElements.contains(setterElement);
 
               if (!isUsed) {
                 reporter.report(
                   diag.unusedShownName
-                      .withArguments(name: identifier.name)
-                      .at(identifier),
+                      .withArguments(name: name.name.lexeme)
+                      .at(name),
                 );
               }
             }
@@ -332,26 +328,26 @@ class ImportsVerifier {
   void _addDuplicateShownHiddenNames(NamespaceDirective directive) {
     for (var combinator in directive.combinators) {
       // Use a Set to find duplicates in faster than O(n^2) time.
-      var identifiers = <Element>{};
+      var elements = <(Element?, Element?)>{};
       if (combinator is HideCombinator) {
-        for (var name in combinator.hiddenNames) {
-          var element = name.element;
-          if (element != null) {
-            if (!identifiers.add(element)) {
+        for (var name in combinator.names) {
+          var pair = (name.element, name.setterElement);
+          if (pair != (null, null)) {
+            if (!elements.add(pair)) {
               // [name] is a duplicate.
-              List<SimpleIdentifier> duplicateNames = _duplicateHiddenNamesMap
+              List<CombinatorName> duplicateNames = _duplicateHiddenNamesMap
                   .putIfAbsent(directive, () => []);
               duplicateNames.add(name);
             }
           }
         }
       } else if (combinator is ShowCombinator) {
-        for (var name in combinator.shownNames) {
-          var element = name.element;
-          if (element != null) {
-            if (!identifiers.add(element)) {
+        for (var name in combinator.names) {
+          var pair = (name.element, name.setterElement);
+          if (pair != (null, null)) {
+            if (!elements.add(pair)) {
               // [name] is a duplicate.
-              List<SimpleIdentifier> duplicateNames = _duplicateShownNamesMap
+              List<CombinatorName> duplicateNames = _duplicateShownNamesMap
                   .putIfAbsent(directive, () => []);
               duplicateNames.add(name);
             }

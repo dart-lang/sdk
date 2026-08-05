@@ -1076,8 +1076,8 @@ import '' hide A, B;
     var node = parseResult.findNode.hideCombinator('hide');
     _assertReplaceInList(
       destination: node,
-      child: node.hiddenNames[0],
-      replacement: node.hiddenNames[1],
+      child: node.names[0],
+      replacement: node.names[1],
     );
   }
 
@@ -1649,8 +1649,8 @@ import '' show A, B;
     var node = parseResult.findNode.showCombinator('show');
     _assertReplaceInList(
       destination: node,
-      child: node.shownNames[0],
-      replacement: node.shownNames[1],
+      child: node.names[0],
+      replacement: node.names[1],
     );
   }
 

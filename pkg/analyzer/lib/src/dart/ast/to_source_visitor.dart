@@ -250,6 +250,11 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitCombinatorName(CombinatorName node) {
+    _visitToken(node.name);
+  }
+
+  @override
   void visitComment(Comment node) {}
 
   @override
@@ -758,7 +763,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitHideCombinator(HideCombinator node) {
     sink.write('hide ');
-    _visitNodeList(node.hiddenNames, separator: ', ');
+    _visitNodeList(node.names, separator: ', ');
   }
 
   @override
@@ -1365,7 +1370,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitShowCombinator(ShowCombinator node) {
     sink.write('show ');
-    _visitNodeList(node.shownNames, separator: ', ');
+    _visitNodeList(node.names, separator: ', ');
   }
 
   @override

@@ -872,6 +872,10 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
 
   R? visitCombinator(Combinator node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitCombinatorName(CombinatorName node) => visitNode(node);
+
   @override
   R? visitComment(Comment node) => visitNode(node);
 
@@ -2845,6 +2849,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitCombinatorName(CombinatorName node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitComment(Comment node) {
     node.visitChildren2(this);
@@ -4550,6 +4561,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitClassTypeAlias(ClassTypeAlias node) => null;
 
+  @experimental
+  @override
+  R? visitCombinatorName(CombinatorName node) => null;
+
   @override
   R? visitComment(Comment node) => null;
 
@@ -5782,6 +5797,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitClassTypeAlias(ClassTypeAlias node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCombinatorName(CombinatorName node) => _throw(node);
 
   @override
   R? visitComment(Comment node) => _throw(node);
@@ -8061,6 +8080,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitCombinatorName(CombinatorName node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCombinatorName(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitComment(Comment node) {
     stopwatch.start();
@@ -10146,6 +10174,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitClassTypeAlias(ClassTypeAlias node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitCombinatorName(CombinatorName node) => visitNode(node);
 
   @override
   R? visitComment(Comment node) => visitNode(node);

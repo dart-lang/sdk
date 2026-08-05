@@ -681,6 +681,9 @@ ImportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: a
       hiddenNames
         SimpleIdentifier
           token: a
@@ -701,11 +704,17 @@ ImportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: a
       hiddenNames
         SimpleIdentifier
           token: a
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: b
       shownNames
         SimpleIdentifier
           token: b
@@ -726,21 +735,33 @@ ImportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: a
       hiddenNames
         SimpleIdentifier
           token: a
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: b
       shownNames
         SimpleIdentifier
           token: b
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: c
       hiddenNames
         SimpleIdentifier
           token: c
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: d
       shownNames
         SimpleIdentifier
           token: d
@@ -761,6 +782,9 @@ ImportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: a
       shownNames
         SimpleIdentifier
           token: a
@@ -1608,6 +1632,13 @@ ImportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: a
+        CombinatorName
+          name: b
+        CombinatorName
+          name: c
       shownNames
         SimpleIdentifier
           token: a
@@ -1632,6 +1663,9 @@ ImportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: a
       shownNames
         SimpleIdentifier
           token: a

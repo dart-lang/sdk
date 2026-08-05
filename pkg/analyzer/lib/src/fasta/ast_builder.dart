@@ -2077,8 +2077,16 @@ class AstBuilder extends StackListener {
     assert(optional('hide', hideKeyword));
     debugEvent("Hide");
 
-    var hiddenNames = pop() as List<SimpleIdentifierImpl>;
-    push(HideCombinatorImpl(keyword: hideKeyword, hiddenNames: hiddenNames));
+    var names = pop() as List<SimpleIdentifierImpl>;
+    push(
+      HideCombinatorImpl(
+        keyword: hideKeyword,
+        names: [
+          for (var identifier in names)
+            CombinatorNameImpl(name: identifier.token),
+        ],
+      ),
+    );
   }
 
   @override
@@ -2984,8 +2992,16 @@ class AstBuilder extends StackListener {
     assert(optional('show', showKeyword));
     debugEvent("Show");
 
-    var shownNames = pop() as List<SimpleIdentifierImpl>;
-    push(ShowCombinatorImpl(keyword: showKeyword, shownNames: shownNames));
+    var names = pop() as List<SimpleIdentifierImpl>;
+    push(
+      ShowCombinatorImpl(
+        keyword: showKeyword,
+        names: [
+          for (var identifier in names)
+            CombinatorNameImpl(name: identifier.token),
+        ],
+      ),
+    );
   }
 
   @override

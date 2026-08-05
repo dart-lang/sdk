@@ -415,7 +415,7 @@ class ElementResolver {
   /// [library].
   void _resolveCombinators(
     LibraryElementImpl? library,
-    NodeList<Combinator> combinators,
+    NodeList<CombinatorImpl> combinators,
   ) {
     if (library == null) {
       //
@@ -425,26 +425,11 @@ class ElementResolver {
       return;
     }
     Namespace namespace = library.exportNamespace;
-    for (Combinator combinator in combinators) {
-      NodeList<SimpleIdentifier> names;
-      if (combinator is HideCombinator) {
-        names = combinator.hiddenNames;
-      } else {
-        names = (combinator as ShowCombinator).shownNames;
-      }
-      for (var name in names) {
-        name as SimpleIdentifierImpl;
-        String nameStr = name.name;
-        var element = namespace.get2(nameStr) ?? namespace.get2("$nameStr=");
-        if (element != null) {
-          // Ensure that the name always resolves to a top-level variable
-          // rather than a getter or setter
-          if (element is PropertyAccessorElement) {
-            name.element = element.variable;
-          } else {
-            name.element = element;
-          }
-        }
+    for (var combinator in combinators) {
+      for (var name in combinator.names) {
+        var nameStr = name.name.lexeme;
+        name.element = namespace.get2(nameStr);
+        name.setterElement = namespace.get2('$nameStr=');
       }
     }
   }

@@ -6976,7 +6976,8 @@ main() {
         .topVar('V');
     await assertElementReferencesText(element, r'''
 #F0
-  23 1:24 |V| REFERENCE qualified
+  23 1:24 |V| READ qualified
+  23 1:24 |V| WRITE qualified
 <testLibraryFragment> main@53
   69 4:8 |V| WRITE qualified
   83 5:8 |V| READ qualified
@@ -7033,6 +7034,9 @@ void set foo(_) {}
 ''');
     var element = result.findElement.topVar('foo');
     await assertElementReferencesText(element, r'''
+#F0
+  24 1:25 |foo| READ qualified
+  24 1:25 |foo| WRITE qualified
 ''');
   }
 
@@ -7044,6 +7048,8 @@ void set foo(_) {}
 ''');
     var element = result.findElement.topVar('foo');
     await assertElementReferencesText(element, r'''
+#F0
+  24 1:25 |foo| WRITE qualified
 ''');
   }
 

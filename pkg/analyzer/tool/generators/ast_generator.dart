@@ -144,6 +144,10 @@ class AstNodeImplGenerator {
           type ??= lookupInterfaceGetter(propertyName).returnType;
           type as InterfaceType;
 
+          var v1Type = v1Name == null
+              ? type
+              : lookupInterfaceGetter(v1Name).returnType as InterfaceType;
+
           var kind = _PropertyTypeKind.fromType(type);
           if (kind is _PropertyTypeKindNodeList) {
             kind.isWritable = !isNodeListFinal;
@@ -161,6 +165,7 @@ class AstNodeImplGenerator {
             withOverride: withOverride,
             withOverrideSuperNotNull: superNullAssertOverride,
             type: type,
+            v1Type: v1Type,
             typeKind: kind,
           );
         })
@@ -807,7 +812,7 @@ $finalKeyword ${property.typeCode} $propertyName = NodeListImpl._();
 \n@generated
 $v1ApiAnnotations
 @override
-late final ${property.typeCode} $v1Name = _V1ProjectedNodeListImpl(
+late final ${property.v1TypeCode} $v1Name = _V1ProjectedNodeListImpl(
   $propertyName,
   ${property.v1ProjectionMethod},
 );
@@ -1730,6 +1735,7 @@ class _Property {
   final String? v1Name;
   final _V1ProjectionKind v1Projection;
   final InterfaceType type;
+  final InterfaceType v1Type;
   final _PropertyTypeKind typeKind;
   final bool isSuper;
   final bool isInValueExpressionSlot;
@@ -1741,6 +1747,7 @@ class _Property {
     required this.v1Name,
     required this.v1Projection,
     required this.type,
+    required this.v1Type,
     required this.typeKind,
     required this.isSuper,
     required this.isInValueExpressionSlot,
@@ -1785,20 +1792,7 @@ class _Property {
   }
 
   String get typeCode {
-    var nullSuffix = isNullable ? '?' : '';
-    switch (typeKind) {
-      case _PropertyTypeKindToken():
-        return 'Token$nullSuffix';
-      case _PropertyTypeKindTokenList():
-        return 'List<Token>$nullSuffix';
-      case _PropertyTypeKindNodeList typeKind:
-        var elementTypeCode = typeKind.elementTypeCode;
-        return 'NodeListImpl<$elementTypeCode>$nullSuffix';
-      case _PropertyTypeKindOther():
-        return type.asCode;
-      default:
-        return '${type.element.name!}Impl$nullSuffix';
-    }
+    return _typeCode(type, typeKind);
   }
 
   String get typeCodeNotNullable {
@@ -1820,12 +1814,17 @@ class _Property {
       _V1ProjectionKind.argument => 'V1Projection.toV1Argument',
       _V1ProjectionKind.collectionElement =>
         'V1Projection.toV1CollectionElement',
+      _V1ProjectionKind.combinatorName => 'V1Projection.toV1CombinatorName',
       _V1ProjectionKind.commentReferableExpression =>
         'V1Projection.toV1CommentReferableExpression',
       _V1ProjectionKind.expression => 'V1Projection.toV1Expression',
       _V1ProjectionKind.recordLiteralField =>
         'V1Projection.toV1RecordLiteralField',
     };
+  }
+
+  String get v1TypeCode {
+    return _typeCode(v1Type, _PropertyTypeKind.fromType(v1Type));
   }
 
   String get v1ViewName => v1Name ?? name;
@@ -1846,11 +1845,31 @@ class _Property {
       _V1ProjectionKind.none => expression,
       _V1ProjectionKind.argument ||
       _V1ProjectionKind.collectionElement ||
+      _V1ProjectionKind.combinatorName ||
       _V1ProjectionKind.commentReferableExpression ||
       _V1ProjectionKind.expression ||
       _V1ProjectionKind.recordLiteralField =>
         '$v1ProjectionMethod($expression)',
     };
+  }
+
+  static String _typeCode(InterfaceType type, _PropertyTypeKind typeKind) {
+    var nullSuffix = type.nullabilitySuffix == NullabilitySuffix.question
+        ? '?'
+        : '';
+    switch (typeKind) {
+      case _PropertyTypeKindToken():
+        return 'Token$nullSuffix';
+      case _PropertyTypeKindTokenList():
+        return 'List<Token>$nullSuffix';
+      case _PropertyTypeKindNodeList typeKind:
+        var elementTypeCode = typeKind.elementTypeCode;
+        return 'NodeListImpl<$elementTypeCode>$nullSuffix';
+      case _PropertyTypeKindOther():
+        return type.asCode;
+      default:
+        return '${type.element.name!}Impl$nullSuffix';
+    }
   }
 }
 
@@ -1896,6 +1915,7 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
     return switch (element.name) {
       'Argument' => _V1ProjectionKind.argument,
       'CollectionElement' => _V1ProjectionKind.collectionElement,
+      'CombinatorName' => _V1ProjectionKind.combinatorName,
       'CommentReferableExpression' =>
         _V1ProjectionKind.commentReferableExpression,
       'Expression' => _V1ProjectionKind.expression,
@@ -1926,6 +1946,7 @@ enum _V1ProjectionKind {
   none,
   argument,
   collectionElement,
+  combinatorName,
   commentReferableExpression,
   expression,
   recordLiteralField,

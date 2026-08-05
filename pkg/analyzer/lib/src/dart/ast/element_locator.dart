@@ -418,6 +418,11 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitCombinatorName(CombinatorName node) {
+    return node.element ?? node.setterElement;
+  }
+
+  @override
   Element? visitCompilationUnit(CompilationUnit node) {
     return node.declaredFragment?.element;
   }
