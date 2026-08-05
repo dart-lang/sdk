@@ -2501,7 +2501,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   @override
   List<FieldElement> get constants {
     var constants = fields.where((field) => field.isEnumConstant).toList();
-    return constants.map((e) => e.asElement2).toList();
+    return constants.map((e) => e.element).toList();
   }
 
   @override
@@ -2580,14 +2580,14 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
       var result = <FormalParameterElementImpl>[];
       for (var formalParameter in formalParameters) {
         if (!formalParameter.isOriginOtherFragmentOfEnclosing) {
-          result.add(formalParameter.asElement2);
+          result.add(formalParameter.element);
         }
       }
       return result.toFixedList();
     }
 
     return List.generate(formalParameters.length, (index) {
-      return formalParameters[index].asElement2;
+      return formalParameters[index].element;
     }, growable: false);
   }
 
@@ -2595,7 +2595,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   List<FormalParameterElementImpl> get formalParametersIncludingRecovery {
     var fragments = _firstFragment._formalParameters;
     return List.generate(fragments.length, (index) {
-      return fragments[index].asElement2;
+      return fragments[index].element;
     }, growable: false);
   }
 
@@ -4621,7 +4621,7 @@ abstract class FragmentImpl implements Fragment {
   /// Returns `null` if the element is not declared in SDK, or does not have
   /// a `@Since()` annotation applicable to it.
   Version? get sinceSdkVersion {
-    return asElement2?.sinceSdkVersion;
+    return element.sinceSdkVersion;
   }
 
   @override
@@ -9689,7 +9689,7 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
 
   @override
   JoinPatternVariableElementImpl? get join {
-    return _firstFragment.join?.asElement2;
+    return _firstFragment.join?.element;
   }
 
   /// Return the root [join], or self.

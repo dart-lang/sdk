@@ -17,7 +17,6 @@ import 'package:analyzer/src/summary2/interface_cycles.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 List<InterfaceTypeImpl> _toInterfaceTypeList(List<NamedType>? nodeList) {
   if (nodeList != null) {
@@ -94,7 +93,7 @@ class TypesBuilder {
     var formalParameters = _formalParameters(formalParameterList);
 
     return FunctionTypeImpl(
-      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
+      typeParameters: typeParameters.map((f) => f.element).toList(),
       formalParameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
