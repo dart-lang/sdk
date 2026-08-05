@@ -861,7 +861,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     );
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
-    super.visitEnumConstantDeclaration(node);
+    node.visitChildrenWithHooks(
+      this,
+      visitArguments: (arguments) => _withThisContext(
+        ThisContext.staticFieldDeclaration,
+        () => arguments.accept2(this),
+      ),
+    );
   }
 
   @override

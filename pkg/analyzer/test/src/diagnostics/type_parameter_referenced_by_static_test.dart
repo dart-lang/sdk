@@ -106,6 +106,16 @@ class A<T> {
 ''');
   }
 
+  test_enum_constant_typeArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E<T> {
+  v<T>();
+//  ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
+}
+''');
+  }
+
   test_expression_method() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
