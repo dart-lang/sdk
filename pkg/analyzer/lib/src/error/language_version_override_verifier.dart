@@ -217,20 +217,26 @@ class LanguageVersionOverrideVerifier {
       return false;
     }
 
-    if (dartVersionSeparatorLength != 1 ||
-        comment.codeUnitAt(dartVersionSeparatorStartIndex) != 0x3D) {
-      // The separator between "@dart" and the version number is either not
-      // present, or is not a single "=" character. A separator which starts
-      // with "=" has the character it needs, so what follows it is what is not
-      // a version number: `// @dart="2.0"` reads as a quote where a digit
-      // belongs, not as a missing "=".
-      var startsWithEquals =
-          comment.codeUnitAt(dartVersionSeparatorStartIndex) == 0x3D;
+    if (comment.codeUnitAt(dartVersionSeparatorStartIndex) != 0x3D) {
+      // The first non-whitespace character after "@dart" is not "=". Examples
+      // include: "// @dart: 2", "// @dart 2.0".
       _diagnosticReporter.report(
-        (startsWithEquals
-                ? diag.invalidLanguageVersionOverrideNumber
-                : diag.invalidLanguageVersionOverrideEquals)
-            .atOffset(offset: offset, length: length),
+        diag.invalidLanguageVersionOverrideEquals.atOffset(
+          offset: offset,
+          length: length,
+        ),
+      );
+      return false;
+    }
+
+    if (dartVersionSeparatorLength != 1) {
+      // The separator starts with "=", so what follows the "=" is what is not
+      // a version number. Example: `// @dart="2.0"`.
+      _diagnosticReporter.report(
+        diag.invalidLanguageVersionOverrideNumber.atOffset(
+          offset: offset,
+          length: length,
+        ),
       );
       return false;
     }
