@@ -124,8 +124,23 @@ String _buildSnippetString(
     ...editGroups.expandIndexed(convertEditGroup),
   ];
 
-  // Remove any groups outside of the range (it's possible the edit groups apply
-  // to a different edit in the collection).
+  // Remove any groups outside of the range of this edit.
+  //
+  // We have some fixes that produced linked edit groups (and selections) that
+  // might be outside of the edit. For example:
+  //
+  // ```
+  // void f() {
+  //   x(); // invoke "Create function 'x' here"
+  // }
+  // ```
+  //
+  // This inserts a new function that tries to link the invocation `x` to the
+  // name of the new function, so that renaming the new function also updates
+  // the invocation. However, because the invocation is not part of the edit, it
+  // cannot be marked up in the snippet text.
+  //
+  // See https://github.com/dart-lang/sdk/issues/63824
   placeholders.removeWhere(
     (placeholder) =>
         placeholder.offset < 0 ||
