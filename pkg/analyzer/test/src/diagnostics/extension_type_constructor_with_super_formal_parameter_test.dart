@@ -28,6 +28,29 @@ extension type E(int it) {
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
+  requiredPositionalFormalParameters
+    FieldFormalParameter
+      thisKeyword: this
+      period: .
+      name: it
+      declaredFragment: <testLibraryFragment> it@42
+        element: hasImplicitType isFinal isPublic
+          type: int
+          field: <testLibrary>::@extensionType::E::@field::it
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      SuperFormalParameter
+        superKeyword: super
+        period: .
+        name: foo
+        declaredFragment: <testLibraryFragment> foo@53
+          element: hasImplicitType isFinal isPublic
+            type: dynamic
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   parameter: FieldFormalParameter
     thisKeyword: this
     period: .
@@ -61,6 +84,25 @@ extension type E(int it) {
     var node = result.findNode.formalParameterList('super.foo');
     assertResolvedNodeText(node, r'''
 FormalParameterList
+  leftParenthesis: (
+  requiredPositionalFormalParameters
+    FieldFormalParameter
+      thisKeyword: this
+      period: .
+      name: it
+      declaredFragment: <testLibraryFragment> it@42
+        element: hasImplicitType isFinal isPublic
+          type: int
+          field: <testLibrary>::@extensionType::E::@field::it
+    SuperFormalParameter
+      superKeyword: super
+      period: .
+      name: foo
+      declaredFragment: <testLibraryFragment> foo@52
+        element: hasImplicitType isFinal isPublic
+          type: dynamic
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   parameter: FieldFormalParameter
     thisKeyword: this

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -13,8 +12,8 @@ class UseResultVerifier {
 
   UseResultVerifier(this._diagnosticReporter);
 
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var element = node.element;
+  void checkConstructorInvocation(ConstructorInvocation node) {
+    var element = node.constructorReference.element;
     if (element == null) {
       return;
     }
@@ -22,8 +21,8 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.element;
+  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -54,7 +53,7 @@ class UseResultVerifier {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     // Covered by checkPropertyAccess, checkMethodInvocation
     // and checkFunctionExpressionInvocation respectively.
     if (parent is PropertyAccess ||
@@ -72,9 +71,9 @@ class UseResultVerifier {
   }
 
   void _check(AstNode node, Element element) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is PrefixedIdentifier) {
-      parent = parent.parent;
+      parent = parent.parent2;
     }
     if (parent is CommentReference) {
       // Don't flag references in comments.
@@ -157,13 +156,13 @@ class UseResultVerifier {
   }
 
   static bool _isUsed(AstNode node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent == null) {
       return false;
     }
 
     if (parent is CascadeExpression) {
-      return parent.target == node;
+      return parent.target2 == node;
     }
 
     if (parent is PrefixedIdentifier) {
@@ -174,9 +173,9 @@ class UseResultVerifier {
       }
     }
 
-    if (parent is PostfixExpression) {
-      // Null-checking a result is not a "use." Other uses, like `++`, do count.
-      return parent.operator.type == TokenType.BANG && _isUsed(parent);
+    // Null-checking a result is not a "use".
+    if (parent is NullAssertionExpression) {
+      return _isUsed(parent);
     }
 
     if (parent is AsExpression ||
@@ -184,16 +183,19 @@ class UseResultVerifier {
         parent is ConditionalExpression ||
         parent is ForElement ||
         parent is IfElement ||
+        parent is LogicalNot ||
         parent is ParenthesizedExpression ||
-        parent is PrefixExpression ||
-        parent is SpreadElement) {
+        parent is PrefixIncrement ||
+        parent is PrefixDecrement ||
+        parent is SpreadElement ||
+        parent is UnaryOperatorInvocation) {
       return _isUsed(parent);
     }
 
     if (parent is ForParts) {
       // If [node] is the condition of a for-loop, it is used; if it is one of
       // the updaters, it is not.
-      return parent.condition == node;
+      return parent.condition2 == node;
     }
 
     return parent is ArgumentList ||
@@ -202,7 +204,8 @@ class UseResultVerifier {
         // Node should always be RHS so no need to check for a property
         // assignment.
         parent is AssignmentExpression ||
-        parent is BinaryExpression ||
+        parent is BinaryOperatorInvocation ||
+        parent is IfNull ||
         parent is ConstructorFieldInitializer ||
         parent is DoStatement ||
         parent is ExpressionFunctionBody ||
@@ -253,7 +256,7 @@ extension on AstNode {
   AstNode get nodeToAnnotate => switch (this) {
     MethodInvocation node => node.methodName,
     PropertyAccess node => node.propertyName,
-    FunctionExpressionInvocation node => node.function.nodeToAnnotate,
+    FunctionExpressionInvocation node => node.function2.nodeToAnnotate,
     _ => this,
   };
 }

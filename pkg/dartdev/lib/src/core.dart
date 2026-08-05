@@ -84,6 +84,26 @@ abstract class DartdevCommand extends Command<int> {
   /// Subclasses can override this in order to create a customized ArgParser.
   ArgParser createArgParser() =>
       ArgParser(usageLineLength: dartdevUsageLineLength);
+
+  /// Returns a [FileSystemEntity] (either [Directory] or [File]) corresponding
+  /// to the single path specified in [arguments], or the current working
+  /// directory if [arguments] is empty.
+  ///
+  /// Throws a [UsageException] if more than one argument is provided.
+  FileSystemEntity getTarget(List<String> arguments) {
+    final argumentCount = arguments.length;
+    if (argumentCount > 1) {
+      usageException('Only one file or directory is expected.');
+    }
+
+    final basePath = argumentCount == 0
+        ? Directory.current.absolute.path
+        : arguments.first;
+    final normalizedPath = path.canonicalize(path.normalize(basePath));
+    return FileSystemEntity.isDirectorySync(normalizedPath)
+        ? Directory(normalizedPath)
+        : File(normalizedPath);
+  }
 }
 
 enum CommandCategory {

@@ -5,15 +5,20 @@
 // sandbox.js provides a JSON-RPC 2.0 wrapper around functionality exposed
 // by ddc_module.loader.js
 //
-// This is intended to run inside the _sandboxed iframe_ and allows the host to
-// load modules, run code, hot-reload, receive console messages, etc. inside the
-// iframe using RPC over a `MessageChannel` exchanged through `postMessage`.
-//
-// The client side of these RPC calls is wrapped by [Sandbox] from
-// `package:dartpad`.
+// This is intended to run inside the _sandboxed iframe_ and allows the worker
+// to load modules, run code, hot-reload, receive console messages, etc. inside
+// the iframe using RPC over a `MessageChannel` exchanged through `postMessage`.
 (function () {
+  // Scripts to load into the sandbox at startup
+  self.$dartpadSandboxScripts = self.$dartpadSandboxScripts || [
+    './ddc_module_loader.js',
+    './dart_sdk.js',
+  ];
+
   // Port for JSON-RPC 2.0 communication with host.
-  let rpcPort = null;
+  const { port1: remotePort, port2: rpcPort } = new MessageChannel();
+
+  const baseUrl = document.currentScript?.src || self.location.href;
 
   const errorCode = {
     // JSON-RPC 2.0 Spec.
@@ -37,15 +42,27 @@
     }
   }
 
-
   // Registry of RPC methods
   const rpcMethods = {};
 
   async function onRcpMessage(ev) {
-    const m = JSON.parse(ev.data);
+    // Ignore invalid messages from the host
+    if (!ev.data.payload) return;
 
-    // Ignore invalid messages or responses from the host
+    const m = JSON.parse(ev.data.payload);
+
+    // Ignore invalid payloads!
     if (!m || m.jsonrpc !== '2.0' || !m.method) return;
+
+    for (const prop of ['port', 'bytes']) {
+      if (ev.data[prop]) {
+        for (const k of ['params', 'result']) {
+          if (m[k]) {
+            m[k][prop] = ev.data[prop];
+          }
+        }
+      }
+    }
 
     const handler = rpcMethods[m.method];
 
@@ -62,11 +79,25 @@
 
       // If it's a request (has an id), send a success response
       if (m.id !== undefined) {
-        rpcPort.postMessage(JSON.stringify({
-          jsonrpc: '2.0',
-          id: m.id,
-          result: result ?? {}
-        }));
+        var port;
+        if (result.port instanceof MessagePort) {
+          port = result.port;
+          delete result.port;
+        }
+        var bytes;
+        if (result.bytes instanceof Uint8Array) {
+          bytes = result.bytes;
+          delete result.bytes;
+        }
+        rpcPort.postMessage({
+          payload: JSON.stringify({
+            jsonrpc: '2.0',
+            id: m.id,
+            result: result ?? {}
+          }),
+          bytes,
+          port,
+        });
       }
     } catch (e) {
       if (m.id === undefined) {
@@ -76,22 +107,65 @@
       const code = e instanceof RpcError ? e.code : errorCode.SERVER_ERROR;
       const message = e instanceof Error ? e.message : String(e);
 
-      rpcPort.postMessage(JSON.stringify({
-        jsonrpc: '2.0',
-        id: m.id,
-        error: { code, message }
-      }));
+      rpcPort.postMessage({
+        payload: JSON.stringify({
+          jsonrpc: '2.0',
+          id: m.id,
+          error: { code, message }
+        }),
+      });
     }
   }
 
-
   function sendNotification(method, params) {
-    if (!rpcPort) return;
-    rpcPort.postMessage(JSON.stringify({
-      jsonrpc: '2.0',
-      method: method,
-      params: params
-    }));
+    rpcPort.postMessage({
+      payload: JSON.stringify({
+        jsonrpc: '2.0',
+        method: method,
+        params: params
+      }),
+    });
+  }
+
+  function loadScript(scriptUrl) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = new URL(scriptUrl, baseUrl).href;
+      script.async = false;
+      script.defer = true;
+      script.crossOrigin = 'anonymous';
+      script.onload = () => resolve();
+      script.onerror = () => {
+        reject(new Error(`Failed to load: ${scriptUrl}`));
+        script.remove();
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function initialize() {
+    try {
+      await Promise.all(self.$dartpadSandboxScripts.map(
+        (s) => loadScript(s),
+      ));
+
+      if (!self.dartDevEmbedder) {
+        throw new Error("dartDevEmbedder is not initialized.");
+      }
+
+      rpcPort.onmessage = onRcpMessage;
+      rpcPort.start();
+      window.parent.postMessage(
+        { action: 'connect', port: remotePort },
+        '*',
+        [remotePort],
+      );
+    } catch (e) {
+      window.parent.postMessage(
+        { action: 'error', message: e.toString() },
+        '*',
+      );
+    }
   }
 
   // Serialize arg similar to what console.log would do.
@@ -130,9 +204,35 @@
     };
   }
 
-  // Catch unhandled browser errors and route them to our console proxy
-  window.addEventListener('error', (e) => console.error(`Uncaught: ${e.message}`));
-  window.addEventListener('unhandledrejection', (e) => console.error(`Unhandled Rejection: ${e.reason}`));
+  // Surface browser runtime failures on a dedicated channel instead of
+  // forcing the host to infer them from console text.
+  window.addEventListener('error', (e) => {
+    const message = e.error instanceof Error
+      ? (e.error.stack || e.error.message || String(e.error))
+      : `Uncaught: ${e.message}`;
+    sendNotification('error', { message });
+
+    originalConsole.error.call(console, 'Uncaught sandbox error:', e.error || e.message || e);
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    const message = e.reason instanceof Error
+      ? (e.reason.stack || e.reason.message || String(e.reason))
+      : `Unhandled Rejection: ${safeSerialize(e.reason)}`;
+    sendNotification('unhandledRejection', { message });
+
+    originalConsole.error.call(console, 'Unhandled sandbox rejection:', e.reason);
+  });
+
+  // Inject event handler to receive extension events from the running app
+  // (from dart:developer's postEvent method).
+  self.$emitDebugEvent = (eventKind, eventData) => {
+    sendNotification('extensionEvent', {
+      kind: eventKind,
+      data: eventData
+    });
+  };
+  // This is required for ddc to not ignore extension events.
+  self.$dwdsVersion = '1.0.0';
 
   // Create a blob URL and register it with DDC's internal loader.
   function createAndRegisterBlob(moduleName, code) {
@@ -345,27 +445,28 @@
     return { generation: self.dartDevEmbedder.hotReloadGeneration };
   };
 
-  function onWindowMessage(ev) {
-    if (ev.source !== window.parent) {
-      console.warn('Rejected connect message from untrusted source.');
-      return;
+  // Invoke an extension method in the sandboxed application.
+  //
+  // [method] is the name of the extension method to invoke.
+  // [args] is a map of arguments to pass to the extension method.
+  rpcMethods.invokeExtension = async (params) => {
+    const { method, args } = params;
+    if (!self.dartDevEmbedder || !self.dartDevEmbedder.debugger) {
+      throw new RpcError(
+        "dartDevEmbedder debugger is not initialized.",
+        errorCode.MODULE_LOADER_NOT_AVAILABLE
+      );
     }
-
-    // We expect the Dart host to send {'action': 'connect'}
-    if (ev.data?.action !== 'connect') {
-      console.warn('Received non-connect message:', ev);
-      return;
+    try {
+      const result = await self.dartDevEmbedder.debugger.invokeExtension(
+        method,
+        JSON.stringify(args || {})
+      );
+      return result;
+    } catch (e) {
+      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
     }
-    if (ev.ports?.length !== 1) {
-      console.error('Connect message missing port:', ev);
-      return;
-    }
-    window.removeEventListener('message', onWindowMessage);
+  };
 
-    rpcPort = ev.ports[0];
-    rpcPort.onmessage = onRcpMessage;
-    rpcPort.start();
-  }
-
-  window.addEventListener('message', onWindowMessage);
+  initialize();
 })();

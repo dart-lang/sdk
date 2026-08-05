@@ -23,7 +23,6 @@ library;
 import self as self;
 
 static method test(dynamic o) → dynamic {
-  #L1:
   {
     final synthesized dynamic #0#0 = o;
     {

@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-import 'package:front_end/src/kernel/kernel_constants.dart'
-    show KernelConstantErrorReporter;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
@@ -16,6 +14,7 @@ import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder_context.dart';
 import '../kernel/external_ast_helper.dart' as extern;
+import '../kernel/kernel_constants.dart' show KernelConstantErrorReporter;
 import '../kernel/macro/metadata.dart' hide ExtensionScope;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -34,7 +33,6 @@ class Annotation {
     required this.createFileUriExpression,
   });
 
-  late int annotationIndex;
   late Expression expression;
 }
 

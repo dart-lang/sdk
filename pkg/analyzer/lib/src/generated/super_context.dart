@@ -36,12 +36,12 @@ class SuperContext {
   /// Return an indication of the context in which the super [expression] is
   /// being used.
   factory SuperContext.of(SuperExpression expression) {
-    for (AstNode? node = expression; node != null; node = node.parent) {
+    for (AstNode? node = expression; node != null; node = node.parent2) {
       if (node is Annotation) {
         return SuperContext.annotation;
       } else if (node is AnonymousMethodBody &&
-          node.parent is AnonymousMethodInvocation &&
-          (node.parent as AnonymousMethodInvocation).parameters == null) {
+          node.parent2 is AnonymousMethodInvocation &&
+          (node.parent2 as AnonymousMethodInvocation).parameters == null) {
         return SuperContext.anonymousMethod;
       } else if (node is ClassDeclaration) {
         return SuperContext.valid;

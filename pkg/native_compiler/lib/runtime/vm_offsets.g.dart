@@ -16,6 +16,24 @@ base class VMOffsets {
   int get Array_kMaxElements => throw 'Unknown';
   int get Array_kMaxNewSpaceElements => throw 'Unknown';
   int get Context_kMaxElements => throw 'Unknown';
+  int get Function_kKindBitsPos => throw 'Unknown';
+  int get Function_kKindBitsSize => throw 'Unknown';
+  int get Function_kRecognizedBitsPos => throw 'Unknown';
+  int get Function_kRecognizedBitsSize => throw 'Unknown';
+  int get Function_kModifierBitsPos => throw 'Unknown';
+  int get Function_kModifierBitsSize => throw 'Unknown';
+  int get Function_kStaticBitPos => throw 'Unknown';
+  int get Function_kConstBitPos => throw 'Unknown';
+  int get Function_kAbstractBitPos => throw 'Unknown';
+  int get Function_kReflectableBitPos => throw 'Unknown';
+  int get Function_kVisibleBitPos => throw 'Unknown';
+  int get Function_kDebuggableBitPos => throw 'Unknown';
+  int get Function_kNativeBitPos => throw 'Unknown';
+  int get Function_kExternalBitPos => throw 'Unknown';
+  int get Function_kHasPragmaBitPos => throw 'Unknown';
+  int get Function_kIsSyntheticBitPos => throw 'Unknown';
+  int get Function_kIsExtensionMemberBitPos => throw 'Unknown';
+  int get Function_kIsExtensionTypeMemberBitPos => throw 'Unknown';
   int get Heap_kNewAllocatableSize => throw 'Unknown';
   int get Instructions_kMonomorphicEntryOffsetJIT => throw 'Unknown';
   int get Instructions_kPolymorphicEntryOffsetJIT => throw 'Unknown';
@@ -23,6 +41,9 @@ base class VMOffsets {
   int get Instructions_kPolymorphicEntryOffsetAOT => throw 'Unknown';
   int get Instructions_kBarePayloadAlignment => throw 'Unknown';
   int get Instructions_kNonBarePayloadAlignment => throw 'Unknown';
+  int get NativeArguments_kArgcBitsPos => throw 'Unknown';
+  int get NativeArguments_kArgcBitsSize => throw 'Unknown';
+  int get NativeArguments_kGenericFunctionBitPos => throw 'Unknown';
   int get NativeEntry_kNumCallWrapperArguments => throw 'Unknown';
   int get Page_kBytesPerCardLog2 => throw 'Unknown';
   int get Page_kPageMask => throw 'Unknown';
@@ -572,7 +593,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Closure_elementSize => 0x8;
   @override
-  int get Code_elementsStartOffset => 0xb0;
+  int get Code_elementsStartOffset => 0xb8;
   @override
   int get Code_elementSize => 0x4;
   @override
@@ -622,6 +643,42 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Function_kKindBitsPos => 0x0;
+  @override
+  int get Function_kKindBitsSize => 0x5;
+  @override
+  int get Function_kRecognizedBitsPos => 0x5;
+  @override
+  int get Function_kRecognizedBitsSize => 0x9;
+  @override
+  int get Function_kModifierBitsPos => 0xe;
+  @override
+  int get Function_kModifierBitsSize => 0x2;
+  @override
+  int get Function_kStaticBitPos => 0x10;
+  @override
+  int get Function_kConstBitPos => 0x11;
+  @override
+  int get Function_kAbstractBitPos => 0x12;
+  @override
+  int get Function_kReflectableBitPos => 0x13;
+  @override
+  int get Function_kVisibleBitPos => 0x14;
+  @override
+  int get Function_kDebuggableBitPos => 0x15;
+  @override
+  int get Function_kNativeBitPos => 0x17;
+  @override
+  int get Function_kExternalBitPos => 0x18;
+  @override
+  int get Function_kHasPragmaBitPos => 0x1a;
+  @override
+  int get Function_kIsSyntheticBitPos => 0x1b;
+  @override
+  int get Function_kIsExtensionMemberBitPos => 0x1c;
+  @override
+  int get Function_kIsExtensionTypeMemberBitPos => 0x1d;
+  @override
   int get Heap_kNewAllocatableSize => 0x40000;
   @override
   int get Instructions_kMonomorphicEntryOffsetJIT => 0x8;
@@ -635,6 +692,12 @@ final class Arm64VMOffsets extends VMOffsets {
   int get Instructions_kBarePayloadAlignment => 0x4;
   @override
   int get Instructions_kNonBarePayloadAlignment => 0x8;
+  @override
+  int get NativeArguments_kArgcBitsPos => 0x0;
+  @override
+  int get NativeArguments_kArgcBitsSize => 0x18;
+  @override
+  int get NativeArguments_kGenericFunctionBitPos => 0x18;
   @override
   int get NativeEntry_kNumCallWrapperArguments => 0x2;
   @override
@@ -994,11 +1057,11 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_AllocateArray_entry_point_offset => 0x2e8;
   @override
-  int get Thread_DeoptimizeCopyFrame_entry_point_offset => 0x718;
+  int get Thread_DeoptimizeCopyFrame_entry_point_offset => 0x720;
   @override
-  int get Thread_active_exception_offset => 0x6d8;
+  int get Thread_active_exception_offset => 0x6e0;
   @override
-  int get Thread_active_stacktrace_offset => 0x6e0;
+  int get Thread_active_stacktrace_offset => 0x6e8;
   @override
   int get Thread_array_write_barrier_entry_point_offset => 0x200;
   @override
@@ -1016,7 +1079,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_allocate_object_slow_entry_point_offset => 0x230;
   @override
-  int get Thread_api_top_scope_offset => 0x898;
+  int get Thread_api_top_scope_offset => 0x8a0;
   @override
   int get Thread_async_exception_handler_stub_offset => 0x160;
   @override
@@ -1032,15 +1095,15 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_call_to_runtime_stub_offset => 0xd8;
   @override
-  int get Thread_dart_stream_offset => 0x8f0;
+  int get Thread_dart_stream_offset => 0x8f8;
   @override
   int get Thread_dispatch_table_array_offset => 0x68;
   @override
-  int get Thread_double_truncate_round_supported_offset => 0x8a0;
+  int get Thread_double_truncate_round_supported_offset => 0x8a8;
   @override
-  int get Thread_service_extension_stream_offset => 0x8f8;
+  int get Thread_service_extension_stream_offset => 0x900;
   @override
-  int get Thread_thread_locals_offset => 0x900;
+  int get Thread_thread_locals_offset => 0x908;
   @override
   int get Thread_optimize_entry_offset => 0x258;
   @override
@@ -1058,7 +1121,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_enter_safepoint_stub_offset => 0x1e0;
   @override
-  int get Thread_execution_state_offset => 0x700;
+  int get Thread_execution_state_offset => 0x708;
   @override
   int get Thread_exit_safepoint_stub_offset => 0x1e8;
   @override
@@ -1078,7 +1141,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_float_zerow_address_offset => 0x2e0;
   @override
-  int get Thread_global_object_pool_offset => 0x6e8;
+  int get Thread_global_object_pool_offset => 0x6f0;
   @override
   int get Thread_interpret_call_entry_point_offset => 0x2a0;
   @override
@@ -1086,11 +1149,11 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_invoke_dart_code_stub_offset => 0xc8;
   @override
-  int get Thread_exit_through_ffi_offset => 0x710;
+  int get Thread_exit_through_ffi_offset => 0x718;
   @override
-  int get Thread_isolate_offset => 0x688;
+  int get Thread_isolate_offset => 0x690;
   @override
-  int get Thread_isolate_group_offset => 0x690;
+  int get Thread_isolate_group_offset => 0x698;
   @override
   int get Thread_field_table_values_offset => 0x70;
   @override
@@ -1100,9 +1163,9 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_lazy_specialize_type_test_stub_offset => 0x1d8;
   @override
-  int get Thread_old_marking_stack_block_offset => 0x6b8;
+  int get Thread_old_marking_stack_block_offset => 0x6c0;
   @override
-  int get Thread_new_marking_stack_block_offset => 0x6c0;
+  int get Thread_new_marking_stack_block_offset => 0x6c8;
   @override
   int get Thread_megamorphic_call_checked_entry_offset => 0x248;
   @override
@@ -1158,15 +1221,15 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_resume_interpreter_adjusted_entry_point_offset => 0x280;
   @override
-  int get Thread_resume_pc_offset => 0x6f0;
+  int get Thread_resume_pc_offset => 0x6f8;
   @override
-  int get Thread_saved_shadow_call_stack_offset => 0x6f8;
+  int get Thread_saved_shadow_call_stack_offset => 0x700;
   @override
-  int get Thread_safepoint_state_offset => 0x708;
+  int get Thread_safepoint_state_offset => 0x710;
   @override
   int get Thread_shared_field_table_values_offset => 0x78;
   @override
-  int get Thread_single_step_offset => 0x8d0;
+  int get Thread_single_step_offset => 0x8d8;
   @override
   int get Thread_slow_type_test_stub_offset => 0x1d0;
   @override
@@ -1174,9 +1237,9 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_stack_limit_offset => 0x48;
   @override
-  int get Thread_saved_stack_limit_offset => 0x698;
+  int get Thread_saved_stack_limit_offset => 0x6a0;
   @override
-  int get Thread_stack_overflow_flags_offset => 0x6a0;
+  int get Thread_stack_overflow_flags_offset => 0x6a8;
   @override
   int get Thread_stack_overflow_shared_with_fpu_regs_entry_point_offset =>
       0x240;
@@ -1188,60 +1251,60 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_stack_overflow_shared_without_fpu_regs_stub_offset => 0x188;
   @override
-  int get Thread_store_buffer_block_offset => 0x6b0;
+  int get Thread_store_buffer_block_offset => 0x6b8;
   @override
-  int get Thread_suspend_state_await_entry_point_offset => 0x638;
+  int get Thread_suspend_state_await_entry_point_offset => 0x640;
   @override
   int get Thread_suspend_state_await_with_type_check_entry_point_offset =>
-      0x640;
+      0x648;
   @override
-  int get Thread_suspend_state_init_async_entry_point_offset => 0x630;
+  int get Thread_suspend_state_init_async_entry_point_offset => 0x638;
   @override
-  int get Thread_suspend_state_return_async_entry_point_offset => 0x648;
+  int get Thread_suspend_state_return_async_entry_point_offset => 0x650;
   @override
   int get Thread_suspend_state_return_async_not_future_entry_point_offset =>
-      0x650;
+      0x658;
   @override
-  int get Thread_suspend_state_init_async_star_entry_point_offset => 0x658;
+  int get Thread_suspend_state_init_async_star_entry_point_offset => 0x660;
   @override
-  int get Thread_suspend_state_yield_async_star_entry_point_offset => 0x660;
+  int get Thread_suspend_state_yield_async_star_entry_point_offset => 0x668;
   @override
-  int get Thread_suspend_state_return_async_star_entry_point_offset => 0x668;
+  int get Thread_suspend_state_return_async_star_entry_point_offset => 0x670;
   @override
-  int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x670;
+  int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x678;
   @override
   int get Thread_suspend_state_suspend_sync_star_at_start_entry_point_offset =>
-      0x678;
+      0x680;
   @override
-  int get Thread_suspend_state_handle_exception_entry_point_offset => 0x680;
+  int get Thread_suspend_state_handle_exception_entry_point_offset => 0x688;
   @override
-  int get Thread_top_exit_frame_info_offset => 0x6a8;
+  int get Thread_top_exit_frame_info_offset => 0x6b0;
   @override
   int get Thread_top_offset => 0x58;
   @override
   int get Thread_top_resource_offset => 0x20;
   @override
-  int get Thread_unboxed_runtime_arg_offset => 0x8a8;
+  int get Thread_unboxed_runtime_arg_offset => 0x8b0;
   @override
-  int get Thread_vm_tag_offset => 0x6d0;
+  int get Thread_vm_tag_offset => 0x6d8;
   @override
   int get Thread_write_barrier_entry_point_offset => 0x1f8;
   @override
   int get Thread_write_barrier_mask_offset => 0x50;
   @override
-  int get Thread_next_task_id_offset => 0x8b8;
+  int get Thread_next_task_id_offset => 0x8c0;
   @override
-  int get Thread_random_offset => 0x8c0;
+  int get Thread_random_offset => 0x8c8;
   @override
   int get Thread_jump_to_frame_entry_point_offset => 0x270;
   @override
-  int get Thread_tsan_utils_offset => 0x8c8;
+  int get Thread_tsan_utils_offset => 0x8d0;
   @override
-  int get Thread_current_tag_offset => 0x8e0;
+  int get Thread_current_tag_offset => 0x8e8;
   @override
-  int get Thread_default_tag_offset => 0x8e8;
+  int get Thread_default_tag_offset => 0x8f0;
   @override
-  int get Thread_user_tag_offset => 0x8d8;
+  int get Thread_user_tag_offset => 0x8e0;
   @override
   int get TsanUtils_setjmp_function_offset => 0x0;
   @override
@@ -1344,7 +1407,6 @@ final class Arm64VMOffsets extends VMOffsets {
   List<int> get Code_entry_point_offset => [0x8, 0x18, 0x10, 0x20];
   @override
   List<int> get Thread_write_barrier_wrappers_thread_offset => [
-    0x590,
     0x598,
     0x5a0,
     0x5a8,
@@ -1359,17 +1421,18 @@ final class Arm64VMOffsets extends VMOffsets {
     0x5f0,
     0x5f8,
     0x600,
-    -1,
-    -1,
-    -1,
-    -1,
     0x608,
+    -1,
+    -1,
+    -1,
+    -1,
     0x610,
-    -1,
-    -1,
     0x618,
+    -1,
+    -1,
     0x620,
     0x628,
+    0x630,
     -1,
     -1,
     -1,
@@ -1551,7 +1614,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Closure_elementSize => 0x8;
   @override
-  int get Code_elementsStartOffset => 0x90;
+  int get Code_elementsStartOffset => 0x98;
   @override
   int get Code_elementSize => 0x4;
   @override
@@ -1601,6 +1664,42 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Function_kKindBitsPos => 0x0;
+  @override
+  int get Function_kKindBitsSize => 0x5;
+  @override
+  int get Function_kRecognizedBitsPos => 0x5;
+  @override
+  int get Function_kRecognizedBitsSize => 0x9;
+  @override
+  int get Function_kModifierBitsPos => 0xe;
+  @override
+  int get Function_kModifierBitsSize => 0x2;
+  @override
+  int get Function_kStaticBitPos => 0x10;
+  @override
+  int get Function_kConstBitPos => 0x11;
+  @override
+  int get Function_kAbstractBitPos => 0x12;
+  @override
+  int get Function_kReflectableBitPos => 0x13;
+  @override
+  int get Function_kVisibleBitPos => 0x14;
+  @override
+  int get Function_kDebuggableBitPos => 0x15;
+  @override
+  int get Function_kNativeBitPos => 0x17;
+  @override
+  int get Function_kExternalBitPos => 0x18;
+  @override
+  int get Function_kHasPragmaBitPos => 0x1a;
+  @override
+  int get Function_kIsSyntheticBitPos => 0x1b;
+  @override
+  int get Function_kIsExtensionMemberBitPos => 0x1c;
+  @override
+  int get Function_kIsExtensionTypeMemberBitPos => 0x1d;
+  @override
   int get Heap_kNewAllocatableSize => 0x40000;
   @override
   int get Instructions_kMonomorphicEntryOffsetJIT => 0x8;
@@ -1614,6 +1713,12 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get Instructions_kBarePayloadAlignment => 0x4;
   @override
   int get Instructions_kNonBarePayloadAlignment => 0x8;
+  @override
+  int get NativeArguments_kArgcBitsPos => 0x0;
+  @override
+  int get NativeArguments_kArgcBitsSize => 0x18;
+  @override
+  int get NativeArguments_kGenericFunctionBitPos => 0x18;
   @override
   int get NativeEntry_kNumCallWrapperArguments => 0x2;
   @override
@@ -1969,11 +2074,11 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_AllocateArray_entry_point_offset => 0x2e8;
   @override
-  int get Thread_DeoptimizeCopyFrame_entry_point_offset => 0x718;
+  int get Thread_DeoptimizeCopyFrame_entry_point_offset => 0x720;
   @override
-  int get Thread_active_exception_offset => 0x6d8;
+  int get Thread_active_exception_offset => 0x6e0;
   @override
-  int get Thread_active_stacktrace_offset => 0x6e0;
+  int get Thread_active_stacktrace_offset => 0x6e8;
   @override
   int get Thread_array_write_barrier_entry_point_offset => 0x200;
   @override
@@ -1991,7 +2096,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_allocate_object_slow_entry_point_offset => 0x230;
   @override
-  int get Thread_api_top_scope_offset => 0x898;
+  int get Thread_api_top_scope_offset => 0x8a0;
   @override
   int get Thread_async_exception_handler_stub_offset => 0x160;
   @override
@@ -2007,15 +2112,15 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_call_to_runtime_stub_offset => 0xd8;
   @override
-  int get Thread_dart_stream_offset => 0x8f0;
+  int get Thread_dart_stream_offset => 0x8f8;
   @override
   int get Thread_dispatch_table_array_offset => 0x68;
   @override
-  int get Thread_double_truncate_round_supported_offset => 0x8a0;
+  int get Thread_double_truncate_round_supported_offset => 0x8a8;
   @override
-  int get Thread_service_extension_stream_offset => 0x8f8;
+  int get Thread_service_extension_stream_offset => 0x900;
   @override
-  int get Thread_thread_locals_offset => 0x900;
+  int get Thread_thread_locals_offset => 0x908;
   @override
   int get Thread_optimize_entry_offset => 0x258;
   @override
@@ -2033,7 +2138,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_enter_safepoint_stub_offset => 0x1e0;
   @override
-  int get Thread_execution_state_offset => 0x700;
+  int get Thread_execution_state_offset => 0x708;
   @override
   int get Thread_exit_safepoint_stub_offset => 0x1e8;
   @override
@@ -2053,7 +2158,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_float_zerow_address_offset => 0x2e0;
   @override
-  int get Thread_global_object_pool_offset => 0x6e8;
+  int get Thread_global_object_pool_offset => 0x6f0;
   @override
   int get Thread_interpret_call_entry_point_offset => 0x2a0;
   @override
@@ -2061,11 +2166,11 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_invoke_dart_code_stub_offset => 0xc8;
   @override
-  int get Thread_exit_through_ffi_offset => 0x710;
+  int get Thread_exit_through_ffi_offset => 0x718;
   @override
-  int get Thread_isolate_offset => 0x688;
+  int get Thread_isolate_offset => 0x690;
   @override
-  int get Thread_isolate_group_offset => 0x690;
+  int get Thread_isolate_group_offset => 0x698;
   @override
   int get Thread_field_table_values_offset => 0x70;
   @override
@@ -2075,9 +2180,9 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_lazy_specialize_type_test_stub_offset => 0x1d8;
   @override
-  int get Thread_old_marking_stack_block_offset => 0x6b8;
+  int get Thread_old_marking_stack_block_offset => 0x6c0;
   @override
-  int get Thread_new_marking_stack_block_offset => 0x6c0;
+  int get Thread_new_marking_stack_block_offset => 0x6c8;
   @override
   int get Thread_megamorphic_call_checked_entry_offset => 0x248;
   @override
@@ -2133,11 +2238,11 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_resume_interpreter_adjusted_entry_point_offset => 0x280;
   @override
-  int get Thread_resume_pc_offset => 0x6f0;
+  int get Thread_resume_pc_offset => 0x6f8;
   @override
-  int get Thread_saved_shadow_call_stack_offset => 0x6f8;
+  int get Thread_saved_shadow_call_stack_offset => 0x700;
   @override
-  int get Thread_safepoint_state_offset => 0x708;
+  int get Thread_safepoint_state_offset => 0x710;
   @override
   int get Thread_shared_field_table_values_offset => 0x78;
   @override
@@ -2147,9 +2252,9 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_stack_limit_offset => 0x48;
   @override
-  int get Thread_saved_stack_limit_offset => 0x698;
+  int get Thread_saved_stack_limit_offset => 0x6a0;
   @override
-  int get Thread_stack_overflow_flags_offset => 0x6a0;
+  int get Thread_stack_overflow_flags_offset => 0x6a8;
   @override
   int get Thread_stack_overflow_shared_with_fpu_regs_entry_point_offset =>
       0x240;
@@ -2161,60 +2266,60 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_stack_overflow_shared_without_fpu_regs_stub_offset => 0x188;
   @override
-  int get Thread_store_buffer_block_offset => 0x6b0;
+  int get Thread_store_buffer_block_offset => 0x6b8;
   @override
-  int get Thread_suspend_state_await_entry_point_offset => 0x638;
+  int get Thread_suspend_state_await_entry_point_offset => 0x640;
   @override
   int get Thread_suspend_state_await_with_type_check_entry_point_offset =>
-      0x640;
+      0x648;
   @override
-  int get Thread_suspend_state_init_async_entry_point_offset => 0x630;
+  int get Thread_suspend_state_init_async_entry_point_offset => 0x638;
   @override
-  int get Thread_suspend_state_return_async_entry_point_offset => 0x648;
+  int get Thread_suspend_state_return_async_entry_point_offset => 0x650;
   @override
   int get Thread_suspend_state_return_async_not_future_entry_point_offset =>
-      0x650;
+      0x658;
   @override
-  int get Thread_suspend_state_init_async_star_entry_point_offset => 0x658;
+  int get Thread_suspend_state_init_async_star_entry_point_offset => 0x660;
   @override
-  int get Thread_suspend_state_yield_async_star_entry_point_offset => 0x660;
+  int get Thread_suspend_state_yield_async_star_entry_point_offset => 0x668;
   @override
-  int get Thread_suspend_state_return_async_star_entry_point_offset => 0x668;
+  int get Thread_suspend_state_return_async_star_entry_point_offset => 0x670;
   @override
-  int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x670;
+  int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x678;
   @override
   int get Thread_suspend_state_suspend_sync_star_at_start_entry_point_offset =>
-      0x678;
+      0x680;
   @override
-  int get Thread_suspend_state_handle_exception_entry_point_offset => 0x680;
+  int get Thread_suspend_state_handle_exception_entry_point_offset => 0x688;
   @override
-  int get Thread_top_exit_frame_info_offset => 0x6a8;
+  int get Thread_top_exit_frame_info_offset => 0x6b0;
   @override
   int get Thread_top_offset => 0x58;
   @override
   int get Thread_top_resource_offset => 0x20;
   @override
-  int get Thread_unboxed_runtime_arg_offset => 0x8a8;
+  int get Thread_unboxed_runtime_arg_offset => 0x8b0;
   @override
-  int get Thread_vm_tag_offset => 0x6d0;
+  int get Thread_vm_tag_offset => 0x6d8;
   @override
   int get Thread_write_barrier_entry_point_offset => 0x1f8;
   @override
   int get Thread_write_barrier_mask_offset => 0x50;
   @override
-  int get Thread_next_task_id_offset => 0x8b8;
+  int get Thread_next_task_id_offset => 0x8c0;
   @override
-  int get Thread_random_offset => 0x8c0;
+  int get Thread_random_offset => 0x8c8;
   @override
   int get Thread_jump_to_frame_entry_point_offset => 0x270;
   @override
-  int get Thread_tsan_utils_offset => 0x8c8;
+  int get Thread_tsan_utils_offset => 0x8d0;
   @override
-  int get Thread_current_tag_offset => 0x8e0;
+  int get Thread_current_tag_offset => 0x8e8;
   @override
-  int get Thread_default_tag_offset => 0x8e8;
+  int get Thread_default_tag_offset => 0x8f0;
   @override
-  int get Thread_user_tag_offset => 0x8d8;
+  int get Thread_user_tag_offset => 0x8e0;
   @override
   int get TsanUtils_setjmp_function_offset => 0x0;
   @override
@@ -2317,7 +2422,6 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   List<int> get Code_entry_point_offset => [0x8, 0x18, 0x10, 0x20];
   @override
   List<int> get Thread_write_barrier_wrappers_thread_offset => [
-    0x590,
     0x598,
     0x5a0,
     0x5a8,
@@ -2332,17 +2436,18 @@ final class Arm64ProductVMOffsets extends VMOffsets {
     0x5f0,
     0x5f8,
     0x600,
-    -1,
-    -1,
-    -1,
-    -1,
     0x608,
+    -1,
+    -1,
+    -1,
+    -1,
     0x610,
-    -1,
-    -1,
     0x618,
+    -1,
+    -1,
     0x620,
     0x628,
+    0x630,
     -1,
     -1,
     -1,
@@ -2504,321 +2609,6 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get WeakReference_InstanceSize => 0x20;
   @override
   int get WeakSerializationReference_InstanceSize => 0x18;
-}
-
-enum StubCode {
-  JumpToFrame,
-  RunExceptionHandler,
-  RunExceptionHandlerUnbox,
-  DeoptForRewind,
-  WriteBarrier,
-  WriteBarrierWrappers,
-  ArrayWriteBarrier,
-  AllocationProbePoint,
-  AllocateArray,
-  AllocateMint,
-  AllocateDouble,
-  AllocateFloat32x4,
-  AllocateFloat64x2,
-  AllocateInt32x4,
-  AllocateInt8Array,
-  AllocateUint8Array,
-  AllocateUint8ClampedArray,
-  AllocateInt16Array,
-  AllocateUint16Array,
-  AllocateInt32Array,
-  AllocateUint32Array,
-  AllocateInt64Array,
-  AllocateUint64Array,
-  AllocateFloat32Array,
-  AllocateFloat64Array,
-  AllocateFloat32x4Array,
-  AllocateInt32x4Array,
-  AllocateFloat64x2Array,
-  AllocateMintSharedWithFPURegs,
-  AllocateMintSharedWithoutFPURegs,
-  AllocateClosure1,
-  AllocateClosure2,
-  AllocateClosure3,
-  AllocateClosure4,
-  AllocateContext,
-  AllocateGrowableArray,
-  AllocateObject,
-  AllocateObjectParameterized,
-  AllocateObjectSlow,
-  AllocateRecord,
-  AllocateRecord2,
-  AllocateRecord2Named,
-  AllocateRecord3,
-  AllocateRecord3Named,
-  AllocateUnhandledException,
-  BoxDouble,
-  BoxFloat32x4,
-  BoxFloat64x2,
-  CloneContext,
-  CallToRuntime,
-  LazyCompile,
-  InterpretCall,
-  ResumeInterpreter,
-  CallBootstrapNative,
-  CallNoScopeNative,
-  CallAutoScopeNative,
-  FixCallersTarget,
-  CallStaticFunction,
-  OptimizeFunction,
-  InvokeDartCode,
-  InvokeDartCodeFromBytecode,
-  DebugStepCheck,
-  SwitchableCallMiss,
-  MonomorphicSmiableCheck,
-  SingleTargetCall,
-  ICCallThroughCode,
-  MegamorphicCall,
-  FixAllocationStubTarget,
-  FixParameterizedAllocationStubTarget,
-  Deoptimize,
-  DeoptimizeLazyFromReturn,
-  DeoptimizeLazyFromThrow,
-  UnoptimizedIdenticalWithNumberCheck,
-  OptimizedIdenticalWithNumberCheck,
-  ICCallBreakpoint,
-  UnoptStaticCallBreakpoint,
-  RuntimeCallBreakpoint,
-  OneArgCheckInlineCache,
-  TwoArgsCheckInlineCache,
-  SmiAddInlineCache,
-  SmiLessInlineCache,
-  SmiEqualInlineCache,
-  OneArgOptimizedCheckInlineCache,
-  TwoArgsOptimizedCheckInlineCache,
-  ZeroArgsUnoptimizedStaticCall,
-  OneArgUnoptimizedStaticCall,
-  TwoArgsUnoptimizedStaticCall,
-  AssertSubtype,
-  AssertAssignable,
-  IsTopType,
-  NullIsAssignableToType,
-  Subtype1TestCache,
-  Subtype2TestCache,
-  Subtype3TestCache,
-  Subtype4TestCache,
-  Subtype6TestCache,
-  Subtype7TestCache,
-  DefaultTypeTest,
-  DefaultNullableTypeTest,
-  TopTypeTypeTest,
-  UnreachableTypeTest,
-  TypeParameterTypeTest,
-  NullableTypeParameterTypeTest,
-  SlowTypeTest,
-  LazySpecializeTypeTest,
-  LazySpecializeNullableTypeTest,
-  CallClosureNoSuchMethod,
-  FrameAwaitingMaterialization,
-  AsynchronousGapMarker,
-  NotLoaded,
-  DispatchTableNullError,
-  LateInitializationErrorSharedWithFPURegs,
-  LateInitializationErrorSharedWithoutFPURegs,
-  NullErrorSharedWithFPURegs,
-  NullErrorSharedWithoutFPURegs,
-  NullArgErrorSharedWithFPURegs,
-  NullArgErrorSharedWithoutFPURegs,
-  NullCastErrorSharedWithFPURegs,
-  NullCastErrorSharedWithoutFPURegs,
-  RangeErrorSharedWithFPURegs,
-  RangeErrorSharedWithoutFPURegs,
-  WriteErrorSharedWithFPURegs,
-  WriteErrorSharedWithoutFPURegs,
-  FieldAccessErrorSharedWithFPURegs,
-  FieldAccessErrorSharedWithoutFPURegs,
-  StackOverflowSharedWithFPURegs,
-  StackOverflowSharedWithoutFPURegs,
-  DoubleToInteger,
-  OneArgCheckInlineCacheWithExactnessCheck,
-  OneArgOptimizedCheckInlineCacheWithExactnessCheck,
-  EnterSafepoint,
-  ExitSafepoint,
-  CallNativeThroughSafepoint,
-  FfiCallTrampoline,
-  FfiCallbackTrampoline,
-  InitStaticField,
-  InitLateStaticField,
-  InitLateFinalStaticField,
-  InitInstanceField,
-  InitLateInstanceField,
-  InitLateFinalInstanceField,
-  InitSharedLateStaticField,
-  Throw,
-  ReThrow,
-  InstanceOf,
-  InstantiateType,
-  InstantiateTypeNonNullableClassTypeParameter,
-  InstantiateTypeNullableClassTypeParameter,
-  InstantiateTypeNonNullableFunctionTypeParameter,
-  InstantiateTypeNullableFunctionTypeParameter,
-  InstantiateTypeArguments,
-  InstantiateTypeArgumentsMayShareInstantiatorTA,
-  InstantiateTypeArgumentsMayShareFunctionTA,
-  NoSuchMethodDispatcher,
-  Await,
-  AwaitWithTypeCheck,
-  InitAsync,
-  Resume,
-  ReturnAsync,
-  ReturnAsyncNotFuture,
-  InitAsyncStar,
-  YieldAsyncStar,
-  ReturnAsyncStar,
-  InitSyncStar,
-  SuspendSyncStarAtStart,
-  SuspendSyncStarAtYield,
-  AsyncExceptionHandler,
-  CloneSuspendState,
-  FfiAsyncCallbackSend,
-  CheckIsolateFieldAccess,
-  CheckedStoreIntoShared,
-  EnsureDeeplyImmutable,
-  UnknownDartCode,
-}
-
-enum RuntimeEntry {
-  AllocateArray,
-  AllocateMint,
-  AllocateDouble,
-  AllocateFloat32x4,
-  AllocateFloat64x2,
-  AllocateInt32x4,
-  AllocateTypedData,
-  AllocateClosure,
-  AllocateContext,
-  AllocateObject,
-  AllocateRecord,
-  AllocateSmallRecord,
-  AllocateSuspendState,
-  BoxDouble,
-  BoxFloat32x4,
-  BoxFloat64x2,
-  BreakpointRuntimeHandler,
-  SingleStepHandler,
-  ResumptionBreakpointHandler,
-  CloneContext,
-  CloneSuspendState,
-  DoubleToInteger,
-  FixCallersTarget,
-  FixCallersTargetMonomorphic,
-  FixAllocationStubTarget,
-  InlineCacheMissHandlerOneArg,
-  InlineCacheMissHandlerTwoArgs,
-  StaticCallMissHandlerOneArg,
-  StaticCallMissHandlerTwoArgs,
-  Instanceof,
-  SubtypeCheck,
-  TypeCheck,
-  InstantiateType,
-  InstantiateTypeArguments,
-  NoSuchMethodFromCallStub,
-  NoSuchMethodFromPrologue,
-  NoSuchMethodError,
-  OptimizeInvokedFunction,
-  PatchStaticCall,
-  RangeError,
-  RangeErrorUnboxedInt64,
-  WriteError,
-  NullError,
-  NullErrorWithSelector,
-  NullCastError,
-  TypeError,
-  ArgumentNullError,
-  DispatchTableNullError,
-  ArgumentError,
-  ArgumentErrorUnboxedInt64,
-  IntegerDivisionByZeroException,
-  ReThrow,
-  InterruptOrStackOverflow,
-  Throw,
-  DeoptimizeMaterialize,
-  RewindPostDeopt,
-  UpdateFieldCid,
-  InitInstanceField,
-  InitStaticField,
-  StaticFieldAccessedWithoutIsolateError,
-  CheckedStoreIntoShared,
-  LateFieldAlreadyInitializedError,
-  LateFieldAssignedDuringInitializationError,
-  LateFieldNotInitializedError,
-  CompileFunction,
-  ResumeFrame,
-  SwitchableCallMiss,
-  NotLoaded,
-  FfiAsyncCallbackSend,
-  AllocateSubtypeTestCache,
-  GetFieldForDispatch,
-  AdjustArgumentsDesciptorForImplicitClosure,
-  ConvertToInstanceTypeArguments,
-  ClosureArgumentsValid,
-  ResolveCallFunction,
-  ResolveExternalCall,
-  FfiCall,
-  CheckFunctionArgumentTypes,
-  InterpretedInstanceCallMissHandler,
-  InvokeNoSuchMethod,
-  ResumeInterpreter,
-  InitializeSharedField,
-  FatalError,
-  EnsureDeeplyImmutable,
-  AllocateBytecodeCoverageArray,
-}
-
-enum LeafRuntimeEntry {
-  DeoptimizeCopyFrame,
-  DeoptimizeFillFrame,
-  StoreBufferBlockProcess,
-  OldMarkingStackBlockProcess,
-  NewMarkingStackBlockProcess,
-  EnsureRememberedAndMarkingDeferred,
-  LibcPow,
-  DartModulo,
-  LibcFmod,
-  LibcFloor,
-  LibcCeil,
-  LibcTrunc,
-  LibcRound,
-  LibcCos,
-  LibcSin,
-  LibcTan,
-  LibcAcos,
-  LibcAsin,
-  LibcAtan,
-  LibcAtan2,
-  LibcExp,
-  LibcLog,
-  EnterSafepoint,
-  ExitSafepoint,
-  EnterHandleScope,
-  ExitHandleScope,
-  AllocateHandle,
-  PropagateError,
-  MsanUnpoison,
-  MsanUnpoisonParam,
-  TsanAtomic32Load,
-  TsanAtomic32Store,
-  TsanAtomic64Load,
-  TsanAtomic64Store,
-  SanRead1,
-  SanRead2,
-  SanRead4,
-  SanRead8,
-  SanRead16,
-  SanWrite1,
-  SanWrite2,
-  SanWrite4,
-  SanWrite8,
-  SanWrite16,
-  TsanFuncEntry,
-  TsanFuncExit,
-  TryDoubleAsInteger,
-  MemoryMove,
 }
 
 enum ClassId {
@@ -3000,6 +2790,77 @@ enum ClassId {
   NeverCid,
 }
 
+enum FunctionKind {
+  RegularFunction,
+  ClosureFunction,
+  ImplicitClosureFunction,
+  GetterFunction,
+  SetterFunction,
+  Constructor,
+  ImplicitGetter,
+  ImplicitSetter,
+  ImplicitStaticGetter,
+  FieldInitializer,
+  MethodExtractor,
+  NoSuchMethodDispatcher,
+  InvokeFieldDispatcher,
+  IrregexpFunction,
+  DynamicInvocationForwarder,
+  FfiTrampoline,
+  RecordFieldGetter,
+}
+
+enum LeafRuntimeEntry {
+  DeoptimizeCopyFrame,
+  DeoptimizeFillFrame,
+  StoreBufferBlockProcess,
+  OldMarkingStackBlockProcess,
+  NewMarkingStackBlockProcess,
+  EnsureRememberedAndMarkingDeferred,
+  LibcPow,
+  DartModulo,
+  LibcFmod,
+  LibcFloor,
+  LibcCeil,
+  LibcTrunc,
+  LibcRound,
+  LibcCos,
+  LibcSin,
+  LibcTan,
+  LibcAcos,
+  LibcAsin,
+  LibcAtan,
+  LibcAtan2,
+  LibcExp,
+  LibcLog,
+  EnterSafepoint,
+  ExitSafepoint,
+  EnterHandleScope,
+  ExitHandleScope,
+  AllocateHandle,
+  PropagateError,
+  MsanUnpoison,
+  MsanUnpoisonParam,
+  TsanAtomic32Load,
+  TsanAtomic32Store,
+  TsanAtomic64Load,
+  TsanAtomic64Store,
+  SanRead1,
+  SanRead2,
+  SanRead4,
+  SanRead8,
+  SanRead16,
+  SanWrite1,
+  SanWrite2,
+  SanWrite4,
+  SanWrite8,
+  SanWrite16,
+  TsanFuncEntry,
+  TsanFuncExit,
+  TryDoubleAsInteger,
+  MemoryMove,
+}
+
 enum PcDescriptorKind {
   Deopt,
   IcCall,
@@ -3008,4 +2869,269 @@ enum PcDescriptorKind {
   OsrEntry,
   Rewind,
   Other,
+}
+
+enum RuntimeEntry {
+  AllocateArray,
+  AllocateMint,
+  AllocateDouble,
+  AllocateFloat32x4,
+  AllocateFloat64x2,
+  AllocateInt32x4,
+  AllocateTypedData,
+  AllocateClosure,
+  AllocateContext,
+  AllocateObject,
+  AllocateRecord,
+  AllocateSmallRecord,
+  AllocateSuspendState,
+  BoxDouble,
+  BoxFloat32x4,
+  BoxFloat64x2,
+  BreakpointRuntimeHandler,
+  SingleStepHandler,
+  ResumptionBreakpointHandler,
+  CloneContext,
+  CloneSuspendState,
+  DoubleToInteger,
+  FixCallersTarget,
+  FixCallersTargetMonomorphic,
+  FixAllocationStubTarget,
+  InlineCacheMissHandlerOneArg,
+  InlineCacheMissHandlerTwoArgs,
+  StaticCallMissHandlerOneArg,
+  StaticCallMissHandlerTwoArgs,
+  Instanceof,
+  SubtypeCheck,
+  TypeCheck,
+  InstantiateType,
+  InstantiateTypeArguments,
+  NoSuchMethodFromCallStub,
+  NoSuchMethodFromPrologue,
+  NoSuchMethodError,
+  OptimizeInvokedFunction,
+  PatchStaticCall,
+  RangeError,
+  RangeErrorUnboxedInt64,
+  WriteError,
+  NullError,
+  NullErrorWithSelector,
+  NullCastError,
+  TypeError,
+  ArgumentNullError,
+  DispatchTableNullError,
+  ArgumentError,
+  ArgumentErrorUnboxedInt64,
+  IntegerDivisionByZeroException,
+  ReThrow,
+  InterruptOrStackOverflow,
+  Throw,
+  DeoptimizeMaterialize,
+  RewindPostDeopt,
+  UpdateFieldCid,
+  InitInstanceField,
+  InitStaticField,
+  StaticFieldAccessedWithoutIsolateError,
+  CheckedStoreIntoShared,
+  LateFieldAlreadyInitializedError,
+  LateFieldAssignedDuringInitializationError,
+  LateFieldNotInitializedError,
+  CompileFunction,
+  ResumeFrame,
+  SwitchableCallMiss,
+  NotLoaded,
+  FfiAsyncCallbackSend,
+  AllocateSubtypeTestCache,
+  GetFieldForDispatch,
+  AdjustArgumentsDesciptorForImplicitClosure,
+  ConvertToInstanceTypeArguments,
+  ClosureArgumentsValid,
+  ResolveCallFunction,
+  ResolveExternalCall,
+  FfiCall,
+  CheckFunctionArgumentTypes,
+  InterpretedInstanceCallMissHandler,
+  InvokeNoSuchMethod,
+  ResumeInterpreter,
+  InitializeSharedField,
+  FatalError,
+  EnsureDeeplyImmutable,
+  AllocateBytecodeCoverageArray,
+  ResolveNativeFunction,
+}
+
+enum StubCode {
+  JumpToFrame,
+  RunExceptionHandler,
+  RunExceptionHandlerUnbox,
+  DeoptForRewind,
+  WriteBarrier,
+  WriteBarrierWrappers,
+  ArrayWriteBarrier,
+  AllocationProbePoint,
+  AllocateArray,
+  AllocateMint,
+  AllocateDouble,
+  AllocateFloat32x4,
+  AllocateFloat64x2,
+  AllocateInt32x4,
+  AllocateInt8Array,
+  AllocateUint8Array,
+  AllocateUint8ClampedArray,
+  AllocateInt16Array,
+  AllocateUint16Array,
+  AllocateInt32Array,
+  AllocateUint32Array,
+  AllocateInt64Array,
+  AllocateUint64Array,
+  AllocateFloat32Array,
+  AllocateFloat64Array,
+  AllocateFloat32x4Array,
+  AllocateInt32x4Array,
+  AllocateFloat64x2Array,
+  AllocateMintSharedWithFPURegs,
+  AllocateMintSharedWithoutFPURegs,
+  AllocateClosure1,
+  AllocateClosure2,
+  AllocateClosure3,
+  AllocateClosure4,
+  AllocateContext,
+  AllocateGrowableArray,
+  AllocateObject,
+  AllocateObjectParameterized,
+  AllocateObjectSlow,
+  AllocateRecord,
+  AllocateRecord2,
+  AllocateRecord2Named,
+  AllocateRecord3,
+  AllocateRecord3Named,
+  AllocateUnhandledException,
+  BoxDouble,
+  BoxFloat32x4,
+  BoxFloat64x2,
+  CloneContext,
+  CallToRuntime,
+  LazyCompile,
+  InterpretCall,
+  ResumeInterpreter,
+  CallBootstrapNative,
+  CallNoScopeNative,
+  CallAutoScopeNative,
+  FixCallersTarget,
+  CallStaticFunction,
+  OptimizeFunction,
+  InvokeDartCode,
+  InvokeDartCodeFromBytecode,
+  DebugStepCheck,
+  SwitchableCallMiss,
+  MonomorphicSmiableCheck,
+  SingleTargetCall,
+  ICCallThroughCode,
+  MegamorphicCall,
+  FixAllocationStubTarget,
+  FixParameterizedAllocationStubTarget,
+  Deoptimize,
+  DeoptimizeLazyFromReturn,
+  DeoptimizeLazyFromThrow,
+  UnoptimizedIdenticalWithNumberCheck,
+  OptimizedIdenticalWithNumberCheck,
+  ICCallBreakpoint,
+  UnoptStaticCallBreakpoint,
+  RuntimeCallBreakpoint,
+  OneArgCheckInlineCache,
+  TwoArgsCheckInlineCache,
+  SmiAddInlineCache,
+  SmiLessInlineCache,
+  SmiEqualInlineCache,
+  OneArgOptimizedCheckInlineCache,
+  TwoArgsOptimizedCheckInlineCache,
+  ZeroArgsUnoptimizedStaticCall,
+  OneArgUnoptimizedStaticCall,
+  TwoArgsUnoptimizedStaticCall,
+  AssertSubtype,
+  AssertAssignable,
+  IsTopType,
+  NullIsAssignableToType,
+  Subtype1TestCache,
+  Subtype2TestCache,
+  Subtype3TestCache,
+  Subtype4TestCache,
+  Subtype6TestCache,
+  Subtype7TestCache,
+  DefaultTypeTest,
+  DefaultNullableTypeTest,
+  TopTypeTypeTest,
+  UnreachableTypeTest,
+  TypeParameterTypeTest,
+  NullableTypeParameterTypeTest,
+  SlowTypeTest,
+  LazySpecializeTypeTest,
+  LazySpecializeNullableTypeTest,
+  CallClosureNoSuchMethod,
+  FrameAwaitingMaterialization,
+  AsynchronousGapMarker,
+  NotLoaded,
+  DispatchTableNullError,
+  LateInitializationErrorSharedWithFPURegs,
+  LateInitializationErrorSharedWithoutFPURegs,
+  NullErrorSharedWithFPURegs,
+  NullErrorSharedWithoutFPURegs,
+  NullArgErrorSharedWithFPURegs,
+  NullArgErrorSharedWithoutFPURegs,
+  NullCastErrorSharedWithFPURegs,
+  NullCastErrorSharedWithoutFPURegs,
+  RangeErrorSharedWithFPURegs,
+  RangeErrorSharedWithoutFPURegs,
+  WriteErrorSharedWithFPURegs,
+  WriteErrorSharedWithoutFPURegs,
+  FieldAccessErrorSharedWithFPURegs,
+  FieldAccessErrorSharedWithoutFPURegs,
+  StackOverflowSharedWithFPURegs,
+  StackOverflowSharedWithoutFPURegs,
+  DoubleToInteger,
+  OneArgCheckInlineCacheWithExactnessCheck,
+  OneArgOptimizedCheckInlineCacheWithExactnessCheck,
+  EnterSafepoint,
+  ExitSafepoint,
+  CallNativeThroughSafepoint,
+  FfiCallTrampoline,
+  FfiCallbackTrampoline,
+  InitStaticField,
+  InitLateStaticField,
+  InitLateFinalStaticField,
+  InitInstanceField,
+  InitLateInstanceField,
+  InitLateFinalInstanceField,
+  InitSharedLateStaticField,
+  Throw,
+  ReThrow,
+  InstanceOf,
+  InstantiateType,
+  InstantiateTypeNonNullableClassTypeParameter,
+  InstantiateTypeNullableClassTypeParameter,
+  InstantiateTypeNonNullableFunctionTypeParameter,
+  InstantiateTypeNullableFunctionTypeParameter,
+  InstantiateTypeArguments,
+  InstantiateTypeArgumentsMayShareInstantiatorTA,
+  InstantiateTypeArgumentsMayShareFunctionTA,
+  NoSuchMethodDispatcher,
+  Await,
+  AwaitWithTypeCheck,
+  InitAsync,
+  Resume,
+  ReturnAsync,
+  ReturnAsyncNotFuture,
+  InitAsyncStar,
+  YieldAsyncStar,
+  ReturnAsyncStar,
+  InitSyncStar,
+  SuspendSyncStarAtStart,
+  SuspendSyncStarAtYield,
+  AsyncExceptionHandler,
+  CloneSuspendState,
+  FfiAsyncCallbackSend,
+  CheckIsolateFieldAccess,
+  CheckedStoreIntoShared,
+  EnsureDeeplyImmutable,
+  UnknownDartCode,
 }

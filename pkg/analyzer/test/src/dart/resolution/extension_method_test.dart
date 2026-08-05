@@ -471,6 +471,18 @@ GenericFunctionType
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        declaredFragment: <testLibraryFragment> null@null
+          element: isPrivate
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -587,6 +599,18 @@ GenericFunctionType
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        declaredFragment: <testLibraryFragment> null@null
+          element: isPrivate
+            type: String
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: String
@@ -677,13 +701,13 @@ f(C c) {
     var node = result.findNode.functionExpressionInvocation('c(2)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
         correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
@@ -710,13 +734,13 @@ f(C c) {
     var node = result.findNode.functionExpressionInvocation('c(2)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
         correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
@@ -741,12 +765,12 @@ f() {
     var node = result.findNode.functionExpressionInvocation('1(2)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: IntegerLiteral
+  function2: IntegerLiteral
     literal: 1
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
         correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
@@ -773,12 +797,12 @@ f(C c) {
     var node = result.findNode.assignment('+=');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: +=
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
     staticType: int
@@ -804,12 +828,12 @@ f(C c) {
     var node = result.findNode.assignment('+=');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: +=
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
     staticType: int
@@ -1058,7 +1082,7 @@ f(int? a) {
     var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
@@ -1086,8 +1110,8 @@ f(C c) {
     var node = result.findNode.functionExpressionInvocation('c.a(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function2: PropertyAccess
+    target2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
@@ -1099,7 +1123,7 @@ FunctionExpressionInvocation
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -1156,8 +1180,8 @@ g(int Function(int) f) {
     var node = result.findNode.functionExpressionInvocation('f.a()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function2: PropertyAccess
+    target2: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::g::@formalParameter::f
       staticType: int Function(int)
@@ -1294,7 +1318,7 @@ g(int Function(int) f) {
     var node = result.findNode.methodInvocation('f.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
@@ -1326,7 +1350,7 @@ f(B b) {
     var node = result.findNode.methodInvocation('b.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: B
@@ -1359,7 +1383,7 @@ void f(A a) {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -1402,7 +1426,7 @@ void f() {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: IntegerLiteral
+  target2: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -1436,7 +1460,7 @@ f(Never a) {
     var node = result.findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Never
@@ -1466,7 +1490,7 @@ f(int? a) {
     var node = result.findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
@@ -1496,7 +1520,7 @@ f(int? a) {
     var node = result.findNode.methodInvocation('null.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: NullLiteral
+  target2: NullLiteral
     literal: null
     staticType: Null
   operator: .
@@ -1525,7 +1549,7 @@ f(int? a) {
     var node = result.findNode.methodInvocation('a?.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
@@ -1555,7 +1579,7 @@ f() {
     var node = result.findNode.methodInvocation('null.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: NullLiteral
+  target2: NullLiteral
     literal: null
     staticType: Null
   operator: .
@@ -1584,7 +1608,7 @@ void f() {
     var node = result.findNode.methodInvocation('_foo();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: IntegerLiteral
+  target2: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -1620,7 +1644,7 @@ void f() {
     var node = result.findNode.methodInvocation('_foo();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: IntegerLiteral
+  target2: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -1656,7 +1680,7 @@ f(B b) {
     var node = result.findNode.methodInvocation('b.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: B
@@ -1696,7 +1720,7 @@ f(B<C> x, C o) {
     var node = result.findNode.methodInvocation('x.f(o)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: B<C>
@@ -1709,7 +1733,7 @@ MethodInvocation
     staticType: void Function(C)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleIdentifier
         token: o
         correspondingParameter: x@null
@@ -1733,8 +1757,21 @@ f(C c) {
   c + 2;
 }
 ''');
-    var node = result.findNode.binary('+ ');
+    var node = result.findNode.binaryOperatorInvocation('+ ');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@class::C::@method::+
+  staticType: void
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
@@ -1760,8 +1797,21 @@ g(int Function(int) f) {
   f + 2;
 }
 ''');
-    var node = result.findNode.binary('+ ');
+    var node = result.findNode.binaryOperatorInvocation('+ ');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: f
@@ -1788,8 +1838,21 @@ f(C c) {
   c + 2;
 }
 ''');
-    var node = result.findNode.binary('+ ');
+    var node = result.findNode.binaryOperatorInvocation('+ ');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
@@ -1818,8 +1881,21 @@ f(A? a) {
   a + 1;
 }
 ''');
-    var node = result.findNode.binary('a + 1');
+    var node = result.findNode.binaryOperatorInvocation('a + 1');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A?
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::_
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: int
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1863,12 +1939,12 @@ f(C c) {
     var node = result.findNode.index('c[2]');
     assertResolvedNodeText(node, r'''
 IndexExpression
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   leftBracket: [
-  index: IntegerLiteral
+  index2: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
     staticType: int
@@ -1890,12 +1966,12 @@ g(int Function(int) f) {
     var node = result.findNode.index('f[2]');
     assertResolvedNodeText(node, r'''
 IndexExpression
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
   leftBracket: [
-  index: IntegerLiteral
+  index2: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -1918,12 +1994,12 @@ f(C c) {
     var node = result.findNode.index('c[2]');
     assertResolvedNodeText(node, r'''
 IndexExpression
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   leftBracket: [
-  index: IntegerLiteral
+  index2: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -1946,12 +2022,12 @@ f(int? a) {
     var node = result.findNode.index('a[0]');
     assertResolvedNodeText(node, r'''
 IndexExpression
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   leftBracket: [
-  index: IntegerLiteral
+  index2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -1974,13 +2050,13 @@ f(int? a) {
     var node = result.findNode.index('a?[0]');
     assertResolvedNodeText(node, r'''
 IndexExpression
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   question: ?
   leftBracket: [
-  index: IntegerLiteral
+  index2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -2005,13 +2081,13 @@ f(C c) {
     var node = result.findNode.assignment('[2] =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: IndexExpression
-    target: SimpleIdentifier
+  leftHandSide2: IndexExpression
+    target2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
       staticType: int
@@ -2019,7 +2095,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
     staticType: int
@@ -2044,13 +2120,13 @@ g(int Function(int) f) {
     var node = result.findNode.assignment('f[2]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: IndexExpression
-    target: SimpleIdentifier
+  leftHandSide2: IndexExpression
+    target2: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::g::@formalParameter::f
       staticType: int Function(int)
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
@@ -2058,7 +2134,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
@@ -2084,13 +2160,13 @@ f(C c) {
     var node = result.findNode.assignment('c[2]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: IndexExpression
-    target: SimpleIdentifier
+  leftHandSide2: IndexExpression
+    target2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
@@ -2098,7 +2174,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
@@ -2123,8 +2199,17 @@ f(C c) {
   c++;
 }
 ''');
-    var node = result.findNode.postfix('++');
+    var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  operator: ++
+  element: <testLibrary>::@class::C::@method::+
+  operatorResultType: C
+  staticType: C
 PostfixExpression
   operand: SimpleIdentifier
     token: c
@@ -2149,8 +2234,17 @@ g(int Function(int) f) {
   f++;
 }
 ''');
-    var node = result.findNode.postfix('++');
+    var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: null
+  operator: ++
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: int Function(int)
+  staticType: int Function(int)
 PostfixExpression
   operand: SimpleIdentifier
     token: f
@@ -2176,8 +2270,17 @@ f(C c) {
   c++;
 }
 ''');
-    var node = result.findNode.postfix('++');
+    var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  operator: ++
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: C
+  staticType: C
 PostfixExpression
   operand: SimpleIdentifier
     token: c
@@ -2205,8 +2308,17 @@ f(A? a) {
   a++;
 }
 ''');
-    var node = result.findNode.postfix('a++');
+    var node = result.findNode.postfixIncrement('a++');
     assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: null
+  operator: ++
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: A?
+  staticType: A?
 PostfixExpression
   operand: SimpleIdentifier
     token: a
@@ -2234,8 +2346,17 @@ f(C c) {
   ++c;
 }
 ''');
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  element: <testLibrary>::@class::C::@method::+
+  operatorResultType: C
+  staticType: C
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -2260,8 +2381,17 @@ g(int Function(int) f) {
   ++f;
 }
 ''');
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: null
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: int Function(int)
+  staticType: int Function(int)
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -2287,8 +2417,17 @@ f(C c) {
   ++c;
 }
 ''');
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: C
+  staticType: C
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -2316,8 +2455,17 @@ f(A? a) {
   ++a;
 }
 ''');
-    var node = result.findNode.prefix('++a');
+    var node = result.findNode.prefixIncrement('++a');
     assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: null
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: A?
+  staticType: A?
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -2345,8 +2493,17 @@ f(C c) {
   -c;
 }
 ''');
-    var node = result.findNode.prefix('-c');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  unaryOperator: negate
+  element: <testLibrary>::@class::C::@method::unary-
+  staticType: C
 PrefixExpression
   operator: -
   operand: SimpleIdentifier
@@ -2367,8 +2524,17 @@ g(int Function(int) f) {
   -f;
 }
 ''');
-    var node = result.findNode.prefix('-f');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  unaryOperator: negate
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: void
 PrefixExpression
   operator: -
   operand: SimpleIdentifier
@@ -2390,8 +2556,17 @@ f(C c) {
   -c;
 }
 ''');
-    var node = result.findNode.prefix('-c');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  unaryOperator: negate
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: C
 PrefixExpression
   operator: -
   operand: SimpleIdentifier
@@ -2415,8 +2590,17 @@ f(A? a) {
   -a;
 }
 ''');
-    var node = result.findNode.prefix('-a');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A?
+  unaryOperator: negate
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: A?
 PrefixExpression
   operator: -
   operand: SimpleIdentifier
@@ -2440,7 +2624,7 @@ g(int Function(int) f) {
     var node = result.findNode.assignment('a = 1');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::g::@formalParameter::f
@@ -2453,7 +2637,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
@@ -2482,7 +2666,7 @@ void f(A a) {
     var node = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -2495,7 +2679,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
@@ -2521,7 +2705,7 @@ f(int? a) {
     var node = result.findNode.assignment('foo = 1');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -2534,7 +2718,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
@@ -2560,8 +2744,8 @@ f(int? a) {
     var node = result.findNode.assignment('foo = 1');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: SimpleIdentifier
+  leftHandSide2: PropertyAccess
+    target2: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int?
@@ -2572,7 +2756,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
@@ -2600,7 +2784,7 @@ f(C c) {
     var node = result.findNode.assignment('a = 1');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
@@ -2613,7 +2797,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
@@ -2695,7 +2879,7 @@ f() {
     var node = result.findNode.propertyAccess('p.E.a;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -2821,7 +3005,7 @@ f() {
     var node = result.findNode.propertyAccess('p.E.a;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -3250,7 +3434,7 @@ f() {
     var node = result.findNode.methodInvocation('E.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -3290,7 +3474,7 @@ f() {
     var node = result.findNode.methodInvocation('E.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: E
     element: <testLibrary>::@extension::E
     staticType: null
@@ -3383,8 +3567,8 @@ f() {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: PrefixedIdentifier
+  leftHandSide2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: p
         element: <testLibraryFragment>::@prefix::p
@@ -3403,7 +3587,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: package:test/lib.dart::@extension::E::@setter::a::@formalParameter::x
     staticType: int
@@ -3431,7 +3615,7 @@ f() {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@extension::E
@@ -3444,7 +3628,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
@@ -3472,7 +3656,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -3485,7 +3669,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3513,7 +3697,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -3526,7 +3710,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3557,7 +3741,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -3570,7 +3754,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3601,7 +3785,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -3614,7 +3798,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3642,7 +3826,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@enum::A
@@ -3655,7 +3839,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3683,7 +3867,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@enum::A
@@ -3696,7 +3880,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3724,7 +3908,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@extensionType::A
@@ -3737,7 +3921,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3765,7 +3949,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@extensionType::A
@@ -3778,7 +3962,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3807,7 +3991,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@mixin::A
@@ -3820,7 +4004,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3849,7 +4033,7 @@ void f() {
     var node = result.findNode.assignment('A.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@mixin::A
@@ -3862,7 +4046,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3893,7 +4077,7 @@ void f() {
     var node = result.findNode.assignment('T.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: T
       element: <testLibrary>::@typeAlias::T
@@ -3906,7 +4090,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -3937,7 +4121,7 @@ void f() {
     var node = result.findNode.assignment('T.foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: T
       element: <testLibrary>::@typeAlias::T
@@ -3950,7 +4134,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
     staticType: int
@@ -4034,12 +4218,12 @@ extension E on C {
     var node = result.findNode.functionExpressionInvocation('this(2)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: ThisExpression
+  function2: ThisExpression
     thisKeyword: this
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
         correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
@@ -4069,12 +4253,12 @@ extension E2 on int {
     var node = result.findNode.assignment('foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: foo
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -4121,7 +4305,7 @@ extension E on C {
     var node = result.findNode.propertyAccess('this.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ThisExpression
+  target2: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4146,7 +4330,7 @@ extension E on C {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ThisExpression
+  target2: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4196,7 +4380,7 @@ extension E on C {
     var node = result.findNode.methodInvocation('this.a');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ThisExpression
+  target2: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4223,7 +4407,7 @@ extension E on C {
     var node = result.findNode.methodInvocation('this.a');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ThisExpression
+  target2: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4249,8 +4433,20 @@ extension E on C {
   void b() { this + 2; }
 }
 ''');
-    var node = result.findNode.binary('+ ');
+    var node = result.findNode.binaryOperatorInvocation('+ ');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@class::C::@method::+
+  staticType: void
 BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
@@ -4274,8 +4470,20 @@ extension E on C {
   void b() { this + 2; }
 }
 ''');
-    var node = result.findNode.binary('+ ');
+    var node = result.findNode.binaryOperatorInvocation('+ ');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
 BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
@@ -4304,11 +4512,11 @@ extension E on C {
     var node = result.findNode.index('this[2]');
     assertResolvedNodeText(node, r'''
 IndexExpression
-  target: ThisExpression
+  target2: ThisExpression
     thisKeyword: this
     staticType: C
   leftBracket: [
-  index: IntegerLiteral
+  index2: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
     staticType: int
@@ -4329,11 +4537,11 @@ extension E on C {
     var node = result.findNode.index('this[2]');
     assertResolvedNodeText(node, r'''
 IndexExpression
-  target: ThisExpression
+  target2: ThisExpression
     thisKeyword: this
     staticType: C
   leftBracket: [
-  index: IntegerLiteral
+  index2: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -4356,12 +4564,12 @@ extension E on C {
     var node = result.findNode.assignment('this[2]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: IndexExpression
-    target: ThisExpression
+  leftHandSide2: IndexExpression
+    target2: ThisExpression
       thisKeyword: this
       staticType: C
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
       staticType: int
@@ -4369,7 +4577,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
     staticType: int
@@ -4393,12 +4601,12 @@ extension E on C {
     var node = result.findNode.assignment('this[2]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: IndexExpression
-    target: ThisExpression
+  leftHandSide2: IndexExpression
+    target2: ThisExpression
       thisKeyword: this
       staticType: C
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
@@ -4406,7 +4614,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
@@ -4429,8 +4637,16 @@ extension E on C {
   void b() { -this; }
 }
 ''');
-    var node = result.findNode.prefix('-this');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  unaryOperator: negate
+  element: <testLibrary>::@class::C::@method::unary-
+  staticType: void
 PrefixExpression
   operator: -
   operand: ThisExpression
@@ -4449,8 +4665,16 @@ extension E on C {
   void b() { -this; }
 }
 ''');
-    var node = result.findNode.prefix('-this');
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  unaryOperator: negate
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: void
 PrefixExpression
   operator: -
   operand: ThisExpression
@@ -4501,12 +4725,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
@@ -4535,8 +4759,8 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ThisExpression
+  leftHandSide2: PropertyAccess
+    target2: ThisExpression
       thisKeyword: this
       staticType: C
     operator: .
@@ -4546,7 +4770,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@class::C::@setter::a::@formalParameter::_
     staticType: int
@@ -4573,8 +4797,8 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ThisExpression
+  leftHandSide2: PropertyAccess
+    target2: ThisExpression
       thisKeyword: this
       staticType: C
     operator: .
@@ -4584,7 +4808,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
@@ -4627,7 +4851,7 @@ extension E on C {
     var node = result.findNode.propertyAccess('this.a;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ThisExpression
+  target2: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4771,12 +4995,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
@@ -4803,12 +5027,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
@@ -4978,12 +5202,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
     staticType: int
@@ -5013,12 +5237,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
     staticType: int

@@ -1897,7 +1897,7 @@ test.dart f@5
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_searchReferences_class_constructor_declaredInAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -1968,6 +1968,31 @@ class A {
 <testLibraryFragment> f@5
   35 2:16 |foo| REFERENCE qualified
   62 3:16 || REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_class_method_in_objectPattern_otherFile() async {
+    String other = convertPath('$testPackageLibPath/other.dart');
+    String otherCode = '''
+import 'test.dart';
+
+void f(Object? x) {
+  if (x case A(foo: _)) {}
+  if (x case A(: var foo)) {}
+}
+''';
+    newFile(other, otherCode);
+
+    var result = await resolveTestCode('''
+class A {
+  void foo() {}
+}
+''');
+    var element = result.findElement.method('foo');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart f@26
+  56 4:16 |foo| REFERENCE qualified
+  83 5:16 || REFERENCE qualified
 ''');
   }
 
@@ -4998,6 +5023,31 @@ void useGetter(Object? x) {
 ''');
   }
 
+  test_searchReferences_GetterElement_ofClass_objectPattern_otherFile() async {
+    String other = convertPath('$testPackageLibPath/other.dart');
+    String otherCode = '''
+import 'test.dart';
+
+void useGetter(Object? x) {
+  if (x case A(foo: 0)) {}
+  if (x case A(: var foo)) {}
+}
+''';
+    newFile(other, otherCode);
+
+    var result = await resolveTestCode('''
+class A {
+  int get foo => 0;
+}
+''');
+    var element = result.findElement.getter('foo');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useGetter@26
+  64 4:16 |foo| REFERENCE_IN_PATTERN_FIELD qualified
+  91 5:16 || REFERENCE_IN_PATTERN_FIELD qualified
+''');
+  }
+
   test_searchReferences_GetterElement_ofClass_static() async {
     var result = await resolveTestCode('''
 import 'test.dart' as p;
@@ -6366,7 +6416,7 @@ class B extends A<String> {}
 ''');
   }
 
-  @SkippedTest(
+  @FailingTest(
     // When this test begins passing, the temporary test
     // test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005
     // can be removed.

@@ -9,6 +9,7 @@ import 'package:dartdev/src/commands/installed.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_formats/pub_formats.dart';
 import 'package:test/test.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 import '../utils.dart';
 import 'helpers.dart';
@@ -690,6 +691,37 @@ void main(List<String> args) async {
   });
 }
 ''');
+        // Copy package:hooks to a temporary directory and rewrite its dependency
+        // on package:record_use to use a local path dependency pointing to the
+        // SDK checkout.
+        //
+        // By default, hooks/pubspec.yaml specifies a hosted version constraint on
+        // record_use. Because unreleased versions are not published on pub.dev,
+        // and because `dart install` solves dependencies from a temporary helper
+        // package (ignoring non-root `dependency_overrides`), pointing hooks to
+        // record_use via a relative/local path ensures that all dependency paths
+        // agree on path resolution without querying pub.dev.
+        final hooksTempDir = Directory.fromUri(tempUri.resolve('hooks/'));
+        await copyDirectory(
+          Directory.fromUri(
+            sdkRootUri.resolve('third_party/pkg/native/pkgs/hooks/'),
+          ),
+          hooksTempDir,
+        );
+        final hooksPubspecFile = File.fromUri(
+          hooksTempDir.uri.resolve('pubspec.yaml'),
+        );
+        final hooksPubspec = YamlEditor(await hooksPubspecFile.readAsString());
+        hooksPubspec.update(
+          ['dependencies', 'record_use'],
+          {
+            'path': sdkRootUri
+                .resolve('third_party/pkg/native/pkgs/record_use/')
+                .toFilePath(),
+          },
+        );
+        await hooksPubspecFile.writeAsString(hooksPubspec.toString());
+
         for (final addUserDefine in [true, false]) {
           await pubspec.writeAsString(
             jsonEncode(
@@ -701,9 +733,7 @@ void main(List<String> args) async {
                 executables: {packageName: packageName},
                 dependencies: {
                   'hooks': PathDependencySourceSyntax(
-                    path$: sdkRootUri
-                        .resolve('third_party/pkg/native/pkgs/hooks/')
-                        .toFilePath(),
+                    path$: hooksTempDir.path,
                   ),
                 },
                 hooks: HooksSyntax(

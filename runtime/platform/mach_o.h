@@ -45,7 +45,8 @@ static constexpr cpu_type_t CPU_TYPE_ARM64 = CPU_TYPE_ARM | CPU_ARCH_ABI64;
 
 // ARM-family CPU subtypes.
 static constexpr cpu_type_t CPU_SUBTYPE_ARM_ALL = 0;
-static constexpr cpu_type_t CPU_SUBTYPE_ARM64_ALL = CPU_SUBTYPE_ARM_ALL;
+static constexpr cpu_type_t CPU_SUBTYPE_ARM64_ALL = 0;
+static constexpr cpu_type_t CPU_SUBTYPE_ARM64E_V0 = 2 | 0x80000000;
 
 typedef int vm_prot_t;
 
@@ -155,6 +156,8 @@ static constexpr uint32_t LC_NOTE = 0x31;
 // The target platform and minimum and target OS versions for this object file.
 // (build_version_command)
 static constexpr uint32_t LC_BUILD_VERSION = 0x32;
+// A prefix tree of exported symbols. (linkedit_data_command)
+static constexpr uint32_t LC_DYLD_EXPORTS_TRIE = (0x33 | LC_REQ_DYLD);
 
 struct segment_command {
   uint32_t cmd;  // LC_SEGMENT

@@ -4577,7 +4577,7 @@ importChainContext:
     The unavailable library '#uri' is imported through these packages:
 
     #importChain
-    Detailed import paths for (some of) the these imports:
+    Detailed import paths for (some of) these imports:
 
     #verboseImportChain
   severity: CONTEXT
@@ -5270,6 +5270,18 @@ spreadMapEntryElementValueTypeMismatch:
       Map<String, int> a = <String, int>{"foo": 42};
       Map<String, String> b = <String, String>{...a};
     }
+
+
+spreadEntryOrElementTypeMismatch:
+  parameters:
+    Type spreadType: The type of the spread.
+  problemMessage: "Unexpected type '#spreadType' of a spread element.  Expected 'dynamic', a Map or an Iterable."
+  script:
+    - |
+      main() {
+        int a = 42;
+        var b = {...a, 0: 1};
+      }
 
 cantDisambiguateNotEnoughInformation:
   parameters: none
@@ -6060,6 +6072,11 @@ jsInteropIsATearoff:
   parameters: none
   problemMessage: "'isA' can't be torn off."
   correctionMessage: "Use a method that calls 'isA' and tear off that method instead."
+
+jsInteropExtensionConstructorJsAnnotationHasNoEffect:
+  parameters: none
+  problemMessage: "The '@JS' annotation on an extension type constructor has no effect."
+  correctionMessage: "Remove the '@JS' annotation from the extension type constructor and put it on the extension type to rename non-object literal constructors."
 
 jsInteropExtensionTypeNotInterop:
   parameters:

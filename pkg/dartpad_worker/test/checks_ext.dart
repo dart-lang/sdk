@@ -8,10 +8,19 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:async/async.dart';
 import 'package:checks/checks.dart';
 import 'package:checks/context.dart';
+import 'package:dartpad/src/worker_client.dart';
 import 'package:dartpad_worker/src/shared.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 
 export 'package:checks/checks.dart';
+
+extension FileChangeEventChecks on Subject<FileChangeEvent> {
+  Subject<Uri> get uri => has((e) => e.uri, 'uri');
+}
+
+extension UriChecks on Subject<Uri> {
+  Subject<String> get path => has((u) => u.path, 'path');
+}
 
 extension ResourceChecks on Subject<Resource> {
   void get exists => has((r) => r.exists, 'exists').isTrue();

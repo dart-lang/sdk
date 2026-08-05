@@ -32,7 +32,7 @@ void f(int x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
@@ -61,7 +61,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@33
           staticType: int
@@ -109,7 +109,7 @@ SwitchPatternCase
   colon: :
   statements
     ExpressionStatement
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
         element: a@44
         staticType: int
@@ -156,9 +156,9 @@ Block
           matchedValueType: List<int>
           requiredType: List<int>
         equals: =
-        expression: ListLiteral
+        expression2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 0
               staticType: int
@@ -170,7 +170,7 @@ Block
         patternTypeSchema: List<_>
       semicolon: ;
     ExpressionStatement
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
         element: a@18
         staticType: int

@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:analysis_server/src/plugin/dsatur.dart';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin2/generator.dart';
@@ -12,6 +14,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 
 /// An object that watches the results produced by analysis drivers to identify
 /// references to previously unseen packages and, if those packages have plugins
@@ -57,8 +60,10 @@ class PluginWatcher implements DriverWatcher {
     // At some point, we will stop adding legacy plugins to the context root.
     _addLegacyPlugins(driver);
 
-    var pluginsOptions = driver.pluginsOptions;
-    if (pluginsOptions == null || pluginsOptions.configurations.isEmpty) {
+    var hasPlugins = driver.analysisOptionsMap.options.any(
+      (options) => options.pluginConfigurations.isNotEmpty,
+    );
+    if (!hasPlugins) {
       manager.contextRootsWithNoPlugins.add(contextRoot.root.path);
 
       // Call the plugin manager "initialized."
@@ -118,50 +123,137 @@ class PluginWatcher implements DriverWatcher {
     }
   }
 
+  /// Groups the plugin configurations specified in the [driver]'s analysis
+  /// options files (using the DSATUR algorithm ([groupVerticesMinimal]) to
+  /// minimize the number of isolates), generates the synthetic packages, and
+  /// adds them to the context root.
   void _addPlugins(AnalysisDriver driver) {
-    var pluginsOptions = driver.pluginsOptions;
-    var pluginConfigurations = pluginsOptions?.configurations ?? const [];
-    var pluginDependencyOverrides = pluginsOptions?.dependencyOverrides;
     var contextRoot = driver.analysisContext!.contextRoot;
-    var packageGenerator = PluginPackageGenerator(
-      configurations: pluginConfigurations,
-      dependencyOverrides: pluginDependencyOverrides,
-    );
-    // The path here just needs to be unique per context root.
+    var uniqueOptions = driver.analysisOptionsMap.options.toSet();
 
-    var sharedPluginFolder = manager.pluginStateFolder(contextRoot.root.path);
-    manager.instrumentationService.logInfo(
-      "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
-      "context root: '${contextRoot.root.path}'",
-    );
-    sharedPluginFolder.create();
-    var pubspecFile = sharedPluginFolder.getFile(file_paths.pubspecYaml);
-    var newPubspecContent = packageGenerator.generatePubspec();
-    // Only update the file if the content is different, to avoid changing the
-    // modification timestamp.
-    if (!pubspecFile.exists ||
-        newPubspecContent != pubspecFile.readAsStringSync()) {
-      pubspecFile.writeAsStringSync(newPubspecContent);
+    // All plugin specifications across the context root, including those with
+    // empty configurations. This is used to build the configuration maps sent
+    // to isolates, ensuring empty subdirectories override parent settings.
+    var allSpecs = <PluginSpecVertex>[];
+
+    // Only non-empty plugin specifications. This is used to compute isolate
+    // groupings via DSATUR, as we only need to spawn isolates for directories
+    // that actually run plugins.
+    var specsForGrouping = <PluginSpecVertex>[];
+    for (var options in uniqueOptions) {
+      var file = options.file;
+      if (file != null) {
+        var spec = PluginSpecVertex(
+          file.path,
+          options.pluginConfigurations,
+          options.pluginsOptions.dependencyOverrides,
+        );
+        allSpecs.add(spec);
+        if (options.pluginConfigurations.isNotEmpty) {
+          specsForGrouping.add(spec);
+        }
+      }
     }
 
-    var binFolder = sharedPluginFolder.getFolder('bin')..create();
-    var entrypointFile = binFolder.getFile('plugin.dart');
-    var newEntrypointContent = packageGenerator.generateEntrypoint();
-    // Only update the file if the content is different, to avoid changing the
-    // modification timestamp.
-    if (!entrypointFile.exists ||
-        newEntrypointContent != entrypointFile.readAsStringSync()) {
-      entrypointFile.writeAsStringSync(newEntrypointContent);
+    if (specsForGrouping.isEmpty) return;
+
+    // Group the plugin configurations using DSATUR.
+    var groups = groupVerticesMinimal(specsForGrouping);
+
+    // For each plugin group, generate the synthetic package and spawn/update
+    // the isolate.
+    for (var i = 0; i < groups.length; i++) {
+      var group = groups[i];
+      var groupConfigurationsMap = {
+        for (var spec in group)
+          for (var config in spec.configurations) config.name: config,
+      };
+      var groupConfigurations = groupConfigurationsMap.values.toList();
+      var groupDependencyOverrides = {
+        for (var spec in group) ...?spec.dependencyOverrides,
+      };
+      var packageGenerator = PluginPackageGenerator(
+        configurations: groupConfigurations,
+        dependencyOverrides: groupDependencyOverrides.isEmpty
+            ? null
+            : groupDependencyOverrides,
+      );
+
+      // TODO(srawlins): Better to name the folder based on a hash of the...
+      // maybe the plugin names. Maybe the configutations.
+      var folderName = groups.length == 1
+          ? contextRoot.root.path
+          : '${contextRoot.root.path}_group_$i';
+      var sharedPluginFolder = manager.pluginStateFolder(folderName);
+
+      manager.instrumentationService.logInfo(
+        "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
+        "context root: '${contextRoot.root.path}' group $i",
+      );
+      sharedPluginFolder.create();
+      var pubspecFile = sharedPluginFolder.getFile(file_paths.pubspecYaml);
+      var newPubspecContent = packageGenerator.generatePubspec();
+      // Only write the pubspec if it is different, to support caching.
+      if (!pubspecFile.exists ||
+          newPubspecContent != pubspecFile.readAsStringSync()) {
+        pubspecFile.writeAsStringSync(newPubspecContent);
+      }
+
+      var binFolder = sharedPluginFolder.getFolder('bin')..create();
+      var entrypointFile = binFolder.getFile('plugin.dart');
+      var newEntrypointContent = packageGenerator.generateEntrypoint();
+      // Only write the entrypoint if it is different, to support caching.
+      if (!entrypointFile.exists ||
+          newEntrypointContent != entrypointFile.readAsStringSync()) {
+        entrypointFile.writeAsStringSync(newEntrypointContent);
+      }
+
+      manager.instrumentationService.logInfo(
+        'Adding ${groupConfigurations.length} analyzer plugins for '
+        "context root: '${contextRoot.root.path}' group $i",
+      );
+
+      var groupProtocolConfigurations =
+          <String, Map<String, protocol.PluginConfiguration>>{};
+      for (var spec in allSpecs) {
+        var dirPath = resourceProvider
+            .getFile(spec.optionsFilePath)
+            .parent
+            .path;
+        var pluginMap = <String, protocol.PluginConfiguration>{};
+        var isSpecInGroup = group.any(
+          (v) => v.optionsFilePath == spec.optionsFilePath,
+        );
+        if (isSpecInGroup) {
+          for (var config in spec.configurations) {
+            var severities = {
+              for (var MapEntry(key: code, value: ruleConfig)
+                  in config.diagnosticConfigs.entries)
+                code: ruleConfig.severity.name,
+            };
+            pluginMap[config.name] = protocol.PluginConfiguration(
+              config.isEnabled,
+              severities,
+            );
+          }
+        }
+        groupProtocolConfigurations[dirPath] = pluginMap;
+      }
+
+      unawaited(() async {
+        await manager.addPluginToContextRoot(
+          contextRoot,
+          sharedPluginFolder.path,
+          isLegacyPlugin: false,
+        );
+        var pluginIsolate = manager.pluginIsolates
+            .where((e) => e.pluginId == sharedPluginFolder.path)
+            .firstOrNull;
+        pluginIsolate?.sendRequest(
+          protocol.AnalysisSetConfigurationsParams(groupProtocolConfigurations),
+        );
+      }());
     }
-    manager.instrumentationService.logInfo(
-      'Adding ${pluginConfigurations.length} analyzer plugins for '
-      "context root: '${contextRoot.root.path}'",
-    );
-    manager.addPluginToContextRoot(
-      contextRoot,
-      sharedPluginFolder.path,
-      isLegacyPlugin: false,
-    );
   }
 
   /// Return the path to the root of the SDK being used by the given analysis

@@ -508,6 +508,164 @@ Future foo;
     );
   }
 
+  Future<void> test_legacySnippetTextEdit() async {
+    setLegacySnippetTextEditSupport();
+
+    const content = '''
+abstract class A {
+  void m();
+}
+
+class ^B extends A {}
+''';
+
+    const expectedContent = r'''
+abstract class A {
+  void m();
+}
+
+class B extends A {
+  @override
+  void m() {
+    // TODO: implement m$0
+  }
+}
+''';
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('quickfix.create.missingOverrides'),
+      title: 'Create 1 missing override',
+    );
+  }
+
+  Future<void>
+  test_legacySnippetTextEdit_createMethod_functionTypeNestedParameters() async {
+    const content = '''
+class A {
+  void a() => c^((cell) => cell.south);
+  void b() => c((cell) => cell.west);
+}
+''';
+
+    const expectedContent = r'''
+class A {
+  void a() => c((cell) => cell.south);
+  void b() => c((cell) => cell.west);
+
+  ${1:void} ${2:c}(${3:Function(cell)} ${4:param0}) {}
+}
+''';
+
+    setLegacySnippetTextEditSupport();
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('quickfix.create.method'),
+      title: "Create method 'c'",
+    );
+  }
+
+  /// Ensure braces aren't over-escaped in snippet choices.
+  /// https://github.com/dart-lang/sdk/issues/54403
+  Future<void>
+  test_legacySnippetTextEdit_createMissingOverrides_recordBraces() async {
+    const content = '''
+abstract class A {
+  void m(Iterable<({int a, int b})> r);
+}
+
+class ^B extends A {}
+''';
+
+    const expectedContent = r'''
+abstract class A {
+  void m(Iterable<({int a, int b})> r);
+}
+
+class B extends A {
+  @override
+  void m(${1|Iterable<({int a\, int b})>,Object|} ${2:r}) {
+    // TODO: implement m$0
+  }
+}
+''';
+
+    setLegacySnippetTextEditSupport();
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('quickfix.create.missingOverrides'),
+      title: 'Create 1 missing override',
+    );
+  }
+
+  Future<void>
+  test_legacySnippetTextEdit_extractVariable_functionTypeNestedParameters() async {
+    const content = '''
+void f() {
+  useFunction(te^st);
+}
+
+useFunction(int g(a, b)) {}
+''';
+
+    const expectedContent = r'''
+void f() {
+  ${1:int Function(a, b)} ${2:test};
+  useFunction(test);
+}
+
+useFunction(int g(a, b)) {}
+''';
+
+    setLegacySnippetTextEditSupport();
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('quickfix.create.localVariable'),
+      title: "Create local variable 'test'",
+    );
+  }
+
+  /// The non-standard snippets we supported are only supported for
+  /// [CodeActionLiteral]s and not for [Command]s (which go via
+  /// workspace/applyEdit) so even if enabled, they should not be returned.
+  Future<void> test_legacySnippetTextEdit_unsupportedForCommands() async {
+    setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
+    setLegacySnippetTextEditSupport(); // will not do anything
+
+    const content = '''
+abstract class A {
+  void m();
+}
+
+class ^B extends A {}
+''';
+
+    // No $0 placeholder in this content (unlike in `test_legacySnippetTextEdit`).
+    const expectedContent = r'''
+abstract class A {
+  void m();
+}
+
+class B extends A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''';
+
+    await verifyCommandCodeActionEdits(
+      content,
+      expectedContent,
+      command: Commands.applyCodeAction,
+      title: 'Create 1 missing override',
+    );
+  }
+
   Future<void> test_logsExecution() async {
     var code = TestCode.parse('''
 [!import!] 'dart:convert';
@@ -719,8 +877,8 @@ name: class^
     await expectNoAction(filePath: pubspecFilePath, content);
   }
 
-  Future<void> test_snippets() async {
-    setLegacySnippetTextEditSupport();
+  Future<void> test_snippetTextEdit() async {
+    setSnippetTextEditSupport();
 
     const content = '''
 abstract class A {
@@ -751,7 +909,8 @@ class B extends A {
     );
   }
 
-  Future<void> test_snippets_createMethod_functionTypeNestedParameters() async {
+  Future<void>
+  test_snippetTextEdit_createMethod_functionTypeNestedParameters() async {
     const content = '''
 class A {
   void a() => c^((cell) => cell.south);
@@ -768,7 +927,7 @@ class A {
 }
 ''';
 
-    setLegacySnippetTextEditSupport();
+    setSnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -779,7 +938,8 @@ class A {
 
   /// Ensure braces aren't over-escaped in snippet choices.
   /// https://github.com/dart-lang/sdk/issues/54403
-  Future<void> test_snippets_createMissingOverrides_recordBraces() async {
+  Future<void>
+  test_snippetTextEdit_createMissingOverrides_recordBraces() async {
     const content = '''
 abstract class A {
   void m(Iterable<({int a, int b})> r);
@@ -801,7 +961,7 @@ class B extends A {
 }
 ''';
 
-    setLegacySnippetTextEditSupport();
+    setSnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -811,7 +971,7 @@ class B extends A {
   }
 
   Future<void>
-  test_snippets_extractVariable_functionTypeNestedParameters() async {
+  test_snippetTextEdit_extractVariable_functionTypeNestedParameters() async {
     const content = '''
 void f() {
   useFunction(te^st);
@@ -829,7 +989,7 @@ void f() {
 useFunction(int g(a, b)) {}
 ''';
 
-    setLegacySnippetTextEditSupport();
+    setSnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -838,12 +998,12 @@ useFunction(int g(a, b)) {}
     );
   }
 
-  /// The non-standard snippets we supported are only supported for
+  /// Currently, SnippetTextEdits are only supported for
   /// [CodeActionLiteral]s and not for [Command]s (which go via
   /// workspace/applyEdit) so even if enabled, they should not be returned.
-  Future<void> test_snippets_unsupportedForCommands() async {
+  Future<void> test_snippetTextEdit_unsupportedForCommands() async {
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
-    setLegacySnippetTextEditSupport(); // will be ignored
+    setSnippetTextEditSupport(); // will not do anything
 
     const content = '''
 abstract class A {
@@ -853,7 +1013,7 @@ abstract class A {
 class ^B extends A {}
 ''';
 
-    // No $0 placeholder in this content (unlike in `test_snippets`).
+    // No $0 placeholder in this content (unlike in `test_snippetTextEdit`).
     const expectedContent = r'''
 abstract class A {
   void m();

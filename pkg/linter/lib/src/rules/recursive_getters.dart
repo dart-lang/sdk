@@ -69,11 +69,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // getters have null arguments, methods have parameters, could be empty.

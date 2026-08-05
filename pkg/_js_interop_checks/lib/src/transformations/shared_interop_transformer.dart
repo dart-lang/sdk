@@ -37,6 +37,8 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isJSBoxedDartObject;
   final Procedure _isJSExportedDartFunction;
   final Procedure _isJSObject;
+  final Procedure _isJSArray;
+  final Procedure _isNullableJSArray;
   final Procedure _isJSTypedArray;
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
@@ -107,6 +109,10 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         '_isJSObject',
       ),
+      _isJSArray = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSArray',
+      ),
       _isJSTypedArray = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isJSTypedArray',
@@ -127,6 +133,8 @@ class SharedInteropTransformer extends Transformer {
           ),
       _isNullableJSObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
+      _isNullableJSArray = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isNullableJSArray'),
       _isNullableJSTypedArray = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSTypedArray'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
@@ -599,20 +607,22 @@ class SharedInteropTransformer extends Transformer {
         receiverInteropTypeDeclaration is ExtensionTypeDeclaration
         ? _extensionIndex.isJSType(receiverInteropTypeDeclaration)
         : false;
-    final SyntheticVariable? letVariable;
+    final CachedExpression? receiverCache;
     final Variable receiverVar;
     if (receiver is VariableGet) {
       receiverVar = receiver.variable;
-      letVariable = null;
+      receiverCache = null;
     } else {
       // Synthesize declaration to avoid re-evaluating expressions.
-      receiverVar = letVariable = SyntheticVariable(
-        initializer: receiver,
+      receiverCache = CachedExpression.fromValue(
+        value: receiver,
         type: receiverIsJSType
             ? ExtensionType(_jsAny, Nullability.nullable)
             : receiverStaticType,
+        fileOffset: invocation.fileOffset,
         isFinal: true,
-      )..fileOffset = invocation.fileOffset;
+      );
+      receiverVar = receiverCache.variable;
     }
     final receiverVarAsJSAny =
         receiverIsJSType
@@ -690,6 +700,16 @@ class SharedInteropTransformer extends Transformer {
             [VariableGet(receiverVar)],
             types: [interopType.typeArguments.first],
           ),
+        );
+        break;
+      case 'JSArray' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable ? _isNullableJSArray : _isJSArray,
+          Arguments([VariableGet(receiverVar)]),
         );
         break;
       case 'JSTypedArray' when interopTypeDecl == jsType:
@@ -814,9 +834,12 @@ class SharedInteropTransformer extends Transformer {
       check = BoolLiteral(true);
     }
 
-    return letVariable == null ? check : Let(letVariable, check)
-      ..fileOffset = invocation.fileOffset
-      ..parent = invocation.parent;
+    return receiverCache == null
+        ? check
+        : (receiverCache.createLet(
+            body: check,
+            fileOffset: invocation.fileOffset,
+          )..parent = invocation.parent);
   }
 
   // Various shared helpers to make calls to `dart:js_interop`/

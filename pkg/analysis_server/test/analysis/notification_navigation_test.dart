@@ -423,6 +423,19 @@ void f() {
     assertHasRegion('myan // ref');
   }
 
+  Future<void> test_assignedVariablePattern() async {
+    addTestFile('''
+void f() {
+  int? left;
+  int? right;
+  (left, right) = (1, 1);
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('left,', 'left;');
+  }
+
   Future<void> test_augmentation_class_method() async {
     addTestFile(r'''
 part of 'a.dart';

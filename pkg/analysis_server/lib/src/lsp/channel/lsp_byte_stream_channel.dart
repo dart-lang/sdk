@@ -33,12 +33,18 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   /// True if [close] has been called.
   bool _closeRequested = false;
 
+  /// A stream controller for writing outbound message that will be
+  /// automatically wrapped with LSP headers and written to the output stream.
+  final StreamController<String> _outgoingMessages;
+
   new(
     this._input,
     this._output,
     this._instrumentationService, {
     this._sessionLogger,
-  });
+  }) : _outgoingMessages = StreamController<String>(sync: true) {
+    _outgoingMessages.stream.transform(LspPacketEncoder()).listen(_write);
+  }
 
   /// Future that will be completed when the input stream is closed.
   @override
@@ -52,6 +58,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       _closeRequested = true;
       assert(!_closed.isCompleted);
       _closed.complete();
+      _outgoingMessages.close();
     }
   }
 
@@ -118,15 +125,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       return;
     }
     var jsonEncodedBody = jsonEncode(json);
-    var utf8EncodedBody = utf8.encode(jsonEncodedBody);
-    var header =
-        'Content-Length: ${utf8EncodedBody.length}\r\n'
-        'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
-    var asciiEncodedHeader = ascii.encode(header);
-
-    // Header is always ascii, body is always utf8!
-    _write(asciiEncodedHeader);
-    _write(utf8EncodedBody);
+    _outgoingMessages.add(jsonEncodedBody);
 
     _instrumentationService.logResponse(jsonEncodedBody);
     _sessionLogger?.logMessage(

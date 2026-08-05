@@ -16,6 +16,21 @@ main() {
 
 @reflectiveTest
 class ConstructorBodyTest extends PubPackageResolutionTest {
+  test_class_primaryConstructor_assertInitializer_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A() {
+//    ^
+// [context 1] The complete declaration is here.
+  this : assert(true);
+}
+augment class A {
+  augment A() {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
   test_class_primaryConstructor_const_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class const C() {
@@ -58,12 +73,71 @@ class const C() {}
 ''');
   }
 
+  test_class_primaryConstructor_declaringFormalParameter_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A(final int x) {}
+//    ^
+// [context 1] The complete declaration is here.
+augment class A {
+  augment A(int x) {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_augmentation_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A(final int x);
+
+augment class A {
+  augment A(int x);
+}
+''');
+  }
+
+  test_class_primaryConstructor_emptyBody_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A() {
+  this;
+}
+augment class A {
+  augment A() {}
+}
+''');
+  }
+
   test_class_primaryConstructor_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A() {
   this => 0;
 //     ^^
 // [diag.primaryConstructorBodyWithExpressionBody] A primary constructor body can't use '=>'.
+}
+''');
+  }
+
+  test_class_primaryConstructor_fieldFormalParameter_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A(this.x) {
+//    ^
+// [context 1] The complete declaration is here.
+  final int x;
+}
+augment class A {
+  augment A(int x) {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A(int x);
+
+augment class A {
+  augment A(int x) {}
 }
 ''');
   }
@@ -98,6 +172,49 @@ class A() {
 ''');
   }
 
+  test_class_primaryConstructor_nothing_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A() {}
+
+augment class A {
+  augment A() {}
+}
+''');
+  }
+
+  test_class_primaryConstructor_superFormalParameter_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class B {
+  B(int x);
+}
+class A(super.x) extends B {}
+//    ^
+// [context 1] The complete declaration is here.
+augment class A {
+  augment A(int x) {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+//        ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'B' has required parameters.
+}
+''');
+  }
+
+  test_class_primaryConstructor_thisBody_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A() {
+//    ^
+// [context 1] The complete declaration is here.
+  this {}
+}
+augment class A {
+  augment A() {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
   test_class_secondaryConstructor_constFactory_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -123,9 +240,22 @@ class C {
 ''');
   }
 
-  test_class_secondaryConstructor_constFactory_emptyBody_language305() async {
+  test_class_secondaryConstructor_constFactory_emptyBody_augmentation_redirecting() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+class C {
+  const C.named();
+  const factory();
+}
+
+augment class C {
+  augment const factory() = C.named;
+}
+''');
+  }
+
+  test_class_secondaryConstructor_constFactory_emptyBody_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
 class C {
   const factory C();
 //^^^^^
@@ -419,18 +549,18 @@ class A {
 ''');
   }
 
-  test_class_secondaryConstructor_factory_typeName_named_external_noBody_language305() async {
+  test_class_secondaryConstructor_factory_typeName_named_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   external factory A.named();
 }
 ''');
   }
 
-  test_class_secondaryConstructor_factory_typeName_named_hasBody_language305() async {
+  test_class_secondaryConstructor_factory_typeName_named_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   factory A.named() => throw 0;
 }
@@ -447,9 +577,9 @@ class A {
 ''');
   }
 
-  test_class_secondaryConstructor_factory_typeName_named_noBody_language305() async {
+  test_class_secondaryConstructor_factory_typeName_named_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   factory A.named();
 //                 ^
@@ -492,9 +622,9 @@ class A {
 ''');
   }
 
-  test_class_secondaryConstructor_factory_typeName_unnamed_noBody_language305() async {
+  test_class_secondaryConstructor_factory_typeName_unnamed_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   factory A();
 //           ^
@@ -644,6 +774,22 @@ class B extends A {
 ''');
   }
 
+  test_enum_primaryConstructor_assertInitializer_augmentation_assertInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E(int x) {
+//   ^
+// [context 1] The complete declaration is here.
+  v(0);
+  this : assert(true);
+}
+augment enum E {;
+  augment E(int x) : assert(true);
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
   test_enum_primaryConstructor_const_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum const E() {
@@ -699,6 +845,17 @@ enum E() {
   this => 0;
 //     ^^
 // [diag.constPrimaryConstructorWithExpressionBody] The body part of a constant primary constructor can't have an expression body.
+}
+''');
+  }
+
+  test_enum_primaryConstructor_formalParameter_augmentation_hasInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E(int x) {
+  v(0);
+}
+augment enum E {;
+  augment E(int x) : assert(true);
 }
 ''');
   }
@@ -770,9 +927,9 @@ enum E {
 ''');
   }
 
-  test_enum_secondaryConstructor_constFactory_emptyBody_language305() async {
+  test_enum_secondaryConstructor_constFactory_emptyBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   const E();
@@ -1093,6 +1250,19 @@ extension type A(int x) {
 ''');
   }
 
+  test_extensionType_primaryConstructor_representationField_augmentation_hasBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type A(int it) {}
+//             ^
+// [context 1] The complete declaration is here.
+augment extension type A {
+  augment A(int it) {}
+//^^^^^^^
+// [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+}
+''');
+  }
+
   test_extensionType_secondaryConstructor_constFactory_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
@@ -1117,9 +1287,9 @@ extension type const E(int it) {
 ''');
   }
 
-  test_extensionType_secondaryConstructor_constFactory_emptyBody_language305() async {
+  test_extensionType_secondaryConstructor_constFactory_emptyBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type const E(int it) {
   const factory E.named();
 //^^^^^

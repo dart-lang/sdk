@@ -35,12 +35,8 @@ class AnnotateOverrides extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   void check(Element? element, Token target) {
     if (element == null) return;
     if (element.metadata.hasOverride) return;

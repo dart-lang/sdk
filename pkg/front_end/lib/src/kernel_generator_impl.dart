@@ -67,6 +67,7 @@ Future<InternalCompilerResult> generateKernelInternal(
   bool includeOffsets = true,
   bool includeHierarchyAndCoreTypes = false,
   bool retainDataForTesting = false,
+  bool onlyDirectives = false,
   Benchmarker? benchmarker,
   List<Component>? additionalDillModulesForTesting,
   bool allowVerificationErrorForTesting = false,
@@ -126,7 +127,10 @@ Future<InternalCompilerResult> generateKernelInternal(
       );
       sourceLoader = kernelTarget.loader;
       kernelTarget.setEntryPoints(options.inputs);
-      await kernelTarget.computeNeededPrecompilations();
+      await kernelTarget.computeNeededPrecompilations(
+        onlyDirectives: onlyDirectives,
+      );
+
       kernelTarget.benchmarker
       // Coverage-ignore(suite): Not run.
       ?.enterPhase(BenchmarkPhases.precompileMacros);

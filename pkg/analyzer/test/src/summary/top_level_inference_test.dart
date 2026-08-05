@@ -4092,7 +4092,7 @@ library
           firstFragment: #F5
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@method::foo
           firstFragment: #F6
           returnType: int
@@ -5489,7 +5489,7 @@ library
     // TODO(scheglov): I don't understand this yet
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_instanceCreation_hasTypeParameter() async {
     var library = await _encodeDecodeLibrary(r'''
 class A<T> {}
@@ -5874,7 +5874,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNull = null;
@@ -6176,7 +6176,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal_list_untyped_empty() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNonConst = [];
@@ -6496,7 +6496,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal_map_untyped_empty() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNonConst = {};
@@ -6696,7 +6696,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_methodInvocation_hasTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -8098,7 +8098,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_prefix_incDec_custom() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -8952,7 +8952,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_throw() async {
     var library = await _encodeDecodeLibrary(r'''
 var V = throw 42;
@@ -9062,7 +9062,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
       setters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::B::@setter::x
           firstFragment: #F10
           formalParameters
@@ -9363,7 +9363,7 @@ library
           firstFragment: #F17
           returnType: int
           variable: <testLibrary>::@class::B::@field::x
-        isOriginDeclaration y
+        hasImplicitReturnType isOriginDeclaration y
           reference: <testLibrary>::@class::B::@getter::y
           firstFragment: #F22
           returnType: int
@@ -9378,7 +9378,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::B::@field::x
-        isOriginDeclaration z
+        hasImplicitReturnType isOriginDeclaration z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F24
           formalParameters
@@ -9629,7 +9629,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::B::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@setter::foo
           firstFragment: #F11
           formalParameters
@@ -9857,7 +9857,7 @@ library
           firstFragment: #F19
           returnType: T
           variable: <testLibrary>::@class::B::@field::x
-        hasEnclosingTypeParameterReference isOriginDeclaration y
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration y
           reference: <testLibrary>::@class::B::@getter::y
           firstFragment: #F24
           returnType: T
@@ -9872,7 +9872,7 @@ library
               type: T
           returnType: void
           variable: <testLibrary>::@class::B::@field::x
-        hasEnclosingTypeParameterReference isOriginDeclaration z
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F26
           formalParameters
@@ -10281,7 +10281,7 @@ library
           firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@class::B::@field::x
-        isOriginDeclaration y
+        hasImplicitReturnType isOriginDeclaration y
           reference: <testLibrary>::@class::B::@getter::y
           firstFragment: #F16
           returnType: int
@@ -10296,7 +10296,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::B::@field::x
-        isOriginDeclaration z
+        hasImplicitReturnType isOriginDeclaration z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F18
           formalParameters
@@ -10465,7 +10465,7 @@ library
           firstFragment: #F13
           returnType: T
           variable: <testLibrary>::@class::B::@field::x
-        hasEnclosingTypeParameterReference isOriginDeclaration y
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration y
           reference: <testLibrary>::@class::B::@getter::y
           firstFragment: #F18
           returnType: T
@@ -10480,7 +10480,7 @@ library
               type: T
           returnType: void
           variable: <testLibrary>::@class::B::@field::x
-        hasEnclosingTypeParameterReference isOriginDeclaration z
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F20
           formalParameters
@@ -10567,7 +10567,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::B::@field::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@setter::foo
           firstFragment: #F7
           formalParameters
@@ -10691,7 +10691,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F11
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F12
           returnType: dynamic
@@ -10811,7 +10811,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F11
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F12
           returnType: int
@@ -10943,7 +10943,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F13
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F14
           returnType: dynamic
@@ -11062,7 +11062,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F11
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F12
           returnType: int
@@ -11235,6 +11235,9 @@ library
         hasImplicitType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F16
+          typeInferenceError: differentGetterAndSetterTypes
+            getterType: int
+            setterType: String
           type: dynamic
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
@@ -11389,7 +11392,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F13
           returnType: int
@@ -11519,7 +11522,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
       setters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F13
           formalParameters
@@ -11796,7 +11799,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F13
           returnType: int
@@ -11925,7 +11928,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
       setters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F13
           formalParameters
@@ -12103,7 +12106,7 @@ library
           firstFragment: #F14
           returnType: int
           variable: <testLibrary>::@class::B::@field::x
-        isOriginDeclaration y
+        hasImplicitReturnType isOriginDeclaration y
           reference: <testLibrary>::@class::B::@getter::y
           firstFragment: #F19
           returnType: int
@@ -12118,7 +12121,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::B::@field::x
-        isOriginDeclaration z
+        hasImplicitReturnType isOriginDeclaration z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F21
           formalParameters
@@ -12255,7 +12258,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F13
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F14
           returnType: dynamic
@@ -12388,7 +12391,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F13
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F14
           returnType: int
@@ -12523,7 +12526,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::B::@getter::x
           firstFragment: #F12
           returnType: dynamic Function()
@@ -12531,7 +12534,7 @@ library
               typeArguments
                 int
           variable: <testLibrary>::@class::B::@field::x
-        isOriginDeclaration y
+        hasImplicitReturnType isOriginDeclaration y
           reference: <testLibrary>::@class::B::@getter::y
           firstFragment: #F13
           returnType: List<dynamic Function()>
@@ -12767,7 +12770,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
       setters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::B::@setter::x
           firstFragment: #F10
           formalParameters
@@ -13101,7 +13104,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -13310,7 +13313,7 @@ library
           firstFragment: #F8
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F9
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -13432,7 +13435,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F13
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -13562,7 +13565,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F14
           typeInferenceError: overrideNoCombinedSuperSignature
@@ -13643,7 +13646,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13726,7 +13729,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13789,7 +13792,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
@@ -13807,7 +13810,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13885,7 +13888,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -13987,7 +13990,7 @@ library
           firstFragment: #F8
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F9
           formalParameters
@@ -14101,7 +14104,7 @@ library
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {T: String}
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F12
           formalParameters
@@ -14194,7 +14197,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -14212,7 +14215,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           formalParameters
@@ -14305,7 +14308,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -14323,7 +14326,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           formalParameters
@@ -14417,7 +14420,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -14435,7 +14438,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::B::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           formalParameters
@@ -14532,7 +14535,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F10
           formalParameters
@@ -14613,7 +14616,7 @@ library
           firstFragment: #F6
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -14698,7 +14701,7 @@ library
           firstFragment: #F7
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F8
           formalParameters
@@ -14786,7 +14789,7 @@ library
           firstFragment: #F7
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F8
           formalParameters
@@ -14903,7 +14906,7 @@ library
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {T: String}
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F12
           formalParameters
@@ -14991,7 +14994,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F9
           formalParameters
@@ -15069,7 +15072,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -15185,7 +15188,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F13
           formalParameters
@@ -15260,7 +15263,7 @@ library
           firstFragment: #F5
           superConstructor: <testLibrary>::@class::A1::@constructor::new
       methods
-        isOriginDeclaration _foo
+        hasImplicitReturnType isOriginDeclaration _foo
           reference: <testLibrary>::@class::A2::@method::_foo
           firstFragment: #F6
           returnType: int
@@ -15335,7 +15338,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
@@ -15464,7 +15467,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F14
           formalParameters
@@ -15575,7 +15578,7 @@ library
           firstFragment: #F10
           superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
           formalParameters

@@ -24,7 +24,7 @@ class RenameLocalVariableMutation extends Mutation {
 
   @override
   MutationResult apply(CompilationUnit unit, String content) {
-    var declaration = unit.nodeCovering(offset: localOffset);
+    var declaration = unit.nodeCovering2(offset: localOffset);
     if (declaration is! VariableDeclaration ||
         declaration.name.lexeme != localName) {
       throw StateError('Did not find expected local variable.');
@@ -32,7 +32,7 @@ class RenameLocalVariableMutation extends Mutation {
 
     var declarationElement = declaration.declaredFragment!.element;
 
-    var block = declaration.thisOrAncestorOfType<Block>();
+    var block = declaration.thisOrAncestorOfType2<Block>();
     if (block == null) {
       throw StateError('Did not find enclosing block.');
     }
@@ -46,7 +46,7 @@ class RenameLocalVariableMutation extends Mutation {
     );
 
     // Update all references in the same block.
-    block.visitChildren(
+    block.visitChildren2(
       FunctionAstVisitor(
         simpleIdentifier: (node) {
           if (identical(node.element, declarationElement)) {
@@ -76,7 +76,7 @@ class RenameLocalVariableMutation extends Mutation {
 
   String _freshLocalName(Block block, String base) {
     var used = <String>{};
-    block.visitChildren(
+    block.visitChildren2(
       FunctionAstVisitor(
         simpleIdentifier: (node) {
           used.add(node.name);
@@ -94,7 +94,7 @@ class RenameLocalVariableMutation extends Mutation {
     var mutations = <Mutation>[];
 
     var bodies = <FunctionBody>[];
-    unit.visitChildren(
+    unit.visitChildren2(
       FunctionAstVisitor(
         functionDeclaration: (node) {
           bodies.add(node.functionExpression.body);
@@ -108,11 +108,11 @@ class RenameLocalVariableMutation extends Mutation {
     // Collect locals in all function/method bodies.
     for (var body in bodies) {
       var locals = <VariableDeclaration>[];
-      body.visitChildren(
+      body.visitChildren2(
         FunctionAstVisitor(
           variableDeclaration: (node) {
             // Only locals inside block statements.
-            if (node.parent?.parent is VariableDeclarationStatement) {
+            if (node.parent2?.parent2 is VariableDeclarationStatement) {
               locals.add(node);
             }
           },

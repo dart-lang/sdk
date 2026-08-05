@@ -46,7 +46,7 @@ void f() {
 ''');
   }
 
-  test_generative_named_constructorReference() async {
+  test_generative_named_constructorTearOff() async {
     await resolveTestCodeWithDiagnostics('''
 enum E {
   v.named();
@@ -104,7 +104,7 @@ enum E {
 ''');
   }
 
-  test_generative_unnamed_constructorReference() async {
+  test_generative_unnamed_constructorTearOff() async {
     await resolveTestCodeWithDiagnostics('''
 enum E {
   v

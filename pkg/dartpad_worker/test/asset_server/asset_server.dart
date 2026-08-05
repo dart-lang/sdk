@@ -18,7 +18,7 @@ final class AssetServer {
   static shelf.Response get _notFound => shelf.Response.notFound('404');
 
   late final HttpServer _server;
-  final Uri _assetPath;
+  final Uri _dartAssetPath;
   final Uri? _flutterAssetPath;
   final _packages = <Package>[];
 
@@ -26,20 +26,20 @@ final class AssetServer {
 
   AssetServer._({
     required FutureOr<void> Function(String) printOnFailure,
-    required Uri assetPath,
+    required Uri dartAssetPath,
     required Uri? flutterAssetPath,
   }) : _printOnFailure = printOnFailure,
-       _assetPath = assetPath,
+       _dartAssetPath = dartAssetPath,
        _flutterAssetPath = flutterAssetPath;
 
   static Future<AssetServer> listen({
     required FutureOr<void> Function(String) printOnFailure,
-    required Uri assetPath,
+    required Uri dartAssetPath,
     required Uri? flutterAssetPath,
   }) async {
     final ts = AssetServer._(
       printOnFailure: printOnFailure,
-      assetPath: assetPath,
+      dartAssetPath: dartAssetPath,
       flutterAssetPath: flutterAssetPath,
     );
     ts._server = await io.serve(ts._handler, '127.0.0.1', 0);
@@ -52,16 +52,16 @@ final class AssetServer {
       .addHandler(
         shelf.Cascade()
             .add((request) {
-              if (request.url.path.startsWith('asset/flutter/') &&
+              if (request.url.path.startsWith('flutter/') &&
                   _handleFlutterAsset != null) {
-                final r = request.change(path: 'asset/flutter');
+                final r = request.change(path: 'flutter');
                 return _handleFlutterAsset(r);
               }
               return _notFound;
             })
             .add((request) {
-              if (request.url.path.startsWith('asset/')) {
-                return _handleAsset(request.change(path: 'asset'));
+              if (request.url.path.startsWith('dart/')) {
+                return _handleDartAsset(request.change(path: 'dart'));
               }
               return _notFound;
             })
@@ -73,7 +73,9 @@ final class AssetServer {
   late final _handleFlutterAsset = _flutterAssetPath != null
       ? createStaticHandler(_flutterAssetPath.toFilePath())
       : null;
-  late final _handleAsset = createStaticHandler(_assetPath.toFilePath());
+  late final _handleDartAsset = createStaticHandler(
+    _dartAssetPath.toFilePath(),
+  );
 
   /// Add [package] to this pub server.
   void addPackage(Package package) {

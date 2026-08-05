@@ -1051,11 +1051,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadDouble:
     case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer:
-    case MethodRecognizer::kFfiNativeCallbackFunction:
-    case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupBoundCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupBoundClosureFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1555,18 +1550,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
-    case MethodRecognizer::kFfiNativeCallbackFunction:
-    case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupBoundCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupBoundClosureFunction: {
-      const auto& error = String::ZoneHandle(
-          Z, Symbols::New(thread_,
-                          "This function should be handled on call site."));
-      body += Constant(error);
-      body += ThrowException(TokenPosition::kNoSource);
-      break;
-    }
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:
@@ -2426,24 +2409,11 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
                                                    Fragment* implicit_checks) {
   const Function& dart_function = parsed_function_->function();
 
-  const Function* forwarding_target = nullptr;
-  if (parsed_function_->is_forwarding_stub()) {
-    forwarding_target = parsed_function_->forwarding_stub_super_target();
-    ASSERT(!forwarding_target->IsNull());
-  }
-
   TypeParameters& type_parameters =
       TypeParameters::Handle(Z, dart_function.type_parameters());
   const intptr_t num_type_params = type_parameters.Length();
   if (num_type_params == 0) return;
-  // Check type parameter bounds against forwarding stub target, if any.
-  TypeParameters& target_type_parameters =
-      TypeParameters::Handle(Z, type_parameters.ptr());
-  if (forwarding_target != nullptr) {
-    target_type_parameters = forwarding_target->type_parameters();
-    ASSERT(target_type_parameters.Length() == num_type_params);
-  }
-  if (target_type_parameters.AllDynamicBounds()) {
+  if (type_parameters.AllDynamicBounds()) {
     return;  // All bounds are dynamic.
   }
   TypeParameter& type_param = TypeParameter::Handle(Z);
@@ -2451,7 +2421,7 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
   AbstractType& bound = AbstractType::Handle(Z);
   Fragment check_bounds;
   for (intptr_t i = 0; i < num_type_params; ++i) {
-    bound = target_type_parameters.BoundAt(i);
+    bound = type_parameters.BoundAt(i);
     if (bound.IsTopType()) {
       continue;
     }
@@ -2461,7 +2431,6 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
         break;
       case TypeChecksToBuild::kCheckCovariantTypeParameterBounds:
         if (!type_parameters.IsGenericCovariantImplAt(i)) {
-          ASSERT(!target_type_parameters.IsGenericCovariantImplAt(i));
           continue;
         }
         break;
@@ -2474,11 +2443,7 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
 
     name = type_parameters.NameAt(i);
 
-    if (forwarding_target != nullptr) {
-      type_param = forwarding_target->TypeParameterAt(i);
-    } else {
-      type_param = dart_function.TypeParameterAt(i);
-    }
+    type_param = dart_function.TypeParameterAt(i);
     ASSERT(type_param.IsFinalized());
     check_bounds +=
         AssertSubtype(TokenPosition::kNoSource, type_param, bound, name);
@@ -2503,12 +2468,6 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     Fragment* implicit_redefinitions) {
   const Function& dart_function = parsed_function_->function();
 
-  const Function* forwarding_target = nullptr;
-  if (parsed_function_->is_forwarding_stub()) {
-    forwarding_target = parsed_function_->forwarding_stub_super_target();
-    ASSERT(!forwarding_target->IsNull());
-  }
-
   const intptr_t num_params = dart_function.NumParameters();
   for (intptr_t i = dart_function.NumImplicitParameters(); i < num_params;
        ++i) {
@@ -2522,11 +2481,6 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     }
 
     const AbstractType* target_type = &param->static_type();
-    if (forwarding_target != nullptr) {
-      // We add 1 to the parameter index to account for the receiver.
-      target_type =
-          &AbstractType::ZoneHandle(Z, forwarding_target->ParameterTypeAt(i));
-    }
 
     if (target_type->IsTopType()) continue;
 

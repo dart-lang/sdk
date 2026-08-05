@@ -71,7 +71,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
     String type,
   ) {
     var declaration = result.findNode.variableDeclaration(name);
-    var initializer = declaration.initializer!;
+    var initializer = declaration.initializer2!;
     assertType(initializer.staticType, type);
   }
 

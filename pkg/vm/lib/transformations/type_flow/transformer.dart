@@ -27,7 +27,7 @@ import 'package:vm/metadata/table_selector.dart';
 import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:vm/transformations/devirtualization.dart' show Devirtualization;
-import 'package:vm/transformations/pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
@@ -266,7 +266,7 @@ class MoveFieldInitializers {
           }
         }
         final Initializer newInit = initializedFields.contains(f)
-            ? LocalInitializer(SyntheticVariable(initializer: initExpr))
+            ? LocalInitializer(SyntheticVariable(), initExpr)
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
@@ -1070,26 +1070,12 @@ class TreeShaker {
         m.type.accept(typeVisitor);
       } else if (m is Procedure) {
         func = m.function;
-        if (m.concreteForwardingStubTarget != null) {
+        if (m.stubTarget != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.concreteForwardingStubTarget,
+            m.stubTarget,
             isSetter: m.isSetter,
           );
-          addUsedMember(m.concreteForwardingStubTarget!);
-        }
-        if (m.abstractForwardingStubTarget != null) {
-          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.abstractForwardingStubTarget,
-            isSetter: m.isSetter,
-          );
-          addUsedMember(m.abstractForwardingStubTarget!);
-        }
-        if (m.memberSignatureOrigin != null) {
-          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.memberSignatureOrigin,
-            isSetter: m.isSetter,
-          );
-          addUsedMember(m.memberSignatureOrigin!);
+          addUsedMember(m.stubTarget!);
         }
       } else if (m is Constructor) {
         func = m.function;
@@ -1430,7 +1416,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
     return new LocalInitializer(
-      new SyntheticVariable(initializer: _makeUnreachableCall(args)),
+      new SyntheticVariable(),
+      _makeUnreachableCall(args),
     );
   }
 
@@ -1907,9 +1894,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
             SyntheticVariable(
-              initializer: node.value,
               type: visitDartType(field.type, cannotRemoveSentinel),
             ),
+            node.value,
           );
         } else {
           return removalSentinel!;

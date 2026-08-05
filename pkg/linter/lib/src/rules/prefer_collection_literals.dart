@@ -35,11 +35,8 @@ class PreferCollectionLiterals extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final TypeProvider typeProvider;
-  new(this.rule, this.typeProvider);
-
+class _Visitor(final AnalysisRule rule, final TypeProvider typeProvider)
+    extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructorName = node.constructorName.name?.name;

@@ -1348,9 +1348,8 @@ class BinaryPrinter
 
   @override
   void visitConstructor(Constructor node) {
-    CanonicalName? canonicalName = getNonNullableMemberReferenceGetter(
-      node,
-    ).canonicalName;
+    CanonicalName? canonicalName = getNonNullableMemberReferenceGetter(node)
+        .canonicalName;
     if (canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
@@ -3145,7 +3144,7 @@ class BinaryPrinter
 
   @override
   void visitPatternSwitchCase(PatternSwitchCase node) {
-    writeVariableList(node.jointVariables);
+    writeVariableDeclarationList(node.jointVariableDeclarations);
     int length = node.patternGuards.length;
     writeUInt30(length);
     for (int i = 0; i < length; ++i) {

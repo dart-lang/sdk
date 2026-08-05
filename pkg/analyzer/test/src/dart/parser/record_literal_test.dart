@@ -26,13 +26,13 @@ final x = (0, a: 1);
     assertParsedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     IntegerLiteral
       literal: 0
     RecordLiteralNamedField
       name: a
       colon: :
-      fieldExpression: IntegerLiteral
+      fieldExpression2: IntegerLiteral
         literal: 1
   rightParenthesis: )
 ''');
@@ -47,19 +47,19 @@ final x = (0, a: 1,);
     assertParsedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     IntegerLiteral
       literal: 0
     RecordLiteralNamedField
       name: a
       colon: :
-      fieldExpression: IntegerLiteral
+      fieldExpression2: IntegerLiteral
         literal: 1
   rightParenthesis: )
 ''');
   }
 
-  void test_namedFieldRecovery_language219() {
+  void test_namedFieldRecovery_beforeRecords() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = (a: 0);
 //        ^
@@ -70,7 +70,7 @@ final x = (a: 0);
     assertParsedNodeText(node, r'''
 ParenthesizedExpression
   leftParenthesis: (
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
   rightParenthesis: )
 ''');
@@ -85,7 +85,7 @@ final x = (0,);
     assertParsedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     IntegerLiteral
       literal: 0
   rightParenthesis: )
@@ -101,7 +101,7 @@ final x = (0, 1,);
     assertParsedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     IntegerLiteral
       literal: 0
     IntegerLiteral

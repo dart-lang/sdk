@@ -30,7 +30,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    node.typeArguments?.accept(_resolver);
+    node.typeArguments?.accept2(_resolver);
     _resolve(node, whyNotPromotedArguments);
   }
 

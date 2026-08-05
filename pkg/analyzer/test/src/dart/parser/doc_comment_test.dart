@@ -117,7 +117,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// `a[i]` and [b].
@@ -136,7 +136,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /** [:xxx [a] yyy:] [b] zzz */
@@ -154,10 +154,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: i
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /** `a[i] and [b] */
@@ -175,7 +175,7 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: String @5
     tokens
       /** [String] */ @0
@@ -203,13 +203,13 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: int @9
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: String @19
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: Object @36
     tokens
       /// See [int] and [String] @0
@@ -240,7 +240,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
   tokens
     /** [a]. */
@@ -267,16 +267,16 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: included @86
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: int @143
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: String @153
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: Object @240
     tokens
       /// This dartdoc comment is [included]. @57
@@ -325,7 +325,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: <empty> <synthetic>
   tokens
     /// [].
@@ -343,7 +343,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
   tokens
     /// Regarding [a]: it's an A.
@@ -361,10 +361,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a] and [b].
@@ -382,10 +382,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /** [a] and [b]. */
@@ -404,7 +404,7 @@ Comment
   references
     CommentReference
       newKeyword: new
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: a
         period: .
@@ -427,7 +427,7 @@ Comment
   references
     CommentReference
       newKeyword: new
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: A
   tokens
     /// [new A].
@@ -445,7 +445,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: ==
   tokens
     /// [operator ==].
@@ -463,7 +463,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: Object
         period: .
@@ -485,7 +485,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: ==
   tokens
     /// [==].
@@ -503,7 +503,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: Object
         period: .
@@ -525,7 +525,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: a
         period: .
@@ -547,7 +547,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
   tokens
     /// [a].
@@ -1325,10 +1325,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: i
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: i
   tokens
     /// Text.
@@ -1373,7 +1373,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: c
   tokens
     /**
@@ -1439,7 +1439,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a](http://www.google.com) [b].
@@ -1459,7 +1459,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a]: http://www.google.com Google [b]
@@ -1547,7 +1547,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a link][c] [b].
@@ -1566,10 +1566,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a link split across multiple

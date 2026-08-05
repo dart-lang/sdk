@@ -221,29 +221,31 @@ static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::
   core::_GrowableList::_literal1<self::A>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:32:10: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   <A>[...l2]; // Error.
          ^");
-  <self::A, self::A>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry keys of type 'B?' to map entry keys of type 'A'.
+  {
+    final core::Map<self::A, self::A> #t3 = <self::A, self::A>{};
+    invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry values of type 'B?' to map entry values of type 'A'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <A, A>{...m}; // Error.
-            ^": invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:13: Error: Can't assign spread entry values of type 'B?' to map entry values of type 'A'.
- - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
-  <A, A>{...m}; // Error.
-            ^"};
-  <self::A, self::A>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:34:13: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+            ^";
+  }
+  {
+    final core::Map<self::A, self::A> #t4 = <self::A, self::A>{};
+    invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:34:13: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   <A, A>{...m2}; // Error.
-            ^": null};
+            ^";
+  }
   {
     synthesized core::Iterator<self::B?> :sync-for-iterator = l.{core::Iterable::iterator}{core::Iterator<self::B?>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final self::B? #t3 = :sync-for-iterator.{core::Iterator::current}{self::B?};
+      final self::B? #t5 = :sync-for-iterator.{core::Iterator::current}{self::B?};
       {
         self::A y = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:35:10: Error: A value of type 'B?' can't be assigned to a variable of type 'A'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 Try changing the type of the variable.
   for (A y in l) {} // Error.
-         ^" in let self::B? #t4 = #t3 in #t4 == null ?{self::A} #t4 as{TypeError} self::A : #t4{self::A};
+         ^" in let self::B? #t6 = #t5 in #t6 == null ?{self::A} #t6 as{TypeError} self::A : #t6{self::A};
       }
     }
   }
@@ -253,7 +255,7 @@ Try changing the type of the variable.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'Iterable' is from 'dart:core'.
   for (A y in l2) {} // Error.
-              ^" in let core::List<self::B>? #t5 = l2 in #t5 == null ?{core::Iterable<dynamic>} #t5 as{TypeError} core::Iterable<dynamic> : #t5{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<Never>};
+              ^" in let core::List<self::B>? #t7 = l2 in #t7 == null ?{core::Iterable<dynamic>} #t7 as{TypeError} core::Iterable<dynamic> : #t7{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       self::A y = :sync-for-iterator.{core::Iterator::current}{Never};
       {}
@@ -278,7 +280,7 @@ Try changing the type of the variable.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return x; // Error.
-             ^" in let self::B? #t6 = x in #t6 == null ?{self::A} #t6 as{TypeError} self::A : #t6{self::A};
+             ^" in let self::B? #t8 = x in #t8 == null ?{self::A} #t8 as{TypeError} self::A : #t8{self::A};
     }
     else {
       return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:47:18: Error: A value of type 'Future<B?>' can't be returned from an async function with return type 'FutureOr<A>'.
@@ -293,7 +295,7 @@ Try changing the type of the variable.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   return x; // Error.
-         ^" in let self::B? #t7 = x in #t7 == null ?{self::A} #t7 as{TypeError} self::A : #t7{self::A};
+         ^" in let self::B? #t9 = x in #t9 == null ?{self::A} #t9 as{TypeError} self::A : #t9{self::A};
 }
 static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, core::Map<core::List<self::B?>, core::List<self::B?>> m) → core::List<self::A> {
   self::barContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:55:14: Error: The argument type 'List<B?>' can't be assigned to the parameter type 'List<A>'.
@@ -314,21 +316,19 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <List<A>>[...l]; // Error.
                ^");
-  <core::List<self::A>, core::List<self::A>>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry keys of type 'List<B?>' to map entry keys of type 'List<A>'.
+  {
+    final core::Map<core::List<self::A>, core::List<self::A>> #t10 = <core::List<self::A>, core::List<self::A>>{};
+    invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry values of type 'List<B?>' to map entry values of type 'List<A>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <List<A>, List<A>>{...m}; // Error.
-                        ^": invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:25: Error: Can't assign spread entry values of type 'List<B?>' to map entry values of type 'List<A>'.
- - 'List' is from 'dart:core'.
- - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
- - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
-  <List<A>, List<A>>{...m}; // Error.
-                        ^"};
+                        ^";
+  }
   {
     synthesized core::Iterator<core::List<self::B?>> :sync-for-iterator = l.{core::Iterable::iterator}{core::Iterator<core::List<self::B?>>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::List<self::B?> #t8 = :sync-for-iterator.{core::Iterator::current}{core::List<self::B?>};
+      final core::List<self::B?> #t11 = :sync-for-iterator.{core::Iterator::current}{core::List<self::B?>};
       {
         core::List<self::A> y = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:59:16: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>'.
  - 'List' is from 'dart:core'.
@@ -336,7 +336,7 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 Try changing the type of the variable.
   for (List<A> y in l) {} // Error.
-               ^" in #t8 as{TypeError} core::List<self::A>;
+               ^" in #t11 as{TypeError} core::List<self::A>;
       }
     }
   }
@@ -350,43 +350,43 @@ Try changing the type of the variable.
 static method baz(self::C c) → void {
   self::bazContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:64:14: Error: The argument type 'num? Function()' can't be assigned to the parameter type 'num Function()'.
   bazContext(c);
-             ^" in (let final self::C #t9 = c in #t9 == null ?{() → core::num?} null : #t9.{self::C::call}{() → core::num?}) as{TypeError} () → core::num);
+             ^" in (let final self::C #t12 = c in #t12 == null ?{() → core::num?} null : #t12.{self::C::call}{() → core::num?}) as{TypeError} () → core::num);
 }
 static method boz(Null x) → self::A {
   self::fooContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:68:14: Error: The argument type 'Null' can't be assigned to the parameter type 'A'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   fooContext(x); // Error.
-             ^" in let Null #t10 = x in #t10 == null ?{self::A} #t10 as{TypeError} self::A : #t10{self::A});
+             ^" in let Null #t13 = x in #t13 == null ?{self::A} #t13 as{TypeError} self::A : #t13{self::A});
   self::fooContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:69:14: Error: The argument type 'Null' can't be assigned to the parameter type 'A'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   fooContext(null); // Error.
-             ^" in let Null #t11 = null in #t11 == null ?{self::A} #t11 as{TypeError} self::A : #t11{self::A});
+             ^" in let Null #t14 = null in #t14 == null ?{self::A} #t14 as{TypeError} self::A : #t14{self::A});
   self::A a1 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:70:10: Error: A value of type 'Null' can't be assigned to a variable of type 'A'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a1 = x; // Error.
-         ^" in let Null #t12 = x in #t12 == null ?{self::A} #t12 as{TypeError} self::A : #t12{self::A};
+         ^" in let Null #t15 = x in #t15 == null ?{self::A} #t15 as{TypeError} self::A : #t15{self::A};
   self::A a2 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:71:10: Error: A value of type 'Null' can't be assigned to a variable of type 'A'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a2 = null; // Error.
-         ^" in let Null #t13 = null in #t13 == null ?{self::A} #t13 as{TypeError} self::A : #t13{self::A};
+         ^" in let Null #t16 = null in #t16 == null ?{self::A} #t16 as{TypeError} self::A : #t16{self::A};
   if(true) {
     return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:73:12: Error: A value of type 'Null' can't be returned from a function with return type 'A'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
     return x; // Error.
-           ^" in let Null #t14 = x in #t14 == null ?{self::A} #t14 as{TypeError} self::A : #t14{self::A};
+           ^" in let Null #t17 = x in #t17 == null ?{self::A} #t17 as{TypeError} self::A : #t17{self::A};
   }
   else {
     return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:75:12: Error: A value of type 'Null' can't be returned from a function with return type 'A'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
     return null; // Error.
-           ^" in let Null #t15 = null in #t15 == null ?{self::A} #t15 as{TypeError} self::A : #t15{self::A};
+           ^" in let Null #t18 = null in #t18 == null ?{self::A} #t18 as{TypeError} self::A : #t18{self::A};
   }
   function local() → FutureOr<self::A> async /* emittedValueType= self::A */ {
     if(true) {
       return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:79:14: Error: A value of type 'Null' can't be returned from an async function with return type 'FutureOr<A>'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return null; // Error.
-             ^" in let Null #t16 = null in #t16 == null ?{self::A} #t16 as{TypeError} self::A : #t16{self::A};
+             ^" in let Null #t19 = null in #t19 == null ?{self::A} #t19 as{TypeError} self::A : #t19{self::A};
     }
     else {
       return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:81:18: Error: A value of type 'Future<Null>' can't be returned from an async function with return type 'FutureOr<A>'.

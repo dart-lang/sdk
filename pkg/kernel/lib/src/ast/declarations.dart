@@ -69,12 +69,11 @@ class Class extends NamedNode implements TypeDeclaration {
   static const int FlagEliminatedMixin = 1 << 3;
   static const int FlagMixinDeclaration = 1 << 4;
   static const int FlagHasConstConstructor = 1 << 5;
-  static const int FlagMacro = 1 << 6;
-  static const int FlagSealed = 1 << 7;
-  static const int FlagMixinClass = 1 << 8;
-  static const int FlagBase = 1 << 9;
-  static const int FlagInterface = 1 << 10;
-  static const int FlagFinal = 1 << 11;
+  static const int FlagSealed = 1 << 6;
+  static const int FlagMixinClass = 1 << 7;
+  static const int FlagBase = 1 << 8;
+  static const int FlagInterface = 1 << 9;
+  static const int FlagFinal = 1 << 10;
 
   int flags = 0;
 
@@ -89,13 +88,6 @@ class Class extends NamedNode implements TypeDeclaration {
 
   void set isEnum(bool value) {
     flags = value ? (flags | FlagEnum) : (flags & ~FlagEnum);
-  }
-
-  /// Whether this class is a macro class.
-  bool get isMacro => flags & FlagMacro != 0;
-
-  void set isMacro(bool value) {
-    flags = value ? (flags | FlagMacro) : (flags & ~FlagMacro);
   }
 
   /// Whether this class is a sealed class.

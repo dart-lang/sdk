@@ -279,6 +279,18 @@ bool _isJSExportedDartFunction<T extends Function>(Object? any) {
 bool _isNullableJSExportedDartFunction<T extends Function>(Object? any) =>
     any == null || _isJSExportedDartFunction<T>(any);
 
+bool _isJSArray(Object? any) {
+  return _isJSAny(any) &&
+      js_helper
+          .JS<WasmI32>(
+            '(o) => Array.isArray(o) || o instanceof Array',
+            unsafeCast<JSAny>(any).toExternRef,
+          )
+          .toBool();
+}
+
+bool _isNullableJSArray(Object? any) => any == null || _isJSArray(any);
+
 // `TypedArray` doesn't exist as a property in JS, but rather as a superclass of
 // all typed arrays. In order to do the most sensible thing here, we can use the
 // prototype of some typed array type, and check that the receiver is an

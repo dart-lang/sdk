@@ -6,6 +6,8 @@
 //
 // Run 'dart pkg/front_end/tool/generate_ast_equivalence.dart' to update.
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
@@ -5334,7 +5336,11 @@ class EquivalenceStrategy {
     if (!checkPatternSwitchCase_hasLabel(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkPatternSwitchCase_jointVariables(visitor, node, other)) {
+    if (!checkPatternSwitchCase_jointVariableDeclarations(
+      visitor,
+      node,
+      other,
+    )) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPatternSwitchCase_jointVariableFirstUseOffsets(
@@ -12540,16 +12546,16 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.hasLabel, other.hasLabel, 'hasLabel');
   }
 
-  bool checkPatternSwitchCase_jointVariables(
+  bool checkPatternSwitchCase_jointVariableDeclarations(
     EquivalenceVisitor visitor,
     PatternSwitchCase node,
     PatternSwitchCase other,
   ) {
     return visitor.checkLists(
-      node.jointVariables,
-      other.jointVariables,
+      node.jointVariableDeclarations,
+      other.jointVariableDeclarations,
       visitor.checkNodes,
-      'jointVariables',
+      'jointVariableDeclarations',
     );
   }
 

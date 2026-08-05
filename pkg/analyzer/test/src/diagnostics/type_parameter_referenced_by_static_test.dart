@@ -61,6 +61,19 @@ class A<T> {
 ''');
   }
 
+  test_class_method_constructorInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  static foo() {
+    new T();
+//      ^
+// [diag.newWithNonType] The name 'T' isn't a class.
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
+  }
+}
+''');
+  }
+
   test_class_method_parameter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A<T> {

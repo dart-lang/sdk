@@ -125,12 +125,8 @@ class _ClassAndSuperClasses {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   _ClassAndSuperClasses? _classAndSuperClasses;
-
-  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

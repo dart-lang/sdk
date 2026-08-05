@@ -31,7 +31,7 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-class ResolutionVisitor extends RecursiveAstVisitor<void> {
+class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   final LibraryElementImpl _libraryElement;
   final TypeProviderImpl _typeProvider;
   final LibraryFragmentImpl _libraryFragment;
@@ -151,14 +151,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitAnonymousMethodInvocation(
     covariant AnonymousMethodInvocationImpl node,
   ) {
-    node.target?.accept(this);
+    node.target2?.accept2(this);
 
     _scopeContext.withLocalScope((scope) {
       if (node.parameters case var parameters?) {
         scope.addFormalParameterList(parameters);
-        parameters.accept(this);
+        parameters.accept2(this);
       }
-      node.body.accept(this);
+      node.body.accept2(this);
     });
   }
 
@@ -207,7 +207,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _scopeContext.withLocalScope((scope) {
       node.nameScope = scope;
       _defineLocalElements(scope, node.statements);
-      node.statements.accept(this);
+      node.statements.accept2(this);
     });
   }
 
@@ -231,7 +231,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitCatchClause(covariant CatchClauseImpl node) {
     var exceptionTypeNode = node.exceptionType;
-    exceptionTypeNode?.accept(this);
+    exceptionTypeNode?.accept2(this);
 
     _scopeContext.withLocalScope((scope) {
       if (node.exceptionParameter case var exceptionNode?) {
@@ -255,7 +255,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.type = _typeProvider.stackTraceType;
       }
 
-      node.body.accept(this);
+      node.body.accept2(this);
     });
   }
 
@@ -309,8 +309,52 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitConstructorName(covariant ConstructorNameImpl node) {
-    node.visitChildrenWithHooks(this, visitName: (_) {});
+  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
+    var newNode = _astRewriter.constructorInvocation(
+      nameScope,
+      node,
+      libraryElement: _libraryElement,
+      enclosingInstanceElement: _scopeContext.enclosingInstanceElement,
+    );
+    if (newNode != node) {
+      if (node.constructorReference.typeReference.typeArguments != null &&
+          newNode is MethodInvocation &&
+          newNode.target2 is FunctionReference &&
+          !_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
+        // A function reference with explicit type arguments (an expression of
+        // the form `a<...>.m(...)` or `p.a<...>.m(...)` where `a` does not
+        // refer to a class name, nor a type alias), is illegal without the
+        // constructor tearoff feature.
+        //
+        // This is a case where the parser does not report an error, because the
+        // parser thinks this could be an ConstructorInvocation.
+        _diagnosticReporter.report(diag.sdkVersionConstructorTearoffs.at(node));
+      }
+      return newNode.accept2(this);
+    }
+
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorReference2(covariant ConstructorReference2Impl node) {
+    node.typeReference.accept2(this);
+  }
+
+  @override
+  void visitConstructorTearOff(covariant ConstructorTearOffImpl node) {
+    node.typeReference.accept2(this);
+  }
+
+  @override
+  void visitConstructorTypeReference(
+    covariant ConstructorTypeReferenceImpl node,
+  ) {
+    node.typeArguments?.accept2(this);
+    _namedTypeResolver.resolveConstructorTypeReference(
+      node,
+      dataForTesting: dataForTesting,
+    );
   }
 
   @override
@@ -340,7 +384,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    node.type?.accept(this);
+    node.type?.accept2(this);
 
     if (node.type != null) {
       element.type = node.type!.typeOrThrow;
@@ -362,7 +406,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitDoStatement(covariant DoStatementImpl node) {
     _withUnlabeledBreakContinueContextNested(node, () {
       _visitStatementInScope(node.body);
-      node.condition.accept(this);
+      node.condition2.accept2(this);
     });
   }
 
@@ -422,7 +466,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExtendsClause(covariant ExtendsClauseImpl node) {
     _resolveType(
-      declaration: node.parent as Declaration?,
+      declaration: node.parent2 as Declaration?,
       clause: node,
       namedType: node.superclass,
     );
@@ -476,7 +520,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       node.nameScope = scope;
       _visitForLoopParts(scope, node.forLoopParts);
       _scopeContext.withLocalScope((_) {
-        node.body.accept(this);
+        node.body2.accept2(this);
       });
     });
   }
@@ -568,43 +612,43 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitIfElement(covariant IfElementImpl node) {
     if (node.caseClause case var caseClause?) {
-      node.expression.accept(this);
+      node.expression2.accept2(this);
       _resolveGuardedPattern(
         caseClause.guardedPattern,
         then: () {
           caseClause.nameScope = nameScope;
-          node.ifTrue.accept(this);
+          node.ifTrue2.accept2(this);
         },
       );
-      node.ifFalse?.accept(this);
+      node.ifFalse2?.accept2(this);
     } else {
-      node.visitChildren(this);
+      node.visitChildren2(this);
     }
   }
 
   @override
   void visitIfStatement(covariant IfStatementImpl node) {
     if (node.caseClause case var caseClause?) {
-      node.expression.accept(this);
+      node.expression2.accept2(this);
       _resolveGuardedPattern(
         caseClause.guardedPattern,
         then: () {
           caseClause.nameScope = nameScope;
-          _visitStatementInScope(node.ifTrue);
+          _visitStatementInScope(node.ifTrue2);
         },
       );
-      _visitStatementInScope(node.ifFalse);
+      _visitStatementInScope(node.ifFalse2);
     } else {
-      node.expression.accept(this);
-      _visitStatementInScope(node.ifTrue);
-      _visitStatementInScope(node.ifFalse);
+      node.expression2.accept2(this);
+      _visitStatementInScope(node.ifTrue2);
+      _visitStatementInScope(node.ifFalse2);
     }
   }
 
   @override
   void visitImplementsClause(covariant ImplementsClauseImpl node) {
     _resolveImplementsClause(
-      declaration: node.parent as Declaration,
+      declaration: node.parent2 as Declaration,
       clause: node,
     );
   }
@@ -619,42 +663,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(
-    covariant InstanceCreationExpressionImpl node,
-  ) {
-    var newNode = _astRewriter.instanceCreationExpression(
-      nameScope,
-      node,
-      libraryElement: _libraryElement,
-      enclosingInstanceElement: _scopeContext.enclosingInstanceElement,
-    );
-    if (newNode != node) {
-      if (node.constructorName.type.typeArguments != null &&
-          newNode is MethodInvocation &&
-          newNode.target is FunctionReference &&
-          !_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-        // A function reference with explicit type arguments (an expression of
-        // the form `a<...>.m(...)` or `p.a<...>.m(...)` where `a` does not
-        // refer to a class name, nor a type alias), is illegal without the
-        // constructor tearoff feature.
-        //
-        // This is a case where the parser does not report an error, because the
-        // parser thinks this could be an InstanceCreationExpression.
-        _diagnosticReporter.report(diag.sdkVersionConstructorTearoffs.at(node));
-      }
-      return newNode.accept(this);
-    }
-
-    super.visitInstanceCreationExpression(node);
-  }
-
-  @override
   void visitLabeledStatement(LabeledStatement node) {
     var unlabeled = node.unlabeled;
     var labelScope = _nestLabelScopes(_labelScope, node.labels, unlabeled);
 
     _withLabelScope(labelScope, () {
-      unlabeled.accept(this);
+      unlabeled.accept2(this);
     });
   }
 
@@ -677,14 +691,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(covariant MethodInvocationImpl node) {
     var newNode = _astRewriter.methodInvocation(nameScope, node);
     if (newNode != node) {
-      return newNode.accept(this);
+      return newNode.accept2(this);
     }
 
     node.visitChildrenWithHooks(
       this,
       visitMethodName: (methodName) {
-        if (node.realTarget == null) {
-          methodName.accept(this);
+        if (node.realTarget2 == null) {
+          methodName.accept2(this);
         }
       },
     );
@@ -698,25 +712,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMixinOnClause(covariant MixinOnClauseImpl node) {
     _resolveMixinOnClause(
-      declaration: node.parent as Declaration,
+      declaration: node.parent2 as Declaration,
       clause: node,
     );
   }
 
   @override
   void visitNamedArgument(covariant NamedArgumentImpl node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    node.typeArguments?.accept(this);
+    node.typeArguments?.accept2(this);
 
     _namedTypeResolver.resolve(node, dataForTesting: dataForTesting);
-
-    if (_namedTypeResolver.rewriteResult != null) {
-      _namedTypeResolver.rewriteResult!.accept(this);
-    }
   }
 
   @override
@@ -739,8 +749,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _scopeContext.withLocalScope((scope) {
       var variables = _computeDeclaredPatternVariables(node.pattern);
       scope.addAll(variables);
-      node.pattern.accept(this);
-      node.expression.accept(this);
+      node.pattern.accept2(this);
+      node.expression2.accept2(this);
     });
   }
 
@@ -748,14 +758,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitPatternVariableDeclarationStatement(
     covariant PatternVariableDeclarationStatementImpl node,
   ) {
-    node.declaration.accept(this);
+    node.declaration.accept2(this);
   }
 
   @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var newNode = _astRewriter.prefixedIdentifier(nameScope, node);
     if (newNode != node) {
-      return newNode.accept(this);
+      return newNode.accept2(this);
     }
 
     node.visitChildrenWithHooks(this, visitIdentifier: (_) {});
@@ -770,7 +780,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitPropertyAccess(covariant PropertyAccessImpl node) {
     var newNode = _astRewriter.propertyAccess(nameScope, node);
     if (newNode != node) {
-      return newNode.accept(this);
+      return newNode.accept2(this);
     }
 
     node.visitChildrenWithHooks(this, visitPropertyName: (_) {});
@@ -778,15 +788,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
     _recordTypeResolver.resolve(node);
-  }
-
-  @override
-  void visitRedirectingConstructorInvocation(
-    covariant RedirectingConstructorInvocationImpl node,
-  ) {
-    node.visitChildrenWithHooks(this, visitConstructorName: (_) {});
   }
 
   @override
@@ -797,7 +800,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (node.functionTypedSuffix != null) {
       _scopeContext.visitFormalParameter(node, visitor: this);
     } else {
-      node.visitChildren(this);
+      node.visitChildren2(this);
     }
 
     var explicitFragmentType = _setExplicitFormalParameterType(node);
@@ -829,7 +832,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     var newNode = _astRewriter.simpleIdentifier(nameScope, node);
     if (newNode != node) {
-      return newNode.accept(this);
+      return newNode.accept2(this);
     }
 
     var scopeLookupResult = nameScope.lookup(node.name);
@@ -857,13 +860,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSuperConstructorInvocation(
-    covariant SuperConstructorInvocationImpl node,
-  ) {
-    node.visitChildrenWithHooks(this, visitConstructorName: (_) {});
-  }
-
-  @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     _scopeContext.visitFormalParameter(node, visitor: this);
     _setExplicitFormalParameterType(node);
@@ -881,14 +877,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchExpression(covariant SwitchExpressionImpl node) {
-    node.expression.accept(this);
+    node.expression2.accept2(this);
 
     for (var case_ in node.cases) {
       _resolveGuardedPattern(
         case_.guardedPattern,
         then: () {
           case_.nameScope = nameScope;
-          case_.expression.accept(this);
+          case_.expression2.accept2(this);
         },
       );
     }
@@ -913,13 +909,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _withUnlabeledBreakContinueContextNested(node, () {
       _withLabelScope(labelScope, () {
-        node.expression.accept(this);
+        node.expression2.accept2(this);
 
         for (var group in node.memberGroups) {
           _patternVariables.switchStatementSharedCaseScopeStart(group);
           for (var member in group.members) {
             if (member is SwitchCaseImpl) {
-              member.expression.accept(this);
+              member.expression2.accept2(this);
             } else if (member is SwitchDefaultImpl) {
               _patternVariables.switchStatementSharedCaseScopeEmpty(group);
             } else if (member is SwitchPatternCaseImpl) {
@@ -941,7 +937,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
             group.members.lastOrNull?.nameScope = scope;
             _defineLocalElements(scope, group.statements);
             scope.addAll(group.variables.values);
-            group.statements.accept(this);
+            group.statements.accept2(this);
           });
         }
       });
@@ -952,11 +948,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var fragment = node.declaredFragment!;
 
-    node.metadata.accept(this);
+    node.metadata.accept2(this);
 
     var boundNode = node.bound;
     if (boundNode != null) {
-      boundNode.accept(this);
+      boundNode.accept2(this);
       if (fragment.previousFragment == null) {
         fragment.element.bound = boundNode.type;
       }
@@ -968,7 +964,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = node.declaredFragment!.element;
 
     if (element is LocalVariableElementImpl) {
-      var varList = node.parent as VariableDeclarationListImpl;
+      var varList = node.parent2 as VariableDeclarationListImpl;
       if (varList.type case var typeNode?) {
         element.type = typeNode.typeOrThrow;
       } else {
@@ -977,7 +973,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    node.initializer?.accept(this);
+    node.initializer2?.accept2(this);
   }
 
   @override
@@ -990,14 +986,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitWhileStatement(covariant WhileStatementImpl node) {
     _withUnlabeledBreakContinueContextNested(node, () {
-      node.condition.accept(this);
+      node.condition2.accept2(this);
       _visitStatementInScope(node.body);
     });
   }
 
   @override
   void visitWithClause(covariant WithClauseImpl node) {
-    _resolveWithClause(declaration: node.parent as Declaration?, clause: node);
+    _resolveWithClause(declaration: node.parent2 as Declaration?, clause: node);
   }
 
   List<BindPatternVariableElementImpl> _computeDeclaredPatternVariables(
@@ -1014,7 +1010,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     Object? sharedCaseScopeKey,
   }) {
     _patternVariables.casePatternStart();
-    pattern.accept(_PatternVariableBinderVisitor(_patternVariables));
+    pattern.accept2(_PatternVariableBinderVisitor(_patternVariables));
     return _patternVariables.casePatternFinish(
       sharedCaseScopeKey: sharedCaseScopeKey,
     );
@@ -1121,13 +1117,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _scopeContext.withLocalScope((scope) {
       scope.addAll(variables.values);
       guardedPattern.variables = variables;
-      guardedPattern.pattern.accept(this);
+      guardedPattern.pattern.accept2(this);
 
       for (var variable in variables.values) {
         variable.isVisitingWhenClause = true;
       }
       try {
-        guardedPattern.whenClause?.accept(this);
+        guardedPattern.whenClause?.accept2(this);
       } finally {
         for (var variable in variables.values) {
           variable.isVisitingWhenClause = false;
@@ -1290,7 +1286,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
             typeParameter.declaredFragment!.element,
         ],
         formalParameters: [
-          for (var parameter in functionTypedSuffix.formalParameters.parameters)
+          for (var parameter
+              in functionTypedSuffix.formalParameters.allFormalParameters)
             parameter.declaredFragment!.element,
         ],
         returnType: node.type?.type ?? _typeProvider.dynamicType,
@@ -1361,34 +1358,34 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _visitForLoopParts(LocalScope scope, ForLoopPartsImpl node) {
     switch (node) {
       case ForEachPartsWithDeclarationImpl():
-        node.iterable.accept(this);
+        node.iterable2.accept2(this);
         var element = node.loopVariable.declaredFragment!.element;
         scope.add(element);
-        node.loopVariable.accept(this);
+        node.loopVariable.accept2(this);
       case ForEachPartsWithIdentifierImpl():
-        node.iterable.accept(this);
-        node.identifier.accept(this);
+        node.iterable2.accept2(this);
+        node.identifier.accept2(this);
       case ForEachPartsWithPatternImpl():
-        node.iterable.accept(this);
+        node.iterable2.accept2(this);
         var variables = _computeDeclaredPatternVariables(node.pattern);
         node.variables = variables;
         scope.addAll(variables);
-        node.pattern.accept(this);
-        node.metadata.accept(this);
+        node.pattern.accept2(this);
+        node.metadata.accept2(this);
       case ForPartsWithDeclarationsImpl():
         scope.addAll(node.variables.declaredElements);
-        node.variables.accept(this);
-        node.condition?.accept(this);
-        node.updaters.accept(this);
+        node.variables.accept2(this);
+        node.condition2?.accept2(this);
+        node.updaters2.accept2(this);
       case ForPartsWithExpressionImpl():
-        node.initialization?.accept(this);
-        node.condition?.accept(this);
-        node.updaters.accept(this);
+        node.initialization2?.accept2(this);
+        node.condition2?.accept2(this);
+        node.updaters2.accept2(this);
       case ForPartsWithPatternImpl():
         _definePatternVariableDeclarationElements(scope, node.variables);
-        node.variables.accept(this);
-        node.condition?.accept(this);
-        node.updaters.accept(this);
+        node.variables.accept2(this);
+        node.condition2?.accept2(this);
+        node.updaters2.accept2(this);
     }
   }
 
@@ -1405,7 +1402,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       } else {
         _scopeContext.withLocalScope((scope) {
           _defineLocalElements(scope, [statement]);
-          statement.accept(this);
+          statement.accept2(this);
         });
       }
     }
@@ -1480,7 +1477,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _PatternVariableBinderVisitor extends ThrowingAstVisitor<void> {
+class _PatternVariableBinderVisitor extends ThrowingAstVisitor2<void> {
   final VariableBinder<DartPatternImpl, PatternVariableElementImpl> _binder;
 
   _PatternVariableBinderVisitor(this._binder);
@@ -1490,7 +1487,7 @@ class _PatternVariableBinderVisitor extends ThrowingAstVisitor<void> {
 
   @override
   void visitCastPattern(CastPattern node) {
-    node.pattern.accept(this);
+    node.pattern.accept2(this);
   }
 
   @override
@@ -1506,62 +1503,62 @@ class _PatternVariableBinderVisitor extends ThrowingAstVisitor<void> {
 
   @override
   void visitListPattern(ListPattern node) {
-    node.elements.accept(this);
+    node.elements.accept2(this);
   }
 
   @override
   void visitLogicalAndPattern(LogicalAndPattern node) {
-    node.leftOperand.accept(this);
-    node.rightOperand.accept(this);
+    node.leftOperand.accept2(this);
+    node.rightOperand.accept2(this);
   }
 
   @override
   void visitLogicalOrPattern(covariant LogicalOrPatternImpl node) {
     _binder.logicalOrPatternStart();
-    node.leftOperand.accept(this);
+    node.leftOperand.accept2(this);
     _binder.logicalOrPatternFinishLeft();
-    node.rightOperand.accept(this);
+    node.rightOperand.accept2(this);
     _binder.logicalOrPatternFinish(node);
   }
 
   @override
   void visitMapPattern(MapPattern node) {
-    node.elements.accept(this);
+    node.elements.accept2(this);
   }
 
   @override
   void visitMapPatternEntry(MapPatternEntry node) {
-    node.value.accept(this);
+    node.value.accept2(this);
   }
 
   @override
   void visitNullAssertPattern(NullAssertPattern node) {
-    node.pattern.accept(this);
+    node.pattern.accept2(this);
   }
 
   @override
   void visitNullCheckPattern(NullCheckPattern node) {
-    node.pattern.accept(this);
+    node.pattern.accept2(this);
   }
 
   @override
   void visitObjectPattern(ObjectPattern node) {
-    node.fields.accept(this);
+    node.fields.accept2(this);
   }
 
   @override
   void visitParenthesizedPattern(ParenthesizedPattern node) {
-    node.pattern.accept(this);
+    node.pattern.accept2(this);
   }
 
   @override
   void visitPatternField(PatternField node) {
-    node.pattern.accept(this);
+    node.pattern.accept2(this);
   }
 
   @override
   void visitRecordPattern(RecordPattern node) {
-    node.fields.accept(this);
+    node.fields.accept2(this);
   }
 
   @override
@@ -1569,7 +1566,7 @@ class _PatternVariableBinderVisitor extends ThrowingAstVisitor<void> {
 
   @override
   void visitRestPatternElement(RestPatternElement node) {
-    node.pattern?.accept(this);
+    node.pattern?.accept2(this);
   }
 
   @override

@@ -166,10 +166,9 @@ f() {
 ''');
   }
 
-  test_localVariable_wildcardFunction_preWildcards() async {
+  test_localVariable_wildcardFunction_beforeWildcardVariables() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 f() {
   _() {}
@@ -181,7 +180,7 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  element: _@52
+  element: _@24
   staticType: Null Function()
 ''');
   }

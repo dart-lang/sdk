@@ -268,7 +268,23 @@ import 'package:test/main.dart' as custom_prefix;
     expect(field.description, 'Import Prefix');
     expect(field.defaultValue, 'main');
     expect(field.error, isNull);
-    expect(field.type, isA<FormFieldTypeString>());
+    expect(
+      field.type,
+      isA<FormFieldTypeString>().having(
+        (type) => type.validators,
+        'validators',
+        allOf(
+          isNotEmpty,
+          everyElement(
+            isA<RegexValidator>().having(
+              (e) => e.message,
+              'message',
+              startsWith('Import prefix'),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _assertNoRefactoring({required String originalSource}) async {

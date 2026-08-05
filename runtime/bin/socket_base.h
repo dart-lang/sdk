@@ -11,8 +11,15 @@
 #include "bin/socket_base_fuchsia.h"
 #elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 #include "bin/socket_base_linux.h"
+#ifdef __BIONIC__
+// The Android standard library allows leading zeros in IPv4 adresses.
+// The GLIBC, uClibc[-NG] and Musl LibC libraries should not do so.
+#define INET_PTON_FLAWED
+#endif
 #elif defined(DART_HOST_OS_MACOS)
 #include "bin/socket_base_macos.h"
+// MacOS inet_pton allows leading zeros in IPv4 addresses.
+#define INET_PTON_FLAWED
 #elif defined(DART_HOST_OS_WINDOWS)
 #include "bin/socket_base_win.h"
 #else
@@ -328,6 +335,59 @@ class SocketBase : public AllStatic {
                             const void* buffer,
                             intptr_t num_bytes,
                             SocketOpKind sync);
+#endif
+
+#ifdef INET_PTON_FLAWED
+  // Checks that an IPv4 address accepted by inet_pton does
+  // not have leading zeros.
+  //
+  // Rejects if the text contains "not-digit, zero-digit, digit"
+  // sequence.
+  static bool IsIPv4WithoutLeadingZeros(const char* host) {
+    // Unlike Linux (using GLIBC), Fuchsia and Windows,
+    // the MacOS and Android `inet_pton` accepts `0177.0.0.1` as
+    // valid, with `0177` being parsed as decimal 177.
+    // The others OSs reject leading zeros.
+    //
+    // The Posix requirement for `inet_pton` is to only accept
+    // `ddd.ddd.ddd.ddd` format, where each part is 1..3 decimal
+    // digits with a value in the range 0..255.
+    // This allows leading zeros for numbers up to 99, but
+    // strict parsers in fx Linux and Windows reject leading zeros.
+    // MacOS (derived from BSD) and Android (Linux with Binoic
+    // standard library) accepts leading zeros _and_ more than
+    // three digits.
+    //
+    // For safety, we reject any leading zeros, so any IPv4 address
+    // has precisely one valid representation as a "dotted quad".
+    //
+    // (Does not check that it has four parts or only
+    // `.`-separated digits, that's assumed to have been checked.)
+    const int kNoDigitState = -1;
+    const int kLeadingZeroState = 0;
+    // Is kNoDigitState at start or after `.`,
+    // and is (sum of digits) + (count of digits) - 1 otherwise,
+    // which is zero (kLeadingZeroState) only after a leading `0`.
+    int state = kNoDigitState;
+    char c;
+    while ((c = *host) != 0) {
+      host++;
+      if (c >= '0' && c <= '9') {
+        // Digit following zero is only failure condition.
+        if (state != kLeadingZeroState) {
+          state =
+              state + (c - '0') + 1;  // Becomes 0 only if first digit is `0`.
+          continue;
+        }
+      } else {
+        // char is '.'.
+        state = kNoDigitState;
+        continue;
+      }
+      return false;
+    }
+    return true;
+  }
 #endif
 
   DISALLOW_ALLOCATION();

@@ -330,7 +330,9 @@ class Assembler : public AssemblerBase {
 
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \
-  void name(Register dst, Register src) { Emit##width(dst, src, __VA_ARGS__); }
+  void name(Register dst, Register src) {                                      \
+    Emit##width(dst, src, __VA_ARGS__);                                        \
+  }
 #define RA(width, name, ...)                                                   \
   void name(Register dst, const Address& src) {                                \
     Emit##width(dst, src, __VA_ARGS__);                                        \
@@ -401,8 +403,11 @@ class Assembler : public AssemblerBase {
 #undef AR
 
 #define SIMPLE(name, ...)                                                      \
-  void name() { EmitSimple(__VA_ARGS__); }
+  void name() {                                                                \
+    EmitSimple(__VA_ARGS__);                                                   \
+  }
   SIMPLE(cpuid, 0x0F, 0xA2)
+  SIMPLE(notrack, 0x3E)
   SIMPLE(fcos, 0xD9, 0xFF)
   SIMPLE(fincstp, 0xD9, 0xF7)
   SIMPLE(fsin, 0xD9, 0xFE)
@@ -476,7 +481,9 @@ class Assembler : public AssemblerBase {
 #undef DECLARE_CMPPS
 
 #define DECLARE_SIMPLE(name, opcode)                                           \
-  void name() { EmitSimple(opcode); }
+  void name() {                                                                \
+    EmitSimple(opcode);                                                        \
+  }
   X86_ZERO_OPERAND_1_BYTE_INSTRUCTIONS(DECLARE_SIMPLE)
 #undef DECLARE_SIMPLE
 
@@ -636,22 +643,48 @@ class Assembler : public AssemblerBase {
   }
 
 #define DECLARE_ALU(op, c)                                                     \
-  void op##w(Register dst, Register src) { EmitW(dst, src, c * 8 + 3); }       \
-  void op##l(Register dst, Register src) { EmitL(dst, src, c * 8 + 3); }       \
-  void op##q(Register dst, Register src) { EmitQ(dst, src, c * 8 + 3); }       \
-  void op##w(Register dst, const Address& src) { EmitW(dst, src, c * 8 + 3); } \
-  void op##l(Register dst, const Address& src) { EmitL(dst, src, c * 8 + 3); } \
-  void op##q(Register dst, const Address& src) { EmitQ(dst, src, c * 8 + 3); } \
-  void op##w(const Address& dst, Register src) { EmitW(src, dst, c * 8 + 1); } \
-  void op##l(const Address& dst, Register src) { EmitL(src, dst, c * 8 + 1); } \
-  void op##q(const Address& dst, Register src) { EmitQ(src, dst, c * 8 + 1); } \
-  void op##l(Register dst, const Immediate& imm) { AluL(c, dst, imm); }        \
+  void op##w(Register dst, Register src) {                                     \
+    EmitW(dst, src, c * 8 + 3);                                                \
+  }                                                                            \
+  void op##l(Register dst, Register src) {                                     \
+    EmitL(dst, src, c * 8 + 3);                                                \
+  }                                                                            \
+  void op##q(Register dst, Register src) {                                     \
+    EmitQ(dst, src, c * 8 + 3);                                                \
+  }                                                                            \
+  void op##w(Register dst, const Address& src) {                               \
+    EmitW(dst, src, c * 8 + 3);                                                \
+  }                                                                            \
+  void op##l(Register dst, const Address& src) {                               \
+    EmitL(dst, src, c * 8 + 3);                                                \
+  }                                                                            \
+  void op##q(Register dst, const Address& src) {                               \
+    EmitQ(dst, src, c * 8 + 3);                                                \
+  }                                                                            \
+  void op##w(const Address& dst, Register src) {                               \
+    EmitW(src, dst, c * 8 + 1);                                                \
+  }                                                                            \
+  void op##l(const Address& dst, Register src) {                               \
+    EmitL(src, dst, c * 8 + 1);                                                \
+  }                                                                            \
+  void op##q(const Address& dst, Register src) {                               \
+    EmitQ(src, dst, c * 8 + 1);                                                \
+  }                                                                            \
+  void op##l(Register dst, const Immediate& imm) {                             \
+    AluL(c, dst, imm);                                                         \
+  }                                                                            \
   void op##q(Register dst, const Immediate& imm) {                             \
     AluQ(c, c * 8 + 3, dst, imm);                                              \
   }                                                                            \
-  void op##b(const Address& dst, const Immediate& imm) { AluB(c, dst, imm); }  \
-  void op##w(const Address& dst, const Immediate& imm) { AluW(c, dst, imm); }  \
-  void op##l(const Address& dst, const Immediate& imm) { AluL(c, dst, imm); }  \
+  void op##b(const Address& dst, const Immediate& imm) {                       \
+    AluB(c, dst, imm);                                                         \
+  }                                                                            \
+  void op##w(const Address& dst, const Immediate& imm) {                       \
+    AluW(c, dst, imm);                                                         \
+  }                                                                            \
+  void op##l(const Address& dst, const Immediate& imm) {                       \
+    AluL(c, dst, imm);                                                         \
+  }                                                                            \
   void op##q(const Address& dst, const Immediate& imm) {                       \
     AluQ(c, c * 8 + 3, dst, imm);                                              \
   }
@@ -664,10 +697,18 @@ class Assembler : public AssemblerBase {
   void cqo();
 
 #define REGULAR_UNARY(name, opcode, modrm)                                     \
-  void name##q(Register reg) { EmitUnaryQ(reg, opcode, modrm); }               \
-  void name##l(Register reg) { EmitUnaryL(reg, opcode, modrm); }               \
-  void name##q(const Address& address) { EmitUnaryQ(address, opcode, modrm); } \
-  void name##l(const Address& address) { EmitUnaryL(address, opcode, modrm); }
+  void name##q(Register reg) {                                                 \
+    EmitUnaryQ(reg, opcode, modrm);                                            \
+  }                                                                            \
+  void name##l(Register reg) {                                                 \
+    EmitUnaryL(reg, opcode, modrm);                                            \
+  }                                                                            \
+  void name##q(const Address& address) {                                       \
+    EmitUnaryQ(address, opcode, modrm);                                        \
+  }                                                                            \
+  void name##l(const Address& address) {                                       \
+    EmitUnaryL(address, opcode, modrm);                                        \
+  }
   REGULAR_UNARY(not, 0xF7, 2)
   REGULAR_UNARY(neg, 0xF7, 3)
   REGULAR_UNARY(mul, 0xF7, 4)
@@ -719,6 +760,8 @@ class Assembler : public AssemblerBase {
 
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
+
+  void endbr64();
 
   void j(Condition condition, Label* label, JumpDistance distance = kFarJump);
   void jmp(Register reg) { EmitUnaryL(reg, 0xFF, 4); }

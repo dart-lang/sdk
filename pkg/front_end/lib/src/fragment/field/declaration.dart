@@ -133,7 +133,7 @@ abstract class FieldDeclaration {
   /// This is only used for instance fields.
   List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   });
 
@@ -326,7 +326,7 @@ class RegularFieldDeclaration
   @override
   List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     return _encoding.createInitializer(
@@ -856,7 +856,7 @@ mixin FieldDeclarationMixin
         var (
           DartType inferredType,
           Expression? initializer,
-          ScopeProviderInfo? _,
+          ScopeProviderInfo? scopeProviderInfo,
         ) = implicitFieldType.computeType(
           hierarchy,
         );
@@ -885,7 +885,7 @@ mixin FieldDeclarationMixin
               setCovariantByClassInternal();
             }
           }
-          cacheFieldInitializer(initializer);
+          cacheFieldInitializer(initializer, scopeProviderInfo);
         }
         return fieldType;
       },
@@ -905,7 +905,10 @@ mixin FieldDeclarationMixin
   /// The field initializer is included in the outline if the field is constant,
   /// or an instance field in a class with a const constructor. Otherwise, the
   /// field added to the body during full compilation.
-  void cacheFieldInitializer(Expression? initializer);
+  void cacheFieldInitializer(
+    Expression? initializer,
+    ScopeProviderInfo? scopeProviderInfo,
+  );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -942,7 +945,7 @@ abstract class FieldFragmentDeclaration {
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    Expression? initializer,
+    InternalExpression? initializer,
     required InternalThisVariable? internalThisVariable,
   });
 
@@ -970,6 +973,7 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
 
   bool _hasInitializerBeenComputed = false;
   Expression? _fieldInitializerCache;
+  ScopeProviderInfo? _scopeProviderInfoCache;
 
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
@@ -984,8 +988,12 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
   /// The field initializer is included in the outline if the field is constant,
   /// or an instance field in a class with a const constructor. Otherwise, the
   /// field added to the body during full compilation.
-  void cacheFieldInitializer(Expression? initializer) {
+  void cacheFieldInitializer(
+    Expression? initializer,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     _fieldInitializerCache = initializer;
+    _scopeProviderInfoCache = scopeProviderInfo;
     _hasInitializerBeenComputed = true;
   }
 
@@ -998,12 +1006,16 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    Expression? initializer,
+    InternalExpression? initializer,
     required InternalThisVariable? internalThisVariable,
   }) {
     if (_fieldInitializerCache != null) {
       if (!hasBodyBeenBuilt) {
-        buildBody(coreTypes, _fieldInitializerCache, scopeProviderInfo: null);
+        buildBody(
+          coreTypes,
+          _fieldInitializerCache,
+          scopeProviderInfo: _scopeProviderInfoCache,
+        );
       }
     } else if (initializer != null) {
       if (!hasBodyBeenBuilt) {
@@ -1015,12 +1027,12 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
               inferenceDefaultType: inferenceDefaultType,
               internalThisVariable: internalThisVariable,
             );
-        initializer =
+        Expression inferredInitializer =
             inferredFieldInitializer.expressionInferenceResult.expression;
         _hasInitializerBeenComputed = true;
         buildBody(
           coreTypes,
-          initializer,
+          inferredInitializer,
           scopeProviderInfo: inferredFieldInitializer.scopeProviderInfo,
         );
       }

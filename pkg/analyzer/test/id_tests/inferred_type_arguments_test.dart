@@ -60,10 +60,9 @@ class _InferredTypeArgumentsDataExtractor
   List<DartType>? computeNodeValue(Id id, AstNode node) {
     TypeArgumentList? typeArguments;
     List<DartType> typeArgumentTypes;
-    if (node is InstanceCreationExpression) {
-      typeArguments = node.constructorName.type.typeArguments;
-      typeArgumentTypes =
-          (node.constructorName.type.type as InterfaceType).typeArguments;
+    if (node is ConstructorInvocation) {
+      typeArguments = node.constructorReference.typeReference.typeArguments;
+      typeArgumentTypes = (node.staticType as InterfaceType).typeArguments;
     } else if (node is InvocationExpression) {
       typeArguments = node.typeArguments;
       typeArgumentTypes = node.typeArgumentTypes!;

@@ -40,13 +40,8 @@ class PreferContains extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final PreferContains rule;
-
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final PreferContains rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     // This lint rule is only concerned with these operators.

@@ -15,7 +15,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 /// A visitor that finds code that assumes a later version of the SDK than the
 /// minimum version required by the SDK constraints in `pubspec.yaml`.
-class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
+class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   /// The error reporter to be used to report errors.
   final DiagnosticReporter _errorReporter;
 
@@ -58,7 +58,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitArgumentList(ArgumentList node) {
     // Check (optional) positional arguments.
     // Named arguments are checked in [NamedArgument].
-    for (var argument in node.arguments) {
+    for (var argument in node.arguments2) {
       if (argument is! NamedArgument) {
         var parameter = argument.correspondingParameter;
         _checkSinceSdkVersion(parameter, node, errorEntity: argument);
@@ -76,20 +76,42 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (checkTripleShift) {
       TokenType operatorType = node.operator.type;
       if (operatorType == TokenType.GT_GT_GT) {
         _errorReporter.report(diag.sdkVersionGtGtGtOperator.at(node.operator));
       }
     }
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    _checkSinceSdkVersion(node.element, node);
-    super.visitConstructorName(node);
+  void visitConstructorReference2(ConstructorReference2 node) {
+    var typeReference = node.typeReference;
+    _checkSinceSdkVersion(
+      typeReference.element,
+      typeReference,
+      errorEntity: typeReference.name,
+    );
+    _checkSinceSdkVersion(
+      node.element,
+      node,
+      errorEntity: node.selector?.name2 ?? typeReference.name,
+    );
+    super.visitConstructorReference2(node);
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    var typeReference = node.typeReference;
+    _checkSinceSdkVersion(
+      typeReference.element,
+      typeReference,
+      errorEntity: typeReference.name,
+    );
+    _checkSinceSdkVersion(node.element, node, errorEntity: node.selector.name2);
+    super.visitConstructorTearOff(node);
   }
 
   @override
@@ -177,11 +199,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
             return;
           }
           if (target is AssignmentExpression) {
-            target = target.leftHandSide;
+            target = target.leftHandSide2;
           }
-          if (target is ConstructorName) {
-            errorEntity = target.name?.token ?? target.type.name;
-          } else if (target is ExtensionOverride) {
+          if (target is ExtensionOverride) {
             errorEntity = target.name;
           } else if (target is FunctionExpressionInvocation) {
             errorEntity = target.argumentList;
@@ -226,7 +246,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       if (node is PrefixedIdentifier) {
         targetType = node.prefix.staticType;
       } else if (node is PropertyAccess) {
-        targetType = node.realTarget.staticType;
+        targetType = node.realTarget2.staticType;
       }
       if (targetType != null) {
         var targetElement = targetType.element;

@@ -2371,7 +2371,7 @@ void f(int a) {
 ''');
   }
 
-  test_topLevelVariable_switchCase_language219() async {
+  test_topLevelVariable_switchCase_beforePatterns() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -2379,7 +2379,7 @@ import 'package:meta/meta.dart';
 const int x = 1;
 ''');
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 import 'package:aaa/a.dart';
 void f(int a) {
   switch (a) {
@@ -2410,7 +2410,7 @@ void f() {
 ''');
   }
 
-  test_topLevelVariable_switchStatement_language219() async {
+  test_topLevelVariable_switchStatement_beforePatterns() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -2418,7 +2418,7 @@ import 'package:meta/meta.dart';
 int x = 1;
 ''');
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 import 'package:aaa/a.dart';
 void f() {
   switch (x) {}

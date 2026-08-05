@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -65,9 +66,9 @@ class AbstractContextTest
   /// The line terminator being used for test files and to be expected in edits.
   String get eol => testEol;
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, an empty list if there are no experiments that should be enabled.
-  List<String> get experiments => experimentsForTests;
+  /// Return a list of the experimental features that are to be enabled for
+  /// tests in this class.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
@@ -120,7 +121,7 @@ class AbstractContextTest
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
     List<String> includes = const [],
-    List<String> experiments = const [],
+    List<Feature> experimentalFeatures = const [],
     List<String> legacyPlugins = const [],
     List<String> cannotIgnore = const [],
     List<String> lints = const [],
@@ -133,7 +134,7 @@ class AbstractContextTest
     writeAnalysisOptionsFile(
       analysisOptionsContent(
         includes: includes,
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: legacyPlugins,
         propagateLinterExceptions: propagateLinterExceptions,
         rules: lints,
@@ -194,7 +195,7 @@ class AbstractContextTest
 
     writeTestPackageConfig();
 
-    createAnalysisOptionsFile(experiments: experiments);
+    createAnalysisOptionsFile(experimentalFeatures: experimentalFeatures);
   }
 
   @mustCallSuper

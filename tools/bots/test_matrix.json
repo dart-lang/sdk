@@ -135,6 +135,7 @@
       "pkg/",
       "samples/",
       "tools/",
+      "utils/",
       "buildtools/linux-arm64/clang/bin/",
       "buildtools/linux-x64/clang/bin/",
       "buildtools/mac-arm64/clang/bin/",
@@ -168,30 +169,10 @@
       "tests/search/",
       "tests/standalone/",
       "tests/ffi/",
-      "pkg/_fe_analyzer_shared/",
-      "pkg/build_integration/",
-      "pkg/dart_data_home/",
-      "pkg/dart_internal/",
-      "pkg/dart2native/",
-      "pkg/dart2js_tools/",
-      "pkg/dart_runtime_service/",
-      "pkg/dds/",
-      "pkg/expect/",
-      "pkg/front_end/",
-      "pkg/js/",
-      "pkg/kernel/",
-      "pkg/meta/",
-      "pkg/native_stack_traces/",
-      "pkg/pkg.status",
-      "pkg/smith/",
-      "pkg/status_file/",
-      "pkg/test_runner/",
-      "pkg/vm/",
-      "pkg/vm_service/",
-      "pkg/vm_snapshot_analysis/",
       "runtime/",
       "sdk/",
-      ".dart_tool/package_config.json"
+      ".dart_tool/package_config.json",
+      "pubspec.yaml"
     ],
     "android": [
       ".dart_tool/package_config.json",
@@ -245,7 +226,7 @@
         "use-sdk": true
       }
     },
-    "unittest-asserts-(debug|product|release)-(linux|mac|win)-(arm64|x64)": {
+    "unittest-asserts-(debug|product|release)-(linux|mac|win)-(arm64|arm64e|x64)": {
       "options": {
         "compiler": "dartk",
         "enable-asserts": true,
@@ -273,6 +254,16 @@
         "mode": "release",
         "runtime": "vm",
         "timeout": 240,
+        "use-sdk": true
+      }
+    },
+    "web-dev-integration-(linux|win)": {
+      "options": {
+        "builder-tag": "ddc",
+        "compiler": "dartk",
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 300,
         "use-sdk": true
       }
     },
@@ -369,7 +360,8 @@
     "vm-aot-(linux|fuchsia)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {}
     },
-    "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-mac-(debug|product|release)-arm64e": {},
+    "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c|arm64e)": {
       "options": {
         "gen-snapshot-format": "macho-dylib"
       }
@@ -1178,7 +1170,9 @@
     {
       "builders": [
         "vm-mac-debug-arm64",
-        "vm-mac-release-arm64"
+        "vm-mac-debug-arm64e",
+        "vm-mac-release-arm64",
+        "vm-mac-release-arm64e"
       ],
       "meta": {
         "description": "This configuration is used by the VM JIT builders on mac arm64. Includes VM service testing and building shared libraries for iOS target."
@@ -1254,7 +1248,9 @@
         "vm-aot-linux-debug-x64",
         "vm-aot-linux-release-x64",
         "vm-aot-mac-release-arm64",
+        "vm-aot-mac-release-arm64e",
         "vm-aot-mac-debug-arm64",
+        "vm-aot-mac-debug-arm64e",
         "vm-aot-win-debug-x64",
         "vm-aot-win-release-x64"
       ],
@@ -2066,6 +2062,15 @@
             "-nweb-dev-unittest-asserts-${system}",
             "pkg//dev_compiler/"
           ]
+        },
+        {
+          "name": "dwds integration tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dwds/test/integration/integration_suite_test.dart",
+            "-nweb-dev-integration-${system}"
+          ]
         }
       ]
     },
@@ -2339,6 +2344,22 @@
             "-nddc-canary-linux-chrome",
             "--verbose",
             "--use-sdk"
+          ]
+        },
+        {
+          "name": "ddc sourcemap tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_canary_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc sourcemap stacktrace tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_canary_suite.dart",
+            "-rnone"
           ]
         },
         {
@@ -3134,21 +3155,21 @@
           ]
         },
         {
-          "name": "analyze runtime/tests/concurrency/generate_stress_test.dart",
+          "name": "analyze runtime/tools/generate_stress_test.dart",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
-            "runtime/tests/concurrency/generate_stress_test.dart"
+            "runtime/tools/generate_stress_test.dart"
           ]
         },
         {
-          "name": "analyze runtime/tests/concurrency/run_stress_test_shards.dart",
+          "name": "analyze runtime/tools/run_stress_test_shards.dart",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
-            "runtime/tests/concurrency/run_stress_test_shards.dart"
+            "runtime/tools/run_stress_test_shards.dart"
           ]
         }
       ]
@@ -3160,6 +3181,7 @@
         "pkg-linux-release-arm64",
         "pkg-mac-release",
         "pkg-mac-release-arm64",
+        "pkg-mac-release-arm64e",
         "pkg-win-release",
         "pkg-win-release-arm64"
       ],
@@ -3169,10 +3191,7 @@
       "steps": [
         {
           "name": "validate pkg/ pubspec files",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "tools/package_deps/bin/package_deps.dart"
-          ]
+          "script": "tools/package_deps/bin/package_deps.dart"
         },
         {
           "name": "build dart",
@@ -3278,7 +3297,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|dwds/test/integration|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ],
           "shards": 3,
           "fileset": "vm"
@@ -3462,9 +3481,8 @@
         },
         {
           "name": "dartfuzz - generated programs",
-          "script": "tools/sdks/dart-sdk/bin/dart",
+          "script": "runtime/tools/dartfuzz/dartfuzz_test.dart",
           "arguments": [
-            "runtime/tools/dartfuzz/dartfuzz_test.dart",
             "--isolates",
             "8",
             "--no-show-stats",
@@ -3476,19 +3494,13 @@
         },
         {
           "name": "dartfuzz - dart2js",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart"
-          ],
+          "script": "runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart",
           "shards": 25,
           "fileset": "fuzzer"
         },
         {
           "name": "dartfuzz - dart2wasm",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart"
-          ],
+          "script": "runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart",
           "shards": 25,
           "fileset": "fuzzer"
         }
@@ -3530,16 +3542,12 @@
         },
         {
           "name": "Generate Isolate Stress Test",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "runtime/tests/concurrency/generate_stress_test.dart"
-          ]
+          "script": "runtime/tools/generate_stress_test.dart"
         },
         {
           "name": "Generate Isolate Stress Test - JIT Dill",
-          "script": "tools/sdks/dart-sdk/bin/dart",
+          "script": "pkg/vm/bin/gen_kernel.dart",
           "arguments": [
-            "pkg/vm/bin/gen_kernel.dart",
             "--platform=${build_root}/vm_platform.dill",
             "--no-aot",
             "-Dtest_runner.configuration=vm-linux-release-${arch}",
@@ -3550,9 +3558,8 @@
         },
         {
           "name": "Generate Isolate Stress Test - AOT Dill",
-          "script": "tools/sdks/dart-sdk/bin/dart",
+          "script": "pkg/vm/bin/gen_kernel.dart",
           "arguments": [
-            "pkg/vm/bin/gen_kernel.dart",
             "--platform=${build_root}/vm_platform.dill",
             "--aot",
             "-Dtest_runner.configuration=vm-aot-linux-release-${arch}",
@@ -3566,7 +3573,7 @@
           "script": "tools/run_with_coredumps_enabled.py",
           "arguments": [
             "tools/sdks/dart-sdk/bin/dart",
-            "runtime/tests/concurrency/run_stress_test_shards.dart",
+            "runtime/tools/run_stress_test_shards.dart",
             "--arch=${arch}",
             "--copy-coredumps"
           ],

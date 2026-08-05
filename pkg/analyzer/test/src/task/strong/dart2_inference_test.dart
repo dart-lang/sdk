@@ -38,14 +38,14 @@ class C {
 AssertInitializer
   assertKeyword: assert
   leftParenthesis: (
-  condition: MethodInvocation
+  condition2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 0
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -58,14 +58,14 @@ AssertInitializer
     typeArgumentTypes
       bool
   comma: ,
-  message: MethodInvocation
+  message2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -95,14 +95,14 @@ void f() {
 AssertStatement
   assertKeyword: assert
   leftParenthesis: (
-  condition: MethodInvocation
+  condition2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 0
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -115,14 +115,14 @@ AssertStatement
     typeArgumentTypes
       bool
   comma: ,
-  message: MethodInvocation
+  message2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -349,8 +349,35 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
+LogicalAnd
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: &&
+  rightOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  staticType: bool
 BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
@@ -393,8 +420,35 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
+LogicalOr
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: ||
+  rightOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  staticType: bool
 BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
@@ -442,13 +496,13 @@ void test(C<int> x) {
       break;
   }
 }''');
-    var node = result.findNode.instanceCreation('C():');
+    var node = result.findNode.constructorInvocation('C():');
     assertType(node, 'C<int>');
   }
 
-  test_switchExpression_asContext_forCases_language219() async {
+  test_switchExpression_asContext_forCases_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 class C<T> {
   const C();
 }
@@ -461,7 +515,7 @@ void test(C<int> x) {
       break;
   }
 }''');
-    var node = result.findNode.instanceCreation('const C():');
+    var node = result.findNode.constructorInvocation('const C():');
     assertType(node, 'C<int>');
   }
 
@@ -528,7 +582,7 @@ main() {
       }
     }
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         simpleIdentifier: (node) {
           var comment = node.token.precedingComments;

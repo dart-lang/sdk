@@ -16,6 +16,40 @@ main() {
 
 @reflectiveTest
 class FieldPromotionTest extends PubPackageResolutionTest {
+  test_beforeInferenceUpdate2() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: inference-update-2
+class C {
+  final int? _foo;
+  C(this._foo);
+}
+
+void f(C c) {
+  if ((c)._foo != null) {
+    (c)._foo;
+  }
+}
+''');
+    var node = result.findNode.propertyAccess('._foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    rightParenthesis: )
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: _foo
+    element: <testLibrary>::@class::C::@getter::_foo
+    staticType: int?
+  staticType: int?
+''');
+  }
+
   test_cascaded_invocation() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -30,7 +64,7 @@ void f(C c) {
     var node = result.findNode.functionExpressionInvocation('_field()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
+  function2: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: _field
@@ -60,7 +94,7 @@ void f(C c) {
     var node = result.findNode.methodInvocation('_field.toString');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: PropertyAccess
+  target2: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: _field
@@ -107,7 +141,7 @@ PropertyAccess
     var node = result.findNode.propertyAccess('c?._field');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C?
@@ -179,8 +213,8 @@ void f(C c) {
     var node = result.findNode.functionExpressionInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function2: PropertyAccess
+    target2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
@@ -215,8 +249,8 @@ void f(C c) {
     var node = result.findNode.functionExpressionInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function2: PropertyAccess
+    target2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
@@ -251,10 +285,10 @@ void f(C c) {
     var node = result.findNode.functionExpressionInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: ParenthesizedExpression
+  function2: PropertyAccess
+    target2: ParenthesizedExpression
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
@@ -291,10 +325,10 @@ void f(C c) {
     var node = result.findNode.functionExpressionInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: ParenthesizedExpression
+  function2: PropertyAccess
+    target2: ParenthesizedExpression
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
@@ -335,7 +369,7 @@ class D extends C {
     var node = result.findNode.functionExpressionInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: _foo
     element: <testLibrary>::@class::C::@getter::_foo
     staticType: void Function()
@@ -368,7 +402,7 @@ class D extends C {
     var node = result.findNode.functionExpressionInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: _foo
     element: <testLibrary>::@class::C::@getter::_foo
     staticType: int Function()
@@ -401,8 +435,8 @@ class D extends C {
     var node = result.findNode.functionExpressionInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SuperExpression
+  function2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
@@ -440,8 +474,8 @@ class D extends C {
     var node = result.findNode.functionExpressionInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SuperExpression
+  function2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
@@ -565,9 +599,9 @@ void f(C c) {
     var node = result.findNode.propertyAccess('._foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ParenthesizedExpression
+  target2: ParenthesizedExpression
     leftParenthesis: (
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
@@ -602,7 +636,7 @@ class D extends C {
     var node = result.findNode.propertyAccess('._foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: D
   operator: .
@@ -871,40 +905,6 @@ PrefixedIdentifier
 ''');
   }
 
-  test_language219() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
-class C {
-  final int? _foo;
-  C(this._foo);
-}
-
-void f(C c) {
-  if ((c)._foo != null) {
-    (c)._foo;
-  }
-}
-''');
-    var node = result.findNode.propertyAccess('._foo;');
-    assertResolvedNodeText(node, r'''
-PropertyAccess
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
-      staticType: C
-    rightParenthesis: )
-    staticType: C
-  operator: .
-  propertyName: SimpleIdentifier
-    token: _foo
-    element: <testLibrary>::@class::C::@getter::_foo
-    staticType: int?
-  staticType: int?
-''');
-  }
-
   test_mixin_on_clause() async {
     // The type mentioned in a a mixin's "on" clause contributes to its
     // interface. This needs to be accounted for when determining whether a
@@ -972,14 +972,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: _i
         element: <testLibrary>::@class::C::@getter::_i
         staticType: int
       semicolon: ;
     ExpressionStatement
-      expression: PropertyAccess
-        target: SuperExpression
+      expression2: PropertyAccess
+        target2: SuperExpression
           superKeyword: super
           staticType: C
         operator: .
@@ -997,14 +997,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: _i
         element: <testLibrary>::@class::C::@getter::_i
         staticType: int?
       semicolon: ;
     ExpressionStatement
-      expression: PropertyAccess
-        target: SuperExpression
+      expression2: PropertyAccess
+        target2: SuperExpression
           superKeyword: super
           staticType: C
         operator: .
@@ -1046,7 +1046,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: _t
         element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::C::@getter::_t
@@ -1054,8 +1054,8 @@ Block
         staticType: T
       semicolon: ;
     ExpressionStatement
-      expression: PropertyAccess
-        target: SuperExpression
+      expression2: PropertyAccess
+        target2: SuperExpression
           superKeyword: super
           staticType: C<T>
         operator: .
@@ -1075,7 +1075,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: _t
         element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::C::@getter::_t
@@ -1083,8 +1083,8 @@ Block
         staticType: T?
       semicolon: ;
     ExpressionStatement
-      expression: PropertyAccess
-        target: SuperExpression
+      expression2: PropertyAccess
+        target2: SuperExpression
           superKeyword: super
           staticType: C<T>
         operator: .
@@ -1128,8 +1128,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: FunctionExpressionInvocation
-        function: SimpleIdentifier
+      expression2: FunctionExpressionInvocation
+        function2: SimpleIdentifier
           token: _f
           element: <testLibrary>::@class::C::@getter::_f
           staticType: int Function()
@@ -1141,9 +1141,9 @@ Block
         staticType: int
       semicolon: ;
     ExpressionStatement
-      expression: FunctionExpressionInvocation
-        function: PropertyAccess
-          target: SuperExpression
+      expression2: FunctionExpressionInvocation
+        function2: PropertyAccess
+          target2: SuperExpression
             superKeyword: super
             staticType: C
           operator: .
@@ -1167,8 +1167,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: FunctionExpressionInvocation
-        function: SimpleIdentifier
+      expression2: FunctionExpressionInvocation
+        function2: SimpleIdentifier
           token: _f
           element: <testLibrary>::@class::C::@getter::_f
           staticType: int? Function()
@@ -1180,9 +1180,9 @@ Block
         staticType: int?
       semicolon: ;
     ExpressionStatement
-      expression: FunctionExpressionInvocation
-        function: PropertyAccess
-          target: SuperExpression
+      expression2: FunctionExpressionInvocation
+        function2: PropertyAccess
+          target2: SuperExpression
             superKeyword: super
             staticType: C
           operator: .
@@ -1230,8 +1230,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: FunctionExpressionInvocation
-        function: SimpleIdentifier
+      expression2: FunctionExpressionInvocation
+        function2: SimpleIdentifier
           token: _f
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::C::@getter::_f
@@ -1245,9 +1245,9 @@ Block
         staticType: T
       semicolon: ;
     ExpressionStatement
-      expression: FunctionExpressionInvocation
-        function: PropertyAccess
-          target: SuperExpression
+      expression2: FunctionExpressionInvocation
+        function2: PropertyAccess
+          target2: SuperExpression
             superKeyword: super
             staticType: C<T>
           operator: .
@@ -1273,8 +1273,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: FunctionExpressionInvocation
-        function: SimpleIdentifier
+      expression2: FunctionExpressionInvocation
+        function2: SimpleIdentifier
           token: _f
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::C::@getter::_f
@@ -1288,9 +1288,9 @@ Block
         staticType: T?
       semicolon: ;
     ExpressionStatement
-      expression: FunctionExpressionInvocation
-        function: PropertyAccess
-          target: SuperExpression
+      expression2: FunctionExpressionInvocation
+        function2: PropertyAccess
+          target2: SuperExpression
             superKeyword: super
             staticType: C<T>
           operator: .

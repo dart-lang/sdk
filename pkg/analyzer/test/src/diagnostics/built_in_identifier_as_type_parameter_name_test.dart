@@ -41,9 +41,9 @@ class A<inout> {}
 ''');
   }
 
-  test_class_inout_language310() async {
+  test_class_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A<inout> {}
 ''');
   }
@@ -56,9 +56,9 @@ class A<out> {}
 ''');
   }
 
-  test_class_out_language310() async {
+  test_class_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A<out> {}
 ''');
   }

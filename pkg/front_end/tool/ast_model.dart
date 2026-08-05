@@ -156,7 +156,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
   'OrPattern': {'orPatternJointVariables': FieldRule(isDeclaration: false)},
   'VariablePattern': {'variable': FieldRule(isDeclaration: true)},
-  'PatternSwitchCase': {'jointVariables': FieldRule(isDeclaration: true)},
   'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
   'TypeVariable': {
     'parameter': FieldRule(isDeclaration: false),

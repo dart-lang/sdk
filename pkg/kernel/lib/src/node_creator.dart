@@ -948,9 +948,11 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case ExpressionKind.Let:
         return Let(
-          _createVariableFromKind(VariableKind.SyntheticVariable)
-              as SyntheticVariable,
-          _createExpression(),
+          variable: _createVariableFromKind(
+            VariableKind.SyntheticVariable,
+          ) as SyntheticVariable,
+          value: _createExpression(),
+          body: _createExpression(),
         )..fileOffset = _needFileOffset();
       case ExpressionKind.ListConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
@@ -1963,6 +1965,7 @@ class NodeCreator {
         return LocalInitializer(
           _createVariableFromKind(VariableKind.SyntheticVariable)
               as SyntheticVariable,
+          _createExpression(),
         )..fileOffset = _needFileOffset();
       case InitializerKind.RedirectingInitializer:
         return RedirectingInitializer(_needConstructor(), _createArguments())
@@ -2229,7 +2232,7 @@ class NodeCreator {
             _createStatement(),
             isDefault: true,
             hasLabel: false,
-            jointVariables: [],
+            jointVariableDeclarations: [],
             jointVariableFirstUseOffsets: null,
           ),
           () => new PatternSwitchCase(
@@ -2238,7 +2241,7 @@ class NodeCreator {
             _createStatement(),
             isDefault: false,
             hasLabel: true,
-            jointVariables: [],
+            jointVariableDeclarations: [],
             jointVariableFirstUseOffsets: null,
           ),
         ]);

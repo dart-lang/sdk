@@ -32,8 +32,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: add
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: subtract
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -54,8 +66,15 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: i
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+  binaryOperator: add
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: i
@@ -72,8 +91,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: multiply
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: add
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -96,8 +127,20 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: multiply
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: subtract
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
@@ -118,8 +161,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: +
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: z
+    binaryOperator: multiply
+  binaryOperator: add
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -142,8 +197,20 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: add
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: subtract
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
@@ -164,23 +231,23 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target: MethodInvocation
-    target: FunctionExpressionInvocation
-      function: MethodInvocation
+  target2: MethodInvocation
+    target2: FunctionExpressionInvocation
+      function2: MethodInvocation
         methodName: SimpleIdentifier
           token: a
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: b
           rightParenthesis: )
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: c
         rightParenthesis: )
@@ -189,7 +256,7 @@ PropertyAccess
       token: d
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: e
       rightParenthesis: )
@@ -206,12 +273,12 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target: MethodInvocation
-    target: FunctionExpressionInvocation
-      function: MethodInvocation
+  target2: MethodInvocation
+    target2: FunctionExpressionInvocation
+      function2: MethodInvocation
         methodName: SimpleIdentifier
           token: a
         typeArguments: TypeArgumentList
@@ -222,7 +289,7 @@ PropertyAccess
           rightBracket: >
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: b
           rightParenthesis: )
@@ -234,7 +301,7 @@ PropertyAccess
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: c
         rightParenthesis: )
@@ -249,7 +316,7 @@ PropertyAccess
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: e
       rightParenthesis: )
@@ -266,17 +333,17 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide: AssignmentExpression
-    leftHandSide: SimpleIdentifier
+  rightHandSide2: AssignmentExpression
+    leftHandSide2: SimpleIdentifier
       token: y
     operator: =
-    rightHandSide: IntegerLiteral
+    rightHandSide2: IntegerLiteral
       literal: 0
 ''');
   }
@@ -288,18 +355,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: IndexExpression
-    target: SimpleIdentifier
+  leftHandSide2: IndexExpression
+    target2: SimpleIdentifier
       token: x
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 1
     rightBracket: ]
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
 ''');
   }
@@ -311,17 +378,17 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
     period: .
     identifier: SimpleIdentifier
       token: y
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
 ''');
   }
@@ -335,17 +402,17 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: SuperExpression
+  leftHandSide2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
     operator: .
     propertyName: SimpleIdentifier
       token: y
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
 ''');
   }
@@ -373,7 +440,7 @@ Block
             name: xor
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: y
       semicolon: ;
   rightBracket: }
@@ -396,7 +463,23 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: BinaryExpression
+      expression2: LogicalAnd
+        leftOperand: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+          binaryOperator: greaterThan
+        operator: && <synthetic>
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: y
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 1
+          binaryOperator: greaterThan
+      expression(v1): BinaryExpression
         leftOperand: BinaryExpression
           leftOperand: SimpleIdentifier
             token: x
@@ -422,8 +505,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseAnd
+  operator: &
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: bitwiseAnd
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -444,8 +539,19 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+LogicalAnd
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ==
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: equal
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: z
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -466,8 +572,19 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+LogicalAnd
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: &&
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: ==
+    rightOperand: SimpleIdentifier
+      token: z
+    binaryOperator: equal
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -490,8 +607,20 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: &
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseAnd
+  operator: &
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: bitwiseAnd
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
@@ -512,8 +641,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseOr
+  operator: |
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: bitwiseOr
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -534,8 +675,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ^
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseXor
+  operator: |
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: bitwiseOr
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -556,8 +709,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: |
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: ^
+    rightOperand: SimpleIdentifier
+      token: z
+    binaryOperator: bitwiseXor
+  binaryOperator: bitwiseOr
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -580,8 +745,20 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseOr
+  operator: |
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: bitwiseOr
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
@@ -602,8 +779,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ^
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseXor
+  operator: ^
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: bitwiseXor
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -624,8 +813,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseAnd
+  operator: ^
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: bitwiseXor
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -646,8 +847,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ^
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: &
+    rightOperand: SimpleIdentifier
+      token: z
+    binaryOperator: bitwiseAnd
+  binaryOperator: bitwiseXor
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -670,8 +883,20 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: ^
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseXor
+  operator: ^
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: bitwiseXor
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
@@ -692,10 +917,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 CascadeExpression
-  target: InstanceCreationExpression
+  target2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: Map
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+  target(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -703,26 +936,26 @@ CascadeExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-  cascadeSections
+  cascadeSections2
     AssignmentExpression
-      leftHandSide: IndexExpression
+      leftHandSide2: IndexExpression
         period: ..
         leftBracket: [
-        index: IntegerLiteral
+        index2: IntegerLiteral
           literal: 3
         rightBracket: ]
       operator: =
-      rightHandSide: IntegerLiteral
+      rightHandSide2: IntegerLiteral
         literal: 4
     AssignmentExpression
-      leftHandSide: IndexExpression
+      leftHandSide2: IndexExpression
         period: ..
         leftBracket: [
-        index: IntegerLiteral
+        index2: IntegerLiteral
           literal: 0
         rightBracket: ]
       operator: =
-      rightHandSide: IntegerLiteral
+      rightHandSide2: IntegerLiteral
         literal: 11
 ''');
   }
@@ -734,20 +967,26 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: BinaryExpression
+  condition2: IfNull
+    leftOperand: SimpleIdentifier
+      token: a
+    operator: ??
+    rightOperand: SimpleIdentifier
+      token: b
+  condition(v1): BinaryExpression
     leftOperand: SimpleIdentifier
       token: a
     operator: ??
     rightOperand: SimpleIdentifier
       token: b
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: y
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -759,20 +998,27 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: BinaryExpression
+  condition2: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: a
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: b
+    binaryOperator: bitwiseOr
+  condition(v1): BinaryExpression
     leftOperand: SimpleIdentifier
       token: a
     operator: |
     rightOperand: SimpleIdentifier
       token: b
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: y
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -784,19 +1030,26 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: AsExpression
-    expression: SimpleIdentifier
+  condition2: AsExpression
+    expression2: SimpleIdentifier
       token: x
     asOperator: as
     type: NamedType
       name: bool
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -804,7 +1057,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -816,20 +1069,27 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: AsExpression
-    expression: SimpleIdentifier
+  condition2: AsExpression
+    expression2: SimpleIdentifier
       token: x
     asOperator: as
     type: NamedType
       name: bool
       question: ?
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -837,7 +1097,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -849,13 +1109,13 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: ParenthesizedExpression
+  condition2: ParenthesizedExpression
     leftParenthesis: (
-    expression: AsExpression
-      expression: SimpleIdentifier
+    expression2: AsExpression
+      expression2: SimpleIdentifier
         token: x
       asOperator: as
       type: NamedType
@@ -863,9 +1123,16 @@ ConditionalExpression
         question: ?
     rightParenthesis: )
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -873,7 +1140,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -885,19 +1152,26 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: IsExpression
-    expression: SimpleIdentifier
+  condition2: IsExpression
+    expression2: SimpleIdentifier
       token: x
     isOperator: is
     type: NamedType
       name: String
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -905,7 +1179,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -917,20 +1191,27 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: IsExpression
-    expression: SimpleIdentifier
+  condition2: IsExpression
+    expression2: SimpleIdentifier
       token: x
     isOperator: is
     type: NamedType
       name: String
       question: ?
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -938,7 +1219,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -950,13 +1231,13 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: ParenthesizedExpression
+  condition2: ParenthesizedExpression
     leftParenthesis: (
-    expression: IsExpression
-      expression: SimpleIdentifier
+    expression2: IsExpression
+      expression2: SimpleIdentifier
         token: x
       isOperator: is
       type: NamedType
@@ -964,9 +1245,16 @@ ConditionalExpression
         question: ?
     rightParenthesis: )
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -974,7 +1262,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -986,11 +1274,11 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: IsExpression
-    expression: SimpleIdentifier
+  condition2: IsExpression
+    expression2: SimpleIdentifier
       token: x
     isOperator: is
     type: NamedType
@@ -1002,9 +1290,16 @@ ConditionalExpression
             name: S
         rightBracket: >
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -1012,7 +1307,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -1024,11 +1319,11 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: IsExpression
-    expression: SimpleIdentifier
+  condition2: IsExpression
+    expression2: SimpleIdentifier
       token: x
     isOperator: is
     type: GenericFunctionType
@@ -1045,9 +1340,16 @@ ConditionalExpression
         leftParenthesis: (
         rightParenthesis: )
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -1055,7 +1357,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -1067,11 +1369,11 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: IsExpression
-    expression: SimpleIdentifier
+  condition2: IsExpression
+    expression2: SimpleIdentifier
       token: x
     isOperator: is
     type: NamedType
@@ -1085,9 +1387,16 @@ ConditionalExpression
             name: T
         rightBracket: >
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -1095,7 +1404,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -1107,11 +1416,11 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: IsExpression
-    expression: SimpleIdentifier
+  condition2: IsExpression
+    expression2: SimpleIdentifier
       token: x
     isOperator: is
     type: NamedType
@@ -1120,9 +1429,16 @@ ConditionalExpression
         period: .
       name: A
   question: ?
-  thenExpression: ParenthesizedExpression
+  thenExpression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: BinaryExpression
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: +
+      rightOperand: SimpleIdentifier
+        token: y
+      binaryOperator: add
+    expression(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: x
       operator: +
@@ -1130,7 +1446,7 @@ ConditionalExpression
         token: y
     rightParenthesis: )
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -1142,20 +1458,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: SimpleIdentifier
+  condition2: SimpleIdentifier
     token: b
   question: ?
-  thenExpression: AssignmentExpression
-    leftHandSide: SimpleIdentifier
+  thenExpression2: AssignmentExpression
+    leftHandSide2: SimpleIdentifier
       token: c
     operator: =
-    rightHandSide: BooleanLiteral
+    rightHandSide2: BooleanLiteral
       literal: true
   colon: :
-  elseExpression: MethodInvocation
+  elseExpression2: MethodInvocation
     methodName: SimpleIdentifier
       token: g
     argumentList: ArgumentList
@@ -1171,24 +1487,24 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: PrefixedIdentifier
+  condition2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: b
     period: .
     identifier: SimpleIdentifier
       token: x
   question: ?
-  thenExpression: AssignmentExpression
-    leftHandSide: SimpleIdentifier
+  thenExpression2: AssignmentExpression
+    leftHandSide2: SimpleIdentifier
       token: c
     operator: =
-    rightHandSide: BooleanLiteral
+    rightHandSide2: BooleanLiteral
       literal: true
   colon: :
-  elseExpression: MethodInvocation
+  elseExpression2: MethodInvocation
     methodName: SimpleIdentifier
       token: g
     argumentList: ArgumentList
@@ -1204,20 +1520,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: PrefixedIdentifier
+  condition2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
     period: .
     identifier: SimpleIdentifier
       token: b
   question: ?
-  thenExpression: SimpleIdentifier
+  thenExpression2: SimpleIdentifier
     token: y
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -1229,24 +1545,24 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition: PrefixedIdentifier
+  condition2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
     period: .
     identifier: SimpleIdentifier
       token: b
   question: ?
-  thenExpression: PrefixedIdentifier
+  thenExpression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
     period: .
     identifier: SimpleIdentifier
       token: y
   colon: :
-  elseExpression: SimpleIdentifier
+  elseExpression2: SimpleIdentifier
     token: z
 ''');
   }
@@ -1266,20 +1582,27 @@ ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: a
   equals: =
-  expression: ParenthesizedExpression
+  expression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: ConditionalExpression
-      condition: BinaryExpression
+    expression2: ConditionalExpression
+      condition2: BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: b
+        operator: ==
+        rightOperand: NullLiteral
+          literal: null
+        binaryOperator: equal
+      condition(v1): BinaryExpression
         leftOperand: SimpleIdentifier
           token: b
         operator: ==
         rightOperand: NullLiteral
           literal: null
       question: ?
-      thenExpression: SimpleIdentifier
+      thenExpression2: SimpleIdentifier
         token: c
       colon: :
-      elseExpression: SimpleIdentifier
+      elseExpression2: SimpleIdentifier
         token: d
     rightParenthesis: )
 ''');
@@ -1300,7 +1623,19 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: BinaryExpression
+      expression2: BinaryOperatorInvocation
+        leftOperand: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: ==
+          rightOperand: SimpleIdentifier
+            token: y
+          binaryOperator: equal
+        operator: !=
+        rightOperand: SimpleIdentifier
+          token: z
+        binaryOperator: notEqual
+      expression(v1): BinaryExpression
         leftOperand: BinaryExpression
           leftOperand: SimpleIdentifier
             token: x
@@ -1322,8 +1657,19 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: IsExpression
+    expression2: SimpleIdentifier
+      token: x
+    isOperator: is
+    type: NamedType
+      name: y
+  operator: ==
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: equal
 BinaryExpression
   leftOperand: IsExpression
     expression: SimpleIdentifier
@@ -1344,8 +1690,19 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ==
+  rightOperand: IsExpression
+    expression2: SimpleIdentifier
+      token: y
+    isOperator: is
+    type: NamedType
+      name: z
+  binaryOperator: equal
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -1376,7 +1733,19 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: BinaryExpression
+      expression2: BinaryOperatorInvocation
+        leftOperand: BinaryOperatorInvocation
+          leftOperand: SuperExpression
+            superKeyword: super
+          operator: ==
+          rightOperand: SimpleIdentifier
+            token: y
+          binaryOperator: equal
+        operator: !=
+        rightOperand: SimpleIdentifier
+          token: z
+        binaryOperator: notEqual
+      expression(v1): BinaryExpression
         leftOperand: BinaryExpression
           leftOperand: SuperExpression
             superKeyword: super
@@ -1398,8 +1767,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+IfNull
+  leftOperand: IfNull
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ??
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: z
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1420,8 +1799,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+IfNull
+  leftOperand: LogicalOr
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: z
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1442,8 +1831,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+IfNull
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ??
+  rightOperand: LogicalOr
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: z
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -1464,8 +1863,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+LogicalAnd
+  leftOperand: LogicalAnd
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: z
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1486,8 +1895,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: bitwiseOr
+  operator: <
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: lessThan
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1508,8 +1929,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: <
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: |
+    rightOperand: SimpleIdentifier
+      token: z
+    binaryOperator: bitwiseOr
+  binaryOperator: lessThan
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -1531,8 +1964,24 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+LogicalAnd
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: C
+    operator: <
+    rightOperand: SimpleIdentifier
+      token: T
+    binaryOperator: lessThan
+  operator: &&
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: T
+    operator: >
+    rightOperand: SimpleIdentifier
+      token: U
+    binaryOperator: greaterThan
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1557,8 +2006,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+LogicalOr
+  leftOperand: LogicalOr
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: ||
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: z
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1579,8 +2038,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+LogicalOr
+  leftOperand: LogicalAnd
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: y
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: z
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1601,8 +2070,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+LogicalOr
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: ||
+  rightOperand: LogicalAnd
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: &&
+    rightOperand: SimpleIdentifier
+      token: z
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -1624,14 +2103,29 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: IntegerLiteral
+          literal: 3
+        binaryOperator: greaterThan
+    arguments(v1)
       BinaryExpression
         leftOperand: SimpleIdentifier
           token: a
@@ -1656,14 +2150,29 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >>
+        rightOperand: IntegerLiteral
+          literal: 3
+        binaryOperator: shiftRight
+    arguments(v1)
       BinaryExpression
         leftOperand: SimpleIdentifier
           token: a
@@ -1688,14 +2197,34 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: <
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: d
+          operator: >>
+          rightOperand: IntegerLiteral
+            literal: 3
+          binaryOperator: shiftRight
+        binaryOperator: lessThan
+    arguments(v1)
       BinaryExpression
         leftOperand: SimpleIdentifier
           token: a
@@ -1738,7 +2267,7 @@ LabeledStatement
       colon: :
   statement: ReturnStatement
     returnKeyword: return
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: x
     semicolon: ;
 ''');
@@ -1751,8 +2280,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: multiply
+  operator: /
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: divide
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1773,8 +2314,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: UnaryOperatorInvocation
+    operator: -
+    operand: SimpleIdentifier
+      token: x
+    unaryOperator: negate
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: y
+  binaryOperator: multiply
 BinaryExpression
   leftOperand: PrefixExpression
     operator: -
@@ -1793,8 +2344,18 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: *
+  rightOperand: UnaryOperatorInvocation
+    operator: -
+    operand: SimpleIdentifier
+      token: y
+    unaryOperator: negate
+  binaryOperator: multiply
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -1815,8 +2376,20 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: *
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: multiply
+  operator: /
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: divide
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
@@ -1837,10 +2410,17 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 IsExpression
-  expression: BinaryExpression
+  expression2: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: <<
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: shiftLeft
+  expression(v1): BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
     operator: <<
@@ -1859,8 +2439,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: >>
+    rightOperand: IntegerLiteral
+      literal: 4
+    binaryOperator: shiftRight
+  operator: <<
+  rightOperand: IntegerLiteral
+    literal: 3
+  binaryOperator: shiftLeft
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1881,8 +2473,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: x
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: y
+    binaryOperator: add
+  operator: <<
+  rightOperand: SimpleIdentifier
+    token: z
+  binaryOperator: shiftLeft
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1903,8 +2507,20 @@ void f() {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: x
+  operator: <<
+  rightOperand: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
+      token: y
+    operator: +
+    rightOperand: SimpleIdentifier
+      token: z
+    binaryOperator: add
+  binaryOperator: shiftLeft
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -1927,8 +2543,20 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: SuperExpression
+      superKeyword: super
+    operator: >>
+    rightOperand: IntegerLiteral
+      literal: 4
+    binaryOperator: shiftRight
+  operator: <<
+  rightOperand: IntegerLiteral
+    literal: 3
+  binaryOperator: shiftLeft
 BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression

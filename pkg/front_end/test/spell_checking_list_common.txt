@@ -2859,7 +2859,6 @@ serious
 served
 set
 sets
-settable
 setter
 setter's
 setters

@@ -34,7 +34,7 @@ MethodInvocation
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -75,11 +75,11 @@ MethodInvocation
     staticType: void Function<T>({required T x, required T y})
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NamedArgument
         name: x
         colon: :
-        argumentExpression: IntegerLiteral
+        argumentExpression2: IntegerLiteral
           literal: 1
           staticType: int
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -113,7 +113,7 @@ MethodInvocation
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -148,7 +148,7 @@ MethodInvocation
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -193,7 +193,7 @@ MethodInvocation
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -209,7 +209,7 @@ MethodInvocation
       NamedArgument
         name: z
         colon: :
-        argumentExpression: IntegerLiteral
+        argumentExpression2: IntegerLiteral
           literal: 3
           staticType: int
         correspondingParameter: <null>

@@ -1156,6 +1156,14 @@ void Assembler::nop(int size) {
   }
 }
 
+void Assembler::endbr64() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0x1E);
+  EmitUint8(0xFA);
+}
+
 void Assembler::j(Condition condition, Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {
@@ -2537,7 +2545,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
   ASSERT(instance_size != 0);
   ASSERT(Utils::IsAligned(instance_size,
                           target::ObjectAlignment::kObjectAlignment));
-  if (FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
@@ -2569,7 +2577,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register end_address,
                                  Register temp) {
   ASSERT(failure != nullptr);
-  if (FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the

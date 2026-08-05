@@ -1,0 +1,28 @@
+// @dart = 3.0
+@FooX<int>(<int, int>{})
+library foo.bar.directive;
+
+@FooX<int>(<int, int>{})
+import "foo.dart";
+export "bar.dart";
+
+import 'baz1.dart'
+if (dart.library.html) 'baz2.dart'
+if (dart.library.io) 'baz3.dart' as baz;
+part 'bla.dart';
+
+
+
+@[SimpleToken]FooX[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]<[BeginToken]int[StringToken],[SimpleToken] int[StringToken]>[SimpleToken]{[BeginToken]}[SimpleToken])[SimpleToken]
+library[KeywordToken] foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]directive[StringToken];[SimpleToken]
+
+@[SimpleToken]FooX[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]<[BeginToken]int[StringToken],[SimpleToken] int[StringToken]>[SimpleToken]{[BeginToken]}[SimpleToken])[SimpleToken]
+import[KeywordToken] "foo.dart"[StringToken];[SimpleToken]
+export[KeywordToken] "bar.dart"[StringToken];[SimpleToken]
+
+import[KeywordToken] 'baz1.dart'[StringToken]
+if[KeywordToken] ([BeginToken]dart[StringToken].[SimpleToken]library[KeywordToken].[SimpleToken]html[StringToken])[SimpleToken] 'baz2.dart'[StringToken]
+if[KeywordToken] ([BeginToken]dart[StringToken].[SimpleToken]library[KeywordToken].[SimpleToken]io[StringToken])[SimpleToken] 'baz3.dart'[StringToken] as[KeywordToken] baz[StringToken];[SimpleToken]
+part[KeywordToken] 'bla.dart'[StringToken];[SimpleToken]
+
+[SimpleToken]

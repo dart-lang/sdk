@@ -50,6 +50,28 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
+            name: a
+            declaredFragment: <testLibraryFragment> a@25
+              element: isPublic
+                type: T
+          RegularFormalParameter
+            type: NamedType
+              name: U
+              element: #E1 U
+              type: U
+            name: b
+            declaredFragment: <testLibraryFragment> b@30
+              element: isPublic
+                type: U
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
+        leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
             name: T
@@ -71,7 +93,7 @@ FunctionDeclarationStatement
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@25
           staticType: T
@@ -132,6 +154,37 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: T
+              element: #E1 T
+              type: T
+            name: x
+            declaredFragment: <testLibraryFragment> x@51
+              element: isPublic
+                type: T
+          RegularFormalParameter
+            type: NamedType
+              name: U
+              element: #E0 U
+              type: U
+            name: y
+            declaredFragment: <testLibraryFragment> y@56
+              element: isPublic
+                type: U
+          RegularFormalParameter
+            type: NamedType
+              name: V
+              element: #E2 V
+              type: V
+            name: z
+            declaredFragment: <testLibraryFragment> z@61
+              element: isPublic
+                type: V
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -204,6 +257,23 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
+        delimitedFormalParameters: DelimitedFormalParameters
+          leftDelimiter: {
+          formalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: T
+                question: ?
+                element: #E0 T
+                type: T?
+              name: a
+              declaredFragment: <testLibraryFragment> a@27
+                element: isPublic
+                  type: T?
+          rightDelimiter: }
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
+        leftParenthesis: (
         leftDelimiter: {
         parameter: RegularFormalParameter
           type: NamedType
@@ -259,6 +329,23 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
+        leftParenthesis: (
+        delimitedFormalParameters: DelimitedFormalParameters
+          leftDelimiter: [
+          formalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: T
+                question: ?
+                element: #E0 T
+                type: T?
+              name: a
+              declaredFragment: <testLibraryFragment> a@27
+                element: isPublic
+                  type: T?
+          rightDelimiter: ]
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
         leftParenthesis: (
         leftDelimiter: [
         parameter: RegularFormalParameter
@@ -316,6 +403,24 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
+        delimitedFormalParameters: DelimitedFormalParameters
+          leftDelimiter: {
+          formalParameters
+            RegularFormalParameter
+              requiredKeyword: required
+              type: NamedType
+                name: T
+                question: ?
+                element: #E0 T
+                type: T?
+              name: a
+              declaredFragment: <testLibraryFragment> a@36
+                element: isPublic
+                  type: T?
+          rightDelimiter: }
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
+        leftParenthesis: (
         leftDelimiter: {
         parameter: RegularFormalParameter
           requiredKeyword: required
@@ -372,6 +477,19 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
+            name: a
+            declaredFragment: <testLibraryFragment> a@25
+              element: isPublic
+                type: T
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -449,7 +567,7 @@ FunctionDeclarationStatement
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         semicolon: ;

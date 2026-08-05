@@ -107,14 +107,13 @@ static method returnAsync7() → asy::Future<core::int?> async /* emittedValueTy
 static method yieldSync() → core::Iterable<dynamic> sync* /* emittedValueType= dynamic */ {}
 static method yieldAsync() → asy::Stream<dynamic> async* /* emittedValueType= dynamic */ {}
 static method caseReturn1(self::Enum e) → self::Enum {
-  #L1:
   switch(e) /* isExplicitlyExhaustive, self::Enum */ {
-    #L2:
+    #L1:
     case #C3:
       {
         return e;
       }
-    #L3:
+    #L2:
     case #C6:
       {
         return e;
@@ -122,14 +121,13 @@ static method caseReturn1(self::Enum e) → self::Enum {
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
-  #L4:
   switch(e) /* self::Enum */ {
-    #L5:
+    #L3:
     case #C3:
       {
         return e;
       }
-    #L6:
+    #L4:
     default:
       {}
   }
@@ -178,14 +176,13 @@ static method localFunctions() → dynamic {
   function yieldSync() → core::Iterable<dynamic> sync* /* emittedValueType= dynamic */ {}
   function yieldAsync() → asy::Stream<dynamic> async* /* emittedValueType= dynamic */ {}
   function caseReturn1(self::Enum e) → self::Enum {
-    #L7:
     switch(e) /* isExplicitlyExhaustive, self::Enum */ {
-      #L8:
+      #L5:
       case #C3:
         {
           return e;
         }
-      #L9:
+      #L6:
       case #C6:
         {
           return e;
@@ -193,14 +190,13 @@ static method localFunctions() → dynamic {
     }
   }
   function caseReturn2(self::Enum e) → self::Enum {
-    #L10:
     switch(e) /* self::Enum */ {
-      #L11:
+      #L7:
       case #C3:
         {
           return e;
         }
-      #L12:
+      #L8:
       default:
         {}
     }

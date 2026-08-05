@@ -486,6 +486,9 @@ extension type const WasmI8x16(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI8x16 eq(WasmI8x16 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
@@ -526,6 +529,9 @@ extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI16x8 eq(WasmI16x8 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
@@ -551,6 +557,9 @@ extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI32x4 eq(WasmI32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
@@ -578,6 +587,9 @@ extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
   external WasmI64x2 eq(WasmI64x2 other);
   @pragma("wasm:intrinsic")
   external bool get allTrue;
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmF32x4(WasmV128 value) implements WasmV128 {

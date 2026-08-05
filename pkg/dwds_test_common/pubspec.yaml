@@ -8,12 +8,21 @@ environment:
 resolution: workspace
 
 dependencies:
+  dds: any
   dwds: any
   file: any
+  http: any
+  io: any
   logging: any
   path: any
   pub_semver: any
+  shelf: any
   test: any
+  vm_service: any
+  vm_service_interface: any
+  webdriver: any
+  webkit_inspection_protocol: any
+  yaml: any
 
 dev_dependencies:
   dart_flutter_team_lints: any

@@ -15,9 +15,9 @@ main() {
 @reflectiveTest
 class ClassUsedAsMixinDeclaresGenerativeConstructorTest
     extends PubPackageResolutionTest {
-  test_withClause_class_language219_factory() async {
+  test_withClause_class_beforeClassModifiers_factory() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A {
   factory A() => throw 0;
 }
@@ -25,9 +25,9 @@ class B extends Object with A {}
 ''');
   }
 
-  test_withClause_class_language219_generative_named() async {
+  test_withClause_class_beforeClassModifiers_generative_named() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A {
   A.named();
 }
@@ -37,9 +37,9 @@ class B extends Object with A {}
 ''');
   }
 
-  test_withClause_class_language219_generative_unnamed() async {
+  test_withClause_class_beforeClassModifiers_generative_unnamed() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A {
   A();
 }
@@ -49,9 +49,9 @@ class B extends Object with A {}
 ''');
   }
 
-  test_withClause_classTypeAlias_language219_generative_unnamed() async {
+  test_withClause_classTypeAlias_beforeClassModifiers_generative_unnamed() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A {
   A();
 }
@@ -61,9 +61,9 @@ class B = Object with A;
 ''');
   }
 
-  test_withClause_enum_language219_generative_unnamed() async {
+  test_withClause_enum_beforeClassModifiers_generative_unnamed() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A {
   A();
 }

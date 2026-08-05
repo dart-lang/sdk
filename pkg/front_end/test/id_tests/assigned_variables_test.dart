@@ -55,12 +55,12 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
       testResultData.compilerResult,
       member,
     ) as SourceMemberBuilder;
-    AssignedVariablesForTesting<TreeNode, InternalVariable>? assignedVariables =
-        memberBuilder
-            .dataForTesting!
-            .inferenceData
-            .flowAnalysisResult
-            .assignedVariables;
+    AssignedVariablesForTesting<InternalNode, InternalVariable>?
+    assignedVariables = memberBuilder
+        .dataForTesting!
+        .inferenceData
+        .flowAnalysisResult
+        .assignedVariables;
     if (assignedVariables == null) return;
     member.accept(
       new AssignedVariablesDataExtractor(
@@ -74,7 +74,7 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
 
 class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
-  final AssignedVariablesForTesting<TreeNode, InternalVariable>
+  final AssignedVariablesForTesting<InternalNode, InternalVariable>
   _assignedVariables;
 
   new(
@@ -108,8 +108,8 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
         return null;
       default:
     }
-    TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
-    if (!_assignedVariables.isTracked(alias)) return null;
+    InternalNode? alias = _sourceLoaderDataForTesting.toInternalNode(node);
+    if (alias == null || !_assignedVariables.isTracked(alias)) return null;
     return new _Data(
       _convertVars(_assignedVariables.declaredInNode(alias)),
       _convertVars(_assignedVariables.readInNode(alias)),

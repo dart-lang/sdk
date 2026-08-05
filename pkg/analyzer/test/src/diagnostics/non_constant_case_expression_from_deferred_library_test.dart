@@ -11,7 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantCaseExpressionFromDeferredLibraryTest);
     defineReflectiveTests(
-      NonConstantCaseExpressionFromDeferredLibraryTest_Language219,
+      NonConstantCaseExpressionFromDeferredLibraryTest_BeforePatterns,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -79,9 +79,9 @@ void f(Object? x) {
 }
 
 @reflectiveTest
-class NonConstantCaseExpressionFromDeferredLibraryTest_Language219
+class NonConstantCaseExpressionFromDeferredLibraryTest_BeforePatterns
     extends PubPackageResolutionTest
-    with WithLanguage219Mixin {
+    with BeforePatternsMixin {
   test_nested() async {
     newFile('$testPackageLibPath/a.dart', '''
 const int c = 0;

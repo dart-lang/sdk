@@ -34,7 +34,7 @@ mixin M implements A {
     var node = result.findNode.methodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -44,7 +44,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -75,7 +75,7 @@ class C extends B {
     var node = result.findNode.methodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: C
   operator: .
@@ -109,7 +109,7 @@ class B extends Object with A {
     var node = result.findNode.methodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -145,7 +145,7 @@ abstract class B extends A {
     var node = result.findNode.methodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -155,7 +155,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -186,7 +186,7 @@ class C extends A with B {
     var node = result.findNode.methodInvocation('foo(); // ref');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: C
   operator: .
@@ -218,7 +218,7 @@ class B extends A {
     var node = result.findNode.methodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -254,7 +254,7 @@ class C extends B {
     var node = result.findNode.methodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: C
   operator: .
@@ -288,7 +288,7 @@ abstract class B extends A {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -318,7 +318,7 @@ mixin M implements A {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -348,7 +348,7 @@ class B extends Object with A {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -376,7 +376,7 @@ class B extends A {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -407,7 +407,7 @@ class C extends B {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: C
   operator: .
@@ -437,7 +437,7 @@ class C extends B {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: C
   operator: .
@@ -467,7 +467,7 @@ abstract class B extends A {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -497,8 +497,8 @@ abstract class B extends A {
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: SuperExpression
+  leftHandSide2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -508,7 +508,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
@@ -539,8 +539,8 @@ mixin M implements A {
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: SuperExpression
+  leftHandSide2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: M
     operator: .
@@ -550,7 +550,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
@@ -581,8 +581,8 @@ class B extends Object with A {
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: SuperExpression
+  leftHandSide2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -592,7 +592,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: SimpleIdentifier
+  rightHandSide2: SimpleIdentifier
     token: a
     correspondingParameter: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::a
     element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
@@ -622,8 +622,8 @@ class B extends A {
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: SuperExpression
+  leftHandSide2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -633,7 +633,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: SimpleIdentifier
+  rightHandSide2: SimpleIdentifier
     token: a
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::a
     element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
@@ -667,8 +667,8 @@ class C extends B {
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: SuperExpression
+  leftHandSide2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: C
     operator: .
@@ -678,7 +678,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int

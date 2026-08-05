@@ -775,6 +775,7 @@ enum Architecture {
   arm_x64._('arm_x64'),
   arm64._('arm64'),
   arm64c._('arm64c'),
+  arm64e._('arm64e'),
   simarm._('simarm', isSimulator: true),
   // ignore: constant_identifier_names
   simarm_x64._('simarm_x64', isSimulator: true),

@@ -48,11 +48,11 @@ class ReturnTypeVerifier {
       return;
     }
 
-    return _checkReturnExpression(node.expression);
+    return _checkReturnExpression(node.expression2);
   }
 
   void verifyReturnStatement(ReturnStatement statement) {
-    var expression = statement.expression;
+    var expression = statement.expression2;
 
     if (enclosingExecutable.isGenerativeConstructor) {
       if (expression != null) {

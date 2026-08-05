@@ -18,18 +18,17 @@ static method main() → dynamic {
       continue L; // Error
       ^^^^^^^^";
   1;
-  #L1:
   {
     synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic i = :sync-for-iterator.{core::Iterator::current}{dynamic};
-      #L2:
+      #L1:
       {
         if(i =={core::Object::==}{(core::Object) → core::bool} 0) {
-          break #L2;
+          break #L1;
         }
         else {
-          break #L2;
+          break #L1;
         }
       }
     }

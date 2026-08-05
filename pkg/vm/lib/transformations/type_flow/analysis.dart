@@ -15,7 +15,7 @@ import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
-import 'package:vm/transformations/pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'calls.dart';
 import 'config.dart';
@@ -1058,8 +1058,79 @@ class _ReceiverTypeBuilder {
 /// Keeps track of number of cached [_Invocation] objects with
 /// a particular selector and provides approximation if needed.
 class _SelectorApproximation {
+  final Args<Type> _rawSelectorArgs;
+
+  bool _observedFirstCall = false;
+  final List<Type?> _values;
+
   int count = 0;
   _Invocation? approximation;
+
+  _SelectorApproximation(this._rawSelectorArgs)
+    : _values = List<Type?>.filled(_rawSelectorArgs.values.length, null);
+
+  void observeArgs(Args<Type> args) {
+    final positionalCount = _rawSelectorArgs.positionalCount;
+    final names = _rawSelectorArgs.names;
+
+    if (!_observedFirstCall) {
+      _observedFirstCall = true;
+      for (int i = 0; i < args.positionalCount; i++) {
+        _values[i] = args.values[i];
+      }
+      int observedNameIdx = 0;
+      for (int i = 0; i < names.length; i++) {
+        if (observedNameIdx < args.names.length &&
+            args.names[observedNameIdx] == names[i]) {
+          _values[positionalCount + i] =
+              args.values[args.positionalCount + observedNameIdx++];
+        }
+      }
+      return;
+    }
+
+    bool variedChanged = false;
+
+    for (int i = 0; i < positionalCount; i++) {
+      final current = _values[i];
+      if (current != null) {
+        final val = (i < args.positionalCount) ? args.values[i] : null;
+        if (current != val) {
+          _values[i] = null;
+          variedChanged = true;
+        }
+      }
+    }
+
+    int observedNameIdx = 0;
+    for (int i = 0; i < names.length; i++) {
+      final paramIdx = positionalCount + i;
+      final current = _values[paramIdx];
+      Type? val;
+      if (observedNameIdx < args.names.length &&
+          args.names[observedNameIdx] == names[i]) {
+        val = args.values[args.positionalCount + observedNameIdx++];
+      }
+      if (current != null && current != val) {
+        _values[paramIdx] = null;
+        variedChanged = true;
+      }
+    }
+
+    if (variedChanged && approximation != null) {
+      approximation = null;
+    }
+  }
+
+  Args<Type> approximateArgs() {
+    final approxValues = List<Type>.from(_rawSelectorArgs.values);
+    for (int i = 0; i < _values.length; i++) {
+      if (_values[i] case final canonical?) {
+        approxValues[i] = canonical;
+      }
+    }
+    return Args<Type>(approxValues, names: _rawSelectorArgs.names);
+  }
 }
 
 /// Maintains ([Selector], [Args]) => [_Invocation] cache.
@@ -1093,6 +1164,7 @@ class _InvocationsCache {
 
       final sa = _directSelectorApproximations[selector];
       if (sa != null) {
+        sa.observeArgs(args);
         if (sa.count >=
             _typeFlowAnalysis.config.maxDirectInvocationsPerSelector) {
           _Invocation? approximation = sa.approximation;
@@ -1100,10 +1172,8 @@ class _InvocationsCache {
             Statistics.approximateDirectInvocationsUsed++;
             return approximation;
           }
-          final rawArgs = _typeFlowAnalysis.summaryCollector.rawArguments(
-            selector,
-          );
-          invocation = _DirectInvocation(selector, rawArgs);
+          final approxArgs = sa.approximateArgs();
+          invocation = _DirectInvocation(selector, approxArgs);
           // Check if there is an existing invocation that matches
           // approximation (in order to avoid creating duplicate
           // equal invocations which would break dependency sets).
@@ -1125,8 +1195,10 @@ class _InvocationsCache {
       // arguments.
 
       final sa = (_interfaceSelectorApproximations[selector] ??=
-          new _SelectorApproximation());
-
+          _SelectorApproximation(
+            _typeFlowAnalysis.summaryCollector.rawArguments(selector),
+          ));
+      sa.observeArgs(args);
       if (sa.count >=
           _typeFlowAnalysis.config.maxInterfaceInvocationsPerSelector) {
         _Invocation? approximation = sa.approximation;
@@ -1134,10 +1206,8 @@ class _InvocationsCache {
           Statistics.approximateInterfaceInvocationsUsed++;
           return approximation;
         }
-        final rawArgs = _typeFlowAnalysis.summaryCollector.rawArguments(
-          selector,
-        );
-        invocation = _DispatchableInvocation(selector, rawArgs);
+        final approxArgs = sa.approximateArgs();
+        invocation = _DispatchableInvocation(selector, approxArgs);
         // Check if there is an existing invocation that matches
         // approximation (in order to avoid creating duplicate
         // equal invocations which would break dependency sets).
@@ -1166,7 +1236,9 @@ class _InvocationsCache {
   }
 
   void addDirectSelectorApproximation(DirectSelector selector) {
-    _directSelectorApproximations[selector] ??= new _SelectorApproximation();
+    _directSelectorApproximations[selector] ??= _SelectorApproximation(
+      _typeFlowAnalysis.summaryCollector.rawArguments(selector),
+    );
   }
 }
 

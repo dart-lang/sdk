@@ -35,7 +35,7 @@ library
         #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
@@ -108,7 +108,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F3
           returnType: dynamic
@@ -140,7 +140,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::g
   getters
-    isOriginDeclaration isStatic g
+    hasImplicitReturnType isOriginDeclaration isStatic g
       reference: <testLibrary>::@getter::g
       firstFragment: #F2
       returnType: dynamic
@@ -228,7 +228,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F3
           returnType: dynamic
@@ -258,7 +258,7 @@ library
         #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
   functions
-    isOriginDeclaration isStatic main
+    hasImplicitReturnType isOriginDeclaration isStatic main
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       returnType: dynamic

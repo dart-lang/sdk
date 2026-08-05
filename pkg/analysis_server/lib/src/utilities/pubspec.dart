@@ -7,6 +7,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:pub_semver/pub_semver.dart';
+import 'package:yaml/yaml.dart';
 
 /// Checks if [targetVersion] is compatible with the SDK constraints of all
 /// resolved [packages].
@@ -24,6 +25,28 @@ List<String> checkDependencyCompatibility({
     var extractor = SdkConstraintExtractor(pubspecFile);
     var constraint = extractor.constraint();
     if (constraint == null) continue;
+
+    // Apply Dart 3 package compatibility re-interpretation:
+    // If the package is null-safe (min SDK >= 2.12.0) and has max constraint
+    // <3.0.0 (which is parsed as max: 3.0.0-0, includeMax: false),
+    // re-interpret the max constraint as <4.0.0.
+    // https://dart.dev/resources/dart-3-migration#dart-3-backwards-compatibility
+    if (constraint is VersionRange) {
+      var min = constraint.min;
+      var max = constraint.max;
+      var nullSafetyVersion = Version(2, 12, 0).firstPreRelease;
+      var dart3Version = Version(3, 0, 0).firstPreRelease;
+      if (min != null &&
+          min >= nullSafetyVersion &&
+          max == dart3Version &&
+          !constraint.includeMax) {
+        constraint = VersionRange(
+          min: min,
+          includeMin: constraint.includeMin,
+          max: Version(4, 0, 0),
+        );
+      }
+    }
 
     // Check if the dependency's SDK constraint allows the target version.
     if (!constraint.allows(targetVersion)) {
@@ -78,6 +101,19 @@ PubspecEdit? computeVersionBumpEdit(File pubspecFile) {
   if (newVersion == null) return null;
 
   return _computeEdit(text, extractor.constraintOffset(), newVersion);
+}
+
+/// Returns the minimum SDK version constraint defined in [pubspecFile], or
+/// `null` if the constraint cannot be found or parsed.
+Version? minimumSdkConstraint(File pubspecFile) {
+  var extractor = SdkConstraintExtractor(pubspecFile);
+  var constraint = extractor.constraint();
+  if (constraint is VersionRange) {
+    return constraint.min;
+  } else if (constraint is Version) {
+    return constraint;
+  }
+  return null;
 }
 
 PubspecEdit? _computeEdit(String? text, int offset, Version minimumVersion) {
@@ -138,4 +174,19 @@ class PubspecEdit {
     required this.originalConstraint,
     required this.targetVersion,
   });
+}
+
+/// A target package's `pubspec.yaml` file and its derived display name.
+///
+/// Used to avoid reading and parsing the `pubspec.yaml` file multiple times.
+class PubspecTarget {
+  /// The `pubspec.yaml` file for the package.
+  final File file;
+
+  /// The display name of the package, which defaults to the defined package
+  /// name in `pubspec.yaml`, or the parent directory name as a fallback.
+  final String displayName;
+
+  new({required this.file, required YamlMap pubspec})
+    : displayName = (pubspec['name'] as String?) ?? file.parent.shortName;
 }

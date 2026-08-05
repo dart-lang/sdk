@@ -406,7 +406,7 @@ Expression? getLateFieldInitializer(Member node) {
             //        : #1;
             //
             // in which case `<init>` is the initializer.
-            return then.variable.initializer;
+            return then.value;
           }
         }
       }

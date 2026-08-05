@@ -34,12 +34,8 @@ class LibraryAnnotations extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final LibraryAnnotations rule;
-
+class _Visitor(final LibraryAnnotations rule) extends SimpleAstVisitor<void> {
   Directive? firstDirective;
-
-  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

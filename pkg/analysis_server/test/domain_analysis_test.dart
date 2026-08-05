@@ -647,11 +647,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1097,11 +1097,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1786,11 +1786,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -2115,7 +2115,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 has no plugins enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(experiments: experiments),
+      analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2157,7 +2157,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: [plugin2.name],
       ),
     );
@@ -2201,7 +2201,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: [plugin1.name],
       ),
     );
@@ -2433,7 +2433,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       packagePath,
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: plugins.map((plugin) => plugin.name).toList(),
       ),
     );

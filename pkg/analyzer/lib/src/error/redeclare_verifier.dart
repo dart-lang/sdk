@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/listener.dart';
 /// Instances of the class `RedeclareVerifier` visit all of the members of any
 /// extension type declarations in a compilation unit to verify that if they
 /// have a redeclare annotation it is being used correctly.
-class RedeclareVerifier extends RecursiveAstVisitor<void> {
+class RedeclareVerifier extends RecursiveAstVisitor2<void> {
   /// The error reporter used to report errors.
   final DiagnosticReporter _errorReporter;
 

@@ -4279,7 +4279,7 @@ library
 
   test_typedef_nonFunction_using_interface_disabled() async {
     var library = await buildLibrary(r'''
-// @dart = 2.12
+// %before-language-feature: nonfunction-type-aliases
 typedef A = int;
 void f(A a) {}
 ''');
@@ -4828,11 +4828,11 @@ library
         #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
           element: <testLibrary>::@function::g
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
-    isOriginDeclaration isStatic g
+    hasImplicitReturnType isOriginDeclaration isStatic g
       reference: <testLibrary>::@function::g
       firstFragment: #F2
       returnType: dynamic

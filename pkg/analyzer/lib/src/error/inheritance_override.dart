@@ -21,7 +21,6 @@ import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
@@ -353,14 +352,13 @@ class _ClassVerifier {
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
     var mixinNodes = withClause?.mixinTypes ?? <NamedType>[];
-    for (var node in mixinNodes) {
-      var mixinType = node.type;
+    var mixinIndex = classFragment.withClauseMixinStartIndex;
+    for (var mixinNode in mixinNodes) {
+      var mixinType = mixinNode.type;
       // When building the element model, we skip incorrect types.
       // So, here we skip corresponding nodes to keep the index in sync.
-      if (mixinType is InterfaceTypeImpl &&
-          isInterfaceTypeInterface(mixinType)) {
-        var index = interfaceElementState.mixinIndex++;
-        _checkDeclaredMembers(node, mixinType, mixinIndex: index);
+      if (mixinType is InterfaceTypeImpl && mixinType.isValidSuperinterface) {
+        _checkDeclaredMembers(mixinNode, mixinType, mixinIndex: mixinIndex++);
         directSuperInterfaces.add(mixinType);
       }
     }
@@ -392,9 +390,8 @@ class _ClassVerifier {
 
         _checkDeclaredMember(
           member.name,
-          libraryUri,
           member.declaredFragment!.element,
-          methodParameterNodes: member.parameters?.parameters,
+          methodParameterNodes: member.parameters?.allFormalParameters,
         );
         if (!(member.isStatic || !member.isComplete || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
@@ -494,16 +491,14 @@ class _ClassVerifier {
   }
 
   void _checkDeclaredField(Token name, FieldElementImpl field) {
-    _checkDeclaredMember(name, libraryUri, field.getter);
-    _checkDeclaredMember(name, libraryUri, field.setter);
+    _checkDeclaredMember(name, field.getter);
+    _checkDeclaredMember(name, field.setter);
   }
 
   /// Check that the given [member] is a valid override of the corresponding
-  /// instance members in each of [directSuperInterfaces].  The [libraryUri] is
-  /// the URI of the library containing the [member].
+  /// instance members in each of [directSuperInterfaces].
   void _checkDeclaredMember(
     SyntacticEntity node,
-    Uri libraryUri,
     InternalExecutableElement? member, {
     List<FormalParameter>? methodParameterNodes,
     int mixinIndex = -1,
@@ -559,15 +554,14 @@ class _ClassVerifier {
     InterfaceTypeImpl type, {
     required int mixinIndex,
   }) {
-    var libraryUri = type.element.library.uri;
     for (var method in type.methods) {
-      _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
+      _checkDeclaredMember(node, method, mixinIndex: mixinIndex);
     }
     for (var getter in type.getters) {
-      _checkDeclaredMember(node, libraryUri, getter, mixinIndex: mixinIndex);
+      _checkDeclaredMember(node, getter, mixinIndex: mixinIndex);
     }
     for (var setter in type.setters) {
-      _checkDeclaredMember(node, libraryUri, setter, mixinIndex: mixinIndex);
+      _checkDeclaredMember(node, setter, mixinIndex: mixinIndex);
     }
   }
 
@@ -576,7 +570,7 @@ class _ClassVerifier {
     if (primaryConstructor == null) return;
 
     for (var formalParameter
-        in primaryConstructor.formalParameters.parameters) {
+        in primaryConstructor.formalParameters.allFormalParameters) {
       var formalParameterElement = formalParameter.declaredFragment?.element;
       if (formalParameterElement is FieldFormalParameterElementImpl &&
           formalParameterElement.isDeclaring) {
@@ -931,6 +925,9 @@ class _ClassVerifier {
 
     for (var member in members) {
       if (member is MethodDeclaration) {
+        if (member.augmentKeyword != null) {
+          continue;
+        }
         var displayName = member.name.lexeme;
         var name = displayName;
         if (member.isSetter) {
@@ -938,6 +935,12 @@ class _ClassVerifier {
         }
         if (checkMemberNameCombo(member, name, displayName)) return true;
       } else if (member is FieldDeclaration) {
+        if (member.augmentKeyword != null) {
+          continue;
+        }
+        if (classElement is EnumElement && member.abstractKeyword != null) {
+          continue;
+        }
         for (var variableDeclaration in member.fields.variables) {
           var name = variableDeclaration.name.lexeme;
           if (checkMemberNameCombo(member, name, name)) return true;
@@ -1177,8 +1180,6 @@ class _DiagnosticTarget {
 /// Maintains an [InterfaceElementImpl]'s mixin index across multiple fragments.
 class _InterfaceElementState {
   bool hasReportedRecursiveInterfaceInheritance = false;
-
-  int mixinIndex = 0;
 
   _InterfaceElementState();
 }

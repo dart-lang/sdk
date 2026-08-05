@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js_interop';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:web/web.dart' as web;
 
-import 'util/message_port_channel.dart';
+import 'util/json_rpc_message_port_channel.dart';
 
 const _defaultHeadHtml = '''
 <style>
@@ -17,8 +18,6 @@ const _defaultHeadHtml = '''
 ''';
 
 String _iframeHtml({
-  required Uri ddcModuleLoaderJs,
-  required Uri sdkJs,
   required Uri sandboxJs,
   required String headHtml,
   required String bodyHtml,
@@ -28,8 +27,6 @@ String _iframeHtml({
 <html>
 <head>
   <meta charset="utf-8">
-  <script src="$ddcModuleLoaderJs" defer></script>
-  <script src="$sdkJs" defer></script>
   <script src="$sandboxJs" defer></script>
   $headHtml
 </head>
@@ -65,6 +62,11 @@ class Sandbox {
   final web.HTMLIFrameElement? _iframe;
   final Peer _peer;
   final _consoleController = StreamController<ConsoleMessage>.broadcast();
+  final _unhandledRejectionController =
+      StreamController<({String message})>.broadcast();
+  final _errorController = StreamController<({String message})>.broadcast();
+  final _extensionEventController =
+      StreamController<({String kind, Map<String, Object?> data})>.broadcast();
 
   Sandbox._(this._peer, this._iframe) {
     _peer.registerMethod('console', (Parameters params) {
@@ -79,6 +81,25 @@ class Sandbox {
       _consoleController.add((level: level, message: message));
     });
 
+    _peer.registerMethod('unhandledRejection', (Parameters params) {
+      final message = params['message'].asString;
+
+      _unhandledRejectionController.add((message: message));
+    });
+
+    _peer.registerMethod('error', (Parameters params) {
+      final message = params['message'].asString;
+
+      _errorController.add((message: message));
+    });
+
+    _peer.registerMethod('extensionEvent', (Parameters params) {
+      final kind = params['kind'].asString;
+      final data = jsonDecode(params['data'].asString);
+
+      _extensionEventController.add((kind: kind, data: data));
+    });
+
     unawaited(_peer.listen());
   }
 
@@ -87,6 +108,28 @@ class Sandbox {
   /// This is a _broadcast stream_, you must subcribe immediately after creating
   /// the sandbox if you want to be certain to get all messages.
   Stream<ConsoleMessage> get onConsole => _consoleController.stream;
+
+  /// Stream of unhandled rejections from the sandbox.
+  ///
+  /// This is a _broadcast stream_, you must subscribe immediately after
+  /// creating the sandbox if you want to be certain to get all messages.
+  Stream<({String message})> get onUnhandledRejection =>
+      _unhandledRejectionController.stream;
+
+  /// Stream of runtime errors from the sandbox.
+  ///
+  /// This is a _broadcast stream_, you must subscribe immediately after
+  /// creating the sandbox if you want to be certain to get all messages.
+  Stream<({String message})> get onError => _errorController.stream;
+
+  /// Stream of custom extension events from the sandbox.
+  ///
+  /// These events are fired by `dart:developer`'s `postEvent` method.
+  ///
+  /// This is a _broadcast stream_ - you must subscribe immediately after
+  /// creating the sandbox if you want to be certain to get all events.
+  Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
+      _extensionEventController.stream;
 
   Future<T> _sendRequest<T>(
     String method, [
@@ -185,32 +228,39 @@ class Sandbox {
     );
   }
 
+  /// Invokes a developer service extension inside the running app.
+  Future<String> invokeExtension(
+    String method,
+    Map<String, String> args,
+  ) async {
+    return await _sendRequest<String>('invokeExtension', {
+      'method': method,
+      'args': args,
+    });
+  }
+
   /// Disposes of the sandbox and its resources.
   void dispose() {
     _iframe?.remove();
     unawaited(_peer.close());
     _consoleController.close();
+    _unhandledRejectionController.close();
+    _errorController.close();
+    _extensionEventController.close();
   }
 
   /// Creates a [Sandbox] by injecting an iframe into [container].
   ///
   /// The [assetBaseUrl] should point to the directory containing `sandbox.js`
   /// and `ddc_module_loader.js`.
-  /// The [sdkLocation] should point to the directory containing the `sdk.js`
-  /// (and `sdk.tar` which we won't use here).
   static Future<Sandbox> createIFrame(
     web.Node container, {
     required Uri assetBaseUrl,
-    required Uri sdkLocation,
     String headHtml = _defaultHeadHtml,
     String bodyHtml = '',
   }) async {
     if (!assetBaseUrl.path.endsWith('/')) {
       assetBaseUrl = assetBaseUrl.replace(path: '${assetBaseUrl.path}/');
-    }
-    sdkLocation = assetBaseUrl.resolveUri(sdkLocation);
-    if (!sdkLocation.path.endsWith('/')) {
-      sdkLocation = sdkLocation.replace(path: '${sdkLocation.path}/');
     }
 
     final iframe = web.HTMLIFrameElement();
@@ -219,38 +269,36 @@ class Sandbox {
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
     iframe.srcdoc = _iframeHtml(
       sandboxJs: assetBaseUrl.resolve('sandbox.js'),
-      ddcModuleLoaderJs: assetBaseUrl.resolve('ddc_module_loader.js'),
-      sdkJs: sdkLocation.resolve('sdk.js'),
       headHtml: headHtml,
       bodyHtml: bodyHtml,
     ).toJS;
     container.appendChild(iframe);
 
-    try {
-      // TODO: Consider loading sandbox.js first, then setup error handlers and
-      //       have it proxy out loading errors, and have it setup the ports
-      //       and send out a port with a ready message when everything is
-      //       loaded. That could be a bit a faster! And provide better error
-      //       reporting, if something goes wrong inside the iframe.
-      await iframe.onLoad.first.timeout(const Duration(seconds: 120));
-    } on TimeoutException {
-      throw Exception('Timeout (120s) while loading sandboxed iframe');
-    }
+    return await Future(() async {
+      await for (final event in web.window.onMessage) {
+        if (event.source != iframe.contentWindow ||
+            !event.data.isA<JSObject>()) {
+          continue;
+        }
 
-    final web.MessageChannel(:port1, :port2) = web.MessageChannel();
-
-    final contentWindow = iframe.contentWindow;
-    if (contentWindow == null) {
-      // This should never happen, unless there some obscure security policy
-      // at play -- but even this is unlikely with srcdoc!
-      throw AssertionError('iframe.contentWindow is null after "load" event');
-    }
-    contentWindow.postMessage(
-      {'action': 'connect'}.jsify(),
-      '*'.toJS,
-      [port2].toJS,
-    );
-
-    return Sandbox._(Peer(messagePortChannel(port1).cast()), iframe);
+        final m = event.data as _SandboxMessage;
+        switch (m.action) {
+          case 'connect':
+            return Sandbox._(
+              Peer.withoutJson(jsonRpcMessagePortChannel(m.port)),
+              iframe,
+            );
+          case 'error':
+            throw Exception('Failed to load sandboxed iframe: ${m.message}');
+        }
+      }
+      throw AssertionError('unreachable');
+    }).timeout(const Duration(seconds: 120));
   }
+}
+
+extension type _SandboxMessage._(JSObject _) implements JSObject {
+  external String? get action;
+  external web.MessagePort get port;
+  external String get message;
 }

@@ -1031,6 +1031,14 @@ const MessageCode extensionAugmentationHasOnClause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode extensionAugmentationWithoutName = const MessageCode(
+  "ExtensionAugmentationWithoutName",
+  sharedCode: SharedCode.extensionAugmentationWithoutName,
+  problemMessage: """An extension augmentation must have a name.""",
+  correctionMessage: """Try adding the name of the extension to augment.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionDeclaresAbstractMember = const MessageCode(
   "ExtensionDeclaresAbstractMember",
   sharedCode: SharedCode.extensionDeclaresAbstractMember,
@@ -2153,6 +2161,14 @@ const MessageCode mixinApplicationClassAugmentation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinAugmentationHasOnClause = const MessageCode(
+  "MixinAugmentationHasOnClause",
+  sharedCode: SharedCode.mixinAugmentationHasOnClause,
+  problemMessage: """Mixin augmentations can't have 'on' clauses.""",
+  correctionMessage: """Try removing the 'on' clause.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinDeclaresConstructor = const MessageCode(
   "MixinDeclaresConstructor",
   sharedCode: SharedCode.mixinDeclaresConstructor,
@@ -3174,6 +3190,7 @@ enum SharedCode {
   experimentNotEnabledOffByDefault,
   exportDirectiveAfterPartDirective,
   extensionAugmentationHasOnClause,
+  extensionAugmentationWithoutName,
   extensionDeclaresAbstractMember,
   extensionDeclaresConstructor,
   extensionPrimaryConstructor,
@@ -3259,6 +3276,7 @@ enum SharedCode {
   missingPrimaryConstructorParameters,
   missingStatement,
   mixinApplicationClassAugmentation,
+  mixinAugmentationHasOnClause,
   mixinDeclaresConstructor,
   mixinPrimaryConstructor,
   mixinWithClause,

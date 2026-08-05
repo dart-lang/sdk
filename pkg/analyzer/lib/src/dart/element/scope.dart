@@ -13,23 +13,34 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
-  ConstructorInitializerScope(super.parent, ConstructorElement element) {
+  ConstructorInitializerScope(
+    super.parent,
+    ConstructorElement element,
+    List<FormalParameterFragmentImpl> formalParameterFragments,
+  ) {
     var hasWildcardVariables = element.library.featureSet.isEnabled(
       Feature.wildcard_variables,
     );
-    for (var formalParameter in element.formalParameters) {
-      // Skip wildcards.
-      if (formalParameter.name == '_' && hasWildcardVariables) {
+
+    for (var formalParameter in formalParameterFragments) {
+      if (formalParameter.isOriginOtherFragmentOfEnclosing) {
+        continue;
+      }
+
+      var name = formalParameter.name;
+      if (name == null || name == '_' && hasWildcardVariables) {
         continue;
       }
 
       // If the parameter is a private named parameter, then the formal
       // parameter's name is the public name, but in the constructor initializer
       // list, it is referred to by its private name.
-      if (formalParameter case FieldFormalParameterElement(:var privateName?)) {
-        _getters[privateName] ??= formalParameter;
+      if (formalParameter case FieldFormalParameterFragmentImpl(
+        :var privateName?,
+      )) {
+        _getters[privateName] ??= formalParameter.element;
       } else {
-        _addGetter(formalParameter);
+        _getters[name] ??= formalParameter.element;
       }
     }
   }
@@ -106,19 +117,24 @@ class ExtensionScope extends EnclosedScope {
 class FormalParameterScope extends EnclosedScope {
   FormalParameterScope(
     super.parent,
-    List<FormalParameterElement> elements, {
+    List<FormalParameterFragmentImpl> fragments, {
     required FeatureSet featureSet,
   }) {
-    for (var element in elements) {
-      if (element is FieldFormalParameterElement ||
-          element is SuperFormalParameterElement) {
+    for (var fragment in fragments) {
+      if (fragment.isOriginOtherFragmentOfEnclosing ||
+          fragment is FieldFormalParameterFragmentImpl ||
+          fragment is SuperFormalParameterFragmentImpl) {
         continue;
       }
-      if (featureSet.isEnabled(Feature.wildcard_variables) &&
-          element.name == '_') {
+
+      var name = fragment.name;
+      if (featureSet.isEnabled(Feature.wildcard_variables) && name == '_') {
         continue;
       }
-      _addGetter(element);
+
+      if (name != null) {
+        _getters[name] ??= fragment.element;
+      }
     }
   }
 }
@@ -821,26 +837,30 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
 /// It includes every primary formal parameter which is not declaring, not
 /// initializing, and not a super parameter.
 class PrimaryParameterScope extends EnclosedScope {
-  PrimaryParameterScope(super.parent, ConstructorElement element) {
+  PrimaryParameterScope(
+    super.parent,
+    ConstructorElement element,
+    List<FormalParameterFragmentImpl> formalParameterFragments,
+  ) {
     assert(element.isPrimary);
 
     var hasWildcardVariables = element.library.featureSet.isEnabled(
       Feature.wildcard_variables,
     );
 
-    for (var formalParameter in element.formalParameters) {
-      // Skip wildcards.
-      if (hasWildcardVariables && formalParameter.name == '_') {
+    for (var fragment in formalParameterFragments) {
+      if (fragment.isOriginOtherFragmentOfEnclosing ||
+          fragment is FieldFormalParameterFragmentImpl ||
+          fragment is SuperFormalParameterFragmentImpl) {
         continue;
       }
 
-      // Note, declaring formal parameters are field formals.
-      if (formalParameter is FieldFormalParameterElement ||
-          formalParameter is SuperFormalParameterElement) {
+      var name = fragment.name;
+      if (name == null || hasWildcardVariables && name == '_') {
         continue;
       }
 
-      _addGetter(formalParameter);
+      _getters[name] ??= fragment.element;
     }
   }
 }

@@ -97,6 +97,8 @@ class Flags {
 
   static int CompareFlagNames(const void* left, const void* right);
 
+  static char* CheckFlags();
+
   static void PrintFlags();
 
 #ifndef PRODUCT
@@ -185,6 +187,11 @@ constexpr bool FLAG_target_thread_sanitizer = false;
 #endif
 
 DECLARE_FLAG(bool, experimental_shared_data);
+
+inline bool UseInlineAllocation() {
+  return FLAG_inline_alloc && !FLAG_use_slow_path &&
+         !FLAG_target_memory_sanitizer;
+}
 
 }  // namespace dart
 

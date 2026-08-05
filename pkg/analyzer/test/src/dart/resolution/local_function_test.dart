@@ -29,7 +29,7 @@ void foo<T>(T _) {}
 ''');
 
     var formalParameter = result.findElement.parameter('a');
-    expect(formalParameter.constantInitializer, isA<FunctionReference>());
+    expect(formalParameter.constantInitializer2, isA<FunctionReference>());
   }
 
   test_element_block() async {
@@ -111,9 +111,9 @@ MethodInvocation
 ''');
   }
 
-  test_element_switchCase_language219() async {
+  test_element_switchCase_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 f(int a) {
   switch (a) {
     case 1:

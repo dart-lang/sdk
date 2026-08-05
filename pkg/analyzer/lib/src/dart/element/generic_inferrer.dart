@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -143,7 +142,7 @@ class GenericInferrer {
           preliminary: true,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: null,
-          treeNodeForTesting: null,
+          astNodeForTesting: null,
         )
         .cast<TypeImpl>();
 
@@ -311,7 +310,7 @@ class GenericInferrer {
           preliminary: false,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: null,
-          treeNodeForTesting: null,
+          astNodeForTesting: null,
         )
         .cast<TypeImpl>();
     // Check the inferred types against all of the constraints.
@@ -587,26 +586,31 @@ class GenericInferrer {
       return;
     }
     if (errorEntity is AstNode &&
-        errorEntity.parent is InvocationExpression &&
-        errorEntity.parent?.parent is AsExpression) {
+        errorEntity.parent2 is InvocationExpression &&
+        errorEntity.parent2?.parent2 is AsExpression) {
       // Casts via `as` do not play a part in downward inference. We allow an
       // exception when inference has "failed" but the return value is
       // immediately cast with `as`.
       return;
     }
-    if (errorEntity is ConstructorName &&
-        !(errorEntity.type.type as InterfaceType)
-            .element
-            .metadata
-            .hasOptionalTypeArgs) {
-      String constructorName = errorEntity.name == null
-          ? errorEntity.type.qualifiedName
-          : '${errorEntity.type}.${errorEntity.name}';
-      diagnosticReporter.report(
-        diag.inferenceFailureOnInstanceCreation
-            .withArguments(function: constructorName)
-            .at(errorEntity),
-      );
+    if (errorEntity is ConstructorReference2Impl) {
+      var type = errorEntity.typeReference.type;
+      if (type is InterfaceTypeImpl &&
+          !type.element.metadata.hasOptionalTypeArgs) {
+        var typeReference = errorEntity.typeReference;
+        var constructorName = [
+          if (typeReference.importPrefix case var importPrefix?)
+            '${importPrefix.name.lexeme}.',
+          typeReference.name.lexeme,
+          if (errorEntity.selector case var selector?)
+            '.${selector.name2.lexeme}',
+        ].join();
+        diagnosticReporter.report(
+          diag.inferenceFailureOnInstanceCreation
+              .withArguments(function: constructorName)
+              .at(errorEntity),
+        );
+      }
     } else if (errorEntity is Annotation) {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.

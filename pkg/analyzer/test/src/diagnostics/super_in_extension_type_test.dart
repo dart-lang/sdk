@@ -27,8 +27,20 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: InvalidType
 BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
@@ -58,7 +70,7 @@ extension type A(int it) {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: A
   operator: .
@@ -88,7 +100,7 @@ extension type A(int it) {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: A
   operator: .

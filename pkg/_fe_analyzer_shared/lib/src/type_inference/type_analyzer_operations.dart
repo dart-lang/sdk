@@ -115,7 +115,7 @@ abstract interface class TypeAnalyzerOperations<
     required bool inferenceUsingBoundsIsEnabled,
     required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
-    required AstNode? treeNodeForTesting,
+    required AstNode? astNodeForTesting,
   });
 
   TypeConstraintGenerator<
@@ -1094,7 +1094,7 @@ mixin TypeAnalyzerOperationsMixin<
     required bool inferenceUsingBoundsIsEnabled,
     required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
-    required AstNode? treeNodeForTesting,
+    required AstNode? astNodeForTesting,
   }) {
     List<SharedType> inferredTypes =
         previouslyInferredTypes?.toList(growable: false) ??

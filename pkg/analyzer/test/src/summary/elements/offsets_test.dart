@@ -2072,7 +2072,7 @@ library
                   literal: 2 @32
                   staticType: int
   functions
-    isOriginDeclaration isStatic main
+    hasImplicitReturnType isOriginDeclaration isStatic main
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       formalParameters
@@ -2139,7 +2139,7 @@ library
                     rightParenthesis: ) @37
                   element: dart:core::@class::Object::@constructor::new
   functions
-    isOriginDeclaration isStatic main
+    hasImplicitReturnType isOriginDeclaration isStatic main
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       formalParameters
@@ -3269,7 +3269,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F4
           formalParameters

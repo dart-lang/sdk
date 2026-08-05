@@ -7,6 +7,7 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -81,8 +82,10 @@ class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
   @override
   DartType? computeNodeValue(Id id, TreeNode node) {
     if (node is Variable || node is LocalFunction) {
-      TreeNode? alias = _sourceLoaderDataForTesting.toOriginal(node);
-      return typeInferenceResult.inferredVariableTypes[alias];
+      InternalNode? internalNode = _sourceLoaderDataForTesting.toInternalNode(
+        node,
+      );
+      return typeInferenceResult.inferredVariableTypes[internalNode];
     }
     return null;
   }

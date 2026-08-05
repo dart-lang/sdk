@@ -40,9 +40,10 @@ mixin NullShortingMixin<
   }) {
     assert(targetDepth < nullShortingDepth);
     SharedTypeView inferredType = operations.makeNullable(innerResult.type);
+    int endOffset = expressionEndOffset(wholeExpression);
     do {
       // End non-nullable promotion of the null-aware variable.
-      flow.nullAwareAccess_end();
+      flow.nullAwareAccess_end(offset: endOffset);
       innerResult = handleNullShortingStep(
         innerResult,
         _guards.removeLast(),
@@ -102,11 +103,17 @@ mixin NullShortingMixin<
   /// should pass in the variable used for desugaring as [guardVariable]. Flow
   /// analysis will ensure that this variable is promoted to the appropriate
   /// type in the "not null" code path.
+  ///
+  /// [offset] is the last source offset that should be considered to be part of
+  /// the target of the null-aware access. The offset of either character in the
+  /// `?.` token should work, since no expressions can appear in this range, but
+  /// the first character of the token is probably the best choice.
   ExpressionInfo? startNullShorting(
     Guard guard,
     ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     Variable? guardVariable,
+    int offset = 0,
   }) {
     // Ensure the initializer of [_nullAwareVariable] is promoted to
     // non-nullable.
@@ -114,6 +121,7 @@ mixin NullShortingMixin<
       targetInfo,
       targetType,
       guardVariable: guardVariable,
+      offset: offset,
     );
     _guards.add(guard);
     return targetInfo;
@@ -136,6 +144,9 @@ abstract interface class TypeAnalysisNullShortingInterface<
   ///
   /// Typically this will be an instance of [TypeAnalyzerOperations].
   FlowAnalysisTypeOperations get operations;
+
+  /// Gets the offset of the end of an expression.
+  int expressionEndOffset(Expression expression);
 
   /// Terminates one or more null-shorting operations that were previously
   /// started using [NullShortingMixin.startNullShorting].

@@ -356,7 +356,9 @@ class KernelTarget {
   bool _hasComputedNeededPrecompilations = false;
 
   // TODO(johnniwinther): Remove this.
-  Future<void> computeNeededPrecompilations() async {
+  Future<void> computeNeededPrecompilations({
+    bool onlyDirectives = false,
+  }) async {
     assert(
       !_hasComputedNeededPrecompilations,
       "Needed precompilations have already been computed.",
@@ -367,7 +369,7 @@ class KernelTarget {
       benchmarker
       // Coverage-ignore(suite): Not run.
       ?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
-      await loader.buildOutlines();
+      await loader.buildOutlines(onlyDirectives: onlyDirectives);
 
       benchmarker
       // Coverage-ignore(suite): Not run.

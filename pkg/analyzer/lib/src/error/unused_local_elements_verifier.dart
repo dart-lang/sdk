@@ -23,8 +23,8 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
-/// An [AstVisitor] that fills [UsedLocalElements].
-class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
+/// An [AstVisitor2] that fills [UsedLocalElements].
+class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   final UsedLocalElements usedElements = UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -56,10 +56,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var element = node.element;
     usedElements.addMember(element);
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
@@ -101,9 +101,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
-    var redirectedConstructor = node.redirectedConstructor;
-    if (redirectedConstructor != null) {
-      var redirectedElement = redirectedConstructor.element;
+    var factoryRedirectionTarget = node.factoryRedirectionTarget;
+    if (factoryRedirectionTarget != null) {
+      var redirectedElement = factoryRedirectionTarget.element;
       if (redirectedElement != null) {
         // TODO(scheglov): Only if not _isPubliclyAccessible
         _matchParameters(
@@ -116,6 +116,32 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       }
     }
     super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _addParametersForArguments(node.argumentList);
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _useIdentifierElement(node.typeReference.element);
+    _useIdentifierElement(node.element);
+    super.visitConstructorReference2(node);
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _useIdentifierElement(node.typeReference.element);
+    var element = node.element;
+    _useIdentifierElement(element);
+    if (element != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
+    super.visitConstructorTearOff(node);
   }
 
   @override
@@ -165,7 +191,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is! FunctionDeclaration) {
+    if (node.parent2 is! FunctionDeclaration) {
       usedElements.addElement(node.declaredFragment?.element);
     }
     super.visitFunctionExpression(node);
@@ -194,24 +220,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _addParametersForArguments(node.argumentList);
-    super.visitInstanceCreationExpression(node);
-  }
-
-  @override
   void visitIsExpression(IsExpression node) {
     var insideIsExpressionOld = _insideIsExpression;
-    node.expression.accept(this);
+    node.expression2.accept2(this);
     try {
       _insideIsExpression = true;
-      node.type.accept(this);
+      node.type.accept2(this);
     } finally {
       _insideIsExpression = insideIsExpressionOld;
     }
@@ -253,17 +273,45 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    var element = node.element;
-    usedElements.addMember(element);
-    super.visitPostfixExpression(node);
+  void visitPostfixDecrement(PostfixDecrement node) {
+    usedElements.addMember(node.element);
+    super.visitPostfixDecrement(node);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
+  void visitPostfixIncrement(PostfixIncrement node) {
+    usedElements.addMember(node.element);
+    super.visitPostfixIncrement(node);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    usedElements.addMember(node.element);
+    super.visitPrefixDecrement(node);
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    usedElements.addMember(node.element);
+    super.visitPrefixIncrement(node);
+  }
+
+  @override
+  void visitRedirectingConstructorInvocation(
+    RedirectingConstructorInvocation node,
+  ) {
     var element = node.element;
-    usedElements.addMember(element);
-    super.visitPrefixExpression(node);
+    usedElements.addElement(element);
+    _addParametersForArguments(node.argumentList);
+
+    // TODO(scheglov): Remove this compatibility behavior and report optional
+    // parameters that are omitted by every invocation.
+    if (element != null && node.constructorSelector != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
+    super.visitRedirectingConstructorInvocation(node);
   }
 
   @override
@@ -278,10 +326,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (node.inCommentReference) {
+    if (node.inCommentReference2) {
       return;
     }
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
     // Store un-parameterized members.
     if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
@@ -302,22 +350,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         usedElements.addElement(element);
       }
     } else {
-      var parent = node.parent!;
-      _useIdentifierElement(node.readElement);
-      _useIdentifierElement(node.writeElement);
+      var parent = node.parent2!;
+      _useIdentifierElement(node.readElement2);
+      _useIdentifierElement(node.writeElement2);
       _useIdentifierElement(node.element);
-      var grandparent = parent.parent;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
-          (element is ExecutableElement && parent is MethodInvocation) ||
-          // named constructor
-          (element is ConstructorElement &&
-              parent is ConstructorName &&
-              grandparent is InstanceCreationExpression) ||
-          // unnamed constructor
-          (element is InterfaceElement &&
-              grandparent is ConstructorName &&
-              grandparent.parent is InstanceCreationExpression);
+          element is ExecutableElement && parent is MethodInvocation;
       if (element is ExecutableElement &&
           isIdentifierRead &&
           !functionReferenceIsCall) {
@@ -351,7 +390,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    var element = node.element;
+    usedElements.addElement(element);
     _addParametersForArguments(node.argumentList);
+
+    // TODO(scheglov): Remove this compatibility behavior and report optional
+    // parameters that are omitted by every invocation.
+    if (element != null && node.constructorSelector != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
     super.visitSuperConstructorInvocation(node);
   }
 
@@ -368,16 +417,22 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    usedElements.addMember(node.element);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    node.metadata.accept(this);
+    node.metadata.accept2(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
     try {
       _enclosingVariableDeclaration = node;
-      node.type?.accept(this);
+      node.type?.accept2(this);
     } finally {
       _enclosingVariableDeclaration = enclosingVariableDeclarationOld;
     }
-    node.variables.accept(this);
+    node.variables.accept2(this);
   }
 
   /// Add [element] as a used member and, if [element] is a setter, add its
@@ -392,7 +447,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addParametersForArguments(ArgumentList argumentList) {
-    for (var argument in argumentList.arguments) {
+    for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       usedElements.addElement(parameter);
     }
@@ -432,15 +487,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return false;
     }
     // Check if useless reading.
-    AstNode parent = node.parent!;
+    AstNode parent = node.parent2!;
 
-    if (parent.parent is ExpressionStatement) {
-      if (parent is PrefixExpression || parent is PostfixExpression) {
+    if (parent.parent2 is ExpressionStatement) {
+      if (parent is NullAssertionExpression ||
+          parent is LogicalNot ||
+          parent is IncrementOrDecrementExpression ||
+          parent is UnaryOperatorInvocation) {
         // v++;
         // ++v;
         return false;
       }
-      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
         // v ??= doSomething();
         //   vs.
         // v += 2;
@@ -505,7 +563,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 /// looking for cases of [diag.unusedElement],
 /// [diag.unusedField],
 /// [diag.unusedLocalVariable], etc.
-class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
+class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   /// The elements know to be used.
@@ -721,10 +779,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
-    switch (node.parent) {
+    switch (node.parent2) {
       case ClassDeclarationImpl():
       case EnumDeclarationImpl():
-        for (var parameter in node.formalParameters.parameters) {
+        for (var parameter in node.formalParameters.allFormalParameters) {
           var element = parameter.declaredFragment!.element;
           if (element is FieldFormalParameterElementImpl &&
               element.isDeclaring) {
@@ -748,7 +806,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         // renaming it to be public is not an improvement.
         break;
       default:
-        throw UnimplementedError('${node.parent.runtimeType}');
+        throw UnimplementedError('${node.parent2.runtimeType}');
     }
 
     super.visitPrimaryConstructorDeclaration(node);
@@ -926,8 +984,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       }
       if (enclosingElement is ConstructorElement &&
           enclosingElement.enclosingElement.typeParameters.isNotEmpty) {
-        // There is an issue matching arguments of instance creation
-        // expressions for generic classes with parameters, so for now,
+        // There is an issue matching arguments of constructor invocations for
+        // generic classes with parameters, so for now,
         // consider every parameter of a constructor of a generic class
         // "used". See https://github.com/dart-lang/sdk/issues/47839.
         return true;

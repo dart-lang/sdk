@@ -3,7 +3,6 @@ import self as self;
 import "dart:core" as core;
 
 [217]static method [223] [325] method([224, -1] dynamic o) → dynamic {
-[231]  #L1:
 [231]  {
 [239]    [239, -1] final synthesized dynamic #0#0 = [239] [239] o;
 [-1]    [-1, -1] synthesized core::int #0#2;

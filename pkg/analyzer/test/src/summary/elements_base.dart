@@ -43,7 +43,7 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   }
 
   Future<LibraryElementImpl> buildLibrary(String text) async {
-    var file = newFile(testFile.path, text);
+    var file = newFileWithLanguageFeatureDirective(testFile.path, text);
     return await buildFileLibrary(file);
   }
 

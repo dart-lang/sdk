@@ -26,6 +26,14 @@ class LegacyPluginsPage extends DiagnosticPageWithNav {
   @override
   Future<void> generateContent(Map<String, String> params) async {
     h3('Legacy analysis plugins');
+    p(
+      'Support for legacy plugins is deprecated, and will be removed in an '
+      'upcoming version of Dart. See '
+      '<a href="https://dart.dev/tools/analyzer-plugins">'
+      'https://dart.dev/tools/analyzer-plugins</a> '
+      'for documentation regarding the new analyzer plugin system.',
+      raw: true,
+    );
     var plugins = server.pluginManager.legacyPluginIsolates;
 
     if (plugins.isEmpty) {

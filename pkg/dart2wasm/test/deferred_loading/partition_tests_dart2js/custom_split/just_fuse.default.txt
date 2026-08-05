@@ -5,8 +5,8 @@ Part 0
      - pkg/compiler/test/custom_split/data/just_fuse/lib3.dart prefix: b3
      - pkg/compiler/test/custom_split/data/just_fuse/lib4.dart prefix: b4
   References
-     - dart:_string::@methods::dart:_string::_JS_Inline_173
-     - dart:_string::@methods::dart:_string::_JS_Inline_181
+     - dart:_string::@methods::dart:_string::_JS_Inline_174
+     - dart:_string::@methods::dart:_string::_JS_Inline_182
      - dart:_string::@methods::dart:_string::_jsIdentical
      - dart:_string::@methods::dart:_string::_jsStringToUpperCase
      - dart:_string::@methods::jsStringFromCharCodeArray

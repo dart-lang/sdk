@@ -28,6 +28,7 @@ import 'package:test/test.dart';
 
 import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
+import '../../../util/language_feature_directive_lowering.dart';
 import '../../summary/resolved_ast_printer.dart';
 import '../analysis/result_printer.dart';
 import 'dart_object_printer.dart';
@@ -127,14 +128,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
       configuration: ElementPrinterConfiguration(),
     );
 
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration(),
-        withResolution: false,
-      ),
-    );
+    ResolvedAstPrinter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: ResolvedNodeTextConfiguration(),
+      withResolution: false,
+    ).writeNodeWithV1Projection(node);
 
     var actual = buffer.toString();
     if (actual != expected) {
@@ -243,10 +242,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is AssignmentExpression) {
       return node.element;
-    } else if (node is BinaryExpression) {
+    } else if (node is BinaryOperatorInvocation) {
       return node.element;
-    } else if (node is ConstructorReference) {
-      return node.constructorName.element;
+    } else if (node is BinaryOperatorInvocation) {
+      return node.element;
+    } else if (node is BinaryOperatorInvocation) {
+      return node.element;
+    } else if (node is ConstructorTearOff) {
+      return node.element;
     } else if (node is Declaration) {
       return node.declaredFragment?.element;
     } else if (node is ExtensionOverride) {
@@ -256,13 +259,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is FunctionExpressionInvocation) {
       return node.element;
     } else if (node is FunctionReference) {
-      var function = node.function.unParenthesized;
+      var function = node.function2.unParenthesized2;
       if (function is Identifier) {
         return function.element;
       } else if (function is PropertyAccess) {
         return function.propertyName.element;
-      } else if (function is ConstructorReference) {
-        return function.constructorName.element;
+      } else if (function is ConstructorTearOff) {
+        return function.element;
       } else {
         fail('Unsupported node: (${function.runtimeType}) $function');
       }
@@ -280,6 +283,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is PrefixExpression) {
       return node.element;
+    } else if (node is UnaryOperatorInvocation) {
+      return node.element;
     } else if (node is PropertyAccess) {
       return node.propertyName.element;
     } else if (node is NamedType) {
@@ -287,6 +292,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
+  }
+
+  File newFileWithLanguageFeatureDirective(String path, String content) {
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(content);
+    return newFile(path, featureDirectiveLowering.loweredCode);
   }
 
   Future<ResolvedUnitResultImpl> resolveFile(File file);
@@ -299,7 +309,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Create a new file with the [path] and [content], and resolve it.
   Future<TestResolvedUnitResult> resolveFileCode(String path, String content) {
-    var file = newFile(path, content);
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(content);
+    var file = newFile(path, featureDirectiveLowering.loweredCode);
     return resolveFile2(file);
   }
 
@@ -312,12 +323,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Future<Map<File, TestResolvedUnitResult>> resolveFilesWithDiagnostics(
     Map<File, String> filesToCode,
   ) async {
-    var files = <({File file, String code, String cleanCode})>[];
-
+    var files = <_DiagnosticTestFile>[];
     for (var entry in filesToCode.entries) {
-      var cleanCode = removeDiagnosticExpectations(entry.value);
-      modifyFile2(entry.key, cleanCode);
-      files.add((file: entry.key, code: entry.value, cleanCode: cleanCode));
+      var file = _DiagnosticTestFile(entry.key, entry.value);
+      modifyFile2(file.file, file.loweredCode);
+      files.add(file);
     }
 
     var results = <File, TestResolvedUnitResult>{};
@@ -330,7 +340,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
 
     var actualCodeByFile = updateExpectedDiagnosticsForFiles(
-      contentByFile: {for (var file in files) file.file: file.cleanCode},
+      contentByFile: {for (var file in files) file.file: file.loweredCode},
       actualDiagnosticsByFile: diagnosticsByFile,
     );
 
@@ -338,11 +348,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     for (var index = 0; index < files.length; index++) {
       var file = files[index];
       var actual = actualCodeByFile[file.file]!;
-      if (actual != file.code) {
+      actual = file.restoreDirective(actual);
+      if (actual != file.expectedCode) {
         NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
         if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
           print('-------- ${file.file.path} --------');
-          printPrettyDiff(file.code, actual);
+          printPrettyDiff(file.expectedCode, actual);
         }
         hasMismatch = true;
       }
@@ -366,7 +377,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Put the [code] into the test file, and resolve it.
   Future<TestResolvedUnitResult> resolveTestCode(String code) {
-    addTestFile(code);
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(code);
+    addTestFile(featureDirectiveLowering.loweredCode);
     return resolveTestFile();
   }
 
@@ -398,15 +410,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withRedirectedConstructors
         ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
     );
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: nodeTextConfiguration,
-      ),
-    );
+    ResolvedAstPrinter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: nodeTextConfiguration,
+    ).writeNodeWithV1Projection(node);
 
-    var unit = node.thisOrAncestorOfType<CompilationUnitImpl>();
+    var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
+        ? node.thisOrAncestorOfType<CompilationUnitImpl>()
+        : node.thisOrAncestorOfType2<CompilationUnitImpl>();
     if (unit != null) {
       sink.writeElements('invalidNodes', unit.invalidNodes, (node) {
         var range = '[${node.offset}, ${node.end})';
@@ -421,18 +433,19 @@ mixin ResolutionTest implements ResourceProviderMixin {
     File file,
     String code,
   ) async {
-    var cleanCode = removeDiagnosticExpectations(code);
-    modifyFile2(file, cleanCode);
+    var testFile = _DiagnosticTestFile(file, code);
+    modifyFile2(file, testFile.loweredCode);
     var result = await resolveFile2(file);
 
     var actual = updateExpectedDiagnostics(
-      content: cleanCode,
+      content: testFile.loweredCode,
       actualDiagnostics: result.diagnostics,
     );
-    if (actual != code) {
+    actual = testFile.restoreDirective(actual);
+    if (actual != testFile.expectedCode) {
       NodeTextExpectationsCollector.add(actual);
       if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
-        printPrettyDiff(code, actual);
+        printPrettyDiff(testFile.expectedCode, actual);
       }
       fail('See the difference above.');
     }
@@ -447,7 +460,9 @@ final class TestResolvedUnitResult {
 
   late final FindElement2 findElement = FindElement2(unit);
 
-  late final FindNode findNode = FindNode(content, unit);
+  late final FindNode2 findNode = FindNode2(content, unit);
+
+  late final FindNode findNodeV1 = FindNode(content, unit);
 
   TestResolvedUnitResult(this.analysisResult);
 
@@ -488,12 +503,40 @@ final class TestResolvedUnitResult {
   String get uriStr => '$uri';
 }
 
+class _DiagnosticTestFile {
+  final File file;
+  final String expectedCode;
+  final LanguageFeatureDirectiveLowering _featureDirectiveLowering;
+
+  factory _DiagnosticTestFile(File file, String expectedCode) {
+    var cleanCode = removeDiagnosticExpectations(expectedCode);
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(cleanCode);
+    return _DiagnosticTestFile._(file, expectedCode, featureDirectiveLowering);
+  }
+
+  _DiagnosticTestFile._(
+    this.file,
+    this.expectedCode,
+    this._featureDirectiveLowering,
+  );
+
+  String get loweredCode => _featureDirectiveLowering.loweredCode;
+
+  String restoreDirective(String code) {
+    return _featureDirectiveLowering.restoreDirective(code);
+  }
+}
+
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
   FindElement2 get findElement2 {
     return FindElement2(unit);
   }
 
-  FindNode get findNode {
+  FindNode2 get findNode {
+    return FindNode2(content, unit);
+  }
+
+  FindNode get findNodeV1 {
     return FindNode(content, unit);
   }
 

@@ -9,9 +9,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 
-/// Helper for verifying resolution of assignments, in form of explicit
-/// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
-/// when the operator is an increment operator.
+/// Helper for verifying resolution of explicit [AssignmentExpression]s or
+/// implicit [IncrementOrDecrementExpression]s.
 class AssignmentVerifier {
   final DiagnosticReporter _diagnosticReporter;
 

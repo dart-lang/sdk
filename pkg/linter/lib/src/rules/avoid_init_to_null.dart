@@ -36,12 +36,8 @@ class AvoidInitToNull extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   bool isNullable(DartType type) => context.typeSystem.isNullable(type);
 
   @override

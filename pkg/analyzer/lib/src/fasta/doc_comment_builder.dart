@@ -750,13 +750,13 @@ final class DocCommentBuilder {
         identifier: SimpleIdentifierImpl(token: secondToken!),
       );
       var expression = PropertyAccessImpl(
-        target: target,
+        target2: target,
         operator: secondPeriod!,
         propertyName: identifier,
       );
       return CommentReferenceImpl(
         newKeyword: newKeyword,
-        expression: expression,
+        expression2: expression,
         isSynthetic: isSynthetic,
       );
     } else if (secondToken != null) {
@@ -767,13 +767,13 @@ final class DocCommentBuilder {
       );
       return CommentReferenceImpl(
         newKeyword: newKeyword,
-        expression: expression,
+        expression2: expression,
         isSynthetic: isSynthetic,
       );
     } else {
       return CommentReferenceImpl(
         newKeyword: newKeyword,
-        expression: identifier,
+        expression2: identifier,
         isSynthetic: isSynthetic,
       );
     }

@@ -512,13 +512,13 @@ class FormalParameterBuilder extends NamedBuilderImpl
           declaredType: variable.type,
           hasDeclaredDefaultValue: hasDeclaredDefaultValue,
         );
-        variable.updateDefaultValue(defaultValue);
+        variable.setInferredDefaultValue(defaultValue);
         if (defaultValue is InvalidExpression) {
           variable.hasErroneousDefaultValue = true;
         }
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
-        variable.updateDefaultValue(
+        variable.setInferredDefaultValue(
           extern.createNullLiteral(fileOffset: fileOffset),
         );
       }

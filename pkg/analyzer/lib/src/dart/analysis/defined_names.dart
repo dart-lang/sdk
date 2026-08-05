@@ -30,7 +30,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     PrimaryConstructorDeclarationImpl constructor, {
     bool isExtensionType = false,
   }) {
-    var parameters = constructor.formalParameters.parameters;
+    var parameters = constructor.formalParameters.allFormalParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       var isRepresentation =

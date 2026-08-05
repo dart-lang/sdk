@@ -135,8 +135,10 @@ existing methods.
 
 ### Add test support
 
-Many of the tests use a utility class named `FindNode` to locate nodes of
-interest within an AST structure. That class has a separate method for each
-concrete subclass of `AstNode`, so you'll want to add methods to it for each of
-the classes you've added. The class is in
+Many of the tests use the `FindNode` and `FindNode2` utility classes to locate
+nodes in the V1 and V2 AST tree views, respectively. Analyzer tests use
+`FindNode2` while tests in packages that consume analyzer use `FindNode` unless
+they are intentionally testing the V2 API. The classes share a separate method
+for each concrete subclass of `AstNode`, so you'll want to add a method for
+each class you've added. The classes are in
 `analyzer/lib/src/test_utilities/find_node.dart`.

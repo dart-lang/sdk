@@ -106,15 +106,15 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       FunctionBody body = test.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
-        returnExp = body.expression;
+        returnExp = body.expression2;
       } else {
         var stmt =
             (body as BlockFunctionBody).block.statements[0] as ReturnStatement;
-        returnExp = stmt.expression!;
+        returnExp = stmt.expression2!;
       }
       DartType type = returnExp.typeOrThrow;
       if (returnExp is AwaitExpression) {
-        type = returnExp.expression.typeOrThrow;
+        type = returnExp.expression2.typeOrThrow;
       }
       typeTest(type as InterfaceType);
     }
@@ -163,15 +163,15 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var body = test.functionExpression.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
-        returnExp = body.expression;
+        returnExp = body.expression2;
       } else {
         var stmt =
             (body as BlockFunctionBody).block.statements[0] as ReturnStatement;
-        returnExp = stmt.expression!;
+        returnExp = stmt.expression2!;
       }
       DartType type = returnExp.typeOrThrow;
       if (returnExp is AwaitExpression) {
-        type = returnExp.expression.typeOrThrow;
+        type = returnExp.expression2.typeOrThrow;
       }
       typeTest(type as InterfaceType);
     }
@@ -212,7 +212,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     CascadeExpression fetch(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as CascadeExpression;
+      var exp = decl.initializer2 as CascadeExpression;
       return exp;
     }
 
@@ -223,8 +223,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
     CascadeExpression cascade = fetch(0);
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
-    var invoke = cascade.cascadeSections[0] as MethodInvocation;
-    var function = invoke.argumentList.arguments[1] as FunctionExpression;
+    var invoke = cascade.cascadeSections2[0] as MethodInvocation;
+    var function = invoke.argumentList.arguments2[1] as FunctionExpression;
     ExecutableElement f0 = function.declaredFragment!.element;
     _isListOf(_isInt)(f0.type.returnType as InterfaceType);
     expect(f0.type.normalParameterTypes[0], result.typeProvider.intType);
@@ -249,7 +249,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer!;
+    Expression call = decl.initializer2!;
     _isInt(call.typeOrThrow);
   }
 
@@ -272,7 +272,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer!;
+    Expression call = decl.initializer2!;
     _isInt(call.typeOrThrow);
   }
 
@@ -292,7 +292,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer!;
+    Expression call = decl.initializer2!;
     _isInt(call.typeOrThrow);
   }
 
@@ -317,7 +317,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer!;
+    Expression call = decl.initializer2!;
     _isInt(call.typeOrThrow);
   }
 
@@ -347,7 +347,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer!;
+    Expression call = decl.initializer2!;
     _isType(call.typeOrThrow);
   }
 
@@ -365,7 +365,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       null,
     );
     var assignment = constructor.initializers[0] as ConstructorFieldInitializer;
-    Expression exp = assignment.expression;
+    Expression exp = assignment.expression2;
     _isListOf(_isString)(exp.staticType as InterfaceType);
   }
 
@@ -386,7 +386,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     var body = constructor.body as BlockFunctionBody;
     var stmt = body.block.statements[0] as ReturnStatement;
-    var exp = stmt.expression as InstanceCreationExpression;
+    var exp = stmt.expression2 as ConstructorInvocation;
     ClassElement elementB = AstFinder.getClass(
       result.unit,
       "B",
@@ -395,7 +395,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "A",
     ).declaredFragment!.element;
-    var type = exp.constructorName.type.typeOrThrow as InterfaceType;
+    var type = exp.staticType as InterfaceType;
     expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(
@@ -420,7 +420,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "f0",
     );
 
-    _isListOf(_isString)(field.initializer!.staticType as InterfaceType);
+    _isListOf(_isString)(field.initializer2!.staticType as InterfaceType);
   }
 
   test_functionDeclaration_body_propagation() async {
@@ -446,7 +446,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "test1",
     );
     var body = test1.functionExpression.body as ExpressionFunctionBody;
-    assertListOfInt(body.expression.staticType as InterfaceType);
+    assertListOfInt(body.expression2.staticType as InterfaceType);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
       result.unit,
@@ -457,13 +457,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         (statements[0] as FunctionDeclarationStatement).functionDeclaration;
     var body0 = inner.functionExpression.body as BlockFunctionBody;
     var return0 = body0.block.statements[0] as ReturnStatement;
-    Expression anon0 = return0.expression!;
+    Expression anon0 = return0.expression2!;
     var type0 = anon0.staticType as FunctionType;
     expect(type0.returnType, result.typeProvider.intType);
     expect(type0.normalParameterTypes[0], result.typeProvider.stringType);
 
     var anon1 =
-        (statements[1] as ReturnStatement).expression as FunctionExpression;
+        (statements[1] as ReturnStatement).expression2 as FunctionExpression;
     FunctionType type1 = anon1.declaredFragment!.element.type;
     expect(type1.returnType, result.typeProvider.intType);
     expect(type1.normalParameterTypes[0], result.typeProvider.intType);
@@ -507,7 +507,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     DartType literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as FunctionExpression;
+      var exp = decl.initializer2 as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -554,7 +554,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     DartType literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as FunctionExpression;
+      var exp = decl.initializer2 as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -598,13 +598,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Expression functionReturnValue(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as FunctionExpression;
+      var exp = decl.initializer2 as FunctionExpression;
       FunctionBody body = exp.body;
       if (body is ExpressionFunctionBody) {
-        return body.expression;
+        return body.expression2;
       } else {
         Statement stmt = (body as BlockFunctionBody).block.statements[0];
-        return (stmt as ReturnStatement).expression!;
+        return (stmt as ReturnStatement).expression2!;
       }
     }
 
@@ -646,8 +646,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression as FunctionExpressionInvocation;
-      var exp = invk.argumentList.arguments[0] as FunctionExpression;
+      var invk = stmt.expression2 as FunctionExpressionInvocation;
+      var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -687,8 +687,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression as FunctionExpressionInvocation;
-      var exp = invk.argumentList.arguments[0] as FunctionExpression;
+      var invk = stmt.expression2 as FunctionExpressionInvocation;
+      var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -728,8 +728,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression as MethodInvocation;
-      var exp = invk.argumentList.arguments[0] as FunctionExpression;
+      var invk = stmt.expression2 as MethodInvocation;
+      var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -767,8 +767,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression as MethodInvocation;
-      var exp = invk.argumentList.arguments[0] as FunctionExpression;
+      var invk = stmt.expression2 as MethodInvocation;
+      var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -810,8 +810,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression as MethodInvocation;
-      var exp = invk.argumentList.arguments[0] as FunctionExpression;
+      var invk = stmt.expression2 as MethodInvocation;
+      var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -851,8 +851,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression as MethodInvocation;
-      var exp = invk.argumentList.arguments[0] as FunctionExpression;
+      var invk = stmt.expression2 as MethodInvocation;
+      var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -897,13 +897,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     Expression functionReturnValue(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as FunctionExpression;
+      var exp = decl.initializer2 as FunctionExpression;
       FunctionBody body = exp.body;
       if (body is ExpressionFunctionBody) {
-        return body.expression;
+        return body.expression2;
       } else {
         Statement stmt = (body as BlockFunctionBody).block.statements[0];
-        return (stmt as ReturnStatement).expression!;
+        return (stmt as ReturnStatement).expression2!;
       }
     }
 
@@ -994,7 +994,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
-      invoke.argumentList.arguments[0].argumentExpression.staticType
+      invoke.argumentList.arguments2[0].argumentExpression2.staticType
           as InterfaceType,
     );
   }
@@ -1010,7 +1010,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
-      invoke.argumentList.arguments[0].argumentExpression.staticType
+      invoke.argumentList.arguments2[0].argumentExpression2.staticType
           as InterfaceType,
     );
   }
@@ -1026,7 +1026,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''');
     _isFutureOf([_isNum])(invoke.staticType as InterfaceType);
     _isFutureOf([_isNum])(
-      invoke.argumentList.arguments[0].argumentExpression.staticType
+      invoke.argumentList.arguments2[0].argumentExpression2.staticType
           as InterfaceType,
     );
   }
@@ -1042,7 +1042,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''');
     _isFutureOrOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
-      invoke.argumentList.arguments[0].argumentExpression.staticType
+      invoke.argumentList.arguments2[0].argumentExpression2.staticType
           as InterfaceType,
     );
   }
@@ -1058,7 +1058,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
-      invoke.argumentList.arguments[0].argumentExpression.staticType
+      invoke.argumentList.arguments2[0].argumentExpression2.staticType
           as InterfaceType,
     );
   }
@@ -1076,7 +1076,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
-      invoke.argumentList.arguments[0].argumentExpression.staticType
+      invoke.argumentList.arguments2[0].argumentExpression2.staticType
           as InterfaceType,
     );
   }
@@ -1091,7 +1091,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     FutureOr<List<int>> test() => mk(3);
     ''');
     _isListOf(_isInt)(invoke.staticType as InterfaceType);
-    _isInt(invoke.argumentList.arguments[0].argumentExpression.typeOrThrow);
+    _isInt(invoke.argumentList.arguments2[0].argumentExpression2.typeOrThrow);
   }
 
   test_futureOr_methods1() async {
@@ -1141,7 +1141,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-      invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
+      invoke.argumentList.arguments2[0].argumentExpression2.typeOrThrow,
     );
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
@@ -1155,7 +1155,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {return;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-      invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
+      invoke.argumentList.arguments2[0].argumentExpression2.typeOrThrow,
     );
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
@@ -1169,7 +1169,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {return null;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-      invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
+      invoke.argumentList.arguments2[0].argumentExpression2.typeOrThrow,
     );
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
@@ -1207,7 +1207,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) {});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-      invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
+      invoke.argumentList.arguments2[0].argumentExpression2.typeOrThrow,
     );
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
@@ -1221,7 +1221,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) {return;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-      invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
+      invoke.argumentList.arguments2[0].argumentExpression2.typeOrThrow,
     );
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
@@ -1235,7 +1235,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) { return null;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-      invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
+      invoke.argumentList.arguments2[0].argumentExpression2.typeOrThrow,
     );
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
@@ -1289,7 +1289,7 @@ void test() {
     void check(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      Expression init = decl.initializer!;
+      Expression init = decl.initializer2!;
       _isInstantiationOf(_hasElement(elementA))([_isInt])(init.typeOrThrow);
     }
 
@@ -1406,7 +1406,7 @@ MethodInvocation
     staticType: T Function<T extends num>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1521,14 +1521,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1557,14 +1557,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1593,14 +1593,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1629,14 +1629,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1689,14 +1689,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1725,14 +1725,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1761,14 +1761,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1797,14 +1797,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1857,14 +1857,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1893,14 +1893,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1929,14 +1929,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1965,14 +1965,14 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2027,9 +2027,9 @@ MethodInvocation
     staticType: T Function<T>(T Function(T))
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       FunctionReference
-        function: SimpleIdentifier
+        function2: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
           staticType: S Function<S>(S)
@@ -2064,7 +2064,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var node = result.findNode.methodInvocation('values.fold');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: values
     element: <testLibrary>::@function::test::@formalParameter::values
     staticType: Iterable<dynamic>
@@ -2077,9 +2077,9 @@ MethodInvocation
     staticType: S Function<S>(S, S Function(S, dynamic))
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       AsExpression
-        expression: PrefixedIdentifier
+        expression2: PrefixedIdentifier
           prefix: SimpleIdentifier
             token: values
             element: <testLibrary>::@function::test::@formalParameter::values
@@ -2105,7 +2105,7 @@ MethodInvocation
           substitution: {S: num}
         staticType: num
       FunctionReference
-        function: SimpleIdentifier
+        function2: SimpleIdentifier
           token: max
           element: <testLibrary>::@function::max
           staticType: T Function<T extends num>(T, T)
@@ -2161,16 +2161,16 @@ MethodInvocation
       mapC.declaredFragment!.element.returnType as InterfaceType,
     );
 
-    var mapLiteralB = mapB.initializer as SetOrMapLiteral;
+    var mapLiteralB = mapB.initializer2 as SetOrMapLiteral;
     var mapLiteralC =
-        (mapC.body as ExpressionFunctionBody).expression as SetOrMapLiteral;
+        (mapC.body as ExpressionFunctionBody).expression2 as SetOrMapLiteral;
     assertMapOfIntToListOfInt(mapLiteralB.staticType as InterfaceType);
     assertMapOfIntToListOfInt(mapLiteralC.staticType as InterfaceType);
 
     var listLiteralB =
-        (mapLiteralB.elements[0] as MapLiteralEntry).value as ListLiteral;
+        (mapLiteralB.elements2[0] as MapLiteralEntry).value2 as ListLiteral;
     var listLiteralC =
-        (mapLiteralC.elements[0] as MapLiteralEntry).value as ListLiteral;
+        (mapLiteralC.elements2[0] as MapLiteralEntry).value2 as ListLiteral;
     assertListOfInt(listLiteralB.staticType as InterfaceType);
     assertListOfInt(listLiteralC.staticType as InterfaceType);
   }
@@ -2409,7 +2409,7 @@ MethodInvocation
     Expression rhs(AstNode stmt) {
       stmt as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      Expression exp = decl.initializer!;
+      Expression exp = decl.initializer2!;
       return exp;
     }
 
@@ -2596,7 +2596,7 @@ MethodInvocation
     ListLiteral literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as ListLiteral;
+      var exp = decl.initializer2 as ListLiteral;
       return exp;
     }
 
@@ -2611,13 +2611,13 @@ MethodInvocation
     assertListOfListOfInt(literal(3).staticType as InterfaceType);
 
     assertListOfInt(
-      (literal(1).elements[0] as Expression).staticType as InterfaceType,
+      (literal(1).elements2[0] as Expression).staticType as InterfaceType,
     );
     assertListOfInt(
-      (literal(2).elements[0] as Expression).staticType as InterfaceType,
+      (literal(2).elements2[0] as Expression).staticType as InterfaceType,
     );
     assertListOfInt(
-      (literal(3).elements[0] as Expression).staticType as InterfaceType,
+      (literal(3).elements2[0] as Expression).staticType as InterfaceType,
     );
   }
 
@@ -2650,7 +2650,7 @@ MethodInvocation
     DartType literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as ListLiteral;
+      var exp = decl.initializer2 as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -2691,7 +2691,7 @@ MethodInvocation
     DartType literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as ListLiteral;
+      var exp = decl.initializer2 as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -2736,7 +2736,7 @@ MethodInvocation
     DartType literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as ListLiteral;
+      var exp = decl.initializer2 as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -2775,7 +2775,7 @@ MethodInvocation
     InterfaceType literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as ListLiteral;
+      var exp = decl.initializer2 as ListLiteral;
       return exp.staticType as InterfaceType;
     }
 
@@ -2823,7 +2823,7 @@ MethodInvocation
     SetOrMapLiteral literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as SetOrMapLiteral;
+      var exp = decl.initializer2 as SetOrMapLiteral;
       return exp;
     }
 
@@ -2840,19 +2840,19 @@ MethodInvocation
     assertMapOfIntToListOfString(literal(4).staticType as InterfaceType);
 
     assertListOfString(
-      (literal(1).elements[0] as MapLiteralEntry).value.staticType
+      (literal(1).elements2[0] as MapLiteralEntry).value2.staticType
           as InterfaceType,
     );
     assertListOfString(
-      (literal(2).elements[0] as MapLiteralEntry).value.staticType
+      (literal(2).elements2[0] as MapLiteralEntry).value2.staticType
           as InterfaceType,
     );
     assertListOfString(
-      (literal(3).elements[0] as MapLiteralEntry).value.staticType
+      (literal(3).elements2[0] as MapLiteralEntry).value2.staticType
           as InterfaceType,
     );
     assertListOfString(
-      (literal(4).elements[0] as MapLiteralEntry).value.staticType
+      (literal(4).elements2[0] as MapLiteralEntry).value2.staticType
           as InterfaceType,
     );
   }
@@ -2893,7 +2893,7 @@ MethodInvocation
     InterfaceType literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as SetOrMapLiteral;
+      var exp = decl.initializer2 as SetOrMapLiteral;
       return exp.staticType as InterfaceType;
     }
 
@@ -2943,7 +2943,7 @@ MethodInvocation
     InterfaceType literal(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer as SetOrMapLiteral;
+      var exp = decl.initializer2 as SetOrMapLiteral;
       return exp.staticType as InterfaceType;
     }
 
@@ -2976,10 +2976,10 @@ MethodInvocation
       );
       FunctionBody body = method.body;
       if (body is ExpressionFunctionBody) {
-        return body.expression;
+        return body.expression2;
       } else {
         Statement stmt = (body as BlockFunctionBody).block.statements[0];
-        return (stmt as ReturnStatement).expression!;
+        return (stmt as ReturnStatement).expression2!;
       }
     }
 
@@ -3005,9 +3005,9 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    _isString(body.expression.typeOrThrow);
-    var invoke = body.expression as MethodInvocation;
-    var function = invoke.argumentList.arguments[0] as FunctionExpression;
+    _isString(body.expression2.typeOrThrow);
+    var invoke = body.expression2 as MethodInvocation;
+    var function = invoke.argumentList.arguments2[0] as FunctionExpression;
     ExecutableElement f0 = function.declaredFragment!.element;
     FunctionType type = f0.type;
     _isFunction2Of(_isString, _isInt)(type);
@@ -3037,7 +3037,7 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    DartType type = body.expression.typeOrThrow;
+    DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
       result.unit,
@@ -3068,7 +3068,7 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    DartType type = body.expression.typeOrThrow;
+    DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
       result.unit,
@@ -3102,7 +3102,7 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    DartType type = body.expression.typeOrThrow;
+    DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
       result.unit,
@@ -3134,7 +3134,7 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    DartType type = body.expression.typeOrThrow;
+    DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
       result.unit,
@@ -3168,7 +3168,7 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var functionType = body.expression.staticType as FunctionType;
+    var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
     Element elementA = AstFinder.getClass(
@@ -3202,7 +3202,7 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var functionType = body.expression.staticType as FunctionType;
+    var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
     Element elementA = AstFinder.getClass(
@@ -3237,7 +3237,7 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var functionType = body.expression.staticType as FunctionType;
+    var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
     Element elementA = AstFinder.getClass(
@@ -3272,7 +3272,7 @@ MethodInvocation
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var functionType = body.expression.staticType as FunctionType;
+    var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
     Element elementA = AstFinder.getClass(
@@ -3298,15 +3298,14 @@ class B<T2, U2> {
     var b = result.unit.declarations[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
     var bConstructor = classBody.members[0] as ConstructorDeclaration;
-    var redirected = bConstructor.redirectedConstructor as ConstructorName;
-
-    var typeName = redirected.type;
-    assertType(typeName.type, 'A<T2, U2>');
-    assertType(typeName.type, 'A<T2, U2>');
+    var redirected = bConstructor.factoryRedirectionTarget!;
 
     var constructorMember = redirected.element!;
+    var redirectedType = constructorMember.returnType;
+    assertType(redirectedType, 'A<T2, U2>');
+    assertType(redirectedType, 'A<T2, U2>');
     expect(constructorMember.displayString(), 'A<T2, U2>.named()');
-    expect(redirected.name!.element, constructorMember);
+    expect(redirected.selector, isNotNull);
   }
 
   test_redirectedConstructor_self() async {
@@ -3332,14 +3331,14 @@ class B<T2, U2> {
     var b = result.unit.declarations[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
     var bConstructor = classBody.members[0] as ConstructorDeclaration;
-    var redirected = bConstructor.redirectedConstructor as ConstructorName;
+    var redirected = bConstructor.factoryRedirectionTarget!;
 
-    var typeName = redirected.type;
-    assertType(typeName.type, 'A<T2, U2>');
-    assertType(typeName.type, 'A<T2, U2>');
-
-    expect(redirected.name, isNull);
-    expect(redirected.element!.displayString(), 'A<T2, U2>()');
+    var constructorMember = redirected.element!;
+    var redirectedType = constructorMember.returnType;
+    assertType(redirectedType, 'A<T2, U2>');
+    assertType(redirectedType, 'A<T2, U2>');
+    expect(redirected.selector, isNull);
+    expect(constructorMember.displayString(), 'A<T2, U2>()');
   }
 
   test_redirectingConstructor_propagation() async {
@@ -3358,7 +3357,7 @@ class B<T2, U2> {
     );
     var invocation =
         constructor.initializers[0] as RedirectingConstructorInvocation;
-    var exp = invocation.argumentList.arguments[0].argumentExpression;
+    var exp = invocation.argumentList.arguments2[0].argumentExpression2;
     _isListOf(_isString)(exp.staticType as InterfaceType);
   }
 
@@ -3378,7 +3377,7 @@ class B<T2, U2> {
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var invoke = body.expression as MethodInvocation;
+    var invoke = body.expression2 as MethodInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isNum, _isString))(
       invoke.staticInvokeType!,
     );
@@ -3400,7 +3399,7 @@ class B<T2, U2> {
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var invoke = body.expression as MethodInvocation;
+    var invoke = body.expression2 as MethodInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isString, _isNum))(
       invoke.staticInvokeType!,
     );
@@ -3423,7 +3422,7 @@ class B<T2, U2> {
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var functionType = body.expression.staticType as FunctionType;
+    var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
     _isInt(type);
   }
@@ -3445,7 +3444,7 @@ class B<T2, U2> {
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var functionType = body.expression.staticType as FunctionType;
+    var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.returnType;
     _isInt(type);
   }
@@ -3469,7 +3468,7 @@ class B<T2, U2> {
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var call = body.expression as MethodInvocation;
+    var call = body.expression2 as MethodInvocation;
     _isNum(call.typeOrThrow);
     _isFunction2Of(_isFunction2Of(_isNum, _isString), _isNum)(
       call.staticInvokeType!,
@@ -3495,7 +3494,7 @@ class B<T2, U2> {
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    var call = body.expression as MethodInvocation;
+    var call = body.expression2 as MethodInvocation;
     _isNum(call.typeOrThrow);
     _isFunction2Of(_isFunction2Of(_isString, _isNum), _isNum)(
       call.staticInvokeType!,
@@ -3519,7 +3518,7 @@ class B<T2, U2> {
       null,
     );
     var invocation = constructor.initializers[0] as SuperConstructorInvocation;
-    var exp = invocation.argumentList.arguments[0].argumentExpression;
+    var exp = invocation.argumentList.arguments2[0].argumentExpression2;
     _isListOf(_isString)(exp.staticType as InterfaceType);
   }
 
@@ -3589,7 +3588,7 @@ $code
       "test",
     );
     var body = test.functionExpression.body as ExpressionFunctionBody;
-    return body.expression as MethodInvocation;
+    return body.expression2 as MethodInvocation;
   }
 }
 
@@ -3688,6 +3687,19 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: x
+          declaredFragment: <testLibraryFragment> x@9
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -3700,7 +3712,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: NullLiteral
+      expression2: NullLiteral
         literal: null
         staticType: Null
       semicolon: ;
@@ -3745,6 +3757,19 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: x
+          declaredFragment: <testLibraryFragment> x@21
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -3757,7 +3782,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: NullLiteral
+      expression2: NullLiteral
         literal: null
         staticType: Null
       semicolon: ;
@@ -3809,6 +3834,19 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@31
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -3821,7 +3859,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: NullLiteral
+    expression2: NullLiteral
       literal: null
       staticType: Null
     semicolon: ;
@@ -3881,7 +3919,7 @@ class D<S> {
       var statements = result.findNode.block('{ // $className').statements;
 
       for (int i = 1; i <= 5; i++) {
-        Expression exp = (statements[i] as ExpressionStatement).expression;
+        Expression exp = (statements[i] as ExpressionStatement).expression2;
         expect(exp.staticType, result.typeProvider.dynamicType);
       }
     }
@@ -3956,7 +3994,7 @@ main() {
 // [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'cOfString' must be assigned before it can be used.
 }
 ''');
-    var f = result.findNode.simple('f<int>').parent as MethodInvocation;
+    var f = result.findNode.simple('f<int>').parent2 as MethodInvocation;
     var ft = f.staticInvokeType as FunctionType;
     assertType(ft, 'List<int> Function(String)');
 
@@ -4299,7 +4337,7 @@ void foo() {
     var node1 = result.findNode.methodInvocation('map((e) => e);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: list
     element: list@68
     staticType: List<dynamic>
@@ -4312,9 +4350,18 @@ MethodInvocation
     staticType: T Function<T>(T Function(dynamic))
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: e
+              declaredFragment: <testLibraryFragment> e@93
+                element: hasImplicitType isPublic
+                  type: dynamic
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
@@ -4324,7 +4371,7 @@ MethodInvocation
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: e
             element: e@93
             staticType: dynamic
@@ -4345,7 +4392,7 @@ MethodInvocation
     var node2 = result.findNode.methodInvocation('map((e) => 3);');
     assertResolvedNodeText(node2, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: list
     element: list@68
     staticType: List<dynamic>
@@ -4358,9 +4405,18 @@ MethodInvocation
     staticType: T Function<T>(T Function(dynamic))
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: e
+              declaredFragment: <testLibraryFragment> e@115
+                element: hasImplicitType isPublic
+                  type: dynamic
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
@@ -4370,7 +4426,7 @@ MethodInvocation
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 3
             staticType: int
         declaredFragment: <testLibraryFragment> null@null
@@ -4475,7 +4531,29 @@ class C<T> {
     var node1 = result.findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
-  target: InstanceCreationExpression
+  target2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: #E0 S
+              type: S
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<S>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  target(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -4514,7 +4592,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 3
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -4547,7 +4625,29 @@ class C<T> {
     var node1 = result.findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
-  target: InstanceCreationExpression
+  target2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: #E0 S
+              type: S
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<S>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  target(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -4586,7 +4686,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 3
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -4661,6 +4761,19 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: y
+        declaredFragment: <testLibraryFragment> y@66
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -4673,7 +4786,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: NullLiteral
+    expression2: NullLiteral
       literal: null
       staticType: Null
     semicolon: ;
@@ -4896,7 +5009,7 @@ void test<S>(T Function<T>(T) pf) {
     _assertLocalVarType(result, 'paramTearOff', "T Function<T>(T)");
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_genericMethod_tearoff_instantiated() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
@@ -5241,7 +5354,7 @@ MethodInvocation
     staticType: void Function<S0 extends T, S1 extends List<S0>>(S0, S1)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NullLiteral
         literal: null
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -5320,7 +5433,7 @@ MethodInvocation
     staticType: void Function<S extends T>(S)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NullLiteral
         literal: null
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -5771,12 +5884,12 @@ main() {
     var node = result.findNode.assignment('= 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: SimpleIdentifier
+  leftHandSide2: SimpleIdentifier
     token: v
     element: v@15
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <null>
     staticType: int

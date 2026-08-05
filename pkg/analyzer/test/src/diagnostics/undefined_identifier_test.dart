@@ -180,7 +180,7 @@ void f() {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): review this
+  @FailingTest() // TODO(scheglov): review this
   test_commentReference() async {
     await resolveTestCodeWithDiagnostics('''
 /** [m] xxx [new B.c] */

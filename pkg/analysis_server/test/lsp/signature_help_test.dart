@@ -52,7 +52,7 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     if (state == _FileState.open) {
       await openFile(mainFileUri, code.code);
     }
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     var res = (await getSignatureHelp(
       mainFileUri,
@@ -125,7 +125,7 @@ final a = A(^);
     var code = TestCode.parse(content);
     await provideConfig(initialize, {'documentation': ?preference});
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var signatureHelp = await getSignatureHelp(
       mainFileUri,
       code.position.position,

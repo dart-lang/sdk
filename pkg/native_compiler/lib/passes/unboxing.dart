@@ -51,7 +51,9 @@ final class Unboxing extends Pass {
       UnaryIntOp() ||
       BinaryDoubleOp() ||
       UnaryDoubleOp() ||
-      Box() => true,
+      Box() ||
+      IndexCheck() => true,
+      LoadArrayElement() => inputIndex == 1,
       StoreField() => false, // TODO: unboxed fields,
       CallInstruction() => false, // TODO: support unboxed parameters.
       Return() => false, // TODO: support unboxed return values.
@@ -67,7 +69,9 @@ final class Unboxing extends Pass {
       UnaryIntOp() ||
       BinaryDoubleOp() ||
       UnaryDoubleOp() ||
-      Unbox() => true,
+      Unbox() ||
+      IndexCheck() => true,
+      LoadArrayElement() => true, // TODO: elements of built-in Lists are boxed.
       LoadField() => false, // TODO: unboxed fields,
       Parameter() => false, // TODO: support unboxed parameters.
       CallInstruction() => false, // TODO: support unboxed return values.

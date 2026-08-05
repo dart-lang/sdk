@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/language_feature_directive_lowering.dart';
 import '../../diagnostics/parser_diagnostics.dart';
 import '../resolution/context_collection_resolution.dart';
 
@@ -15,7 +17,8 @@ main() {
     defineReflectiveTests(CompilationUnitImplTest);
     defineReflectiveTests(EvaluateExpressionTest);
     defineReflectiveTests(ExpressionImplTest);
-    defineReflectiveTests(InstanceCreationExpressionImplTest);
+    defineReflectiveTests(ConstructorInvocationImplTest);
+    defineReflectiveTests(ForEachPartsImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
     defineReflectiveTests(NodeCoveringTest);
   });
@@ -99,691 +102,14 @@ void main() {}
 }
 
 @reflectiveTest
-class EvaluateExpressionTest extends PubPackageResolutionTest {
-  test_hasError_listLiteral_forElement() async {
-    var unitResult = await resolveTestCode('''
-var x = const [for (var i = 0; i < 4; i++) i];
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNotNull);
-    expect(result!.diagnostics, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasError_mapLiteral_forElement() async {
-    var unitResult = await resolveTestCode('''
-var x = const {for (var i = 0; i < 4; i++) i: 0};
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNotNull);
-    expect(result?.diagnostics, isNotEmpty);
-    expect(result?.value, isNull);
-  }
-
-  test_hasError_methodInvocation() async {
-    var unitResult = await resolveTestCode('''
-var x = 42.abs();
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNotNull);
-    expect(result!.diagnostics, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasError_setLiteral_forElement() async {
-    var unitResult = await resolveTestCode('''
-var x = const {for (var i = 0; i < 4; i++) i};
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNotNull);
-    expect(result!.diagnostics, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasValue_binaryExpression() async {
-    var unitResult = await resolveTestCode('''
-var x = 1 + 2;
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNotNull);
-    expect(result!.diagnostics, isEmpty);
-    expect(result.value!.toIntValue(), 3);
-  }
-
-  test_hasValue_constantReference() async {
-    var unitResult = await resolveTestCode('''
-const a = 42;
-var x = a;
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNotNull);
-    expect(result!.diagnostics, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  test_hasValue_constantReference_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 42;
-''');
-    var unitResult = await resolveTestCode('''
-import 'a.dart';
-var x = a;
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNotNull);
-    expect(result!.diagnostics, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  test_hasValue_intLiteral() async {
-    var unitResult = await resolveTestCode('''
-var x = 42;
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNotNull);
-    expect(result!.diagnostics, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  test_nonConstant() async {
-    var unitResult = await resolveTestCode('''
-var a = 42;
-var x = a;
-''');
-    var result = _evaluateX(unitResult);
-    expect(result, isNull);
-  }
-
-  AttemptedConstantEvaluationResult? _evaluateX(TestResolvedUnitResult result) {
-    var node = result.findNode.topVariableDeclarationByName('x').initializer!;
-    return node.computeConstantValue();
-  }
-}
-
-@reflectiveTest
-class ExpressionImplTest extends ParserDiagnosticsTest {
-  late final String testSource;
-  late final CompilationUnitImpl testUnit;
-
-  assertInContext(String snippet, bool isInContext) {
-    int index = testSource.indexOf(snippet);
-    expect(index >= 0, isTrue);
-    var node = testUnit.nodeCovering(offset: index)! as AstNodeImpl;
-    expect(node, TypeMatcher<ExpressionImpl>());
-    expect(
-      (node as ExpressionImpl).inConstantContext,
-      isInContext ? isTrue : isFalse,
-    );
-  }
-
-  parse(String source) {
-    testSource = source;
-    testUnit = parseTestCodeWithDiagnostics(source).unit as CompilationUnitImpl;
-  }
-
-  test_inConstantContext_enumConstant_true() {
-    parse('''
-enum E {
-  v([]);
-  const E(_);
-}
-''');
-    assertInContext('[]', true);
-  }
-
-  test_inConstantContext_instanceCreation_annotation_true() {
-    parse('''
-@C(C(0))
-class C {
-  const C(_);
-}
-''');
-    assertInContext("C(0", true);
-  }
-
-  test_inConstantContext_instanceCreation_fieldWithConstConstructor() {
-    parse('''
-class C {
-  final d = D();
-  const C();
-}
-class D {
-  const D();
-}
-''');
-    assertInContext("D()", false);
-  }
-
-  test_inConstantContext_instanceCreation_fieldWithoutConstConstructor() {
-    parse('''
-class C {
-  final d = D();
-  C();
-}
-class D {
-  const D();
-}
-''');
-    assertInContext("D()", false);
-  }
-
-  test_inConstantContext_instanceCreation_functionLiteral() {
-    parse('''
-const V = () => C();
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", false);
-  }
-
-  test_inConstantContext_instanceCreation_instanceCreation_false() {
-    parse('''
-f() {
-  return new C(C());
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("C())", false);
-  }
-
-  test_inConstantContext_instanceCreation_instanceCreation_true() {
-    parse('''
-f() {
-  return new C(C());
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("C())", false);
-  }
-
-  test_inConstantContext_instanceCreation_listLiteral_false() {
-    parse('''
-f() {
-  return [C()];
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()]", false);
-  }
-
-  test_inConstantContext_instanceCreation_listLiteral_true() {
-    parse('''
-f() {
-  return const [C()];
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()]", true);
-  }
-
-  test_inConstantContext_instanceCreation_mapLiteral_false() {
-    parse('''
-f() {
-  return {'a' : C()};
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()}", false);
-  }
-
-  test_inConstantContext_instanceCreation_mapLiteral_true() {
-    parse('''
-f() {
-  return const {'a' : C()};
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()}", true);
-  }
-
-  test_inConstantContext_instanceCreation_nestedListLiteral_false() {
-    parse('''
-f() {
-  return [[''], [C()]];
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()]", false);
-  }
-
-  test_inConstantContext_instanceCreation_nestedListLiteral_true() {
-    parse('''
-f() {
-  return const [[''], [C()]];
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()]", true);
-  }
-
-  test_inConstantContext_instanceCreation_nestedMapLiteral_false() {
-    parse('''
-f() {
-  return {'a' : {C() : C()}};
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C() :", false);
-    assertInContext("C()}", false);
-  }
-
-  test_inConstantContext_instanceCreation_nestedMapLiteral_true() {
-    parse('''
-f() {
-  return const {'a' : {C() : C()}};
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C() :", true);
-    assertInContext("C()}", true);
-  }
-
-  test_inConstantContext_instanceCreation_switch_true() {
-    parse('''
-f(v) {
-  switch (v) {
-  case const C():
-    break;
-  }
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", true);
-  }
-
-  test_inConstantContext_instanceCreation_switch_true_language219() {
-    // Expected: true
-    //   Actual: <false>
-    parse('''
-// @dart = 2.19
-f(v) {
-  switch (v) {
-  case C():
-    break;
-  }
-}
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", true);
-  }
-
-  test_inConstantContext_instanceCreation_topLevelVariable_false() {
-    parse('''
-var c = C();
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", false);
-  }
-
-  test_inConstantContext_instanceCreation_topLevelVariable_true() {
-    parse('''
-const c = C();
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", true);
-  }
-
-  test_inConstantContext_listLiteral_annotation_true() {
-    parse('''
-@C([])
-class C {
-  const C(_);
-}
-''');
-    assertInContext("[]", true);
-  }
-
-  test_inConstantContext_listLiteral_functionLiteral() {
-    parse('''
-const V = () => [];
-class C {
-  const C();
-}
-''');
-    assertInContext("[]", false);
-  }
-
-  test_inConstantContext_listLiteral_initializer_false() {
-    parse('''
-var c = [];
-''');
-    assertInContext("[]", false);
-  }
-
-  test_inConstantContext_listLiteral_initializer_true() {
-    parse('''
-const c = [];
-''');
-    assertInContext("[]", true);
-  }
-
-  test_inConstantContext_listLiteral_instanceCreation_false() {
-    parse('''
-f() {
-  return new C([]);
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("[]", false);
-  }
-
-  test_inConstantContext_listLiteral_instanceCreation_true() {
-    parse('''
-f() {
-  return const C([]);
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("[]", true);
-  }
-
-  test_inConstantContext_listLiteral_listLiteral_false() {
-    parse('''
-f() {
-  return [[''], []];
-}
-''');
-    assertInContext("['']", false);
-    assertInContext("[]", false);
-  }
-
-  test_inConstantContext_listLiteral_listLiteral_true() {
-    parse('''
-f() {
-  return const [[''], []];
-}
-''');
-    assertInContext("['']", true);
-    assertInContext("[]", true);
-  }
-
-  test_inConstantContext_listLiteral_mapLiteral_false() {
-    parse('''
-f() {
-  return {'a' : [''], 'b' : []};
-}
-''');
-    assertInContext("['']", false);
-    assertInContext("[]", false);
-  }
-
-  test_inConstantContext_listLiteral_mapLiteral_true() {
-    parse('''
-f() {
-  return const {'a' : [''], 'b' : []};
-}
-''');
-    assertInContext("['']", true);
-    assertInContext("[]", true);
-  }
-
-  test_inConstantContext_listLiteral_namedFields_recordLiteral_false() {
-    parse('''
-final x = (0, foo: [1]);
-''');
-    assertInContext('[1]', false);
-  }
-
-  test_inConstantContext_listLiteral_namedFields_recordLiteral_true() {
-    parse('''
-final x = const (0, foo: [1]);
-''');
-    assertInContext('[1]', true);
-  }
-
-  test_inConstantContext_listLiteral_positionalFields_recordLiteral_false() {
-    parse('''
-final x = (0, [1]);
-''');
-    assertInContext('[1]', false);
-  }
-
-  test_inConstantContext_listLiteral_positionalFields_recordLiteral_true() {
-    parse('''
-final x = const (0, [1]);
-''');
-    assertInContext('[1]', true);
-  }
-
-  test_inConstantContext_listLiteral_switch_true() {
-    parse('''
-f(v) {
-  switch (v) {
-  case const []:
-    break;
-  }
-}
-''');
-    assertInContext("[]", true);
-  }
-
-  test_inConstantContext_listLiteral_switch_true_language219() {
-    // Expected: <Instance of 'ExpressionImpl'>
-    //   Actual: ListPatternImpl:<[]>
-    //    Which: is not an instance of 'ExpressionImpl'
-    parse('''
-// @dart = 2.19
-f(v) {
-  switch (v) {
-  case []:
-    break;
-  }
-}
-''');
-    assertInContext("[]", true);
-  }
-
-  test_inConstantContext_mapLiteral_annotation_true() {
-    parse('''
-@C({})
-class C {
-  const C(_);
-}
-''');
-    assertInContext("{}", true);
-  }
-
-  test_inConstantContext_mapLiteral_functionLiteral() {
-    parse('''
-const V = () => {};
-class C {
-  const C();
-}
-''');
-    assertInContext("{}", false);
-  }
-
-  test_inConstantContext_mapLiteral_initializer_false() {
-    parse('''
-var c = {};
-''');
-    assertInContext("{}", false);
-  }
-
-  test_inConstantContext_mapLiteral_initializer_true() {
-    parse('''
-const c = {};
-''');
-    assertInContext("{}", true);
-  }
-
-  test_inConstantContext_mapLiteral_instanceCreation_false() {
-    parse('''
-f() {
-  return new C({});
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("{}", false);
-  }
-
-  test_inConstantContext_mapLiteral_instanceCreation_true() {
-    parse('''
-f() {
-  return const C({});
-}
-class C {
-  const C(_);
-}
-''');
-    assertInContext("{}", true);
-  }
-
-  test_inConstantContext_mapLiteral_listLiteral_false() {
-    parse('''
-f() {
-  return [{'a' : 1}, {'b' : 2}];
-}
-''');
-    assertInContext("{'a", false);
-    assertInContext("{'b", false);
-  }
-
-  test_inConstantContext_mapLiteral_listLiteral_true() {
-    parse('''
-f() {
-  return const [{'a' : 1}, {'b' : 2}];
-}
-''');
-    assertInContext("{'a", true);
-    assertInContext("{'b", true);
-  }
-
-  test_inConstantContext_mapLiteral_mapLiteral_false() {
-    parse('''
-f() {
-  return {'a' : {'b' : 0}, 'c' : {'d' : 1}};
-}
-''');
-    assertInContext("{'b", false);
-    assertInContext("{'d", false);
-  }
-
-  test_inConstantContext_mapLiteral_mapLiteral_true() {
-    parse('''
-f() {
-  return const {'a' : {'b' : 0}, 'c' : {'d' : 1}};
-}
-''');
-    assertInContext("{'b", true);
-    assertInContext("{'d", true);
-  }
-
-  test_inConstantContext_mapLiteral_switch_true() {
-    parse('''
-f(v) {
-  switch (v) {
-  case const {}:
-    break;
-  }
-}
-''');
-    assertInContext("{}", true);
-  }
-
-  test_inConstantContext_mapLiteral_switch_true_language219() {
-    // Expected: <Instance of 'ExpressionImpl'>
-    //   Actual: MapPatternImpl:<{}>
-    //    Which: is not an instance of 'ExpressionImpl'
-    parse('''
-// @dart = 2.19
-f(v) {
-  switch (v) {
-  case {}:
-    break;
-  }
-}
-''');
-    assertInContext("{}", true);
-  }
-
-  test_inConstantContext_recordLiteral_listLiteral_false() {
-    parse('''
-final x = [0, (1, 2)];
-''');
-    assertInContext('(1, 2)', false);
-  }
-
-  test_inConstantContext_recordLiteral_listLiteral_true() {
-    parse('''
-final x = const [0, (1, 2)];
-''');
-    assertInContext('(1, 2)', true);
-  }
-
-  test_inConstantContext_recordLiteral_namedFields_recordLiteral_false() {
-    parse('''
-final x = (0, foo: (1, 2));
-''');
-    assertInContext('(1, 2)', false);
-  }
-
-  test_inConstantContext_recordLiteral_namedFields_recordLiteral_true() {
-    parse('''
-final x = const (0, foo: (1, 2));
-''');
-    assertInContext('(1, 2)', true);
-  }
-
-  test_inConstantContext_recordLiteral_positionalFields_recordLiteral_false() {
-    parse('''
-final x = (0, (1, 2));
-''');
-    assertInContext('(1, 2)', false);
-  }
-
-  test_inConstantContext_recordLiteral_positionalFields_recordLiteral_true() {
-    parse('''
-final x = const (0, (1, 2));
-''');
-    assertInContext('(1, 2)', true);
-  }
-}
-
-@reflectiveTest
-class InstanceCreationExpressionImplTest extends PubPackageResolutionTest {
+class ConstructorInvocationImplTest extends PubPackageResolutionTest {
   assertIsConst(
     TestResolvedUnitResult result,
     String search,
     bool expectedResult,
   ) {
-    var node = result.findNode.instanceCreation(search);
-    expect((node as InstanceCreationExpressionImpl).isConst, expectedResult);
+    var node = result.findNode.constructorInvocation(search);
+    expect((node as ConstructorInvocationImpl).isConst, expectedResult);
   }
 
   test_isConst_notInContext_constructor_const_constParam_identifier() async {
@@ -957,6 +283,797 @@ class C {
 }
 ''');
     assertIsConst(result, "C()]", false);
+  }
+
+  test_typeArgumentsAfterConstructorName_v1Projection() async {
+    var result = await resolveTestCode('''
+void f() {
+  const C.named<int>();
+}
+class C<E> {
+  const C.named();
+}
+''');
+    var offset = result.content.indexOf('<int>');
+    var node = result.unit.nodeCovering(offset: offset, length: 5);
+    var invocation =
+        result.findNode.constructorInvocation('C.named<int>')
+            as ConstructorInvocationImpl;
+
+    expect(node, isA<TypeArgumentListImpl>());
+    expect(invocation.constructorReference.typeReference.typeArguments, null);
+    expect(invocation.typeArguments, same(node));
+    expect(node?.parent, isA<InstanceCreationExpressionImpl>());
+  }
+
+  test_v1Projection() async {
+    var result = await resolveTestCode('''
+var x = C<int>.named(0);
+class C<T> {
+  C.named(T value);
+}
+''');
+    var v2 =
+        result.findNode.constructorInvocation('C<int>')
+            as ConstructorInvocationImpl;
+    var reference = v2.constructorReference;
+    var v1 = v2.instanceCreationExpression;
+
+    expect(v2.instanceCreationExpression, same(v1));
+    expect(v1.toSource(), 'C<int>.named(0)');
+    expect(v1.constructorName.element, same(reference.element));
+    expect(v1.constructorName.name!.element, same(reference.element));
+    expect(v1.staticType, same(v2.staticType));
+
+    expect(v1.parent, same(v2.parent2));
+    expect(v1.constructorName.parent, same(v1));
+    expect(v1.argumentList, same(v2.argumentList));
+    expect(v1.argumentList.parent, same(v1));
+    expect(v1.argumentList.parent2, same(v2));
+    expect(() => v1.parent2, throwsStateError);
+    expect(() => v2.parent, throwsStateError);
+    expect(() => v1.accept2(ThrowingAstVisitor2<void>()), throwsStateError);
+
+    var selector = reference.selector;
+    reference.selector = null;
+    expect(v1.constructorName.name, isNull);
+    expect(v1.constructorName.period, isNull);
+
+    reference.selector = selector;
+    expect(v1.constructorName.name!.token, selector!.name2);
+    reference.typeReference.typeArguments = null;
+    expect(v1.constructorName.type.typeArguments, isNull);
+  }
+}
+
+@reflectiveTest
+class EvaluateExpressionTest extends PubPackageResolutionTest {
+  test_hasError_listLiteral_forElement() async {
+    var unitResult = await resolveTestCode('''
+var x = const [for (var i = 0; i < 4; i++) i];
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasError_mapLiteral_forElement() async {
+    var unitResult = await resolveTestCode('''
+var x = const {for (var i = 0; i < 4; i++) i: 0};
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result?.diagnostics, isNotEmpty);
+    expect(result?.value, isNull);
+  }
+
+  test_hasError_methodInvocation() async {
+    var unitResult = await resolveTestCode('''
+var x = 42.abs();
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasError_setLiteral_forElement() async {
+    var unitResult = await resolveTestCode('''
+var x = const {for (var i = 0; i < 4; i++) i};
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasValue_binaryExpression() async {
+    var unitResult = await resolveTestCode('''
+var x = 1 + 2;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 3);
+  }
+
+  test_hasValue_constantReference() async {
+    var unitResult = await resolveTestCode('''
+const a = 42;
+var x = a;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_hasValue_constantReference_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 42;
+''');
+    var unitResult = await resolveTestCode('''
+import 'a.dart';
+var x = a;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_hasValue_intLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = 42;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_nonConstant() async {
+    var unitResult = await resolveTestCode('''
+var a = 42;
+var x = a;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  AttemptedConstantEvaluationResult? _evaluateX(TestResolvedUnitResult result) {
+    var node = result.findNode.topVariableDeclarationByName('x').initializer2!;
+    return node.computeConstantValue();
+  }
+}
+
+@reflectiveTest
+class ExpressionImplTest extends ParserDiagnosticsTest {
+  late final String testSource;
+  late final CompilationUnitImpl testUnit;
+
+  assertInContext(String snippet, bool isInContext) {
+    int index = testSource.indexOf(snippet);
+    expect(index >= 0, isTrue);
+    var node = testUnit.nodeCovering2(offset: index)! as AstNodeImpl;
+    expect(node, TypeMatcher<ExpressionImpl>());
+    expect(
+      (node as ExpressionImpl).inConstantContext,
+      isInContext ? isTrue : isFalse,
+    );
+  }
+
+  parse(String source) {
+    testSource = LanguageFeatureDirectiveLowering(source).loweredCode;
+    testUnit = parseTestCodeWithDiagnostics(source).unit as CompilationUnitImpl;
+  }
+
+  test_constantContext2_constructorInvocation_v2() {
+    parse('''
+class C {
+  const C(Object value);
+}
+var x = const C(0);
+''');
+    var expression =
+        testUnit.nodeCovering2(offset: testSource.indexOf('0'))!
+            as ExpressionImpl;
+
+    var context = expression.constantContext2(includeSelf: false);
+
+    expect(context?.$1, isA<ConstructorInvocation>());
+    expect(context?.$2?.lexeme, 'const');
+  }
+
+  test_constantContext_constructorInvocation_v1Projection() {
+    parse('''
+class C {
+  const C(Object value);
+}
+var x = const C(0);
+''');
+    var expression =
+        testUnit.nodeCovering(offset: testSource.indexOf('0'))!
+            as ExpressionImpl;
+
+    var context = expression.constantContext(includeSelf: false);
+
+    expect(context?.$1, isA<InstanceCreationExpressionImpl>());
+    expect(context?.$2?.lexeme, 'const');
+  }
+
+  test_inConstantContext_constructorInvocation_annotation_true() {
+    parse('''
+@C(C(0))
+class C {
+  const C(_);
+}
+''');
+    assertInContext("C(0", true);
+  }
+
+  test_inConstantContext_constructorInvocation_constructorInvocation_false() {
+    parse('''
+f() {
+  return new C(C());
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("C())", false);
+  }
+
+  test_inConstantContext_constructorInvocation_constructorInvocation_true() {
+    parse('''
+f() {
+  return new C(C());
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("C())", false);
+  }
+
+  test_inConstantContext_constructorInvocation_fieldWithConstConstructor() {
+    parse('''
+class C {
+  final d = D();
+  const C();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", false);
+  }
+
+  test_inConstantContext_constructorInvocation_fieldWithoutConstConstructor() {
+    parse('''
+class C {
+  final d = D();
+  C();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", false);
+  }
+
+  test_inConstantContext_constructorInvocation_functionLiteral() {
+    parse('''
+const V = () => C();
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", false);
+  }
+
+  test_inConstantContext_constructorInvocation_listLiteral_false() {
+    parse('''
+f() {
+  return [C()];
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()]", false);
+  }
+
+  test_inConstantContext_constructorInvocation_listLiteral_true() {
+    parse('''
+f() {
+  return const [C()];
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()]", true);
+  }
+
+  test_inConstantContext_constructorInvocation_mapLiteral_false() {
+    parse('''
+f() {
+  return {'a' : C()};
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()}", false);
+  }
+
+  test_inConstantContext_constructorInvocation_mapLiteral_true() {
+    parse('''
+f() {
+  return const {'a' : C()};
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()}", true);
+  }
+
+  test_inConstantContext_constructorInvocation_nestedListLiteral_false() {
+    parse('''
+f() {
+  return [[''], [C()]];
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()]", false);
+  }
+
+  test_inConstantContext_constructorInvocation_nestedListLiteral_true() {
+    parse('''
+f() {
+  return const [[''], [C()]];
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()]", true);
+  }
+
+  test_inConstantContext_constructorInvocation_nestedMapLiteral_false() {
+    parse('''
+f() {
+  return {'a' : {C() : C()}};
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C() :", false);
+    assertInContext("C()}", false);
+  }
+
+  test_inConstantContext_constructorInvocation_nestedMapLiteral_true() {
+    parse('''
+f() {
+  return const {'a' : {C() : C()}};
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C() :", true);
+    assertInContext("C()}", true);
+  }
+
+  test_inConstantContext_constructorInvocation_switch_true() {
+    parse('''
+f(v) {
+  switch (v) {
+  case const C():
+    break;
+  }
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
+  }
+
+  test_inConstantContext_constructorInvocation_switch_true_beforePatterns() {
+    // Expected: true
+    //   Actual: <false>
+    parse('''
+// %before-language-feature: patterns
+f(v) {
+  switch (v) {
+  case C():
+    break;
+  }
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
+  }
+
+  test_inConstantContext_constructorInvocation_topLevelVariable_false() {
+    parse('''
+var c = C();
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", false);
+  }
+
+  test_inConstantContext_constructorInvocation_topLevelVariable_true() {
+    parse('''
+const c = C();
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
+  }
+
+  test_inConstantContext_enumConstant_true() {
+    parse('''
+enum E {
+  v([]);
+  const E(_);
+}
+''');
+    assertInContext('[]', true);
+  }
+
+  test_inConstantContext_listLiteral_annotation_true() {
+    parse('''
+@C([])
+class C {
+  const C(_);
+}
+''');
+    assertInContext("[]", true);
+  }
+
+  test_inConstantContext_listLiteral_constructorInvocation_false() {
+    parse('''
+f() {
+  return new C([]);
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("[]", false);
+  }
+
+  test_inConstantContext_listLiteral_constructorInvocation_true() {
+    parse('''
+f() {
+  return const C([]);
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("[]", true);
+  }
+
+  test_inConstantContext_listLiteral_functionLiteral() {
+    parse('''
+const V = () => [];
+class C {
+  const C();
+}
+''');
+    assertInContext("[]", false);
+  }
+
+  test_inConstantContext_listLiteral_initializer_false() {
+    parse('''
+var c = [];
+''');
+    assertInContext("[]", false);
+  }
+
+  test_inConstantContext_listLiteral_initializer_true() {
+    parse('''
+const c = [];
+''');
+    assertInContext("[]", true);
+  }
+
+  test_inConstantContext_listLiteral_listLiteral_false() {
+    parse('''
+f() {
+  return [[''], []];
+}
+''');
+    assertInContext("['']", false);
+    assertInContext("[]", false);
+  }
+
+  test_inConstantContext_listLiteral_listLiteral_true() {
+    parse('''
+f() {
+  return const [[''], []];
+}
+''');
+    assertInContext("['']", true);
+    assertInContext("[]", true);
+  }
+
+  test_inConstantContext_listLiteral_mapLiteral_false() {
+    parse('''
+f() {
+  return {'a' : [''], 'b' : []};
+}
+''');
+    assertInContext("['']", false);
+    assertInContext("[]", false);
+  }
+
+  test_inConstantContext_listLiteral_mapLiteral_true() {
+    parse('''
+f() {
+  return const {'a' : [''], 'b' : []};
+}
+''');
+    assertInContext("['']", true);
+    assertInContext("[]", true);
+  }
+
+  test_inConstantContext_listLiteral_namedFields_recordLiteral_false() {
+    parse('''
+final x = (0, foo: [1]);
+''');
+    assertInContext('[1]', false);
+  }
+
+  test_inConstantContext_listLiteral_namedFields_recordLiteral_true() {
+    parse('''
+final x = const (0, foo: [1]);
+''');
+    assertInContext('[1]', true);
+  }
+
+  test_inConstantContext_listLiteral_positionalFields_recordLiteral_false() {
+    parse('''
+final x = (0, [1]);
+''');
+    assertInContext('[1]', false);
+  }
+
+  test_inConstantContext_listLiteral_positionalFields_recordLiteral_true() {
+    parse('''
+final x = const (0, [1]);
+''');
+    assertInContext('[1]', true);
+  }
+
+  test_inConstantContext_listLiteral_switch_true() {
+    parse('''
+f(v) {
+  switch (v) {
+  case const []:
+    break;
+  }
+}
+''');
+    assertInContext("[]", true);
+  }
+
+  test_inConstantContext_listLiteral_switch_true_beforePatterns() {
+    // Expected: <Instance of 'ExpressionImpl'>
+    //   Actual: ListPatternImpl:<[]>
+    //    Which: is not an instance of 'ExpressionImpl'
+    parse('''
+// %before-language-feature: patterns
+f(v) {
+  switch (v) {
+  case []:
+    break;
+  }
+}
+''');
+    assertInContext("[]", true);
+  }
+
+  test_inConstantContext_mapLiteral_annotation_true() {
+    parse('''
+@C({})
+class C {
+  const C(_);
+}
+''');
+    assertInContext("{}", true);
+  }
+
+  test_inConstantContext_mapLiteral_constructorInvocation_false() {
+    parse('''
+f() {
+  return new C({});
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("{}", false);
+  }
+
+  test_inConstantContext_mapLiteral_constructorInvocation_true() {
+    parse('''
+f() {
+  return const C({});
+}
+class C {
+  const C(_);
+}
+''');
+    assertInContext("{}", true);
+  }
+
+  test_inConstantContext_mapLiteral_functionLiteral() {
+    parse('''
+const V = () => {};
+class C {
+  const C();
+}
+''');
+    assertInContext("{}", false);
+  }
+
+  test_inConstantContext_mapLiteral_initializer_false() {
+    parse('''
+var c = {};
+''');
+    assertInContext("{}", false);
+  }
+
+  test_inConstantContext_mapLiteral_initializer_true() {
+    parse('''
+const c = {};
+''');
+    assertInContext("{}", true);
+  }
+
+  test_inConstantContext_mapLiteral_listLiteral_false() {
+    parse('''
+f() {
+  return [{'a' : 1}, {'b' : 2}];
+}
+''');
+    assertInContext("{'a", false);
+    assertInContext("{'b", false);
+  }
+
+  test_inConstantContext_mapLiteral_listLiteral_true() {
+    parse('''
+f() {
+  return const [{'a' : 1}, {'b' : 2}];
+}
+''');
+    assertInContext("{'a", true);
+    assertInContext("{'b", true);
+  }
+
+  test_inConstantContext_mapLiteral_mapLiteral_false() {
+    parse('''
+f() {
+  return {'a' : {'b' : 0}, 'c' : {'d' : 1}};
+}
+''');
+    assertInContext("{'b", false);
+    assertInContext("{'d", false);
+  }
+
+  test_inConstantContext_mapLiteral_mapLiteral_true() {
+    parse('''
+f() {
+  return const {'a' : {'b' : 0}, 'c' : {'d' : 1}};
+}
+''');
+    assertInContext("{'b", true);
+    assertInContext("{'d", true);
+  }
+
+  test_inConstantContext_mapLiteral_switch_true() {
+    parse('''
+f(v) {
+  switch (v) {
+  case const {}:
+    break;
+  }
+}
+''');
+    assertInContext("{}", true);
+  }
+
+  test_inConstantContext_mapLiteral_switch_true_beforePatterns() {
+    // Expected: <Instance of 'ExpressionImpl'>
+    //   Actual: MapPatternImpl:<{}>
+    //    Which: is not an instance of 'ExpressionImpl'
+    parse('''
+// %before-language-feature: patterns
+f(v) {
+  switch (v) {
+  case {}:
+    break;
+  }
+}
+''');
+    assertInContext("{}", true);
+  }
+
+  test_inConstantContext_recordLiteral_listLiteral_false() {
+    parse('''
+final x = [0, (1, 2)];
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_listLiteral_true() {
+    parse('''
+final x = const [0, (1, 2)];
+''');
+    assertInContext('(1, 2)', true);
+  }
+
+  test_inConstantContext_recordLiteral_namedFields_recordLiteral_false() {
+    parse('''
+final x = (0, foo: (1, 2));
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_namedFields_recordLiteral_true() {
+    parse('''
+final x = const (0, foo: (1, 2));
+''');
+    assertInContext('(1, 2)', true);
+  }
+
+  test_inConstantContext_recordLiteral_positionalFields_recordLiteral_false() {
+    parse('''
+final x = (0, (1, 2));
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_positionalFields_recordLiteral_true() {
+    parse('''
+final x = const (0, (1, 2));
+''');
+    assertInContext('(1, 2)', true);
+  }
+}
+
+@reflectiveTest
+class ForEachPartsImplTest extends PubPackageResolutionTest {
+  test_iterable_constructorInvocation_astViews() async {
+    var result = await resolveTestCode('''
+class C {}
+void f() {
+  for (var x in C()) {}
+}
+''');
+    var forStatement = result.findNode.forStatement('for (');
+    var parts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
+
+    expect(parts.iterable, isA<InstanceCreationExpression>());
+    expect(parts.iterable2, isA<ConstructorInvocation>());
+
+    result.unit.accept(RecursiveAstVisitor<void>());
+    result.unit.accept2(RecursiveAstVisitor2<void>());
   }
 }
 
@@ -1334,7 +1451,7 @@ class IntegerLiteralImplTest {
 class NodeCoveringTest extends PubPackageResolutionTest {
   Future<AstNode> coveringNode(String sourceCode) async {
     var (result, range) = await _range(sourceCode);
-    var node = result.unit.nodeCovering(
+    var node = result.unit.nodeCovering2(
       offset: range.offset,
       length: range.length,
     );
@@ -1345,7 +1462,7 @@ class NodeCoveringTest extends PubPackageResolutionTest {
     var result = await resolveTestCode('''
 library myLib;
 ''');
-    var node = result.unit.nodeCovering(offset: 100, length: 20);
+    var node = result.unit.nodeCovering2(offset: 100, length: 20);
     expect(node, null);
   }
 
@@ -1709,7 +1826,7 @@ var x = o?^.m();
     var node = await coveringNode('''
 var x = y+^+;
 ''');
-    node as PostfixExpression;
+    node as PostfixIncrement;
   }
 
   Future<void> test_libraryKeyword() async {
@@ -1724,7 +1841,7 @@ libr^ary myLib;
 void f() { ^ }
 ''');
     node as Block;
-    var parent = node.parent;
+    var parent = node.parent2;
     parent as BlockFunctionBody;
     expect(parent.offset, node.offset);
     expect(parent.length, node.length);
@@ -1734,7 +1851,7 @@ void f() { ^ }
     var node = await coveringNode('''
 class C { void call() {} }  Function f = C^();
 ''');
-    node as NamedType;
+    node as ConstructorTypeReference;
   }
 
   Future<(TestResolvedUnitResult, SourceRange)> _range(

@@ -210,8 +210,8 @@ class _SuspendState {
     final currentZone = Zone._current;
     if (identical(currentZone, _rootZone) ||
         identical(
-          currentZone._registerUnaryCallback,
-          _rootZone._registerUnaryCallback,
+          currentZone._registerUnaryCallbackFunction,
+          _rootZone._registerUnaryCallbackFunction,
         )) {
       _thenCallback = thenCallback;
     } else {
@@ -221,8 +221,8 @@ class _SuspendState {
     }
     if (identical(currentZone, _rootZone) ||
         identical(
-          currentZone._registerBinaryCallback,
-          _rootZone._registerBinaryCallback,
+          currentZone._registerBinaryCallbackFunction,
+          _rootZone._registerBinaryCallbackFunction,
         )) {
       _errorCallback = errorCallback;
     } else {

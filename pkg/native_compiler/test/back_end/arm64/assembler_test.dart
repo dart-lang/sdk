@@ -711,6 +711,24 @@ void main() {
       });
     });
 
+    test('umulh', () {
+      asm.umulh(R1, R2, R3);
+      asm.umulh(R0, R0, R0);
+      expectDisassembly(
+        'umulh r1, r2, r3\n'
+        'umulh r0, r0, r0\n',
+      );
+      expectThrows(() {
+        asm.umulh(SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.umulh(R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.umulh(R1, R2, SP);
+      });
+    });
+
     test('csel', () {
       asm.csel(R0, R1, R2, .greater);
       asm.csel(R1, ZR, R0, .unsignedLessOrEqual);
@@ -1024,6 +1042,24 @@ void main() {
       });
     });
 
+    test('clz', () {
+      asm.clz(R0, R0);
+      asm.clz(R1, R2, .s32);
+      expectDisassembly(
+        'clz r0, r0\n'
+        'clzw r1, r2\n',
+      );
+      expectThrows(() {
+        asm.clz(SP, R0);
+      });
+      expectThrows(() {
+        asm.clz(R0, SP);
+      });
+      expectThrows(() {
+        asm.clz(R0, R0, .s8);
+      });
+    });
+
     test('and', () {
       asm.and(R0, R1, R2);
       asm.and(R0, R0, Immediate(-512));
@@ -1284,6 +1320,48 @@ void main() {
       });
       expectThrows(() {
         asm.str(R0, RegOffsetAddress(R1, 0), .simd128);
+      });
+    });
+
+    test('ldar', () {
+      asm.ldar(R0, R1);
+      asm.ldar(R2, SP);
+      asm.ldar(R3, R4, .u32);
+      asm.ldar(R4, SP, .u16);
+      asm.ldar(R5, R0, .u8);
+      expectDisassembly(
+        'ldar r0, [r1]\n'
+        'ldar r2, [csp]\n'
+        'ldarw r3, [r4]\n'
+        'ldarh r4, [csp]\n'
+        'ldarb r5, [r0]\n',
+      );
+      expectThrows(() {
+        asm.ldar(R0, ZR);
+      });
+      expectThrows(() {
+        asm.ldar(R0, R1, .simd128);
+      });
+    });
+
+    test('stlr', () {
+      asm.stlr(R0, R1);
+      asm.stlr(R2, SP);
+      asm.stlr(R3, R4, .s32);
+      asm.stlr(R4, SP, .u16);
+      asm.stlr(R5, R0, .u8);
+      expectDisassembly(
+        'stlr r0, [r1]\n'
+        'stlr r2, [csp]\n'
+        'stlrw r3, [r4]\n'
+        'stlrh r4, [csp]\n'
+        'stlrb r5, [r0]\n',
+      );
+      expectThrows(() {
+        asm.stlr(R0, ZR);
+      });
+      expectThrows(() {
+        asm.stlr(R0, R1, .simd128);
       });
     });
 

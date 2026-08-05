@@ -119,7 +119,7 @@ Future<void> asyncTest(Future<void> Function() test) {
 /// If `result` completes with an [ExpectException] error from another
 /// failed test expectation, that error cannot be caught and accepted.
 Future<T> asyncExpectThrows<T extends Object>(
-  Future<void> result, [
+  Future<Object?> result, [
   String reason = "",
 ]) {
   // Delay computing the header text until the test has failed.
@@ -145,8 +145,11 @@ Future<T> asyncExpectThrows<T extends Object>(
 
   asyncStart();
   return result.then<T>(
-    (_) {
-      throw ExpectException("${header()} Did not throw.");
+    (result) {
+      throw ExpectException(
+        "${header()} Did not throw."
+        "${result != null ? " Got: $result" : ""}",
+      );
     },
     onError: (error, stack) {
       // A test failure doesn't count as throwing. Rethrow it.

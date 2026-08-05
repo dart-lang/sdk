@@ -715,7 +715,7 @@ class _InfoBuilder {
     void addDirectives(Iterable<Directive>? directives) {
       if (directives != null) {
         for (var directive in directives) {
-          directive.metadata.accept(collector);
+          directive.metadata.accept2(collector);
         }
       }
     }
@@ -723,7 +723,7 @@ class _InfoBuilder {
     void addTypeParameters(TypeParameterList? typeParameters) {
       if (typeParameters != null) {
         for (var typeParameter in typeParameters.typeParameters) {
-          typeParameter.metadata.accept(collector);
+          typeParameter.metadata.accept2(collector);
         }
       }
     }
@@ -731,34 +731,34 @@ class _InfoBuilder {
     void addFormalParameters(FormalParameterList? formalParameters) {
       if (formalParameters != null) {
         for (var parameter in formalParameters.parameters) {
-          parameter.metadata.accept(collector);
+          parameter.metadata.accept2(collector);
           addFormalParameters(parameter.functionTypedSuffix?.formalParameters);
           if (parameter.defaultClause case var defaultClause?) {
-            defaultClause.value.accept(collector);
+            defaultClause.value2.accept2(collector);
           }
         }
       }
     }
 
-    metadata?.accept(collector);
+    metadata?.accept2(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
-    constantInitializer?.accept(collector);
-    constructorInitializers?.accept(collector);
+    constantInitializer?.accept2(collector);
+    constructorInitializers?.accept2(collector);
     if (enumConstants != null) {
       for (var enumConstant in enumConstants) {
-        enumConstant.metadata.accept(collector);
+        enumConstant.metadata.accept2(collector);
       }
     }
     if (aliasedType is GenericFunctionType) {
       addTypeParameters(aliasedType.typeParameters);
       addFormalParameters(aliasedType.parameters);
     }
-    enumConstantArguments?.typeArguments?.accept(collector);
-    enumConstantArguments?.argumentList.accept(collector);
+    enumConstantArguments?.typeArguments?.accept2(collector);
+    enumConstantArguments?.argumentList.accept2(collector);
     return collector.offsets.takeAndReset();
   }
 
@@ -853,7 +853,7 @@ class _InfoBuilder {
 
   _InfoFieldDeclaration _buildField(VariableDeclaration node) {
     var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent!.parent as FieldDeclaration;
+    var declaration = node.parent2!.parent2 as FieldDeclaration;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
@@ -862,7 +862,7 @@ class _InfoBuilder {
       documentationComment: _getDocumentationComment(node),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer,
+        constantInitializer: node.initializer2,
       ),
     );
   }
@@ -1117,7 +1117,7 @@ class _InfoBuilder {
 
   _InfoTopLevelVariable _buildTopLevelVariable(VariableDeclaration node) {
     var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent!.parent as TopLevelVariableDeclaration;
+    var declaration = node.parent2!.parent2 as TopLevelVariableDeclaration;
     return _InfoTopLevelVariable(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
@@ -1126,7 +1126,7 @@ class _InfoBuilder {
       documentationComment: _getDocumentationComment(node),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer,
+        constantInitializer: node.initializer2,
       ),
     );
   }
@@ -1153,9 +1153,9 @@ class _InfoBuilder {
 
   int _codeOffsetForVariable(VariableDeclaration node) {
     var codeOffset = node.offset;
-    var variableList = node.parent as VariableDeclarationList;
+    var variableList = node.parent2 as VariableDeclarationList;
     if (variableList.variables[0] == node) {
-      codeOffset = variableList.parent!.offset;
+      codeOffset = variableList.parent2!.offset;
     }
     return codeOffset;
   }
@@ -1736,13 +1736,13 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     if (fragment is FieldFragmentImpl && fragment.isEnumConstant) {
       _applyToEnumConstantInitializer(fragment);
     } else if (fragment is VariableFragmentImpl) {
-      fragment.constantInitializer?.accept(this);
+      fragment.constantInitializer2?.accept2(this);
     }
   }
 
   void applyToConstructorInitializers(ConstructorFragmentImpl fragment) {
     for (var initializer in fragment.constantInitializers) {
-      initializer.accept(this);
+      initializer.accept2(this);
     }
   }
 
@@ -1776,7 +1776,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   void applyToMetadata(MetadataImpl metadata) {
     for (var annotation in metadata.annotations) {
       var node = annotation.annotationAst;
-      node.accept(this);
+      node.accept2(this);
     }
   }
 
@@ -1834,15 +1834,17 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   void _applyToEnumConstantInitializer(FieldFragmentImpl fragment) {
-    var initializer = fragment.constantInitializer;
-    if (initializer is InstanceCreationExpressionImpl) {
-      initializer.constructorName.type.typeArguments?.accept(this);
-      initializer.argumentList.accept(this);
+    var initializer = fragment.constantInitializer2;
+    if (initializer is ConstructorInvocationImpl) {
+      initializer.constructorReference.typeReference.typeArguments?.accept2(
+        this,
+      );
+      initializer.argumentList.accept2(this);
     }
   }
 }
 
-abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
+abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void handleToken(Token token);
 
   @override
@@ -1881,9 +1883,9 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     _tokenOrNull(node.operator);
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
@@ -1906,10 +1908,30 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    node.type.accept(this);
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _tokenOrNull(node.keyword);
+    node.constructorReference.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitConstructorSelector(ConstructorSelector node) {
     _tokenOrNull(node.period);
-    node.name?.accept(this);
+    _tokenOrNull(node.name2);
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    node.importPrefix?.accept2(this);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    _tokenOrNull(node.leftDelimiter);
+    _tokenOrNull(node.rightDelimiter);
+    node.formalParameters.accept2(this);
   }
 
   @override
@@ -1918,8 +1940,8 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   ) {
     _tokenOrNull(node.constKeyword);
     _tokenOrNull(node.period);
-    node.constructorName.accept(this);
-    node.argumentList.accept(this);
+    node.constructorName.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   /// When we read from bytes, [DotShorthandInvocation]s are not rewritten to
@@ -1929,15 +1951,15 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _tokenOrNull(node.period);
-    node.memberName.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.memberName.accept2(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _tokenOrNull(node.period);
-    node.propertyName.accept(this);
+    node.propertyName.accept2(this);
   }
 
   @override
@@ -1948,8 +1970,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     _tokenOrNull(node.leftParenthesis);
-    _tokenOrNull(node.leftDelimiter);
-    _tokenOrNull(node.rightDelimiter);
     _tokenOrNull(node.rightParenthesis);
     super.visitFormalParameterList(node);
   }
@@ -1970,6 +1990,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    _tokenOrNull(node.operator);
+    super.visitIfNull(node);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.period);
@@ -1980,13 +2006,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _tokenOrNull(node.keyword);
-    node.constructorName.accept(this);
-    node.argumentList.accept(this);
   }
 
   @override
@@ -2027,6 +2046,24 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLogicalAnd(LogicalAnd node) {
+    _tokenOrNull(node.operator);
+    super.visitLogicalAnd(node);
+  }
+
+  @override
+  void visitLogicalNot(LogicalNot node) {
+    _tokenOrNull(node.operator);
+    super.visitLogicalNot(node);
+  }
+
+  @override
+  void visitLogicalOr(LogicalOr node) {
+    _tokenOrNull(node.operator);
+    super.visitLogicalOr(node);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _tokenOrNull(node.separator);
     super.visitMapLiteralEntry(node);
@@ -2034,11 +2071,11 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    node.target?.accept(this);
+    node.target2?.accept2(this);
     _tokenOrNull(node.operator);
-    node.methodName.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.methodName.accept2(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -2050,10 +2087,16 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    node.importPrefix?.accept(this);
+    node.importPrefix?.accept2(this);
     _tokenOrNull(node.name);
-    node.typeArguments?.accept(this);
+    node.typeArguments?.accept2(this);
     _tokenOrNull(node.question);
+  }
+
+  @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    _tokenOrNull(node.operator);
+    super.visitNullAssertionExpression(node);
   }
 
   @override
@@ -2069,29 +2112,41 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixDecrement(PostfixDecrement node) {
     _tokenOrNull(node.operator);
-    super.visitPostfixExpression(node);
+    super.visitPostfixDecrement(node);
+  }
+
+  @override
+  void visitPostfixIncrement(PostfixIncrement node) {
+    _tokenOrNull(node.operator);
+    super.visitPostfixIncrement(node);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _tokenOrNull(node.operator);
+    super.visitPrefixDecrement(node);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept(this);
+    node.prefix.accept2(this);
     _tokenOrNull(node.period);
-    node.identifier.accept(this);
+    node.identifier.accept2(this);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixIncrement(PrefixIncrement node) {
     _tokenOrNull(node.operator);
-    super.visitPrefixExpression(node);
+    super.visitPrefixIncrement(node);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    node.target?.accept(this);
+    node.target2?.accept2(this);
     _tokenOrNull(node.operator);
-    node.propertyName.accept(this);
+    node.propertyName.accept2(this);
   }
 
   @override
@@ -2147,7 +2202,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     RedirectingConstructorInvocation node,
   ) {
     _tokenOrNull(node.thisKeyword);
-    _tokenOrNull(node.period);
     super.visitRedirectingConstructorInvocation(node);
   }
 
@@ -2185,7 +2239,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _tokenOrNull(node.superKeyword);
-    _tokenOrNull(node.period);
     super.visitSuperConstructorInvocation(node);
   }
 
@@ -2216,6 +2269,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitTypeArgumentList(node);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    _tokenOrNull(node.operator);
+    super.visitUnaryOperatorInvocation(node);
   }
 
   void _tokenOrNull(Token? token) {

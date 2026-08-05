@@ -141,7 +141,8 @@ const List<LineException> afterExceptions = const [
   ),
   const LineException('_asyncAwait.<anonymous function>', 'async_patch.dart'),
   const LineException('_asyncStart.<anonymous function>', 'async_patch.dart'),
-  const LineException('_RootZone.runUnary', 'zone.dart'),
+  const LineException('Zone._runUnaryZoned', 'zone.dart'),
+  const LineException('Zone.runUnary', 'zone.dart'),
   const LineException('_FutureListener.handleValue', 'future_impl.dart'),
   const LineException(
     '_Future._asyncCompleteWithValue.<anonymous function>',

@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Computes layout of Dart objects (field offsets and instance size).
@@ -127,6 +131,92 @@ class ObjectLayout {
     return field;
   }
 
+  CField _createBuiltInField(
+    ast.Class cls,
+    String name,
+    ast.DartType type,
+    int offset, {
+    bool isFinal = false,
+  }) {
+    final fieldNode = isFinal
+        ? ast.Field.immutable(ast.Name(name), type: type, fileUri: ast.dummyUri)
+        : ast.Field.mutable(ast.Name(name), type: type, fileUri: ast.dummyUri);
+    fieldNode.parent = cls;
+    final field = CField(fieldNode);
+    _fieldOffset[field] = offset;
+    return field;
+  }
+
+  late final CoreTypes _coreTypes = GlobalContext.instance.coreTypes;
+  late final LibraryIndex _libraryIndex = _coreTypes.index;
+
+  late final ast.Class _arrayClass = _libraryIndex.getClass(
+    'dart:core',
+    '_Array',
+  );
+  late final ast.Class _linkedHashBaseClass = _libraryIndex.getClass(
+    'dart:_compact_hash',
+    '_LinkedHashBase',
+  );
+  late final ast.Class _typedListBaseClass = _libraryIndex.getClass(
+    'dart:typed_data',
+    '_TypedListBase',
+  );
+  late final ast.Class _uint32ListClass = _libraryIndex.getClass(
+    'dart:typed_data',
+    'Uint32List',
+  );
+
+  // dart:core
+  late final CField Array_length = _createBuiltInField(
+    _arrayClass,
+    'length',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.Array_length_offset,
+    isFinal: true,
+  );
+
+  // dart:_compact_hash
+  late final CField LinkedHashBase_index = _createBuiltInField(
+    _linkedHashBaseClass,
+    'index',
+    _coreTypes.nonNullableRawType(_uint32ListClass),
+    vmOffsets.LinkedHashBase_index_offset,
+  );
+  late final CField LinkedHashBase_hashMask = _createBuiltInField(
+    _linkedHashBaseClass,
+    'hashMask',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.LinkedHashBase_hash_mask_offset,
+  );
+  late final CField LinkedHashBase_data = _createBuiltInField(
+    _linkedHashBaseClass,
+    'data',
+    _coreTypes.listNonNullableRawType,
+    vmOffsets.LinkedHashBase_data_offset,
+  );
+  late final CField LinkedHashBase_usedData = _createBuiltInField(
+    _linkedHashBaseClass,
+    'usedData',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.LinkedHashBase_used_data_offset,
+  );
+  late final CField LinkedHashBase_deletedKeys = _createBuiltInField(
+    _linkedHashBaseClass,
+    'deletedKeys',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.LinkedHashBase_deleted_keys_offset,
+  );
+
+  // dart:typed_data
+  late final CField TypedListBase_length = _createBuiltInField(
+    _typedListBaseClass,
+    'length',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.TypedDataBase_length_offset,
+    isFinal: true,
+  );
+
   // Layout of built-in instances is specified either as
   // 'int size' or '(int size, int typeArgsOffset)' if class is generic.
 
@@ -159,16 +249,12 @@ class ObjectLayout {
     ),
   };
 
-  late final ast.Library _typedDataLibrary = GlobalContext
-      .instance
-      .coreTypes
-      .index
-      .getLibrary('dart:typed_data');
-  late final ast.Library _compactHashLibrary = GlobalContext
-      .instance
-      .coreTypes
-      .index
-      .getLibrary('dart:_compact_hash');
+  late final ast.Library _typedDataLibrary = _libraryIndex.getLibrary(
+    'dart:typed_data',
+  );
+  late final ast.Library _compactHashLibrary = _libraryIndex.getLibrary(
+    'dart:_compact_hash',
+  );
 
   bool _computeLayoutOfBuiltInClass(ast.Class cls) {
     final library = cls.enclosingLibrary;

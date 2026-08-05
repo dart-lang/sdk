@@ -509,8 +509,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitPropertyAccess(PropertyAccess node) {
-    var target = node.realTarget;
-    return target.accept(this)!;
+    var target = node.target;
+    return target?.accept(this) ?? false;
   }
 
   @override

@@ -320,11 +320,14 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
 ''');
   }
 
@@ -389,11 +392,14 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
 ''');
   }
 
@@ -481,7 +487,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: x
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -590,7 +596,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: x
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -609,6 +615,23 @@ class A {
 ConstructorDeclaration
   newKeyword: new
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: x
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: {
+      formalParameters
+        RegularFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: String
+          name: y
+      rightDelimiter: }
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -692,6 +715,21 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: [
+      formalParameters
+        FieldFormalParameter
+          thisKeyword: this
+          period: .
+          name: f
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value2: IntegerLiteral
+              literal: 0
+      rightDelimiter: ]
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     leftDelimiter: [
     parameter: FieldFormalParameter
       thisKeyword: this
@@ -725,6 +763,14 @@ ConstructorDeclaration
   typeName: SimpleIdentifier
     token: A
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      FieldFormalParameter
+        thisKeyword: this
+        period: .
+        name: f
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: FieldFormalParameter
       thisKeyword: this
@@ -761,7 +807,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: f
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -793,9 +839,9 @@ ConstructorDeclaration
 ''');
   }
 
-  test_constructor_typeName_factory_named_withoutPrimaryConstructors() {
+  test_constructor_typeName_factory_named_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   factory A.named() {}
 }
@@ -842,54 +888,9 @@ ConstructorDeclaration
 ''');
   }
 
-  test_constructor_typeName_factory_unnamed_noBody() {
+  test_constructor_typeName_factory_unnamed_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-class A {
-  factory A();
-}
-''');
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: EmptyFunctionBody
-    semicolon: ;
-''');
-  }
-
-  test_constructor_typeName_factory_unnamed_noBody_language305() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-class A {
-  factory A();
-//           ^
-// [diag.missingFunctionBody] A function body must be provided.
-}
-''');
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: EmptyFunctionBody
-    semicolon: ;
-''');
-  }
-
-  test_constructor_typeName_factory_unnamed_withoutPrimaryConstructors() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   factory A() {}
 }
@@ -911,9 +912,9 @@ ConstructorDeclaration
 ''');
   }
 
-  test_constructor_typeName_factory_unnamed_withoutPrimaryConstructors_notEnclosingClass() {
+  test_constructor_typeName_factory_unnamed_beforePrimaryConstructors_notEnclosingClass() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   factory B() {}
 }
@@ -935,6 +936,51 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_typeName_factory_unnamed_noBody() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  factory A();
+}
+''');
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed_noBody_beforeAugmentations() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  factory A();
+//           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_constructor_typeName_formalParameter_functionTyped_const() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
@@ -951,6 +997,31 @@ ConstructorDeclaration
   typeName: SimpleIdentifier
     token: A
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+        name: a
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+            rightParenthesis: )
+          formalParameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: const
@@ -987,6 +1058,33 @@ ConstructorDeclaration
   typeName: SimpleIdentifier
     token: A
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        type: NamedType
+          name: int
+        name: a
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+            rightParenthesis: )
+          formalParameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       documentationComment: Comment
@@ -1026,6 +1124,31 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+            rightParenthesis: )
+          formalParameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: final
       type: NamedType
@@ -1061,6 +1184,15 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+        name: a
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: const
       type: NamedType
@@ -1088,6 +1220,17 @@ ConstructorDeclaration
   typeName: SimpleIdentifier
     token: A
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        type: NamedType
+          name: int
+        name: a
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       documentationComment: Comment
@@ -1117,6 +1260,15 @@ ConstructorDeclaration
   typeName: SimpleIdentifier
     token: A
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: final
@@ -1166,6 +1318,14 @@ ConstructorDeclaration
     token: B
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      SuperFormalParameter
+        superKeyword: super
+        period: .
+        name: f1
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: SuperFormalParameter
       superKeyword: super
       period: .
@@ -1177,7 +1337,7 @@ ConstructorDeclaration
       superKeyword: super
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 2
         rightParenthesis: )
@@ -1356,9 +1516,9 @@ ClassDeclaration
 ''');
   }
 
-  test_field_abstract_static_language305() {
+  test_field_abstract_static_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   abstract static int? foo;
 //^^^^^^^^
@@ -1412,7 +1572,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1444,7 +1604,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1505,7 +1665,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1538,7 +1698,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1574,9 +1734,9 @@ ClassDeclaration
 ''');
   }
 
-  test_field_static_abstract_language305() {
+  test_field_static_abstract_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static abstract int? foo;
 //       ^^^^^^^^
@@ -1629,7 +1789,7 @@ ClassDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1660,7 +1820,7 @@ ClassDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1683,7 +1843,7 @@ MethodDeclaration
   name: A
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
     semicolon: ;
 ''');
@@ -1709,9 +1869,9 @@ MethodDeclaration
 ''');
   }
 
-  test_getter_static_body_empty_language305() {
+  test_getter_static_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static int get foo;
 //                  ^
@@ -1822,6 +1982,29 @@ ClassDeclaration
 ''');
   }
 
+  test_method_augment_external() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment class A {
+  augment external void foo();
+}
+''');
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_method_augment_static() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment class A {
@@ -1876,9 +2059,9 @@ MethodDeclaration
 ''');
   }
 
-  test_method_static_body_empty_language305() {
+  test_method_static_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static int foo();
 //                ^
@@ -2259,6 +2442,14 @@ ClassDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -2266,7 +2457,7 @@ ClassDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -2407,9 +2598,9 @@ ClassDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+  test_primaryConstructor_const_typeName_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 class const A {}
 //    ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -2466,6 +2657,22 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2497,6 +2704,22 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -2527,6 +2750,23 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2563,6 +2803,26 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            documentationComment: Comment
+              tokens
+                /// aaa
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -2598,6 +2858,23 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -2630,6 +2907,22 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2660,6 +2953,22 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -2694,6 +3003,31 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: const
+          type: NamedType
+            name: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                  name: x
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+              rightParenthesis: )
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: const
         type: NamedType
@@ -2726,6 +3060,31 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                  name: x
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+              rightParenthesis: )
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2763,6 +3122,34 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                  name: x
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+              rightParenthesis: )
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
@@ -2799,6 +3186,31 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                  name: x
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+              rightParenthesis: )
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
         type: NamedType
@@ -2834,6 +3246,15 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: const
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: const
         type: NamedType
@@ -2858,6 +3279,15 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2887,6 +3317,18 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
@@ -2915,6 +3357,15 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
         type: NamedType
@@ -2941,6 +3392,17 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        FieldFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          thisKeyword: this
+          period: .
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         constFinalOrVarKeyword: final
@@ -2971,6 +3433,17 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        FieldFormalParameter
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+          thisKeyword: this
+          period: .
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: FieldFormalParameter
         constFinalOrVarKeyword: var
         type: NamedType
@@ -2999,6 +3472,19 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            covariantKeyword: covariant
+            type: NamedType
+              name: int
+            name: it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -3030,6 +3516,20 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            covariantKeyword: covariant
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -3058,6 +3558,20 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            covariantKeyword: covariant
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: int
+            name: it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -3090,6 +3604,18 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: a
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -3118,6 +3644,20 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            covariantKeyword: covariant
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: int
+            name: a
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -3150,6 +3690,15 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
@@ -3177,6 +3726,16 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
         constFinalOrVarKeyword: final
@@ -3202,6 +3761,16 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -3230,6 +3799,15 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -3386,6 +3964,17 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        SuperFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          superKeyword: super
+          period: .
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: SuperFormalParameter
         constFinalOrVarKeyword: final
         type: NamedType
@@ -3414,6 +4003,17 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        SuperFormalParameter
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+          superKeyword: super
+          period: .
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
         constFinalOrVarKeyword: var
@@ -3445,7 +4045,14 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: BinaryExpression
+      condition2: BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
+          token: x
+        operator: >
+        rightOperand: IntegerLiteral
+          literal: 0
+        binaryOperator: greaterThan
+      condition(v1): BinaryExpression
         leftOperand: SimpleIdentifier
           token: x
         operator: >
@@ -3475,7 +4082,7 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
       rightBracket: }
@@ -3522,7 +4129,7 @@ PrimaryConstructorBody
       fieldName: SimpleIdentifier
         token: x
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -3545,6 +4152,23 @@ PrimaryConstructorBody
       atSign: @
       name: SimpleIdentifier
         token: deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_modifier_augment() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment class A() {
+  augment this;
+}
+''');
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  augmentKeyword: augment
   thisKeyword: this
   body: EmptyFunctionBody
     semicolon: ;
@@ -3590,6 +4214,14 @@ ClassDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -3625,6 +4257,14 @@ ClassDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -3654,6 +4294,12 @@ MethodDeclaration
   name: foo @16
   parameters: FormalParameterList
     leftParenthesis: ( @20 <synthetic>
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: <empty> @20 <synthetic>
+    rightParenthesis: ) @20 <synthetic>
+  parameters(v1): FormalParameterList
+    leftParenthesis: ( @20 <synthetic>
     parameter: RegularFormalParameter
       name: <empty> @20 <synthetic>
     rightParenthesis: ) @20 <synthetic>
@@ -3679,6 +4325,12 @@ MethodDeclaration
   propertyKeyword: set @12
   name: foo @16
   parameters: FormalParameterList
+    leftParenthesis: ( @19
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: a @21
+    rightParenthesis: ) @23
+  parameters(v1): FormalParameterList
     leftParenthesis: ( @19
     parameter: RegularFormalParameter
       name: a @21
@@ -3706,6 +4358,12 @@ MethodDeclaration
   name: foo @16
   parameters: FormalParameterList
     leftParenthesis: ( @19
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: a @21
+    rightParenthesis: ) @23
+  parameters(v1): FormalParameterList
+    leftParenthesis: ( @19
     parameter: RegularFormalParameter
       name: a @21
     rightParenthesis: ) @23
@@ -3731,6 +4389,12 @@ MethodDeclaration
   propertyKeyword: set @12
   name: foo @16
   parameters: FormalParameterList
+    leftParenthesis: ( @19
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: a @20
+    rightParenthesis: ) @27
+  parameters(v1): FormalParameterList
     leftParenthesis: ( @19
     parameter: RegularFormalParameter
       name: a @20
@@ -3758,6 +4422,12 @@ MethodDeclaration
   name: foo @16
   parameters: FormalParameterList
     leftParenthesis: ( @19
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: <empty> @20 <synthetic>
+    rightParenthesis: ) @20
+  parameters(v1): FormalParameterList
+    leftParenthesis: ( @19
     parameter: RegularFormalParameter
       name: <empty> @20 <synthetic>
     rightParenthesis: ) @20
@@ -3783,6 +4453,14 @@ MethodDeclaration
   name: foo
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -3793,9 +4471,9 @@ MethodDeclaration
 ''');
   }
 
-  test_setter_static_body_empty_language305() {
+  test_setter_static_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static set foo(int _);
 //                     ^
@@ -3810,6 +4488,14 @@ MethodDeclaration
   propertyKeyword: set
   name: foo
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType

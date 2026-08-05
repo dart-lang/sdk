@@ -11,7 +11,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
 
 import '../metadata/obfuscation_prohibitions.dart';
-import 'pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 void transformComponent(
   Component component,

@@ -42,7 +42,12 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
+  FlowAnalysis<
+    InternalNode,
+    InternalStatement,
+    InternalExpression,
+    InternalVariable
+  >
   get flowAnalysis;
 
   AssignedVariablesImpl get assignedVariables;
@@ -55,7 +60,7 @@ abstract class TypeInferrer {
   InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
-    required Expression initializer,
+    required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
   });
@@ -84,17 +89,16 @@ abstract class TypeInferrer {
   ///
   /// If [indices] is provided, only the annotations at the given indices are
   /// inferred. Otherwise all annotations are inferred.
-  void inferMetadata({
+  List<Expression> inferMetadata({
     required Uri fileUri,
-    required Annotatable annotatable,
-    required List<int>? indices,
+    required List<InternalExpression> annotations,
   });
 
   /// Performs type inference on the given function parameter default value
   /// expression.
   Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression defaultValue,
+    required InternalExpression defaultValue,
     required DartType declaredType,
     required bool hasDeclaredDefaultValue,
   });
@@ -124,9 +128,9 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   late final FlowAnalysis<
-    TreeNode,
+    InternalNode,
     InternalStatement,
-    Expression,
+    InternalExpression,
     InternalVariable
   >
   flowAnalysis = new FlowAnalysis(
@@ -214,7 +218,7 @@ class TypeInferrerImpl implements TypeInferrer {
   InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
-    required Expression initializer,
+    required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
   }) {
@@ -243,6 +247,7 @@ class TypeInferrerImpl implements TypeInferrer {
         declaredType,
         initializerResult,
         isVoidAllowed: declaredType is VoidType,
+        assignedNode: initializer,
       );
     } else {
       // If the field has no declared type, compute the field type from the
@@ -305,7 +310,7 @@ class TypeInferrerImpl implements TypeInferrer {
     Statement inferredBody = result.statement;
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(body, inferredBody);
+    ?.registerExternalNode(body, inferredBody);
     return new InferredFunctionBody(inferredBody, emittedValueType);
   }
 
@@ -329,6 +334,7 @@ class TypeInferrerImpl implements TypeInferrer {
       for (PositionalParameter positionalParameter
           in redirectingFactoryFunction.positionalParameters)
         new InternalPositionalParameter(
+          defaultValue: null,
           astVariable: positionalParameter,
           isImplicitlyTyped: false,
           fileOffset: positionalParameter.fileOffset,
@@ -338,6 +344,7 @@ class TypeInferrerImpl implements TypeInferrer {
       for (NamedParameter namedParameter
           in redirectingFactoryFunction.namedParameters)
         new InternalNamedParameter(
+          defaultValue: null,
           astVariable: namedParameter,
           isImplicitlyTyped: false,
           fileOffset: namedParameter.fileOffset,
@@ -369,7 +376,7 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      Expression variableGet = intern.createVariableGet(
+      InternalExpression variableGet = intern.createVariableGet(
         parameter,
         fileOffset: parameter.fileOffset,
       );
@@ -382,9 +389,10 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      NamedExpression namedExpression = new NamedExpression(
+      InternalNamedExpression namedExpression = intern.createNamedExpression(
         parameter.cosmeticName!,
         intern.createVariableGet(parameter, fileOffset: parameter.fileOffset),
+        fileOffset: parameter.fileOffset,
       );
 
       arguments.add(new NamedArgument(namedExpression));
@@ -395,7 +403,8 @@ class TypeInferrerImpl implements TypeInferrer {
       argumentList: arguments,
       hasNamedBeforePositional: false,
       positionalCount: positionalCount,
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
 
     InvocationInferenceResult result = visitor.inferInvocation(
       visitor,
@@ -447,24 +456,24 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  void inferMetadata({
+  List<Expression> inferMetadata({
     required Uri fileUri,
-    required Annotatable annotatable,
-    required List<int>? indices,
+    required List<InternalExpression> annotations,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy:
           InferenceVisitorBase.createContextAllocationStrategy(),
     );
-    visitor.inferMetadata(visitor, annotatable, indices: indices);
+    List<Expression> result = visitor.inferMetadata(visitor, annotations);
     visitor.checkCleanState();
+    return result;
   }
 
   @override
   Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression defaultValue,
+    required InternalExpression defaultValue,
     required DartType declaredType,
     required bool hasDeclaredDefaultValue,
   }) {
@@ -477,15 +486,20 @@ class TypeInferrerImpl implements TypeInferrer {
       defaultValue,
       declaredType,
     );
+    Expression inferredDefaultValue;
     if (hasDeclaredDefaultValue) {
-      defaultValue = visitor
-          .ensureAssignableResult(declaredType, result)
+      inferredDefaultValue = visitor
+          .ensureAssignableResult(
+            declaredType,
+            result,
+            assignedNode: defaultValue,
+          )
           .expression;
     } else {
-      defaultValue = result.expression;
+      inferredDefaultValue = result.expression;
     }
     visitor.checkCleanState();
-    return defaultValue;
+    return inferredDefaultValue;
   }
 
   @override
@@ -535,7 +549,12 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   AssignedVariablesImpl get assignedVariables => impl.assignedVariables;
 
   @override
-  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
+  FlowAnalysis<
+    InternalNode,
+    InternalStatement,
+    InternalExpression,
+    InternalVariable
+  >
   get flowAnalysis => impl.flowAnalysis;
 
   @override
@@ -545,7 +564,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
-    required Expression initializer,
+    required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
   }) {
@@ -607,24 +626,23 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  void inferMetadata({
+  List<Expression> inferMetadata({
     required Uri fileUri,
-    required Annotatable annotatable,
-    required List<int>? indices,
+    required List<InternalExpression> annotations,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
-    impl.inferMetadata(
+    List<Expression> result = impl.inferMetadata(
       fileUri: fileUri,
-      annotatable: annotatable,
-      indices: indices,
+      annotations: annotations,
     );
     benchmarker.endSubdivide();
+    return result;
   }
 
   @override
   Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression defaultValue,
+    required InternalExpression defaultValue,
     required DartType declaredType,
     required bool hasDeclaredDefaultValue,
   }) {

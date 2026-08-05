@@ -567,10 +567,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {
     PrimaryConstructorBodyBegin data = new PrimaryConstructorBodyBegin(
       ParserAstType.BEGIN,
       token: token,
+      augmentToken: augmentToken,
     );
     seen(data);
   }
@@ -4898,12 +4899,16 @@ class NoPrimaryConstructorHandle extends ParserAstNode {
 
 class PrimaryConstructorBodyBegin extends ParserAstNode {
   final Token token;
+  final Token? augmentToken;
 
-  new(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token, this.augmentToken})
     : super("PrimaryConstructorBody", type);
 
   @override
-  Map<String, Object?> get deprecatedArguments => {"token": token};
+  Map<String, Object?> get deprecatedArguments => {
+    "token": token,
+    "augmentToken": augmentToken,
+  };
 
   @override
   R accept<R>(ParserAstVisitor<R> v) =>

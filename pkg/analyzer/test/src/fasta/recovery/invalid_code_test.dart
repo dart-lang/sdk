@@ -41,7 +41,27 @@ CompilationUnit
           VariableDeclaration
             name: fruits
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
+                  token: cont
+                operator: <
+                rightOperand: SimpleIdentifier
+                  token: String
+                binaryOperator: lessThan
+              operator: >
+              rightOperand: ListLiteral
+                leftBracket: [
+                elements2
+                  SimpleStringLiteral
+                    literal: 'apples'
+                  SimpleStringLiteral
+                    literal: 'bananas'
+                  SimpleStringLiteral
+                    literal: 'pears'
+                rightBracket: ]
+              binaryOperator: greaterThan
+            initializer(v1): BinaryExpression
               leftOperand: BinaryExpression
                 leftOperand: SimpleIdentifier
                   token: cont
@@ -80,7 +100,15 @@ CompilationUnit
           VariableDeclaration
             name: default
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              keyword: const
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: Object
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            initializer(v1): InstanceCreationExpression
               keyword: const
               constructorName: ConstructorName
                 type: NamedType
@@ -116,7 +144,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: ListLiteral
+                expression2: ListLiteral
                   typeArguments: TypeArgumentList
                     leftBracket: <
                     arguments
@@ -124,7 +152,7 @@ CompilationUnit
                         name: g
                     rightBracket: >
                   leftBracket: [
-                  elements
+                  elements2
                     IntegerLiteral
                       literal: 0
                     IntegerLiteral
@@ -161,7 +189,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: ListLiteral
+                expression2: ListLiteral
                   typeArguments: TypeArgumentList
                     leftBracket: <
                     arguments
@@ -169,7 +197,7 @@ CompilationUnit
                         name: test
                     rightBracket: >
                   leftBracket: [
-                  elements
+                  elements2
                     IntegerLiteral
                       literal: 0
                     IntegerLiteral
@@ -206,7 +234,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: ListLiteral
+                expression2: ListLiteral
                   typeArguments: TypeArgumentList
                     leftBracket: <
                     arguments
@@ -214,7 +242,7 @@ CompilationUnit
                         name: test
                     rightBracket: >
                   leftBracket: [
-                  elements
+                  elements2
                     IntegerLiteral
                       literal: 0
                     IntegerLiteral
@@ -261,16 +289,16 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: f
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       NamedArgument
                         name: with
                         colon: :
-                        argumentExpression: IntegerLiteral
+                        argumentExpression2: IntegerLiteral
                           literal: 3
                     rightParenthesis: )
                 semicolon: ;
@@ -292,6 +320,21 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: {
+            formalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+                name: with
+                defaultClause: FormalParameterDefaultClause
+                  separator: :
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -340,7 +383,7 @@ CompilationUnit
           VariableDeclaration
             name: allValues
             equals: =
-            initializer: ListLiteral
+            initializer2: ListLiteral
               leftBracket: [
               rightBracket: ]
       semicolon: ;
@@ -358,6 +401,24 @@ CompilationUnit
       name: forEach
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: <empty> <synthetic>
+              functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  requiredPositionalFormalParameters
+                    RegularFormalParameter
+                      name: enum
+                  rightParenthesis: )
+                formalParameters(v1): FormalParameterList
+                  leftParenthesis: (
+                  parameter: RegularFormalParameter
+                    name: enum
+                  rightParenthesis: )
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: <empty> <synthetic>

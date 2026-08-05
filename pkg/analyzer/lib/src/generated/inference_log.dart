@@ -66,7 +66,7 @@ enum ExpressionVisitCodePath {
   analyzeExpression,
 
   /// The expression is the identifier in a "for each" loop, so it is not a true
-  /// expression, and it is being visited directly using [Expression.accept].
+  /// expression, and it is being visited directly using [Expression.accept2].
   forEachIdentifier,
 }
 
@@ -262,7 +262,7 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   ///
   /// This is used to verify proper nesting of `enter...` method calls.
   AstNode? traceableAncestor(covariant AstNode node) {
-    for (var parent = node.parent; ; parent = parent.parent) {
+    for (var parent = node.parent2; ; parent = parent.parent2) {
       switch (parent) {
         case null:
         case Annotation():

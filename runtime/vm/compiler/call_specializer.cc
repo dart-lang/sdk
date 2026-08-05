@@ -3227,6 +3227,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64ArrayGetIndexed:
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kInt32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
       if (!ShouldInlineSimd()) {
@@ -3287,13 +3288,8 @@ bool CallSpecializer::TryInlineRecognizedMethod(
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
                               exactness, graph_entry, entry, last, result);
     }
-    case MethodRecognizer::kFloat32x4ArraySetIndexed: {
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              exactness, graph_entry, entry, last, result);
-    }
+    case MethodRecognizer::kInt32x4ArraySetIndexed:
+    case MethodRecognizer::kFloat32x4ArraySetIndexed:
     case MethodRecognizer::kFloat64x2ArraySetIndexed: {
       if (!ShouldInlineSimd()) {
         return false;

@@ -26,8 +26,8 @@ class NullSafeApiVerifier {
 
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
-  void instanceCreation(InstanceCreationExpressionImpl expression) {
-    var constructor = expression.constructorName.element;
+  void constructorInvocation(ConstructorInvocationImpl expression) {
+    var constructor = expression.constructorReference.element;
     if (constructor == null) return;
 
     var type = constructor.returnType;
@@ -46,7 +46,7 @@ class NullSafeApiVerifier {
   /// Reports an error if `Completer<T>.complete` is invoked with a non-nullable
   /// `T` and an argument that is effectively `null`.
   void methodInvocation(MethodInvocationImpl node) {
-    var targetType = node.realTarget?.staticType;
+    var targetType = node.realTarget2?.staticType;
     if (targetType is! InterfaceTypeImpl) return;
 
     var targetClass = targetType.element;
@@ -72,10 +72,10 @@ class NullSafeApiVerifier {
     // If there's more than one argument, something else is wrong (and will
     // generate another diagnostic). Also, only check the argument type if we
     // expect a non-nullable type in the first place.
-    if (args.arguments.length > 1 || !_typeSystem.isNonNullable(type)) return;
+    if (args.arguments2.length > 1 || !_typeSystem.isNonNullable(type)) return;
 
-    var argument = args.arguments.isEmpty ? null : args.arguments.single;
-    var argumentType = argument?.argumentExpression.staticType;
+    var argument = args.arguments2.isEmpty ? null : args.arguments2.single;
+    var argumentType = argument?.argumentExpression2.staticType;
     // Skip if the type is not currently resolved.
     if (argument != null && argumentType == null) return;
 

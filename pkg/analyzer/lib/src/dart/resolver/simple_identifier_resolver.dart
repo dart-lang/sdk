@@ -71,7 +71,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   ///
   // TODO(scheglov): this is duplicate
   bool _isExpressionIdentifier(Identifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
@@ -80,8 +80,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         return false;
       }
     }
-    if (parent is ConstructorNameImpl ||
-        parent is MethodInvocationImpl ||
+    if (parent is MethodInvocationImpl ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccessImpl ||
         parent is NamedTypeImpl) {
@@ -94,13 +93,13 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// * it is the prefix in an import directive, or
   /// * it is the prefix in a prefixed identifier.
   bool _isValidAsPrefix(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ImportDirectiveImpl) {
       return identical(parent.prefix, node);
     } else if (parent is PrefixedIdentifierImpl) {
       return true;
     } else if (parent is MethodInvocationImpl) {
-      return identical(parent.target, node) &&
+      return identical(parent.target2, node) &&
           parent.operator?.type == TokenType.PERIOD;
     }
     return false;
@@ -139,7 +138,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         node.element is FormalParameterElement) {
       return null;
     }
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is FieldFormalParameterImpl) {
       return null;
     } else if (parent is ConstructorFieldInitializerImpl &&
@@ -157,7 +156,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var hasRead = true;
     var hasWrite = false;
     {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is ForEachPartsWithIdentifierImpl &&
           parent.identifier == node) {
         hasRead = false;
@@ -194,12 +193,12 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     var element = hasRead ? result.readElement2 : result.writeElement2;
 
-    var enclosingClass = _resolver.enclosingClass;
+    var enclosingInstanceElement = _resolver.enclosingInstanceElement;
     if (_isFactoryConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
+        !identical(element, enclosingInstanceElement)) {
       diagnosticReporter.report(diag.invalidFactoryNameNotAClass.at(node));
     } else if (_isConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
+        !identical(element, enclosingInstanceElement)) {
       // This error is now reported by the parser.
       element = null;
     } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
@@ -212,7 +211,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
       }
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
-      if (node.name == "await" && _resolver.enclosingFunction != null) {
+      if (node.name == "await" &&
+          _resolver.enclosingExecutableElement != null) {
         diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
       } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
         node,
@@ -273,9 +273,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
         isRead: node.inGetterContext(),
       );
     } else if (element is PrefixElement) {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is PrefixedIdentifierImpl && parent.prefix == node ||
-          parent is MethodInvocationImpl && parent.target == node) {
+          parent is MethodInvocationImpl && parent.target2 == node) {
         inferenceLogWriter?.recordExpressionWithNoType(node);
         return;
       }
@@ -311,17 +311,17 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
 
     if (parent is PrefixedIdentifierImpl && parent.identifier == node) {
       node = parent;
-      parent = node.parent;
+      parent = node.parent2;
     }
 
     if (parent is CommentReferenceImpl ||
-        parent is MethodInvocationImpl && parent.target == node ||
+        parent is MethodInvocationImpl && parent.target2 == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
-        parent is PropertyAccessImpl && parent.target == node) {
+        parent is PropertyAccessImpl && parent.target2 == node) {
       return;
     }
 
@@ -340,7 +340,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// Return `true` if the given [identifier] is the return type of a
   /// constructor declaration.
   static bool _isConstructorReturnType(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     if (parent is ConstructorDeclarationImpl) {
       return identical(parent.typeName, identifier);
     }
@@ -350,7 +350,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// Return `true` if the given [identifier] is the return type of a factory
   /// constructor.
   static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     if (parent is ConstructorDeclarationImpl) {
       return identical(parent.typeName, identifier) &&
           parent.factoryKeyword != null;

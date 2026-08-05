@@ -104,7 +104,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     var codes = args.multiOption('code');
 
     var rest = args.rest;
-    var target = _getTarget(rest);
+    var target = getTarget(rest);
     if (!target.existsSync()) {
       var entity = target.isDirectory ? 'Directory' : 'File';
       usageException("$entity doesn't exist: ${target.path}");
@@ -339,21 +339,6 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   /// Compress sequences of whitespace characters into a single space.
   String _compressWhitespace(String code) =>
       code.replaceAll(RegExp(r'\s+'), ' ');
-
-  io.FileSystemEntity _getTarget(List<String> arguments) {
-    var argumentCount = arguments.length;
-    if (argumentCount > 1) {
-      usageException('Only one file or directory is expected.');
-    }
-
-    var basePath = argumentCount == 0
-        ? io.Directory.current.absolute.path
-        : arguments[0];
-    var normalizedPath = path.canonicalize(path.normalize(basePath));
-    return io.FileSystemEntity.isDirectorySync(normalizedPath)
-        ? io.Directory(normalizedPath)
-        : io.File(normalizedPath);
-  }
 
   /// Merge the fixes from the current round's [details] into the [detailsMap].
   void _mergeDetails(Map<String, BulkFix> detailsMap, List<BulkFix> details) {

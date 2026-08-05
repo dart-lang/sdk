@@ -310,6 +310,11 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitExternalCall(ExternalCall instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitParameter(Parameter instr) {
     _setNonConstant(instr);
   }
@@ -339,6 +344,11 @@ final class ConstantPropagation extends Pass
   void visitStoreStaticField(StoreStaticField instr) {}
 
   @override
+  void visitLoadArrayElement(LoadArrayElement instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitThrow(Throw instr) {}
 
   @override
@@ -351,6 +361,23 @@ final class ConstantPropagation extends Pass
     if (operand != null) {
       if (!operand.isNull) {
         _setResult(instr, operand);
+      } else {
+        _setNonConstant(instr);
+      }
+    }
+  }
+
+  @override
+  void visitIndexCheck(IndexCheck instr) {
+    if (_isNonConstant(instr.index) || _isNonConstant(instr.length)) {
+      _setNonConstant(instr);
+      return;
+    }
+    ConstantValue? index = _getConstantValue(instr.index);
+    ConstantValue? length = _getConstantValue(instr.length);
+    if (index != null && length != null) {
+      if (0 <= index.intValue && index.intValue < length.intValue) {
+        _setResult(instr, index);
       } else {
         _setNonConstant(instr);
       }
@@ -678,6 +705,7 @@ final class ConstantPropagation extends Pass
             phi.setInputAt(inputCount, phi.inputDefAt(i));
             phi.addInputToUseList(inputCount);
           }
+          block.predecessors[inputCount] = block.predecessors[i];
         }
         ++inputCount;
       } else {
@@ -692,6 +720,7 @@ final class ConstantPropagation extends Pass
       for (final phi in block.phis) {
         phi.truncateInputs(inputCount);
       }
+      block.predecessors.length = inputCount;
     }
   }
 

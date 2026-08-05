@@ -330,4 +330,38 @@ int 42
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
+
+  test_topLevel_implicitType_closure_forEachPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(this.f);
+  final int Function(List<List<int>>) f;
+}
+
+const a = A((values) {
+// [diag.constInitializedWithNonConstantValue][column 11][length 88] Const variables must be initialized with a constant value.
+// [diag.constWithNonConstantArgument][column 13][length 85] Arguments of a constant creation must be constant expressions.
+  for (var [int x, int y] in values) {
+    return x + y;
+  }
+  return 0;
+});
+''');
+  }
+
+  test_topLevel_implicitType_closure_patternDeclaration() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(this.f);
+  final int Function(List<int>) f;
+}
+
+const a = A((values) {
+// [diag.constInitializedWithNonConstantValue][column 11][length 62] Const variables must be initialized with a constant value.
+// [diag.constWithNonConstantArgument][column 13][length 59] Arguments of a constant creation must be constant expressions.
+  var [int x, int y] = values;
+  return x + y;
+});
+''');
+  }
 }

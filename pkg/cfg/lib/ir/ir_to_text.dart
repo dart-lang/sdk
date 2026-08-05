@@ -158,6 +158,8 @@ final class IrToText extends VoidInstructionVisitor {
           instr.types.map((type) => type.getDisplayString()).join(', '),
         );
         _buffer.write('>');
+      case AllocateClosure():
+        _buffer.write(instr.closureLayout);
       case ParallelMove():
         _buffer.write(instr.moves.join(', '));
       case _:
@@ -181,6 +183,7 @@ final class IrToText extends VoidInstructionVisitor {
         DynamicCallKind.getter => 'get ',
         DynamicCallKind.setter => 'set ',
       }}${instr.selector}',
+    ExternalCall() => 'ExternalCall ${instr.target}',
     AllocateObject() => 'AllocateObject ${instr.type}',
     Suspend() => 'Suspend ${instr.op.name}',
     BinaryIntOp() => 'BinaryIntOp ${instr.op.token}',

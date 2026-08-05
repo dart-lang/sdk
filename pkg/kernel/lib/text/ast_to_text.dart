@@ -1457,7 +1457,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isAbstract, 'abstract');
-    writeModifier(node.isMacro, 'macro');
     writeModifier(node.isSealed, 'sealed');
     writeModifier(node.isBase, 'base');
     writeModifier(node.isInterface, 'interface');

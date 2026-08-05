@@ -420,7 +420,7 @@ ExportDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString
@@ -644,7 +644,7 @@ ExportDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString

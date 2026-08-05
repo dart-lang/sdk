@@ -83,4 +83,39 @@ void boolNot(bool x) {
   print(!x);
 }
 
+// Constant propagation changes order of block predecessors in this function.
+void reorderPredecessors(List<int> bytes, int i, int end, bool c1, bool c2) {
+  int state = bytes[i++];
+  int byte = bytes[i++];
+  loop:
+  while (true) {
+    multibyte:
+    while (true) {
+      state = byte;
+      if (state == 42) {
+        if (i == end) break loop;
+        break multibyte;
+      } else if (c1) {
+        if (c2) {
+          state = 42;
+        } else {
+          print(state);
+          return;
+        }
+      }
+      if (i == end) break loop;
+      byte = bytes[i++];
+    }
+
+    byte = bytes[i++];
+    if (byte < 128) {
+      break loop;
+    }
+  }
+
+  if (state > 5) {
+    print(state);
+  }
+}
+
 void main() {}

@@ -7,10 +7,10 @@ import 'package:kernel/ast.dart';
 
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
-import '../kernel/external_ast_helper.dart';
 import '../kernel/external_ast_helper.dart' as extern;
-import '../kernel/internal_ast.dart';
+import '../kernel/inferred_collections.dart';
 import '../source/check_helper.dart';
+import 'element_inference.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';
 
@@ -107,7 +107,7 @@ class DirectVariableDeclarationInferenceResult
   StatementInferenceResult toStatementInferenceResult({
     required int fileOffset,
   }) => new StatementInferenceResult.single(
-    createVariableStatement(declaration, fileOffset: fileOffset),
+    extern.createVariableStatement(declaration, fileOffset: fileOffset),
   );
 }
 
@@ -122,8 +122,8 @@ class EffectVariableDeclarationInferenceResult
     required int fileOffset,
   }) => new StatementInferenceResult.single(
     expression != null
-        ? createExpressionStatement(expression!, fileOffset: fileOffset)
-        : createEmptyStatement(fileOffset: fileOffset),
+        ? extern.createExpressionStatement(expression!, fileOffset: fileOffset)
+        : extern.createEmptyStatement(fileOffset: fileOffset),
   );
 }
 
@@ -144,7 +144,7 @@ class LateVariableDeclarationInferenceResult
     required int fileOffset,
   }) => new StatementInferenceResult.multiple(fileOffset, [
     for (VariableDeclaration variableDeclaration in variableDeclarations)
-      createVariableStatement(variableDeclaration),
+      extern.createVariableStatement(variableDeclaration),
     ...functionDeclarations,
   ]);
 }
@@ -192,14 +192,12 @@ abstract class InvocationInferenceResult {
 
   static Expression _insertHoistedExpressions(
     Expression expression,
-    List<SyntheticVariable> hoistedExpressions,
+    List<CachedExpression> hoistedExpressions,
   ) {
     if (hoistedExpressions.isNotEmpty) {
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(
-          variable: hoistedExpressions[index],
-          body: expression,
-        );
+        CachedExpression cache = hoistedExpressions[index];
+        expression = extern.createLet(cache: cache, body: expression);
       }
     }
     return expression;
@@ -220,7 +218,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   @override
   final List<DartType> typeArguments;
 
-  final List<SyntheticVariable>? hoistedArguments;
+  final List<CachedExpression>? hoistedArguments;
 
   @override
   final List<Expression> positional;
@@ -249,7 +247,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     Expression expression, {
     DartType? extensionReceiverType,
   }) {
-    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
+    List<CachedExpression>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else if (expression is RedirectingFactoryInvocation) {
@@ -280,15 +278,15 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         // The hoisting of InstanceGetterInvocation is performed elsewhere.
         return expression;
       } else if (expression is InstanceInvocation) {
-        if (!isPureExpression(expression.receiver)) {
-          SyntheticVariable receiver = createVariable(
-            expression.receiver,
-            inferredReceiverType ?? const DynamicType(),
+        if (!extern.isPureExpression(expression.receiver)) {
+          CachedExpression receiverCache = extern.createCachedExpression(
+            expression: expression.receiver,
+            type: inferredReceiverType ?? const DynamicType(),
           );
-          expression.receiver = createVariableGet(receiver)
+          expression.receiver = extern.createVariableGet(receiverCache.variable)
             ..parent = expression;
-          return createLet(
-            variable: receiver,
+          return extern.createLet(
+            cache: receiverCache,
             body: InvocationInferenceResult._insertHoistedExpressions(
               expression,
               hoistedArguments,
@@ -308,16 +306,16 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
       } else if (expression is StaticInvocation) {
         if (extensionReceiverType != null) {
           Expression receiver = expression.arguments.positional.first;
-          if (!isPureExpression(receiver)) {
-            SyntheticVariable receiverVariable = createVariable(
-              receiver,
-              extensionReceiverType,
+          if (!extern.isPureExpression(receiver)) {
+            CachedExpression receiverCache = extern.createCachedExpression(
+              expression: receiver,
+              type: extensionReceiverType,
             );
-            expression.arguments.positional.first = createVariableGet(
-              receiverVariable,
+            expression.arguments.positional.first = extern.createVariableGet(
+              receiverCache.variable,
             )..parent = expression;
-            return createLet(
-              variable: receiverVariable,
+            return extern.createLet(
+              cache: receiverCache,
               body: InvocationInferenceResult._insertHoistedExpressions(
                 expression,
                 hoistedArguments,
@@ -368,7 +366,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final bool isInapplicable;
 
-  final List<SyntheticVariable>? hoistedArguments;
+  final List<CachedExpression>? hoistedArguments;
 
   @override
   final List<Expression> positional;
@@ -404,12 +402,14 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     Expression expression, {
     DartType? extensionReceiverType,
   }) {
-    expression = problemReporting.wrapInLocatedProblem(
-      compilerContext: compilerContext,
+    expression = extern.createInvalidExpressionFromErrorText(
+      problemReporting.buildProblemFromLocatedMessage(
+        compilerContext: compilerContext,
+        message: message,
+      ),
       expression: expression,
-      message: message,
     );
-    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
+    List<CachedExpression>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else {
@@ -462,7 +462,7 @@ class SuccessfulInitializerInvocationInferenceResult
   @override
   final Initializer initializer;
 
-  final List<SyntheticVariable>? hoistedArguments;
+  final List<CachedExpression>? hoistedArguments;
 
   new({required this.initializer, required this.hoistedArguments});
 
@@ -476,13 +476,10 @@ class SuccessfulInitializerInvocationInferenceResult
 
   @override
   void addHoistedArguments(List<Initializer> initializers) {
-    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
+    List<CachedExpression>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
-      for (SyntheticVariable hoistedArgument in hoistedArguments) {
-        initializers.add(
-          new LocalInitializer(hoistedArgument)
-            ..fileOffset = hoistedArgument.fileOffset,
-        );
+      for (CachedExpression cache in hoistedArguments) {
+        initializers.add(extern.createLocalInitializer(cache));
       }
     }
   }
@@ -551,24 +548,24 @@ class ExpressionInferenceResult {
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
 
+/// The result of inference of an [InternalElement].
+class ElementInferenceResult({
+  /// The inferred type of the element.
+  required final ElementType inferredType,
+
+  /// The inferred expression.
+  required final InferredElement element,
+});
+
 /// A guard used for creating null-shorting null-aware actions.
 class NullAwareGuard {
   /// The variable used to guard the null-aware action.
-  final SyntheticVariable _nullAwareVariable;
-
-  final Expression? _nullableExpression;
+  final CachedExpression _nullAwareCache;
 
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;
 
-  final InferenceVisitorBase _inferrer;
-
-  new(
-    this._nullAwareVariable,
-    this._nullAwareFileOffset,
-    this._inferrer, {
-    this._nullableExpression,
-  });
+  new(this._nullAwareCache, this._nullAwareFileOffset);
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].
@@ -582,9 +579,9 @@ class NullAwareGuard {
     DartType inferredType,
     Expression nullAwareAction,
   ) {
-    Expression equalsNull = _inferrer.createEqualsNull(
-      _nullAwareFileOffset,
-      createVariableGet(_nullAwareVariable),
+    Expression equalsNull = extern.createEqualsNull(
+      extern.createVariableGet(_nullAwareCache.variable),
+      fileOffset: _nullAwareFileOffset,
     );
 
     // In case null guards are applied to non-nullable receivers, we still
@@ -623,7 +620,7 @@ class NullAwareGuard {
     Expression typeSafeIfNullBranch =
         inferredType.nullability == Nullability.nullable
         ? extern.createNullLiteral(fileOffset: TreeNode.noOffset)
-        : createVariableGet(_nullAwareVariable);
+        : extern.createVariableGet(_nullAwareCache.variable);
     typeSafeIfNullBranch.fileOffset = _nullAwareFileOffset;
 
     ConditionalExpression condition = extern.createConditionalExpression(
@@ -634,14 +631,12 @@ class NullAwareGuard {
       fileOffset: _nullAwareFileOffset,
     );
     return extern.createLet(
-      variable: _nullAwareVariable,
-      value: _nullableExpression,
+      cache: _nullAwareCache,
       body: condition,
       fileOffset: _nullAwareFileOffset,
     );
   }
 
   @override
-  String toString() =>
-      'NullAwareGuard($_nullAwareVariable,$_nullAwareFileOffset)';
+  String toString() => 'NullAwareGuard($_nullAwareCache,$_nullAwareFileOffset)';
 }

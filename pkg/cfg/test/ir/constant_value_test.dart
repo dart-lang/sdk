@@ -410,6 +410,7 @@ void main() {
       testOp(UnaryIntOpcode.toDouble, (int v) => v.toDouble());
       testOp(UnaryIntOpcode.abs, (int v) => v.abs());
       testOp(UnaryIntOpcode.sign, (int v) => v.sign);
+      testOp(UnaryIntOpcode.bitLength, (int v) => v.bitLength);
     });
 
     test('binary double op', () {

@@ -7,12 +7,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:args/args.dart';
 import 'package:dartpad/src/dartpad_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  final parser = ArgParser()
+    ..addOption(
+      'bootstrap-code-path',
+      help: 'Path to a file containing the bootstrap code.',
+    );
+
+  final results = parser.parse(args);
+
   final dartSdkRoot = p.dirname(p.dirname(Platform.resolvedExecutable));
 
   // Locate Flutter
@@ -71,6 +80,16 @@ Future<void> main() async {
   print('Using Flutter SDK at: $flutterRoot');
   print('Target asset directory: $flutterAssetDir');
 
+  String? bootstrapCode;
+  if (results.option('bootstrap-code-path') case final codePath?) {
+    final bootstrapFile = File(codePath);
+    if (!bootstrapFile.existsSync()) {
+      print('Error: Bootstrap code file not found: $codePath');
+      exit(1);
+    }
+    bootstrapCode = await bootstrapFile.readAsString();
+  }
+
   final tempDir = Directory.systemTemp.createTempSync('dartpad_flutter_setup_');
   try {
     await _setupLocalFlutter(
@@ -78,12 +97,14 @@ Future<void> main() async {
         dartSdkRoot: dartSdkRoot,
         dartBin: p.join(dartSdkRoot, 'bin', 'dart'),
         dartAotRuntimeBin: p.join(dartSdkRoot, 'bin', 'dartaotruntime'),
+        dartDartPadSdk: p.join(dartSdkRoot, '..', 'dartpad'),
         flutterRoot: flutterRoot,
         tempDir: tempDir.path,
         flutterBin: flutterBin,
         projectRoot: projectRoot,
         flutterAssetDir: flutterAssetDir,
         packageDir: packageDir,
+        bootstrapCode: bootstrapCode,
       ),
     );
   } finally {
@@ -95,23 +116,27 @@ final class _BuildContext {
   final String dartSdkRoot;
   final String dartBin;
   final String dartAotRuntimeBin;
+  final String dartDartPadSdk;
   final String flutterRoot;
   final String tempDir;
   final String flutterBin;
   final String projectRoot;
   final String flutterAssetDir;
   final String packageDir;
+  final String? bootstrapCode;
 
   _BuildContext({
     required this.dartSdkRoot,
     required this.dartBin,
     required this.dartAotRuntimeBin,
+    required this.dartDartPadSdk,
     required this.flutterRoot,
     required this.tempDir,
     required this.flutterBin,
     required this.projectRoot,
     required this.flutterAssetDir,
     required this.packageDir,
+    required this.bootstrapCode,
   });
 }
 
@@ -133,6 +158,22 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     'remove',
     'flutter_test',
     'flutter_lints',
+  ], myappDir);
+
+  print('Adding flutter_web_plugins dependency...');
+  _runSync(ctx.flutterBin, [
+    'pub',
+    'add',
+    'flutter_web_plugins',
+    '--sdk=flutter',
+  ], myappDir);
+
+  print('Adding flutter_localizations dependency...');
+  _runSync(ctx.flutterBin, [
+    'pub',
+    'add',
+    'flutter_localizations',
+    '--sdk=flutter',
   ], myappDir);
 
   print('Running flutter pub get...');
@@ -211,6 +252,7 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     outlinePath,
     '--modules=ddc',
     '--canary',
+    '--track-creation-locations',
     '--module-name=flutter_web',
     '--packages=$pkgConfigPath',
     '-o',
@@ -236,6 +278,7 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     '--target',
     'ddc',
     '--summary-only',
+    '--track-creation-locations',
     '--packages-file',
     pkgConfigPath,
     '--dart-sdk-summary',
@@ -260,25 +303,41 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     p.join(ctx.flutterAssetDir, 'dart_sdk.js'),
   );
 
-  // Synthesize combined sdk.js
-  print('Synthesizing sdk.js...');
-  File(p.join(ctx.flutterAssetDir, 'sdk.js')).writeAsStringSync(r'''
-const scriptUrl = document.currentScript?.src || self.location.href;
+  // Synthesize sandbox.js
+  print('Synthesizing sandbox.js...');
+  File(p.join(ctx.flutterAssetDir, 'sandbox.js')).writeAsStringSync('''
+(function() {
+  const scriptUrl = document.currentScript?.src || self.location.href;
 
-// Tell the Flutter engine where to find CanvasKit and assets
-self.dartpadFlutterConfiguration = {
-  canvasKitBaseUrl: new URL('./canvaskit/', scriptUrl).href,
-  assetBase: new URL('./', scriptUrl).href,
-};
+  // Tell the Flutter engine where to find CanvasKit and assets
+  self.dartpadFlutterConfiguration = {
+    canvasKitBaseUrl: new URL('./canvaskit/', scriptUrl).href,
+    assetBase: new URL('./', scriptUrl).href,
+  };
 
-const flutterJs = new URL('./flutter.js', scriptUrl);
-const dartSdkJs = new URL('./dart_sdk.js', scriptUrl);
-const flutterWebJs = new URL('./flutter_web.js', scriptUrl);
+  self.\$dartpadSandboxScripts = [
+    './ddc_module_loader.js',
+    './flutter.js',
+    './dart_sdk.js',
+    './flutter_web.js',
+  ];
+})();
 
-self.$dartLoader.forceLoadScript(flutterJs, () => null);
-self.$dartLoader.forceLoadScript(dartSdkJs, () => null);
-self.$dartLoader.forceLoadScript(flutterWebJs, () => null);
+${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
 ''');
+
+  // Copy worker from Dart DartPad SDK.
+  print('Copying worker...');
+  for (final f in [
+    'ddc_module_loader.js',
+    'worker.js',
+    'worker.mjs',
+    'worker.support.js',
+    'worker.wasm',
+    'worker.wasm.map',
+  ]) {
+    _copyFile(p.join(ctx.dartDartPadSdk, f), p.join(ctx.flutterAssetDir, f));
+  }
 
   // Download Dependencies from Pub.dev
   print('Downloading hosted dependencies...');
@@ -353,20 +412,28 @@ self.$dartLoader.forceLoadScript(flutterWebJs, () => null);
       summaryModules: {
         '/sdk/bin/cache/flutter_web_sdk/kernel/flutter_web.dill': 'flutter_web',
       },
-      bootstrapCode: kBootstrapFlutterCode,
+      bootstrapCode: ctx.bootstrapCode ?? kBootstrapFlutterCode,
       flutterSdkPath: '/sdk',
+      trackCreationLocations: true,
     ),
   );
 
   // Add SDK packages for analyzer
-  print('Adding package:flutter for analysis...');
-  tar.addDirectory(
-    target: '/sdk/packages/flutter',
-    source: p.join(ctx.flutterRoot, 'packages', 'flutter'),
-    where: (f) =>
-        !f.startsWith('test/') &&
-        (f.endsWith('pubspec.yaml') || f.startsWith('lib/')),
-  );
+  final sdkPackages = [
+    'flutter',
+    'flutter_web_plugins',
+    'flutter_localizations',
+  ];
+  for (final pkg in sdkPackages) {
+    print('Adding package:$pkg for analysis...');
+    tar.addDirectory(
+      target: '/sdk/packages/$pkg',
+      source: p.join(ctx.flutterRoot, 'packages', pkg),
+      where: (f) =>
+          !f.startsWith('test/') &&
+          (f.endsWith('pubspec.yaml') || f.startsWith('lib/')),
+    );
+  }
   tar.addDirectory(
     target: '/sdk/bin/cache/pkg/sky_engine',
     source: p.join(ctx.flutterRoot, 'bin', 'cache', 'pkg', 'sky_engine'),

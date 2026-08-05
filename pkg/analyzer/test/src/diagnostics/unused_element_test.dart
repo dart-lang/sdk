@@ -194,6 +194,13 @@ main() {
 ''');
   }
 
+  test_class_isUsed_tearOff() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {}
+var f = _A.new;
+''');
+  }
+
   test_class_isUsed_typeArgument() async {
     await resolveTestCodeWithDiagnostics(r'''
 class _A {}
@@ -1435,6 +1442,15 @@ class _Foo = Foo with _$Foo;
 ''');
   }
 
+  test_constructor_isUsed_tearOff() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A._named({int? optional});
+}
+var f = A._named;
+''');
+  }
+
   test_constructor_notUsed_multiple() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -2451,10 +2467,9 @@ m() {
 ''');
   }
 
-  test_localFunction_inFunction_wildcard_preWildCards() async {
+  test_localFunction_inFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 main() {
   _(){}
@@ -2488,10 +2503,9 @@ class C {
 ''');
   }
 
-  test_localFunction_inMethod_wildcard_preWildCards() async {
+  test_localFunction_inMethod_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class C {
   m() {
@@ -3377,6 +3391,33 @@ class A {
 // [diag.unusedElementParameter] A value for optional parameter 'a' isn't ever given.
 }
 f() => A()._m();
+''');
+  }
+
+  @FailingTest() // TODO(scheglov): Report omitted optional parameters.
+  test_parameter_notUsed_namedRedirectingConstructorInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A() : this._named(b: 0);
+  A._named({int a = 0, int b = 0});
+//              ^
+// [diag.unusedElementParameter] A value for optional parameter 'a' isn't ever given.
+}
+''');
+  }
+
+  @FailingTest() // TODO(scheglov): Report omitted optional parameters.
+  test_parameter_notUsed_namedSuperConstructorInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A._named({int a = 0, int b = 0});
+//               ^
+// [diag.unusedElementParameter] A value for optional parameter 'a' isn't ever given.
+}
+
+class B extends _A {
+  B() : super._named(b: 0);
+}
 ''');
   }
 

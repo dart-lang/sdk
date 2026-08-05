@@ -19,6 +19,7 @@ import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dar
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.
@@ -26,6 +27,7 @@ class PubspecFixGenerator {
   static const List<DiagnosticCode> codesWithFixes = [
     diag.missingDependency,
     diag.missingName,
+    diag.sortPubDependencies,
   ];
 
   /// The resource provider used to access the file system.
@@ -123,6 +125,8 @@ class PubspecFixGenerator {
       // Consider removing the dependency.
     } else if (diagnosticCode == diag.missingDependency) {
       await _addMissingDependency(diagnosticCode);
+    } else if (diagnosticCode == diag.sortPubDependencies) {
+      await _sortPubDependencies();
     }
     return fixes;
   }
@@ -355,6 +359,23 @@ class PubspecFixGenerator {
         identical(next, $_);
   }
 
+  /// Normalizes the indentation of a dependency entry.
+  String _normalizeEntryIndentation(String text, String indentation) {
+    var lines = text.split(RegExp(r'\r?\n'));
+    var result = StringBuffer();
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (i == 0) {
+        // First line gets the base indentation.
+        result.write('$indentation${line.trimLeft()}');
+      } else {
+        // Subsequent lines keep their relative indentation.
+        result.write('$endOfLine$indentation  ${line.trimLeft()}');
+      }
+    }
+    return result.toString();
+  }
+
   int _offsetOfFirstKey(YamlMap map) {
     var firstOffset = -1;
     for (var key in map.nodeMap.keys) {
@@ -368,6 +389,117 @@ class PubspecFixGenerator {
     }
     return firstOffset;
   }
+
+  /// Sorts dependencies alphabetically in the section containing the
+  /// diagnostic.
+  Future<void> _sortPubDependencies() async {
+    var rootNode = node;
+    if (rootNode is! YamlMap) {
+      return;
+    }
+
+    // Find the dependency section containing the diagnostic offset.
+    YamlMap? dependencySection;
+    for (var sectionName in const [
+      'dependencies',
+      'dev_dependencies',
+      'dependency_overrides',
+    ]) {
+      var section = rootNode[sectionName];
+      if (section is YamlMap) {
+        var sectionStart = section.span.start.offset;
+        var sectionEnd = section.span.end.offset;
+        if (diagnosticOffset >= sectionStart &&
+            diagnosticOffset <= sectionEnd) {
+          dependencySection = section;
+          break;
+        }
+      }
+    }
+
+    if (dependencySection == null) {
+      return;
+    }
+
+    // Collect all dependency entries with their text representations.
+    var entries = <_DependencyEntry>[];
+    for (var MapEntry(key: YamlNode keyNode, value: valueNode)
+        in dependencySection.nodes.entries) {
+      var keyName = keyNode.value as String;
+
+      // The start of this entry (including the key).
+      var entryStart = keyNode.span.start.offset;
+      // The end of this entry (the end of the value).
+      var entryEnd = valueNode.span.end.offset;
+      var entryText = content.substring(entryStart, entryEnd);
+      entries.add(_DependencyEntry(keyName, entryStart, entryEnd, entryText));
+    }
+
+    // Sort entries alphabetically by package name.
+    var sortedEntries = List<_DependencyEntry>.from(entries)
+      ..sort((a, b) => a.name.compareTo(b.name));
+
+    // Build the sorted content.
+    // First, find the indentation used for dependencies.
+    var firstEntryLine =
+        lineInfo.getLocation(entries.first.startOffset).lineNumber - 1;
+    var lineStart = lineInfo.lineStarts[firstEntryLine];
+    var indentation = '';
+    for (var i = lineStart; i < entries.first.startOffset; i++) {
+      var char = content[i];
+      if (char == ' ' || char == '\t') {
+        indentation += char;
+      } else {
+        break;
+      }
+    }
+
+    // Build the new sorted section content.
+    var sortedContent = StringBuffer();
+    for (var i = 0; i < sortedEntries.length; i++) {
+      var entry = sortedEntries[i];
+      // Normalize the entry text to use consistent indentation.
+      var normalizedText = _normalizeEntryIndentation(entry.text, indentation);
+      sortedContent.write(normalizedText);
+      if (i < sortedEntries.length - 1) {
+        sortedContent.write(endOfLine);
+      }
+    }
+
+    // Calculate the range to replace (from first entry start to last entry end).
+    var replaceStart = lineStart;
+    var lastEntry = entries.last;
+    var replaceEnd = lastEntry.endOffset;
+
+    var builder = ChangeBuilder(
+      workspace: _NonDartChangeWorkspace(resourceProvider),
+      defaultEol: endOfLine,
+    );
+    await builder.addYamlFileEdit(file, (builder) {
+      builder.addSimpleReplacement(
+        SourceRange(replaceStart, replaceEnd - replaceStart),
+        sortedContent.toString(),
+      );
+    });
+    _addFixFromBuilder(builder, PubspecFixKind.sortDependencies);
+  }
+}
+
+/// Represents a dependency entry in the pubspec.yaml file.
+class _DependencyEntry {
+  /// The package name (the key in the YAML map).
+  final String name;
+
+  /// The start offset of this entry in the file content.
+  final int startOffset;
+
+  /// The end offset of this entry in the file content.
+  final int endOffset;
+
+  /// The full text of this entry (key: value).
+  final String text;
+
+  new(this.name, this.startOffset, this.endOffset, this.text);
 }
 
 class _NonDartChangeWorkspace implements ChangeWorkspace {

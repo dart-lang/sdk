@@ -48,23 +48,27 @@ library;
 //   Map<dynamic, dynamic> map40 = <dynamic, dynamic>{...notSpreadInt};
 //                                                       ^
 //
-// pkg/front_end/testcases/general/spread_collection_inference.dart:88:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
-//   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
-//                                      ^
-//
 // pkg/front_end/testcases/general/spread_collection_inference.dart:88:38: Error: Unexpected type 'int Function()?' of a spread.  Expected 'dynamic' or an Iterable.
 //   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
 //                                      ^
 //
-// pkg/front_end/testcases/general/spread_collection_inference.dart:90:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
-//   Set<dynamic> set50 = <dynamic>{...notSpreadFunction};
-//                                     ^
+// pkg/front_end/testcases/general/spread_collection_inference.dart:88:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
+//                                      ^
 //
 // pkg/front_end/testcases/general/spread_collection_inference.dart:90:37: Error: Unexpected type 'int Function()?' of a spread.  Expected 'dynamic' or an Iterable.
 //   Set<dynamic> set50 = <dynamic>{...notSpreadFunction};
 //                                     ^
 //
+// pkg/front_end/testcases/general/spread_collection_inference.dart:90:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   Set<dynamic> set50 = <dynamic>{...notSpreadFunction};
+//                                     ^
+//
 // pkg/front_end/testcases/general/spread_collection_inference.dart:92:55: Error: Unexpected type 'int Function()?' of a map spread entry.  Expected 'dynamic' or a Map.
+//   Map<dynamic, dynamic> map50 = <dynamic, dynamic>{...notSpreadFunction};
+//                                                       ^
+//
+// pkg/front_end/testcases/general/spread_collection_inference.dart:92:55: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
 //   Map<dynamic, dynamic> map50 = <dynamic, dynamic>{...notSpreadFunction};
 //                                                       ^
 //
@@ -236,115 +240,133 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   Set<dynamic> set40 = <dynamic>{...notSpreadInt};
                                     ^"){(dynamic) → core::bool};
   } =>#t26;
-  core::Map<dynamic, dynamic> map40 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:86:55: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+  core::Map<dynamic, dynamic> map40 = block {
+    final core::Map<dynamic, dynamic> #t27 = <dynamic, dynamic>{};
+    invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:86:55: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
   Map<dynamic, dynamic> map40 = <dynamic, dynamic>{...notSpreadInt};
-                                                      ^": null};
-  core::List<dynamic> lhs50 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:88:38: Error: Unexpected type 'int Function()?' of a spread.  Expected 'dynamic' or an Iterable.
+                                                      ^";
+  } =>#t27;
+  core::List<dynamic> lhs50 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:88:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
                                      ^");
   core::Set<dynamic> set50 = block {
-    final core::Set<dynamic> #t27 = new _co::_Set::•<dynamic>();
-    #t27.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:90:37: Error: Unexpected type 'int Function()?' of a spread.  Expected 'dynamic' or an Iterable.
+    final core::Set<dynamic> #t28 = new _co::_Set::•<dynamic>();
+    #t28.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:90:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   Set<dynamic> set50 = <dynamic>{...notSpreadFunction};
                                     ^"){(dynamic) → core::bool};
-  } =>#t27;
-  core::Map<dynamic, dynamic> map50 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:92:55: Error: Unexpected type 'int Function()?' of a map spread entry.  Expected 'dynamic' or a Map.
+  } =>#t28;
+  core::Map<dynamic, dynamic> map50 = block {
+    final core::Map<dynamic, dynamic> #t29 = <dynamic, dynamic>{};
+    invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:92:55: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   Map<dynamic, dynamic> map50 = <dynamic, dynamic>{...notSpreadFunction};
-                                                      ^": null};
+                                                      ^";
+  } =>#t29;
   core::List<core::String> lhs60 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:94:36: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   List<String> lhs60 = <String>[...spread];
                                    ^");
   core::Set<core::String> set60 = block {
-    final core::Set<core::String> #t28 = new _co::_Set::•<core::String>();
-    #t28.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:96:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+    final core::Set<core::String> #t30 = new _co::_Set::•<core::String>();
+    #t30.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:96:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   Set<String> set60 = <String>{...spread};
                                   ^"){(core::String) → core::bool};
-  } =>#t28;
-  core::Map<core::int, core::int> map60 = <core::int, core::int>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:98:39: Error: Can't assign spread entry keys of type 'String' to map entry keys of type 'int'.
+  } =>#t30;
+  core::Map<core::int, core::int> map60 = block {
+    final core::Map<core::int, core::int> #t31 = <core::int, core::int>{};
+    invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:98:39: Error: Can't assign spread entry keys of type 'String' to map entry keys of type 'int'.
   Map<int, int> map60 = <int, int>{...mapSpread};
-                                      ^": null};
-  core::Map<core::String, core::String> map61 = <core::String, core::String>{null: invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:100:51: Error: Can't assign spread entry values of type 'int' to map entry values of type 'String'.
+                                      ^";
+  } =>#t31;
+  core::Map<core::String, core::String> map61 = block {
+    final core::Map<core::String, core::String> #t32 = <core::String, core::String>{};
+    invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:100:51: Error: Can't assign spread entry values of type 'int' to map entry values of type 'String'.
   Map<String, String> map61 = <String, String>{...mapSpread};
-                                                  ^"};
+                                                  ^";
+  } =>#t32;
   core::List<core::int> lhs70 = core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:102:30: Error: Can't spread a value with static type 'Null'.
   List<int> lhs70 = <int>[...null];
                              ^");
   core::Set<core::int> set70 = block {
-    final core::Set<core::int> #t29 = new _co::_Set::•<core::int>();
-    #t29.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:104:29: Error: Can't spread a value with static type 'Null'.
+    final core::Set<core::int> #t33 = new _co::_Set::•<core::int>();
+    #t33.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:104:29: Error: Can't spread a value with static type 'Null'.
   Set<int> set70 = <int>{...null};
                             ^"){(core::int) → core::bool};
-  } =>#t29;
+  } =>#t33;
   core::Set<dynamic> set71ambiguous = block {
-    final core::Set<dynamic> #t30 = new _co::_Set::•<dynamic>();
-    #t30.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:106:28: Error: Can't spread a value with static type 'Null'.
+    final core::Set<dynamic> #t34 = new _co::_Set::•<dynamic>();
+    #t34.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:106:28: Error: Can't spread a value with static type 'Null'.
   var set71ambiguous = {...null, ...[]};
                            ^"){(dynamic) → core::bool};
-    #t30.{core::Set::addAll}{Invariant}(core::_GrowableList::•<dynamic>(0)){(core::Iterable<dynamic>) → void};
-  } =>#t30;
-  core::Map<core::String, core::int> map70 = <core::String, core::int>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:108:45: Error: Can't spread a value with static type 'Null'.
+    #t34.{core::Set::addAll}{Invariant}(core::_GrowableList::•<dynamic>(0)){(core::Iterable<dynamic>) → void};
+  } =>#t34;
+  core::Map<core::String, core::int> map70 = block {
+    final core::Map<core::String, core::int> #t35 = <core::String, core::int>{};
+    invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:108:45: Error: Can't spread a value with static type 'Null'.
   Map<String, int> map70 = <String, int>{...null};
-                                            ^": null};
-  core::List<core::int> lhs80 = block {
-    final core::List<core::int> #t31 = core::_GrowableList::•<core::int>(0);
-    final has-declared-initializer core::Iterable<core::int>? #t32 = null;
-    if(!(#t32 == null))
-      #t31.{core::List::addAll}{Invariant}(#t32{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
-  } =>#t31;
-  core::Set<core::int> set80 = block {
-    final core::Set<core::int> #t33 = new _co::_Set::•<core::int>();
-    final has-declared-initializer core::Iterable<core::int>? #t34 = null;
-    if(!(#t34 == null))
-      #t33.{core::Set::addAll}{Invariant}(#t34{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
-  } =>#t33;
-  core::Set<dynamic> set81ambiguous = block {
-    final core::Set<dynamic> #t35 = new _co::_Set::•<dynamic>();
-    final has-declared-initializer core::Iterable<dynamic>? #t36 = null;
-    if(!(#t36 == null))
-      #t35.{core::Set::addAll}{Invariant}(#t36{core::Iterable<dynamic>}){(core::Iterable<dynamic>) → void};
-    #t35.{core::Set::addAll}{Invariant}(core::_GrowableList::•<dynamic>(0)){(core::Iterable<dynamic>) → void};
+                                            ^";
   } =>#t35;
+  core::List<core::int> lhs80 = block {
+    final core::List<core::int> #t36 = core::_GrowableList::•<core::int>(0);
+    final has-declared-initializer core::Iterable<core::int>? #t37 = null;
+    if(!(#t37 == null))
+      #t36.{core::List::addAll}{Invariant}(#t37{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+  } =>#t36;
+  core::Set<core::int> set80 = block {
+    final core::Set<core::int> #t38 = new _co::_Set::•<core::int>();
+    final has-declared-initializer core::Iterable<core::int>? #t39 = null;
+    if(!(#t39 == null))
+      #t38.{core::Set::addAll}{Invariant}(#t39{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+  } =>#t38;
+  core::Set<dynamic> set81ambiguous = block {
+    final core::Set<dynamic> #t40 = new _co::_Set::•<dynamic>();
+    final has-declared-initializer core::Iterable<dynamic>? #t41 = null;
+    if(!(#t41 == null))
+      #t40.{core::Set::addAll}{Invariant}(#t41{core::Iterable<dynamic>}){(core::Iterable<dynamic>) → void};
+    #t40.{core::Set::addAll}{Invariant}(core::_GrowableList::•<dynamic>(0)){(core::Iterable<dynamic>) → void};
+  } =>#t40;
   core::Map<core::String, core::int> map80 = block {
-    final core::Map<core::String, core::int> #t37 = <core::String, core::int>{};
-    final has-declared-initializer core::Map<core::String, core::int>? #t38 = null;
-    if(!(#t38 == null))
-      #t37.{core::Map::addAll}{Invariant}(#t38{core::Map<core::String, core::int>}){(core::Map<core::String, core::int>) → void};
-  } =>#t37;
+    final core::Map<core::String, core::int> #t42 = <core::String, core::int>{};
+    final has-declared-initializer core::Map<core::String, core::int>? #t43 = null;
+    if(!(#t43 == null))
+      #t42.{core::Map::addAll}{Invariant}(#t43{core::Map<core::String, core::int>}){(core::Map<core::String, core::int>) → void};
+  } =>#t42;
   core::Map<core::String, core::int> map90 = block {
-    final core::Map<core::String, core::int> #t39 = col::LinkedHashMap::of<core::String, core::int>(self::bar<core::String, core::int>());
-  } =>#t39;
+    final core::Map<core::String, core::int> #t44 = col::LinkedHashMap::of<core::String, core::int>(self::bar<core::String, core::int>());
+  } =>#t44;
   core::List<core::int> list100 = core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:120:32: Error: Can't assign spread elements of type 'num' to collection elements of type 'int'.
   List<int> list100 = <int>[...listNum];
                                ^");
-  core::Map<core::num, core::int> map100 = <core::num, core::int>{null: invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:122:40: Error: Can't assign spread entry values of type 'num' to map entry values of type 'int'.
+  core::Map<core::num, core::int> map100 = block {
+    final core::Map<core::num, core::int> #t45 = <core::num, core::int>{};
+    invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:122:40: Error: Can't assign spread entry values of type 'num' to map entry values of type 'int'.
   Map<num, int> map100 = <num, int>{...mapIntNum};
-                                       ^"};
+                                       ^";
+  } =>#t45;
   core::List<core::int> list110 = block {
-    final core::List<core::int> #t40 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t46 = core::_GrowableList::•<core::int>(0);
     {
       synthesized core::Iterator<dynamic> :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t41 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t47 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int #t42 = #t41 as{TypeError} core::int;
-          #t40.{core::List::add}{Invariant}(#t42){(core::int) → void};
+          final core::int #t48 = #t47 as{TypeError} core::int;
+          #t46.{core::List::add}{Invariant}(#t48){(core::int) → void};
         }
       }
     }
-  } =>#t40;
+  } =>#t46;
   core::Map<core::num, core::int> map110 = block {
-    final core::Map<core::num, core::int> #t43 = <core::num, core::int>{};
+    final core::Map<core::num, core::int> #t49 = <core::num, core::int>{};
     {
       synthesized core::Iterator<core::MapEntry<core::num, core::int>> :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::int>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num, core::int>>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<dynamic, dynamic> #t44 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num, core::int>};
+        final core::MapEntry<dynamic, dynamic> #t50 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num, core::int>};
         {
-          final core::num #t45 = #t44.{core::MapEntry::key}{dynamic} as{TypeError} core::num;
-          final core::int #t46 = #t44.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
-          #t43.{core::Map::[]=}{Invariant}(#t45, #t46){(core::num, core::int) → void};
+          final core::num #t51 = #t50.{core::MapEntry::key}{dynamic} as{TypeError} core::num;
+          final core::int #t52 = #t50.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
+          #t49.{core::Map::[]=}{Invariant}(#t51, #t52){(core::num, core::int) → void};
         }
       }
     }
-  } =>#t43;
+  } =>#t49;
 }
 static method main() → dynamic {}

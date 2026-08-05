@@ -197,7 +197,7 @@ class EnumElementDeclaration
   @override
   List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError("${runtimeType}.buildInitializer");
@@ -345,16 +345,18 @@ class EnumElementDeclaration
         "Initializer has already been computed for $this: "
         "${_field!.initializer}.",
       );
-      _field!.initializer = LookupResult.createDuplicateExpression(
-        result,
-        context: libraryBuilder.loader.target.context,
-        name: fullConstructorNameForErrors,
-        fileUri: fileUri,
-        fileOffset: nameOffset,
-        length: noLength,
+      _field!.initializer = extern.createInvalidExpressionFromErrorText(
+        LookupResult.createDuplicateErrorText(
+          result,
+          context: libraryBuilder.loader.target.context,
+          name: fullConstructorNameForErrors,
+          fileUri: fileUri,
+          fileOffset: nameOffset,
+          length: noLength,
+        ),
       )..parent = _field;
     } else if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
-      List<Expression> enumSyntheticArguments = <Expression>[
+      List<InternalExpression> enumSyntheticArguments = [
         intern.createIntLiteral(fileOffset: fileOffset, value: elementIndex),
         intern.createStringLiteral(fileOffset, constant),
       ];
@@ -468,7 +470,10 @@ class EnumElementDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  void cacheFieldInitializer(Expression? initializer) {
+  void cacheFieldInitializer(
+    Expression? initializer,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     // Initializer is created through [_buildElement].
   }
 }

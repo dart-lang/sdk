@@ -73,6 +73,8 @@ class TestProject {
 
   String get mainPath => path.join(dirPath, relativeFilePath);
 
+  Uri get mainUri => Uri.file(mainPath);
+
   String get analysisOptionsPath => path.join(dirPath, 'analysis_options.yaml');
 
   String get packageConfigPath =>
@@ -80,7 +82,7 @@ class TestProject {
 
   final String name;
 
-  String get relativeFilePath => 'lib/main.dart';
+  String get relativeFilePath => path.join('lib', 'main.dart');
 
   Process? _process;
 
@@ -92,7 +94,9 @@ class TestProject {
     Map<String, dynamic>? pubspecExtras,
   }) {
     initGlobalState();
-    root = Directory.systemTemp.createTempSync('dartdev');
+    root = Directory.systemTemp
+        .createTempSync('dartdev')
+        .withUppercaseDriveLetter;
     file(
       'pubspec.yaml',
       JsonEncoder.withIndent('  ').convert({
@@ -175,6 +179,13 @@ class TestProject {
     String? workingDir,
   }) async {
     return run(['fix', '--suppress-analytics', ...arguments]);
+  }
+
+  Future<ProcessResult> runMigrate(
+    List<String> arguments, {
+    String? workingDir,
+  }) async {
+    return run(['migrate', '--suppress-analytics', ...arguments]);
   }
 
   Future<ProcessResult> run(
@@ -350,10 +361,20 @@ The `pkg/dartdev` tests must be run with the `dart` executable in the `bin` fold
 /// be different but is not important to the test (for example where a drive
 /// letter might have different casing).
 String replacePathsWithMatchingCase(String input, {required String filePath}) {
-  return input.replaceAll(
+  var output = input.replaceAll(
     RegExp(RegExp.escape(filePath), caseSensitive: false),
     filePath,
   );
+  try {
+    final canonicalPath = Directory(filePath).resolveSymbolicLinksSync();
+    if (canonicalPath != filePath) {
+      output = output.replaceAll(
+        RegExp(RegExp.escape(canonicalPath), caseSensitive: false),
+        filePath,
+      );
+    }
+  } catch (_) {}
+  return output;
 }
 
 /// Resolves a relative URI from the pkg/dartdev folder.
@@ -362,4 +383,16 @@ Uri resolveDartDevUri(String path) {
     Uri.parse('package:dartdev/'),
   );
   return dartDevLibUri!.resolve('../$path');
+}
+
+extension on Directory {
+  /// Returns the directory with an uppercase drive letter on Windows.
+  ///
+  /// This avoids some mismatches on machines where the temp folder has a
+  /// lowercase drive letter and get back uppercase from the server.
+  Directory get withUppercaseDriveLetter {
+    return Platform.isWindows
+        ? Directory(this.path[0].toUpperCase() + this.path.substring(1))
+        : this;
+  }
 }

@@ -45,6 +45,9 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     if (parent is ConstructorDeclaration && parent.factoryKeyword == null) {
       return;
     }
+    if (parent is PrimaryConstructorBody) {
+      return;
+    }
     // prepare return statement
     List<Statement> statements = body.block.statements;
     if (statements.length != 1) {

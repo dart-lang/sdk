@@ -55,7 +55,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -103,7 +103,7 @@ FunctionDeclaration
       keyword: async
       star: *
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -381,6 +381,19 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: double
+            element: dart:core::@class::double
+            type: double
+          name: a
+          declaredFragment: <testLibraryFragment> a@19
+            element: isPublic
+              type: double
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: double
@@ -393,7 +406,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -444,7 +457,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -490,7 +503,7 @@ FunctionDeclaration
       keyword: sync
       star: *
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -532,10 +545,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_wildCardFunction_preWildCards() async {
+  test_wildCardFunction_beforeWildcardVariables() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 _() {}
 // [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
@@ -553,11 +565,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredFragment: <testLibraryFragment> _@44
+    declaredFragment: <testLibraryFragment> _@16
       element: <testLibrary>::@function::_
         type: dynamic Function()
     staticType: dynamic Function()
-  declaredFragment: <testLibraryFragment> _@44
+  declaredFragment: <testLibraryFragment> _@16
     element: <testLibrary>::@function::_
       type: dynamic Function()
 ''');
@@ -595,6 +607,26 @@ TypeParameter
             defaultType: null
       rightBracket: >
     parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: _
+            element: <null>
+            type: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: isPrivate
+              type: InvalidType
+        RegularFormalParameter
+          type: NamedType
+            name: _
+            element: <null>
+            type: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: isPrivate
+              type: InvalidType
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

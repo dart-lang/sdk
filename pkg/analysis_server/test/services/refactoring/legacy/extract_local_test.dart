@@ -944,7 +944,7 @@ void f() {
   // in the extracted local.
   Future<void> test_lint_alwaysSpecifyTypes_dotShorthand() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.always_specify_types],
     );
     await indexTestUnit('''
@@ -1054,7 +1054,7 @@ void f() {
 
   Future<void> test_lint_preferFinalLocals_const() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.prefer_final_locals],
     );
     await indexTestUnit('''
@@ -1076,7 +1076,7 @@ void f() {
 
   Future<void> test_lint_preferFinalLocals_dotShorthand() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.prefer_final_locals],
     );
     await indexTestUnit('''
@@ -1100,7 +1100,7 @@ void f() {
 
   Future<void> test_lint_preferFinalLocals_dotShorthand_const() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.prefer_final_locals],
     );
     await indexTestUnit('''

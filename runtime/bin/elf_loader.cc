@@ -378,7 +378,14 @@ bool LoadedElf::ResolveSymbols(const uint8_t** data, const uint8_t** text) {
     }
 
     if (output != nullptr) {
-      *output = reinterpret_cast<const uint8_t*>(base_->start() + sym.value);
+      auto* addr = reinterpret_cast<const uint8_t*>(base_->start() + sym.value);
+#if defined(HOST_ARCH_ARM64E)
+      if (dart::elf::SymbolType(sym.info) == dart::elf::STT_FUNC) {
+        addr =
+            ptrauth_sign_unauthenticated(addr, ptrauth_key_function_pointer, 0);
+      }
+#endif
+      *output = addr;
     }
   }
 

@@ -49,7 +49,43 @@ extension on C {
   }
 }
 
+extension type G(C r) {
+  void test() {
+    if (this is H) {
+      this.expectStaticType<Exactly<H>>;
+      if (this is I) {
+        // Cannot promote H to I, since I is not a subtype of H.
+        this.expectStaticType<Exactly<H>>;
+      }
+      if (this is J) {
+        // Can promote H to J, since J is a subtype of H.
+        this.expectStaticType<Exactly<J>>;
+      }
+    }
+  }
+}
+
+extension type H(D r) implements G {}
+
+extension type I(E r) implements G {}
+
+extension type J(F r) implements H {}
+
 main() {
   C().test();
   C().testExtension();
+  D().test();
+  D().testExtension();
+  E().test();
+  E().testExtension();
+  F().test();
+  F().testExtension();
+  G(C()).test();
+  G(D()).test();
+  G(E()).test();
+  G(F()).test();
+  H(D()).test();
+  H(F()).test();
+  I(E()).test();
+  J(F()).test();
 }

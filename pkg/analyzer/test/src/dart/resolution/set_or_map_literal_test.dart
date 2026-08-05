@@ -83,7 +83,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IntegerLiteral
       literal: 0
       staticType: int
@@ -106,13 +106,13 @@ void f() {
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
-      value: SimpleStringLiteral
+      value2: SimpleStringLiteral
         literal: ''
   rightBracket: }
   isMap: true

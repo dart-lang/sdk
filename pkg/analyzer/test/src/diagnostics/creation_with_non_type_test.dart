@@ -284,6 +284,19 @@ f() {
 ''');
   }
 
+  test_constructorWithTypeArguments_errorRange() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class Foo<T> {
+  Foo.bar();
+}
+void f() {
+  new Foo.bar<int>.baz();
+//    ^^^^^^^
+// [diag.newWithNonType] The name 'bar' isn't a class.
+}
+''');
+  }
+
   test_implicit_nonPrefix_generic() async {
     await resolveTestCodeWithDiagnostics(r'''
 void nonPrefix() {}

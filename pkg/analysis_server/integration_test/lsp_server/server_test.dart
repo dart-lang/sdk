@@ -39,6 +39,34 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 
+  /// A normal shutdown and exit should not result in the server flushing
+  /// diagnostics (which usually happens as part of destroying analysis
+  /// contexts) because this can result in clients like `dart analyze` seeing
+  /// all diagnostics disappear. The client should be responsible for removing
+  /// diagnostics if the server they are related to shuts down.
+  Future<void> test_exit_doesNotFlushDiagnostics() async {
+    failTestOnErrorDiagnostic = false;
+    failTestOnAnyErrorNotification = false;
+
+    newFile(mainFilePath, 'invalid');
+
+    var diagnosticsFuture = publishedDiagnostics
+        .where((params) => params.uri == mainFileUri)
+        .toList();
+
+    await initialize();
+    await workspaceAnalysisComplete();
+    await sendShutdown();
+    sendExit();
+
+    // Wait for all notifications and the stream to complete.
+    var diagnostics = await diagnosticsFuture;
+
+    // Expect only one notification, with diagnostics.
+    expect(diagnostics, hasLength(1));
+    expect(diagnostics.single.diagnostics, isNotEmpty);
+  }
+
   Future<void> test_exit_initializedWithoutShutdown() async {
     // Send a request that we can wait for, to ensure the server is fully ready
     // before we send exit. Otherwise the exit notification won't be handled for

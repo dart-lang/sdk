@@ -43,12 +43,12 @@ class AssignmentExpressionResolver {
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
 
     var leftResolution = _resolver.resolveForWrite(
-      node: node.leftHandSide,
+      node: node.leftHandSide2,
       hasRead: hasRead,
     );
 
-    var left = node.leftHandSide;
-    var right = node.rightHandSide;
+    var left = node.leftHandSide2;
+    var right = node.rightHandSide2;
 
     var readElement = leftResolution.readElement2;
     var writeElement = leftResolution.writeElement2;
@@ -231,7 +231,7 @@ class AssignmentExpressionResolver {
   }
 
   void _resolveOperator(AssignmentExpressionImpl node) {
-    var left = node.leftHandSide;
+    var left = node.leftHandSide2;
     var operator = node.operator;
     var operatorType = operator.type;
 
@@ -288,7 +288,7 @@ class AssignmentExpressionResolver {
   }) {
     TypeImpl assignedType;
 
-    var rightHandSide = node.rightHandSide;
+    var rightHandSide = node.rightHandSide2;
     var operator = node.operator.type;
     if (operator == TokenType.EQ) {
       assignedType = rightHandSide.typeOrThrow;
@@ -360,14 +360,14 @@ class AssignmentExpressionResolver {
     // TODO(scheglov): Remove from ErrorVerifier?
     _checkForInvalidAssignment(
       node.writeType!,
-      node.rightHandSide,
+      node.rightHandSide2,
       assignedType,
       whyNotPromoted: operator == TokenType.EQ ? whyNotPromoted : null,
     );
     if (operator != TokenType.EQ &&
         operator != TokenType.QUESTION_QUESTION_EQ) {
       _resolver.checkForArgumentTypeNotAssignableForArgument(
-        node.rightHandSide,
+        node.rightHandSide2,
         whyNotPromoted: whyNotPromoted,
       );
     }

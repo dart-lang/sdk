@@ -190,11 +190,11 @@ List<LspEntity> getCustomClasses() {
       baseType: ArrayType(TypeReference('TextDocumentFilterScheme')),
       renameReferences: true,
     ),
-    interface('Message', [
+    interface('Message', sealed: true, [
       field('jsonrpc', type: 'string'),
       field('clientRequestTime', type: 'int', canBeUndefined: true),
     ]),
-    interface('IncomingMessage', [
+    interface('IncomingMessage', sealed: true, [
       field('method', type: 'Method'),
       field('params', type: 'LSPAny', canBeUndefined: true),
     ], baseType: 'Message'),

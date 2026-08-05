@@ -134,3 +134,6 @@ final class SubtypeTestCacheWithName extends PairSpecializedEntry {
       this.stc == other.stc &&
       this.name == other.name;
 }
+
+/// Object pool entry for caching native function entry point.
+final class NativeFunction(final CFunction target) extends SpecializedEntry;

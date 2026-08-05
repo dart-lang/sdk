@@ -321,12 +321,14 @@ class RegularSetterDeclaration
       int fileOffset = _fragment.formalsOffset;
       body = extern.createBlock([
         extern.createExpressionStatement(
-          problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.setterWithWrongNumberOfFormals,
-            fileUri: _fragment.fileUri,
-            fileOffset: fileOffset,
-            length: noLength,
+          extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.setterWithWrongNumberOfFormals,
+              fileUri: _fragment.fileUri,
+              fileOffset: fileOffset,
+              length: noLength,
+            ),
           ),
         ),
       ], fileOffset: fileOffset);

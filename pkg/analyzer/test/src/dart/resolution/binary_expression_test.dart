@@ -30,8 +30,21 @@ void f(A a) {
   a == 0;
 }
 ''');
-    var node = result.findNode.binary('a == 0');
+    var node = result.findNode.binaryOperatorInvocation('a == 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::==::@formalParameter::_
+    staticType: int
+  binaryOperator: equal
+  element: <testLibrary>::@class::A::@method::==
+  staticType: bool
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -56,8 +69,38 @@ void f(Object? x) {
   } == 0);
 }
 ''');
-    var node = result.findNode.binary('== 0');
+    var node = result.findNode.binaryOperatorInvocation('== 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression2: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+    staticType: int
+  binaryOperator: equal
+  element: dart:core::@class::num::@method::==
+  staticType: bool
 BinaryExpression
   leftOperand: SwitchExpression
     switchKeyword: switch
@@ -99,8 +142,38 @@ void f(Object? x) {
   };
 }
 ''');
-    var node = result.findNode.binary('0 ==');
+    var node = result.findNode.binaryOperatorInvocation('0 ==');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: ==
+  rightOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression2: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+    staticType: int
+  binaryOperator: equal
+  element: dart:core::@class::num::@method::==
+  staticType: bool
 BinaryExpression
   leftOperand: IntegerLiteral
     literal: 0
@@ -144,8 +217,21 @@ extension on (String,) {
   int operator +(int other) => 0;
 }
 ''');
-    var node = result.findNode.binary('+ 0');
+    var node = result.findNode.binaryOperatorInvocation('+ 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: (String,)
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::#0::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::#0::@method::+
+  staticType: int
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -170,8 +256,21 @@ void f((String,) a) {
 // [diag.undefinedOperator] The operator '+' isn't defined for the type '(String,)'.
 }
 ''');
-    var node = result.findNode.binary('+ 0');
+    var node = result.findNode.binaryOperatorInvocation('+ 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: (String,)
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: InvalidType
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -198,8 +297,21 @@ void f(A a) {
   a >>> 3;
 }
 ''');
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  operator: >>>
+  rightOperand: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@class::A::@method::>>>::@formalParameter::amount
+    staticType: int
+  binaryOperator: unsignedShiftRight
+  element: <testLibrary>::@class::A::@method::>>>
+  staticType: A
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -223,8 +335,33 @@ T f<T>(T t) => t;
 int g() => f(null) ?? 0;
 ''');
 
-    var node = result.findNode.binary('?? 0');
+    var node = result.findNode.ifNull('?? 0');
     assertResolvedNodeText(node, r'''
+IfNull
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T Function<T>(T)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        NullLiteral
+          literal: null
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::t
+            substitution: {T: int?}
+          staticType: Null
+      rightParenthesis: )
+    staticInvokeType: int? Function(int?)
+    staticType: int?
+    typeArgumentTypes
+      int?
+  operator: ??
+  rightOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  staticType: int
 BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
@@ -256,9 +393,9 @@ BinaryExpression
 ''');
   }
 
-  test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
+  test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext_beforeInferenceUpdate3() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart=3.3
+// %before-language-feature: inference-update-3
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -271,8 +408,20 @@ f(C1? c1, C2 c2, Object? o) {
 }
 ''');
 
-    var node = result.findNode.binary('c1 ?? c2');
+    var node = result.findNode.ifNull('c1 ?? c2');
     assertResolvedNodeText(node, r'''
+IfNull
+  leftOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: c2
+    element: <testLibrary>::@function::f::@formalParameter::c2
+    staticType: C2
+  correspondingParameter: <null>
+  staticType: A
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
@@ -284,7 +433,6 @@ BinaryExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
-  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: A
@@ -298,8 +446,19 @@ void f(int? x, int y) {
 }
 ''');
 
-    var node = result.findNode.binary('x ?? y');
+    var node = result.findNode.ifNull('x ?? y');
     assertResolvedNodeText(node, r'''
+IfNull
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: y
+    element: <testLibrary>::@function::f::@formalParameter::y
+    staticType: int
+  staticType: int
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -324,8 +483,19 @@ void f(int? x, double? y) {
 }
 ''');
 
-    var node = result.findNode.binary('x ?? y');
+    var node = result.findNode.ifNull('x ?? y');
     assertResolvedNodeText(node, r'''
+IfNull
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: y
+    element: <testLibrary>::@function::f::@formalParameter::y
+    staticType: double?
+  staticType: num?
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -350,8 +520,19 @@ void f(int? x) {
 }
 ''');
 
-    var node = result.findNode.binary('x ?? x');
+    var node = result.findNode.ifNull('x ?? x');
     assertResolvedNodeText(node, r'''
+IfNull
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int?
+  staticType: int?
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -382,8 +563,22 @@ void f(Int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <testLibrary>::@extensionType::Int::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extensionType::Int::@method::+
+  staticType: Int
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -408,8 +603,22 @@ f(int a, Never b) {
 }
 ''');
 
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: Never
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: num
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -438,8 +647,22 @@ f(Never a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Never
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: Never
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -466,8 +689,38 @@ void f(Object? x) {
 }
 ''');
 
-    var node = result.findNode.binary('+ 0');
+    var node = result.findNode.binaryOperatorInvocation('+ 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression2: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: int
 BinaryExpression
   leftOperand: SwitchExpression
     switchKeyword: switch
@@ -510,8 +763,38 @@ void f(Object? x) {
 }
 ''');
 
-    var node = result.findNode.binary('0 +');
+    var node = result.findNode.binaryOperatorInvocation('0 +');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: +
+  rightOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression2: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: int
 BinaryExpression
   leftOperand: IntegerLiteral
     literal: 0
@@ -558,8 +841,22 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    element: <null>
+    staticType: InvalidType
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    correspondingParameter: <null>
+    element: <null>
+    staticType: InvalidType
+  binaryOperator: multiply
+  element: <null>
+  staticType: InvalidType
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -588,8 +885,21 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    element: <null>
+    staticType: InvalidType
+  operator: *
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: multiply
+  element: <null>
+  staticType: InvalidType
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -617,8 +927,21 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: IntegerLiteral
+    literal: 2
+    staticType: int
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+    correspondingParameter: dart:core::@class::num::@method::*::@formalParameter::other
+    element: <null>
+    staticType: InvalidType
+  binaryOperator: multiply
+  element: dart:core::@class::num::@method::*
+  staticType: double
 BinaryExpression
   leftOperand: IntegerLiteral
     literal: 2
@@ -650,8 +973,20 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.binary('+ 0');
+    var node = result.findNode.binaryOperatorInvocation('+ 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@class::A::@method::+
+  staticType: int
 BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
@@ -678,8 +1013,20 @@ class A {
 }
 ''');
 
-    var node = result.findNode.binary('+ 0');
+    var node = result.findNode.binaryOperatorInvocation('+ 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@class::A::@method::+
+  staticType: int
 BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
@@ -704,8 +1051,22 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a != b');
+    var node = result.findNode.binaryOperatorInvocation('a != b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: !=
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: notEqual
+  element: dart:core::@class::num::@method::==
+  staticType: bool
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -734,8 +1095,31 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.binary('!= 0');
+    var node = result.findNode.binaryOperatorInvocation('!= 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: null
+  operator: !=
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: notEqual
+  element: <null>
+  staticType: InvalidType
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -771,8 +1155,22 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a !== b');
+    var node = result.findNode.binaryOperatorInvocation('a !== b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: !==
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: notEqual
+  element: <null>
+  staticType: InvalidType
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -797,8 +1195,21 @@ f(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.binary('a == 0');
+    var node = result.findNode.binaryOperatorInvocation('a == 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: dynamic
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+    staticType: int
+  binaryOperator: equal
+  element: dart:core::@class::Object::@method::==
+  staticType: bool
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -826,8 +1237,31 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.binary('== 0');
+    var node = result.findNode.binaryOperatorInvocation('== 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: null
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: equal
+  element: <null>
+  staticType: bool
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -861,8 +1295,22 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a == b');
+    var node = result.findNode.binaryOperatorInvocation('a == b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: ==
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: equal
+  element: dart:core::@class::num::@method::==
+  staticType: bool
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -889,8 +1337,21 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.binary('a == 0');
+    var node = result.findNode.binaryOperatorInvocation('a == 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: InvalidType
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+    staticType: int
+  binaryOperator: equal
+  element: dart:core::@class::Object::@method::==
+  staticType: bool
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -916,8 +1377,22 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a === b');
+    var node = result.findNode.binaryOperatorInvocation('a === b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: ===
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: equal
+  element: <null>
+  staticType: InvalidType
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -942,8 +1417,19 @@ f(int? a, double b) {
 }
 ''');
 
-    var node = result.findNode.binary('a ?? b');
+    var node = result.findNode.ifNull('a ?? b');
     assertResolvedNodeText(node, r'''
+IfNull
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: double
+  staticType: num
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -968,8 +1454,19 @@ f(bool a, bool b) {
 }
 ''');
 
-    var node = result.findNode.binary('a && b');
+    var node = result.findNode.logicalAnd('a && b');
     assertResolvedNodeText(node, r'''
+LogicalAnd
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: bool
+  operator: &&
+  rightOperand: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: bool
+  staticType: bool
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -994,8 +1491,19 @@ f(bool a, bool b) {
 }
 ''');
 
-    var node = result.findNode.binary('a || b');
+    var node = result.findNode.logicalOr('a || b');
     assertResolvedNodeText(node, r'''
+LogicalOr
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: bool
+  operator: ||
+  rightOperand: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: bool
+  staticType: bool
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1047,8 +1555,22 @@ f(int a, double b) {
 }
 ''');
 
-    var node = result.findNode.binary('a - b');
+    var node = result.findNode.binaryOperatorInvocation('a - b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::-::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: double
+  binaryOperator: subtract
+  element: dart:core::@class::num::@method::-
+  staticType: double
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1073,8 +1595,22 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a - b');
+    var node = result.findNode.binaryOperatorInvocation('a - b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: -
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::-::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: subtract
+  element: dart:core::@class::num::@method::-
+  staticType: int
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1126,8 +1662,22 @@ f(int a, double b) {
 }
 ''');
 
-    var node = result.findNode.binary('a % b');
+    var node = result.findNode.binaryOperatorInvocation('a % b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: %
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::%::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: double
+  binaryOperator: modulo
+  element: dart:core::@class::num::@method::%
+  staticType: double
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1152,8 +1702,22 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a % b');
+    var node = result.findNode.binaryOperatorInvocation('a % b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: %
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::%::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: modulo
+  element: dart:core::@class::num::@method::%
+  staticType: int
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1257,8 +1821,22 @@ f(double a, dynamic b) {
   a + b;
 }
 ''');
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: double
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: dynamic
+  binaryOperator: add
+  element: dart:core::@class::double::@method::+
+  staticType: double
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1416,8 +1994,22 @@ f(int a, double b) {
   a + b;
 }
 ''');
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: double
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: double
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1441,8 +2033,22 @@ f(int a, dynamic b) {
   a + b;
 }
 ''');
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: dynamic
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: num
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1466,8 +2072,22 @@ f(int a, int b) {
   a + b;
 }
 ''');
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: int
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1491,8 +2111,29 @@ f(int Function() a, int b) {
   a() + b;
 }
 ''');
-    var node = result.findNode.binary('a() + b');
+    var node = result.findNode.binaryOperatorInvocation('a() + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: FunctionExpressionInvocation
+    function2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    element: <null>
+    staticInvokeType: int Function()
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: int
 BinaryExpression
   leftOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
@@ -1526,8 +2167,32 @@ f(int a, int b) {
   E(a) + b;
 }
 ''');
-    var node = result.findNode.binary('E(a) + b');
+    var node = result.findNode.binaryOperatorInvocation('E(a) + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: null
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: String
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -1561,8 +2226,22 @@ f(int a, num b) {
   a + b;
 }
 ''');
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: num
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: num
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1590,8 +2269,24 @@ extension FooExtension<F extends Foo> on F {
   F get gg => this + 1;
 }
 ''');
-    var node = result.findNode.binary('this + 1');
+    var node = result.findNode.binaryOperatorInvocation('this + 1');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: F
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::FooExtension::@method::+::@formalParameter::i
+      substitution: {F: F}
+    staticType: int
+  binaryOperator: add
+  element: SubstitutedMethodElementImpl
+    baseElement: <testLibrary>::@extension::FooExtension::@method::+
+    substitution: {F: F}
+  staticType: F
 BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
@@ -1599,7 +2294,9 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    correspondingParameter: i@null
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::FooExtension::@method::+::@formalParameter::i
+      substitution: {F: F}
     staticType: int
   element: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@extension::FooExtension::@method::+
@@ -1617,8 +2314,21 @@ void f() {
 // [diag.undefinedIdentifier] Undefined name 'x'.
 }
 ''');
-    var node = result.findNode.binary('x + 0');
+    var node = result.findNode.binaryOperatorInvocation('x + 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: x
+    element: <null>
+    staticType: InvalidType
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: InvalidType
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -1772,8 +2482,22 @@ f(A a, double b) {
 }
 ''');
 
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <testLibrary>::@class::A::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: double
+  binaryOperator: add
+  element: <testLibrary>::@class::A::@method::+
+  staticType: String
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1802,8 +2526,32 @@ f(A a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('E(a) + b');
+    var node = result.findNode.binaryOperatorInvocation('E(a) + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: String
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -1842,8 +2590,22 @@ f(A a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a + b');
+    var node = result.findNode.binaryOperatorInvocation('a + b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: String
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1868,8 +2630,21 @@ f<T extends dynamic>(T a) {
 }
 ''');
 
-    var node = result.findNode.binary('a + 0');
+    var node = result.findNode.binaryOperatorInvocation('a + 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: T
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  staticType: dynamic
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1893,8 +2668,21 @@ f<T extends num>(T a) {
 }
 ''');
 
-    var node = result.findNode.binary('a + 0');
+    var node = result.findNode.binaryOperatorInvocation('a + 0');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: T
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  staticType: num
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1918,8 +2706,22 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a / b');
+    var node = result.findNode.binaryOperatorInvocation('a / b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: /
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::/::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: divide
+  element: dart:core::@class::num::@method::/
+  staticType: double
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1971,8 +2773,22 @@ f(int a, double b) {
 }
 ''');
 
-    var node = result.findNode.binary('a * b');
+    var node = result.findNode.binaryOperatorInvocation('a * b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::*::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: double
+  binaryOperator: multiply
+  element: dart:core::@class::num::@method::*
+  staticType: double
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1997,8 +2813,22 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.binary('a * b');
+    var node = result.findNode.binaryOperatorInvocation('a * b');
     assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: *
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: dart:core::@class::num::@method::*::@formalParameter::other
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  binaryOperator: multiply
+  element: dart:core::@class::num::@method::*
+  staticType: int
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -2032,8 +2862,22 @@ f(C1<int>? c1, C2<double> c2) {
 }
 ''');
 
-    var node = result.findNode.binary('c1 ?? c2');
-    assertResolvedNodeText(node, r'''BinaryExpression
+    var node = result.findNode.ifNull('c1 ?? c2');
+    assertResolvedNodeText(node, r'''IfNull
+  leftOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1<int>?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: c2
+    element: <testLibrary>::@function::f::@formalParameter::c2
+    staticType: C2<double>
+  correspondingParameter: SubstitutedFormalParameterElementImpl
+    baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
+    substitution: {T: Object?}
+  staticType: B1<Object?>
+BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -2067,8 +2911,20 @@ f(B2? b2, C1 c1, Object? o) {
 }
 ''');
 
-    var node = result.findNode.binary('b2 ?? c1');
-    assertResolvedNodeText(node, r'''BinaryExpression
+    var node = result.findNode.ifNull('b2 ?? c1');
+    assertResolvedNodeText(node, r'''IfNull
+  leftOperand: SimpleIdentifier
+    token: b2
+    element: <testLibrary>::@function::f::@formalParameter::b2
+    staticType: B2?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1
+  correspondingParameter: <null>
+  staticType: B2
+BinaryExpression
   leftOperand: SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
@@ -2079,7 +2935,6 @@ f(B2? b2, C1 c1, Object? o) {
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
-  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: B2
@@ -2100,8 +2955,20 @@ f(C1? c1, B2 b2, Object? o) {
 }
 ''');
 
-    var node = result.findNode.binary('c1 ?? b2');
-    assertResolvedNodeText(node, r'''BinaryExpression
+    var node = result.findNode.ifNull('c1 ?? b2');
+    assertResolvedNodeText(node, r'''IfNull
+  leftOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: b2
+    element: <testLibrary>::@function::f::@formalParameter::b2
+    staticType: B2
+  correspondingParameter: <null>
+  staticType: B2
+BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -2112,7 +2979,6 @@ f(C1? c1, B2 b2, Object? o) {
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
-  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: B2
@@ -2129,8 +2995,19 @@ class C2 implements B1, B2 {}
 B1 f(C1? c1, C2 c2) => c1 ?? c2;
 ''');
 
-    var node = result.findNode.binary('c1 ?? c2');
+    var node = result.findNode.ifNull('c1 ?? c2');
     assertResolvedNodeText(node, r'''
+IfNull
+  leftOperand: SimpleIdentifier
+    token: c1
+    element: <testLibrary>::@function::f::@formalParameter::c1
+    staticType: C1?
+  operator: ??
+  rightOperand: SimpleIdentifier
+    token: c2
+    element: <testLibrary>::@function::f::@formalParameter::c2
+    staticType: C2
+  staticType: B1
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1

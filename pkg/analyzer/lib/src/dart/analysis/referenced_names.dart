@@ -16,7 +16,7 @@ Set<String> computeReferencedNames(
     includeAnalyzerDiagnosticExpectations:
         includeAnalyzerDiagnosticExpectations,
   );
-  unit.accept(computer);
+  unit.accept2(computer);
   return computer.names;
 }
 
@@ -218,7 +218,7 @@ class _LocalNameScope {
   }
 }
 
-class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
+class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   final bool includeAnalyzerDiagnosticExpectations;
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
@@ -280,10 +280,17 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    if (node.parent is! ConstructorDeclaration) {
-      super.visitConstructorName(node);
+  void visitConstructorSelector(ConstructorSelector node) {
+    names.add(node.name2.lexeme);
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    if (node.importPrefix case var prefix?) {
+      _addIfNotShadowed(prefix.name, hasImportPrefix: false);
     }
+    _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
+    node.typeArguments?.accept2(this);
   }
 
   @override
@@ -360,13 +367,22 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    if (node.effectiveName case var name?) {
+      names.add(name);
+    }
+
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore all declarations.
     if (node.inDeclarationContext()) {
       return;
     }
     // Ignore class names references from constructors.
-    var parent = node.parent!;
+    var parent = node.parent2!;
     if (parent is ConstructorDeclaration && parent.typeName == node) {
       return;
     }

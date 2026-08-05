@@ -10,7 +10,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeLiteralResolutionTest);
-    defineReflectiveTests(TypeLiteralResolutionTest_WithoutConstructorTearoffs);
+    defineReflectiveTests(TypeLiteralResolutionTest_BeforeConstructorTearoffs);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -708,7 +708,6 @@ TypeLiteral
     name: C
     element: <testLibrary>::@class::C
     type: C
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -736,7 +735,6 @@ TypeLiteral
     name: C
     element: package:test/a.dart::@class::C
     type: C
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -5906,7 +5904,6 @@ TypeLiteral
     name: dynamic
     element: dynamic
     type: dynamic
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -6210,7 +6207,7 @@ var t = dynamic<int>;
     var node = result.findNode.functionReference('dynamic<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: dynamic
     element: <null>
     staticType: null
@@ -6571,7 +6568,7 @@ void g() {
     var node = result.findNode.functionReference('Never<core.int>)');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: core
       element: <testLibraryFragment>::@prefix::core
@@ -6642,7 +6639,6 @@ TypeLiteral
     name: Never
     element: Never
     type: Never
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -6950,7 +6946,7 @@ var t = Never<int>;
     var node = result.findNode.functionReference('Never<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: Never
     element: <null>
     staticType: null
@@ -7574,7 +7570,7 @@ class C<T> {
     var node = result.findNode.functionReference('T<int>)');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: T
     element: <null>
     staticType: null
@@ -7671,7 +7667,6 @@ TypeLiteral
     name: T
     element: #E0 T
     type: T
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -7936,7 +7931,7 @@ class C<T> {
     var node = result.findNode.functionReference('T<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: T
     element: <null>
     staticType: null
@@ -8020,9 +8015,9 @@ TypeLiteral
 }
 
 @reflectiveTest
-class TypeLiteralResolutionTest_WithoutConstructorTearoffs
+class TypeLiteralResolutionTest_BeforeConstructorTearoffs
     extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
+    with BeforeConstructorTearoffsMixin {
   test_class() async {
     await resolveTestCodeWithDiagnostics('''
 class C<T> {}

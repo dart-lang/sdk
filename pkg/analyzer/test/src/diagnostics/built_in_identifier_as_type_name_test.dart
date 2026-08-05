@@ -40,9 +40,9 @@ class inout {}
 ''');
   }
 
-  test_class_inout_language310() async {
+  test_class_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class inout {}
 ''');
   }
@@ -55,9 +55,9 @@ class out {}
 ''');
   }
 
-  test_class_out_language310() async {
+  test_class_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class out {}
 ''');
   }
@@ -80,9 +80,9 @@ enum inout {v}
 ''');
   }
 
-  test_enum_inout_language310() async {
+  test_enum_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum inout {v}
 ''');
   }
@@ -95,9 +95,9 @@ enum out {v}
 ''');
   }
 
-  test_enum_out_language310() async {
+  test_enum_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum out {v}
 ''');
   }
@@ -126,9 +126,9 @@ mixin inout {}
 ''');
   }
 
-  test_mixin_inout_language310() async {
+  test_mixin_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 mixin inout {}
 ''');
   }
@@ -157,9 +157,9 @@ mixin out {}
 ''');
   }
 
-  test_mixin_out_language310() async {
+  test_mixin_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 mixin out {}
 ''');
   }

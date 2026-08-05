@@ -31,8 +31,10 @@ abstract interface class InstructionVisitor<R> {
   R visitStoreInstanceField(StoreInstanceField instr);
   R visitLoadStaticField(LoadStaticField instr);
   R visitStoreStaticField(StoreStaticField instr);
+  R visitLoadArrayElement(LoadArrayElement instr);
   R visitThrow(Throw instr);
   R visitNullCheck(NullCheck instr);
+  R visitIndexCheck(IndexCheck instr);
   R visitTypeParameters(TypeParameters instr);
   R visitTypeCast(TypeCast instr);
   R visitTypeTest(TypeTest instr);
@@ -55,6 +57,7 @@ abstract interface class InstructionVisitor<R> {
   R visitUnaryBoolOp(UnaryBoolOp instr);
   // Back-end specific instructions.
   R visitCompareAndBranch(CompareAndBranch instr);
+  R visitExternalCall(ExternalCall instr);
   R visitAllocateList(AllocateList instr);
   R visitSetListElement(SetListElement instr);
   R visitAllocateRecord(AllocateRecord instr);
@@ -106,8 +109,10 @@ abstract mixin class DefaultInstructionVisitor<R>
       defaultInstruction(instr);
   R visitLoadStaticField(LoadStaticField instr) => defaultInstruction(instr);
   R visitStoreStaticField(StoreStaticField instr) => defaultInstruction(instr);
+  R visitLoadArrayElement(LoadArrayElement instr) => defaultInstruction(instr);
   R visitThrow(Throw instr) => defaultInstruction(instr);
   R visitNullCheck(NullCheck instr) => defaultInstruction(instr);
+  R visitIndexCheck(IndexCheck instr) => defaultInstruction(instr);
   R visitTypeParameters(TypeParameters instr) => defaultInstruction(instr);
   R visitTypeCast(TypeCast instr) => defaultInstruction(instr);
   R visitTypeTest(TypeTest instr) => defaultInstruction(instr);
@@ -137,6 +142,7 @@ abstract mixin class DefaultInstructionVisitor<R>
   // Back-end specific instructions.
   R visitCompareAndBranch(CompareAndBranch instr) =>
       defaultBackendInstruction(instr);
+  R visitExternalCall(ExternalCall instr) => defaultBackendInstruction(instr);
   R visitAllocateList(AllocateList instr) => defaultBackendInstruction(instr);
   R visitSetListElement(SetListElement instr) =>
       defaultBackendInstruction(instr);

@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  85 "needsEvaluation"
+# -  87 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -62,6 +62,12 @@ analysis_option_deprecated:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
+analysis_options_deprecated_plugins:
+  status: needsFix
+  notes: |-
+    The fix is to remove the section. But I think there is something maybe also
+    we could do to remove the plugin package from the pubspec file. But that
+    might be conditional...
 analysis_option_deprecated_with_replacement:
   status: hasFix
 deprecated_lint:
@@ -100,6 +106,12 @@ incompatible_lint_included:
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
+incompatible_plugin_source:
+  status: needsFix
+  notes: |-
+    The fix is pretty simple; change this plugin source to be the same as the
+    other. We could even offer two fixes; the second would be to change the
+    other plugin source to match this one.
 invalid_option:
   status: needsFix
   notes: |-
@@ -275,6 +287,8 @@ augmentation_type_parameter_name:
   status: needsFix
   notes: |-
     We could rename the type parameter, this is purely local operation.
+augmentation_variable_different_getter_setter_types:
+  status: needsEvaluation
 augmentation_without_declaration:
   status: noFix
 augmentation_without_getter_declaration:
@@ -596,6 +610,8 @@ deferred_import_of_extension:
     Remove the `deferred` keyword from the import.
 definitely_unassigned_late_local_variable:
   status: noFix
+different_inherited_getter_and_setter_types:
+  status: needsEvaluation
 disallowed_type_instantiation_expression:
   status: needsFix
   since: 2.15
@@ -2208,6 +2224,8 @@ file_names:
     The fix is to rename the file, but that's a refactoring.
 flutter_style_todos:
   status: hasFix
+future_sync_value:
+  status: hasFix
 hash_and_equals:
   status: hasFix
 implementation_imports:
@@ -2500,7 +2518,7 @@ sort_child_properties_last:
 sort_constructors_first:
   status: hasFix
 sort_pub_dependencies:
-  status: needsFix
+  status: hasFix
 sort_unnamed_constructors_first:
   status: hasFix
 specify_nonobvious_local_variable_types:
@@ -2609,6 +2627,8 @@ unnecessary_string_interpolations:
   status: hasFix
 unnecessary_this:
   status: hasFix
+unnecessary_this_alias:
+  status: needsEvaluation
 unnecessary_to_list_in_spreads:
   status: hasFix
 unnecessary_type_name_in_constructor:
@@ -2930,6 +2950,8 @@ export_directive_after_part_directive:
     Move the directive to a valid place.
 extension_augmentation_has_on_clause:
   status: hasFix
+extension_augmentation_without_name:
+  status: needsEvaluation
 extension_declares_abstract_member:
   status: needsFix
   notes: |-
@@ -3221,6 +3243,8 @@ missing_variable_in_for_each:
   status: noFix
 mixed_parameter_groups:
   status: noFix
+mixin_augmentation_has_on_clause:
+  status: needsEvaluation
 mixin_declares_constructor:
   status: hasFix
 mixin_with_clause:

@@ -439,7 +439,8 @@ mixin _ConstructorDeclarationMixin
           }
           formal.type.registerInferredType(type ?? const DynamicType());
         }
-        formal.variable.hasDeclaredInitializer = formal.hasDeclaredDefaultValue;
+        formal.variable.hasDeclaredDefaultValue =
+            formal.hasDeclaredDefaultValue;
       }
     }
 

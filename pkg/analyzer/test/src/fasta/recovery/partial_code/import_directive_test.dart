@@ -75,7 +75,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -194,7 +194,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -293,7 +293,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -412,6 +412,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -452,6 +458,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -544,7 +560,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -643,7 +659,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -735,7 +751,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -834,6 +850,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -869,6 +891,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -956,7 +988,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1055,7 +1087,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1147,7 +1179,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -1246,6 +1278,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -1281,6 +1319,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1396,7 +1444,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1551,7 +1599,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1685,7 +1733,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -1840,6 +1888,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -1889,6 +1943,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2016,7 +2080,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2167,7 +2231,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2298,7 +2362,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -2449,6 +2513,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -2497,6 +2567,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2633,7 +2713,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2803,7 +2883,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2949,7 +3029,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -3120,6 +3200,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -3173,6 +3259,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -3308,7 +3404,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3466,7 +3562,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3603,7 +3699,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -3762,6 +3858,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -3812,6 +3914,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -3946,7 +4058,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -4108,7 +4220,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -4241,7 +4353,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -4401,6 +4513,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -4452,6 +4570,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4557,7 +4685,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -4660,7 +4788,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -4755,7 +4883,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -4858,6 +4986,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -4894,6 +5028,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4998,7 +5142,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -5129,7 +5273,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -5237,7 +5381,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -5368,6 +5512,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
@@ -5411,6 +5561,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

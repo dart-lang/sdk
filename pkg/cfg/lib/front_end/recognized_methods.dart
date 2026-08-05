@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/flow_graph_builder.dart';
+import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 
-/// Build a fragment of IR corresponding to the body of
-/// recognized method or recognized call.
+/// Build a fragment of IR corresponding to the recognized call or a function body.
+/// Parameters are already pushed onto the [builder]'s stack.
 typedef BuildIR = void Function(FlowGraphBuilder builder);
 
 /// Base class for recognizing calls depending
@@ -217,6 +218,9 @@ abstract class RecognizedMethods {
 
   /// Recognized instance getter calls.
   Map<ast.Member, RecognizedCallMatcher> get instanceGetters;
+
+  /// Function body of the recognized functions.
+  BuildIR? getRecognizedFunctionBody(CFunction function);
 }
 
 /// Recognized methods shared by all back-ends.
@@ -225,6 +229,7 @@ class CommonRecognizedMethods implements RecognizedMethods {
 
   CommonRecognizedMethods() : index = GlobalContext.instance.coreTypes.index;
 
+  @override
   late final instanceInvocations = <ast.Member, RecognizedCallMatcher>{
     index.getProcedure('dart:core', 'num', '+'): const BinaryNumOp(
       BinaryIntOpcode.add,
@@ -348,12 +353,19 @@ class CommonRecognizedMethods implements RecognizedMethods {
         const UnaryDoubleOp(UnaryDoubleOpcode.truncateToDouble),
   };
 
+  @override
   late final instanceGetters = <ast.Member, RecognizedCallMatcher>{
     index.getProcedure('dart:core', 'int', 'get:sign'): const UnaryIntOp(
       UnaryIntOpcode.sign,
+    ),
+    index.getProcedure('dart:core', 'int', 'get:bitLength'): const UnaryIntOp(
+      UnaryIntOpcode.bitLength,
     ),
     index.getProcedure('dart:core', 'double', 'get:sign'): const UnaryDoubleOp(
       UnaryDoubleOpcode.sign,
     ),
   };
+
+  @override
+  BuildIR? getRecognizedFunctionBody(CFunction function) => null;
 }

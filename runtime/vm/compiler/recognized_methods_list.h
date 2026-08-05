@@ -13,7 +13,7 @@ namespace dart {
 // debug mode to get the correct fingerprint from the mismatch error.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(AsyncLibrary, _FutureListener, handleValue, FutureListenerHandleValue,     \
-    0xaa83f593)                                                                \
+    0x4212057a)                                                                \
   V(AsyncLibrary, _SuspendState, get:_functionData,                            \
     SuspendState_getFunctionData, 0x79c36e2e)                                  \
   V(AsyncLibrary, _SuspendState, set:_functionData,                            \
@@ -77,9 +77,9 @@ namespace dart {
     0xc70c51ba)                                                                \
   V(CoreLibrary, _Smi, get:hashCode, Smi_hashCode, 0x75c3b512)                 \
   V(CoreLibrary, _IntegerImplementation, get:trailingZeroBitCount,             \
-    Integer_trailingZeroBitCount, 0xea8b2826)                                  \
+    Integer_trailingZeroBitCount, 0xea8b2be7)                                  \
   V(CoreLibrary, _IntegerImplementation, get:oneBitCount,                      \
-    Integer_oneBitCount, 0x60c41821)                                           \
+    Integer_oneBitCount, 0x60c41be2)                                           \
   V(CoreLibrary, _Mint, get:hashCode, Mint_hashCode, 0x75c3b512)               \
   V(CoreLibrary, _Double, get:hashCode, Double_hashCode, 0x75c3b8d3)           \
   V(CompactHashLibrary, _LinkedHashBase, get:_index, LinkedHashBase_getIndex,  \
@@ -548,8 +548,8 @@ namespace dart {
   V(CoreLibrary, _BigIntImpl, _rsh, Bigint_rsh, 0xddf6be5f)                    \
   V(CoreLibrary, _BigIntImpl, _absAdd, Bigint_absAdd, 0x2aa56271)              \
   V(CoreLibrary, _BigIntImpl, _absSub, Bigint_absSub, 0x70f0b1eb)              \
-  V(CoreLibrary, _BigIntImpl, _mulAdd, Bigint_mulAdd, 0x853e7d70)              \
-  V(CoreLibrary, _BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0xd9d62ddd)              \
+  V(CoreLibrary, _BigIntImpl, _mulAdd, Bigint_mulAdd, 0xaf7df2f0)              \
+  V(CoreLibrary, _BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x557838dd)              \
   V(CoreLibrary, _BigIntImpl, _estimateQuotientDigit,                          \
     Bigint_estimateQuotientDigit, 0x16b87188)                                  \
   V(CoreLibrary, _BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod,       \

@@ -16,6 +16,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -28,12 +29,126 @@
 
 namespace dart {
 
+static FunctionPtr CreateFfiCallback(Zone* zone,
+                                     FfiCallbackKind kind,
+                                     const FunctionType& native_sig,
+                                     const Function& target,
+                                     const Instance& exceptional_return) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+  {
+    DartFrameIterator iterator(Thread::Current(),
+                               StackFrameIterator::kNoCrossThreadIteration);
+    iterator.NextFrame();  // Skip the current frame for the native entry.
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != nullptr);
+    if (!caller_frame->is_interpreted()) {
+      Exceptions::ThrowUnsupportedError(
+          "This function should be handled on call site.");
+    }
+  }
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(zone, native_sig, &error);
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Exceptions::PropagateError(language_error);
+  }
+
+  return compiler::ffi::NativeCallbackFunction(native_sig, target,
+                                               exceptional_return, kind);
+#else
+  Exceptions::ThrowUnsupportedError(
+      "This function should be handled on call site.");
+#endif
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
+  const auto& native_sig =
+      FunctionType::CheckedHandle(zone, arguments->NativeTypeArgAt(0));
+  const auto& target = Closure::CheckedHandle(zone, arguments->NativeArg0());
+  const auto& exceptional_return =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+
+  // Retrieve the parent function of the target closure.
+  auto& function = Function::Handle(zone, target.function());
+  function = function.parent_function();
+
+  return CreateFfiCallback(zone, FfiCallbackKind::kIsolateLocalStaticCallback,
+                           native_sig, function, exceptional_return);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_nativeAsyncCallbackFunction, 1, 0) {
+  const auto& native_sig =
+      FunctionType::CheckedHandle(zone, arguments->NativeTypeArgAt(0));
+
+  return CreateFfiCallback(zone, FfiCallbackKind::kAsyncCallback, native_sig,
+                           Object::null_function(), Object::null_instance());
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_nativeIsolateLocalCallbackFunction, 1, 1) {
+  const auto& native_sig =
+      FunctionType::CheckedHandle(zone, arguments->NativeTypeArgAt(0));
+  const auto& exceptional_return =
+      Instance::CheckedHandle(zone, arguments->NativeArg0());
+
+  return CreateFfiCallback(zone, FfiCallbackKind::kIsolateLocalClosureCallback,
+                           native_sig, Object::null_function(),
+                           exceptional_return);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_nativeIsolateGroupBoundCallbackFunction, 1, 2) {
+  const auto& native_sig =
+      FunctionType::CheckedHandle(zone, arguments->NativeTypeArgAt(0));
+  const auto& target = Closure::CheckedHandle(zone, arguments->NativeArg0());
+  const auto& exceptional_return =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+
+  // Retrieve the parent function of the target closure.
+  auto& function = Function::Handle(zone, target.function());
+  function = function.parent_function();
+
+  return CreateFfiCallback(zone,
+                           FfiCallbackKind::kIsolateGroupBoundStaticCallback,
+                           native_sig, function, exceptional_return);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_nativeIsolateGroupBoundClosureFunction, 1, 1) {
+  const auto& native_sig =
+      FunctionType::CheckedHandle(zone, arguments->NativeTypeArgAt(0));
+  const auto& exceptional_return =
+      Instance::CheckedHandle(zone, arguments->NativeArg0());
+
+  return CreateFfiCallback(
+      zone, FfiCallbackKind::kIsolateGroupBoundClosureCallback, native_sig,
+      Object::null_function(), exceptional_return);
+}
+
+static PointerPtr WrapFunctionPointer(uword raw) {
+#if defined(HOST_ARCH_ARM64E)
+  raw = reinterpret_cast<uword>(ptrauth_sign_unauthenticated(
+      reinterpret_cast<void*>(raw), ptrauth_key_function_pointer, 0));
+#endif
+  return Pointer::New(raw);
+}
+
+static uword UnwrapFunctionPointer(const Pointer& pointer) {
+  uword raw = pointer.NativeAddress();
+#if defined(HOST_ARCH_ARM64E)
+  raw = reinterpret_cast<uword>(ptrauth_auth_data(
+      reinterpret_cast<void*>(raw), ptrauth_key_function_pointer, 0));
+#endif
+  return raw;
+}
+
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableListener, 1, 2) {
   const auto& send_function =
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& port =
       ReceivePort::CheckedHandle(zone, arguments->NativeArgAt(1));
-  return Pointer::New(
+  return WrapFunctionPointer(
       isolate->CreateAsyncFfiCallback(zone, send_function, port.Id()));
 }
 
@@ -43,7 +158,7 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateLocal, 1, 3) {
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
   const bool keep_isolate_alive =
       Bool::CheckedHandle(zone, arguments->NativeArgAt(2)).value();
-  return Pointer::New(isolate->CreateIsolateLocalFfiCallback(
+  return WrapFunctionPointer(isolate->CreateIsolateLocalFfiCallback(
       zone, trampoline, target, keep_isolate_alive));
 }
 
@@ -51,20 +166,20 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateGroupBound, 1, 2) {
   const auto& trampoline =
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
-  return Pointer::New(
+  return WrapFunctionPointer(
       thread->isolate_group()->CreateIsolateGroupBoundFfiCallback(
           zone, trampoline, target));
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_deleteNativeCallable, 1, 1) {
   const auto& pointer = Pointer::CheckedHandle(zone, arguments->NativeArg0());
-  isolate->DeleteFfiCallback(pointer.NativeAddress());
+  isolate->DeleteFfiCallback(UnwrapFunctionPointer(pointer));
   return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_deleteIsolateGroupNativeCallable, 1, 1) {
   const auto& pointer = Pointer::CheckedHandle(zone, arguments->NativeArg0());
-  thread->isolate_group()->DeleteFfiCallback(pointer.NativeAddress());
+  thread->isolate_group()->DeleteFfiCallback(UnwrapFunctionPointer(pointer));
   return Object::null();
 }
 

@@ -18,7 +18,7 @@ main() {
 class SwitchStatementParserTest extends ParserDiagnosticsTest {
   void test_withPatternCase_whenDisabled() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f(Object value) {
   switch (value) {
     case (int a,) when a == 0:
@@ -32,9 +32,9 @@ void f(Object value) {
     assertParsedNodeText(node, r'''
 SwitchCase
   keyword: case
-  expression: ParenthesizedExpression
+  expression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: int
     rightParenthesis: )
   colon: :

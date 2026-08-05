@@ -20,6 +20,7 @@ Future<void> main(List<String> args) async {
   ClassHierarchy classHierarchy;
   Class memberClass;
   Class primitiveConstantClass;
+  Name toStringName = new Name('toString');
 
   {
     Uri input = Platform.script.resolve("../tool/compile.dart");
@@ -58,17 +59,12 @@ Future<void> main(List<String> args) async {
       for (Class c in library.classes) {
         if (c.isAbstract) continue;
         if (classHierarchy.isSubInterfaceOf(c, nodeClass)) {
-          List<Member> toStringList = classHierarchy
-              .getInterfaceMembers(c)
-              .where(
-                (Member m) =>
-                    !m.isAbstract &&
-                    m.name.text == "toString" &&
-                    !m.enclosingLibrary.importUri.isScheme("dart"),
-              )
-              .toList();
-          if (toStringList.length > 1) throw "What?";
-          if (toStringList.length == 1) {
+          Member? toStringMember = classHierarchy.getDispatchTarget(
+            c,
+            toStringName,
+          );
+          if (toStringMember != null &&
+              !toStringMember.enclosingLibrary.importUri.isScheme("dart")) {
             classMapWithOne[c.fileUri] ??= <Class>[];
             classMapWithOne[c.fileUri]!.add(c);
             continue;

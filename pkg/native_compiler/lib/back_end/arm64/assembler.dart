@@ -779,7 +779,9 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       address(threadReg, vmOffsets.Thread_call_to_runtime_entry_point_offset),
     );
     blr(LR);
-    addCallSiteMetadata?.call();
+    addCallSiteMetadata?.call(
+      (entry == .FatalError) ? .fatalError : .runtimeCall,
+    );
   }
 
   @override
@@ -792,7 +794,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, stub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
-    addCallSiteMetadata?.call();
+    addCallSiteMetadata?.call(.stubCall);
   }
 
   // TODO: remove after all stubs are implemented in the compiler
@@ -800,7 +802,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, vmStub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
-    addCallSiteMetadata?.call();
+    addCallSiteMetadata?.call(.stubCall);
   }
 
   // TODO: remove after all stubs are implemented in the compiler
@@ -1110,6 +1112,17 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     OperandSize sz = OperandSize.s64,
   ]) {
     madd(rd, rn, rm, ZR, sz);
+  }
+
+  void umulh(Register rd, Register rn, Register rm) {
+    _emitMul(
+      B22 | B23 | B24 | B25 | B27 | B28,
+      rd,
+      rn,
+      rm,
+      ZR,
+      OperandSize.s64,
+    );
   }
 
   void _emitMul(
@@ -1441,6 +1454,26 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
+  void clz(Register rd, Register rn, [OperandSize sz = OperandSize.s64]) {
+    _emitDataProcessing1(B12, rd, rn, sz);
+  }
+
+  void _emitDataProcessing1(
+    int opcode,
+    Register rd,
+    Register rn,
+    OperandSize sz,
+  ) {
+    assert(sz.is32or64);
+    emit(
+      (B22 | B23 | B25 | B27 | B28 | B30) |
+          opcode |
+          rd.encodingRd() |
+          rn.encodingRn() |
+          (sz.is64 ? B31 : 0),
+    );
+  }
+
   // Logical operations with immediate or shifted register.
   void and(
     Register rd,
@@ -1687,6 +1720,66 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       default:
         throw 'Unexpect address ${a.runtimeType}';
     }
+  }
+
+  /// Load-Acquire Register.
+  void ldar(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
+    _emitLoadStoreExclusive(
+      B10 |
+          B11 |
+          B12 |
+          B13 |
+          B14 |
+          B15 |
+          B16 |
+          B17 |
+          B18 |
+          B19 |
+          B20 |
+          B22 |
+          B23 |
+          B27,
+      rt,
+      rn,
+      sz,
+    );
+  }
+
+  /// Store-Release Register.
+  void stlr(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
+    _emitLoadStoreExclusive(
+      B10 |
+          B11 |
+          B12 |
+          B13 |
+          B14 |
+          B15 |
+          B16 |
+          B17 |
+          B18 |
+          B19 |
+          B20 |
+          B23 |
+          B27,
+      rt,
+      rn,
+      sz,
+    );
+  }
+
+  void _emitLoadStoreExclusive(
+    int opcode,
+    Register rt,
+    Register rn,
+    OperandSize sz,
+  ) {
+    assert(!sz.is128);
+    emit(
+      opcode |
+          rn.encodingRn(allowSP: true) |
+          rt.encodingRt() |
+          (sz.log2sizeInBytes << 30),
+    );
   }
 
   void fldr(FPRegister rt, Address a, [OperandSize sz = OperandSize.s64]) {
@@ -2167,9 +2260,9 @@ extension on Immediate {
       ~value & (sz.is32 ? 0xffffffff : -1),
       sz,
     );
-    final trailingZeros = _countTrailingZeros(value);
-    final trailingOnes = _countTrailingZeros(~value);
-    int setBits = _countOneBits(value);
+    final trailingZeros = value.trailingZeroBitCount;
+    final trailingOnes = (~value).trailingZeroBitCount;
+    int setBits = value.oneBitCount;
 
     // The fixed bits in the immediate s field.
     // If width == 64 (X reg), start at 0xFFFFFF80.
@@ -2228,31 +2321,6 @@ extension on Immediate {
 
   static int _countLeadingZeros(int value, OperandSize sz) =>
       value < 0 ? 0 : (sz.bitWidth - value.bitLength);
-
-  static int _countTrailingZeros(int value) {
-    var n = 0;
-    while ((value & 0xff) == 0) {
-      n += 8;
-      value = value >>> 8;
-    }
-    while ((value & 1) == 0) {
-      ++n;
-      value = value >>> 1;
-    }
-    return n;
-  }
-
-  static int _countOneBits(int value) {
-    value = ((value >>> 1) & 0x5555555555555555) + (value & 0x5555555555555555);
-    value = ((value >>> 2) & 0x3333333333333333) + (value & 0x3333333333333333);
-    value = ((value >>> 4) & 0x0f0f0f0f0f0f0f0f) + (value & 0x0f0f0f0f0f0f0f0f);
-    value = ((value >>> 8) & 0x00ff00ff00ff00ff) + (value & 0x00ff00ff00ff00ff);
-    value =
-        ((value >>> 16) & 0x0000ffff0000ffff) + (value & 0x0000ffff0000ffff);
-    value =
-        ((value >>> 32) & 0x00000000ffffffff) + (value & 0x00000000ffffffff);
-    return value;
-  }
 
   int encodingFpImm(OperandSize sz) =>
       tryEncodingFpImm(sz) ??

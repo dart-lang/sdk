@@ -59,6 +59,6 @@ class DtdTest
   @override
   Future<void> tearDown() async {
     await tearDownDtd();
-    super.tearDown();
+    await super.tearDown();
   }
 }

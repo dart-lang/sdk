@@ -77,6 +77,8 @@ def HostCpuForArch(arch):
         candidates = ['arm', 'x86', 'riscv32', 'arm64', 'x64', 'riscv64']
     elif arch in ['arm64', 'arm64c', 'simarm64', 'simarm64c']:
         candidates = ['arm64', 'x64', 'riscv64']
+    elif arch in ['arm64e']:
+        candidates = ['arm64e']
     elif arch in ['riscv32', 'simriscv32']:
         candidates = ['riscv32', 'arm', 'x86', 'riscv64', 'arm64', 'x64']
     elif arch in ['riscv64', 'simriscv64']:
@@ -101,6 +103,8 @@ def TargetCpuForArch(arch):
         return 'x86'
     elif arch.startswith('x64'):
         return 'x64'
+    elif arch.startswith('arm64e'):
+        return 'arm64e'
     elif arch.startswith('arm64'):
         return 'arm64'
     elif arch.startswith('arm'):
@@ -266,7 +270,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     gn_args['is_hwasan'] = sanitizer == 'hwasan'
     gn_args['is_qemu'] = args.use_qemu
 
-    if args.include_experimental_vm_service:
+    if args.include_experimental_vm_service is not None:
         gn_args[
             'include_experimental_vm_service'] = args.include_experimental_vm_service
 
@@ -538,8 +542,15 @@ def AddCommonGnOptionArgs(parser):
     parser.add_argument(
         '--include-experimental-vm-service',
         help='Use the Dart Runtime Service based VM service implementation.',
-        default=False,
+        dest='include_experimental_vm_service',
         action='store_true')
+    parser.add_argument(
+        '--no-include-experimental-vm-service',
+        help=
+        'Do not use the Dart Runtime Service based VM service implementation.',
+        dest='include_experimental_vm_service',
+        action='store_false')
+    parser.set_defaults(include_experimental_vm_service=None)
 
 
 def AddCommonConfigurationArgs(parser):

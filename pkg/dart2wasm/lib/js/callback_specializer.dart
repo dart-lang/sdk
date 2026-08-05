@@ -54,19 +54,19 @@ class CallbackSpecializer {
       functionType: instantiatedFunctionType,
     );
 
-    final temp = SyntheticVariable(
-      initializer: callExpr,
+    final cache = CachedExpression.fromValue(
+      value: callExpr,
       type: callExpr.getStaticType(_staticTypeContext),
     );
 
     final jsified = jsifyValue(
-      temp,
+      cache.variable,
       _util.nullableWasmExternRefType,
       _util,
       _staticTypeContext.typeEnvironment,
     );
 
-    return ReturnStatement(Let(temp, jsified));
+    return ReturnStatement(cache.createLet(body: jsified));
   }
 
   /// Creates a callback trampoline for the given [function].

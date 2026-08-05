@@ -42,7 +42,7 @@ class PrefixedIdentifierResolver {
         );
         if (prefixTypeResolved is RecordType) {
           var propertyAccess = PropertyAccessImpl(
-            target: node.prefix,
+            target2: node.prefix,
             operator: node.period,
             propertyName: node.identifier,
           );
@@ -95,7 +95,7 @@ class PrefixedIdentifierResolver {
       identifier.setPseudoExpressionStaticType(type);
       return null;
     } else if (element is TypeAliasElement) {
-      if (node.parent is NamedType) {
+      if (node.parent2 is NamedType) {
         // no type
       } else {
         var type = _typeProvider.typeType;
@@ -140,7 +140,7 @@ class PrefixedIdentifierResolver {
   ///
   // TODO(scheglov): this is duplicate
   bool _isExpressionIdentifier(Identifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
@@ -149,8 +149,7 @@ class PrefixedIdentifierResolver {
         return false;
       }
     }
-    if (parent is ConstructorName ||
-        parent is MethodInvocation ||
+    if (parent is MethodInvocation ||
         parent is PrefixedIdentifier && parent.prefix == node ||
         parent is PropertyAccess ||
         parent is NamedType) {
@@ -165,17 +164,17 @@ class PrefixedIdentifierResolver {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
 
     if (parent is PrefixedIdentifierImpl && parent.identifier == node) {
       node = parent;
-      parent = node.parent;
+      parent = node.parent2;
     }
 
     if (parent is CommentReference ||
-        parent is MethodInvocationImpl && parent.target == node ||
+        parent is MethodInvocationImpl && parent.target2 == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
-        parent is PropertyAccessImpl && parent.target == node) {
+        parent is PropertyAccessImpl && parent.target2 == node) {
       inferenceLogWriter?.recordExpressionWithNoType(node);
       return;
     }

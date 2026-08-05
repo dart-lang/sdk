@@ -115,7 +115,24 @@ static constexpr intptr_t kLinearInitValue = -1;
   V(MachOUuid)                                                                 \
   V(MachOIdDylib)                                                              \
   V(MachOCodeSignature)                                                        \
-  V(MachOEncryptionInfo)
+  V(MachOEncryptionInfo)                                                       \
+  V(MachOExportsTrie)
+
+// Match LLVM's order. Non-LLVM strip seems to depend on this.
+enum LoadCommandOrder : uint32_t {
+  kNoOrder = 0,
+
+  kIdDylibOrder,
+  kExportsTrieOrder,
+  kSymbolTableOrder,
+  kDynamicSymbolTableOrder,
+  kEncryptionInfoOrder,
+  kRunPathOrder,
+  kUuidOrder,
+  kBuildVersionOrder,
+  kLoadDylibOrder,
+  kCodeSignatureOrder,
+};
 
 #define DECLARE_CONTENTS_TYPE_CLASS(Type) class Type;
 FOR_EACH_CHECKABLE_MACHO_CONTENTS_TYPE(DECLARE_CONTENTS_TYPE_CLASS)
@@ -519,7 +536,9 @@ class MachOContents : public ZoneObject {
   const Type* As##Type() const {                                               \
     return const_cast<Type*>(const_cast<MachOContents*>(this)->As##Type());    \
   }                                                                            \
-  virtual bool Is##Type() const { return false; }
+  virtual bool Is##Type() const {                                              \
+    return false;                                                              \
+  }
 
   FOR_EACH_CHECKABLE_MACHO_CONTENTS_TYPE(DEFINE_BASE_TYPE_CHECKS)
 #undef DEFINE_BASE_TYPE_CHECKS
@@ -585,12 +604,11 @@ class MachOContents : public ZoneObject {
 // with the appropriate mach_o::LC_* constant.
 class MachOCommand : public MachOContents {
  public:
-  explicit MachOCommand(intptr_t cmd,
+  explicit MachOCommand(uint32_t cmd,
+                        LoadCommandOrder order,
                         bool needs_offset = true,
                         bool in_segment = true)
-      : MachOContents(needs_offset, in_segment), cmd_(cmd) {
-    ASSERT(Utils::IsUint(32, cmd));
-  }
+      : MachOContents(needs_offset, in_segment), cmd_(cmd), order_(order) {}
 
   DEFINE_TYPE_CHECK_FOR(MachOCommand)
 
@@ -599,6 +617,8 @@ class MachOCommand : public MachOContents {
   // The value identifying the type of section the load command represents.
   // Should be one of the LC_* constants in platform/mach_o.h.
   uint32_t cmd() const { return cmd_; }
+
+  LoadCommandOrder order() const { return order_; }
 
   // The alignment expected for load commands.
   static constexpr intptr_t kLoadCommandAlignment = compiler::target::kWordSize;
@@ -631,6 +651,7 @@ class MachOCommand : public MachOContents {
 
  private:
   uint32_t cmd_;
+  LoadCommandOrder order_;
 
   DISALLOW_COPY_AND_ASSIGN(MachOCommand);
 };
@@ -875,7 +896,7 @@ class MachOSegment : public MachOCommand {
       // We don't know if a segment has a file offset until we
       // know what it contains, so set it to 0 in ComputeOffsets()
       // if there are no contents.
-      : MachOCommand(kCommandCode),
+      : MachOCommand(kCommandCode, kNoOrder),
         type_(type),
         name_(name),
         initial_vm_protection_(initial_vm_protection),
@@ -1085,6 +1106,7 @@ class MachOUuid : public MachOCommand {
 
   explicit MachOUuid(const void* bytes, intptr_t len)
       : MachOCommand(kCommandCode,
+                     kUuidOrder,
                      /*needs_offset=*/false,
                      /*in_segment=*/false),
         bytes_() {
@@ -1133,12 +1155,14 @@ class MachODylib : public MachOCommand {
  protected:
   // This is really an abstract class, with concrete subclasses providing
   // the command code.
-  MachODylib(intptr_t cmd,
+  MachODylib(uint32_t cmd,
+             LoadCommandOrder order,
              const char* name,
              intptr_t timestamp,
              intptr_t current_version = kNoVersion,
              intptr_t compatibility_version = kNoVersion)
       : MachOCommand(cmd,
+                     order,
                      /*needs_offset=*/false,
                      /*in_segment=*/false),
         name_(ASSERT_NOTNULL(name)),
@@ -1169,6 +1193,7 @@ class MachOIdDylib : public MachODylib {
                         intptr_t current_version = kNoVersion,
                         intptr_t compatibility_version = kNoVersion)
       : MachODylib(kCommandCode,
+                   kIdDylibOrder,
                    name,
                    0,  // Snapshots aren't copied into user.
                    current_version,
@@ -1199,6 +1224,7 @@ class MachOLoadDylib : public MachODylib {
                  intptr_t current_version,
                  intptr_t compatibility_version)
       : MachODylib(kCommandCode,
+                   kLoadDylibOrder,
                    name,
                    timestamp,
                    current_version,
@@ -1303,6 +1329,7 @@ class MachOBuildVersion : public MachOCommand {
 
   MachOBuildVersion()
       : MachOCommand(kCommandCode,
+                     kBuildVersionOrder,
                      /*needs_offset=*/false,
                      /*in_segment=*/false),
         min_os_(FLAG_macho_min_os_version != nullptr
@@ -1352,6 +1379,7 @@ class MachORunPath : public MachOCommand {
 
   MachORunPath(const char* path, intptr_t length)
       : MachOCommand(kCommandCode,
+                     kRunPathOrder,
                      /*needs_offset=*/false,
                      /*in_segment=*/false),
         path_(path),
@@ -1389,7 +1417,10 @@ class MachOSymbolTable : public MachOCommand {
   static constexpr uint32_t kCommandCode = mach_o::LC_SYMTAB;
 
   MachOSymbolTable(Zone* zone, bool in_segment)
-      : MachOCommand(kCommandCode, /*needs_offset=*/true, in_segment),
+      : MachOCommand(kCommandCode,
+                     kSymbolTableOrder,
+                     /*needs_offset=*/true,
+                     in_segment),
         zone_(zone),
         strings_(zone),
         symbols_(zone, 0),
@@ -1600,7 +1631,10 @@ class MachODynamicSymbolTable : public MachOCommand {
   static constexpr uint32_t kCommandCode = mach_o::LC_DYSYMTAB;
 
   MachODynamicSymbolTable(const MachOSymbolTable& table, bool in_segment)
-      : MachOCommand(kCommandCode, /*needs_offset=*/true, in_segment),
+      : MachOCommand(kCommandCode,
+                     kDynamicSymbolTableOrder,
+                     /*needs_offset=*/true,
+                     in_segment),
         table_(table) {}
 
   uint32_t cmdsize() const override { return sizeof(mach_o::dysymtab_command); }
@@ -1656,6 +1690,7 @@ class MachOEncryptionInfo : public MachOCommand {
 
   MachOEncryptionInfo()
       : MachOCommand(kCommandCode,
+                     kEncryptionInfoOrder,
                      /*needs_offset=*/false,
                      /*in_segment=*/false) {}
 
@@ -1696,8 +1731,8 @@ class MachOLinkEditData : public MachOCommand {
  protected:
   // This is really an abstract class, with concrete subclasses providing
   // the command code.
-  explicit MachOLinkEditData(intptr_t cmd)
-      : MachOCommand(cmd, /*needs_offset=*/true, /*in_segment=*/true) {}
+  explicit MachOLinkEditData(uint32_t cmd, LoadCommandOrder order)
+      : MachOCommand(cmd, order, /*needs_offset=*/true, /*in_segment=*/true) {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MachOLinkEditData);
@@ -1708,7 +1743,8 @@ class MachOCodeSignature : public MachOLinkEditData {
   static constexpr uint32_t kCommandCode = mach_o::LC_CODE_SIGNATURE;
 
   explicit MachOCodeSignature(const char* identifier)
-      : MachOLinkEditData(kCommandCode), identifier_(identifier) {}
+      : MachOLinkEditData(kCommandCode, kCodeSignatureOrder),
+        identifier_(identifier) {}
 
   static constexpr intptr_t kHeaderAlignment = 8;
   static constexpr intptr_t kHashAlignment = 16;
@@ -1819,6 +1855,91 @@ class MachOCodeSignature : public MachOLinkEditData {
   const char* const identifier_;
 
   DISALLOW_COPY_AND_ASSIGN(MachOCodeSignature);
+};
+
+// dyld on macOS 26 for arm64e only applies function pointer authentication for
+// symbols found via the export trie, not the nlist.
+// Since we only export 2 symbols, this implemention doesn't bother to actually
+// calculate trie nodes or do the fixed point calculation for proper leb128
+// offsets, instead producing a flat tree with degenerate fixed-width leb128
+// encodings.
+class MachOExportsTrie : public MachOLinkEditData {
+ public:
+  static constexpr uint32_t kCommandCode = mach_o::LC_DYLD_EXPORTS_TRIE;
+
+  MachOExportsTrie()
+      : MachOLinkEditData(kCommandCode, kExportsTrieOrder), symbols_() {}
+
+  intptr_t Alignment() const override { return compiler::target::kWordSize; }
+
+  void Initialize(MachOSymbolTable* table) {
+    // `table` has local symbols followed by external symbols.
+    for (intptr_t i = table->num_local_symbols(); i < table->num_symbols();
+         i++) {
+      auto& symbol = table->symbols()[i];
+      SymbolInfo info;
+      info.name = table->strings().At(symbol.name_index);
+      info.symbol = &symbol;  // symbol->value() isn't known yet.
+      symbols_.Add(info);
+    }
+
+    intptr_t offset = 0;
+    offset += 1;  // leaf data size
+    offset += 1;  // child count
+    for (auto& symbol : symbols_) {
+      offset += strlen(symbol.name) + 1;
+      offset += 5;  // child offset
+    }
+    for (auto& symbol : symbols_) {
+      symbol.trie_node_offset = offset;
+      offset += 1;  // leaf data size
+      offset += 1;  // flags
+      offset += 5;  // address
+      offset += 1;  // child count
+    }
+    offset = Utils::RoundUp(offset, Alignment());
+    size_ = offset;
+  }
+
+  void WriteSelf(MachOWriteStream* stream) const override {
+    intptr_t start = stream->Position();
+    stream->WriteLEB128(0);  // leaf data size
+    ASSERT(symbols_.length() < 256);
+    stream->WriteByte(symbols_.length());  // child count
+    for (auto& symbol : symbols_) {
+      stream->WriteBytes(symbol.name, strlen(symbol.name) + 1);
+      stream->WriteFixed5LEB128(symbol.trie_node_offset);
+    }
+    for (auto& symbol : symbols_) {
+      ASSERT_EQUAL(stream->Position() - start, symbol.trie_node_offset);
+      stream->WriteLEB128(6);  // leaf data size
+      {
+        stream->WriteLEB128(0);  // flags
+        stream->WriteFixed5LEB128(symbol.symbol->value());
+      }
+      stream->WriteByte(0);  // child count
+    }
+    stream->Align(Alignment());
+    ASSERT_EQUAL(stream->Position() - start, size_);
+  }
+
+  intptr_t SelfMemorySize() const override { return size_; }
+  intptr_t SelfFileSize() const override { return size_; }
+
+  void Accept(Visitor* visitor) override {
+    visitor->VisitMachOExportsTrie(this);
+  }
+
+ private:
+  struct SymbolInfo {
+    const char* name;
+    intptr_t trie_node_offset;
+    const MachOSymbolTable::Symbol* symbol;
+  };
+
+  GrowableArray<SymbolInfo> symbols_;
+  intptr_t size_ = -1;
+  DISALLOW_COPY_AND_ASSIGN(MachOExportsTrie);
 };
 
 // A representation of the header of the Mach-O file. This contains
@@ -1963,6 +2084,8 @@ class MachOHeader : public MachOContents {
   mach_o::cpu_subtype_t cpu_subtype() const {
 #if defined(TARGET_ARCH_X64)
     return mach_o::CPU_SUBTYPE_X86_64_ALL;
+#elif defined(TARGET_ARCH_ARM64E)
+    return mach_o::CPU_SUBTYPE_ARM64E_V0;
 #elif defined(TARGET_ARCH_ARM64)
     return mach_o::CPU_SUBTYPE_ARM64_ALL;
 #elif defined(TARGET_ARCH_IA32)
@@ -2887,6 +3010,11 @@ void MachOHeader::InitializeSymbolTables() {
     auto* const dynamic_symtab = new (zone()) MachODynamicSymbolTable(
         *table, /*in_segment=*/type_ != SnapshotType::Object);
     commands_.Add(dynamic_symtab);
+    if (type_ != SnapshotType::Object) {
+      auto* const export_trie = new (zone()) MachOExportsTrie();
+      export_trie->Initialize(table);
+      commands_.Add(export_trie);
+    }
   }
 }
 
@@ -2954,6 +3082,18 @@ void MachOHeader::FinalizeDwarfSections() {
     DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_LINE, dwarf_stream);
+  }
+}
+
+static int SortCommand(MachOCommand* const* a, MachOCommand* const* b) {
+  ASSERT((*a)->order() != kNoOrder);
+  ASSERT((*b)->order() != kNoOrder);
+  if ((*a)->order() < (*b)->order()) {
+    return -1;
+  } else if ((*a)->order() > (*b)->order()) {
+    return 1;
+  } else {
+    return 0;
   }
 }
 
@@ -3029,6 +3169,8 @@ void MachOHeader::FinalizeCommands() {
     linkedit_segment =
         new (zone_) MachOSegment(zone_, type_, mach_o::SEG_LINKEDIT);
     num_commands += 1;
+
+    linkedit_commands.Sort(SortCommand);
     for (auto* const c : linkedit_commands) {
       linkedit_segment->AddContents(c);
     }
@@ -3060,7 +3202,6 @@ void MachOHeader::FinalizeCommands() {
   }
 
   // Now populate reordered_commands.
-  reordered_commands.AddArray(header_only_commands);
 
   // While adding segments, also re-index sections.
   intptr_t current_section_index = 1;  // 1-based.
@@ -3073,7 +3214,14 @@ void MachOHeader::FinalizeCommands() {
       }
     }
   }
-  reordered_commands.AddArray(linkedit_commands);
+
+  {
+    GrowableArray<MachOCommand*> non_segment_commands(zone_, 0);
+    non_segment_commands.AddArray(header_only_commands);
+    non_segment_commands.AddArray(linkedit_commands);
+    non_segment_commands.Sort(SortCommand);
+    reordered_commands.AddArray(non_segment_commands);
+  }
 
   // All sections should have been accounted for in the loops above as well as
   // the new linkedit segment (and, if applicable, the code signature).

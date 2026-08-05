@@ -402,6 +402,16 @@ mixinApplicationClassAugmentation:
   script: "augment class A = B with M;"
   exampleAllowOtherCodes: true
 
+mixinAugmentationHasOnClause:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Mixin augmentations can't have 'on' clauses."
+  correctionMessage: "Try removing the 'on' clause."
+  analyzerCode: mixinAugmentationHasOnClause
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "class A {} mixin M {} augment mixin M on A {}"
+
 mixinWithClause:
   type: syntacticError
   parameters: none
@@ -1532,7 +1542,7 @@ fieldInitializerOutsideConstructor:
     class A {
       int x = 0;
 
-      m([[!this!].x = 0]) {}
+      void m([[!this!].x = 0]) {}
     }
     ```
 
@@ -1545,7 +1555,7 @@ fieldInitializerOutsideConstructor:
     class A {
       int x = 0;
 
-      m([int x = 0]) {
+      void m([int x = 0]) {
         this.x = x;
       }
     }
@@ -1712,6 +1722,18 @@ extensionAugmentationHasOnClause:
   hasPublishedDocs: false
   script: |
     augment extension E on int {}
+  comment: No parameters.
+
+extensionAugmentationWithoutName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension augmentation must have a name."
+  correctionMessage: "Try adding the name of the extension to augment."
+  analyzerCode: extensionAugmentationWithoutName
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: |
+    augment extension {}
   comment: No parameters.
 
 extensionTypeAugmentationSpecifiesRepresentationField:
@@ -2624,6 +2646,9 @@ primaryConstructorBodyWithoutDeclaration:
   analyzerCode: primaryConstructorBodyWithoutDeclaration
   hasPublishedDocs: false
   experiments: primary-constructors
+  # In the documentation, the `undefined_identifier` diagnostic is being
+  # ignored because having a reference to a parameter before it exists makes
+  # the suggested addition of a primary constructor more compelling.
   documentation: |-
     #### Description
 

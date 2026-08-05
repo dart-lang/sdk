@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// A resolver for [FunctionReference] nodes.
 ///
 /// This resolver is responsible for writing a given [FunctionReference] as a
-/// [ConstructorReference] or as a [TypeLiteral], depending on how a function
+/// [ConstructorTearOff] or as a [TypeLiteral], depending on how a function
 /// reference's `function` resolves.
 class FunctionReferenceResolver {
   /// The resolver driving this participant.
@@ -38,8 +38,8 @@ class FunctionReferenceResolver {
   DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   void resolve(FunctionReferenceImpl node) {
-    var function = node.function;
-    node.typeArguments?.accept(_resolver);
+    var function = node.function2;
+    node.typeArguments?.accept2(_resolver);
 
     if (function is SimpleIdentifierImpl) {
       _resolveSimpleIdentifierFunction(node, function);
@@ -47,24 +47,26 @@ class FunctionReferenceResolver {
       _resolvePrefixedIdentifierFunction(node, function);
     } else if (function is PropertyAccessImpl) {
       _resolvePropertyAccessFunction(node, function);
-    } else if (function is ConstructorReferenceImpl) {
+    } else if (function is ConstructorTearOffImpl) {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
         // Something like `List.filled<int>`.
         _resolver.analyzeExpression(function, _resolver.operations.unknownType);
         _resolver.popRewrite();
-        // We can safely assume `function.constructorName.name` is non-null
-        // because if no name had been given, the construct would have been
-        // interpreted as a type literal (e.g. `List<int>`).
+        var typeReference = function.typeReference;
+        var className = switch (typeReference.importPrefix) {
+          var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
+          _ => typeReference.name.lexeme,
+        };
         _diagnosticReporter.report(
           diag.wrongNumberOfTypeArgumentsConstructor
               .withArguments(
-                className: function.constructorName.type.qualifiedName,
-                constructorName: function.constructorName.name!.name,
+                className: className,
+                constructorName: function.selector.name2.lexeme,
               )
               .at(typeArguments),
         );
-        var constructorElement = function.constructorName.element;
+        var constructorElement = function.element;
         _resolve(
           node: node,
           rawType: function.staticType,
@@ -159,7 +161,7 @@ class FunctionReferenceResolver {
   }) {
     var enclosingElement = element.enclosingElement!;
     if (implicitReceiver) {
-      if (_resolver.enclosingExtension != null) {
+      if (_resolver.enclosingInstanceElement is ExtensionElementImpl) {
         _resolver.diagnosticReporter.report(
           diag.unqualifiedReferenceToStaticMemberOfExtendedType
               .withArguments(name: enclosingElement.displayName)
@@ -223,10 +225,10 @@ class FunctionReferenceResolver {
 
     if (rawType is FunctionType) {
       // A FunctionReference with type arguments and with a
-      // ConstructorReference child is invalid. E.g. `List.filled<int>`.
+      // ConstructorTearOff child is invalid. E.g. `List.filled<int>`.
       // [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR] is
       // reported elsewhere; don't check type arguments here.
-      if (node.function is ConstructorReference) {
+      if (node.function2 is ConstructorTearOff) {
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       } else {
         var typeArguments = node.typeArguments;
@@ -250,7 +252,7 @@ class FunctionReferenceResolver {
         // Only report constructor tearoff-related errors if the constructor
         // tearoff feature is enabled.
         _diagnosticReporter.report(
-          diag.disallowedTypeInstantiationExpression.at(node.function),
+          diag.disallowedTypeInstantiationExpression.at(node.function2),
         );
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       } else if (rawType is DynamicType) {
@@ -275,7 +277,7 @@ class FunctionReferenceResolver {
       target: InvocationTargetExecutableElement(callMethod),
     );
     var callReference = ImplicitCallReferenceImpl(
-      expression: node.function,
+      expression2: node.function2,
       element: callMethod,
       typeArguments: node.typeArguments,
       typeArgumentTypes: typeArgumentTypes,
@@ -285,9 +287,9 @@ class FunctionReferenceResolver {
     callReference.recordStaticType(instantiatedType, resolver: _resolver);
   }
 
-  void _resolveConstructorReference(FunctionReferenceImpl node) {
-    // TODO(srawlins): Rewrite and resolve [node] as a constructor reference.
-    node.function.accept(_resolver);
+  void _resolveConstructorTearOff(FunctionReferenceImpl node) {
+    // TODO(srawlins): Rewrite and resolve [node] as a constructor tear-off.
+    node.function2.accept2(_resolver);
     node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
   }
 
@@ -324,7 +326,7 @@ class FunctionReferenceResolver {
       // Only report constructor tearoff-related errors if the constructor
       // tearoff feature is enabled.
       _diagnosticReporter.report(
-        diag.disallowedTypeInstantiationExpression.at(node.function),
+        diag.disallowedTypeInstantiationExpression.at(node.function2),
       );
     }
     _resolve(
@@ -482,7 +484,7 @@ class FunctionReferenceResolver {
       _resolveAsImplicitCallReference(node, callMethod);
       return;
     }
-    var target = function.realTarget;
+    var target = function.realTarget2;
 
     TypeImpl targetType;
     if (target is SuperExpressionImpl) {
@@ -544,7 +546,7 @@ class FunctionReferenceResolver {
 
     var propertyElement = _resolver.typePropertyResolver
         .resolve(
-          receiver: function.realTarget,
+          receiver: function.realTarget2,
           receiverType: targetType,
           name: function.propertyName.name,
           hasRead: true,
@@ -582,8 +584,8 @@ class FunctionReferenceResolver {
       // A type-instantiated constructor tearoff like `prefix.C<int>.name` is
       // initially represented as a [PropertyAccess] with a
       // [FunctionReference] 'target'.
-      if (node.parent is PropertyAccess) {
-        _resolveConstructorReference(node);
+      if (node.parent2 is PropertyAccess) {
+        _resolveConstructorTearOff(node);
         return;
       } else if (element is InterfaceElementImpl) {
         _resolveDirectTypeLiteral(node, prefix, element);
@@ -690,13 +692,13 @@ class FunctionReferenceResolver {
       // A type-instantiated constructor tearoff like `C<int>.name` or
       // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
       // with a [FunctionReference] target.
-      if (node.parent is PropertyAccess) {
+      if (node.parent2 is PropertyAccess) {
         if (element is TypeAliasElementImpl &&
             element.aliasedType is FunctionType) {
           function.element = element;
           _resolveTypeAlias(node: node, element: element, typeAlias: function);
         } else {
-          _resolveConstructorReference(node);
+          _resolveConstructorTearOff(node);
         }
         return;
       } else if (element is InterfaceElementImpl) {

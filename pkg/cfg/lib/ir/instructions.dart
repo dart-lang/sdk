@@ -329,6 +329,9 @@ abstract base class Definition extends Instruction {
   /// Result type of this instruction.
   CType get type;
 
+  /// Whether this instruction can yield a `null` value.
+  bool get canBeNull => type.canBeNull;
+
   /// Whether this instruction can yield a zero value.
   bool get canBeZero => true;
 
@@ -773,6 +776,9 @@ final class Constant extends Definition with NoThrow, Pure {
     : super(graph, noPosition, inputCount: 0);
 
   @override
+  bool get canBeNull => value.isNull;
+
+  @override
   bool get canBeZero => value.isZero;
 
   @override
@@ -905,7 +911,9 @@ final class Parameter extends Definition with NoThrow, Pure {
   bool get isCatchParameter => block is CatchBlock;
 
   @override
-  CType get type => variable.type;
+  CType get type => (isFunctionParameter && variable.isCovariant)
+      ? const TopType()
+      : variable.type;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitParameter(this);
@@ -1086,6 +1094,54 @@ final class StoreStaticField extends StoreField {
   R accept<R>(InstructionVisitor<R> v) => v.visitStoreStaticField(this);
 }
 
+/// Array is a sequence of elements of known size and type, such as typed data, String or a built-in List.
+enum ArrayKind {
+  // Typed data lists holding their elements.
+  int8List,
+  uint8List,
+  uint8ClampedList,
+  int16List,
+  uint16List,
+  int32List,
+  uint32List,
+  int64List,
+  uint64List,
+  // TODO: add FP typed data lists
+  // float32List,
+  // float64List,
+  // TODO: add SIMD typed data lists
+  // float32x4List,
+  // int32x4List,
+  // float64x2List,
+  // TODO: add external typed data lists, typed data views, Strings, built-in Lists.
+}
+
+/// Load value from an array element.
+final class LoadArrayElement extends Definition with NoThrow, Pure {
+  final ArrayKind kind;
+
+  @override
+  final CType type;
+
+  LoadArrayElement(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    this.type,
+    Definition array,
+    Definition index,
+  ) : super(inputCount: 2) {
+    setInputAt(0, array);
+    setInputAt(1, index);
+  }
+
+  Definition get array => inputDefAt(0);
+  Definition get index => inputDefAt(1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadArrayElement(this);
+}
+
 /// Kinds of exceptions thrown via [Throw].
 enum ThrowKind {
   // Throw given exception object.
@@ -1148,6 +1204,31 @@ final class NullCheck extends Definition with CanThrow, Pure, Idempotent {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitNullCheck(this);
+}
+
+/// Checks that 0 <= index < length. Throws RangeError if index is out of bounds.
+final class IndexCheck extends Definition with CanThrow, Pure, Idempotent {
+  IndexCheck(
+    super.graph,
+    super.sourcePosition,
+    Definition index,
+    Definition length,
+  ) : super(inputCount: 2) {
+    setInputAt(0, index);
+    setInputAt(1, length);
+  }
+
+  Definition get index => inputDefAt(0);
+  Definition get length => inputDefAt(1);
+
+  @override
+  CType get type => const IntType();
+
+  @override
+  bool attributesEqual(covariant IndexCheck other) => true;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitIndexCheck(this);
 }
 
 enum TypeParametersKind {
@@ -1577,7 +1658,9 @@ enum UnaryIntOpcode(final String token) {
   bitNot('~'),
   toDouble('toDouble'),
   abs('abs'),
-  sign('sign')
+  sign('sign'),
+  hash('hash'),
+  bitLength('bitLength')
 }
 
 /// Unary operation on the int operand.
@@ -1746,6 +1829,26 @@ final class CompareAndBranch extends Instruction
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitCompareAndBranch(this);
+}
+
+/// Call implementation of the external function.
+final class ExternalCall extends CallInstruction with BackendInstruction {
+  final CFunction target;
+
+  @override
+  final CType type;
+
+  ExternalCall(
+    super.graph,
+    super.sourcePosition,
+    this.target,
+    this.type, {
+    required super.inputCount,
+    required super.argumentsShape,
+  }) : assert(target.member.isExternal);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitExternalCall(this);
 }
 
 /// Allocate a fixed-size List of given length.

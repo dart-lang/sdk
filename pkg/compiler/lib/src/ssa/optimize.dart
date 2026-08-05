@@ -336,19 +336,25 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       HInstruction? next = instruction.next;
       HInstruction replacement = instruction.accept(this);
       if (replacement != instruction) {
+        bool isNew = !replacement.isInBasicBlock();
         node.rewrite(instruction, replacement);
 
+        // Only replace the type with the intersection if the replacement
+        // is a new, unused node. If we reuse an existing node we need to
+        // maintain the type so it doesn't affect other usages.
+        //
         // The intersection of double and int return conflicting, and
         // because of our number implementation for JavaScript, it
         // might be that an operation thought to return double, can be
         // simplified to an int. For example:
         // `2.5 * 10`.
-        if (!(replacement
-                .isNumberOrNull(_abstractValueDomain)
-                .isDefinitelyTrue &&
-            instruction
-                .isNumberOrNull(_abstractValueDomain)
-                .isDefinitelyTrue)) {
+        if (isNew &&
+            !(replacement
+                    .isNumberOrNull(_abstractValueDomain)
+                    .isDefinitelyTrue &&
+                instruction
+                    .isNumberOrNull(_abstractValueDomain)
+                    .isDefinitelyTrue)) {
           // If we can replace [instruction] with [replacement], then
           // [replacement]'s type can be narrowed.
           AbstractValue newType = _abstractValueDomain.intersection(
@@ -4505,6 +4511,15 @@ class SsaLoadElimination extends HBaseVisitor<void>
     }
 
     memories[node.id] = memorySet;
+    // Visit phis to ensure their inputs are marked as aliased. Since phis
+    // are stored separately from the instruction list, they must be visited
+    // explicitly so that `killAffectedBy` is called on them.
+    HPhi? phi = node.phis.firstPhi;
+    while (phi != null) {
+      final next = phi.nextPhi;
+      phi.accept(this);
+      phi = next;
+    }
     HInstruction? instruction = node.first;
     while (instruction != null) {
       final next = instruction.next;
@@ -4788,9 +4803,8 @@ class MemorySet {
   /// Maps a receiver to a map of keys to value.
   final Map<HInstruction, Map<HInstruction, HInstruction?>> keyedValues = {};
 
-  /// Set of objects that we know don't escape (or have not yet escaped) the
-  /// current function.
-  final Setlet<HInstruction> nonEscapingReceivers = Setlet();
+  /// Set of allocations that are currently unaliased (and thus local to the function).
+  final Setlet<HInstruction> unaliasedAllocations = Setlet();
 
   MemorySet(this.closedWorld);
 
@@ -4806,8 +4820,8 @@ class MemorySet {
   bool mayAlias(HInstruction? first, HInstruction? second) {
     if (mustAlias(first, second)) return true;
     if (isConcrete(first) && isConcrete(second)) return false;
-    if (nonEscapingReceivers.contains(first)) return false;
-    if (nonEscapingReceivers.contains(second)) return false;
+    if (unaliasedAllocations.contains(first)) return false;
+    if (unaliasedAllocations.contains(second)) return false;
     // Typed arrays of different types might have a shared buffer.
     if (couldBeTypedArray(first!) && couldBeTypedArray(second!)) return true;
     return _abstractValueDomain
@@ -4831,10 +4845,10 @@ class MemorySet {
         .isPotentiallyTrue;
   }
 
-  /// Returns whether [receiver] escapes the current function.
-  bool escapes(HInstruction? receiver) {
+  /// Returns whether [receiver] is aliased (i.e. not unaliased).
+  bool isAliased(HInstruction? receiver) {
     assert(receiver == null || receiver == receiver.nonCheck());
-    return !nonEscapingReceivers.contains(receiver);
+    return !unaliasedAllocations.contains(receiver);
   }
 
   /// Kills locations that are imprecise due to many possible edges from
@@ -4863,7 +4877,7 @@ class MemorySet {
 
   void registerAllocation(HInstruction instruction) {
     assert(instruction == instruction.nonCheck());
-    nonEscapingReceivers.add(instruction);
+    unaliasedAllocations.add(instruction);
   }
 
   /// Sets the [field] on [receiver] to contain [value]. Kills all potential
@@ -4883,8 +4897,8 @@ class MemorySet {
       return false; // TODO(14955): Remove this restriction?
     }
     // [value] is being set in some place in memory, we remove it from the
-    // non-escaping set.
-    nonEscapingReceivers.remove(value.nonCheck());
+    // unaliased set.
+    unaliasedAllocations.remove(value.nonCheck());
     final map = fieldValues.putIfAbsent(field, () => {});
     bool isRedundant = map[receiver] == value;
     map.forEach((key, value) {
@@ -4928,11 +4942,11 @@ class MemorySet {
   /// the set of non-escaping objects in case [instruction] has non-escaping
   /// objects in its inputs.
   void killAffectedBy(HInstruction instruction) {
-    // Even if [instruction] does not have side effects, it may use non-escaping
+    // Even if [instruction] does not have side effects, it may use unaliased
     // objects and store them in a new object, which make these objects
-    // escaping.
+    // aliased.
     for (var input in instruction.inputs) {
-      nonEscapingReceivers.remove(input.nonCheck());
+      unaliasedAllocations.remove(input.nonCheck());
     }
 
     if (instruction.sideEffects.changesInstanceProperty() ||
@@ -4945,7 +4959,7 @@ class MemorySet {
       fieldValues.forEach((Object element, map) {
         if (isFinal(element)) return;
         map.forEach((receiver, value) {
-          if (escapes(receiver)) {
+          if (isAliased(receiver)) {
             receiversToRemove.add(receiver);
           }
         });
@@ -4962,7 +4976,7 @@ class MemorySet {
 
     if (instruction.sideEffects.changesIndex()) {
       keyedValues.forEach((receiver, map) {
-        if (escapes(receiver)) {
+        if (isAliased(receiver)) {
           map.forEach((index, value) {
             map[index] = null;
           });
@@ -4995,7 +5009,7 @@ class MemorySet {
     HInstruction index,
     HInstruction value,
   ) {
-    nonEscapingReceivers.remove(value.nonCheck());
+    unaliasedAllocations.remove(value.nonCheck());
     keyedValues.forEach((key, values) {
       if (mayAlias(receiver, key)) {
         // Typed arrays that are views of the same buffer may have different
@@ -5090,13 +5104,13 @@ class MemorySet {
     MemorySet result = MemorySet(closedWorld);
     if (other == null) {
       // This is the first visit to a loop header ([other] is `null` because we
-      // have not visited the back edge). Copy the nonEscapingReceivers that are
-      // guaranteed to survive the loop because they are not escaped before
-      // method exit.
+      // have not visited the back edge). Copy the unaliasedAllocations that are
+      // guaranteed to survive the loop because they do not escape or become aliased
+      // before method exit.
       // TODO(sra): We should do a proper dataflow to find the maximal
-      // nonEscapingReceivers (a variant of Available-Expressions), which must
+      // unaliasedAllocations (a variant of Available-Expressions), which must
       // converge before we edit the program in [findCommonInstruction].
-      for (HInstruction instruction in nonEscapingReceivers) {
+      for (HInstruction instruction in unaliasedAllocations) {
         bool isNonEscapingUse(HInstruction use) {
           if (use is HReturn) return true; // Escapes, but so does control.
           if (use is HFieldGet) return true;
@@ -5130,7 +5144,7 @@ class MemorySet {
         }
 
         if (instruction.usedBy.every(isNonEscapingUse)) {
-          result.nonEscapingReceivers.add(instruction);
+          result.unaliasedAllocations.add(instruction);
         }
       }
       return result;
@@ -5168,9 +5182,9 @@ class MemorySet {
       });
     });
 
-    for (var receiver in nonEscapingReceivers) {
-      if (other.nonEscapingReceivers.contains(receiver)) {
-        result.nonEscapingReceivers.add(receiver);
+    for (var receiver in unaliasedAllocations) {
+      if (other.unaliasedAllocations.contains(receiver)) {
+        result.unaliasedAllocations.add(receiver);
       }
     }
     return result;
@@ -5188,7 +5202,7 @@ class MemorySet {
       result.keyedValues[receiver] = Map.of(values);
     });
 
-    result.nonEscapingReceivers.addAll(nonEscapingReceivers);
+    result.unaliasedAllocations.addAll(unaliasedAllocations);
     return result;
   }
 
@@ -5221,8 +5235,8 @@ class MemorySet {
       }
     });
 
-    result.nonEscapingReceivers.addAll(
-      nonEscapingReceivers.where(instructionDominatesBlock),
+    result.unaliasedAllocations.addAll(
+      unaliasedAllocations.where(instructionDominatesBlock),
     );
     return result;
   }

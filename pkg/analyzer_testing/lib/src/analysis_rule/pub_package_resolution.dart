@@ -5,6 +5,7 @@
 import 'dart:convert' show json;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -12,7 +13,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/byte_store.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
     as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
@@ -273,8 +273,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// Whether to print out the syntax tree being tested, on a test failure.
   bool get dumpAstOnFailures => true;
 
-  /// The list of language experiments to be enabled for these tests.
-  List<String> get experiments => experimentsForTests;
+  /// The list of experimental language features to be enabled for these tests.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
@@ -576,13 +576,13 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   void setUp() {
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
-    // Check for any needlessly enabled experiments.
-    for (var experiment in experiments) {
-      var feature = ExperimentStatus.knownFeatures[experiment];
-      if (feature?.isEnabledByDefault ?? false) {
+    // Check for any needlessly enabled experimental features.
+    for (var feature in experimentalFeatures) {
+      if (feature.status
+          case FeatureStatus.provisional || FeatureStatus.current) {
         fail(
-          "The '$experiment' experiment is enabled by default, "
-          'try removing it from `experiments`.',
+          "The '$feature' feature is enabled by default, "
+          'try removing it from `experimentalFeatures`.',
         );
       }
     }

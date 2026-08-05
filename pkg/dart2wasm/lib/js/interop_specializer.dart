@@ -367,15 +367,14 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
     final List<Expression> jsifiedArguments = [];
     final List<Expression> arguments = invocation.arguments.positional;
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = SyntheticVariable(
-        initializer: arguments[i],
+      final cache = CachedExpression.fromValue(
+        value: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
       );
       jsifiedArguments.add(
-        Let(
-          temp,
-          jsifyValue(
-            temp,
+        cache.createLet(
+          body: jsifyValue(
+            cache.variable,
             interopProcedureType.positionalParameters[i],
             factory._util,
             factory._staticTypeContext.typeEnvironment,
@@ -525,15 +524,14 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
         .toList();
     final List<Expression> jsifiedArguments = [];
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = SyntheticVariable(
-        initializer: arguments[i],
+      final cache = CachedExpression.fromValue(
+        value: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
       );
       jsifiedArguments.add(
-        Let(
-          temp,
-          jsifyValue(
-            temp,
+        cache.createLet(
+          body: jsifyValue(
+            cache.variable,
             interopProcedureType.positionalParameters[i],
             factory._util,
             factory._staticTypeContext.typeEnvironment,

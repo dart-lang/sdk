@@ -1471,9 +1471,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
   @override
   EvaluationComplexity visitLocalInitializer(ir.LocalInitializer node) {
-    if (node.variable.initializer != null) {
-      visitNode(node.variable.initializer!);
-    }
+    visitNode(node.value);
     return const EvaluationComplexity.lazy();
   }
 

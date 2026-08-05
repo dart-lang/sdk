@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart';
@@ -252,7 +251,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    var visitor = _Visitor(this, context.typeSystem);
+    var visitor = _Visitor(this, context.typeSystem as TypeSystemImpl);
     registry.addAsExpression(this, visitor);
     registry.addCatchClause(this, visitor);
     registry.addIsExpression(this, visitor);
@@ -269,15 +268,12 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
 /// [any] corresponds to either a [dartJsInteropType] or [userJsInteropType].
 enum _InteropTypeKind { dartJsInteropType, userJsInteropType, any }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-  final TypeSystemImpl typeSystem;
+class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
+    extends SimpleAstVisitor<void> {
   final EraseNonJSInteropTypes eraseNonJsInteropTypes =
       EraseNonJSInteropTypes();
-  final InteropTypeChecker interopTypeChecker = InteropTypeChecker();
 
-  new(this.rule, TypeSystem typeSystem)
-    : typeSystem = typeSystem as TypeSystemImpl;
+  final InteropTypeChecker interopTypeChecker = InteropTypeChecker();
 
   /// Determines if a type test from [leftType] to [rightType] is a valid test
   /// for JS interop, and if not, returns the [LintCode] associated with the

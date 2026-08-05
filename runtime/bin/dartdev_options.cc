@@ -45,6 +45,7 @@ static bool PotentialDartdevCommand(const char* script_uri) {
       (strcmp(script_uri, "format") == 0) ||
       (strcmp(script_uri, "info") == 0) ||
       (strcmp(script_uri, "mcp-server") == 0) ||
+      (strcmp(script_uri, "migrate") == 0) ||
       (strcmp(script_uri, "pub") == 0) || (strcmp(script_uri, "run") == 0) ||
       (strcmp(script_uri, "test") == 0) || (strcmp(script_uri, "info") == 0) ||
       (strcmp(script_uri, "language-server") == 0) ||

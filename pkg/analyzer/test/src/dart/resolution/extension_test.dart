@@ -71,7 +71,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: f
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> f@34
@@ -112,7 +112,7 @@ ExtensionDeclaration
         name: g
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
             staticType: int
           semicolon: ;
@@ -192,6 +192,19 @@ ExtensionDeclaration
         name: s
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+                element: dart:core::@class::int
+                type: int
+              name: v
+              declaredFragment: <testLibraryFragment> v@33
+                element: isPublic
+                  type: int
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -236,9 +249,9 @@ ExtensionDeclaration
 ''');
   }
 
-  test_emptyBody_language310() async {
+  test_emptyBody_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension E on int;
 //                ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.

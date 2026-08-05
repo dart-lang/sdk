@@ -122,14 +122,14 @@ class AstToIr extends ast.RecursiveVisitor {
         throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
       case RegularFunction() || GetterFunction() || SetterFunction():
         _enterScope(functionNode);
-        _translateNode(functionNode?.body);
+        _buildFunctionBody(functionNode!);
       case GenerativeConstructor():
         _enterScope(functionNode);
         _translateConstructorInitializers(member as ast.Constructor);
-        _translateNode(functionNode!.body);
+        _buildFunctionBody(functionNode!);
       case LocalFunction():
         _enterScope(functionNode);
-        _translateNode(functionNode!.body);
+        _buildFunctionBody(functionNode!);
       case TearOffFunction():
         throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
     }
@@ -207,6 +207,19 @@ class AstToIr extends ast.RecursiveVisitor {
           }
       }
     }
+    for (final param in localVarIndexer.parameters) {
+      if (param.isCovariant) {
+        if (param.type is TopType) {
+          continue;
+        }
+        builder.addLoadLocal(param);
+        builder.addTypeCast(
+          param.type,
+          typeParameters: _typeParametersForType(param.type.dartType),
+        );
+        builder.addStoreLocal(param);
+      }
+    }
     if (function.isSuspendable) {
       final emittedValueType = function.functionNode!.emittedValueType!;
       builder.addTypeArguments([
@@ -246,6 +259,32 @@ class AstToIr extends ast.RecursiveVisitor {
         checkNotInitialized: field.isLate && field.isFinal,
       );
     }
+  }
+
+  void _buildFunctionBody(ast.FunctionNode functionNode) {
+    final recognizedBodyBuilder = recognizedMethods.getRecognizedFunctionBody(
+      function,
+    );
+    if (recognizedBodyBuilder != null) {
+      // Forward all arguments on the expression stack.
+      if (function.hasFunctionTypeParameters) {
+        final types = functionNode.typeParameters
+            .map((tp) => ast.TypeParameterType.withDefaultNullability(tp))
+            .toList();
+        builder.addTypeArguments(
+          types,
+          typeParameters: _typeParametersForTypes(types),
+        );
+      }
+      for (final param in localVarIndexer.parameters.skip(
+        function.hasFunctionTypeParameters ? 1 : 0,
+      )) {
+        builder.addLoadLocal(param);
+      }
+      recognizedBodyBuilder(builder);
+      return;
+    }
+    _translateNode(functionNode.body);
   }
 
   void _translateNode(ast.TreeNode? node) {
@@ -2223,9 +2262,14 @@ class LocalVariableIndexer {
       parameters.add(closure);
     }
     if (function is ImplicitFieldSetter) {
-      parameters.add(
-        builder.declareLocalVariable('#value', null, function.valueType),
+      final field = function.member as ast.Field;
+      final localvar = builder.declareLocalVariable(
+        '#value',
+        null,
+        function.valueType,
+        isCovariant: field.isCovariantByClass || field.isCovariantByDeclaration,
       );
+      parameters.add(localvar);
     }
     if (functionNode != null) {
       for (final v in functionNode.positionalParameters) {
@@ -2245,6 +2289,9 @@ class LocalVariableIndexer {
         declaration.isLate
             ? const LateValueType()
             : typeTranslator.translate(declaration.type),
+        isCovariant:
+            declaration.isCovariantByClass ||
+            declaration.isCovariantByDeclaration,
       );
 
   LocalVariable exceptionVariable(ast.TreeNode tryBlock) {

@@ -202,6 +202,15 @@ abstract final class CustomMethods {
   /// An experimental 'echo' handler that can used by tests to verify
   /// experimental handlers only show up when requested.
   static const experimentalEcho = Method('experimental/echo');
+
+  /// A request that a client can call when they want to wait for the server to
+  /// complete analysis (and any prior steps like analysis context builds).
+  ///
+  /// This can be used as an indicator that all current code has been analyzed
+  /// and all diagnostics pushed.
+  static const workspaceAnalysisComplete = Method(
+    'dart/workspace/analysis/complete',
+  );
 }
 
 abstract final class CustomSemanticTokenModifiers {

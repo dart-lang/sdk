@@ -52,7 +52,7 @@ class DeprecatedFunctionalityVerifier {
         element: element,
         argumentList: redirectingConstructorInvocation.argumentList,
         errorEntity:
-            redirectingConstructorInvocation.constructorName ??
+            redirectingConstructorInvocation.constructorSelector?.name2 ??
             redirectingConstructorInvocation.thisKeyword,
       );
     }
@@ -61,8 +61,24 @@ class DeprecatedFunctionalityVerifier {
     // constructor.
   }
 
-  void constructorName(ConstructorName node) {
-    var interfaceElement = node.type.element;
+  void constructorInvocation(ConstructorInvocation node) {
+    var constructor = node.constructorReference.element;
+    if (constructor == null) return;
+    _checkForDeprecatedOptional(
+      element: constructor,
+      argumentList: node.argumentList,
+      errorEntity: node.constructorReference,
+    );
+  }
+
+  void constructorReference2(ConstructorReference2 node) {
+    var interfaceElement = node.typeReference.element;
+    if (interfaceElement is! InterfaceElement) return;
+    _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
+  }
+
+  void constructorTearOff(ConstructorTearOff node) {
+    var interfaceElement = node.typeReference.element;
     if (interfaceElement is! InterfaceElement) return;
     _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
   }
@@ -96,22 +112,6 @@ class DeprecatedFunctionalityVerifier {
   void enumDeclaration(EnumDeclaration node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);
-  }
-
-  void instanceCreationExpression(InstanceCreationExpression node) {
-    var constructor = node.constructorName.element;
-    if (constructor == null) return;
-    _checkForDeprecatedOptional(
-      element: constructor,
-      argumentList: node.argumentList,
-      errorEntity: node.constructorName,
-    );
-    var interfaceElement = node.constructorName.type.element;
-    if (interfaceElement is! InterfaceElement) return;
-    _checkForDeprecatedInstantiate(
-      element: interfaceElement,
-      errorNode: node.constructorName,
-    );
   }
 
   void methodInvocation(MethodInvocation node) {
@@ -218,7 +218,7 @@ class DeprecatedFunctionalityVerifier {
     required SyntacticEntity errorEntity,
   }) {
     var omittedParameters = element.formalParameters.toList();
-    for (var argument in argumentList.arguments) {
+    for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       if (parameter == null) continue;
       omittedParameters.remove(parameter);
@@ -237,7 +237,8 @@ class DeprecatedFunctionalityVerifier {
   void _checkForDeprecatedOptionalRedirectedParameters(
     ConstructorDeclaration node,
   ) {
-    if (node.redirectedConstructor?.element case var redirectedConstructor?) {
+    if (node.factoryRedirectionTarget?.element
+        case var redirectedConstructor?) {
       var SourceRange(offset: errorOffset, length: errorLength) =
           node.errorRange;
       var positionalArgumentCount = node.parameters.parameters
@@ -305,10 +306,10 @@ class DeprecatedFunctionalityVerifier {
       // `superConstructorInvocation` or via super-parameters.
       var superConstructorInvocation = superConstructorInvocations.single;
       superConstructorArguments =
-          superConstructorInvocation.argumentList.arguments;
+          superConstructorInvocation.argumentList.arguments2;
 
       var errorEntity =
-          superConstructorInvocation.constructorName ??
+          superConstructorInvocation.constructorSelector?.name2 ??
           superConstructorInvocation.superKeyword;
       errorRange = errorEntity.sourceRange;
     }

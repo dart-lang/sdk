@@ -22,7 +22,6 @@ import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
   () → void setToOne = () → void {};
-  #L1:
   {
     final synthesized dynamic #0#0 = x;
     synthesized core::bool #0#4;

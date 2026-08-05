@@ -309,11 +309,9 @@ void f(bool value) {
   }
 
   Future<void> test_xorFalse() async {
-    allowTestCodeShorthand = false; // Test uses ^
-
     await resolveTestCode(r'''
 void f(bool value) {
-  if (value ^ false) print(value);
+  if (value ^/**/ false) print(value);
 }
 ''');
     await assertHasFix(r'''
@@ -324,11 +322,9 @@ void f(bool value) {
   }
 
   Future<void> test_xorTrue() async {
-    allowTestCodeShorthand = false; // Test uses ^
-
     await resolveTestCode(r'''
 void f(bool value) {
-  if (value ^ true) print(value);
+  if (value ^/**/ true) print(value);
 }
 ''');
     await assertHasFix(r'''

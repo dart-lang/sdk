@@ -227,7 +227,7 @@ m<T extends Function>() {
 ''');
     // Do not assert no test errors. Deliberately invokes nullable type.
     var invocation = result.findNode.functionExpressionInvocation('first()');
-    assertType(invocation.function, 'T?');
+    assertType(invocation.function2, 'T?');
   }
 
   test_mixin_hierarchy() async {
@@ -253,6 +253,23 @@ void f3({void p3()?}) {}
     assertResolvedNodeText(node1, r'''
 FormalParameterList
   leftParenthesis: (
+  requiredPositionalFormalParameters
+    RegularFormalParameter
+      type: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: p1
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      declaredFragment: <testLibraryFragment> p1@13
+        element: isPublic
+          type: void Function()
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   parameter: RegularFormalParameter
     type: NamedType
       name: void
@@ -272,6 +289,24 @@ FormalParameterList
     var node2 = result.findNode.formalParameterList('p2');
     assertResolvedNodeText(node2, r'''
 FormalParameterList
+  leftParenthesis: (
+  requiredPositionalFormalParameters
+    RegularFormalParameter
+      type: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: p2
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        question: ?
+      declaredFragment: <testLibraryFragment> p2@35
+        element: isPublic
+          type: void Function()?
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   parameter: RegularFormalParameter
     type: NamedType
@@ -293,6 +328,27 @@ FormalParameterList
     var node3 = result.findNode.formalParameterList('p3');
     assertResolvedNodeText(node3, r'''
 FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: void
+          element: <null>
+          type: void
+        name: p3
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        declaredFragment: <testLibraryFragment> p3@59
+          element: isPublic
+            type: void Function()?
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
@@ -330,6 +386,26 @@ class A {
     assertResolvedNodeText(node1, r'''
 FormalParameterList
   leftParenthesis: (
+  requiredPositionalFormalParameters
+    FieldFormalParameter
+      type: NamedType
+        name: void
+        element: <null>
+        type: void
+      thisKeyword: this
+      period: .
+      name: f1
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      declaredFragment: <testLibraryFragment> f1@57
+        element: isFinal isPublic
+          type: void Function()
+          field: <testLibrary>::@class::A::@field::f1
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   parameter: FieldFormalParameter
     type: NamedType
       name: void
@@ -352,6 +428,27 @@ FormalParameterList
     var node2 = result.findNode.formalParameterList('f2()');
     assertResolvedNodeText(node2, r'''
 FormalParameterList
+  leftParenthesis: (
+  requiredPositionalFormalParameters
+    FieldFormalParameter
+      type: NamedType
+        name: void
+        element: <null>
+        type: void
+      thisKeyword: this
+      period: .
+      name: f2
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        question: ?
+      declaredFragment: <testLibraryFragment> f2@81
+        element: isFinal isPublic
+          type: void Function()?
+          field: <testLibrary>::@class::A::@field::f2
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   parameter: FieldFormalParameter
     type: NamedType
@@ -376,6 +473,30 @@ FormalParameterList
     var node3 = result.findNode.formalParameterList('f3()');
     assertResolvedNodeText(node3, r'''
 FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      FieldFormalParameter
+        type: NamedType
+          name: void
+          element: <null>
+          type: void
+        thisKeyword: this
+        period: .
+        name: f3
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        declaredFragment: <testLibraryFragment> f3@107
+          element: isFinal isPublic
+            type: void Function()?
+            field: <testLibrary>::@class::A::@field::f3
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   leftDelimiter: {
   parameter: FieldFormalParameter
@@ -419,6 +540,23 @@ f() {
     assertResolvedNodeText(node1, r'''
 FormalParameterList
   leftParenthesis: (
+  requiredPositionalFormalParameters
+    RegularFormalParameter
+      type: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: p1
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      declaredFragment: <testLibraryFragment> p1@21
+        element: isPublic
+          type: void Function()
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   parameter: RegularFormalParameter
     type: NamedType
       name: void
@@ -438,6 +576,24 @@ FormalParameterList
     var node2 = result.findNode.formalParameterList('p2');
     assertResolvedNodeText(node2, r'''
 FormalParameterList
+  leftParenthesis: (
+  requiredPositionalFormalParameters
+    RegularFormalParameter
+      type: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: p2
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        question: ?
+      declaredFragment: <testLibraryFragment> p2@45
+        element: isPublic
+          type: void Function()?
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   parameter: RegularFormalParameter
     type: NamedType
@@ -459,6 +615,27 @@ FormalParameterList
     var node3 = result.findNode.formalParameterList('p3');
     assertResolvedNodeText(node3, r'''
 FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: void
+          element: <null>
+          type: void
+        name: p3
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        declaredFragment: <testLibraryFragment> p3@71
+          element: isPublic
+            type: void Function()?
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter

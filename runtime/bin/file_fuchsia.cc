@@ -357,6 +357,8 @@ bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
   if (status != 0) {
     return false;
   }
+  FDUtils::SetCloseOnExec(pipe_fds[0]);
+  FDUtils::SetCloseOnExec(pipe_fds[1]);
   *readPipe = OpenFD(pipe_fds[0]);
   *writePipe = OpenFD(pipe_fds[1]);
   return true;

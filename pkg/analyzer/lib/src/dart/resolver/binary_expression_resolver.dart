@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -23,7 +22,7 @@ import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
-/// Helper for resolving [BinaryExpression]s.
+/// Helper for resolving binary expressions.
 class BinaryExpressionResolver {
   final ResolverVisitor _resolver;
   final TypePropertyResolver _typePropertyResolver;
@@ -38,26 +37,14 @@ class BinaryExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(BinaryExpressionImpl node, {required TypeImpl contextType}) {
+  void resolveBinaryOperatorInvocation(
+    BinaryOperatorInvocationImpl node, {
+    required TypeImpl contextType,
+  }) {
     var operator = node.operator.type;
-
-    if (operator == TokenType.AMPERSAND_AMPERSAND) {
-      _resolveLogicalAnd(node);
-      return;
-    }
 
     if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
       _resolveEqual(node, notEqual: operator == TokenType.BANG_EQ);
-      return;
-    }
-
-    if (operator == TokenType.BAR_BAR) {
-      _resolveLogicalOr(node);
-      return;
-    }
-
-    if (operator == TokenType.QUESTION_QUESTION) {
-      _resolveIfNull(node, contextType: contextType);
       return;
     }
 
@@ -78,6 +65,97 @@ class BinaryExpressionResolver {
     _resolveUnsupportedOperator(node);
   }
 
+  void resolveIfNull(IfNullImpl node, {required TypeImpl contextType}) {
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+    var flow = _resolver.flowAnalysis.flow;
+
+    // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
+    // analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K?`.
+    _resolver.analyzeExpression(
+      left,
+      SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
+    );
+    left = _resolver.popRewrite()!;
+    var t1 = left.typeOrThrow;
+
+    // - Let `T2` be the type of `e2` inferred with context type `J`, where:
+    //   - If `K` is `_`, `J = T1`.
+    TypeImpl j;
+    if (contextType is DynamicType ||
+        contextType is InvalidType ||
+        contextType is UnknownInferredType) {
+      j = t1;
+    } else
+    //   - Otherwise, `J = K`.
+    {
+      j = contextType;
+    }
+    flow?.ifNullExpression_rightBegin(
+      _resolver.flowAnalysis.getExpressionInfo(left),
+      SharedTypeView(t1),
+    );
+    _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
+    right = _resolver.popRewrite()!;
+    flow?.ifNullExpression_end();
+    var t2 = right.typeOrThrow;
+
+    // - Let `T` be `UP(NonNull(T1), T2)`.
+    var nonNullT1 = _typeSystem.promoteToNonNull(t1);
+    var t = _typeSystem.leastUpperBound(nonNullT1, t2);
+
+    // - Let `S` be the greatest closure of `K`.
+    var s = _resolver.operations
+        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
+
+    DartType staticType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!_resolver.definingLibrary.featureSet.isEnabled(
+      Feature.inference_update_3,
+    )) {
+      staticType = t;
+    } else
+    // - If `T <: S`, then the type of `E` is `T`.
+    if (_typeSystem.isSubtypeOf(t, s)) {
+      staticType = t;
+    } else
+    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
+    //   `S`.
+    if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
+        _typeSystem.isSubtypeOf(t2, s)) {
+      staticType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`.
+    {
+      staticType = t;
+    }
+
+    node.recordStaticType(staticType, resolver: _resolver);
+
+    _resolver.checkForArgumentTypeNotAssignableForArgument(right);
+  }
+
+  void resolveLogicalAnd(LogicalAndImpl node) {
+    _resolveLogicalExpression(
+      node,
+      leftOperand: node.leftOperand,
+      rightOperand: node.rightOperand,
+      isAnd: true,
+    );
+  }
+
+  void resolveLogicalOr(LogicalOrImpl node) {
+    _resolveLogicalExpression(
+      node,
+      leftOperand: node.leftOperand,
+      rightOperand: node.rightOperand,
+      isAnd: false,
+    );
+  }
+
   void _checkNonBoolOperand(
     Expression operand,
     String operator, {
@@ -92,9 +170,13 @@ class BinaryExpressionResolver {
     );
   }
 
-  void _resolveEqual(BinaryExpressionImpl node, {required bool notEqual}) {
+  void _resolveEqual(
+    BinaryOperatorInvocationImpl node, {
+    required bool notEqual,
+  }) {
+    var leftOperand = node.leftOperand as ExpressionImpl;
     _resolver.analyzeExpression(
-      node.leftOperand,
+      leftOperand,
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
     var left = _resolver.popRewrite()!;
@@ -175,85 +257,14 @@ class BinaryExpressionResolver {
     }
   }
 
-  void _resolveIfNull(
-    BinaryExpressionImpl node, {
-    required TypeImpl contextType,
+  void _resolveLogicalExpression(
+    ExpressionImpl node, {
+    required ExpressionImpl leftOperand,
+    required ExpressionImpl rightOperand,
+    required bool isAnd,
   }) {
-    var left = node.leftOperand;
-    var right = node.rightOperand;
-    var flow = _resolver.flowAnalysis.flow;
-
-    // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
-    // analyzed as follows:
-    //
-    // - Let `T1` be the type of `e1` inferred with context type `K?`.
-    _resolver.analyzeExpression(
-      left,
-      SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
-    );
-    left = _resolver.popRewrite()!;
-    var t1 = left.typeOrThrow;
-
-    // - Let `T2` be the type of `e2` inferred with context type `J`, where:
-    //   - If `K` is `_`, `J = T1`.
-    TypeImpl j;
-    if (contextType is DynamicType ||
-        contextType is InvalidType ||
-        contextType is UnknownInferredType) {
-      j = t1;
-    } else
-    //   - Otherwise, `J = K`.
-    {
-      j = contextType;
-    }
-    flow?.ifNullExpression_rightBegin(
-      _resolver.flowAnalysis.getExpressionInfo(left),
-      SharedTypeView(t1),
-    );
-    _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
-    right = _resolver.popRewrite()!;
-    flow?.ifNullExpression_end();
-    var t2 = right.typeOrThrow;
-
-    // - Let `T` be `UP(NonNull(T1), T2)`.
-    var nonNullT1 = _typeSystem.promoteToNonNull(t1);
-    var t = _typeSystem.leastUpperBound(nonNullT1, t2);
-
-    // - Let `S` be the greatest closure of `K`.
-    var s = _resolver.operations
-        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
-        .unwrapTypeView<TypeImpl>();
-
-    DartType staticType;
-    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
-    if (!_resolver.definingLibrary.featureSet.isEnabled(
-      Feature.inference_update_3,
-    )) {
-      staticType = t;
-    } else
-    // - If `T <: S`, then the type of `E` is `T`.
-    if (_typeSystem.isSubtypeOf(t, s)) {
-      staticType = t;
-    } else
-    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
-    //   `S`.
-    if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
-        _typeSystem.isSubtypeOf(t2, s)) {
-      staticType = s;
-    } else
-    // - Otherwise, the type of `E` is `T`.
-    {
-      staticType = t;
-    }
-
-    node.recordStaticType(staticType, resolver: _resolver);
-
-    _resolver.checkForArgumentTypeNotAssignableForArgument(right);
-  }
-
-  void _resolveLogicalAnd(BinaryExpressionImpl node) {
-    var left = node.leftOperand;
-    var right = node.rightOperand;
+    var left = leftOperand;
+    var right = rightOperand;
     var flow = _resolver.flowAnalysis.flow;
 
     flow?.logicalBinaryOp_begin();
@@ -269,7 +280,7 @@ class BinaryExpressionResolver {
     flow?.logicalBinaryOp_rightBegin(
       _resolver.flowAnalysis.getExpressionInfo(left),
       node,
-      isAnd: true,
+      isAnd: isAnd,
     );
     _resolver.checkUnreachableNode(right);
 
@@ -287,66 +298,24 @@ class BinaryExpressionResolver {
       node,
       flow?.logicalBinaryOp_end(
         _resolver.flowAnalysis.getExpressionInfo(right),
-        isAnd: true,
+        isAnd: isAnd,
       ),
     );
 
-    _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
-    _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);
+    var operator = isAnd ? '&&' : '||';
+    _checkNonBoolOperand(left, operator, whyNotPromoted: leftWhyNotPromoted);
+    _checkNonBoolOperand(right, operator, whyNotPromoted: rightWhyNotPromoted);
 
     node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
-  void _resolveLogicalOr(BinaryExpressionImpl node) {
-    var left = node.leftOperand;
-    var right = node.rightOperand;
-    var flow = _resolver.flowAnalysis.flow;
+  void _resolveRightOperand(
+    BinaryOperatorInvocationImpl node,
+    TypeImpl contextType,
+  ) {
+    var left = node.leftOperand as ExpressionImpl;
 
-    flow?.logicalBinaryOp_begin();
-    _resolver.analyzeExpression(
-      left,
-      SharedTypeSchemaView(_typeProvider.boolType),
-    );
-    left = _resolver.popRewrite()!;
-    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(left),
-    );
-
-    flow?.logicalBinaryOp_rightBegin(
-      _resolver.flowAnalysis.getExpressionInfo(left),
-      node,
-      isAnd: false,
-    );
-    _resolver.checkUnreachableNode(right);
-
-    _resolver.analyzeExpression(
-      right,
-      SharedTypeSchemaView(_typeProvider.boolType),
-    );
-    right = _resolver.popRewrite()!;
-    var rightWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(right),
-    );
-
-    _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-    _resolver.flowAnalysis.storeExpressionInfo(
-      node,
-      flow?.logicalBinaryOp_end(
-        _resolver.flowAnalysis.getExpressionInfo(right),
-        isAnd: false,
-      ),
-    );
-
-    _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
-    _checkNonBoolOperand(right, '||', whyNotPromoted: rightWhyNotPromoted);
-
-    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
-  }
-
-  void _resolveRightOperand(BinaryExpressionImpl node, TypeImpl contextType) {
-    var left = node.leftOperand;
-
-    var invokeType = node.staticInvokeType;
+    var invokeType = node.element?.type;
     TypeImpl rightContextType;
     if (invokeType != null && invokeType.formalParameters.isNotEmpty) {
       // If this is a user-defined operator, set the right operand context
@@ -378,9 +347,9 @@ class BinaryExpressionResolver {
     );
   }
 
-  void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
+  void _resolveUnsupportedOperator(BinaryOperatorInvocationImpl node) {
     _resolver.analyzeExpression(
-      node.leftOperand,
+      node.leftOperand as ExpressionImpl,
       _resolver.operations.unknownType,
     );
     _resolver.popRewrite();
@@ -393,13 +362,13 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinable(
-    BinaryExpressionImpl node, {
+    BinaryOperatorInvocationImpl node, {
     required TypeImpl contextType,
   }) {
-    var left = node.leftOperand;
+    var left = node.leftOperand as ExpressionImpl;
 
     _resolver.analyzeExpression(
-      node.leftOperand,
+      left,
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
     left = _resolver.popRewrite()!;
@@ -423,11 +392,11 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinableElement(
-    BinaryExpressionImpl node,
+    BinaryOperatorInvocationImpl node,
     String methodName, {
     bool promoteLeftTypeToNonNull = false,
   }) {
-    ExpressionImpl leftOperand = node.leftOperand;
+    var leftOperand = node.leftOperand as ExpressionImpl;
 
     if (leftOperand is ExtensionOverrideImpl) {
       var extension = leftOperand.element;
@@ -445,7 +414,6 @@ class BinaryExpressionResolver {
         );
       }
       node.element = member;
-      node.staticInvokeType = member?.type;
       return;
     }
 
@@ -472,8 +440,7 @@ class BinaryExpressionResolver {
       nameErrorEntity: node,
     );
 
-    node.element = result.getter2 as MethodElement?;
-    node.staticInvokeType = result.getter2?.type;
+    node.element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
         _diagnosticReporter.report(
@@ -491,8 +458,8 @@ class BinaryExpressionResolver {
     }
   }
 
-  void _resolveUserDefinableType(BinaryExpressionImpl node) {
-    var leftOperand = node.leftOperand;
+  void _resolveUserDefinableType(BinaryOperatorInvocationImpl node) {
+    var leftOperand = node.leftOperand as ExpressionImpl;
 
     TypeImpl leftType;
     if (leftOperand is ExtensionOverrideImpl) {
@@ -507,7 +474,7 @@ class BinaryExpressionResolver {
       return;
     }
 
-    var staticType = node.staticInvokeType?.returnType;
+    var staticType = node.element?.returnType;
     if (node.operator.type == TokenType.EQ_EQ) {
       staticType = _typeSystem.typeProvider.boolType;
     } else if (leftType is DynamicType) {

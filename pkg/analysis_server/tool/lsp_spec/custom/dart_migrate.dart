@@ -22,7 +22,31 @@ final dartMigrateClasses = <LspEntity>[
       canBeUndefined: true,
       comment: 'Whether to apply the migration changes.',
     ),
+    field(
+      'steps',
+      type: 'MigrationStep',
+      array: true,
+      canBeUndefined: true,
+      comment: 'The specific migration steps to run.',
+    ),
+    field(
+      'targetSdk',
+      type: 'String',
+      canBeUndefined: true,
+      comment: 'The target Dart SDK version to migrate to (e.g., "3.12.0").',
+    ),
   ]),
+  LspEnum(
+    name: 'MigrationStep',
+    typeOfValues: TypeReference.string,
+    constants: [
+      Constant(name: 'Prepare', type: TypeReference.string, value: 'prepare'),
+      Constant(name: 'Bump', type: TypeReference.string, value: 'bump'),
+      Constant(name: 'Cleanup', type: TypeReference.string, value: 'cleanup'),
+      Constant(name: 'All', type: TypeReference.string, value: 'all'),
+    ],
+    comment: 'The specific migration step to run.',
+  ),
   interface('DartMigrateResult', [
     field(
       'summary',

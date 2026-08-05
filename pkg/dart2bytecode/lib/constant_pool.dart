@@ -31,7 +31,7 @@ enum ConstantTag {
   kInstantiatedInterfaceCall,
   kDynamicCall,
   kExternalCall,
-  kFfiCall,
+  kNativeFunction,
   kDeferredLibraryPrefix,
   kAllocateClosure,
 }
@@ -90,8 +90,8 @@ abstract class ConstantPoolEntry {
         return new ConstantDynamicCall.read(reader);
       case ConstantTag.kExternalCall:
         return new ConstantExternalCall.read(reader);
-      case ConstantTag.kFfiCall:
-        return new ConstantFfiCall.read(reader);
+      case ConstantTag.kNativeFunction:
+        return new ConstantNativeFunction.read(reader);
       case ConstantTag.kDeferredLibraryPrefix:
         return new ConstantDeferredLibraryPrefix.read(reader);
       case ConstantTag.kAllocateClosure:
@@ -543,21 +543,21 @@ class ConstantExternalCall extends ConstantPoolEntry {
   bool operator ==(other) => identical(this, other);
 }
 
-class ConstantFfiCall extends ConstantPoolEntry {
-  ConstantFfiCall();
+class ConstantNativeFunction extends ConstantPoolEntry {
+  ConstantNativeFunction();
 
   @override
-  ConstantTag get tag => ConstantTag.kFfiCall;
+  ConstantTag get tag => ConstantTag.kNativeFunction;
 
   @override
   void writeValue(BufferedWriter writer) {}
 
-  ConstantFfiCall.read(BufferedReader reader);
+  ConstantNativeFunction.read(BufferedReader reader);
 
   @override
-  String toString() => 'FfiCall';
+  String toString() => 'NativeFunction';
 
-  // Do not merge ConstantFfiCall entries.
+  // Do not merge ConstantNativeFunction entries.
 
   @override
   int get hashCode => identityHashCode(this);
@@ -769,7 +769,7 @@ class ConstantPool {
 
   int addExternalCall() => _add(ConstantExternalCall());
 
-  int addFfiCall() => _add(ConstantFfiCall());
+  int addNativeFunction() => _add(ConstantNativeFunction());
 
   int addStaticField(Field field) =>
       _add(new ConstantStaticField(objectTable.getHandle(field)!));

@@ -49,4 +49,4 @@ blr x0
 ldp x24, x27, [sp], #16
 ldp lr, x26, [sp], #16
 
-blr lr
+ret

@@ -108,7 +108,7 @@ library from "org-dartlang-test:///main.dart" as main {
   static field foo::Foo extensionBoz = foo::FooExtension|boz(null);
   static field foo::Foo extensionConstFoo = foo::FooExtension|constFoo(null, $creationLocationd_0dea112b090073317d4: #C45);
   static field foo::Foo extensionGetterFoo = foo::FooExtension|get#getterFoo(null, $creationLocationd_0dea112b090073317d4: #C49);
-  static field () → Null extensionSetterFoo = () → Null => let final has-declared-initializer Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C53) in #t1;
+  static field () → Null extensionSetterFoo = () → Null => let final Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C53) in #t1;
   static field foo::Foo extensionOperatorFoo = foo::FooExtension|unary-(null, $creationLocationd_0dea112b090073317d4: #C56);
   static field foo::Foo extensionStaticFoo = foo::FooExtension|staticFoo();
 }

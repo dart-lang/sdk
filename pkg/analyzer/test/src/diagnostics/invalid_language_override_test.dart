@@ -17,7 +17,7 @@ class InvalidLanguageOverrideTest extends PubPackageResolutionTest {
   test_correct_11_12() async {
     await resolveTestCodeWithDiagnostics(r'''
 // @dart = 11.12
-// [diag.invalidLanguageVersionOverrideGreater][column 1][length 16] The language version override can't specify a version greater than the latest known language version: 3.13.
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 16] The language version override can't specify a version greater than the latest known language version: 3.14.
 int i = 0;
 ''');
   }
@@ -25,7 +25,7 @@ int i = 0;
   test_correct_3_190() async {
     await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.190
-// [diag.invalidLanguageVersionOverrideGreater][column 1][length 16] The language version override can't specify a version greater than the latest known language version: 3.13.
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 16] The language version override can't specify a version greater than the latest known language version: 3.14.
 int i = 0;
 ''');
   }

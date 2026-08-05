@@ -17,6 +17,7 @@ dependencies:
   cli_util: any
   code_assets: any
   collection: any
+  dap_adapters: any
   dart2native: any
   dart_data_home: any
   dart_style: any
@@ -32,6 +33,7 @@ dependencies:
   hooks_runner: any
   http: any
   kernel: any
+  language_server_protocol: any
   logging: any
   meta: any
   package_config: any

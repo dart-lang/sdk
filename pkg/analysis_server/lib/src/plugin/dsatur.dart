@@ -78,6 +78,7 @@ library;
 import 'dart:math';
 
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
+import 'package:collection/collection.dart';
 
 /// Groups the plugin specification vertices into the minimal number of groups.
 List<List<PluginSpecVertex>> groupVerticesMinimal(
@@ -180,6 +181,14 @@ bool hasConflict(PluginSpecVertex v1, PluginSpecVertex v2) {
     }
   }
 
+  // Check dependency overrides. They must be identical to be compatible.
+  if (!const MapEquality().equals(
+    v1.dependencyOverrides,
+    v2.dependencyOverrides,
+  )) {
+    return true;
+  }
+
   // Check subset/superset relationship. If one set of plugins (e.g.
   // {plugin1, plugin2}) is not a subset or superset of another set of plugins
   // (e.g. {plugin3}), then they are in conflict; we may not get a pub version
@@ -199,6 +208,7 @@ bool hasConflict(PluginSpecVertex v1, PluginSpecVertex v2) {
 class PluginSpecVertex {
   final String optionsFilePath;
   final List<PluginConfiguration> configurations;
+  final Map<String, PluginSource>? dependencyOverrides;
 
-  new(this.optionsFilePath, this.configurations);
+  new(this.optionsFilePath, this.configurations, this.dependencyOverrides);
 }

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dap_adapters/dap.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -11,7 +12,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../dds.dart';
 import 'constants.dart';
-import 'dap/adapters/dds_hosted_adapter.dart';
 import 'dds_impl.dart';
 import 'rpc_error_codes.dart';
 import 'stream_manager.dart';
@@ -23,21 +23,13 @@ class DartDevelopmentServiceClient {
     DartDevelopmentService dds,
     WebSocketChannel ws,
     json_rpc.Peer vmServicePeer,
-  ) : this._(
-          dds as DartDevelopmentServiceImpl,
-          ws,
-          vmServicePeer,
-        );
+  ) : this._(dds as DartDevelopmentServiceImpl, ws, vmServicePeer);
 
   DartDevelopmentServiceClient.fromSSEConnection(
     DartDevelopmentService dds,
     SseConnection sse,
     json_rpc.Peer vmServicePeer,
-  ) : this._(
-          dds as DartDevelopmentServiceImpl,
-          sse,
-          vmServicePeer,
-        );
+  ) : this._(dds as DartDevelopmentServiceImpl, sse, vmServicePeer);
 
   DartDevelopmentServiceClient._(
     this.dds,
@@ -66,18 +58,16 @@ class DartDevelopmentServiceClient {
   /// Start receiving JSON RPC requests from the client.
   ///
   /// Returned future completes when the peer is closed.
-  Future<void> listen() => _clientPeer.listen().then(
-        (_) async {
-          dds.streamManager.clientDisconnect(this);
+  Future<void> listen() => _clientPeer.listen().then((_) async {
+        dds.streamManager.clientDisconnect(this);
 
-          for (final pair in createdServiceIdZones) {
-            await _vmServicePeer.sendRequest('deleteIdZone', {
-              'isolateId': pair.isolateId,
-              'idZoneId': pair.serviceIdZoneId,
-            });
-          }
-        },
-      );
+        for (final pair in createdServiceIdZones) {
+          await _vmServicePeer.sendRequest('deleteIdZone', {
+            'isolateId': pair.isolateId,
+            'idZoneId': pair.serviceIdZoneId,
+          });
+        }
+      });
 
   /// Close the connection to the client.
   Future<void> close() async {
@@ -105,8 +95,9 @@ class DartDevelopmentServiceClient {
   void _registerJsonRpcMethods() {
     _clientPeer.registerMethod('streamListen', (parameters) async {
       final streamId = parameters['streamId'].asString;
-      final includePrivates =
-          parameters['_includePrivateMembers'].asBoolOr(false);
+      final includePrivates = parameters['_includePrivateMembers'].asBoolOr(
+        false,
+      );
       await dds.streamManager.streamListen(
         this,
         streamId,
@@ -149,11 +140,7 @@ class DartDevelopmentServiceClient {
       }
       services[serviceId] = alias;
       // Notify other clients that a new service extension is available.
-      dds.streamManager.sendServiceRegisteredEvent(
-        this,
-        serviceId,
-        alias,
-      );
+      dds.streamManager.sendServiceRegisteredEvent(this, serviceId, alias);
       return RPCResponses.success;
     });
 
@@ -185,10 +172,8 @@ class DartDevelopmentServiceClient {
 
     _clientPeer.registerMethod(
       'requireUserPermissionToResume',
-      (parameters) => dds.isolateManager.requireUserPermissionToResume(
-        this,
-        parameters,
-      ),
+      (parameters) =>
+          dds.isolateManager.requireUserPermissionToResume(this, parameters),
     );
 
     _clientPeer.registerMethod('getStreamHistory', (parameters) {
@@ -199,20 +184,17 @@ class DartDevelopmentServiceClient {
           "Event history is not collected for stream '$stream'",
         );
       }
-      return <String, dynamic>{
-        'type': 'StreamHistory',
-        'history': events,
-      };
+      return <String, dynamic>{'type': 'StreamHistory', 'history': events};
     });
 
     _clientPeer.registerMethod(
-        'getLogHistorySize',
-        (parameters) => {
-              'type': 'Size',
-              'size': StreamManager
-                  .loggingRepositories[StreamManager.kLoggingStream]!
-                  .bufferSize,
-            });
+      'getLogHistorySize',
+      (parameters) => {
+        'type': 'Size',
+        'size': StreamManager
+            .loggingRepositories[StreamManager.kLoggingStream]!.bufferSize,
+      },
+    );
 
     _clientPeer.registerMethod('setLogHistorySize', (parameters) {
       final size = parameters['size'].asInt;
@@ -221,13 +203,15 @@ class DartDevelopmentServiceClient {
           "'size' must be greater or equal to zero",
         );
       }
-      StreamManager.loggingRepositories[StreamManager.kLoggingStream]!
-          .resize(size);
+      StreamManager.loggingRepositories[StreamManager.kLoggingStream]!.resize(
+        size,
+      );
       return RPCResponses.success;
     });
 
-    _clientPeer.registerMethod('getDartDevelopmentServiceVersion',
-        (parameters) async {
+    _clientPeer.registerMethod('getDartDevelopmentServiceVersion', (
+      parameters,
+    ) async {
       final ddsVersion = DartDevelopmentService.protocolVersion.split('.');
       return <String, dynamic>{
         'type': 'Version',
@@ -245,22 +229,20 @@ class DartDevelopmentServiceClient {
         'major': int.parse(ddsVersion[0]),
         'minor': int.parse(ddsVersion[1]),
       };
-      supportedProtocols['protocols']
-          .cast<Map<String, dynamic>>()
-          .add(ddsProtocol);
+      supportedProtocols['protocols'].cast<Map<String, dynamic>>().add(
+            ddsProtocol,
+          );
       return supportedProtocols;
     });
 
     _clientPeer.registerMethod(
       'getAvailableCachedCpuSamples',
-      (_) => {
-        'type': 'AvailableCachedCpuSamples',
-        'cacheNames': <String>[],
-      },
+      (_) => {'type': 'AvailableCachedCpuSamples', 'cacheNames': <String>[]},
     );
 
-    _clientPeer.registerMethod('createIdZone',
-        (json_rpc.Parameters parameters) async {
+    _clientPeer.registerMethod('createIdZone', (
+      json_rpc.Parameters parameters,
+    ) async {
       final response = await _vmServicePeer.sendRequest(
         parameters.method,
         parameters.value,
@@ -299,10 +281,7 @@ class DartDevelopmentServiceClient {
     // invocations, including a call to `compileExpression` which can be
     // overridden by clients which provide their own implementation (e.g.,
     // Flutter Tools). We handle all of this in [_ExpressionEvaluator].
-    _clientPeer.registerMethod(
-      'evaluate',
-      dds.expressionEvaluator.execute,
-    );
+    _clientPeer.registerMethod('evaluate', dds.expressionEvaluator.execute);
     _clientPeer.registerMethod(
       'evaluateInFrame',
       dds.expressionEvaluator.execute,
@@ -337,22 +316,20 @@ class DartDevelopmentServiceClient {
       final namespace = getNamespace(parameters.method);
       final serviceClient = dds.clientManager.clients[namespace];
       if (serviceClient != null && serviceClient.services.containsKey(method)) {
-        return await Future.any(
-          [
-            // Forward the request to the service client or...
-            serviceClient.sendRequest(method, parameters.asMap).catchError((_) {
-              throw RpcErrorCodes.buildRpcException(
-                RpcErrorCodes.kServiceDisappeared,
-              );
-            }, test: (error) => error is StateError),
-            // if the service client closes, return an error response.
-            serviceClient._clientPeer.done.then(
-              (_) => throw RpcErrorCodes.buildRpcException(
-                RpcErrorCodes.kServiceDisappeared,
-              ),
+        return await Future.any([
+          // Forward the request to the service client or...
+          serviceClient.sendRequest(method, parameters.asMap).catchError((_) {
+            throw RpcErrorCodes.buildRpcException(
+              RpcErrorCodes.kServiceDisappeared,
+            );
+          }, test: (error) => error is StateError),
+          // if the service client closes, return an error response.
+          serviceClient._clientPeer.done.then(
+            (_) => throw RpcErrorCodes.buildRpcException(
+              RpcErrorCodes.kServiceDisappeared,
             ),
-          ],
-        );
+          ),
+        ]);
       }
       throw json_rpc.RpcException(
         RpcErrorCodes.kMethodNotFound,
