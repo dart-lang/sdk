@@ -58,6 +58,24 @@ class C extends A {
 ''');
   }
 
+  test_notSameType_dynamicAndObjectQuestion() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  dynamic get foo;
+  set foo(Object? _);
+//    ^^^
+// [context 1] The setter being overridden.
+}
+
+class B extends A {
+  var foo = 0;
+//    ^^^
+// [diag.differentInheritedGetterAndSetterTypes] Can't infer a type for 'foo' because the combined member signature of the getter has return type 'dynamic', which is not the same as the parameter type 'Object?' of the combined member signature of the setter.
+// [diag.invalidOverrideSetter][context 1] The setter 'B.foo' ('void Function(int)') isn't a valid override of 'A.foo' ('void Function(Object?)').
+}
+''');
+  }
+
   test_sameType() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -87,6 +105,21 @@ class C {
 
 class D implements A, B, C {
   var foo = 0;
+}
+''');
+  }
+
+  test_sameType_futureOrObject() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:async';
+
+abstract class A {
+  Object get foo;
+  set foo(FutureOr<Object> _);
+}
+
+class B extends A {
+  var foo = Object();
 }
 ''');
   }

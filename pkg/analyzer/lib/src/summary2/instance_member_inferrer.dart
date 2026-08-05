@@ -301,14 +301,19 @@ class InstanceMemberInferrer {
           var getterType = combinedGetterType();
           var setterType = combinedSetterType();
 
-          if (getterType != null && getterType == setterType) {
-            field.type = getterType;
-          } else if (getterType != null && setterType != null) {
-            field.typeInferenceError =
-                TopLevelInferenceErrorDifferentGetterAndSetterTypes(
-                  getterType: getterType.getDisplayString(),
-                  setterType: setterType.getDisplayString(),
-                );
+          if (getterType != null && setterType != null) {
+            if (typeSystem.areStructurallyEqualAfterNormalization(
+              getterType,
+              setterType,
+            )) {
+              field.type = setterType;
+            } else {
+              field.typeInferenceError =
+                  TopLevelInferenceErrorDifferentGetterAndSetterTypes(
+                    getterType: getterType.getDisplayString(),
+                    setterType: setterType.getDisplayString(),
+                  );
+            }
           }
           return;
         }
