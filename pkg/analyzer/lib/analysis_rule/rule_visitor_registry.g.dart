@@ -616,6 +616,9 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
+  @experimental
+  void addDirectAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addDoStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addDotShorthandConstructorInvocation(
@@ -1005,6 +1008,12 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addUnaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addUnqualifiedNameAssignmentTarget(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

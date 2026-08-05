@@ -127,6 +127,55 @@ class AssignmentExpressionResolver {
     }
   }
 
+  void resolveDirect(
+    DirectAssignmentImpl node, {
+    required TypeImpl contextType,
+  }) {
+    var target = node.target as UnqualifiedNameAssignmentTargetImpl;
+    var writeResolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
+      target,
+    );
+    target.write = writeResolution;
+
+    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+
+    var rhsContext = writeResolution.acceptedType;
+    if (writeResolution case VariableWriteResolutionImpl(:var element)) {
+      rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
+    }
+
+    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
+    node.value = _resolver.popRewrite()!;
+    var valueType = node.value.typeOrThrow;
+    var flow = _resolver.flowAnalysis.flow;
+    var whyNotPromoted = flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    );
+
+    node.recordStaticType(valueType, resolver: _resolver);
+    _checkForInvalidAssignment(
+      writeResolution.acceptedType,
+      node.value,
+      valueType,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    if (flow == null) return;
+    if (writeResolution case VariableWriteResolutionImpl(
+      element: PromotableElementImpl element,
+    )) {
+      _resolver.flowAnalysis.storeExpressionInfo(
+        node,
+        flow.write(
+          node,
+          element,
+          SharedTypeView(node.typeOrThrow),
+          _resolver.flowAnalysis.getExpressionInfo(node.value),
+        ),
+      );
+    }
+  }
+
   void _checkForInvalidAssignment(
     TypeImpl writeType,
     Expression right,
@@ -394,26 +443,45 @@ class AssignmentExpressionShared {
     if (left is SimpleIdentifier) {
       var element = left.element;
       if (element is PromotableElementImpl) {
-        var assigned = flowAnalysis.isDefinitelyAssigned(left, element);
-        var unassigned = flowAnalysis.isDefinitelyUnassigned(left, element);
+        _checkFinalAlreadyAssigned(
+          left,
+          element,
+          isForEachIdentifier: isForEachIdentifier,
+        );
+      }
+    }
+  }
 
-        if (element.isFinal) {
-          if (element.isLate) {
-            if (isForEachIdentifier || assigned) {
-              _errorReporter.report(
-                diag.lateFinalLocalAlreadyAssigned.at(left),
-              );
-            }
-          } else {
-            if (isForEachIdentifier || !unassigned) {
-              _errorReporter.report(
-                diag.assignmentToFinalLocal
-                    .withArguments(variableName: element.name!)
-                    .at(left),
-              );
-            }
-          }
+  void checkFinalTargetAlreadyAssigned(
+    UnqualifiedNameAssignmentTargetImpl target,
+  ) {
+    if (_resolver.flowAnalysis.flow == null) return;
+    var element = target.scopeLookupResult?.getter;
+    if (element is PromotableElementImpl) {
+      _checkFinalAlreadyAssigned(target, element, isForEachIdentifier: false);
+    }
+  }
+
+  void _checkFinalAlreadyAssigned(
+    AstNode node,
+    PromotableElementImpl element, {
+    required bool isForEachIdentifier,
+  }) {
+    var flowAnalysis = _resolver.flowAnalysis;
+    var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
+    var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
+
+    if (element.isFinal) {
+      if (element.isLate) {
+        if (isForEachIdentifier || assigned) {
+          _errorReporter.report(diag.lateFinalLocalAlreadyAssigned.at(node));
         }
+      } else if (isForEachIdentifier || !unassigned) {
+        _errorReporter.report(
+          diag.assignmentToFinalLocal
+              .withArguments(variableName: element.name!)
+              .at(node),
+        );
       }
     }
   }

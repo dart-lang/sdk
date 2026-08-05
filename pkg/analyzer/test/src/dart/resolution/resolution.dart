@@ -244,10 +244,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is BinaryOperatorInvocation) {
       return node.element;
-    } else if (node is BinaryOperatorInvocation) {
-      return node.element;
-    } else if (node is BinaryOperatorInvocation) {
-      return node.element;
     } else if (node is ConstructorTearOff) {
       return node.element;
     } else if (node is Declaration) {

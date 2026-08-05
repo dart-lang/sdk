@@ -921,6 +921,27 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    var target = node.target as UnqualifiedNameAssignmentTarget;
+    var write = target.write;
+    if (write is! ValidNamedWriteResolution) {
+      assembler.addNameRelation(
+        target.name.lexeme,
+        IndexRelationKind.IS_WRITTEN_BY,
+        target.offset,
+        false,
+      );
+    } else {
+      var element = write.element;
+      if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+        assembler.addPrefixForElement(element);
+      }
+      recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, target, false);
+    }
+    super.visitDirectAssignment(node);
+  }
+
+  @override
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {

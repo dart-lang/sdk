@@ -4816,11 +4816,17 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression2: AssignmentExpression
-                      leftHandSide2: SimpleIdentifier
+                    expression2: DirectAssignment
+                      target: UnqualifiedNameAssignmentTarget
+                        name: f
+                      operator: =
+                      value: SimpleIdentifier
+                        token: v
+                    expression(v1): AssignmentExpression
+                      leftHandSide: SimpleIdentifier
                         token: f
                       operator: =
-                      rightHandSide2: SimpleIdentifier
+                      rightHandSide: SimpleIdentifier
                         token: v
                     semicolon: ;
                 rightBracket: }
@@ -4845,18 +4851,22 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: AssignmentExpression
-                leftHandSide2: SimpleIdentifier
-                  token: f
+              expression2: DirectAssignment
+                target: UnqualifiedNameAssignmentTarget
+                  name: f
                 operator: =
-                rightHandSide2: BinaryOperatorInvocation
+                value: BinaryOperatorInvocation
                   leftOperand: SimpleIdentifier
                     token: f
                   operator: +
                   rightOperand: SimpleIdentifier
                     token: v
                   binaryOperator: add
-                rightHandSide(v1): BinaryExpression
+              expression(v1): AssignmentExpression
+                leftHandSide: SimpleIdentifier
+                  token: f
+                operator: =
+                rightHandSide: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: f
                   operator: +

@@ -1116,6 +1116,26 @@ void f() {
 ''');
   }
 
+  test_topLevelGetter_invalidWrite() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+int get foo => 0;
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+}
+''');
+  }
+
   test_topLevelVariable_prefixed() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';

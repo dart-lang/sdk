@@ -692,6 +692,20 @@ class AstBuilder extends StackListener {
       );
     }
 
+    if (initializerObject is DirectAssignmentImpl) {
+      var target = initializerObject.target;
+      if (target is! UnqualifiedNameAssignmentTargetImpl) {
+        return null;
+      }
+      return ConstructorFieldInitializerImpl(
+        thisKeyword: null,
+        period: null,
+        fieldName: SimpleIdentifierImpl(token: target.name),
+        equals: initializerObject.operator,
+        expression2: initializerObject.value,
+      );
+    }
+
     if (initializerObject is AssignmentExpressionImpl) {
       Token? thisKeyword;
       Token? period;
@@ -3692,13 +3706,23 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(rhs);
-    push(
-      AssignmentExpressionImpl(
-        leftHandSide2: lhs,
-        operator: token,
-        rightHandSide2: rhs,
-      ),
-    );
+    if (token.type == TokenType.EQ && lhs is SimpleIdentifierImpl) {
+      push(
+        DirectAssignmentImpl(
+          target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
+          operator: token,
+          value: rhs,
+        ),
+      );
+    } else {
+      push(
+        AssignmentExpressionImpl(
+          leftHandSide2: lhs,
+          operator: token,
+          rightHandSide2: rhs,
+        ),
+      );
+    }
     if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.triple_shift,

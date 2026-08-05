@@ -510,6 +510,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _sink.writeln('DirectAssignment');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitDoStatement(DoStatement node) {
     _sink.writeln('DoStatement');
     _sink.withIndent(() {
@@ -1873,6 +1883,20 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitUnqualifiedNameAssignmentTarget(
+    covariant UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    _sink.writeln('UnqualifiedNameAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('read', node.read);
+        _writeNamedWriteResolution('write', node.write);
+      }
+    });
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _sink.writeln('VariableDeclaration');
     _sink.withIndent(() {
@@ -2313,6 +2337,55 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  void _writeNamedReadResolution(
+    String name,
+    NamedReadResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+    }
+  }
+
+  void _writeNamedWriteResolution(
+    String name,
+    NamedWriteResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+      case InvalidNamedWriteResolutionImpl():
+        _sink.writelnWithIndent('$name: InvalidNamedWriteResolution');
+        _sink.withIndent(() {
+          _writeType('acceptedType', resolution.acceptedType);
+          _sink.writelnWithIndent('candidates');
+          _sink.withIndent(() {
+            for (var candidate in resolution.candidates) {
+              _writeElement('candidate', candidate);
+            }
+          });
+          var recovery = resolution.recovery;
+          if (recovery == null) {
+            _sink.writelnWithIndent('recovery: <null>');
+          } else {
+            _writeNamedWriteResolution('recovery', recovery);
+          }
+        });
+      case SetterInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: SetterInvocationResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('acceptedType', resolution.acceptedType);
+        });
+      case VariableWriteResolutionImpl():
+        _sink.writelnWithIndent('$name: VariableWriteResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('acceptedType', resolution.acceptedType);
+        });
+    }
+  }
+
   void _writeNode(String name, AstNode? node) {
     if (node != null) {
       _sink.writeWithIndent('$name: ');
@@ -2345,6 +2418,7 @@ Expected parent: (${parent.runtimeType}) $parent
       if (node is Expression) {
         var parent = _viewParent(node);
         if (parent is AssignmentExpression && parent.rightHandSide2 == node ||
+            parent is DirectAssignment && parent.value == node ||
             parent is BinaryExpression && parent.rightOperand2 == node ||
             parent is BinaryOperatorInvocation && parent.rightOperand == node ||
             parent is IndexExpression && parent.index2 == node) {

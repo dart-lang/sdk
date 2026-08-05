@@ -420,6 +420,13 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
     super.visitSuperFormalParameter(node);
   }
 
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
   /// Adds [token] if it is not shadowed by a local element.
   void _addIfNotShadowed(Token token, {required bool hasImportPrefix}) {
     var name = token.lexeme;

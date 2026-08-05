@@ -400,6 +400,45 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  NamedWriteResolutionImpl resolveUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    var scopeLookupResult = node.scopeLookupResult!;
+    reportDeprecatedExportUse(
+      scopeLookupResult: scopeLookupResult,
+      nameToken: node.name,
+      hasRead: false,
+      hasWrite: true,
+    );
+
+    var writeLookup =
+        LexicalLookup.resolveSetter(scopeLookupResult) ??
+        _resolver.thisLookupSetter2(node);
+    var writeElementRequested = writeLookup?.requested;
+    var writeElementRecovery = writeLookup?.recovery;
+
+    AssignmentVerifier(
+      diagnosticReporter,
+    ).verifyUnqualifiedNameAssignmentTarget(
+      node: node,
+      requested: writeElementRequested,
+      recovery: writeElementRecovery,
+    );
+
+    var requestedResolution = _createValidNamedWriteResolution(
+      writeElementRequested,
+    );
+    if (requestedResolution != null) {
+      return requestedResolution;
+    }
+
+    return InvalidNamedWriteResolutionImpl(
+      acceptedType: InvalidTypeImpl.instance,
+      candidates: [?writeElementRequested, ?writeElementRecovery],
+      recovery: _createValidNamedWriteResolution(writeElementRecovery),
+    );
+  }
+
   /// If the [element] is not static, report the error on the [identifier].
   ///
   /// Returns `true` if an error was reported.
@@ -458,6 +497,22 @@ class PropertyElementResolver with ScopeHelpers {
         }
       }
     }
+  }
+
+  ValidNamedWriteResolutionImpl? _createValidNamedWriteResolution(
+    Element? element,
+  ) {
+    if (element is InternalVariableElement) {
+      return VariableWriteResolutionImpl(
+        element: element,
+        acceptedType: element.type,
+      );
+    }
+    if (element is InternalSetterElement &&
+        element.formalParameters.length == 1) {
+      return SetterInvocationResolutionImpl(element: element);
+    }
+    return null;
   }
 
   bool _isAccessible(ExecutableElement element) {

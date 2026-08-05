@@ -946,6 +946,8 @@ class Search {
     }
     if (setter != null) {
       await _addResults(results, setter, const {
+        IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
+        // TODO(scheglov): Remove when all assignment targets use IS_WRITTEN_BY.
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE,
       });
     }
@@ -1858,6 +1860,20 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
         }
       }
       _addResult(node, kind);
+    }
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    var write = node.write;
+    if (write is ValidNamedWriteResolution) {
+      var element = write.element;
+      var variable = element.tryCast<PropertyAccessorElement>()?.variable;
+      if (elements.contains(element) || elements.contains(variable)) {
+        _addResult(node, SearchResultKind.WRITE);
+      }
     }
   }
 

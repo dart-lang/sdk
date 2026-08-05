@@ -725,6 +725,16 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    if (node.write case ValidNamedWriteResolution(:var element)) {
+      return element;
+    }
+    return null;
+  }
+
+  @override
   Element? visitVariableDeclaration(VariableDeclaration node) {
     return node.declaredFragment?.element ?? node.declaredFragment?.element;
   }

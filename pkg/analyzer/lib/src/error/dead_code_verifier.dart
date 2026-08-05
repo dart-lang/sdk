@@ -273,10 +273,6 @@ class NullSafetyDeadCodeVerifier {
         }
       } else if (parent is BinaryOperatorInvocation) {
         offset = parent.operator.offset;
-      } else if (parent is BinaryOperatorInvocation) {
-        offset = parent.operator.offset;
-      } else if (parent is BinaryOperatorInvocation) {
-        offset = parent.operator.offset;
       } else if (parent is IfNull) {
         offset = parent.operator.offset;
       }

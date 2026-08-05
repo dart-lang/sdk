@@ -56,7 +56,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// Check that none of the type [parameters] references itself in its bound.
@@ -822,6 +821,33 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       name: node.name,
     );
     super.visitConstructorTypeReference(node);
+  }
+
+  @override
+  void visitDirectAssignment(covariant DirectAssignmentImpl node) {
+    var target = node.target as UnqualifiedNameAssignmentTargetImpl;
+    var write = target.write;
+    if (write case ValidNamedWriteResolutionImpl(:var element)) {
+      _checkForReferenceBeforeDeclaration(
+        nameToken: target.name,
+        element: element,
+      );
+      _checkForInvalidInstanceMemberAccess2(
+        entity: target,
+        name: target.name.lexeme,
+        element: element,
+      );
+      _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+        entity: target,
+        element: element,
+      );
+      _checkForAssignmentToPrimaryConstructorParameter(
+        target,
+        element: element,
+      );
+    }
+    _constArgumentsVerifier.visitDirectAssignment(node);
+    super.visitDirectAssignment(node);
   }
 
   @override
@@ -2719,20 +2745,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     required Token name,
   }) {
     if (element is MultiplyDefinedElementImpl) {
-      var conflictingMembers = element.conflictingElements;
-      var libraryNames = List.generate(
-        conflictingMembers.length,
-        (index) => _getLibraryName(conflictingMembers[index]),
-        growable: false,
-      );
-      libraryNames.sort();
       diagnosticReporter.report(
-        diag.ambiguousImport
-            .withArguments(
-              name: name.lexeme,
-              libraries: libraryNames.quotedAndCommaSeparatedWithAnd,
-            )
-            .at(name),
+        _diagnosticFactory.ambiguousImport(name: name, element: element),
       );
     }
   }
@@ -2795,15 +2809,16 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkForAssignmentToPrimaryConstructorParameter(AstNode node) {
-    Element? formalParameter;
-    if (node is AssignedVariablePattern) {
-      formalParameter = node.element;
-    } else if (node is SimpleIdentifier) {
-      formalParameter = node.element;
-    } else {
-      return;
-    }
+  void _checkForAssignmentToPrimaryConstructorParameter(
+    AstNode node, {
+    Element? element,
+  }) {
+    var formalParameter = element;
+    formalParameter ??= switch (node) {
+      AssignedVariablePattern(:var element) => element,
+      SimpleIdentifier(:var element) => element,
+      _ => null,
+    };
 
     if (formalParameter is! FormalParameterElement) {
       return;
@@ -5810,30 +5825,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// [diag.instanceMemberAccessFromFactory], and
   /// [diag.instanceMemberAccessFromStatic].
   void _checkForInvalidInstanceMemberAccess(SimpleIdentifier identifier) {
-    if (_isInComment) {
-      return;
-    }
-
-    if (_thisContext.allowsThis) {
-      return;
-    }
-
-    // prepare element
-    var element = identifier.writeOrReadElement2;
-    if (!(element is MethodElement || element is PropertyAccessorElement)) {
-      return;
-    }
-    // static element
-    ExecutableElement executableElement = element as ExecutableElement;
-    if (executableElement.isStatic) {
-      return;
-    }
-    // not a class member
-    var enclosingElement = element.enclosingElement;
-    if (enclosingElement is! InterfaceElement &&
-        enclosingElement is! ExtensionElement) {
-      return;
-    }
     // qualified method invocation
     var parent = identifier.parent2;
     if (parent is MethodInvocation) {
@@ -5854,6 +5845,40 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
+    _checkForInvalidInstanceMemberAccess2(
+      entity: identifier,
+      name: identifier.name,
+      element: identifier.writeOrReadElement2,
+    );
+  }
+
+  void _checkForInvalidInstanceMemberAccess2({
+    required AstNode entity,
+    required String name,
+    required Element? element,
+  }) {
+    if (_isInComment) {
+      return;
+    }
+
+    if (_thisContext.allowsThis) {
+      return;
+    }
+
+    if (!(element is MethodElement || element is PropertyAccessorElement)) {
+      return;
+    }
+    // static element
+    ExecutableElement executableElement = element as ExecutableElement;
+    if (executableElement.isStatic) {
+      return;
+    }
+    // not a class member
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is! InterfaceElement &&
+        enclosingElement is! ExtensionElement) {
+      return;
+    }
     switch (_thisContext) {
       case ThisContext.constructorInitializers:
       case ThisContext.instanceFieldDeclaration:
@@ -5861,16 +5886,16 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       case ThisContext.topLevel:
         diagnosticReporter.report(
           diag.implicitThisReferenceInInitializer
-              .withArguments(memberName: identifier.name)
-              .at(identifier),
+              .withArguments(memberName: name)
+              .at(entity),
         );
       case ThisContext.factoryConstructorBody:
         diagnosticReporter.report(
-          diag.instanceMemberAccessFromFactory.at(identifier),
+          diag.instanceMemberAccessFromFactory.at(entity),
         );
       case ThisContext.staticMemberBody:
         diagnosticReporter.report(
-          diag.instanceMemberAccessFromStatic.at(identifier),
+          diag.instanceMemberAccessFromStatic.at(entity),
         );
       case ThisContext.generativeConstructorBody:
       case ThisContext.instanceMemberBody:
@@ -7599,7 +7624,16 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    var element = name.writeOrReadElement2;
+    _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+      entity: name,
+      element: name.writeOrReadElement2,
+    );
+  }
+
+  void _checkForUnqualifiedReferenceToNonLocalStaticMember2({
+    required AstNode entity,
+    required Element? element,
+  }) {
     if (element == null || element is TypeParameterElement) {
       return;
     }
@@ -7618,9 +7652,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    if (name.parent2 case MethodInvocation(
+    if (entity.parent2 case MethodInvocation(
       :var methodName,
-    ) when name == methodName) {
+    ) when entity == methodName) {
       // Invalid methods are reported in
       // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
       return;
@@ -7629,13 +7663,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       diagnosticReporter.report(
         diag.unqualifiedReferenceToStaticMemberOfExtendedType
             .withArguments(name: enclosingElement.displayName)
-            .at(name),
+            .at(entity),
       );
     } else {
       diagnosticReporter.report(
         diag.unqualifiedReferenceToNonLocalStaticMember
             .withArguments(name: enclosingElement.displayName)
-            .at(name),
+            .at(entity),
       );
     }
   }
@@ -8278,53 +8312,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return expression.propertyName.name;
     }
     return null;
-  }
-
-  /// Return the name of the library that defines given [element].
-  String _getLibraryName(Element? element) {
-    if (element == null) {
-      return '';
-    }
-    var library = element.library;
-    if (library == null) {
-      return '';
-    }
-    var name = element.name;
-    if (name == null) {
-      return '';
-    }
-    var imports = _currentUnit.withEnclosing
-        .expand((fragment) => fragment.libraryImports)
-        .toList();
-    int count = imports.length;
-    for (int i = 0; i < count; i++) {
-      if (identical(imports[i].importedLibrary, library)) {
-        return library.uri.toString();
-      }
-    }
-    List<String> indirectSources = <String>[];
-    for (var import in imports) {
-      var importedLibrary = import.importedLibrary;
-      if (importedLibrary != null) {
-        if (import.namespace.get2(name) == element) {
-          indirectSources.add(importedLibrary.uri.toString());
-        }
-      }
-    }
-    int indirectCount = indirectSources.length;
-    StringBuffer buffer = StringBuffer();
-    buffer.write(library.uri.toString());
-    if (indirectCount > 0) {
-      buffer.write(" (via ");
-      if (indirectCount > 1) {
-        indirectSources.sort();
-        buffer.write(indirectSources.quotedAndCommaSeparatedWithAnd);
-      } else {
-        buffer.write(indirectSources[0]);
-      }
-      buffer.write(")");
-    }
-    return buffer.toString();
   }
 
   /// Return `true` if the given [identifier] is in a location where it is

@@ -666,6 +666,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void directAssignment(DirectAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      var write = target.write;
+      if (write case ValidNamedWriteResolution(:var element)) {
+        checkUsage(element, target);
+      }
+    }
+  }
+
   void dotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {

@@ -713,6 +713,24 @@ f() {
 ''');
   }
 
+  test_outsidePackage_setter_topLevel() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+set s(int value) {}
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/src/a.dart';
+
+f() {
+  s = 7;
+//^
+// [diag.invalidUseOfInternalMember] The member 's' can only be used within its package.
+}
+''');
+  }
+
   test_outsidePackage_superConstructor() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';

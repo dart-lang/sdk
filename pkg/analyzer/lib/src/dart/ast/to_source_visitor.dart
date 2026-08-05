@@ -392,6 +392,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _visitNode(node.target);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.value);
+  }
+
+  @override
   void visitDoStatement(DoStatement node) {
     sink.write('do ');
     _visitNode(node.body);
@@ -1541,6 +1550,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     sink.write(node.operator.lexeme);
     _writeOperand(node, node.operand as Expression);
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    sink.write(node.name.lexeme);
   }
 
   @override

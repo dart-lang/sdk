@@ -1484,6 +1484,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _runSubscriptions(node, _registry._forDirectAssignment);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitDoStatement(DoStatement node) {
     _runSubscriptions(node, _registry._forDoStatement);
@@ -2357,6 +2364,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _runSubscriptions(node, _registry._forUnaryOperatorInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forUnqualifiedNameAssignmentTarget);
     node.visitChildren2(this);
   }
 
@@ -4316,6 +4332,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<DelimitedFormalParameters>>
   _forDelimitedFormalParameters = [];
 
+  final List<_Subscription2<DirectAssignment>> _forDirectAssignment = [];
+
   final List<_Subscription2<DoStatement>> _forDoStatement = [];
 
   final List<_Subscription2<DotShorthandConstructorInvocation>>
@@ -4641,6 +4659,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<UnaryOperatorInvocation>>
   _forUnaryOperatorInvocation = [];
+
+  final List<_Subscription2<UnqualifiedNameAssignmentTarget>>
+  _forUnqualifiedNameAssignmentTarget = [];
 
   final List<_Subscription2<VariableDeclaration>> _forVariableDeclaration = [];
 
@@ -4991,6 +5012,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
     _forDelimitedFormalParameters.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
+  }
+
+  @override
+  void addDirectAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forDirectAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -6033,6 +6060,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forUnaryOperatorInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addUnqualifiedNameAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forUnqualifiedNameAssignmentTarget.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

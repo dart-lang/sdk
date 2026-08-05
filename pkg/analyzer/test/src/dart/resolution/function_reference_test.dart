@@ -4551,13 +4551,27 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('g = f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  function2: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: g
+      read: <null>
+      write: SetterInvocationResolution
+        element: <testLibrary>::@setter::g
+        acceptedType: void Function<T>(T)
+    operator: =
+    value: SimpleIdentifier
+      token: f
+      correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: g
       element: <null>
       staticType: null
     operator: =
-    rightHandSide2: SimpleIdentifier
+    rightHandSide: SimpleIdentifier
       token: f
       correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
       element: <testLibrary>::@function::foo::@formalParameter::f

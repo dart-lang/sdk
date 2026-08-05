@@ -247,7 +247,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleAssignmentExpression;
+    var node = parseResult.findNode.singleDirectAssignment;
     _assertSource(code, node);
   }
 

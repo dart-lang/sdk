@@ -327,6 +327,18 @@ class AstBinaryReader {
     );
   }
 
+  DirectAssignment _readDirectAssignment() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var value = _readNode() as ExpressionImpl;
+    var node = DirectAssignmentImpl(
+      target: target,
+      operator: Tokens.fromType(UnlinkedTokenType.EQ),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   DotShorthandConstructorInvocation _readDotShorthandConstructorInvocation() {
     var flags = _readByte();
     var constructorName = _readNode() as SimpleIdentifierImpl;
@@ -912,6 +924,31 @@ class AstBinaryReader {
     return node;
   }
 
+  NamedWriteResolutionImpl _readNamedWriteResolution() {
+    switch (NamedWriteResolutionTag.values[_readByte()]) {
+      case NamedWriteResolutionTag.invalid:
+        var acceptedType = _reader.readType()!;
+        var candidates = _reader.readElementList<Element>();
+        var recovery = _reader.readOptionalObject(() {
+          return _readNamedWriteResolution() as ValidNamedWriteResolutionImpl;
+        });
+        return InvalidNamedWriteResolutionImpl(
+          acceptedType: acceptedType,
+          candidates: candidates,
+          recovery: recovery,
+        );
+      case NamedWriteResolutionTag.setterInvocation:
+        return SetterInvocationResolutionImpl(
+          element: _reader.readElement() as InternalSetterElement,
+        );
+      case NamedWriteResolutionTag.variableWrite:
+        return VariableWriteResolutionImpl(
+          element: _reader.readElement() as InternalVariableElement,
+          acceptedType: _reader.readType()!,
+        );
+    }
+  }
+
   AstNode _readNode() {
     var tag = _readByte();
     switch (tag) {
@@ -927,6 +964,8 @@ class AstBinaryReader {
         return _readAssertInitializer();
       case Tag.AssignmentExpression:
         return _readAssignmentExpression();
+      case Tag.DirectAssignment:
+        return _readDirectAssignment();
       case Tag.AwaitExpression:
         return _readAwaitExpression();
       case Tag.BinaryOperatorInvocation:
@@ -1091,6 +1130,8 @@ class AstBinaryReader {
         return _readTypeParameter();
       case Tag.TypeParameterList:
         return _readTypeParameterList();
+      case Tag.UnqualifiedNameAssignmentTarget:
+        return _readUnqualifiedNameAssignmentTarget();
       case Tag.UnaryOperatorInvocation:
         return _readUnaryOperatorInvocation();
       case Tag.VariableDeclaration:
@@ -1614,6 +1655,15 @@ class AstBinaryReader {
     );
     _readExpressionResolution(node);
     node.element = _reader.readElement() as InternalMethodElement?;
+    return node;
+  }
+
+  UnqualifiedNameAssignmentTarget _readUnqualifiedNameAssignmentTarget() {
+    var name = _readStringReference();
+    var node = UnqualifiedNameAssignmentTargetImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+    );
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
     return node;
   }
 

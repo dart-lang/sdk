@@ -1997,7 +1997,7 @@ void useField(A a) {
 ''');
 
     assertElementIndexText(result, field.setter!, r'''
-115 9:5 |foo| IS_REFERENCED_BY
+115 9:5 |foo| IS_WRITTEN_BY
 147 11:10 |foo| IS_REFERENCED_BY qualified
 197 17:5 |foo| IS_REFERENCED_BY qualified
 ''');
@@ -2085,7 +2085,7 @@ void useField() {
 ''');
 
     assertElementIndexText(result, field.setter!, r'''
-94 6:5 |foo| IS_REFERENCED_BY
+94 6:5 |foo| IS_WRITTEN_BY
 120 8:7 |foo| IS_REFERENCED_BY qualified
 167 14:5 |foo| IS_REFERENCED_BY qualified
 ''');
@@ -2129,7 +2129,7 @@ void useField(E e) {
 ''');
 
     assertElementIndexText(result, setter, r'''
-122 8:5 |foo| IS_REFERENCED_BY
+122 8:5 |foo| IS_WRITTEN_BY
 171 13:5 |foo| IS_REFERENCED_BY qualified
 ''');
   }
@@ -2268,7 +2268,7 @@ void useField() {
 ''');
 
     assertElementIndexText(result, setter, r'''
-104 6:5 |foo| IS_REFERENCED_BY
+104 6:5 |foo| IS_WRITTEN_BY
 150 11:5 |foo| IS_REFERENCED_BY qualified
 ''');
   }
@@ -4314,7 +4314,7 @@ void useSetter(A a) {
     assertElementIndexText(result, element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
-77 5:5 |foo| IS_REFERENCED_BY
+77 5:5 |foo| IS_WRITTEN_BY
 95 6:10 |foo| IS_REFERENCED_BY qualified
 137 11:5 |foo| IS_REFERENCED_BY qualified
 ''');
@@ -4342,7 +4342,7 @@ void useSetter() {
 31 3:6 |foo| IS_REFERENCED_BY
 40 3:15 |foo| IS_REFERENCED_BY qualified
 51 3:26 |foo| IS_REFERENCED_BY qualified
-125 7:5 |foo| IS_REFERENCED_BY
+125 7:5 |foo| IS_WRITTEN_BY
 164 12:5 |foo| IS_REFERENCED_BY qualified
 179 13:7 |foo| IS_REFERENCED_BY qualified
 ''');
@@ -4710,6 +4710,22 @@ Prefixes: (unprefixed),p
 ''');
   }
 
+  test_TopLevelFunctionElement_invalidWrite() async {
+    var result = await _indexTestCode(r'''
+void foo() {}
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+}
+''');
+
+    var element = result.findElement.topFunction('foo');
+    assertElementIndexText(result, element, r'''
+''');
+  }
+
   test_TopLevelFunctionElement_loadLibrary() async {
     var result = await _indexTestCode('''
 import 'dart:math' deferred as math;
@@ -4761,7 +4777,7 @@ Prefixes: (unprefixed),p
 ''');
 
     assertElementIndexText(result, setter, r'''
-95 10:3 |foo| IS_REFERENCED_BY
+95 10:3 |foo| IS_WRITTEN_BY
 117 12:5 |foo| IS_REFERENCED_BY qualified
 ''');
   }

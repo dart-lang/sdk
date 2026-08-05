@@ -348,6 +348,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _elementUsageFrontierDetector.directAssignment(node);
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+    }
+    super.visitDirectAssignment(node);
+  }
+
+  @override
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
@@ -1695,28 +1705,11 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    var parent = identifier.parent2;
-    var element = identifier.writeOrReadElement2;
-
-    if (element == null) {
-      return;
-    }
-
-    if (_inCurrentLibrary(element)) {
-      return;
-    }
-
-    if (parent is HideCombinator) {
-      return;
-    }
-
-    _checkForInvalidInternalAccess(
-      parent: identifier.parent2,
+    _verify(
+      node: identifier,
       nameToken: identifier.token,
-      element: element,
+      element: identifier.writeOrReadElement2,
     );
-
-    _checkForOtherInvalidAccess(identifier, element);
   }
 
   void verifyBinary(BinaryOperatorInvocation node) {
@@ -1883,6 +1876,18 @@ class _InvalidAccessVerifier {
       element: element,
     );
     _checkForOtherInvalidAccess(selector, element);
+  }
+
+  void verifyUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    var element = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      ValidNamedWriteResolution(:var element) => element,
+      _ => null,
+    };
+    _verify(node: node, nameToken: node.name, element: element);
   }
 
   void _checkForInvalidInternalAccess({
@@ -2084,6 +2089,34 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void _verify({
+    required AstNode node,
+    required Token nameToken,
+    required Element? element,
+  }) {
+    var parent = node.parent2;
+
+    if (element == null) {
+      return;
+    }
+
+    if (_inCurrentLibrary(element)) {
+      return;
+    }
+
+    if (parent is HideCombinator) {
+      return;
+    }
+
+    _checkForInvalidInternalAccess(
+      parent: parent,
+      nameToken: nameToken,
+      element: element,
+    );
+
+    _checkForOtherInvalidAccess(node, element);
+  }
+
   static (String, SyntacticEntity) _getIdentifierNameAndErrorEntity(
     AstNode node,
     Element element,
@@ -2094,6 +2127,9 @@ class _InvalidAccessVerifier {
     if (node is Identifier) {
       name = node.name;
     } else if (node is CombinatorName) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
+    } else if (node is UnqualifiedNameAssignmentTarget) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is NamedType) {

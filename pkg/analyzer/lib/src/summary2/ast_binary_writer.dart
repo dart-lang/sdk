@@ -221,6 +221,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _writeByte(Tag.DirectAssignment);
+    _writeNode(node.target);
+    _writeNode(node.value);
+    _storeExpression(node);
+  }
+
+  @override
   void visitDotShorthandConstructorInvocation(
     covariant DotShorthandConstructorInvocationImpl node,
   ) {
@@ -893,6 +901,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedNameAssignmentTarget(
+    covariant UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    _writeByte(Tag.UnqualifiedNameAssignmentTarget);
+    _writeStringReference(node.name.lexeme);
+    assert(node.read == null);
+    _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _writeByte(Tag.VariableDeclarationList);
     _writeByte(
@@ -1026,6 +1044,25 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeType(nodeImpl.writeType);
     _sink.writeType(node.operatorResultType);
     _storeExpression(node);
+  }
+
+  void _writeNamedWriteResolution(NamedWriteResolutionImpl resolution) {
+    switch (resolution) {
+      case InvalidNamedWriteResolutionImpl():
+        _writeByte(NamedWriteResolutionTag.invalid.index);
+        _sink.writeType(resolution.acceptedType);
+        _sink.writeList(resolution.candidates, _sink.writeElement);
+        _sink.writeOptionalObject(resolution.recovery, (recovery) {
+          _writeNamedWriteResolution(recovery);
+        });
+      case SetterInvocationResolutionImpl():
+        _writeByte(NamedWriteResolutionTag.setterInvocation.index);
+        _sink.writeElement(resolution.element);
+      case VariableWriteResolutionImpl():
+        _writeByte(NamedWriteResolutionTag.variableWrite.index);
+        _sink.writeElement(resolution.element);
+        _sink.writeType(resolution.acceptedType);
+    }
   }
 
   void _writeNode(AstNode node) {

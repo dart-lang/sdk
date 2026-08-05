@@ -287,6 +287,23 @@ void f() {
 ''');
   }
 
+  test_assignmentExpression_simple_deprecatedGetter_noSetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+int get x => 0;
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  x = 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+}
+''');
+  }
+
   test_assignmentExpression_simple_deprecatedGetterSetter() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated

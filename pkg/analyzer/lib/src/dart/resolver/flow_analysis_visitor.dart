@@ -42,15 +42,15 @@ class FlowAnalysisDataForTesting {
 
   /// The list of references to variables, where a variable is read, and
   /// is not definitely assigned.
-  final List<SimpleIdentifier> notDefinitelyAssigned = [];
+  final List<AstNode> notDefinitelyAssigned = [];
 
   /// The list of references to variables, where a variable is read, and
   /// is definitely assigned.
-  final List<SimpleIdentifier> definitelyAssigned = [];
+  final List<AstNode> definitelyAssigned = [];
 
   /// The list of references to variables, where a variable is written, and
   /// is definitely unassigned.
-  final List<SimpleIdentifier> definitelyUnassigned = [];
+  final List<AstNode> definitelyUnassigned = [];
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
@@ -295,10 +295,7 @@ class FlowAnalysisHelper {
   ExpressionInfo? getExpressionInfo(Expression? expression) =>
       _expressionInfoMap[expression];
 
-  bool isDefinitelyAssigned(
-    SimpleIdentifier node,
-    PromotableElementImpl element,
-  ) {
+  bool isDefinitelyAssigned(AstNode node, PromotableElementImpl element) {
     var isAssigned = flow!.isAssigned(element);
 
     if (dataForTesting != null) {
@@ -312,10 +309,7 @@ class FlowAnalysisHelper {
     return isAssigned;
   }
 
-  bool isDefinitelyUnassigned(
-    SimpleIdentifier node,
-    PromotableElementImpl element,
-  ) {
+  bool isDefinitelyUnassigned(AstNode node, PromotableElementImpl element) {
     var isUnassigned = flow!.isUnassigned(element);
 
     if (dataForTesting != null && isUnassigned) {
@@ -1124,6 +1118,23 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    super.visitDirectAssignment(node);
+
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTargetImpl) {
+      // Assigned-variable collection runs before expression resolution fills
+      // in the target's write resolution. The scope lookup, however, was
+      // recorded by [ResolutionVisitor], just as the V1 identifier's element
+      // was recorded before this prepass.
+      var element = target.scopeLookupResult?.getter;
+      if (element is PromotableElementImpl) {
+        assignedVariables.write(element);
+      }
+    }
+  }
+
+  @override
   void visitDoStatement(DoStatement node) {
     assignedVariables.beginNode();
     super.visitDoStatement(node);
@@ -1435,5 +1446,17 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       }
     }
     return variable.type;
+  }
+
+  @override
+  TypeImpl getWriteType(InternalVariableElement element) {
+    var flow = _manager.flow;
+    if (element is PromotableElementImpl && flow != null) {
+      var promotedType = flow.promotedType(element);
+      if (promotedType != null) {
+        return promotedType.unwrapTypeView<TypeImpl>();
+      }
+    }
+    return element.type;
   }
 }

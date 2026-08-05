@@ -540,6 +540,23 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      var write = target.write;
+      if (write case ValidNamedWriteResolution(element: var writeElement)) {
+        if (writeElement is PropertyAccessorElement &&
+            (writeElement.variable == element || writeElement == element)) {
+          references.add(
+            MatchInfo(target.offset, target.length, MatchKind.WRITE),
+          );
+        }
+      }
+    }
+    super.visitDirectAssignment(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     var constructorElement = node.constructorElement;
     if (constructorElement != null && constructorElement == element) {

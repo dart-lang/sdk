@@ -95,6 +95,7 @@ library
     var library = await buildLibrary(r'''
 const a = 0;
 const b = (a += 1);
+const c = (a = 1);
 ''');
     checkElementText(library, r'''
 library
@@ -133,6 +134,43 @@ library
               rightParenthesis: ) @30
               staticType: int
           inducedGetter: #F4
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:39) (firstTokenOffset:39) (offset:39)
+          element: <testLibrary>::@topLevelVariable::c
+          initializer: expression_2
+            ParenthesizedExpression
+              leftParenthesis: ( @43
+              expression2: DirectAssignment
+                target: UnqualifiedNameAssignmentTarget
+                  name: a @44
+                  read: <null>
+                  write: InvalidNamedWriteResolution
+                    acceptedType: InvalidType
+                    candidates
+                      candidate: <testLibrary>::@getter::a
+                    recovery: <null>
+                operator: = @46
+                value: IntegerLiteral
+                  literal: 1 @48
+                  staticType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: SimpleIdentifier
+                  token: a @44
+                  element: <null>
+                  staticType: null
+                operator: = @46
+                rightHandSide: IntegerLiteral
+                  literal: 1 @48
+                  staticType: int
+                readElement: <null>
+                readType: null
+                writeElement: <testLibrary>::@getter::a
+                writeType: InvalidType
+                element: <null>
+                staticType: int
+              rightParenthesis: ) @49
+              staticType: int
+          inducedGetter: #F6
       getters
         #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
@@ -140,6 +178,9 @@ library
         #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
           inducingVariable: #F3
+        #F6 isComplete isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+          element: <testLibrary>::@getter::c
+          inducingVariable: #F5
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -157,6 +198,14 @@ library
         fragment: #F3
         expression: expression_1
       getter: <testLibrary>::@getter::b
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer c
+      reference: <testLibrary>::@topLevelVariable::c
+      firstFragment: #F5
+      type: int
+      constantInitializer
+        fragment: #F5
+        expression: expression_2
+      getter: <testLibrary>::@getter::c
   getters
     isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
@@ -168,6 +217,11 @@ library
       firstFragment: #F4
       returnType: int
       variable: <testLibrary>::@topLevelVariable::b
+    isOriginVariable isStatic c
+      reference: <testLibrary>::@getter::c
+      firstFragment: #F6
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 

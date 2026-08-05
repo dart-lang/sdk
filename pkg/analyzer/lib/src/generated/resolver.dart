@@ -1764,6 +1764,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
   }
 
+  NamedWriteResolutionImpl resolveUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver.resolveUnqualifiedNameAssignmentTarget(
+      node,
+    );
+  }
+
   void setReadElement(
     Expression node,
     Element? element, {
@@ -1866,6 +1874,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// in a setter context, or `null` if no match was found.
   LexicalLookupResult? thisLookupSetter(SimpleIdentifier node) {
     return ThisLookup.lookupSetter(this, node);
+  }
+
+  /// Returns the result of an implicit `this.` lookup for [node].
+  LexicalLookupResult? thisLookupSetter2(
+    UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    return ThisLookup.lookupSetter2(this, node: node, name: node.name.lexeme);
   }
 
   @override
@@ -2629,6 +2644,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitDirectAssignment(
+    covariant DirectAssignmentImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _assignmentExpressionResolver.resolveDirect(node, contextType: contextType);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override
@@ -4729,6 +4759,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (parent is AssignmentExpressionImpl) {
       if (parent.writeType == null) return;
       context = parent.writeType!;
+    } else if (parent is DirectAssignmentImpl) {
+      var target = parent.target;
+      if (target is! UnqualifiedNameAssignmentTargetImpl) {
+        return;
+      }
+      var write = target.write;
+      if (write == null) {
+        return;
+      }
+      context = write.acceptedType;
     } else {
       context = contextType;
     }

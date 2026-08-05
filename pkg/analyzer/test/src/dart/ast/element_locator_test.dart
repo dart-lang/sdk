@@ -1079,6 +1079,20 @@ foo@37
 ''');
   }
 
+  test_locate_DirectAssignment_invalidWrite() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void foo() {}
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+}
+''');
+    var node = result.findNode.directAssignment('foo = 0').target;
+    expect(ElementLocatorV2.locate(node), isNull);
+  }
+
   test_locate_DotShorthandConstructorInvocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}

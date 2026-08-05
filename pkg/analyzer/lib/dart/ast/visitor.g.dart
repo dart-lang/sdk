@@ -77,6 +77,13 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssignmentExpression(AssignmentExpression node) =>
       visitExpression(node);
 
+  @experimental
+  R? visitAssignmentExpression2(AssignmentExpression2 node) =>
+      visitExpression(node);
+
+  @experimental
+  R? visitAssignmentTarget(AssignmentTarget node) => visitNode(node);
+
   @override
   R? visitAwaitExpression(AwaitExpression node) => visitExpression(node);
 
@@ -816,6 +823,13 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitAssignmentExpression(AssignmentExpression node) =>
       visitExpression(node);
 
+  @experimental
+  R? visitAssignmentExpression2(AssignmentExpression2 node) =>
+      visitExpression(node);
+
+  @experimental
+  R? visitAssignmentTarget(AssignmentTarget node) => visitNode(node);
+
   @override
   R? visitAwaitExpression(AwaitExpression node) => visitExpression(node);
 
@@ -952,6 +966,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitDelimitedFormalParameters(DelimitedFormalParameters node) =>
       visitNode(node);
+
+  @experimental
+  @override
+  R? visitDirectAssignment(DirectAssignment node) =>
+      visitAssignmentExpression2(node);
 
   R? visitDirective(Directive node) => visitAnnotatedNode(node);
 
@@ -1512,6 +1531,12 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) =>
       visitExpression(node);
+
+  @experimental
+  @override
+  R? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) => visitAssignmentTarget(node);
 
   R? visitUriBasedDirective(UriBasedDirective node) => visitDirective(node);
 
@@ -2963,6 +2988,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitDirectAssignment(DirectAssignment node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitDoStatement(DoStatement node) {
     node.visitChildren2(this);
@@ -3837,6 +3869,15 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitVariableDeclaration(VariableDeclaration node) {
     node.visitChildren2(this);
@@ -4621,6 +4662,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitDelimitedFormalParameters(DelimitedFormalParameters node) => null;
 
+  @experimental
+  @override
+  R? visitDirectAssignment(DirectAssignment node) => null;
+
   @override
   R? visitDoStatement(DoStatement node) => null;
 
@@ -5073,6 +5118,12 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) => null;
+
+  @experimental
+  @override
+  R? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) => null;
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => null;
@@ -5861,6 +5912,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitDelimitedFormalParameters(DelimitedFormalParameters node) =>
       _throw(node);
 
+  @experimental
+  @override
+  R? visitDirectAssignment(DirectAssignment node) => _throw(node);
+
   @override
   R? visitDoStatement(DoStatement node) => _throw(node);
 
@@ -6321,6 +6376,12 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) => _throw(node);
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => _throw(node);
@@ -8230,6 +8291,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitDirectAssignment(DirectAssignment node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitDirectAssignment(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitDoStatement(DoStatement node) {
     stopwatch.start();
@@ -9388,6 +9458,17 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitUnqualifiedNameAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitVariableDeclaration(VariableDeclaration node) {
     stopwatch.start();
@@ -10240,6 +10321,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitDelimitedFormalParameters(DelimitedFormalParameters node) =>
       visitNode(node);
 
+  @experimental
+  @override
+  R? visitDirectAssignment(DirectAssignment node) => visitNode(node);
+
   @override
   R? visitDoStatement(DoStatement node) => visitNode(node);
 
@@ -10719,6 +10804,12 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) =>
       visitNode(node);
+
+  @experimental
+  @override
+  R? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) => visitNode(node);
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => visitNode(node);

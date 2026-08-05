@@ -632,11 +632,17 @@ CompilationUnit
                       name: x
                 semicolon: ;
               ExpressionStatement
-                expression2: AssignmentExpression
-                  leftHandSide2: SimpleIdentifier
+                expression2: DirectAssignment
+                  target: UnqualifiedNameAssignmentTarget
+                    name: x
+                  operator: =
+                  value: SimpleIdentifier
+                    token: <empty> <synthetic>
+                expression(v1): AssignmentExpression
+                  leftHandSide: SimpleIdentifier
                     token: x
                   operator: =
-                  rightHandSide2: SimpleIdentifier
+                  rightHandSide: SimpleIdentifier
                     token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             rightBracket: }

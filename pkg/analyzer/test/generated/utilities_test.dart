@@ -225,13 +225,10 @@ void f() {
   b = 1;
 }
 ''');
-    _assertReplacementForChildren<AssignmentExpression>(
-      destination: parseResult.findNode.assignment('a ='),
-      source: parseResult.findNode.assignment('b ='),
-      childAccessors: [
-        (node) => node.leftHandSide2,
-        (node) => node.rightHandSide2,
-      ],
+    _assertReplacementForChildren<DirectAssignment>(
+      destination: parseResult.findNode.directAssignment('a ='),
+      source: parseResult.findNode.directAssignment('b ='),
+      childAccessors: [(node) => node.target, (node) => node.value],
     );
   }
 

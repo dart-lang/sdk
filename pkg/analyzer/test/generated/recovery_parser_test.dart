@@ -256,15 +256,25 @@ var v = = y = 0;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: <empty> <synthetic>
+  operator: =
+  value: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: y
+    operator: =
+    value: IntegerLiteral
+      literal: 0
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: <empty> <synthetic>
   operator: =
-  rightHandSide2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  rightHandSide: AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: y
     operator: =
-    rightHandSide2: IntegerLiteral
+    rightHandSide: IntegerLiteral
       literal: 0
 ''');
   }
@@ -277,15 +287,25 @@ var v = x = = 0;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: <empty> <synthetic>
+    operator: =
+    value: IntegerLiteral
+      literal: 0
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  rightHandSide: AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: <empty> <synthetic>
     operator: =
-    rightHandSide2: IntegerLiteral
+    rightHandSide: IntegerLiteral
       literal: 0
 ''');
   }
@@ -298,15 +318,25 @@ var v = x = y =;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: y
+    operator: =
+    value: SimpleIdentifier
+      token: <empty> <synthetic>
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  rightHandSide: AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: y
     operator: =
-    rightHandSide2: SimpleIdentifier
+    rightHandSide: SimpleIdentifier
       token: <empty> <synthetic>
 ''');
   }
@@ -319,11 +349,17 @@ var v = = 0;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: <empty> <synthetic>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: <empty> <synthetic>
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
 ''');
   }
@@ -336,11 +372,17 @@ var v = x =;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: SimpleIdentifier
+    token: <empty> <synthetic>
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }

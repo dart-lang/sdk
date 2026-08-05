@@ -478,6 +478,19 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitDirectAssignment(DirectAssignment node) {
+    var target = node.target as UnqualifiedNameAssignmentTarget;
+    var lValueTemplates = _unqualifiedNameAssignmentTarget(target);
+    dispatchNode(node.value);
+    // Stack: lValue rhs
+    eventListener.onEnterNode(target);
+    lValueTemplates.write(this);
+    // Stack: rhs
+    eventListener.onExitNode();
+    // Stack: result
+  }
+
+  @override
   Null visitDoStatement(DoStatement node) {
     ir.block(0, 0);
     // Stack: BLOCK(0)
@@ -1046,6 +1059,30 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
   }
 
+  _LValueTemplates _unqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    var write = node.write;
+    if (write is! ValidNamedWriteResolution) {
+      throw UnimplementedError('TODO(paulberry): ${write.runtimeType}');
+    }
+    var element = write.element;
+    switch (element) {
+      case FormalParameterElement():
+      case LocalVariableElement():
+        return _LocalTemplates(locals[element]!);
+      case PropertyAccessorElement(isStatic: false):
+        this_();
+        // Stack: this
+        return _PropertyAccessTemplates.direct(
+          name: node.name.lexeme,
+          writeElement: element,
+        );
+      case dynamic(:var runtimeType):
+        throw UnimplementedError('TODO(paulberry): $runtimeType: $element');
+    }
+  }
+
   Null _visitPostfixIncrementOrDecrement(IncrementOrDecrementExpression node) {
     var lValueTemplates = dispatchLValue(node.operand);
     // Stack: lValue
@@ -1176,20 +1213,31 @@ sealed class _LValueTemplates {
 
 /// Instruction templates for converting a property access to IR.
 class _PropertyAccessTemplates extends _LValueTemplates {
-  final SimpleIdentifier property;
+  final String name;
+  final SimpleIdentifier? property;
+  final PropertyAccessorElement? writeElement;
 
   /// Creates a property access template.
   ///
   /// Caller is responsible for ensuring that the target of the property access
   /// is pushed to the stack.
-  _PropertyAccessTemplates(this.property) : super(subexpressionCount: 1);
+  _PropertyAccessTemplates(SimpleIdentifier property)
+    : name = property.name,
+      property = property,
+      writeElement = null,
+      super(subexpressionCount: 1);
+
+  _PropertyAccessTemplates.direct({required this.name, this.writeElement})
+    : property = null,
+      super(subexpressionCount: 1);
 
   void read(_AstToIRVisitor visitor) {
     // Stack: target
+    var property = this.property!;
     visitor.instanceGet(
       (property.element ?? visitor.assignmentTargeting(property)?.readElement)
           as PropertyAccessorElement?,
-      property.name,
+      name,
     );
     // Stack: value
   }
@@ -1227,9 +1275,10 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     visitor.ir.shuffle(2, visitor.stackIndices101);
     // Stack: value target value
     visitor.instanceSet(
-      visitor.assignmentTargeting(property)!.writeElement
-          as PropertyAccessorElement?,
-      property.name,
+      writeElement ??
+          visitor.assignmentTargeting(property!)!.writeElement
+              as PropertyAccessorElement?,
+      name,
     );
     // Stack: value returnValue
     visitor.ir.drop();

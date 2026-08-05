@@ -514,6 +514,9 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitDelimitedFormalParameters(DelimitedFormalParameters node);
 
+  @experimental
+  R? visitDirectAssignment(DirectAssignment node);
+
   R? visitDoStatement(DoStatement node);
 
   R? visitDotShorthandConstructorInvocation(
@@ -817,6 +820,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node);
+
+  @experimental
+  R? visitUnqualifiedNameAssignmentTarget(UnqualifiedNameAssignmentTarget node);
 
   R? visitVariableDeclaration(VariableDeclaration node);
 
