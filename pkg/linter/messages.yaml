@@ -1444,9 +1444,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, errorProne]
     hasPublishedDocs: true
-    # In the documentation, the `curly_braces_in_flow_control_structures`
-    # diagnostic is being ignored because the lint shouldn't be reported when
-    # there's already an error being reported.
+    # In the documentation, the `curly_braces_in_flow_control_structures` and
+    # `empty_statements` diagnostics are being ignored because they can't be
+    # fixed without also fixing the diagnostic being documented.
     documentation: |-
       #### Description
 
@@ -1462,7 +1462,7 @@ LinterLintCode:
       following the `else` is an empty statement:
 
       ```dart
-      %ignore=curly_braces_in_flow_control_structures
+      %ignore=curly_braces_in_flow_control_structures,empty_statements
       void f(int x, int y) {
         if (x > y) {
           print('1');
@@ -7021,6 +7021,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `unnecessary_library_name` diagnostic is ignored
+    # because the diagnostic being documented requires the existance of a
+    # library name.
     documentation: |-
       #### Description
 
@@ -7033,6 +7036,7 @@ LinterLintCode:
       `libraryName` isn't a lower_case_with_underscores identifier:
 
       ```dart
+      %ignore=unnecessary_library_name
       library [!libraryName!];
       ```
 
@@ -7048,6 +7052,7 @@ LinterLintCode:
       lower_case_with_underscores naming convention:
 
       ```dart
+      %ignore=unnecessary_library_name
       library library_name;
       ```
     deprecatedDetails: |-
@@ -7664,6 +7669,10 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `prefer_adjacent_string_concatenation`
+    # diagnostic is ignored because even though the use of `+` isn't a
+    # recommended solution, it is a valid way to avoid this lint. We should
+    # consider allowing the use of `+` in list literals.
     documentation: |-
       #### Description
 
@@ -7704,6 +7713,7 @@ LinterLintCode:
       Or use the `+` operator to concatenate the strings:
 
       ```dart
+      %ignore=prefer_adjacent_string_concatenation
       List<String> list = ['a' + 'b', 'c'];
       ```
     deprecatedDetails: |-
@@ -15048,6 +15058,11 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `avoid_function_literals_in_foreach_calls`
+    # diagnostic is ignored because it's a bi-product of the choice of example.
+    # The documentation is more clear if we use a familiar method that taked a
+    # function as a parameter, and `forEach` is a reasonable choice. We could
+    # remove the ignore by choosing a different method.
     documentation: |-
       #### Description
 
@@ -15061,6 +15076,7 @@ LinterLintCode:
       parameter of the closure:
 
       ```dart
+      %ignore=avoid_function_literals_in_foreach_calls
       void f(List<String> strings) {
         strings.forEach([!(string) {
           print(string);
@@ -17197,6 +17213,9 @@ LinterLintCode:
       stable: "3.13"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `prefer_initializing_formals` diagnostic is
+    # ignored because not using an initializing formal shows a more dramatic
+    # improvement in the code.
     documentation: |-
       #### Description
 
@@ -17210,6 +17229,7 @@ LinterLintCode:
       assigns the parameter `i` to the field `i`:
 
       ```dart
+      %ignore=prefer_initializing_formals
       class C(int [!i!]) {
         final int i;
 
