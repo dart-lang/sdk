@@ -2,16 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
     show InvalidTypeImpl, TypeParameterTypeImpl;
+import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
+
+import 'util/scope.dart';
 
 class EnumLikeClassDescription {
   final Map<DartObject, Set<FieldElement>> _enumConstants;
@@ -43,8 +47,48 @@ class InterfaceTypeDefinition {
   }
 }
 
+/// Collects every reference to [target] found in the visited subtree.
+class _ReferenceCollector extends RecursiveAstVisitor<void> {
+  final Element target;
+  final Set<AstNode> references = {};
+
+  new(this.target);
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _registerIfMatch(node, node.element);
+    super.visitImportPrefixReference(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    _registerIfMatch(node, node.element);
+    super.visitSimpleIdentifier(node);
+  }
+
+  void _registerIfMatch(AstNode node, Element? element) {
+    if (element == target) references.add(node);
+  }
+}
+
 extension AstNodeExtension on AstNode {
   Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
+
+  /// The nearest enclosing function, method, or constructor body (or the
+  /// compilation unit, for a top-level declaration) that `this` is declared
+  /// within — the extent within which references to it can occur.
+  AstNode get enclosingBody {
+    for (AstNode? context = this; context != null; context = context.parent) {
+      var body = switch (context) {
+        MethodDeclaration(:var body) => body,
+        ConstructorDeclaration(:var body) => body,
+        FunctionExpression(:var body) => body,
+        _ => null,
+      };
+      if (body != null) return body;
+    }
+    return thisOrAncestorOfType<CompilationUnit>() ?? this;
+  }
 
   /// Whether this is the child of a private compilation unit member.
   bool get inPrivateMember {
@@ -109,6 +153,41 @@ extension AstNodeExtension on AstNode {
 
     var metadata = parent.declaredFragment?.element.metadata;
     return metadata?.hasInternal ?? false;
+  }
+
+  /// Whether, at some reference to [element] within `this`, [newName] would
+  /// already resolve to something -- either lexically (necessarily a
+  /// different element, since [newName] differs from [element]'s own name),
+  /// or as an accessible member of the reference's enclosing class, mixin,
+  /// enum, or extension type, which -- through the implicit `this` -- takes
+  /// priority over whatever [element] would be renamed to.
+  bool isShadowedAtSomeReference(String newName, Element element) {
+    var collector = _ReferenceCollector(element);
+    accept(collector);
+    return collector.references.any(
+      (reference) => reference._isNameVisible(newName),
+    );
+  }
+
+  bool _isNameVisible(String name) {
+    var result = resolveNameInScope(name, this, shouldResolveSetter: false);
+    if (result.isRequestedName) return true;
+
+    // An import-prefix reference (as in `prefix.SomeType`) only ever names
+    // an import prefix -- the grammar for a type never falls back to
+    // instance-member resolution the way a bare expression identifier does.
+    if (this is ImportPrefixReference) return false;
+
+    // Neither lexical scoping nor nested declarations can see instance
+    // members, which are resolved through the implicit `this`.
+    var enclosingElement = enclosingInstanceElement2;
+    if (enclosingElement == null) return false;
+
+    var library = enclosingElement.library;
+    return (enclosingElement.lookUpGetter(name: name, library: library) ??
+            enclosingElement.lookUpSetter(name: name, library: library) ??
+            enclosingElement.lookUpMethod(name: name, library: library)) !=
+        null;
   }
 }
 

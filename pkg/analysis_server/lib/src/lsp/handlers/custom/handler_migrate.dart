@@ -72,7 +72,6 @@ class MigrateHandler
       server: server,
       pubspecTargets: targets,
       summaryBuilder: summaryBuilder,
-      apply: apply,
     );
 
     var fileEditsResult = await migrationRunner.computeEdits(steps);
@@ -81,21 +80,18 @@ class MigrateHandler
     }
     var fileEdits = fileEditsResult.resultOrNull!;
 
-    WorkspaceEdit? workspaceEdit;
-    if (apply) {
-      // Merge all the accumulated sequential edits per file.
-      var mergedFileEdits = SourceChangeMerger().merge(fileEdits);
-      var sourceChange = SourceChange(
-        'Migrate package(s)',
-        edits: mergedFileEdits,
-      );
+    // Merge all the accumulated sequential edits per file.
+    var mergedFileEdits = SourceChangeMerger().merge(fileEdits);
+    var sourceChange = SourceChange(
+      'Migrate package(s)',
+      edits: mergedFileEdits,
+    );
 
-      workspaceEdit = createWorkspaceEdit(
-        server,
-        message.clientCapabilities!,
-        sourceChange,
-      );
-    }
+    var workspaceEdit = createWorkspaceEdit(
+      server,
+      message.clientCapabilities!,
+      sourceChange,
+    );
     return success(
       DartMigrateResult(
         summary: summaryBuilder.generate(),

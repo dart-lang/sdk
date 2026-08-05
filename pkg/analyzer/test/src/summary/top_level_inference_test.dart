@@ -9052,7 +9052,7 @@ library
       interfaces
         A
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
           type: int
@@ -9337,18 +9337,18 @@ library
       interfaces
         A
       fields
-        hasImplicitType isOriginDeclaration x
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F16
           type: int
           getter: <testLibrary>::@class::B::@getter::x
           setter: <testLibrary>::@class::B::@setter::x
-        isOriginGetterSetter y
+        isOriginGetterSetter isTypeInferredFromOverride y
           reference: <testLibrary>::@class::B::@field::y
           firstFragment: #F19
           type: int
           getter: <testLibrary>::@class::B::@getter::y
-        isOriginGetterSetter z
+        isOriginGetterSetter isTypeInferredFromOverride z
           reference: <testLibrary>::@class::B::@field::z
           firstFragment: #F20
           type: int
@@ -9487,7 +9487,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType hasInitializer isOriginDeclaration x
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
           type: dynamic
@@ -9831,18 +9831,18 @@ library
       interfaces
         A<T>
       fields
-        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration x
+        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F18
           type: T
           getter: <testLibrary>::@class::B::@getter::x
           setter: <testLibrary>::@class::B::@setter::x
-        hasEnclosingTypeParameterReference isOriginGetterSetter y
+        hasEnclosingTypeParameterReference isOriginGetterSetter isTypeInferredFromOverride y
           reference: <testLibrary>::@class::B::@field::y
           firstFragment: #F21
           type: T
           getter: <testLibrary>::@class::B::@getter::y
-        hasEnclosingTypeParameterReference isOriginGetterSetter z
+        hasEnclosingTypeParameterReference isOriginGetterSetter isTypeInferredFromOverride z
           reference: <testLibrary>::@class::B::@field::z
           firstFragment: #F22
           type: T
@@ -9981,7 +9981,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType hasInitializer isOriginDeclaration x
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
           type: dynamic
@@ -10107,7 +10107,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType hasInitializer isOriginDeclaration x
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
           type: num
@@ -10255,18 +10255,18 @@ library
       interfaces
         A
       fields
-        hasImplicitType isOriginDeclaration x
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F10
           type: int
           getter: <testLibrary>::@class::B::@getter::x
           setter: <testLibrary>::@class::B::@setter::x
-        isOriginGetterSetter y
+        isOriginGetterSetter isTypeInferredFromOverride y
           reference: <testLibrary>::@class::B::@field::y
           firstFragment: #F13
           type: int
           getter: <testLibrary>::@class::B::@getter::y
-        isOriginGetterSetter z
+        isOriginGetterSetter isTypeInferredFromOverride z
           reference: <testLibrary>::@class::B::@field::z
           firstFragment: #F14
           type: int
@@ -10439,18 +10439,18 @@ library
       interfaces
         A<T>
       fields
-        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration x
+        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F12
           type: T
           getter: <testLibrary>::@class::B::@getter::x
           setter: <testLibrary>::@class::B::@setter::x
-        hasEnclosingTypeParameterReference isOriginGetterSetter y
+        hasEnclosingTypeParameterReference isOriginGetterSetter isTypeInferredFromOverride y
           reference: <testLibrary>::@class::B::@field::y
           firstFragment: #F15
           type: T
           getter: <testLibrary>::@class::B::@getter::y
-        hasEnclosingTypeParameterReference isOriginGetterSetter z
+        hasEnclosingTypeParameterReference isOriginGetterSetter isTypeInferredFromOverride z
           reference: <testLibrary>::@class::B::@field::z
           firstFragment: #F16
           type: T
@@ -10801,7 +10801,7 @@ library
         A
         B
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F10
           type: int
@@ -11052,7 +11052,7 @@ library
         A
         B
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F10
           type: int
@@ -11241,7 +11241,7 @@ library
           type: dynamic
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
-        hasImplicitType isFinal isOriginDeclaration y
+        hasImplicitType isFinal isOriginDeclaration isTypeInferredFromOverride y
           reference: <testLibrary>::@class::C::@field::y
           firstFragment: #F19
           type: int
@@ -11382,7 +11382,7 @@ library
         A
         B
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F11
           type: int
@@ -11512,7 +11512,7 @@ library
         A
         B
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F11
           type: String
@@ -11652,7 +11652,7 @@ library
         A
         B
       fields
-        hasImplicitType isOriginDeclaration x
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F11
           type: int
@@ -11789,7 +11789,7 @@ library
         A
         B
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F11
           type: int
@@ -11918,7 +11918,7 @@ library
         A
         B
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F11
           type: int
@@ -12080,18 +12080,18 @@ library
       interfaces
         A
       fields
-        hasImplicitType isOriginDeclaration x
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F13
           type: int
           getter: <testLibrary>::@class::B::@getter::x
           setter: <testLibrary>::@class::B::@setter::x
-        isOriginGetterSetter y
+        isOriginGetterSetter isTypeInferredFromOverride y
           reference: <testLibrary>::@class::B::@field::y
           firstFragment: #F16
           type: int
           getter: <testLibrary>::@class::B::@getter::y
-        isOriginGetterSetter z
+        isOriginGetterSetter isTypeInferredFromOverride z
           reference: <testLibrary>::@class::B::@field::z
           firstFragment: #F17
           type: int
@@ -12381,7 +12381,7 @@ library
         A
         B
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F12
           type: int
@@ -12505,7 +12505,7 @@ library
       firstFragment: #F8
       supertype: A<int>
       fields
-        isOriginGetterSetter x
+        isOriginGetterSetter isTypeInferredFromOverride x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F9
           type: dynamic Function()
@@ -12513,7 +12513,7 @@ library
               typeArguments
                 int
           getter: <testLibrary>::@class::B::@getter::x
-        isOriginGetterSetter y
+        isOriginGetterSetter isTypeInferredFromOverride y
           reference: <testLibrary>::@class::B::@field::y
           firstFragment: #F10
           type: List<dynamic Function()>

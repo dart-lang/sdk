@@ -134,8 +134,12 @@ class MigrateCommand extends DartdevCommand {
         log.stdout(summary);
       }
 
-      if (apply && result.edit != null) {
-        _applyWorkspaceEdit(result.edit!);
+      if (_hasEdits(result.edit)) {
+        if (apply) {
+          _applyWorkspaceEdit(result.edit!);
+        } else {
+          _printApplyTip(steps, rest);
+        }
       }
     } catch (e, st) {
       if (progress != null) {
@@ -230,6 +234,44 @@ class MigrateCommand extends DartdevCommand {
     } finally {
       await server.shutdown();
     }
+  }
+
+  /// Returns `true` if [edit] contains any proposed file or document changes.
+  bool _hasEdits(lsp.WorkspaceEdit? edit) {
+    if (edit == null) return false;
+    if (edit.changes case final changes?) {
+      if (changes.values.any((list) => list.isNotEmpty)) return true;
+    }
+    if (edit.documentChanges case final documentChanges?) {
+      return documentChanges.any((change) {
+        if (change.textDocumentEdit case final docEdit?) {
+          return docEdit.edits.isNotEmpty;
+        }
+        return true;
+      });
+    }
+    return false;
+  }
+
+  /// Prints a command tip instructing the user how to apply the proposed
+  /// changes.
+  void _printApplyTip(List<String> steps, List<String> targets) {
+    var targetArgs = '';
+    if (targets.isNotEmpty) {
+      targetArgs = ' ${targets.join(' ')}';
+    }
+
+    // Omit '--step=all' from the suggested command because running all steps is
+    // the default behavior.
+    var stepArg = '';
+    if (argResults!.wasParsed('step') &&
+        !(steps.length == 1 && steps.first == 'all')) {
+      stepArg = ' --step=${steps.join(',')}';
+    }
+
+    log.stdout('');
+    log.stdout('To apply the proposed changes, run:');
+    log.stdout('  dart migrate --apply$stepArg$targetArgs');
   }
 }
 

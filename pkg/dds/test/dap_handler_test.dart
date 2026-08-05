@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dap_adapters/dap.dart';
+import 'package:dap_adapters/dap_adapters.dart';
 import 'package:dds/dds.dart';
 import 'package:dds_service_extensions/dap.dart';
 import 'package:test/test.dart';

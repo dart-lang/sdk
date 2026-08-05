@@ -1656,6 +1656,8 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
         flags.isStatic == element.isStatic &&
         flags.isTypeInferredFromInitializer ==
             element.isTypeInferredFromInitializer &&
+        flags.isTypeInferredFromOverride ==
+            element.isTypeInferredFromOverride &&
         type.match(context, element.type) &&
         constInitializer.match(context, element.constantInitializer2) &&
         typeInferenceError == element.typeInferenceError;
@@ -1760,6 +1762,7 @@ enum _VariableItemFlag {
   isLate,
   isStatic,
   isTypeInferredFromInitializer,
+  isTypeInferredFromOverride,
 }
 
 extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
@@ -2549,6 +2552,9 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
     if (element.isTypeInferredFromInitializer) {
       bits |= _maskFor(_VariableItemFlag.isTypeInferredFromInitializer);
     }
+    if (element.isTypeInferredFromOverride) {
+      bits |= _maskFor(_VariableItemFlag.isTypeInferredFromOverride);
+    }
     return _VariableItemFlags._(bits);
   }
 
@@ -2578,6 +2584,10 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
 
   bool get isTypeInferredFromInitializer {
     return _has(_VariableItemFlag.isTypeInferredFromInitializer);
+  }
+
+  bool get isTypeInferredFromOverride {
+    return _has(_VariableItemFlag.isTypeInferredFromOverride);
   }
 
   void write(BinaryWriter writer) {

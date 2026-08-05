@@ -2058,7 +2058,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration v
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int Function(String)
@@ -2421,7 +2421,7 @@ library
           firstFragment: #F2
       supertype: D<int, T>
       fields
-        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration v
+        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F3
           type: Map<T, int>
@@ -3009,7 +3009,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        isOriginGetterSetter f
+        isOriginGetterSetter isTypeInferredFromOverride f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int Function(String)

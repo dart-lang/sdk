@@ -3224,6 +3224,23 @@ double -42.3
 ''');
   }
 
+  test_visitPrefixExpression_negated_double_largeHex() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = -0x8000000000000000;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), -9223372036854775808.0);
+  }
+
+  test_visitPrefixExpression_negated_double_zero() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = -0;
+''');
+    var result = _topLevelVar(unitResult, 'c')!.toDoubleValue()!;
+    expect(result, 0.0);
+    expect(result.isNegative, isTrue);
+  }
+
   test_visitPrefixExpression_negated_int() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = -42;
@@ -3231,6 +3248,17 @@ const c = -42;
     var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int -42
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_visitPrefixExpression_negated_int_minValue() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const c = -9223372036854775808;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+int -9223372036854775808
   variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
@@ -5099,6 +5127,22 @@ const double d = 3;
 double 3.0
   variable: <testLibrary>::@topLevelVariable::d
 ''');
+  }
+
+  test_visitIntegerLiteral_doubleType_largeDecimal() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = 1267650600228229401496703205376;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), 1.2676506002282294e30);
+  }
+
+  test_visitIntegerLiteral_doubleType_largeHex() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = 0x8000000000000000;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), 9223372036854775808.0);
   }
 
   test_visitIntegerLiteral_integer() async {

@@ -1906,9 +1906,9 @@ const LinterLintWithoutArguments noDynamicCasts = LinterLintWithoutArguments(
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String prefix: The library prefix.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String prefix})
 >
 noLeadingUnderscoresForLibraryPrefixes = LinterLintTemplate(
   name: 'no_leading_underscores_for_library_prefixes',
@@ -1917,13 +1917,28 @@ noLeadingUnderscoresForLibraryPrefixes = LinterLintTemplate(
   hasPublishedDocs: true,
   uniqueName: 'no_leading_underscores_for_library_prefixes',
   withArguments: _withArgumentsNoLeadingUnderscoresForLibraryPrefixes,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String prefix: The library prefix.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String prefix})
+>
+noLeadingUnderscoresForLibraryPrefixesShadowed = LinterLintTemplate(
+  name: 'no_leading_underscores_for_library_prefixes',
+  problemMessage: "The library prefix '{0}' starts with an underscore.",
+  correctionMessage: "Try renaming the prefix to not start with an underscore.",
+  hasPublishedDocs: true,
+  uniqueName: 'no_leading_underscores_for_library_prefixes_shadowed',
+  withArguments: _withArgumentsNoLeadingUnderscoresForLibraryPrefixesShadowed,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String variableName: The variable name.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String variableName})
 >
 noLeadingUnderscoresForLocalIdentifiers = LinterLintTemplate(
   name: 'no_leading_underscores_for_local_identifiers',
@@ -1933,7 +1948,23 @@ noLeadingUnderscoresForLocalIdentifiers = LinterLintTemplate(
   hasPublishedDocs: true,
   uniqueName: 'no_leading_underscores_for_local_identifiers',
   withArguments: _withArgumentsNoLeadingUnderscoresForLocalIdentifiers,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String variableName: The variable name.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String variableName})
+>
+noLeadingUnderscoresForLocalIdentifiersShadowed = LinterLintTemplate(
+  name: 'no_leading_underscores_for_local_identifiers',
+  problemMessage: "The local variable '{0}' starts with an underscore.",
+  correctionMessage:
+      "Try renaming the variable to not start with an underscore.",
+  hasPublishedDocs: true,
+  uniqueName: 'no_leading_underscores_for_local_identifiers_shadowed',
+  withArguments: _withArgumentsNoLeadingUnderscoresForLocalIdentifiersShadowed,
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -4411,19 +4442,39 @@ LocatableDiagnostic _withArgumentsNoDuplicateCaseValues({
 }
 
 LocatableDiagnostic _withArgumentsNoLeadingUnderscoresForLibraryPrefixes({
-  required Object p0,
+  required String prefix,
 }) {
   return LocatableDiagnosticImpl(diag.noLeadingUnderscoresForLibraryPrefixes, [
-    p0,
+    prefix,
   ]);
 }
 
+LocatableDiagnostic
+_withArgumentsNoLeadingUnderscoresForLibraryPrefixesShadowed({
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.noLeadingUnderscoresForLibraryPrefixesShadowed,
+    [prefix],
+  );
+}
+
 LocatableDiagnostic _withArgumentsNoLeadingUnderscoresForLocalIdentifiers({
-  required Object p0,
+  required String variableName,
 }) {
   return LocatableDiagnosticImpl(diag.noLeadingUnderscoresForLocalIdentifiers, [
-    p0,
+    variableName,
   ]);
+}
+
+LocatableDiagnostic
+_withArgumentsNoLeadingUnderscoresForLocalIdentifiersShadowed({
+  required String variableName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.noLeadingUnderscoresForLocalIdentifiersShadowed,
+    [variableName],
+  );
 }
 
 LocatableDiagnostic _withArgumentsNonConstantIdentifierNames({

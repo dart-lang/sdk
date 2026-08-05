@@ -5,5 +5,5 @@ include: ../dart_runtime_service/analysis_options.yaml
 analyzer:
   exclude:
     - lib/src/**
-    - lib/dap.dart
+    - lib/dap_adapters.dart
     - test/**

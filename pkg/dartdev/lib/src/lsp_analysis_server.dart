@@ -204,9 +204,6 @@ class LspAnalysisServer {
     );
     var serverCapabilities = initializeResult.capabilities;
     var experimentalCapabilities = serverCapabilities.experimental;
-    // TODO(dantup): This should never occur unless the server we have spawned
-    //  is somehow older than this code change. Is it possible? How should we
-    //  handle it?
     assert(experimentalCapabilities is Map<String, Object?>);
     assert(
       (experimentalCapabilities as Map<String, Object?>).containsKey(

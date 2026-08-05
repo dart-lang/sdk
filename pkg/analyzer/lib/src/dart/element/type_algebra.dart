@@ -200,7 +200,7 @@ abstract class Substitution {
     List<TypeParameterFragmentImpl> parameters,
     List<DartType> types,
   ) {
-    return fromPairs2(parameters.map((p) => p.asElement2).toFixedList(), types);
+    return fromPairs2(parameters.map((p) => p.element).toFixedList(), types);
   }
 
   /// Substitutes the Nth parameter in [parameters] with the Nth type in

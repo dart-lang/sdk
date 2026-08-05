@@ -861,7 +861,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     );
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
-    super.visitEnumConstantDeclaration(node);
+    node.visitChildrenWithHooks(
+      this,
+      visitArguments: (arguments) => _withThisContext(
+        ThisContext.staticFieldDeclaration,
+        () => arguments.accept2(this),
+      ),
+    );
   }
 
   @override
@@ -6995,8 +7001,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
     bool valid = treatedAsDouble
-        ? IntegerLiteralImpl.isValidAsDouble(source)
-        : IntegerLiteralImpl.isValidAsInteger(source, isNegated);
+        ? node.parseDoubleValue(negated: isNegated) != null
+        : node.parseIntValue(negated: isNegated) != null;
 
     if (!valid) {
       var lexeme = node.literal.lexeme;

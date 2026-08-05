@@ -29,7 +29,6 @@ import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
@@ -213,7 +212,7 @@ class LibraryBuilder {
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
         element.typeSystem.instantiateInterfaceToBounds(
-          element: enum_.fragment.asElement2,
+          element: enum_.fragment.element,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),
       );

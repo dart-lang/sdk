@@ -10,7 +10,7 @@ import 'package:dap/dap.dart' as dap;
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
-import '../dap.dart';
+import '../dap_adapters.dart';
 import 'isolate_manager.dart';
 import 'variables.dart';
 
