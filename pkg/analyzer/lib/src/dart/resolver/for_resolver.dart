@@ -28,8 +28,7 @@ class ForResolver {
   void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body2.resolveElement(_resolver, context);
-      _resolver.popRewrite();
+      _resolver.dispatchCollectionElement(node.body2, context);
     }
 
     if (forLoopParts is ForPartsImpl) {
