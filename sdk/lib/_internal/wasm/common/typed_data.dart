@@ -1835,6 +1835,23 @@ class _V128ByteBuffer extends ByteBufferBase {
   }
 
   @override
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
+    length ??= (lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
+    _rangeCheck(
+      lengthInBytes,
+      offsetInBytes,
+      length * Float32x4List.bytesPerElement,
+    );
+    _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
+    return F32x4List._withMutability(
+      _data,
+      offsetInBytes ~/ Float32x4List.bytesPerElement,
+      length,
+      _mutable,
+    );
+  }
+
+  @override
   _V128ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
@@ -2772,6 +2789,53 @@ abstract class WasmV128ArrayBase extends WasmTypedDataBase {
 
   @pragma('wasm:prefer-inline')
   _V128ByteBuffer get buffer => _V128ByteBuffer(_data);
+
+  WasmArray<WasmV128> _sublist(int start, [int? end]) {
+    end = RangeErrorUtils.checkValidRange(start, end, length);
+    final count = end - start;
+    final copy = WasmArray<WasmV128>(count);
+    copy.copy(0, _data, _offsetInElements + start, count);
+    return copy;
+  }
+
+  void _setRange(int start, int end, Iterable<Object?> from, int skipCount) {
+    // Check ranges.
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (count == 0) return;
+
+    if (this is _UnmodifiableTypedData) {
+      throw UnsupportedError("Cannot modify an unmodifiable list");
+    }
+
+    if (from is WasmV128ArrayBase) {
+      final fromArray = unsafeCast<WasmV128ArrayBase>(from);
+      _data.copy(
+        _offsetInElements + start,
+        fromArray._data,
+        fromArray._offsetInElements + skipCount,
+        count,
+      );
+      return;
+    }
+
+    final List<Object?> otherList;
+    final int otherStart;
+    if (from is List<Object?>) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    Lists.copy(otherList, otherStart, this as List<Object?>, start, count);
+  }
 }
 
 extension WasmI8ArrayBaseExt on WasmI8ArrayBase {
@@ -3345,11 +3409,8 @@ final class I32x4List extends WasmV128ArrayBase
 
   @override
   Int32x4List sublist(int start, [int? end]) {
-    end = RangeErrorUtils.checkValidRange(start, end, length);
-    final count = end - start;
-    final copy = WasmArray<WasmV128>(count);
-    copy.copy(0, _data, _offsetInElements + start, count);
-    return I32x4List._(copy, 0, count);
+    final copy = _sublist(start, end);
+    return I32x4List._(copy, 0, copy.length);
   }
 
   @override
@@ -3358,43 +3419,57 @@ final class I32x4List extends WasmV128ArrayBase
     int end,
     Iterable<Int32x4> from, [
     int skipCount = 0,
-  ]) {
-    // Check ranges.
-    RangeErrorUtils.checkValidRange(start, end, length);
-    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
+  ]) => _setRange(start, end, from, skipCount);
+}
 
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+final class F32x4List extends WasmV128ArrayBase
+    with _FixedLengthListMixin<Float32x4>, _TypedListCommonOperationsMixin
+    implements Float32x4List {
+  F32x4List(int length) : super(length);
 
-    if (count == 0) return;
+  F32x4List._(WasmArray<WasmV128> data, int offsetInElements, int length)
+    : super._(data, offsetInElements, length);
 
-    if (this is _UnmodifiableTypedData) {
-      throw UnsupportedError("Cannot modify an unmodifiable list");
-    }
+  factory F32x4List._withMutability(
+    WasmArray<WasmV128> data,
+    int offsetInElements,
+    int length,
+    bool mutable,
+  ) => mutable
+      ? F32x4List._(data, offsetInElements, length)
+      : UnmodifiableF32x4List._(data, offsetInElements, length);
 
-    if (from is I32x4List) {
-      _data.copy(
-        _offsetInElements + start,
-        from._data,
-        from._offsetInElements + skipCount,
-        count,
-      );
-      return;
-    }
-
-    final List<Int32x4> otherList;
-    final int otherStart;
-    if (from is List<Int32x4>) {
-      otherList = from;
-      otherStart = skipCount;
-    } else {
-      otherList = from.skip(skipCount).toList(growable: false);
-      otherStart = 0;
-    }
-    Lists.copy(otherList, otherStart, this, start, count);
+  @override
+  @pragma('wasm:prefer-inline')
+  Float32x4 operator [](int index) {
+    IndexErrorUtils.checkIndex(index, length, '[]');
+    return F32x4.fromV128(_data[_offsetInElements + index]);
   }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  void operator []=(int index, Float32x4 value) {
+    IndexErrorUtils.checkIndex(index, length, '[]=');
+    _data[_offsetInElements + index] = (value as F32x4).bits;
+  }
+
+  @override
+  Float32x4List asUnmodifiableView() =>
+      UnmodifiableF32x4List._(_data, _offsetInElements, length);
+
+  @override
+  Float32x4List sublist(int start, [int? end]) {
+    final copy = _sublist(start, end);
+    return F32x4List._(copy, 0, copy.length);
+  }
+
+  @override
+  void setRange(
+    int start,
+    int end,
+    Iterable<Float32x4> from, [
+    int skipCount = 0,
+  ]) => _setRange(start, end, from, skipCount);
 }
 
 class UnmodifiableI8List extends I8List with _UnmodifiableListMixin<int> {
@@ -3560,6 +3635,19 @@ class UnmodifiableF64List extends F64List with _UnmodifiableListMixin<double> {
 class UnmodifiableI32x4List extends I32x4List
     with _UnmodifiableListMixin<Int32x4> {
   UnmodifiableI32x4List._(
+    WasmArray<WasmV128> data,
+    int offsetInElements,
+    int length,
+  ) : super._(data, offsetInElements, length);
+
+  @override
+  @pragma('wasm:prefer-inline')
+  _V128ByteBuffer get buffer => _V128ByteBuffer._(_data, false);
+}
+
+class UnmodifiableF32x4List extends F32x4List
+    with _UnmodifiableListMixin<Float32x4> {
+  UnmodifiableF32x4List._(
     WasmArray<WasmV128> data,
     int offsetInElements,
     int length,

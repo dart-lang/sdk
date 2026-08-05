@@ -506,6 +506,13 @@ final class F32x4 extends WasmTypedDataBase implements Float32x4 {
   );
 }
 
+/// Exposes the raw [WasmV128] backing an [F32x4] to the SIMD-backed
+/// `Float32x4List`, which lives in a different library than [F32x4].
+extension F32x4Ext on F32x4 {
+  @pragma("wasm:prefer-inline")
+  WasmV128 get bits => _bits;
+}
+
 @pragma("wasm:entry-point")
 final class F64x2 extends WasmTypedDataBase implements Float64x2 {
   @pragma("wasm:entry-point")
