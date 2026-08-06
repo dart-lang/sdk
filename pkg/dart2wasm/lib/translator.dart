@@ -2894,13 +2894,11 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
     assert(argNameIndex == argNames.length);
 
     final outputs = translator.callTarget(target, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(
-        b,
-        outputs.single,
-        translator.outputOrVoid(trampoline.type.outputs),
-      );
-    }
+    translator.convertType(
+      b,
+      translator.outputOrVoid(outputs),
+      translator.outputOrVoid(trampoline.type.outputs),
+    );
     b.end();
   }
 }
@@ -3091,13 +3089,11 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     }
 
     final outputs = translator.callTarget(target, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(
-        b,
-        outputs.single,
-        translator.outputOrVoid(function.type.outputs),
-      );
-    }
+    translator.convertType(
+      b,
+      translator.outputOrVoid(outputs),
+      translator.outputOrVoid(function.type.outputs),
+    );
 
     b.end(); // end function
   }
