@@ -1048,6 +1048,7 @@ enum SIMDThreeSameOp {
   VDIVD = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B13 | B12 | B11,
   VCEQS = SIMDThreeSameFixed | B30 | B15 | B14 | B13,
   VCEQD = SIMDThreeSameFixed | B30 | B22 | B15 | B14 | B13,
+  VCEQW = SIMDThreeSameFixed | B30 | B29 | B23 | B15 | B11,
   VCGES = SIMDThreeSameFixed | B30 | B29 | B15 | B14 | B13,
   VCGED = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B13,
   VCGTS = SIMDThreeSameFixed | B30 | B29 | B23 | B15 | B14 | B13,

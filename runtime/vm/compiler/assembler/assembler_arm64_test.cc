@@ -6740,6 +6740,70 @@ ASSEMBLER_TEST_RUN(Vceqd, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vceqw, assembler) {
+  __ LoadImmediate(R0, 5);
+  __ LoadImmediate(R1, 6);
+  __ LoadImmediate(R2, 7);
+  __ LoadImmediate(R3, 8);
+  __ vinsw(V2, 0, R0);
+  __ vinsw(V2, 1, R1);
+  __ vinsw(V2, 2, R2);
+  __ vinsw(V2, 3, R3);
+
+  __ LoadImmediate(R0, 5);
+  __ LoadImmediate(R1, 0);
+  __ LoadImmediate(R2, 7);
+  __ LoadImmediate(R3, 0);
+  __ vinsw(V3, 0, R0);
+  __ vinsw(V3, 1, R1);
+  __ vinsw(V3, 2, R2);
+  __ vinsw(V3, 3, R3);
+
+  // V2 == V3 lane-wise: [5==5, 6!=0, 7==7, 8!=0] -> [-1, 0, -1, 0].
+  __ vceqw(V4, V2, V3);
+
+  __ vmovrs(R0, V4, 0);
+  __ vmovrs(R1, V4, 1);
+  __ vmovrs(R2, V4, 2);
+  __ vmovrs(R3, V4, 3);
+  __ addw(R0, R0, Operand(R1));
+  __ addw(R0, R0, Operand(R2));
+  __ addw(R0, R0, Operand(R3));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vceqw, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // -1 + 0 + -1 + 0 = -2 = 0xfffffffe.
+  EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x5\n"
+      "movz r1, #0x6\n"
+      "movz r2, #0x7\n"
+      "movz r3, #0x8\n"
+      "vinss v2[0], r0\n"
+      "vinss v2[1], r1\n"
+      "vinss v2[2], r2\n"
+      "vinss v2[3], r3\n"
+      "movz r0, #0x5\n"
+      "movz r1, #0x0\n"
+      "movz r2, #0x7\n"
+      "movz r3, #0x0\n"
+      "vinss v3[0], r0\n"
+      "vinss v3[1], r1\n"
+      "vinss v3[2], r2\n"
+      "vinss v3[3], r3\n"
+      "vceqw v4, v2, v3\n"
+      "vmovrs r0, v4[0]\n"
+      "vmovrs r1, v4[1]\n"
+      "vmovrs r2, v4[2]\n"
+      "vmovrs r3, v4[3]\n"
+      "addw r0, r0, r1\n"
+      "addw r0, r0, r2\n"
+      "addw r0, r0, r3\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vcgts, assembler) {
   __ LoadDImmediate(V0, 42.0);
   __ LoadDImmediate(V1, -42.0);
