@@ -3821,6 +3821,47 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_missingBody() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C({var int a})
+//                 ^
+// [diag.expectedClassBody] A class declaration must have a body, even if it is empty.
+''');
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: C
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: int
+            name: a
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
+        type: NamedType
+          name: int
+        name: a
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: { <synthetic>
+    rightBracket: } <synthetic>
+''');
+  }
+
   test_primaryConstructor_notConst_hasTypeParameters_named() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A<T, U>.named() {}
