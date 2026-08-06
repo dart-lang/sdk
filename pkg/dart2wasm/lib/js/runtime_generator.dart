@@ -103,10 +103,7 @@ class RuntimeFinalizer {
     return jsMethods.toString();
   }
 
-  String _generateInternalizedStrings(
-    bool requireJsBuiltin,
-    List<String> constantStrings,
-  ) {
+  String _generateInternalizedStrings(List<String> constantStrings) {
     final sb = StringBuffer();
     String indent = '';
     if (constantStrings.isNotEmpty) {
@@ -117,11 +114,6 @@ class RuntimeFinalizer {
       }
       sb.writeln('$indent],');
     }
-    if (!requireJsBuiltin) {
-      sb.writeln(
-        '$indent"": new Proxy({}, { get(_, prop) { return prop; } }),',
-      );
-    }
     return '$sb';
   }
 
@@ -129,26 +121,17 @@ class RuntimeFinalizer {
     String mainModuleName,
     Iterable<Procedure> translatedProcedures,
     List<String> constantStrings,
-    bool requireJsBuiltin,
     bool supportsAdditionalModuleLoading,
   ) {
     final jsMethods = generateJsMethods(translatedProcedures);
 
     final builtins = [
       'builtins: [\'js-string\']',
-      if (requireJsBuiltin) 'importedStringConstants: \'\'',
+      'importedStringConstants: \'\'',
     ];
 
-    String internalizedStrings = _generateInternalizedStrings(
-      requireJsBuiltin,
-      constantStrings,
-    );
+    String internalizedStrings = _generateInternalizedStrings(constantStrings);
 
-    final jsStringBuiltinPolyfillImportVars = {
-      'JS_POLYFILL_IMPORT': requireJsBuiltin
-          ? ''
-          : '"wasm:js-string": jsStringPolyfill,',
-    };
     final moduleLoadingImportVars = {
       'MODULE_LOADING_IMPORT': supportsAdditionalModuleLoading
           ? '"moduleLoadingHelper": moduleLoadingHelper,'
@@ -157,20 +140,17 @@ class RuntimeFinalizer {
 
     final moduleLoadingHelperMethods = supportsAdditionalModuleLoading
         ? moduleLoadingHelperTemplate.instantiate({
-            ...jsStringBuiltinPolyfillImportVars,
             'MAIN_MODULE_NAME': mainModuleName,
           })
         : '';
 
     return jsRuntimeBlobTemplate.instantiate({
-      ...jsStringBuiltinPolyfillImportVars,
       ...moduleLoadingImportVars,
       'BUILTINS_MAP_BODY': builtins.join(', '),
       'JS_METHODS': jsMethods,
       'INTERNAL_IMPORTS_MODULE_NAME':
           _interopMemberNamer.interopHelperModuleName,
       'IMPORTED_JS_STRINGS_IN_MJS': internalizedStrings,
-      'JS_STRING_POLYFILL_METHODS': requireJsBuiltin ? '' : jsPolyFillMethods,
       'DEFERRED_LIBRARY_HELPER_METHODS': moduleLoadingHelperMethods,
     });
   }
