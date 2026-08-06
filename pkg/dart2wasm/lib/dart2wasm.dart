@@ -199,12 +199,6 @@ final List<Option> options = [
   ),
 
   Flag(
-    "require-js-string-builtin",
-    (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
-    defaultsTo: _d.translatorOptions.requireJsStringBuiltin,
-  ),
-
-  Flag(
     "strip-toolchain-annotations",
     (o, value) => o.stripToolchainAnnotations = value,
     defaultsTo: _d.stripToolchainAnnotations,

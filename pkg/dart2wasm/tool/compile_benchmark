@@ -51,7 +51,7 @@ USE_TEMP_OUTPUT=0
 # All arguments will be passed along to dart2wasm except specially recognized
 # flags.
 VM_ARGS=()
-DART2WASM_ARGS=("--require-js-string-builtin")
+DART2WASM_ARGS=()
 DART_FILE=""
 OUTPUT_FILE=""
 PHASES=""

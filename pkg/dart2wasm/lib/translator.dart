@@ -74,7 +74,6 @@ class TranslatorOptions {
   bool enableProtobufMixinTreeShaker = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
-  bool requireJsStringBuiltin = false;
   List<int> watchPoints = [];
 
   bool get inlining => inliningOverride ?? optimizationLevel >= 1;

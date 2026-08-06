@@ -534,8 +534,7 @@
       "options": {
         "host-asserts": true,
         "dart2wasm-options": [
-          "-O0",
-          "--extra-compiler-option=--no-require-js-string-builtin"
+          "-O0"
         ],
         "timeout": 60
       }
