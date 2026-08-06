@@ -72,8 +72,8 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
           element is FormalParameterElement) {
         promotedType = _readType(node);
       }
-    } else if (node is IfNullAssignment) {
-      var target = node.target;
+    } else if (node is IfNullAssignment || node is CompoundAssignment) {
+      var target = (node as AssignmentExpression2).target;
       if (target is UnqualifiedNameAssignmentTarget) {
         var readResolution = target.read;
         if (readResolution is VariableReadResolution) {

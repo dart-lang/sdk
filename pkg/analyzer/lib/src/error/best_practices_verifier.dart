@@ -296,6 +296,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _elementUsageFrontierDetector.compoundAssignment(node);
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+    }
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConstantPattern(ConstantPattern node) {
     if (node.expression2.isDoubleNan) {
       _diagnosticReporter.report(diag.unnecessaryNanComparisonFalse.at(node));

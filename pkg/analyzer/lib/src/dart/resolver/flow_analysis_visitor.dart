@@ -1104,6 +1104,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _readAssignmentTarget(node.target);
+
+    super.visitCompoundAssignment(node);
+
+    _writeAssignmentTarget(node.target);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     node.condition2.accept2(this);
     assignedVariables.beginNode();

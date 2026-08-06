@@ -905,6 +905,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitCompilationUnitMember(CompilationUnitMember node) =>
       visitDeclaration(node);
 
+  @experimental
+  @override
+  R? visitCompoundAssignment(CompoundAssignment node) =>
+      visitAssignmentExpression2(node);
+
   @override
   R? visitConditionalExpression(ConditionalExpression node) =>
       visitExpression(node);
@@ -2910,6 +2915,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitCompoundAssignment(CompoundAssignment node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitConditionalExpression(ConditionalExpression node) {
     node.visitChildren2(this);
@@ -4642,6 +4654,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitCompilationUnit(CompilationUnit node) => null;
 
+  @experimental
+  @override
+  R? visitCompoundAssignment(CompoundAssignment node) => null;
+
   @override
   R? visitConditionalExpression(ConditionalExpression node) => null;
 
@@ -5898,6 +5914,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitCompilationUnit(CompilationUnit node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCompoundAssignment(CompoundAssignment node) => _throw(node);
 
   @override
   R? visitConditionalExpression(ConditionalExpression node) => _throw(node);
@@ -8221,6 +8241,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitCompoundAssignment(CompoundAssignment node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCompoundAssignment(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitConditionalExpression(ConditionalExpression node) {
     stopwatch.start();
@@ -10335,6 +10364,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitCompilationUnit(CompilationUnit node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitCompoundAssignment(CompoundAssignment node) => visitNode(node);
 
   @override
   R? visitConditionalExpression(ConditionalExpression node) => visitNode(node);

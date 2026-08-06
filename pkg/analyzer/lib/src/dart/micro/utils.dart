@@ -469,6 +469,36 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      var readMatches = switch (target.read) {
+        ValidNamedReadResolution(element: var readElement) =>
+          readElement is PropertyAccessorElement
+              ? readElement.variable == element || readElement == element
+              : readElement == element,
+        _ => false,
+      };
+      var writeMatches = switch (target.write) {
+        ValidNamedWriteResolution(element: var writeElement) =>
+          writeElement is PropertyAccessorElement
+              ? writeElement.variable == element || writeElement == element
+              : writeElement == element,
+        _ => false,
+      };
+      if (readMatches || writeMatches) {
+        var kind = readMatches && writeMatches
+            ? MatchKind.READ_WRITE
+            : readMatches
+            ? MatchKind.READ
+            : MatchKind.WRITE;
+        references.add(MatchInfo(target.offset, target.length, kind));
+      }
+    }
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     if (node.declaredFragment?.element == element) {
       if (node.name case var name?) {

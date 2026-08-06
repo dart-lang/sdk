@@ -183,6 +183,21 @@ class AstBinaryReader {
     return node;
   }
 
+  CompoundAssignment _readCompoundAssignment() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var value = _readNode() as ExpressionImpl;
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var node = CompoundAssignmentImpl(
+      target: target,
+      operator: Tokens.fromType(operatorType),
+      value: value,
+    );
+    node.element = _reader.readElement() as InternalMethodElement?;
+    node.operatorResultType = _reader.readType();
+    _readExpressionResolution(node);
+    return node;
+  }
+
   ConditionalExpression _readConditionalExpression() {
     var condition = _readNode() as ExpressionImpl;
     var thenExpression = _readNode() as ExpressionImpl;
@@ -1008,6 +1023,8 @@ class AstBinaryReader {
         return _readAssertInitializer();
       case Tag.AssignmentExpression:
         return _readAssignmentExpression();
+      case Tag.CompoundAssignment:
+        return _readCompoundAssignment();
       case Tag.DirectAssignment:
         return _readDirectAssignment();
       case Tag.IfNullAssignment:

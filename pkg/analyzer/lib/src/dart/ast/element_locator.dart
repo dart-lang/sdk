@@ -428,6 +428,11 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitCompoundAssignment(CompoundAssignment node) {
+    return node.element;
+  }
+
+  @override
   Element? visitConstructorDeclaration(ConstructorDeclaration node) {
     return node.declaredFragment?.element;
   }

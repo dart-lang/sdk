@@ -275,6 +275,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _visitNode(node.target);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.value);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     _visitNode(node.condition2);
     sink.write(' ? ');

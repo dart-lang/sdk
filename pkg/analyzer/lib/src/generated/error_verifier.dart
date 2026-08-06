@@ -648,6 +648,49 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
+    switch (node.target) {
+      case InvalidExpressionAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        var readElement = switch (target.read) {
+          null => null,
+          InvalidNamedReadResolutionImpl() => null,
+          ValidNamedReadResolutionImpl(:var element) => element,
+        };
+        var writeElement = switch (target.write) {
+          null => null,
+          InvalidNamedWriteResolutionImpl() => null,
+          ValidNamedWriteResolutionImpl(:var element) => element,
+        };
+        for (var element in {readElement, writeElement}) {
+          if (element == null) continue;
+          _checkForReferenceBeforeDeclaration(
+            nameToken: target.name,
+            element: element,
+          );
+          _checkForInvalidInstanceMemberAccess2(
+            entity: target,
+            name: target.name.lexeme,
+            element: element,
+          );
+          _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+            entity: target,
+            element: element,
+          );
+        }
+        if (writeElement != null) {
+          _checkForAssignmentToPrimaryConstructorParameter(
+            target,
+            element: writeElement,
+          );
+        }
+    }
+    _constArgumentsVerifier.visitCompoundAssignment(node);
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;

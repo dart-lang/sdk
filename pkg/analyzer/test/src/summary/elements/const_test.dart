@@ -116,13 +116,33 @@ library
           initializer: expression_1
             ParenthesizedExpression
               leftParenthesis: ( @23
-              expression2: AssignmentExpression
-                leftHandSide2: SimpleIdentifier
+              expression2: CompoundAssignment
+                target: UnqualifiedNameAssignmentTarget
+                  name: a @24
+                  read: GetterInvocationResolution
+                    element: <testLibrary>::@getter::a
+                    invokeType: int Function()
+                    type: int
+                  write: InvalidNamedWriteResolution
+                    acceptedType: InvalidType
+                    candidates
+                      candidate: <testLibrary>::@getter::a
+                    recovery: <null>
+                operator: += @26
+                value: IntegerLiteral
+                  literal: 1 @29
+                  staticType: int
+                binaryOperator: add
+                element: dart:core::@class::num::@method::+
+                operatorResultType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: SimpleIdentifier
                   token: a @24
                   element: <null>
                   staticType: null
                 operator: += @26
-                rightHandSide2: IntegerLiteral
+                rightHandSide: IntegerLiteral
                   literal: 1 @29
                   staticType: int
                 readElement: <testLibrary>::@getter::a

@@ -8218,6 +8218,22 @@ sealed class CompilationUnitMemberImpl extends DeclarationImpl
   CompilationUnitMemberImpl({required super.comment, required super.metadata});
 }
 
+/// A compound assignment using an overloadable binary operator.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class CompoundAssignment implements AssignmentExpression2 {
+  /// The semantic operator derived from [operator].
+  BinaryOperator get binaryOperator;
+
+  /// The method statically selected for the implicit binary operation, or
+  /// `null` if this node hasn't been resolved or no method was selected.
+  MethodElement? get element;
+
+  /// The type produced by the implicit binary operation before it is written
+  /// back to [target], or `null` if this node hasn't been resolved.
+  DartType? get operatorResultType;
+}
+
 /// A potentially compound assignment.
 ///
 /// A compound assignment is any node in which a single expression is used to
@@ -8286,6 +8302,415 @@ base mixin CompoundAssignmentExpressionImpl
 
   @override
   TypeImpl? writeType;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('target', isSuper: true),
+    GenerateNodeProperty('operator', isSuper: true),
+    GenerateNodeProperty('value', isSuper: true, isInValueExpressionSlot: true),
+  ],
+)
+final class CompoundAssignmentImpl extends AssignmentExpression2Impl
+    implements CompoundAssignment {
+  CompoundAssignmentV1Impl? _assignmentExpression;
+
+  @override
+  InternalMethodElement? element;
+
+  @override
+  TypeImpl? operatorResultType;
+
+  @generated
+  CompoundAssignmentImpl({
+    required super.target,
+    required super.operator,
+    required super.value,
+  });
+
+  /// The cached V1 compatibility projection for this expression.
+  CompoundAssignmentV1Impl get assignmentExpression =>
+      _assignmentExpression ??= CompoundAssignmentV1Impl._(this);
+
+  @generated
+  @override
+  Token get beginToken {
+    return target.beginToken;
+  }
+
+  @override
+  BinaryOperator get binaryOperator {
+    return switch (operator.type) {
+      TokenType.STAR_EQ => BinaryOperator.multiply,
+      TokenType.SLASH_EQ => BinaryOperator.divide,
+      TokenType.PERCENT_EQ => BinaryOperator.modulo,
+      TokenType.TILDE_SLASH_EQ => BinaryOperator.truncatingDivide,
+      TokenType.PLUS_EQ => BinaryOperator.add,
+      TokenType.MINUS_EQ => BinaryOperator.subtract,
+      TokenType.LT_LT_EQ => BinaryOperator.shiftLeft,
+      TokenType.GT_GT_EQ => BinaryOperator.shiftRight,
+      TokenType.GT_GT_GT_EQ => BinaryOperator.unsignedShiftRight,
+      TokenType.AMPERSAND_EQ => BinaryOperator.bitwiseAnd,
+      TokenType.CARET_EQ => BinaryOperator.bitwiseXor,
+      TokenType.BAR_EQ => BinaryOperator.bitwiseOr,
+      _ => throw StateError(
+        'Unexpected compound assignment operator ${operator.type.lexeme}',
+      ),
+    };
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return value.endToken;
+  }
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @override
+  set target(AssignmentTargetImpl target) {
+    super.target = target;
+    _assignmentExpression?._attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @override
+  set value(ExpressionImpl value) {
+    super.value = value;
+    _assignmentExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('CompoundAssignment is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('operator', operator)
+    ..addNode('value', value);
+
+  @override
+  InternalFormalParameterElement? get _staticParameterElementForValue {
+    var parameters = element?.formalParameters;
+    if (parameters == null || parameters.isEmpty) {
+      return null;
+    }
+    return parameters.first;
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('CompoundAssignment is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitCompoundAssignment(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return identical(value, child);
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(target, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target'.");
+    }
+    if (identical(value, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'value'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(target, oldNode)) {
+      target = newNode as AssignmentTargetImpl;
+      return;
+    }
+    if (identical(value, oldNode)) {
+      value = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitCompoundAssignment(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('CompoundAssignment is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    target.accept2(visitor);
+    value.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(AssignmentTargetImpl)? visitTarget,
+    void Function(ExpressionImpl)? visitValue,
+  }) {
+    if (visitTarget != null) {
+      visitTarget(target);
+    } else {
+      target.accept2(visitor);
+    }
+    if (visitValue != null) {
+      visitValue(value);
+    } else {
+      value.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('CompoundAssignment is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target._containsOffset(rangeOffset, rangeEnd)) {
+      return target;
+    }
+    if (value._containsOffset(rangeOffset, rangeEnd)) {
+      return value;
+    }
+    return null;
+  }
+}
+
+/// The V1 compatibility projection of a [CompoundAssignment].
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftHandSide'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('rightHandSide'),
+  ],
+)
+final class CompoundAssignmentV1Impl extends ExpressionImpl
+    with CompoundAssignmentExpressionImpl
+    implements AssignmentExpression {
+  final CompoundAssignmentImpl _origin;
+
+  CompoundAssignmentV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @override
+  MethodElement? get element => _origin.element;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 target')
+  @override
+  ExpressionImpl get leftHandSide => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
+    InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
+      target.expression,
+    ),
+  };
+
+  @experimental
+  @override
+  ExpressionImpl get leftHandSide2 => leftHandSide;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get operator => _origin.operator;
+
+  @override
+  Precedence get precedence => _origin.precedence;
+
+  @override
+  Element? get readElement => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
+
+  @override
+  TypeImpl? get readType => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
+    InvalidExpressionAssignmentTargetImpl target =>
+      target.expression.staticType,
+  };
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 value')
+  @override
+  ExpressionImpl get rightHandSide =>
+      V1Projection.toV1Expression(_origin.value);
+
+  @experimental
+  @override
+  ExpressionImpl get rightHandSide2 => _origin.value;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  Element? get writeElement => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
+
+  @override
+  TypeImpl? get writeType => switch (_origin.target) {
+    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+  };
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('leftHandSide', leftHandSide)
+    ..addToken('operator', operator)
+    ..addNode('rightHandSide', rightHandSide);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('AssignmentExpression is not in the V2 AST view.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAssignmentExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('AssignmentExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @DoNotGenerate(reason: 'Only the value is a V1 value expression slot')
+  @override
+  bool isInValueExpressionSlot(AstNode child) =>
+      identical(rightHandSide, child);
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('AssignmentExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    leftHandSide.accept(visitor);
+    rightHandSide.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('AssignmentExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(leftHandSide);
+    _becomeParentOf1(rightHandSide);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (leftHandSide._containsOffset(rangeOffset, rangeEnd)) {
+      return leftHandSide;
+    }
+    if (rightHandSide._containsOffset(rangeOffset, rangeEnd)) {
+      return rightHandSide;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('AssignmentExpression is not in the V2 AST view.');
+  }
 }
 
 /// A conditional expression.
@@ -47659,6 +48084,9 @@ enum V1Projection {
     }
     if (node is ConstructorTearOffImpl) {
       return node.constructorReference;
+    }
+    if (node is CompoundAssignmentImpl) {
+      return node.assignmentExpression;
     }
     if (node is DirectAssignmentImpl) {
       return node.assignmentExpression;

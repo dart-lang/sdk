@@ -423,7 +423,7 @@ class PropertyElementResolver with ScopeHelpers {
     NamedWriteResolutionImpl write,
     ExpressionInfo? readExpressionInfo,
   })?
-  resolveUnqualifiedNameIfNullAssignmentTarget(
+  resolveUnqualifiedNameReadWriteAssignmentTarget(
     UnqualifiedNameAssignmentTargetImpl node,
   ) {
     var scopeLookupResult = node.scopeLookupResult!;
@@ -1190,6 +1190,12 @@ class PropertyElementResolver with ScopeHelpers {
         _resolver.thisLookupGetter2(node);
     var readElementRequested = readLookup?.requested;
     var readElementRecovery = readLookup?.recovery;
+
+    if (readElementRequested == null) {
+      diagnosticReporter.report(
+        diag.undefinedIdentifier.withArguments(name: node.name.lexeme).at(node),
+      );
+    }
 
     var isInvalidExpressionTarget =
         readElementRequested is! InternalVariableElement &&

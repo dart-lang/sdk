@@ -481,6 +481,9 @@ abstract class AstVisitor2<R> {
 
   R? visitCompilationUnit(CompilationUnit node);
 
+  @experimental
+  R? visitCompoundAssignment(CompoundAssignment node);
+
   R? visitConditionalExpression(ConditionalExpression node);
 
   R? visitConfiguration(Configuration node);

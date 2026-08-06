@@ -1894,6 +1894,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _tokenOrNull(node.operator);
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     _tokenOrNull(node.question);
     _tokenOrNull(node.colon);

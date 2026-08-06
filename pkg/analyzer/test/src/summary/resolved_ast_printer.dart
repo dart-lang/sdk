@@ -353,6 +353,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _sink.writeln('CompoundAssignment');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('binaryOperator: ${node.binaryOperator.name}');
+      _writeParameterElement(node);
+      _writeElement('element', node.element);
+      _writeType('operatorResultType', node.operatorResultType);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     _sink.writeln('ConditionalExpression');
     _sink.withIndent(() {
@@ -2467,6 +2480,9 @@ Expected parent: (${parent.runtimeType}) $parent
             parent is IfNullAssignment && parent.value == node ||
             parent is BinaryExpression && parent.rightOperand2 == node ||
             parent is BinaryOperatorInvocation && parent.rightOperand == node ||
+            parent is CompoundAssignment && parent.value == node ||
+            parent is DirectAssignment && parent.value == node ||
+            parent is IfNullAssignment && parent.value == node ||
             parent is IndexExpression && parent.index2 == node) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }

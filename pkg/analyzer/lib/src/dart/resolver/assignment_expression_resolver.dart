@@ -127,6 +127,84 @@ class AssignmentExpressionResolver {
     }
   }
 
+  void resolveCompound(
+    CompoundAssignmentImpl node, {
+    required TypeImpl contextType,
+  }) {
+    var target = node.target;
+    if (target is InvalidExpressionAssignmentTargetImpl) {
+      _resolveInvalidCompound(node, target);
+      return;
+    }
+    target as UnqualifiedNameAssignmentTargetImpl;
+    var targetResult = _resolver
+        .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
+    if (targetResult == null) {
+      var invalidTarget = _invalidTargetForExecutable(target);
+      node.target = invalidTarget;
+      _resolveInvalidCompound(node, invalidTarget);
+      return;
+    }
+    target.read = targetResult.read;
+    target.write = targetResult.write;
+
+    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+
+    var readType = targetResult.read.type;
+    _resolveCompoundOperator(node, receiver: null, readType: readType);
+
+    // Analyze `target op= value` as an operator invocation whose receiver has
+    // the target's read type and whose surrounding context is the target's
+    // write type. Flow analysis may provide a promoted write type for a
+    // variable; other targets use the type accepted by their write resolution.
+    var writeResolution = targetResult.write;
+    var writeContextType = writeResolution.acceptedType;
+    if (writeResolution case VariableWriteResolutionImpl(:var element)) {
+      writeContextType = _resolver.localVariableTypeProvider.getWriteType(
+        element,
+      );
+    }
+    var rhsContext = _computeCompoundRhsContext(
+      operatorTargetType: readType,
+      writeContextType: writeContextType,
+      element: node.element,
+    );
+    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
+    node.value = _resolver.popRewrite()!;
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    );
+
+    var operatorResultType = _computeCompoundOperatorResultType(
+      node,
+      readType: readType,
+    );
+    node.operatorResultType = operatorResultType;
+    node.recordStaticType(operatorResultType, resolver: _resolver);
+
+    _checkForInvalidAssignment(
+      writeResolution.acceptedType,
+      node.value,
+      operatorResultType,
+      whyNotPromoted: null,
+    );
+    _resolver.checkForArgumentTypeNotAssignableForArgument(
+      node.value,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    var flow = _resolver.flowAnalysis.flow;
+    if (flow == null) return;
+    if (writeResolution case VariableWriteResolutionImpl(
+      element: PromotableElementImpl element,
+    )) {
+      _resolver.flowAnalysis.storeExpressionInfo(
+        node,
+        flow.write(node, element, SharedTypeView(operatorResultType), null),
+      );
+    }
+  }
+
   void resolveDirect(
     DirectAssignmentImpl node, {
     required TypeImpl contextType,
@@ -196,9 +274,8 @@ class AssignmentExpressionResolver {
       return;
     }
     target as UnqualifiedNameAssignmentTargetImpl;
-    var targetResult = _resolver.resolveUnqualifiedNameIfNullAssignmentTarget(
-      target,
-    );
+    var targetResult = _resolver
+        .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
     if (targetResult == null) {
       var invalidTarget = _invalidTargetForExecutable(target);
       node.target = invalidTarget;
@@ -336,6 +413,45 @@ class AssignmentExpressionResolver {
     return true;
   }
 
+  TypeImpl _computeCompoundOperatorResultType(
+    CompoundAssignmentImpl node, {
+    required TypeImpl readType,
+  }) {
+    if (identical(readType, NeverTypeImpl.instance)) {
+      return NeverTypeImpl.instance;
+    }
+    if (readType is DynamicType) {
+      return DynamicTypeImpl.instance;
+    }
+    var element = node.element;
+    if (element == null) {
+      return InvalidTypeImpl.instance;
+    }
+    return _typeSystem.refineBinaryExpressionType(
+      readType,
+      node.operator.type,
+      node.value.typeOrThrow,
+      element.returnType,
+      element,
+    );
+  }
+
+  TypeImpl _computeCompoundRhsContext({
+    required TypeImpl operatorTargetType,
+    required TypeImpl writeContextType,
+    required InternalMethodElement? element,
+  }) {
+    if (element != null && element.formalParameters.isNotEmpty) {
+      return _typeSystem.refineNumericInvocationContext(
+        operatorTargetType,
+        element,
+        writeContextType,
+        element.formalParameters.first.type,
+      );
+    }
+    return UnknownInferredType.instance;
+  }
+
   TypeImpl _computeIfNullType({
     required TypeImpl readType,
     required TypeImpl valueType,
@@ -411,6 +527,80 @@ class AssignmentExpressionResolver {
     return InvalidExpressionAssignmentTargetImpl(
       expression: SimpleIdentifierImpl(token: target.name)
         ..scopeLookupResult = target.scopeLookupResult,
+    );
+  }
+
+  void _resolveCompoundOperator(
+    CompoundAssignmentImpl node, {
+    required ExpressionImpl? receiver,
+    required TypeImpl readType,
+  }) {
+    if (identical(readType, NeverTypeImpl.instance)) {
+      return;
+    }
+    if (readType is VoidType) {
+      _diagnosticReporter.report(diag.useOfVoidResult.at(node.operator));
+      return;
+    }
+
+    var methodName =
+        node.operator.type.binaryOperatorOfCompoundAssignment!.lexeme;
+    var result = _typePropertyResolver.resolve(
+      receiver: receiver,
+      receiverType: readType,
+      name: methodName,
+      hasRead: true,
+      hasWrite: true,
+      propertyErrorEntity: node.operator,
+      nameErrorEntity: node.operator,
+      parentNode: node,
+    );
+    node.element = result.getter2 as InternalMethodElement?;
+    if (result.needsGetterError) {
+      _diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(operator: methodName, type: readType)
+            .at(node.operator),
+      );
+    }
+  }
+
+  void _resolveInvalidCompound(
+    CompoundAssignmentImpl node,
+    InvalidExpressionAssignmentTargetImpl target,
+  ) {
+    _resolver.analyzeExpression(
+      target.expression,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+    );
+    target.expression = _resolver.popRewrite()!;
+
+    var readType = target.expression.typeOrThrow;
+    _resolveCompoundOperator(
+      node,
+      receiver: target.expression,
+      readType: readType,
+    );
+    var rhsContext = _computeCompoundRhsContext(
+      operatorTargetType: readType,
+      writeContextType: readType,
+      element: node.element,
+    );
+    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
+    node.value = _resolver.popRewrite()!;
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    );
+
+    var operatorResultType = _computeCompoundOperatorResultType(
+      node,
+      readType: readType,
+    );
+    node.operatorResultType = operatorResultType;
+    node.recordStaticType(operatorResultType, resolver: _resolver);
+    _resolver.checkForArgumentTypeNotAssignableForArgument(
+      node.value,
+      whyNotPromoted: whyNotPromoted,
     );
   }
 

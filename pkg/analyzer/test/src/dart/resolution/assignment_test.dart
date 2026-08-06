@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -17,6 +19,74 @@ main() {
 
 @reflectiveTest
 class AssignmentExpressionResolutionTest extends PubPackageResolutionTest {
+  test_compound_binaryOperator() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(dynamic x) {
+  x *= 1;
+  x /= 1;
+  x %= 1;
+  x ~/= 1;
+  x += 1;
+  x -= 1;
+  x <<= 1;
+  x >>= 1;
+  x >>>= 1;
+  x &= 1;
+  x ^= 1;
+  x |= 1;
+}
+''');
+
+    expect(
+      result.findNode.compoundAssignment('x *= 1').binaryOperator,
+      BinaryOperator.multiply,
+    );
+    expect(
+      result.findNode.compoundAssignment('x /= 1').binaryOperator,
+      BinaryOperator.divide,
+    );
+    expect(
+      result.findNode.compoundAssignment('x %= 1').binaryOperator,
+      BinaryOperator.modulo,
+    );
+    expect(
+      result.findNode.compoundAssignment('x ~/= 1').binaryOperator,
+      BinaryOperator.truncatingDivide,
+    );
+    expect(
+      result.findNode.compoundAssignment('x += 1').binaryOperator,
+      BinaryOperator.add,
+    );
+    expect(
+      result.findNode.compoundAssignment('x -= 1').binaryOperator,
+      BinaryOperator.subtract,
+    );
+    expect(
+      result.findNode.compoundAssignment('x <<= 1').binaryOperator,
+      BinaryOperator.shiftLeft,
+    );
+    expect(
+      result.findNode.compoundAssignment('x >>= 1').binaryOperator,
+      BinaryOperator.shiftRight,
+    );
+    expect(
+      result.findNode.compoundAssignment('x >>>= 1').binaryOperator,
+      BinaryOperator.unsignedShiftRight,
+    );
+    expect(
+      result.findNode.compoundAssignment('x &= 1').binaryOperator,
+      BinaryOperator.bitwiseAnd,
+    );
+    expect(
+      result.findNode.compoundAssignment('x ^= 1').binaryOperator,
+      BinaryOperator.bitwiseXor,
+    );
+    expect(
+      result.findNode.compoundAssignment('x |= 1').binaryOperator,
+      BinaryOperator.bitwiseOr,
+    );
+  }
+
   test_compound_plus_int_context_int() async {
     var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
@@ -25,15 +95,42 @@ g(int a) {
 }
 ''');
 
-    var node = result.findNode.assignment('+= f()');
+    var node = result.findNode.compoundAssignment('+= f()');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      type: int
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      acceptedType: int
+  operator: +=
+  value: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticInvokeType: int Function()
+    staticType: int
+    typeArgumentTypes
+      int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::g::@formalParameter::a
     staticType: null
   operator: +=
-  rightHandSide2: MethodInvocation
+  rightHandSide: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
@@ -118,15 +215,42 @@ g(num a) {
 }
 ''');
 
-    var node = result.findNode.assignment('+= f()');
+    var node = result.findNode.compoundAssignment('+= f()');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      type: int
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      acceptedType: num
+  operator: +=
+  value: MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticInvokeType: int Function()
+    staticType: int
+    typeArgumentTypes
+      int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::g::@formalParameter::a
     staticType: null
   operator: +=
-  rightHandSide2: MethodInvocation
+  rightHandSide: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
@@ -159,15 +283,19 @@ g(num a, bool b) {
 }
 ''');
 
-    var node = result.findNode.assignment('+=');
+    var node = result.findNode.compoundAssignment('+=');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::g::@formalParameter::a
-    staticType: null
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      type: int
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      acceptedType: num
   operator: +=
-  rightHandSide2: ConditionalExpression
+  value: ConditionalExpression
     condition2: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::g::@formalParameter::b
@@ -187,6 +315,40 @@ AssignmentExpression
         int
     colon: :
     elseExpression2: DoubleLiteral
+      literal: 1.0
+      staticType: double
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: num
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: num
+  staticType: num
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::g::@formalParameter::a
+    staticType: null
+  operator: +=
+  rightHandSide: ConditionalExpression
+    condition: SimpleIdentifier
+      token: b
+      element: <testLibrary>::@function::g::@formalParameter::b
+      staticType: bool
+    question: ?
+    thenExpression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: f
+        element: <testLibrary>::@function::f
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: int Function()
+      staticType: int
+      typeArgumentTypes
+        int
+    colon: :
+    elseExpression: DoubleLiteral
       literal: 1.0
       staticType: double
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
@@ -215,15 +377,33 @@ void f(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.singleAssignmentExpression;
+    var node = result.findNode.compoundAssignment('a += 0');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: dynamic
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      acceptedType: dynamic
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: dynamic
+  staticType: dynamic
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -4390,15 +4570,33 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 3');
+    var node = result.findNode.compoundAssignment('x += 3');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: x@51
+      type: num
+    write: VariableWriteResolution
+      element: x@51
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: num
+  staticType: num
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: x@51
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -4715,10 +4913,10 @@ void f(int x) {
 // [diag.invalidAssignment] A value of type 'double' can't be assigned to a variable of type 'int'.
 }
 ''');
-    assertType(result.findNode.assignment('+='), 'double');
-    assertType(result.findNode.assignment('-='), 'double');
-    assertType(result.findNode.assignment('*='), 'double');
-    assertType(result.findNode.assignment('%='), 'double');
+    assertType(result.findNode.compoundAssignment('+='), 'double');
+    assertType(result.findNode.compoundAssignment('-='), 'double');
+    assertType(result.findNode.compoundAssignment('*='), 'double');
+    assertType(result.findNode.compoundAssignment('%='), 'double');
   }
 
   test_simpleIdentifier_parameter_compound_refineType_int_int() async {
@@ -4731,11 +4929,11 @@ void f(int x) {
   x %= 1;
 }
 ''');
-    assertType(result.findNode.assignment('+='), 'int');
-    assertType(result.findNode.assignment('-='), 'int');
-    assertType(result.findNode.assignment('*='), 'int');
-    assertType(result.findNode.assignment('~/='), 'int');
-    assertType(result.findNode.assignment('%='), 'int');
+    assertType(result.findNode.compoundAssignment('+='), 'int');
+    assertType(result.findNode.compoundAssignment('-='), 'int');
+    assertType(result.findNode.compoundAssignment('*='), 'int');
+    assertType(result.findNode.compoundAssignment('~/='), 'int');
+    assertType(result.findNode.compoundAssignment('%='), 'int');
   }
 
   test_simpleIdentifier_parameter_simple() async {
@@ -5226,15 +5424,34 @@ class C {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::C::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -5244,6 +5461,78 @@ AssignmentExpression
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
+''');
+  }
+
+  test_simpleIdentifier_thisGetter_thisSetter_compound_rhsContext() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T valueOfType<T>() => throw 0;
+
+class C {
+  int get x => 0;
+  set x(num _) {}
+
+  void f() {
+    x += valueOfType();
+  }
+}
+''');
+
+    var node = result.findNode.compoundAssignment('x += valueOfType()');
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::C::@setter::x
+      acceptedType: num
+  operator: +=
+  value: MethodInvocation
+    methodName: SimpleIdentifier
+      token: valueOfType
+      element: <testLibrary>::@function::valueOfType
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticInvokeType: num Function()
+    staticType: num
+    typeArgumentTypes
+      num
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: num
+  staticType: num
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: x
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: valueOfType
+      element: <testLibrary>::@function::valueOfType
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticInvokeType: num Function()
+    staticType: num
+    typeArgumentTypes
+      num
+  readElement: <testLibrary>::@class::C::@getter::x
+  readType: int
+  writeElement: <testLibrary>::@class::C::@setter::x
+  writeType: num
+  element: dart:core::@class::num::@method::+
+  staticType: num
 ''');
   }
 
@@ -5266,15 +5555,34 @@ class C with M1, M2 {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@mixin::M2::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@mixin::M2::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -5400,15 +5708,34 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -5501,15 +5828,34 @@ class A {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -5519,6 +5865,55 @@ AssignmentExpression
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
+''');
+  }
+
+  test_simpleIdentifier_topLevelFunction_compound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void foo(int value) {}
+
+void f() {
+  foo += 0;
+//^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+//    ^^
+// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function(int)'.
+}
+''');
+
+    var node = result.findNode.compoundAssignment('foo += 0');
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: void Function(int)
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::foo
+    staticType: void Function(int)
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <testLibrary>::@function::foo
+  readType: void Function(int)
+  writeElement: <testLibrary>::@function::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
 ''');
   }
 
@@ -5710,15 +6105,37 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('int += 3');
+    var node = result.findNode.compoundAssignment('int += 3');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: int
+    read: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+        candidate: dart:core::@class::int
+      recovery: <null>
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: dart:core::@class::int
+      recovery: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: int
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <null>
     staticType: int
@@ -5785,15 +6202,35 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 1');
+    var node = result.findNode.compoundAssignment('x += 1');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+      recovery: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <null>
     staticType: int

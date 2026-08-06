@@ -87,6 +87,21 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case ValidNamedReadResolution(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+      if (target.write case ValidNamedWriteResolution(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+    }
+    _checkSinceSdkVersion(node.element, node);
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConstructorReference2(ConstructorReference2 node) {
     var typeReference = node.typeReference;
     _checkSinceSdkVersion(

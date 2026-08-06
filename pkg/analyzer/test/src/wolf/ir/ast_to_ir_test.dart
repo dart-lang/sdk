@@ -183,8 +183,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [])).equals(579);
   }
@@ -197,8 +199,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [])).equals(579);
   }
@@ -293,8 +297,10 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [123])).equals(579);
   }
@@ -304,8 +310,10 @@ test(int i) {
 test(int i) => i += 456;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [123])).equals(579);
   }
@@ -576,8 +584,12 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.assignment('length -= 2')]
-      ..containsSubrange(astNodes[result.findNode.simple('length')]!)
+    check(astNodes)[result.findNode.compoundAssignment('length -= 2')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget(
+          'length -= 2',
+        )]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('2')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);

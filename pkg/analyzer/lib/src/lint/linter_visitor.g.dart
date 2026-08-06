@@ -1395,6 +1395,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _runSubscriptions(node, _registry._forCompoundAssignment);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     _runSubscriptions(node, _registry._forConditionalExpression);
@@ -4312,6 +4319,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<CompilationUnit>> _forCompilationUnit = [];
 
+  final List<_Subscription2<CompoundAssignment>> _forCompoundAssignment = [];
+
   final List<_Subscription2<ConditionalExpression>> _forConditionalExpression =
       [];
 
@@ -4909,6 +4918,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addCompilationUnit(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forCompilationUnit.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addCompoundAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forCompoundAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

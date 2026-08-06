@@ -450,6 +450,36 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitCompoundAssignment(CompoundAssignment node) {
+    var target = node.target as AssignmentTargetImpl;
+    late _LValueTemplates lValueTemplates;
+    switch (target) {
+      case InvalidExpressionAssignmentTargetImpl():
+        throw UnimplementedError('Invalid expression assignment target');
+      case UnqualifiedNameAssignmentTargetImpl():
+        lValueTemplates = _unqualifiedNameAssignmentTarget(target);
+    }
+    lValueTemplates.readForCompoundAssignment(this);
+    // Stack: lValue oldValue
+    dispatchNode(node.value);
+    // Stack: lValue oldValue rhs
+    var lexeme = node.operator.lexeme;
+    assert(lexeme.endsWith('='));
+    instanceCall(
+      node.element,
+      lexeme.substring(0, lexeme.length - 1),
+      const [],
+      twoArguments,
+    );
+    // Stack: lValue newValue
+    eventListener.onEnterNode(target);
+    lValueTemplates.write(this);
+    // Stack: newValue
+    eventListener.onExitNode();
+    // Stack: result
+  }
+
+  @override
   Null visitConditionalExpression(ConditionalExpression node) {
     ir.block(0, 1);
     // Stack: BLOCK(1)

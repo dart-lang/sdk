@@ -47,6 +47,7 @@ class Tag {
   static const int AwaitExpression = 100;
   static const int BooleanLiteral = 4;
   static const int CascadeExpression = 95;
+  static const int CompoundAssignment = 138;
   static const int ConditionalExpression = 51;
   static const int ConstructorFieldInitializer = 50;
   static const int ConstructorTearOff = 101;

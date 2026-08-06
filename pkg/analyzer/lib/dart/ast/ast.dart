@@ -86,6 +86,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         CommentReference,
         CompilationUnit,
         CompilationUnitMember,
+        CompoundAssignment,
         CompoundAssignmentExpression,
         ConditionalExpression,
         Configuration,

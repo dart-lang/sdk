@@ -635,6 +635,19 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(element, node);
   }
 
+  void compoundAssignment(CompoundAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case ValidNamedReadResolution(:var element)) {
+        checkUsage(element, target);
+      }
+      if (target.write case ValidNamedWriteResolution(:var element)) {
+        checkUsage(element, target);
+      }
+    }
+    checkUsage(node.element, node);
+  }
+
   void constructorDeclaration(ConstructorDeclaration node) {
     // Check usage of any implicit super-constructor call.
     // There is only an implicit super-constructor if:

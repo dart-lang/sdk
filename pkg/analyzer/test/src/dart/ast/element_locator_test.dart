@@ -46,7 +46,7 @@ void main() {
   x += 1;
 }
 ''');
-    var node = result.findNode.assignment('+=');
+    var node = result.findNodeV1.assignment('+=');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -888,20 +888,6 @@ foo@17
 ''');
   }
 
-  test_locate_AssignmentExpression() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-int x = 0;
-void main() {
-  x += 1;
-}
-''');
-    var node = result.findNode.assignment('+=');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-dart:core::@class::num::@method::+
-''');
-  }
-
   test_locate_BinaryExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 3 + 4;
@@ -941,6 +927,20 @@ class A {}
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A
+''');
+  }
+
+  test_locate_CompoundAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int x = 0;
+void main() {
+  x += 1;
+}
+''');
+    var node = result.findNode.compoundAssignment('x += 1');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+dart:core::@class::num::@method::+
 ''');
   }
 

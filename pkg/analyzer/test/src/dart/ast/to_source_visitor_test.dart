@@ -885,6 +885,17 @@ var a;
     _assertSource('#!/bin/dartvm library my; var a;', node);
   }
 
+  void test_visitCompoundAssignment() {
+    var code = 'a += b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCompoundAssignment;
+    _assertSource(code, node);
+  }
+
   void test_visitConditionalExpression() {
     var code = 'a ? b : c';
     var parseResult = parseTestCodeWithDiagnostics('''

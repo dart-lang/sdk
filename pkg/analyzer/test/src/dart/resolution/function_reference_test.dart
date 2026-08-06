@@ -4604,13 +4604,31 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f += 1');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  function2: CompoundAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: f
+      read: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: void Function<T>(T)
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        acceptedType: void Function<T>(T)
+    operator: +=
+    value: IntegerLiteral
+      literal: 1
+      correspondingParameter: <testLibrary>::@extension::#0::@method::+::@formalParameter::i
+      staticType: int
+    binaryOperator: add
+    element: <testLibrary>::@extension::#0::@method::+
+    operatorResultType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
     operator: +=
-    rightHandSide2: IntegerLiteral
+    rightHandSide: IntegerLiteral
       literal: 1
       correspondingParameter: <testLibrary>::@extension::#0::@method::+::@formalParameter::i
       staticType: int

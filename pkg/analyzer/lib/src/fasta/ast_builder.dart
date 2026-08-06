@@ -3742,10 +3742,10 @@ class AstBuilder extends StackListener {
         );
       } else {
         push(
-          AssignmentExpressionImpl(
-            leftHandSide2: lhs,
+          CompoundAssignmentImpl(
+            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
             operator: token,
-            rightHandSide2: rhs,
+            value: rhs,
           ),
         );
       }

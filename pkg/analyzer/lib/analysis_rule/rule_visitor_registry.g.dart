@@ -568,6 +568,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addCompilationUnit(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCompoundAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addConditionalExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addConfiguration(AbstractAnalysisRule rule, AstVisitor2 visitor);

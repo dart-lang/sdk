@@ -99,6 +99,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
     var factoryRedirectionTarget = node.factoryRedirectionTarget;
@@ -254,58 +264,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
-    var target = node.target;
-    if (target is! UnqualifiedNameAssignmentTarget) {
-      super.visitIfNullAssignment(node);
-      return;
-    }
-    if (target.read case ValidNamedReadResolution(:var element)) {
-      if (element is SubstitutedExecutableElementImpl) {
-        element = element.baseElement;
-      }
-      var variable = element.tryCast<PropertyAccessorElement>()?.variable;
-      if (element is PropertyAccessorElement &&
-          variable is TopLevelVariableElement) {
-        if (element.isOriginVariable) {
-          usedElements.addElement(variable);
-        } else {
-          usedElements.members.add(element);
-          _addMemberAndCorrespondingGetter(element);
-        }
-      } else if (element is LocalVariableElement) {
-        usedElements.addElement(element);
-      } else {
-        _useIdentifierElement(element);
-        if (element is ExecutableElement) {
-          for (var parameter in element.formalParameters) {
-            usedElements.addElement(parameter);
-          }
-        }
-        var enclosingElement = element.enclosingElement;
-        if ((enclosingElement is InterfaceElement ||
-                enclosingElement is ExtensionElement) &&
-            !identical(element, _enclosingExec)) {
-          usedElements.members.add(element);
-          _addMemberAndCorrespondingGetter(element);
-        }
-      }
-    }
-
-    if (target.write case ValidNamedWriteResolution(:var element)) {
-      if (element is SubstitutedExecutableElementImpl) {
-        element = element.baseElement;
-      }
-      if (element is! LocalVariableElement) {
-        _useIdentifierElement(element);
-        var enclosingElement = element.enclosingElement;
-        if ((enclosingElement is InterfaceElement ||
-                enclosingElement is ExtensionElement) &&
-            !identical(element, _enclosingExec)) {
-          usedElements.members.add(element);
-        }
-      }
-    }
-
+    _useReadWriteAssignmentTarget(node.target, readCountsAsUse: true);
     super.visitIfNullAssignment(node);
   }
 
@@ -566,6 +525,67 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       return;
     }
     usedElements.addElement(element);
+  }
+
+  void _useReadWriteAssignmentTarget(
+    AssignmentTarget target, {
+    required bool readCountsAsUse,
+  }) {
+    if (target is! UnqualifiedNameAssignmentTarget) {
+      return;
+    }
+    if (target.read case ValidNamedReadResolution(:var element)) {
+      if (element is SubstitutedExecutableElementImpl) {
+        element = element.baseElement;
+      }
+      var variable = element.tryCast<PropertyAccessorElement>()?.variable;
+      if (element is PropertyAccessorElement &&
+          variable is TopLevelVariableElement) {
+        if (element.isOriginVariable) {
+          if (readCountsAsUse) {
+            usedElements.addElement(variable);
+          }
+        } else {
+          usedElements.members.add(element);
+          _addMemberAndCorrespondingGetter(element);
+        }
+      } else if (element is LocalVariableElement) {
+        if (readCountsAsUse) {
+          usedElements.addElement(element);
+        }
+      } else if (readCountsAsUse ||
+          element is! PropertyAccessorElement ||
+          !element.isOriginVariable) {
+        _useIdentifierElement(element);
+        if (element is ExecutableElement) {
+          for (var parameter in element.formalParameters) {
+            usedElements.addElement(parameter);
+          }
+        }
+        var enclosingElement = element.enclosingElement;
+        if ((enclosingElement is InterfaceElement ||
+                enclosingElement is ExtensionElement) &&
+            !identical(element, _enclosingExec)) {
+          usedElements.members.add(element);
+          _addMemberAndCorrespondingGetter(element);
+        }
+      }
+    }
+
+    if (target.write case ValidNamedWriteResolution(:var element)) {
+      if (element is SubstitutedExecutableElementImpl) {
+        element = element.baseElement;
+      }
+      if (element is! LocalVariableElement) {
+        _useIdentifierElement(element);
+        var enclosingElement = element.enclosingElement;
+        if ((enclosingElement is InterfaceElement ||
+                enclosingElement is ExtensionElement) &&
+            !identical(element, _enclosingExec)) {
+          usedElements.members.add(element);
+        }
+      }
+    }
   }
 
   /// Returns whether the value of [node] is _only_ being read at this position.

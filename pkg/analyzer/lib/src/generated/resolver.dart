@@ -1759,11 +1759,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     NamedWriteResolutionImpl write,
     ExpressionInfo? readExpressionInfo,
   })?
-  resolveUnqualifiedNameIfNullAssignmentTarget(
+  resolveUnqualifiedNameReadWriteAssignmentTarget(
     UnqualifiedNameAssignmentTargetImpl node,
   ) {
     return _propertyElementResolver
-        .resolveUnqualifiedNameIfNullAssignmentTarget(node);
+        .resolveUnqualifiedNameReadWriteAssignmentTarget(node);
   }
 
   void setReadElement(
@@ -2450,6 +2450,24 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     } finally {
       stopInferenceLogging();
     }
+  }
+
+  @override
+  void visitCompoundAssignment(
+    covariant CompoundAssignmentImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _assignmentExpressionResolver.resolveCompound(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override

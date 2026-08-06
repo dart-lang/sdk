@@ -127,6 +127,21 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _writeByte(Tag.CompoundAssignment);
+    _writeNode(node.target);
+    _writeNode(node.value);
+
+    var operatorToken = node.operator.type;
+    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
+    _writeByte(binaryToken.index);
+
+    _sink.writeElement(node.element);
+    _sink.writeType(node.operatorResultType);
+    _storeExpression(node);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     _writeByte(Tag.ConditionalExpression);
     _writeNode(node.condition2);

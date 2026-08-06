@@ -70,6 +70,8 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
 
+  CompoundAssignment get singleCompoundAssignment => _single();
+
   ConstructorInvocation get singleConstructorInvocation => _single();
 
   ConstructorTearOff get singleConstructorTearOff => _single();
@@ -94,13 +96,17 @@ class FindNode2 extends _FindNodeBase {
   AssignmentExpression assignment(String search) {
     var node = _node<AstNode>(
       search,
-      (node) => node is AssignmentExpression || node is DirectAssignment,
+      (node) => node is AssignmentExpression || node is AssignmentExpression2,
     );
     return _toAssignmentExpression(node);
   }
 
   BinaryOperatorInvocation binaryOperatorInvocation(String search) {
     return _node(search, (node) => node is BinaryOperatorInvocation);
+  }
+
+  CompoundAssignment compoundAssignment(String search) {
+    return _node(search, (node) => node is CompoundAssignment);
   }
 
   ConstructorInvocation constructorInvocation(String search) {
@@ -186,10 +192,13 @@ class FindNode2 extends _FindNodeBase {
   }
 
   AssignmentExpression _toAssignmentExpression(AstNode node) {
-    if (node is AssignmentExpression) {
-      return node;
-    }
-    return (node as DirectAssignmentImpl).assignmentExpression;
+    return switch (node) {
+      AssignmentExpression node => node,
+      CompoundAssignmentImpl node => node.assignmentExpression,
+      DirectAssignmentImpl node => node.assignmentExpression,
+      IfNullAssignmentImpl node => node.assignmentExpression,
+      _ => throw StateError('Not an assignment expression: $node'),
+    };
   }
 }
 

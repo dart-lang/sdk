@@ -840,6 +840,58 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    recordOperatorReference(node.operator, node.element);
+    switch (node.target as AssignmentTargetImpl) {
+      case InvalidExpressionAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        var read = target.read;
+        var write = target.write;
+        if (read is ValidNamedReadResolutionImpl &&
+            write is ValidNamedWriteResolutionImpl) {
+          var readElement = read.element;
+          var writeElement = write.element;
+          for (var element in {readElement, writeElement}) {
+            if (element.firstFragment.enclosingFragment
+                is LibraryFragmentImpl) {
+              assembler.addPrefixForElement(element);
+            }
+          }
+          if (identical(readElement, writeElement)) {
+            recordRelation(
+              readElement,
+              IndexRelationKind.IS_READ_WRITTEN_BY,
+              target,
+              false,
+            );
+          } else {
+            recordRelation(
+              readElement,
+              IndexRelationKind.IS_READ_BY,
+              target,
+              false,
+            );
+            recordRelation(
+              writeElement,
+              IndexRelationKind.IS_WRITTEN_BY,
+              target,
+              false,
+            );
+          }
+        } else {
+          assembler.addNameRelation(
+            target.name.lexeme,
+            IndexRelationKind.IS_READ_WRITTEN_BY,
+            target.offset,
+            false,
+          );
+        }
+    }
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     // If the constructor does not have an explicit `super` constructor
     // invocation, it implicitly invokes the unnamed constructor.

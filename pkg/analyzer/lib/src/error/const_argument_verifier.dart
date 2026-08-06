@@ -55,6 +55,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
   void visitConstructorInvocation(ConstructorInvocation node) {
     if (node.inConstantContext) return;
     _check(

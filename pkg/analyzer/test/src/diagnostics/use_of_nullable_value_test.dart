@@ -746,15 +746,33 @@ m(int x, int? y) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x +=');
+    var node1 = result.findNode.compoundAssignment('x += 0');
     assertResolvedNodeText(node1, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: int
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::m::@formalParameter::x
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -766,15 +784,33 @@ AssignmentExpression
   staticType: int
 ''');
 
-    var node2 = result.findNode.assignment('y +=');
+    var node2 = result.findNode.compoundAssignment('y += 0');
     assertResolvedNodeText(node2, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: y
+    read: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::y
+      type: int?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::m::@formalParameter::y
+      acceptedType: int?
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: y
     element: <testLibrary>::@function::m::@formalParameter::y
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int

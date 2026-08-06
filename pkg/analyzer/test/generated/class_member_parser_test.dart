@@ -2672,11 +2672,18 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression2: AssignmentExpression
-                      leftHandSide2: SimpleIdentifier
+                    expression2: CompoundAssignment
+                      target: UnqualifiedNameAssignmentTarget
+                        name: x
+                      operator: >>>=
+                      value: SimpleIdentifier
+                        token: value
+                      binaryOperator: unsignedShiftRight
+                    expression(v1): AssignmentExpression
+                      leftHandSide: SimpleIdentifier
                         token: x
                       operator: >>>=
-                      rightHandSide2: SimpleIdentifier
+                      rightHandSide: SimpleIdentifier
                         token: value
                     semicolon: ;
                 rightBracket: }
