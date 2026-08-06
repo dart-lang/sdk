@@ -3102,7 +3102,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
   __ movq(CallingConventions::kArg3Reg, R11);  // Negative argc.
   __ movq(CallingConventions::kArg4Reg, R12);  // Argv.
 
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
   __ movq(Address(RSP, 0 * target::kWordSize), THR);  // Thread.
 #else
   __ movq(CallingConventions::kArg5Reg, THR);  // Thread.
