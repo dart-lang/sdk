@@ -1,0 +1,13 @@
+r0 int32[float]
+r1 int32[float]
+r2 int32[float]
+r3 int32[float]
+S+0 float
+S+4 float
+S+8 float
+S+12 float
+S+16 float
+M(S+20 uint32, S+24 uint32) Struct(size: 8)
+S+28 int32
+=>
+r0 int32[float]

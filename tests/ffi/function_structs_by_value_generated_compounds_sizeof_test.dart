@@ -32,19 +32,24 @@ void main() {
   testSizeOfStruct3BytesHomogeneousUint8NativeLeaf();
   testSizeOfStruct3BytesInt2ByteAlignedNativeLeaf();
   testSizeOfStruct4BytesHomogeneousInt16NativeLeaf();
+  testSizeOfStruct4BytesInt1FieldNativeLeaf();
+  testSizeOfStruct4BytesHomogeneousUint84BytesNativeLeaf();
   testSizeOfStruct4BytesFloatNativeLeaf();
   testSizeOfStruct7BytesHomogeneousUint8NativeLeaf();
   testSizeOfStruct7BytesInt4ByteAlignedNativeLeaf();
   testSizeOfStruct8BytesIntNativeLeaf();
+  testSizeOfStruct8BytesHomogeneousInt322FieldsNativeLeaf();
   testSizeOfStruct8BytesHomogeneousFloatNativeLeaf();
   testSizeOfStruct8BytesFloatNativeLeaf();
   testSizeOfStruct8BytesMixedNativeLeaf();
+  testSizeOfStruct8BytesMixedInt32FloatNativeLeaf();
   testSizeOfStruct9BytesHomogeneousUint8NativeLeaf();
   testSizeOfStruct9BytesInt4Or8ByteAlignedNativeLeaf();
   testSizeOfStruct10BytesHomogeneousBoolNativeLeaf();
   testSizeOfStruct12BytesHomogeneousFloatNativeLeaf();
   testSizeOfStruct12BytesHomogeneousInt32NativeLeaf();
   testSizeOfStruct16BytesHomogeneousFloatNativeLeaf();
+  testSizeOfStruct16BytesHomogeneousInt324FieldsNativeLeaf();
   testSizeOfStruct16BytesMixedNativeLeaf();
   testSizeOfStruct16BytesMixed2NativeLeaf();
   testSizeOfStruct17BytesIntNativeLeaf();
@@ -178,6 +183,35 @@ void testSizeOfStruct4BytesHomogeneousInt16NativeLeaf() {
   Expect.equals(sizeOf<Struct4BytesHomogeneousInt16>(), result);
 }
 
+@Native<Uint64 Function()>(symbol: 'SizeOfStruct4BytesInt1Field', isLeaf: true)
+external int sizeOfStruct4BytesInt1FieldNativeLeaf();
+
+/// Tests that the Dart [sizeOf] returns the same value as the C++ `sizeof` for
+/// [Struct4BytesInt1Field].
+void testSizeOfStruct4BytesInt1FieldNativeLeaf() {
+  final result = sizeOfStruct4BytesInt1FieldNativeLeaf();
+
+  print("result = $result");
+
+  Expect.equals(sizeOf<Struct4BytesInt1Field>(), result);
+}
+
+@Native<Uint64 Function()>(
+  symbol: 'SizeOfStruct4BytesHomogeneousUint84Bytes',
+  isLeaf: true,
+)
+external int sizeOfStruct4BytesHomogeneousUint84BytesNativeLeaf();
+
+/// Tests that the Dart [sizeOf] returns the same value as the C++ `sizeof` for
+/// [Struct4BytesHomogeneousUint84Bytes].
+void testSizeOfStruct4BytesHomogeneousUint84BytesNativeLeaf() {
+  final result = sizeOfStruct4BytesHomogeneousUint84BytesNativeLeaf();
+
+  print("result = $result");
+
+  Expect.equals(sizeOf<Struct4BytesHomogeneousUint84Bytes>(), result);
+}
+
 @Native<Uint64 Function()>(symbol: 'SizeOfStruct4BytesFloat', isLeaf: true)
 external int sizeOfStruct4BytesFloatNativeLeaf();
 
@@ -237,6 +271,22 @@ void testSizeOfStruct8BytesIntNativeLeaf() {
 }
 
 @Native<Uint64 Function()>(
+  symbol: 'SizeOfStruct8BytesHomogeneousInt322Fields',
+  isLeaf: true,
+)
+external int sizeOfStruct8BytesHomogeneousInt322FieldsNativeLeaf();
+
+/// Tests that the Dart [sizeOf] returns the same value as the C++ `sizeof` for
+/// [Struct8BytesHomogeneousInt322Fields].
+void testSizeOfStruct8BytesHomogeneousInt322FieldsNativeLeaf() {
+  final result = sizeOfStruct8BytesHomogeneousInt322FieldsNativeLeaf();
+
+  print("result = $result");
+
+  Expect.equals(sizeOf<Struct8BytesHomogeneousInt322Fields>(), result);
+}
+
+@Native<Uint64 Function()>(
   symbol: 'SizeOfStruct8BytesHomogeneousFloat',
   isLeaf: true,
 )
@@ -276,6 +326,22 @@ void testSizeOfStruct8BytesMixedNativeLeaf() {
   print("result = $result");
 
   Expect.equals(sizeOf<Struct8BytesMixed>(), result);
+}
+
+@Native<Uint64 Function()>(
+  symbol: 'SizeOfStruct8BytesMixedInt32Float',
+  isLeaf: true,
+)
+external int sizeOfStruct8BytesMixedInt32FloatNativeLeaf();
+
+/// Tests that the Dart [sizeOf] returns the same value as the C++ `sizeof` for
+/// [Struct8BytesMixedInt32Float].
+void testSizeOfStruct8BytesMixedInt32FloatNativeLeaf() {
+  final result = sizeOfStruct8BytesMixedInt32FloatNativeLeaf();
+
+  print("result = $result");
+
+  Expect.equals(sizeOf<Struct8BytesMixedInt32Float>(), result);
 }
 
 @Native<Uint64 Function()>(
@@ -372,6 +438,22 @@ void testSizeOfStruct16BytesHomogeneousFloatNativeLeaf() {
   print("result = $result");
 
   Expect.equals(sizeOf<Struct16BytesHomogeneousFloat>(), result);
+}
+
+@Native<Uint64 Function()>(
+  symbol: 'SizeOfStruct16BytesHomogeneousInt324Fields',
+  isLeaf: true,
+)
+external int sizeOfStruct16BytesHomogeneousInt324FieldsNativeLeaf();
+
+/// Tests that the Dart [sizeOf] returns the same value as the C++ `sizeof` for
+/// [Struct16BytesHomogeneousInt324Fields].
+void testSizeOfStruct16BytesHomogeneousInt324FieldsNativeLeaf() {
+  final result = sizeOfStruct16BytesHomogeneousInt324FieldsNativeLeaf();
+
+  print("result = $result");
+
+  Expect.equals(sizeOf<Struct16BytesHomogeneousInt324Fields>(), result);
 }
 
 @Native<Uint64 Function()>(symbol: 'SizeOfStruct16BytesMixed', isLeaf: true)
