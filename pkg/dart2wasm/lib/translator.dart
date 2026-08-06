@@ -289,14 +289,6 @@ class Translator with KernelNodes {
     true,
   );
 
-  // The wasm type used to hold values of `Type`
-  late final w.RefType runtimeTypeType =
-      translateType(coreTypes.typeNonNullableRawType) as w.RefType;
-
-  // The wasm type used to hold values of `Type?`
-  late final w.RefType runtimeTypeTypeNullable = runtimeTypeType
-      .withNullability(true);
-
   // The wasm type used to hold values of `String`
   late final w.RefType stringType =
       translateType(coreTypes.stringNonNullableRawType) as w.RefType;
