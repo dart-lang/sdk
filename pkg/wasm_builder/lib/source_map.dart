@@ -15,17 +15,12 @@ class SourceMapping {
   /// in the source.
   final SourceInfo? sourceInfo;
 
-  SourceMapping._(this.instructionOffset, this.sourceInfo);
+  new _(this.instructionOffset, this.sourceInfo);
 
-  SourceMapping(
-    this.instructionOffset,
-    Uri fileUri,
-    int line,
-    int col,
-    String? name,
-  ) : sourceInfo = SourceInfo(fileUri, line, col, name);
+  new(this.instructionOffset, Uri fileUri, int line, int col, String? name)
+    : sourceInfo = SourceInfo(fileUri, line, col, name);
 
-  SourceMapping.unmapped(this.instructionOffset) : sourceInfo = null;
+  new unmapped(this.instructionOffset) : sourceInfo = null;
 
   SourceMapping shiftBy(int shift) {
     if (shift == 0) return this;
@@ -50,7 +45,7 @@ class SourceInfo {
   /// contains the code.
   final String? name;
 
-  SourceInfo(this.fileUri, this.line, this.col, this.name);
+  new(this.fileUri, this.line, this.col, this.name);
 
   @override
   String toString() => '$fileUri:$line:$col ($name)';
