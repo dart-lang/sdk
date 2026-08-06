@@ -1136,6 +1136,13 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       break;
     case kLibrary: {
       String& uri = String::CheckedHandle(Z, ReadObject());
+      if (uri.ptr() == Symbols::DartConcurrent().ptr() &&
+          !FLAG_experimental_shared_data) {
+        // Keep in sync with KernelLoader::LoadLibraryImportsAndExports.
+        FATAL(
+            "Encountered dart:concurrent when functionality is disabled. "
+            "Pass --experimental-shared-data");
+      }
       LibraryPtr library = Library::LookupLibrary(thread_, uri);
       if (library == Library::null()) {
         // Expression evaluation libraries are not registered with the VM:
@@ -1899,6 +1906,14 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     if ((flags & kHasSourcePositionsFlag) != 0) {
       position = reader_.ReadPosition();
       end_position = reader_.ReadPosition();
+    }
+
+    if (is_shared && !FLAG_experimental_shared_data &&
+        !Library::Handle(Z, cls.library()).IsAnyCoreLibrary()) {
+      // Keep synced with error in KernelLoader::ReadVMAnnotations.
+      FATAL(
+          "Encountered vm:shared when functionality is disabled. "
+          "Pass --experimental-shared-data");
     }
 
     field = Field::New(name, is_static, is_final, is_const,
