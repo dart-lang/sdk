@@ -90,8 +90,8 @@ final class Arm64StackFrame extends StackFrame {
         return 4; // Result + 3 arguments for AllocateClosure runtime call.
       case AllocateContext():
         return 2; // Result + 1 argument for AllocateContext runtime call.
-      case AllocateList():
-        return 3; // Result + 2 arguments for AllocateList runtime call.
+      case AllocateArray():
+        return 3; // Result + 2 arguments for AllocateList/AllocateTypedData runtime call.
       case AllocateRecord():
         return 2; // Result + 1 argument for AllocateRecord runtime call.
       case TypeLiteral():

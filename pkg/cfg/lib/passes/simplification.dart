@@ -317,7 +317,7 @@ final class Simplification extends Pass
   Instruction visitSuspend(Suspend instr) => instr;
 
   @override
-  Instruction visitAllocateList(AllocateList instr) => instr;
+  Instruction visitAllocateArray(AllocateArray instr) => instr;
 
   @override
   Instruction visitSetListElement(SetListElement instr) => instr;

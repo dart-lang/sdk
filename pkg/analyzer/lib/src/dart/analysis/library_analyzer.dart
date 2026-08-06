@@ -196,6 +196,7 @@ class LibraryAnalyzer {
         _testingData != null,
         typeSystemOperations: _typeSystemOperations,
         typeAnalyzerOptions: typeAnalyzerOptions,
+        enableLog: true,
       );
       _testingData?.recordFlowAnalysisDataForTesting(
         file.uri,
@@ -885,6 +886,7 @@ class LibraryAnalyzer {
       _testingData != null,
       typeSystemOperations: _typeSystemOperations,
       typeAnalyzerOptions: typeAnalyzerOptions,
+      enableLog: true,
     );
     _testingData?.recordFlowAnalysisDataForTesting(
       fileAnalysis.file.uri,

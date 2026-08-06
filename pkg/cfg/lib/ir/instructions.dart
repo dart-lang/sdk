@@ -1096,6 +1096,8 @@ final class StoreStaticField extends StoreField {
 
 /// Array is a sequence of elements of known size and type, such as typed data, String or a built-in List.
 enum ArrayKind {
+  // Built-in fixed-length List.
+  fixedLengthList,
   // Typed data lists holding their elements.
   int8List,
   uint8List,
@@ -1332,8 +1334,8 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
 /// passed to a call or an instance allocation.
 ///
 /// Only used as the first input of call instructions, [AllocateObject],
-/// [AllocateListLiteral], [AllocateMapLiteral], [InstantiateClosure] and
-/// [EnterSuspendableFunction].
+/// [AllocateListLiteral], [AllocateMapLiteral], [AllocateArray],
+/// [InstantiateClosure] and [EnterSuspendableFunction].
 final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   final List<ast.DartType> types;
   TypeArguments(
@@ -1851,21 +1853,40 @@ final class ExternalCall extends CallInstruction with BackendInstruction {
   R accept<R>(InstructionVisitor<R> v) => v.visitExternalCall(this);
 }
 
-/// Allocate a fixed-size List of given length.
-final class AllocateList extends Definition
+/// Allocate an array (built-in list or typed data list) of given length.
+///
+/// When creating built-in lists, [AllocateArray] can optionally take type arguments
+/// as an input.
+final class AllocateArray extends Definition
     with CanThrow, Pure, BackendInstruction {
-  AllocateList(super.graph, super.sourcePosition, Definition length)
-    : super(inputCount: 1) {
-    setInputAt(0, length);
-  }
-
-  Definition get length => inputDefAt(0);
-
-  CType get type =>
-      StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType);
+  final ArrayKind kind;
 
   @override
-  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateList(this);
+  final CType type;
+
+  AllocateArray(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    this.type,
+    Definition? typeArguments,
+    Definition length,
+  ) : super(inputCount: typeArguments != null ? 2 : 1) {
+    if (typeArguments != null) {
+      assert(kind == .fixedLengthList);
+      setInputAt(0, typeArguments);
+      setInputAt(1, length);
+    } else {
+      setInputAt(0, length);
+    }
+  }
+
+  bool get hasTypeArguments => inputCount > 1;
+  Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
+  Definition get length => inputDefAt(hasTypeArguments ? 1 : 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateArray(this);
 }
 
 /// Set value of [index]-th element of the given fixed-size List.

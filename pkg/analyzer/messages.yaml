@@ -1683,6 +1683,9 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "Functions can't be assigned a value."
     hasPublishedDocs: true
+    # In the documentation, the `prefer_function_declarations_over_variables`
+    # diagnostic is ignored because fixing it would require adding code that
+    # isn't relevant to the point of the fix.
     documentation: |-
       #### Description
 
@@ -1708,6 +1711,7 @@ CompileTimeErrorCode:
       local variable, then change the left-hand side:
 
       ```dart
+      %ignore=prefer_function_declarations_over_variables
       void f() {}
 
       void g() {
@@ -4585,6 +4589,8 @@ CompileTimeErrorCode:
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
+    # In the documentation, the `unnecessary_new` diagnostic is ignored because
+    # the diagnostic being documented requires using `new`.
     documentation: |-
       #### Description
 
@@ -4597,6 +4603,7 @@ CompileTimeErrorCode:
       rather than a class:
 
       ```dart
+      %ignore=unnecessary_new
       int f() => 0;
 
       void g() {
@@ -4610,6 +4617,7 @@ CompileTimeErrorCode:
       of a valid class:
 
       ```dart
+      %ignore=unnecessary_new
       int f() => 0;
 
       void g() {
@@ -6633,6 +6641,10 @@ CompileTimeErrorCode:
     problemMessage: "Extension overrides have no value so they can't be used as the receiver of a cascade expression."
     correctionMessage: "Try using '.' instead of '..'."
     hasPublishedDocs: true
+    # In the documentation, the `avoid_single_cascade_in_expression_statements`
+    # diagnostic is being ignored because it shouldn't be produced here. They
+    # are both signalling the same problem, but the diagnostic being documented
+    # provides the better message.
     documentation: |-
       #### Description
 
@@ -6647,6 +6659,7 @@ CompileTimeErrorCode:
       expression:
 
       ```dart
+      %ignore=avoid_single_cascade_in_expression_statements
       extension E on int {
         void m() {}
       }
@@ -10167,6 +10180,10 @@ CompileTimeErrorCode:
     problemMessage: "Inline function types can't be used for parameters in a generic function type."
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
     hasPublishedDocs: true
+    # In the documentation, the `use_function_type_syntax_for_parameters`
+    # diagnostic is being ignored because it shouldn't be produced here. Because
+    # it's an error to use a function typed parameter in a generic function
+    # type, there's no value in reporting both diagnostics.
     documentation: |-
       #### Description
 
@@ -10181,6 +10198,7 @@ CompileTimeErrorCode:
       type syntax:
 
       ```dart
+      %ignore=use_function_type_syntax_for_parameters
       typedef F = int Function(int f[!(!]String s));
       ```
 
@@ -10198,6 +10216,9 @@ CompileTimeErrorCode:
     problemMessage: "The modifier '#modifier' can't be applied to the body of a constructor."
     correctionMessage: Try removing the modifier.
     hasPublishedDocs: true
+    # In the documentation, the `empty_constructor_bodies` diagnostic is being
+    # ignored because it shouldn't be produced here. The constructor body can't
+    # be replaced by a semicolon because of the `async` keyword.
     documentation: |-
       #### Description
 
@@ -10211,6 +10232,7 @@ CompileTimeErrorCode:
       constructor for `C` is marked as being `async`:
 
       ```dart
+      %ignore=empty_constructor_bodies
       class C {
         C() [!async!] {}
       }
@@ -12094,25 +12116,25 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a mixin class declares a non-trivial
-      generative constructor. Trivial constructors are allowed, but non-trivial ones
-      (those with parameters, bodies, or initializers) aren't.
+      The analyzer produces this diagnostic when a mixin class declares a
+      non-trivial generative constructor. Trivial constructors are allowed, but
+      non-trivial ones (those with parameters, bodies, or initializers) aren't.
 
       #### Example
 
       The following code produces this diagnostic because the `mixin class` `A`
-      defines a generative constructor with a body:
+      defines a generative constructor with an initializer:
 
       ```dart
       mixin class A {
-        [!A!]() {}
+        [!A!]() : assert(true);
       }
       ```
 
       #### Common fixes
 
-      If you can remove the body or parameters of the constructor to make it trivial,
-      then do so:
+      If you can remove the initialize, body, or parameters of the constructor
+      to make it trivial, then do so:
 
       ```dart
       mixin class A {
@@ -12120,12 +12142,13 @@ CompileTimeErrorCode:
       }
       ```
 
-      If the constructor can't be made trivial, then convert the `mixin class` to a
-      regular `class` and extend or implement it, or separate the mixin capability:
+      If the constructor can't be made trivial, then convert the `mixin class`
+      to a regular `class` and extend or implement it, or separate the mixin
+      capability:
 
       ```dart
       class A {
-        A();
+        A() : assert(true);
       }
 
       // A separate mixin for mixing in behavior
@@ -13850,6 +13873,10 @@ CompileTimeErrorCode:
     problemMessage: "The return type of the setter must be 'void' or absent."
     correctionMessage: Try removing the return type, or define a method rather than a setter.
     hasPublishedDocs: true
+    # In the documentation, the `avoid_return_types_on_setters` diagnostic is
+    # ignored because it shouldn't be reported here. If the return type is
+    # anything other than `void`, then both will be reported. The lint should
+    # only report for a return type of `void`.
     documentation: |-
       #### Description
 
@@ -13862,6 +13889,7 @@ CompileTimeErrorCode:
       return type of `int`:
 
       ```dart
+      %ignore=avoid_return_types_on_setters
       class C {
         [!int!] set p(int i) => 0;
       }
@@ -15281,6 +15309,9 @@ CompileTimeErrorCode:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.
     hasPublishedDocs: true
+    # In the documentation, the `use_super_parameters` diagnostic is ignored
+    # because the only way to resolve the diagnostic would also resolve the
+    # diagnostic being documented.
     documentation: |-
       #### Description
 
@@ -15304,6 +15335,7 @@ CompileTimeErrorCode:
       other in the super constructor invocation:
 
       ```dart
+      %ignore=use_super_parameters
       class A {
         A(int x, int y);
       }
@@ -27997,6 +28029,9 @@ WarningCode:
       String name: the name of the member
     problemMessage: "The member '#name' can only be used within its package."
     hasPublishedDocs: true
+    # In the documentation, the `implementation_imports` diagnostic is being
+    # ignored because it's a necessary pre-condition to referencing an internal
+    # member.
     documentation: |-
       #### Description
 
@@ -28021,6 +28056,7 @@ WarningCode:
       class `C`, which isn't intended to be used outside the package `p`:
 
       ```dart
+      %ignore=implementation_imports
       import 'package:p/src/p.dart';
 
       void f([!C!] c) {}

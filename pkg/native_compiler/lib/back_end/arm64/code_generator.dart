@@ -20,6 +20,7 @@ import 'package:native_compiler/back_end/code_generator.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/names.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:vm/modular/transformations/pragma.dart';
@@ -1014,27 +1015,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitLoadArrayElement(LoadArrayElement instr) {
-    OperandSize sz = switch (instr.kind) {
-      .int8List => .s8,
-      .uint8List || .uint8ClampedList => .u8,
-      .int16List => .s16,
-      .uint16List => .u16,
-      .int32List => .s32,
-      .uint32List => .u32,
-      .int64List => .s64,
-      .uint64List => .u64,
-    };
-    int offset = switch (instr.kind) {
-      .int8List ||
-      .uint8List ||
-      .uint8ClampedList ||
-      .int16List ||
-      .uint16List ||
-      .int32List ||
-      .uint32List ||
-      .int64List ||
-      .uint64List => vmOffsets.TypedData_payload_offset,
-    };
+    OperandSize sz = instr.kind.elementSize(objectLayout);
+    int offset = instr.kind.dataOffset(vmOffsets);
     Register baseReg = inputReg(instr, 0);
     final index = instr.index;
     if (index is Constant) {
@@ -1668,61 +1650,171 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
-  void visitAllocateList(AllocateList instr) {
+  void visitAllocateArray(AllocateArray instr) {
+    final arrayKind = instr.kind;
+    final elemSize = arrayKind.elementSize(objectLayout);
+    final headerSize = arrayKind.dataOffset(vmOffsets);
+    final maxElements = arrayKind.maxNewSpaceElements(objectLayout);
+    final classId = arrayKind.classId;
+    final alignment = objectAlignment(wordSize);
     final tagsReg = temporaryReg(instr, 0);
     final scratch1Reg = temporaryReg(instr, 1);
     final scratch2Reg = temporaryReg(instr, 2);
+    final instanceSizeReg = temporaryReg(instr, 3);
     final resultReg = outputReg(instr);
-    // TODO: support AllocateList with non-constant length
-    final length = (instr.length as Constant).value.intValue;
-    assert(objectLayout.isSmi(length));
-    final instanceSize = roundUp(
-      vmOffsets.Array_data_offset + length * objectLayout.compressedWordSize,
-      objectAlignment(wordSize),
-    );
-    assert(outputReg(instr) == resultReg);
+    final typeArgsReg = instr.hasTypeArguments ? inputReg(instr, 0) : nullReg;
+
+    final lengthDef = instr.length;
+    var lengthReg = invalidReg;
+    var length = -1;
+    var instanceSize = 0;
+    if (lengthDef is Constant) {
+      length = lengthDef.value.intValue;
+      if (0 <= length && length <= maxElements) {
+        instanceSize = roundUp(
+          headerSize + (length << elemSize.log2sizeInBytes),
+          alignment,
+        );
+      } else {
+        lengthReg = tempReg;
+        _asm.loadConstant(lengthReg, lengthDef.value);
+      }
+    } else {
+      lengthReg = inputReg(instr, instr.hasTypeArguments ? 1 : 0);
+    }
 
     final done = Label();
     Label slowPath = addSlowPath(() {
-      assert(stackFrame.maxArgumentsStackSlots >= 3);
-      _asm.loadImmediate(tempReg, length << smiShift);
-      _asm.stp(
-        nullReg, // Type arguments.
-        tempReg, // Array length.
-        RegOffsetAddress(stackPointerReg, 0),
-      );
-      _asm.str(
-        nullReg, // Space for result.
-        RegOffsetAddress(stackPointerReg, 2 * wordSize),
-      );
-      _callRuntime(RuntimeEntry.AllocateArray, 2);
-      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+      if (lengthReg == invalidReg) {
+        lengthReg = tempReg;
+        _asm.loadConstant(lengthReg, (lengthDef as Constant).value);
+      }
+      switch (arrayKind) {
+        case .fixedLengthList:
+          assert(stackFrame.maxArgumentsStackSlots >= 3);
+          _asm.stp(
+            typeArgsReg, // Type arguments.
+            lengthReg, // Array length.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _asm.str(
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 2 * wordSize),
+          );
+          _callRuntime(RuntimeEntry.AllocateArray, 2);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+          break;
+        case .int8List ||
+            .uint8List ||
+            .uint8ClampedList ||
+            .int16List ||
+            .uint16List ||
+            .int32List ||
+            .uint32List ||
+            .int64List ||
+            .uint64List:
+          assert(stackFrame.maxArgumentsStackSlots >= 3);
+          _asm.loadImmediate(scratch1Reg, classId.index << smiShift);
+          _asm.stp(
+            lengthReg, // Array length.
+            scratch1Reg, // Class ID.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _asm.str(
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 2 * wordSize),
+          );
+          _callRuntime(RuntimeEntry.AllocateTypedData, 2);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+          break;
+      }
       _asm.b(done);
     });
 
     _asm.loadImmediate(
       tagsReg,
-      vmOffsets.computeNewObjectTags(
-        ClassId.ArrayCid,
-        instanceSize,
-        log2wordSize,
-      ),
-    );
-    _asm.inlineAllocation(
-      resultReg,
-      tagsReg,
-      scratch1Reg,
-      scratch2Reg,
-      instanceSize,
-      slowPath,
-      initializeFields: true,
+      vmOffsets.computeNewObjectTags(classId, instanceSize, log2wordSize),
     );
 
-    _asm.loadImmediate(scratch1Reg, length << smiShift);
-    _asm.str(
-      scratch1Reg,
-      _asm.fieldAddress(resultReg, vmOffsets.Array_length_offset),
-    );
+    if (lengthReg == invalidReg) {
+      _asm.inlineAllocation(
+        resultReg,
+        tagsReg,
+        scratch1Reg,
+        scratch2Reg,
+        instanceSize,
+        slowPath,
+        initializeFields: true,
+        initValueReg: (arrayKind == .fixedLengthList) ? nullReg : ZR,
+      );
+
+      _asm.loadImmediate(tempReg, length << smiShift);
+      _asm.str(
+        tempReg,
+        _asm.fieldAddress(resultReg, arrayKind.lengthFieldOffset(vmOffsets)),
+      );
+
+      final dataFieldOffset = arrayKind.dataFieldOffset(vmOffsets);
+      if (dataFieldOffset != null) {
+        _asm.addImmediate(tempReg, resultReg, headerSize - heapObjectTag);
+        _asm.str(tempReg, _asm.fieldAddress(resultReg, dataFieldOffset));
+      }
+    } else {
+      // Make sure length is a Smi and between 0 and maxElements.
+      _asm.tbz(lengthReg, smiBit, slowPath);
+      _asm.cmpImmediate(lengthReg, maxElements << smiShift);
+      _asm.b(slowPath, .unsignedGreater);
+
+      // Compute instance size.
+      final shift = elemSize.log2sizeInBytes - smiShift;
+      if (shift < 0) {
+        _asm.lsr(instanceSizeReg, lengthReg, -shift);
+      } else {
+        _asm.lsl(instanceSizeReg, lengthReg, shift);
+      }
+      _asm.addImmediate(
+        instanceSizeReg,
+        instanceSizeReg,
+        headerSize + alignment - 1,
+      );
+      _asm.andImmediate(instanceSizeReg, instanceSizeReg, ~(alignment - 1));
+
+      // Combine tags and size.
+      final log2alignment = log2objectAlignment(log2wordSize);
+      _asm.cmpImmediate(
+        instanceSizeReg,
+        (1 << (vmOffsets.UntaggedObject_kSizeTagSize + log2alignment)),
+      );
+      _asm.lsl(
+        tempReg,
+        instanceSizeReg,
+        vmOffsets.UntaggedObject_kSizeTagPos - log2alignment,
+      );
+      _asm.csel(tempReg, ZR, tempReg, .unsignedGreaterOrEqual);
+      _asm.orr(tagsReg, tagsReg, tempReg);
+
+      _asm.inlineArrayAllocation(
+        resultReg,
+        tagsReg,
+        instanceSizeReg,
+        lengthReg,
+        scratch1Reg,
+        scratch2Reg,
+        slowPath,
+        initializeFields: true,
+        lengthFieldOffset: arrayKind.lengthFieldOffset(vmOffsets),
+        dataFieldOffset: arrayKind.dataFieldOffset(vmOffsets),
+        headerSize: headerSize,
+        initValueReg: (arrayKind == .fixedLengthList) ? nullReg : ZR,
+      );
+    }
+    if (instr.hasTypeArguments) {
+      assert(arrayKind == .fixedLengthList);
+      _asm.str(
+        typeArgsReg,
+        _asm.fieldAddress(resultReg, vmOffsets.Array_type_arguments_offset),
+      );
+    }
     _asm.bind(done);
   }
 
@@ -2291,5 +2383,83 @@ extension on ComparisonOpcode {
     .doubleLessOrEqual => Condition.unsignedLessOrEqual, // LS
     .doubleGreater => Condition.greater, // GT
     .doubleGreaterOrEqual => Condition.greaterOrEqual, // GE
+  };
+}
+
+extension on ArrayKind {
+  OperandSize elementSize(ObjectLayout objectLayout) => switch (this) {
+    .fixedLengthList =>
+      (objectLayout.compressedWordSize == 8
+          ? .s64
+          : ((objectLayout.compressedWordSize == 4)
+                ? .s32
+                : (throw 'Unexpected compressedWordSize ${objectLayout.compressedWordSize}'))),
+    .int8List => .s8,
+    .uint8List || .uint8ClampedList => .u8,
+    .int16List => .s16,
+    .uint16List => .u16,
+    .int32List => .s32,
+    .uint32List => .u32,
+    .int64List => .s64,
+    .uint64List => .u64,
+  };
+
+  int dataOffset(VMOffsets vmOffsets) => switch (this) {
+    .fixedLengthList => vmOffsets.Array_data_offset,
+    .int8List ||
+    .uint8List ||
+    .uint8ClampedList ||
+    .int16List ||
+    .uint16List ||
+    .int32List ||
+    .uint32List ||
+    .int64List ||
+    .uint64List => vmOffsets.TypedData_payload_offset,
+  };
+
+  int lengthFieldOffset(VMOffsets vmOffsets) => switch (this) {
+    .fixedLengthList => vmOffsets.Array_length_offset,
+    .int8List ||
+    .uint8List ||
+    .uint8ClampedList ||
+    .int16List ||
+    .uint16List ||
+    .int32List ||
+    .uint32List ||
+    .int64List ||
+    .uint64List => vmOffsets.TypedDataBase_length_offset,
+  };
+
+  int? dataFieldOffset(VMOffsets vmOffsets) => switch (this) {
+    .fixedLengthList => null, // No 'data' field.
+    .int8List ||
+    .uint8List ||
+    .uint8ClampedList ||
+    .int16List ||
+    .uint16List ||
+    .int32List ||
+    .uint32List ||
+    .int64List ||
+    .uint64List => vmOffsets.PointerBase_data_offset,
+  };
+
+  int maxNewSpaceElements(ObjectLayout objectLayout) {
+    final vmOffsets = objectLayout.vmOffsets;
+    final elemSize = elementSize(objectLayout);
+    return (vmOffsets.Heap_kNewAllocatableSize - dataOffset(vmOffsets)) >>
+        elemSize.log2sizeInBytes;
+  }
+
+  ClassId get classId => switch (this) {
+    .fixedLengthList => ClassId.ArrayCid,
+    .int8List => ClassId.TypedDataInt8ArrayCid,
+    .uint8List => ClassId.TypedDataUint8ArrayCid,
+    .uint8ClampedList => ClassId.TypedDataUint8ClampedArrayCid,
+    .int16List => ClassId.TypedDataInt16ArrayCid,
+    .uint16List => ClassId.TypedDataUint16ArrayCid,
+    .int32List => ClassId.TypedDataInt32ArrayCid,
+    .uint32List => ClassId.TypedDataUint32ArrayCid,
+    .int64List => ClassId.TypedDataInt64ArrayCid,
+    .uint64List => ClassId.TypedDataUint64ArrayCid,
   };
 }

@@ -616,7 +616,7 @@ final class ConstantPropagation extends Pass
   }
 
   @override
-  void visitAllocateList(AllocateList instr) {
+  void visitAllocateArray(AllocateArray instr) {
     _setNonConstant(instr);
   }
 

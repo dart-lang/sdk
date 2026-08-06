@@ -58,7 +58,7 @@ abstract interface class InstructionVisitor<R> {
   // Back-end specific instructions.
   R visitCompareAndBranch(CompareAndBranch instr);
   R visitExternalCall(ExternalCall instr);
-  R visitAllocateList(AllocateList instr);
+  R visitAllocateArray(AllocateArray instr);
   R visitSetListElement(SetListElement instr);
   R visitAllocateRecord(AllocateRecord instr);
   R visitBoxInt(BoxInt instr);
@@ -143,7 +143,7 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitCompareAndBranch(CompareAndBranch instr) =>
       defaultBackendInstruction(instr);
   R visitExternalCall(ExternalCall instr) => defaultBackendInstruction(instr);
-  R visitAllocateList(AllocateList instr) => defaultBackendInstruction(instr);
+  R visitAllocateArray(AllocateArray instr) => defaultBackendInstruction(instr);
   R visitSetListElement(SetListElement instr) =>
       defaultBackendInstruction(instr);
   R visitAllocateRecord(AllocateRecord instr) =>

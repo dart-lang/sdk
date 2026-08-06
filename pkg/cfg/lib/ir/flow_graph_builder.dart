@@ -606,6 +606,27 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [AllocateArray] to the graph.
+  AllocateArray addAllocateArray(
+    ArrayKind kind,
+    CType type, {
+    bool hasTypeArguments = false,
+  }) {
+    final length = pop();
+    final typeArguments = hasTypeArguments ? pop() : null;
+    final instr = AllocateArray(
+      graph,
+      currentSourcePosition,
+      kind,
+      type,
+      typeArguments,
+      length,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [AllocateClosure] to the graph.
   AllocateClosure addAllocateClosure(
     ClosureFunction function,

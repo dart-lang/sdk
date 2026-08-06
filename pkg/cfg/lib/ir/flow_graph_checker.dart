@@ -152,6 +152,8 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
           assert(user.typeArguments == def);
         case AllocateMapLiteral():
           assert(user.typeArguments == def);
+        case AllocateArray():
+          assert(user.typeArguments == def);
         case InstantiateClosure():
           assert(user.typeArguments == def);
         case EnterSuspendableFunction():
@@ -516,7 +518,11 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
-  void visitAllocateList(AllocateList instr) {}
+  void visitAllocateArray(AllocateArray instr) {
+    if (instr.hasTypeArguments) {
+      verifyTypeArgumentsInput(instr.typeArguments!, instr);
+    }
+  }
 
   @override
   void visitSetListElement(SetListElement instr) {}

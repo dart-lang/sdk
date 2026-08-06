@@ -89,6 +89,23 @@ void buildArrayElementGetter(
   builder.addReturn();
 }
 
+/// Build IR for factory constructors of typed data lists and built-in _List.
+void buildArrayFactory(
+  FlowGraphBuilder builder,
+  ArrayKind kind,
+  ast.Class cls,
+) {
+  final hasTypeArguments = kind == .fixedLengthList;
+  final coreTypes = GlobalContext.instance.coreTypes;
+  final type = StaticType(
+    hasTypeArguments
+        ? coreTypes.thisInterfaceType(cls, .nonNullable)
+        : coreTypes.nonNullableRawType(cls),
+  );
+  builder.addAllocateArray(kind, type, hasTypeArguments: hasTypeArguments);
+  builder.addReturn();
+}
+
 /// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
 void buildUnimplementedRecognizedMethod(
   FlowGraphBuilder builder,
@@ -105,16 +122,17 @@ void buildUnimplementedRecognizedMethod(
 }
 
 extension on ArrayKind {
-  String get className => switch (this) {
-    .int8List => '_Int8List',
-    .uint8List => '_Uint8List',
-    .uint8ClampedList => '_Uint8ClampedList',
-    .int16List => '_Int16List',
-    .uint16List => '_Uint16List',
-    .int32List => '_Int32List',
-    .uint32List => '_Uint32List',
-    .int64List => '_Int64List',
-    .uint64List => '_Uint64List',
+  String get elementName => switch (this) {
+    .int8List => 'Int8',
+    .uint8List => 'Uint8',
+    .uint8ClampedList => 'Uint8Clamped',
+    .int16List => 'Int16',
+    .uint16List => 'Uint16',
+    .int32List => 'Int32',
+    .uint32List => 'Uint32',
+    .int64List => 'Int64',
+    .uint64List => 'Uint64',
+    .fixedLengthList => throw 'ArrayKind.elementName is not defined for $this',
   };
 }
 
@@ -185,6 +203,13 @@ final class VmRecognizedMethods(
       'get:length',
     ): (FlowGraphBuilder builder) {
       buildInstanceGetter(builder, objectLayout.Array_length);
+    },
+    index.getProcedure('dart:core', '_List', ''): (FlowGraphBuilder builder) {
+      buildArrayFactory(
+        builder,
+        .fixedLengthList,
+        index.getClass('dart:core', '_List'),
+      );
     },
 
     // dart:_compact_hash
@@ -310,7 +335,7 @@ final class VmRecognizedMethods(
     ])
       index.getProcedure(
         'dart:typed_data',
-        arrayKind.className,
+        '_${arrayKind.elementName}List',
         '[]',
       ): (FlowGraphBuilder builder) {
         buildArrayElementGetter(
@@ -318,6 +343,29 @@ final class VmRecognizedMethods(
           arrayKind,
           objectLayout.TypedListBase_length,
           const IntType(),
+        );
+      },
+
+    for (ArrayKind arrayKind in [
+      .int8List,
+      .uint8List,
+      .uint8ClampedList,
+      .int16List,
+      .uint16List,
+      .int32List,
+      .uint32List,
+      .int64List,
+      .uint64List,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '${arrayKind.elementName}List',
+        '',
+      ): (FlowGraphBuilder builder) {
+        buildArrayFactory(
+          builder,
+          arrayKind,
+          index.getClass('dart:typed_data', '${arrayKind.elementName}List'),
         );
       },
   };

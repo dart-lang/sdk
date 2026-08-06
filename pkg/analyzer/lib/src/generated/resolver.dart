@@ -3109,10 +3109,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         isClosure: isLocal,
       );
 
-      analyzeExpression(
+      // node.functionExpression isn't a real expression, so visit it directly
+      // rather than going through `analyzeExpression`.
+      inferenceLogWriter?.setExpressionVisitCodePath(
         node.functionExpression,
-        SharedTypeSchemaView(functionType),
+        ExpressionVisitCodePath.analyzeExpression,
       );
+      pushRewrite(node.functionExpression);
+      // Stack: (functionExpression)
+      node.functionExpression.resolveExpression(this, functionType);
       popRewrite();
       elementResolver.visitFunctionDeclaration(node);
 
@@ -4386,7 +4391,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     popRewrite();
     typeAnalyzer.visitThrowExpression(node);
-    flowAnalysis.flow?.handleExit();
+    // Note: it's not necessary to call `FlowAnalysis.handleExit`, because
+    // `TypeAnalyzer.analyzeExpression` calls it when the static type of the
+    // expression is `Never`.
     inferenceLogWriter?.exitExpression(node);
   }
 

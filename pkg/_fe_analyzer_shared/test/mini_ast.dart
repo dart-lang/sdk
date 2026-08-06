@@ -2208,6 +2208,7 @@ class Harness {
         operations,
         visitor._assignedVariables,
         typeAnalyzerOptions: computeTypeAnalyzerOptions(),
+        enableLog: true,
       );
       typeAnalyzer.bodyContext =
           bodyContext ??
@@ -2229,7 +2230,7 @@ class Harness {
         ].join(', ');
         fail('Unused error ids: $ids');
       }
-      _verifyCheckpoints(flow.getLog());
+      _verifyCheckpoints(flow.getLog()!);
     } finally {
       Node._nodesWithUnusedErrorIds.clear();
     }

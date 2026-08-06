@@ -1437,6 +1437,9 @@ class MethodInvocationResolver with ScopeHelpers {
     }
     inferenceLogWriter?.enterFunctionExpressionInvocationTarget(methodName);
     methodName.recordStaticType(targetType, resolver: _resolver);
+    if (targetType.isBottom) {
+      _resolver.flowAnalysis.flow?.handleExit();
+    }
     inferenceLogWriter?.exitExpression(methodName);
 
     if (functionExpression != methodName) {
