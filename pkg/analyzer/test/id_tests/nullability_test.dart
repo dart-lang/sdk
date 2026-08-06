@@ -62,20 +62,35 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
+    Element? element;
+    DartType? promotedType;
     if (node is SimpleIdentifier &&
         node.inGetterContext() &&
         !node.inDeclarationContext()) {
-      var element = node.element;
+      element = node.element;
       if (element is LocalVariableElement ||
           element is FormalParameterElement) {
-        var promotedType = _readType(node);
-        var declaredType = (element as VariableElement).type;
-        var isPromoted = promotedType != declaredType;
-        if (isPromoted &&
-            _typeSystem.isPotentiallyNullable(declaredType) &&
-            !_typeSystem.isPotentiallyNullable(promotedType)) {
-          return 'nonNullable';
+        promotedType = _readType(node);
+      }
+    } else if (node is IfNullAssignment || node is CompoundAssignment) {
+      var target = (node as AssignmentExpression2).target;
+      if (target is UnqualifiedNameAssignmentTarget) {
+        var readResolution = target.read;
+        if (readResolution is VariableReadResolution) {
+          element = readResolution.element;
+          promotedType = readResolution.type;
         }
+      }
+    }
+    if ((element is LocalVariableElement ||
+            element is FormalParameterElement) &&
+        promotedType != null) {
+      var declaredType = (element as VariableElement).type;
+      var isPromoted = promotedType != declaredType;
+      if (isPromoted &&
+          _typeSystem.isPotentiallyNullable(declaredType) &&
+          !_typeSystem.isPotentiallyNullable(promotedType)) {
+        return 'nonNullable';
       }
     }
     return null;

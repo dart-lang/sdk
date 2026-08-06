@@ -42,15 +42,15 @@ class FlowAnalysisDataForTesting {
 
   /// The list of references to variables, where a variable is read, and
   /// is not definitely assigned.
-  final List<SimpleIdentifier> notDefinitelyAssigned = [];
+  final List<AstNode> notDefinitelyAssigned = [];
 
   /// The list of references to variables, where a variable is read, and
   /// is definitely assigned.
-  final List<SimpleIdentifier> definitelyAssigned = [];
+  final List<AstNode> definitelyAssigned = [];
 
   /// The list of references to variables, where a variable is written, and
   /// is definitely unassigned.
-  final List<SimpleIdentifier> definitelyUnassigned = [];
+  final List<AstNode> definitelyUnassigned = [];
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
@@ -295,10 +295,7 @@ class FlowAnalysisHelper {
   ExpressionInfo? getExpressionInfo(Expression? expression) =>
       _expressionInfoMap[expression];
 
-  bool isDefinitelyAssigned(
-    SimpleIdentifier node,
-    PromotableElementImpl element,
-  ) {
+  bool isDefinitelyAssigned(AstNode node, PromotableElementImpl element) {
     var isAssigned = flow!.isAssigned(element);
 
     if (dataForTesting != null) {
@@ -312,10 +309,7 @@ class FlowAnalysisHelper {
     return isAssigned;
   }
 
-  bool isDefinitelyUnassigned(
-    SimpleIdentifier node,
-    PromotableElementImpl element,
-  ) {
+  bool isDefinitelyUnassigned(AstNode node, PromotableElementImpl element) {
     var isUnassigned = flow!.isUnassigned(element);
 
     if (dataForTesting != null && isUnassigned) {
@@ -1110,6 +1104,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _readAssignmentTarget(node.target);
+
+    super.visitCompoundAssignment(node);
+
+    _writeAssignmentTarget(node.target);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     node.condition2.accept2(this);
     assignedVariables.beginNode();
@@ -1121,6 +1124,12 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     throw StateError('Should not visit top level declarations');
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    super.visitDirectAssignment(node);
+    _writeAssignmentTarget(node.target);
   }
 
   @override
@@ -1178,6 +1187,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     assignedVariables.beginNode();
     node.rightOperand.accept2(this);
     assignedVariables.endNode(node);
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _readAssignmentTarget(node.target);
+
+    super.visitIfNullAssignment(node);
+
+    _writeAssignmentTarget(node.target);
   }
 
   @override
@@ -1375,6 +1393,18 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
+  void _readAssignmentTarget(AssignmentTarget target) {
+    if (target is UnqualifiedNameAssignmentTargetImpl) {
+      // Assigned-variable collection runs before expression resolution fills
+      // in the target's read resolution. [ResolutionVisitor] has already
+      // recorded the scope lookup used by this prepass.
+      var element = target.scopeLookupResult?.getter;
+      if (element is PromotableElementImpl) {
+        assignedVariables.read(element);
+      }
+    }
+  }
+
   void _visitIf(IfElementOrStatementImpl node) {
     node.expression2.accept2(this);
 
@@ -1409,6 +1439,18 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       }
     }
   }
+
+  void _writeAssignmentTarget(AssignmentTarget target) {
+    if (target is UnqualifiedNameAssignmentTargetImpl) {
+      // Assigned-variable collection runs before expression resolution fills
+      // in the target's write resolution. [ResolutionVisitor] has already
+      // recorded the scope lookup used by this prepass.
+      var element = target.scopeLookupResult?.getter;
+      if (element is PromotableElementImpl) {
+        assignedVariables.write(element);
+      }
+    }
+  }
 }
 
 /// The flow analysis based implementation of [LocalVariableTypeProvider].
@@ -1435,5 +1477,17 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       }
     }
     return variable.type;
+  }
+
+  @override
+  TypeImpl getWriteType(InternalVariableElement element) {
+    var flow = _manager.flow;
+    if (element is PromotableElementImpl && flow != null) {
+      var promotedType = flow.promotedType(element);
+      if (promotedType != null) {
+        return promotedType.unwrapTypeView<TypeImpl>();
+      }
+    }
+    return element.type;
   }
 }

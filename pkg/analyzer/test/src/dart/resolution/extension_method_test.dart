@@ -794,15 +794,33 @@ f(C c) {
   c += 2;
 }
 ''');
-    var node = result.findNode.assignment('+=');
+    var node = result.findNode.compoundAssignment('c += 2');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@class::C::@method::+
+  operatorResultType: C
+  staticType: C
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
     staticType: int
@@ -825,15 +843,33 @@ f(C c) {
   c += 2;
 }
 ''');
-    var node = result.findNode.assignment('+=');
+    var node = result.findNode.compoundAssignment('c += 2');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  operatorResultType: C
+  staticType: C
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
     staticType: int
@@ -4253,12 +4289,12 @@ extension E2 on int {
     var node = result.findNode.assignment('foo = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: foo
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -4725,12 +4761,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
@@ -4995,12 +5031,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
@@ -5027,12 +5063,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
     staticType: int
@@ -5202,12 +5238,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
     staticType: int
@@ -5237,12 +5273,12 @@ extension E on C {
     var node = result.findNode.assignment('a = 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: a
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
     staticType: int

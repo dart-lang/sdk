@@ -946,6 +946,8 @@ class Search {
     }
     if (setter != null) {
       await _addResults(results, setter, const {
+        IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
+        // TODO(scheglov): Remove when all assignment targets use IS_WRITTEN_BY.
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE,
       });
     }
@@ -1861,6 +1863,30 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    var readMatches = switch (node.read) {
+      ValidNamedReadResolution(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      ValidNamedWriteResolution(:var element) => _matches(element),
+      _ => false,
+    };
+
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      _addResult(node, kind);
+    }
+  }
+
   void _addResult(SyntacticEntity entity, SearchResultKind kind) {
     bool isQualified = entity is AstNode && entity.parent2 is Label;
     _addResultImpl(entity, kind, isQualified: isQualified);
@@ -1890,6 +1916,10 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   void _addResultToken(Token token, SearchResultKind kind) {
     _addResultImpl(token, kind, isQualified: true);
   }
+
+  bool _matches(Element element) =>
+      elements.contains(element) ||
+      element is PropertyAccessorElement && elements.contains(element.variable);
 }
 
 /// The marker class that is thrown to stop adding declarations.

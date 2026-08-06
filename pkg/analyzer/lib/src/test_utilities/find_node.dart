@@ -60,13 +60,27 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation get firstBinaryOperatorInvocation => _first();
 
+  @override
+  AssignmentExpression get singleAssignmentExpression {
+    var nodes = _nodes<AstNode>().where(
+      (node) => node is AssignmentExpression || node is DirectAssignment,
+    );
+    return _toAssignmentExpression(nodes.single);
+  }
+
   BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
+
+  CompoundAssignment get singleCompoundAssignment => _single();
 
   ConstructorInvocation get singleConstructorInvocation => _single();
 
   ConstructorTearOff get singleConstructorTearOff => _single();
 
+  DirectAssignment get singleDirectAssignment => _single();
+
   IfNull get singleIfNull => _single();
+
+  IfNullAssignment get singleIfNullAssignment => _single();
 
   LogicalAnd get singleLogicalAnd => _single();
 
@@ -78,8 +92,21 @@ class FindNode2 extends _FindNodeBase {
 
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
 
+  @override
+  AssignmentExpression assignment(String search) {
+    var node = _node<AstNode>(
+      search,
+      (node) => node is AssignmentExpression || node is AssignmentExpression2,
+    );
+    return _toAssignmentExpression(node);
+  }
+
   BinaryOperatorInvocation binaryOperatorInvocation(String search) {
     return _node(search, (node) => node is BinaryOperatorInvocation);
+  }
+
+  CompoundAssignment compoundAssignment(String search) {
+    return _node(search, (node) => node is CompoundAssignment);
   }
 
   ConstructorInvocation constructorInvocation(String search) {
@@ -90,8 +117,16 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is ConstructorTearOff);
   }
 
+  DirectAssignment directAssignment(String search) {
+    return _node(search, (node) => node is DirectAssignment);
+  }
+
   IfNull ifNull(String search) {
     return _node(search, (node) => node is IfNull);
+  }
+
+  IfNullAssignment ifNullAssignment(String search) {
+    return _node(search, (node) => node is IfNullAssignment);
   }
 
   LogicalAnd logicalAnd(String search) {
@@ -130,6 +165,12 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is UnaryOperatorInvocation);
   }
 
+  UnqualifiedNameAssignmentTarget unqualifiedNameAssignmentTarget(
+    String search,
+  ) {
+    return _node(search, (node) => node is UnqualifiedNameAssignmentTarget);
+  }
+
   @override
   AstNode? _locateNode(int offset) {
     return NodeLocator2(offset).searchWithin(unit);
@@ -148,6 +189,16 @@ class FindNode2 extends _FindNodeBase {
     bool Function(AstNode) predicate,
   ) {
     return node.thisOrAncestorMatching2(predicate);
+  }
+
+  AssignmentExpression _toAssignmentExpression(AstNode node) {
+    return switch (node) {
+      AssignmentExpression node => node,
+      CompoundAssignmentImpl node => node.assignmentExpression,
+      DirectAssignmentImpl node => node.assignmentExpression,
+      IfNullAssignmentImpl node => node.assignmentExpression,
+      _ => throw StateError('Not an assignment expression: $node'),
+    };
   }
 }
 

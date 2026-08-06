@@ -653,41 +653,23 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       return;
     }
 
-    if (element is PromotableElementImpl) {
-      var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
-      var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
+    _checkReadOfNotAssignedLocalVariable(
+      node,
+      name: node.name,
+      element: element,
+    );
+  }
 
-      if (element.isLate) {
-        if (unassigned) {
-          diagnosticReporter.report(
-            diag.definitelyUnassignedLateLocalVariable
-                .withArguments(name: node.name)
-                .at(node),
-          );
-        }
-        return;
-      }
-
-      if (!assigned) {
-        if (element.isFinal) {
-          diagnosticReporter.report(
-            diag.readPotentiallyUnassignedFinal
-                .withArguments(name: node.name)
-                .at(node),
-          );
-          return;
-        }
-
-        if (typeSystem.isPotentiallyNonNullable(element.type)) {
-          diagnosticReporter.report(
-            diag.notAssignedPotentiallyNonNullableLocalVariable
-                .withArguments(name: node.name)
-                .at(node),
-          );
-          return;
-        }
-      }
+  void checkReadOfNotAssignedLocalVariable2(
+    AstNode node, {
+    required String name,
+    required Element? element,
+  }) {
+    if (!flowAnalysis.isActive) {
+      return;
     }
+
+    _checkReadOfNotAssignedLocalVariable(node, name: name, element: element);
   }
 
   void checkUnreachableNode(AstNode node) {
@@ -1764,6 +1746,26 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
   }
 
+  NamedWriteResolutionImpl? resolveUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver.resolveUnqualifiedNameAssignmentTarget(
+      node,
+    );
+  }
+
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })?
+  resolveUnqualifiedNameReadWriteAssignmentTarget(
+    UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver
+        .resolveUnqualifiedNameReadWriteAssignmentTarget(node);
+  }
+
   void setReadElement(
     Expression node,
     Element? element, {
@@ -1862,10 +1864,25 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return ThisLookup.lookupGetter(this, node);
   }
 
+  /// Returns the result of an implicit `this.` lookup for [node] in a getter
+  /// context.
+  LexicalLookupResult? thisLookupGetter2(
+    UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    return ThisLookup.lookupGetter2(this, node: node, name: node.name.lexeme);
+  }
+
   /// Returns the result of an implicit `this.` lookup for the identifier [node]
   /// in a setter context, or `null` if no match was found.
   LexicalLookupResult? thisLookupSetter(SimpleIdentifier node) {
     return ThisLookup.lookupSetter(this, node);
+  }
+
+  /// Returns the result of an implicit `this.` lookup for [node].
+  LexicalLookupResult? thisLookupSetter2(
+    UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    return ThisLookup.lookupSetter2(this, node: node, name: node.name.lexeme);
   }
 
   @override
@@ -2436,6 +2453,24 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCompoundAssignment(
+    covariant CompoundAssignmentImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _assignmentExpressionResolver.resolveCompound(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitConditionalExpression(
     covariant ConditionalExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -2629,6 +2664,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitDirectAssignment(
+    covariant DirectAssignmentImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _assignmentExpressionResolver.resolveDirect(node, contextType: contextType);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override
@@ -3291,6 +3341,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     _binaryExpressionResolver.resolveIfNull(node, contextType: contextType);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitIfNullAssignment(
+    covariant IfNullAssignmentImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    _assignmentExpressionResolver.resolveIfNull(node, contextType: contextType);
     _insertImplicitCallReference(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
@@ -4631,6 +4696,48 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
   }
 
+  void _checkReadOfNotAssignedLocalVariable(
+    AstNode node, {
+    required String name,
+    required Element? element,
+  }) {
+    if (element is PromotableElementImpl) {
+      var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
+      var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
+
+      if (element.isLate) {
+        if (unassigned) {
+          diagnosticReporter.report(
+            diag.definitelyUnassignedLateLocalVariable
+                .withArguments(name: name)
+                .at(node),
+          );
+        }
+        return;
+      }
+
+      if (!assigned) {
+        if (element.isFinal) {
+          diagnosticReporter.report(
+            diag.readPotentiallyUnassignedFinal
+                .withArguments(name: name)
+                .at(node),
+          );
+          return;
+        }
+
+        if (typeSystem.isPotentiallyNonNullable(element.type)) {
+          diagnosticReporter.report(
+            diag.notAssignedPotentiallyNonNullableLocalVariable
+                .withArguments(name: name)
+                .at(node),
+          );
+          return;
+        }
+      }
+    }
+  }
+
   void _checkTypeInferenceError(VariableDeclaration node) {
     var fragment = node.declaredFragment;
     if (fragment is! PropertyInducingFragmentImpl) {
@@ -4729,6 +4836,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (parent is AssignmentExpressionImpl) {
       if (parent.writeType == null) return;
       context = parent.writeType!;
+    } else if (parent is AssignmentExpression2Impl) {
+      var target = parent.target;
+      if (target is! UnqualifiedNameAssignmentTargetImpl) {
+        return;
+      }
+      var write = target.write;
+      if (write == null) {
+        return;
+      }
+      context = write.acceptedType;
     } else {
       context = contextType;
     }

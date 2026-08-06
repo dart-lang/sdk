@@ -1760,7 +1760,7 @@ void f(int x) {
   x +^= 3;
 }
 ''');
-    node as AssignmentExpression;
+    node as CompoundAssignment;
   }
 
   Future<void> test_inOperator_nullAwareAccess() async {

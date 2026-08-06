@@ -183,8 +183,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [])).equals(579);
   }
@@ -197,8 +199,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [])).equals(579);
   }
@@ -213,8 +217,10 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('j ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('j ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('j ??=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('j ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -233,8 +239,10 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('j ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('j ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('j ??=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('j ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -253,8 +261,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i =')]
-      ..containsSubrange(astNodes[result.findNode.simple('i =')]!)
+    check(astNodes)[result.findNode.directAssignment('i =')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [])).equals(123);
   }
@@ -267,8 +277,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i =')]
-      ..containsSubrange(astNodes[result.findNode.simple('i =')]!)
+    check(astNodes)[result.findNode.directAssignment('i =')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [])).equals(123);
   }
@@ -285,8 +297,10 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [123])).equals(579);
   }
@@ -296,8 +310,10 @@ test(int i) {
 test(int i) => i += 456;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [123])).equals(579);
   }
@@ -311,8 +327,10 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('i ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('i ??=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -328,8 +346,10 @@ external int? hook(int? x, String s);
 test(int? i) => i ??= hook(123, '123');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('i ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('i ??=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -347,8 +367,10 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i =')]
-      ..containsSubrange(astNodes[result.findNode.simple('i =')]!)
+    check(astNodes)[result.findNode.directAssignment('i =')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [1])).equals(123);
   }
@@ -358,8 +380,10 @@ test(int i) {
 test(int i) => i = 123;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i =')]
-      ..containsSubrange(astNodes[result.findNode.simple('i =')]!)
+    check(astNodes)[result.findNode.directAssignment('i =')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [1])).equals(123);
   }
@@ -560,8 +584,12 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.assignment('length -= 2')]
-      ..containsSubrange(astNodes[result.findNode.simple('length')]!)
+    check(astNodes)[result.findNode.compoundAssignment('length -= 2')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget(
+          'length -= 2',
+        )]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('2')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);
@@ -577,8 +605,10 @@ class C {
 }
 ''');
     analyze(result, result.findNode.methodDeclaration('test'));
-    check(astNodes)[result.findNode.assignment("p ??= hook(123, '123')")]
-      ..containsSubrange(astNodes[result.findNode.simple('p ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment("p ??= hook(123, '123')")]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('p ??=')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );
@@ -606,8 +636,12 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.assignment('length = 3')]
-      ..containsSubrange(astNodes[result.findNode.simple('length')]!)
+    check(astNodes)[result.findNode.directAssignment('length = 3')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget(
+          'length = 3',
+        )]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('3')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);
@@ -989,8 +1023,11 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.expressionStatement('i = 123')]
-        .containsSubrange(astNodes[result.findNode.assignment('i = 123')]!);
+    check(
+      astNodes,
+    )[result.findNode.expressionStatement('i = 123')].containsSubrange(
+      astNodes[result.findNode.directAssignment('i = 123')]!,
+    );
     check(runInterpreter(result, [1])).equals(123);
   }
 

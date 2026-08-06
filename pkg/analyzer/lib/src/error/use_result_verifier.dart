@@ -204,6 +204,8 @@ class UseResultVerifier {
         // Node should always be RHS so no need to check for a property
         // assignment.
         parent is AssignmentExpression ||
+        parent is DirectAssignment ||
+        parent is IfNullAssignment ||
         parent is BinaryOperatorInvocation ||
         parent is IfNull ||
         parent is ConstructorFieldInitializer ||

@@ -428,6 +428,11 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitCompoundAssignment(CompoundAssignment node) {
+    return node.element;
+  }
+
+  @override
   Element? visitConstructorDeclaration(ConstructorDeclaration node) {
     return node.declaredFragment?.element;
   }
@@ -722,6 +727,16 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   @override
   Element? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     return node.element;
+  }
+
+  @override
+  Element? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    if (node.write case ValidNamedWriteResolution(:var element)) {
+      return element;
+    }
+    return null;
   }
 
   @override

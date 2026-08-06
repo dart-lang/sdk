@@ -1894,6 +1894,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _tokenOrNull(node.operator);
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     _tokenOrNull(node.question);
     _tokenOrNull(node.colon);
@@ -1932,6 +1938,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.leftDelimiter);
     _tokenOrNull(node.rightDelimiter);
     node.formalParameters.accept2(this);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _tokenOrNull(node.operator);
+    super.visitDirectAssignment(node);
   }
 
   @override
@@ -1993,6 +2005,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitIfNull(IfNull node) {
     _tokenOrNull(node.operator);
     super.visitIfNull(node);
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _tokenOrNull(node.operator);
+    super.visitIfNullAssignment(node);
   }
 
   @override
@@ -2275,6 +2293,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _tokenOrNull(node.operator);
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    _tokenOrNull(node.name);
   }
 
   void _tokenOrNull(Token? token) {

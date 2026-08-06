@@ -530,11 +530,17 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: AssignmentExpression
-          leftHandSide2: SimpleIdentifier
+        initialization2: DirectAssignment
+          target: UnqualifiedNameAssignmentTarget
+            name: x
+          operator: =
+          value: IntegerLiteral
+            literal: 0
+        initialization(v1): AssignmentExpression
+          leftHandSide: SimpleIdentifier
             token: x
           operator: =
-          rightHandSide2: IntegerLiteral
+          rightHandSide: IntegerLiteral
             literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation

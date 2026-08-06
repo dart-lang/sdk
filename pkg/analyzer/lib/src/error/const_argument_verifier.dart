@@ -55,6 +55,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
   void visitConstructorInvocation(ConstructorInvocation node) {
     if (node.inConstantContext) return;
     _check(
@@ -69,10 +74,20 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (node.staticInvokeType is FunctionType) {
       _check(arguments: node.argumentList.arguments2, errorNode: node);
     }
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
   }
 
   @override

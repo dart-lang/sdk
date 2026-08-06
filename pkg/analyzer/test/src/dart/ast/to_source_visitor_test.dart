@@ -247,7 +247,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleAssignmentExpression;
+    var node = parseResult.findNode.singleDirectAssignment;
     _assertSource(code, node);
   }
 
@@ -883,6 +883,17 @@ var a;
 ''');
     var node = parseResult.findNode.unit;
     _assertSource('#!/bin/dartvm library my; var a;', node);
+  }
+
+  void test_visitCompoundAssignment() {
+    var code = 'a += b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCompoundAssignment;
+    _assertSource(code, node);
   }
 
   void test_visitConditionalExpression() {
@@ -2441,6 +2452,17 @@ final x = a ?? (b ?? c);
 ''');
     var node = parseResult.findNode.ifNull('a ??');
     _assertSource('a ?? (b ?? c)', node);
+  }
+
+  void test_visitIfNullAssignment() {
+    var code = 'a ??= b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleIfNullAssignment;
+    _assertSource(code, node);
   }
 
   void test_visitIfStatement_withElse() {

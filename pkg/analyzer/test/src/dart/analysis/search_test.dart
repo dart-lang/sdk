@@ -3770,6 +3770,22 @@ void useField(E e) {
 ''');
   }
 
+  test_searchReferences_FieldElement_ofEnum_instance_final_invalidWrite() async {
+    var result = await resolveTestCode('''
+enum E {
+  v;
+  final int foo = 0;
+  void f() {
+    foo = 1;
+  }
+}
+''');
+    var element = result.findElement.field('foo');
+
+    await assertElementReferencesText(element, r'''
+''');
+  }
+
   test_searchReferences_FieldElement_ofEnum_instance_index() async {
     var result = await resolveTestCode('''
 enum MyEnum {
@@ -4984,6 +5000,20 @@ void useGetter(A a) {
   91 6:10 |foo| REFERENCE qualified
 <testLibraryFragment> useGetter@108
   129 11:5 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_GetterElement_ofClass_instance_invalidWrite() async {
+    var result = await resolveTestCode('''
+class A {
+  int get foo => 0;
+  void f() {
+    foo = 1;
+  }
+}
+''');
+    var element = result.findElement.getter('foo');
+    await assertElementReferencesText(element, r'''
 ''');
   }
 
@@ -6703,7 +6733,7 @@ main() {
     var element = result.findElement.setter('foo');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> bar@49
-  61 5:5 |foo| REFERENCE
+  61 5:5 |foo| WRITE
   79 6:10 |foo| REFERENCE qualified
 <testLibraryFragment> main@95
   111 11:8 |foo| REFERENCE qualified
@@ -6746,7 +6776,7 @@ class A {
     var element = result.findElement.setter('s');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> main@26
-  39 4:5 |s| REFERENCE
+  39 4:5 |s| WRITE
   55 5:10 |s| REFERENCE qualified
 ''');
   }
@@ -6772,7 +6802,7 @@ void useSetter(A a) {
   5 1:6 |foo| REFERENCE
   17 1:18 |foo| REFERENCE qualified
 <testLibraryFragment> useSetter@59
-  77 5:5 |foo| REFERENCE
+  77 5:5 |foo| WRITE
   95 6:10 |foo| REFERENCE qualified
 <testLibraryFragment> useSetter@116
   137 11:5 |foo| REFERENCE qualified
@@ -6803,7 +6833,7 @@ void useSetter() {
   40 3:15 |foo| REFERENCE qualified
   51 3:26 |foo| REFERENCE qualified
 <testLibraryFragment> useSetter@107
-  125 7:5 |foo| REFERENCE
+  125 7:5 |foo| WRITE
 <testLibraryFragment> useSetter@146
   164 12:5 |foo| REFERENCE qualified
   179 13:7 |foo| REFERENCE qualified
@@ -6938,6 +6968,23 @@ void f() {
 ''');
   }
 
+  test_searchReferences_TopLevelFunctionElement_invalidWrite() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void foo() {}
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+}
+''');
+    var element = result.findElement.topFunction('foo');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@20
+  28 4:3 |foo| REFERENCE
+''');
+  }
+
   test_searchReferences_TopLevelFunctionElement_loadLibrary() async {
     var result = await resolveTestCode('''
 import 'dart:math' deferred as math;
@@ -7020,7 +7067,7 @@ void f() {
 
     await assertElementReferencesText(setter, r'''
 <testLibraryFragment> f@80
-  95 10:3 |foo| REFERENCE
+  95 10:3 |foo| WRITE
   117 12:5 |foo| REFERENCE qualified
 ''');
   }

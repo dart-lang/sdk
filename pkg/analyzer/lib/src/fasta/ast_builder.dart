@@ -692,6 +692,20 @@ class AstBuilder extends StackListener {
       );
     }
 
+    if (initializerObject is DirectAssignmentImpl) {
+      var target = initializerObject.target;
+      if (target is! UnqualifiedNameAssignmentTargetImpl) {
+        return null;
+      }
+      return ConstructorFieldInitializerImpl(
+        thisKeyword: null,
+        period: null,
+        fieldName: SimpleIdentifierImpl(token: target.name),
+        equals: initializerObject.operator,
+        expression2: initializerObject.value,
+      );
+    }
+
     if (initializerObject is AssignmentExpressionImpl) {
       Token? thisKeyword;
       Token? period;
@@ -3683,7 +3697,8 @@ class AstBuilder extends StackListener {
 
     var rhs = pop() as ExpressionImpl;
     var lhs = pop() as ExpressionImpl;
-    if (!lhs.isAssignable) {
+    var isAssignable = lhs.isAssignable;
+    if (!isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
       handleRecoverableError(
         fe_diag.missingAssignableSelector,
@@ -3692,13 +3707,57 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(rhs);
-    push(
-      AssignmentExpressionImpl(
-        leftHandSide2: lhs,
-        operator: token,
-        rightHandSide2: rhs,
-      ),
-    );
+    if (!isAssignable && token.type == TokenType.EQ) {
+      push(
+        DirectAssignmentImpl(
+          target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
+          operator: token,
+          value: rhs,
+        ),
+      );
+    } else if (!isAssignable && token.type == TokenType.QUESTION_QUESTION_EQ) {
+      push(
+        IfNullAssignmentImpl(
+          target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
+          operator: token,
+          value: rhs,
+        ),
+      );
+    } else if (lhs is SimpleIdentifierImpl) {
+      if (token.type == TokenType.EQ) {
+        push(
+          DirectAssignmentImpl(
+            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
+            operator: token,
+            value: rhs,
+          ),
+        );
+      } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
+        push(
+          IfNullAssignmentImpl(
+            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
+            operator: token,
+            value: rhs,
+          ),
+        );
+      } else {
+        push(
+          CompoundAssignmentImpl(
+            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
+            operator: token,
+            value: rhs,
+          ),
+        );
+      }
+    } else {
+      push(
+        AssignmentExpressionImpl(
+          leftHandSide2: lhs,
+          operator: token,
+          rightHandSide2: rhs,
+        ),
+      );
+    }
     if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.triple_shift,
@@ -4251,15 +4310,27 @@ class AstBuilder extends StackListener {
         expression.endToken,
       );
     }
-    if (expression is AssignmentExpressionImpl) {
-      if (!expression.leftHandSide2.isAssignable) {
-        // This error is also reported by the body builder.
-        handleRecoverableError(
-          fe_diag.illegalAssignmentToNonAssignable,
-          expression.leftHandSide2.beginToken,
-          expression.leftHandSide2.endToken,
-        );
-      }
+    var invalidAssignmentLeft = switch (expression) {
+      AssignmentExpressionImpl(:var leftHandSide2)
+          when !leftHandSide2.isAssignable =>
+        leftHandSide2,
+      DirectAssignmentImpl(
+        target: InvalidExpressionAssignmentTargetImpl(:var expression),
+      ) =>
+        expression,
+      IfNullAssignmentImpl(
+        target: InvalidExpressionAssignmentTargetImpl(:var expression),
+      ) =>
+        expression,
+      _ => null,
+    };
+    if (invalidAssignmentLeft != null) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(
+        fe_diag.illegalAssignmentToNonAssignable,
+        invalidAssignmentLeft.beginToken,
+        invalidAssignmentLeft.endToken,
+      );
     }
     push(
       ExpressionStatementImpl(expression2: expression, semicolon: semicolon),

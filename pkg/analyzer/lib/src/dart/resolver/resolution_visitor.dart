@@ -960,6 +960,26 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedNameAssignmentTarget(
+    covariant UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    var scopeLookupResult = nameScope.lookup(node.name.lexeme);
+    node.scopeLookupResult = scopeLookupResult;
+
+    var element = scopeLookupResult.getter;
+    if (element is PromotableElementImpl) {
+      _localVariableInfo.potentiallyMutatedInScope.add(element);
+
+      if (element is PatternVariableElementImpl &&
+          element.isVisitingWhenClause) {
+        _diagnosticReporter.report(
+          diag.patternVariableAssignmentInsideGuard.at(node),
+        );
+      }
+    }
+  }
+
+  @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     var element = node.declaredFragment!.element;
 

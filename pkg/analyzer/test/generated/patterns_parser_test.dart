@@ -7655,17 +7655,17 @@ void f() {
     var node = parseResult.findNode.assignment('v2 =');
     assertParsedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: v2
   operator: =
-  rightHandSide2: PatternAssignment
+  rightHandSide: PatternAssignment
     pattern: ParenthesizedPattern
       leftParenthesis: (
       pattern: AssignedVariablePattern
         name: v1
       rightParenthesis: )
     equals: =
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 2
 ''');
   }

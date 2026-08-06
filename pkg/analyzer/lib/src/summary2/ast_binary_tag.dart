@@ -30,6 +30,10 @@ enum ElementTag {
 
 enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 
+enum NamedReadResolutionTag { getterInvocation, invalid, variableRead }
+
+enum NamedWriteResolutionTag { invalid, setterInvocation, variableWrite }
+
 class Tag {
   static const int Nothing = 0;
   static const int Something = 1;
@@ -43,6 +47,7 @@ class Tag {
   static const int AwaitExpression = 100;
   static const int BooleanLiteral = 4;
   static const int CascadeExpression = 95;
+  static const int CompoundAssignment = 138;
   static const int ConditionalExpression = 51;
   static const int ConstructorFieldInitializer = 50;
   static const int ConstructorTearOff = 101;
@@ -104,6 +109,10 @@ class Tag {
   static const int PostfixIncrement = 130;
   static const int PrefixDecrement = 133;
   static const int PrefixIncrement = 131;
+  static const int DirectAssignment = 134;
+  static const int UnqualifiedNameAssignmentTarget = 135;
+  static const int IfNullAssignment = 136;
+  static const int InvalidExpressionAssignmentTarget = 137;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PrefixedIdentifier = 32;

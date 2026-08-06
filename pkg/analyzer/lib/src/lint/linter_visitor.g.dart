@@ -1395,6 +1395,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _runSubscriptions(node, _registry._forCompoundAssignment);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     _runSubscriptions(node, _registry._forConditionalExpression);
@@ -1481,6 +1488,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
     _runSubscriptions(node, _registry._forDelimitedFormalParameters);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _runSubscriptions(node, _registry._forDirectAssignment);
     node.visitChildren2(this);
   }
 
@@ -1765,6 +1779,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _runSubscriptions(node, _registry._forIfNullAssignment);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitIfStatement(IfStatement node) {
     _runSubscriptions(node, _registry._forIfStatement);
@@ -1816,6 +1837,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     _runSubscriptions(node, _registry._forInterpolationString);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forInvalidExpressionAssignmentTarget);
     node.visitChildren2(this);
   }
 
@@ -2357,6 +2387,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _runSubscriptions(node, _registry._forUnaryOperatorInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forUnqualifiedNameAssignmentTarget);
     node.visitChildren2(this);
   }
 
@@ -4280,6 +4319,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<CompilationUnit>> _forCompilationUnit = [];
 
+  final List<_Subscription2<CompoundAssignment>> _forCompoundAssignment = [];
+
   final List<_Subscription2<ConditionalExpression>> _forConditionalExpression =
       [];
 
@@ -4315,6 +4356,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<DelimitedFormalParameters>>
   _forDelimitedFormalParameters = [];
+
+  final List<_Subscription2<DirectAssignment>> _forDirectAssignment = [];
 
   final List<_Subscription2<DoStatement>> _forDoStatement = [];
 
@@ -4424,6 +4467,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<IfElement>> _forIfElement = [];
 
+  final List<_Subscription2<IfNullAssignment>> _forIfNullAssignment = [];
+
   final List<_Subscription2<IfNull>> _forIfNull = [];
 
   final List<_Subscription2<IfStatement>> _forIfStatement = [];
@@ -4446,6 +4491,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   _forInterpolationExpression = [];
 
   final List<_Subscription2<InterpolationString>> _forInterpolationString = [];
+
+  final List<_Subscription2<InvalidExpressionAssignmentTarget>>
+  _forInvalidExpressionAssignmentTarget = [];
 
   final List<_Subscription2<IsExpression>> _forIsExpression = [];
 
@@ -4641,6 +4689,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<UnaryOperatorInvocation>>
   _forUnaryOperatorInvocation = [];
+
+  final List<_Subscription2<UnqualifiedNameAssignmentTarget>>
+  _forUnqualifiedNameAssignmentTarget = [];
 
   final List<_Subscription2<VariableDeclaration>> _forVariableDeclaration = [];
 
@@ -4870,6 +4921,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addCompoundAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forCompoundAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addConditionalExpression(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -4991,6 +5048,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
     _forDelimitedFormalParameters.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
+  }
+
+  @override
+  void addDirectAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forDirectAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5354,6 +5417,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addIfNullAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forIfNullAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addIfStatement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forIfStatement.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5420,6 +5489,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addInterpolationString(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forInterpolationString.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addInvalidExpressionAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forInvalidExpressionAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
@@ -6033,6 +6113,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forUnaryOperatorInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addUnqualifiedNameAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forUnqualifiedNameAssignmentTarget.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

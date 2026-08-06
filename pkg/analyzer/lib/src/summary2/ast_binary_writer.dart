@@ -127,6 +127,21 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _writeByte(Tag.CompoundAssignment);
+    _writeNode(node.target);
+    _writeNode(node.value);
+
+    var operatorToken = node.operator.type;
+    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
+    _writeByte(binaryToken.index);
+
+    _sink.writeElement(node.element);
+    _sink.writeType(node.operatorResultType);
+    _storeExpression(node);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     _writeByte(Tag.ConditionalExpression);
     _writeNode(node.condition2);
@@ -218,6 +233,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeByte(Tag.DelimitedFormalParameters);
     _writeByte(AstBinaryFlags.encode(isNamed: node.isNamed));
     _writeNodeList(node.formalParameters);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _writeByte(Tag.DirectAssignment);
+    _writeNode(node.target);
+    _writeNode(node.value);
+    _storeExpression(node);
   }
 
   @override
@@ -374,6 +397,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _writeByte(Tag.IfNullAssignment);
+    _writeNode(node.target);
+    _writeNode(node.value);
+    _storeExpression(node);
+  }
+
+  @override
   void visitImplicitCallReference(ImplicitCallReference node) {
     _writeByte(Tag.ImplicitCallReference);
     _writeNode(node.expression2);
@@ -461,6 +492,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeByte(Tag.InterpolationString);
     _writeStringReference(node.contents.lexeme);
     _writeStringReference(node.value);
+  }
+
+  @override
+  void visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    _writeByte(Tag.InvalidExpressionAssignmentTarget);
+    _writeNode(node.expression);
   }
 
   @override
@@ -893,6 +932,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedNameAssignmentTarget(
+    covariant UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    _writeByte(Tag.UnqualifiedNameAssignmentTarget);
+    _writeStringReference(node.name.lexeme);
+    _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
+    _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _writeByte(Tag.VariableDeclarationList);
     _writeByte(
@@ -1026,6 +1075,45 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeType(nodeImpl.writeType);
     _sink.writeType(node.operatorResultType);
     _storeExpression(node);
+  }
+
+  void _writeNamedReadResolution(NamedReadResolutionImpl resolution) {
+    switch (resolution) {
+      case GetterInvocationResolutionImpl():
+        _writeByte(NamedReadResolutionTag.getterInvocation.index);
+        _sink.writeElement(resolution.element);
+        _sink.writeType(resolution.type);
+      case InvalidNamedReadResolutionImpl():
+        _writeByte(NamedReadResolutionTag.invalid.index);
+        _sink.writeType(resolution.type);
+        _sink.writeList(resolution.candidates, _sink.writeElement);
+        _sink.writeOptionalObject(resolution.recovery, (recovery) {
+          _writeNamedReadResolution(recovery);
+        });
+      case VariableReadResolutionImpl():
+        _writeByte(NamedReadResolutionTag.variableRead.index);
+        _sink.writeElement(resolution.element);
+        _sink.writeType(resolution.type);
+    }
+  }
+
+  void _writeNamedWriteResolution(NamedWriteResolutionImpl resolution) {
+    switch (resolution) {
+      case InvalidNamedWriteResolutionImpl():
+        _writeByte(NamedWriteResolutionTag.invalid.index);
+        _sink.writeType(resolution.acceptedType);
+        _sink.writeList(resolution.candidates, _sink.writeElement);
+        _sink.writeOptionalObject(resolution.recovery, (recovery) {
+          _writeNamedWriteResolution(recovery);
+        });
+      case SetterInvocationResolutionImpl():
+        _writeByte(NamedWriteResolutionTag.setterInvocation.index);
+        _sink.writeElement(resolution.element);
+      case VariableWriteResolutionImpl():
+        _writeByte(NamedWriteResolutionTag.variableWrite.index);
+        _sink.writeElement(resolution.element);
+        _sink.writeType(resolution.acceptedType);
+    }
   }
 
   void _writeNode(AstNode node) {

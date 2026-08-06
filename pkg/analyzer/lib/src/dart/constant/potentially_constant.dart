@@ -133,18 +133,6 @@ class _Collector {
       return;
     }
 
-    if (node is BinaryOperatorInvocation) {
-      collect(node.leftOperand);
-      collect(node.rightOperand);
-      return;
-    }
-
-    if (node is BinaryOperatorInvocation) {
-      collect(node.leftOperand);
-      collect(node.rightOperand);
-      return;
-    }
-
     if (node is IfNull) {
       collect(node.leftOperand);
       collect(node.rightOperand);

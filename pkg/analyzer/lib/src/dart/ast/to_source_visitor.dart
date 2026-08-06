@@ -275,6 +275,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _visitNode(node.target);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.value);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     _visitNode(node.condition2);
     sink.write(' ? ');
@@ -389,6 +398,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write(node.leftDelimiter.lexeme);
     _visitNodeList(node.formalParameters, separator: ', ');
     sink.write(node.rightDelimiter.lexeme);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _visitNode(node.target);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.value);
   }
 
   @override
@@ -786,6 +804,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _visitNode(node.target);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.value);
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     sink.write('if (');
     _visitNode(node.expression2);
@@ -860,6 +887,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     sink.write(node.contents.lexeme);
+  }
+
+  @override
+  void visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    _visitNode(node.expression);
   }
 
   @override
@@ -1541,6 +1575,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     sink.write(node.operator.lexeme);
     _writeOperand(node, node.operand as Expression);
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    sink.write(node.name.lexeme);
   }
 
   @override

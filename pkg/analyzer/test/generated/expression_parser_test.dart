@@ -90,11 +90,11 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: AssignmentExpression
-              leftHandSide2: SimpleIdentifier
-                token: n
+            initializer2: DirectAssignment
+              target: UnqualifiedNameAssignmentTarget
+                name: n
               operator: =
-              rightHandSide2: ListLiteral
+              value: ListLiteral
                 typeArguments: TypeArgumentList
                   leftBracket: <
                   arguments
@@ -113,6 +113,34 @@ CompilationUnit
                       InterpolationExpression
                         leftBracket: $
                         expression2: SimpleIdentifier
+                          token: assert
+                      InterpolationString
+                        contents: ;" <synthetic>
+                    stringValue: null
+                rightBracket: ] <synthetic>
+            initializer(v1): AssignmentExpression
+              leftHandSide: SimpleIdentifier
+                token: n
+              operator: =
+              rightHandSide: ListLiteral
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      importPrefix: ImportPrefixReference
+                        name: <empty> <synthetic>
+                        period: .
+                      name: <empty> <synthetic>
+                  rightBracket: > <synthetic>
+                leftBracket: [
+                elements
+                  StringInterpolation
+                    elements
+                      InterpolationString
+                        contents: "
+                      InterpolationExpression
+                        leftBracket: $
+                        expression: SimpleIdentifier
                           token: assert
                       InterpolationString
                         contents: ;" <synthetic>
@@ -1674,11 +1702,17 @@ var v = x = y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: SimpleIdentifier
+    token: y
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
 ''');
   }
@@ -1693,21 +1727,26 @@ var v = x ||= y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: LogicalOr
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: ||
+      rightOperand: SimpleIdentifier
+        token: <empty> <synthetic>
+  operator: =
+  value: SimpleIdentifier
+    token: y
 AssignmentExpression
-  leftHandSide2: LogicalOr
-    leftOperand: SimpleIdentifier
-      token: x
-    operator: ||
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
-  leftHandSide(v1): BinaryExpression
+  leftHandSide: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
     operator: ||
     rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
 ''');
   }
@@ -2108,11 +2147,17 @@ var v = x = y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: SimpleIdentifier
+    token: y
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
 ''');
   }

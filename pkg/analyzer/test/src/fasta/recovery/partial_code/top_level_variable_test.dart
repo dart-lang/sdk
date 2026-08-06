@@ -5389,16 +5389,21 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: AssignmentExpression
-              leftHandSide2: ConstructorInvocation
-                keyword: const
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: a
-                argumentList: ArgumentList
-                  leftParenthesis: ( <synthetic>
-                  rightParenthesis: ) <synthetic>
-              leftHandSide(v1): InstanceCreationExpression
+            initializer2: DirectAssignment
+              target: InvalidExpressionAssignmentTarget
+                expression: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+              operator: =
+              value: IntegerLiteral
+                literal: 0
+            initializer(v1): AssignmentExpression
+              leftHandSide: InstanceCreationExpression
                 keyword: const
                 constructorName: ConstructorName
                   type: NamedType
@@ -5407,7 +5412,7 @@ CompilationUnit
                   leftParenthesis: ( <synthetic>
                   rightParenthesis: ) <synthetic>
               operator: =
-              rightHandSide2: IntegerLiteral
+              rightHandSide: IntegerLiteral
                 literal: 0
       semicolon: ;
 ''');

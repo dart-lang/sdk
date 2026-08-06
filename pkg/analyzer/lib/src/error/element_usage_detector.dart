@@ -635,6 +635,19 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(element, node);
   }
 
+  void compoundAssignment(CompoundAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case ValidNamedReadResolution(:var element)) {
+        checkUsage(element, target);
+      }
+      if (target.write case ValidNamedWriteResolution(:var element)) {
+        checkUsage(element, target);
+      }
+    }
+    checkUsage(node.element, node);
+  }
+
   void constructorDeclaration(ConstructorDeclaration node) {
     // Check usage of any implicit super-constructor call.
     // There is only an implicit super-constructor if:
@@ -664,6 +677,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   void constructorTearOff(ConstructorTearOff node) {
     checkUsage(node.typeReference.element, node.typeReference);
     checkUsage(node.element, node);
+  }
+
+  void directAssignment(DirectAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      var write = target.write;
+      if (write case ValidNamedWriteResolution(:var element)) {
+        checkUsage(element, target);
+      }
+    }
   }
 
   void dotShorthandConstructorInvocation(
@@ -735,6 +758,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     if (callElement is MethodElement &&
         callElement.name == MethodElement.CALL_METHOD_NAME) {
       checkUsage(callElement, node);
+    }
+  }
+
+  void ifNullAssignment(IfNullAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case ValidNamedReadResolution(:var element)) {
+        checkUsage(element, target);
+      }
+      if (target.write case ValidNamedWriteResolution(:var element)) {
+        checkUsage(element, target);
+      }
     }
   }
 

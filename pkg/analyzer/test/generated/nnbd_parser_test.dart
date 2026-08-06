@@ -500,11 +500,11 @@ Block
         condition2: SimpleIdentifier
           token: X
         question: ?
-        thenExpression2: AssignmentExpression
-          leftHandSide2: SimpleIdentifier
-            token: x2
+        thenExpression2: DirectAssignment
+          target: UnqualifiedNameAssignmentTarget
+            name: x2
           operator: =
-          rightHandSide2: BinaryOperatorInvocation
+          value: BinaryOperatorInvocation
             leftOperand: SimpleIdentifier
               token: x
             operator: +
@@ -518,7 +518,11 @@ Block
                     literal: 7
                 rightParenthesis: )
             binaryOperator: add
-          rightHandSide(v1): BinaryExpression
+        thenExpression(v1): AssignmentExpression
+          leftHandSide: SimpleIdentifier
+            token: x2
+          operator: =
+          rightHandSide: BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: +
@@ -562,11 +566,11 @@ Block
           condition2: SimpleIdentifier
             token: <empty> <synthetic>
           question: ?
-          thenExpression2: AssignmentExpression
-            leftHandSide2: SimpleIdentifier
-              token: x2
+          thenExpression2: DirectAssignment
+            target: UnqualifiedNameAssignmentTarget
+              name: x2
             operator: =
-            rightHandSide2: BinaryOperatorInvocation
+            value: BinaryOperatorInvocation
               leftOperand: SimpleIdentifier
                 token: x
               operator: +
@@ -580,7 +584,11 @@ Block
                       literal: 7
                   rightParenthesis: )
               binaryOperator: add
-            rightHandSide(v1): BinaryExpression
+          thenExpression(v1): AssignmentExpression
+            leftHandSide: SimpleIdentifier
+              token: x2
+            operator: =
+            rightHandSide: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: x
               operator: +
@@ -620,11 +628,17 @@ Block
         condition2: SimpleIdentifier
           token: X
         question: ?
-        thenExpression2: AssignmentExpression
-          leftHandSide2: SimpleIdentifier
+        thenExpression2: DirectAssignment
+          target: UnqualifiedNameAssignmentTarget
+            name: x2
+          operator: =
+          value: SimpleIdentifier
+            token: x
+        thenExpression(v1): AssignmentExpression
+          leftHandSide: SimpleIdentifier
             token: x2
           operator: =
-          rightHandSide2: SimpleIdentifier
+          rightHandSide: SimpleIdentifier
             token: x
         colon: :
         elseExpression2: SimpleIdentifier
@@ -710,18 +724,30 @@ Block
           condition2: SimpleIdentifier
             token: x
           question: ?
-          thenExpression2: AssignmentExpression
-            leftHandSide2: SimpleIdentifier
+          thenExpression2: DirectAssignment
+            target: UnqualifiedNameAssignmentTarget
+              name: y
+            operator: =
+            value: IntegerLiteral
+              literal: 7
+          thenExpression(v1): AssignmentExpression
+            leftHandSide: SimpleIdentifier
               token: y
             operator: =
-            rightHandSide2: IntegerLiteral
+            rightHandSide: IntegerLiteral
               literal: 7
           colon: :
-          elseExpression2: AssignmentExpression
-            leftHandSide2: SimpleIdentifier
+          elseExpression2: DirectAssignment
+            target: UnqualifiedNameAssignmentTarget
+              name: y
+            operator: =
+            value: IntegerLiteral
+              literal: 8
+          elseExpression(v1): AssignmentExpression
+            leftHandSide: SimpleIdentifier
               token: y
             operator: =
-            rightHandSide2: IntegerLiteral
+            rightHandSide: IntegerLiteral
               literal: 8
         leftSeparator: ;
         condition2: BinaryOperatorInvocation

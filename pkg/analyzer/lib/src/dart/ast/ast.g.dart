@@ -481,6 +481,9 @@ abstract class AstVisitor2<R> {
 
   R? visitCompilationUnit(CompilationUnit node);
 
+  @experimental
+  R? visitCompoundAssignment(CompoundAssignment node);
+
   R? visitConditionalExpression(ConditionalExpression node);
 
   R? visitConfiguration(Configuration node);
@@ -513,6 +516,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitDelimitedFormalParameters(DelimitedFormalParameters node);
+
+  @experimental
+  R? visitDirectAssignment(DirectAssignment node);
 
   R? visitDoStatement(DoStatement node);
 
@@ -611,6 +617,9 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitIfNull(IfNull node);
 
+  @experimental
+  R? visitIfNullAssignment(IfNullAssignment node);
+
   R? visitIfStatement(IfStatement node);
 
   R? visitImplementsClause(ImplementsClause node);
@@ -628,6 +637,11 @@ abstract class AstVisitor2<R> {
   R? visitInterpolationExpression(InterpolationExpression node);
 
   R? visitInterpolationString(InterpolationString node);
+
+  @experimental
+  R? visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  );
 
   R? visitIsExpression(IsExpression node);
 
@@ -817,6 +831,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node);
+
+  @experimental
+  R? visitUnqualifiedNameAssignmentTarget(UnqualifiedNameAssignmentTarget node);
 
   R? visitVariableDeclaration(VariableDeclaration node);
 

@@ -127,6 +127,219 @@ class AssignmentExpressionResolver {
     }
   }
 
+  void resolveCompound(
+    CompoundAssignmentImpl node, {
+    required TypeImpl contextType,
+  }) {
+    var target = node.target;
+    if (target is InvalidExpressionAssignmentTargetImpl) {
+      _resolveInvalidCompound(node, target);
+      return;
+    }
+    target as UnqualifiedNameAssignmentTargetImpl;
+    var targetResult = _resolver
+        .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
+    if (targetResult == null) {
+      var invalidTarget = _invalidTargetForExecutable(target);
+      node.target = invalidTarget;
+      _resolveInvalidCompound(node, invalidTarget);
+      return;
+    }
+    target.read = targetResult.read;
+    target.write = targetResult.write;
+
+    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+
+    var readType = targetResult.read.type;
+    _resolveCompoundOperator(node, receiver: null, readType: readType);
+
+    // Analyze `target op= value` as an operator invocation whose receiver has
+    // the target's read type and whose surrounding context is the target's
+    // write type. Flow analysis may provide a promoted write type for a
+    // variable; other targets use the type accepted by their write resolution.
+    var writeResolution = targetResult.write;
+    var writeContextType = writeResolution.acceptedType;
+    if (writeResolution case VariableWriteResolutionImpl(:var element)) {
+      writeContextType = _resolver.localVariableTypeProvider.getWriteType(
+        element,
+      );
+    }
+    var rhsContext = _computeCompoundRhsContext(
+      operatorTargetType: readType,
+      writeContextType: writeContextType,
+      element: node.element,
+    );
+    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
+    node.value = _resolver.popRewrite()!;
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    );
+
+    var operatorResultType = _computeCompoundOperatorResultType(
+      node,
+      readType: readType,
+    );
+    node.operatorResultType = operatorResultType;
+    node.recordStaticType(operatorResultType, resolver: _resolver);
+
+    _checkForInvalidAssignment(
+      writeResolution.acceptedType,
+      node.value,
+      operatorResultType,
+      whyNotPromoted: null,
+    );
+    _resolver.checkForArgumentTypeNotAssignableForArgument(
+      node.value,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    var flow = _resolver.flowAnalysis.flow;
+    if (flow == null) return;
+    if (writeResolution case VariableWriteResolutionImpl(
+      element: PromotableElementImpl element,
+    )) {
+      _resolver.flowAnalysis.storeExpressionInfo(
+        node,
+        flow.write(node, element, SharedTypeView(operatorResultType), null),
+      );
+    }
+  }
+
+  void resolveDirect(
+    DirectAssignmentImpl node, {
+    required TypeImpl contextType,
+  }) {
+    var target = node.target;
+    if (target is InvalidExpressionAssignmentTargetImpl) {
+      _resolveInvalidDirect(node, target);
+      return;
+    }
+    target as UnqualifiedNameAssignmentTargetImpl;
+    var writeResolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
+      target,
+    );
+    if (writeResolution == null) {
+      var invalidTarget = _invalidTargetForExecutable(target);
+      node.target = invalidTarget;
+      _resolveInvalidDirect(node, invalidTarget);
+      return;
+    }
+    target.write = writeResolution;
+
+    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+    var rhsContext = writeResolution.acceptedType;
+    if (writeResolution case VariableWriteResolutionImpl(:var element)) {
+      rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
+    }
+
+    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
+    node.value = _resolver.popRewrite()!;
+    var valueType = node.value.typeOrThrow;
+    var flow = _resolver.flowAnalysis.flow;
+    var whyNotPromoted = flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    );
+
+    node.recordStaticType(valueType, resolver: _resolver);
+    _checkForInvalidAssignment(
+      writeResolution.acceptedType,
+      node.value,
+      valueType,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    if (flow == null) return;
+    if (writeResolution case VariableWriteResolutionImpl(
+      element: PromotableElementImpl element,
+    )) {
+      _resolver.flowAnalysis.storeExpressionInfo(
+        node,
+        flow.write(
+          node,
+          element,
+          SharedTypeView(node.typeOrThrow),
+          _resolver.flowAnalysis.getExpressionInfo(node.value),
+        ),
+      );
+    }
+  }
+
+  void resolveIfNull(
+    IfNullAssignmentImpl node, {
+    required TypeImpl contextType,
+  }) {
+    var target = node.target;
+    if (target is InvalidExpressionAssignmentTargetImpl) {
+      _resolveInvalidIfNull(node, target, contextType: contextType);
+      return;
+    }
+    target as UnqualifiedNameAssignmentTargetImpl;
+    var targetResult = _resolver
+        .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
+    if (targetResult == null) {
+      var invalidTarget = _invalidTargetForExecutable(target);
+      node.target = invalidTarget;
+      _resolveInvalidIfNull(
+        node,
+        invalidTarget,
+        contextType: contextType,
+        isExecutableTearOff: true,
+      );
+      return;
+    }
+    target.read = targetResult.read;
+    target.write = targetResult.write;
+
+    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+
+    var readType = targetResult.read.type;
+    if (readType is VoidType) {
+      _diagnosticReporter.report(diag.useOfVoidResult.at(node.operator));
+    }
+    var writeResolution = targetResult.write;
+    var rhsContext = writeResolution.acceptedType;
+    if (writeResolution case VariableWriteResolutionImpl(:var element)) {
+      rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
+    }
+
+    var flow = _resolver.flowAnalysis.flow;
+    flow?.ifNullExpression_rightBegin(
+      targetResult.readExpressionInfo,
+      SharedTypeView(readType),
+    );
+
+    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
+    node.value = _resolver.popRewrite()!;
+    var valueType = node.value.typeOrThrow;
+    var whyNotPromoted = flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    );
+
+    var nodeType = _computeIfNullType(
+      readType: readType,
+      valueType: valueType,
+      contextType: contextType,
+    );
+    node.recordStaticType(nodeType, resolver: _resolver);
+    _checkForInvalidAssignment(
+      writeResolution.acceptedType,
+      node.value,
+      valueType,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    if (flow == null) return;
+    if (writeResolution case VariableWriteResolutionImpl(
+      element: PromotableElementImpl element,
+    )) {
+      _resolver.flowAnalysis.storeExpressionInfo(
+        node,
+        flow.write(node, element, SharedTypeView(node.typeOrThrow), null),
+      );
+    }
+    flow.ifNullExpression_end();
+  }
+
   void _checkForInvalidAssignment(
     TypeImpl writeType,
     Expression right,
@@ -200,6 +413,84 @@ class AssignmentExpressionResolver {
     return true;
   }
 
+  TypeImpl _computeCompoundOperatorResultType(
+    CompoundAssignmentImpl node, {
+    required TypeImpl readType,
+  }) {
+    if (identical(readType, NeverTypeImpl.instance)) {
+      return NeverTypeImpl.instance;
+    }
+    if (readType is DynamicType) {
+      return DynamicTypeImpl.instance;
+    }
+    var element = node.element;
+    if (element == null) {
+      return InvalidTypeImpl.instance;
+    }
+    return _typeSystem.refineBinaryExpressionType(
+      readType,
+      node.operator.type,
+      node.value.typeOrThrow,
+      element.returnType,
+      element,
+    );
+  }
+
+  TypeImpl _computeCompoundRhsContext({
+    required TypeImpl operatorTargetType,
+    required TypeImpl writeContextType,
+    required InternalMethodElement? element,
+  }) {
+    if (element != null && element.formalParameters.isNotEmpty) {
+      return _typeSystem.refineNumericInvocationContext(
+        operatorTargetType,
+        element,
+        writeContextType,
+        element.formalParameters.first.type,
+      );
+    }
+    return UnknownInferredType.instance;
+  }
+
+  TypeImpl _computeIfNullType({
+    required TypeImpl readType,
+    required TypeImpl valueType,
+    required TypeImpl contextType,
+  }) {
+    // An if-null assignment `E` of the form `lvalue ??= e` with context type
+    // `K` is analyzed as follows:
+    //
+    // - Let `T1` be the read type of the lvalue.
+    var t1 = readType;
+    // - Let `T2` be the type of `e` inferred with context type `T1`.
+    var t2 = valueType;
+    // - Let `T` be `UP(NonNull(T1), T2)`.
+    var nonNullT1 = _typeSystem.promoteToNonNull(t1);
+    var t = _typeSystem.leastUpperBound(nonNullT1, t2);
+    // - Let `S` be the greatest closure of `K`.
+    var s = _resolver.operations
+        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!_resolver.definingLibrary.featureSet.isEnabled(
+      Feature.inference_update_3,
+    )) {
+      return t;
+    }
+    // - If `T <: S`, then the type of `E` is `T`.
+    if (_typeSystem.isSubtypeOf(t, s)) {
+      return t;
+    }
+    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E`
+    //   is `S`.
+    if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
+        _typeSystem.isSubtypeOf(t2, s)) {
+      return s;
+    }
+    // - Otherwise, the type of `E` is `T`.
+    return t;
+  }
+
   TypeImpl _computeRhsContext(
     AssignmentExpressionImpl node,
     TypeImpl leftType,
@@ -227,6 +518,152 @@ class AssignmentExpressionResolver {
           }
         }
         return UnknownInferredType.instance;
+    }
+  }
+
+  InvalidExpressionAssignmentTargetImpl _invalidTargetForExecutable(
+    UnqualifiedNameAssignmentTargetImpl target,
+  ) {
+    return InvalidExpressionAssignmentTargetImpl(
+      expression: SimpleIdentifierImpl(token: target.name)
+        ..scopeLookupResult = target.scopeLookupResult,
+    );
+  }
+
+  void _resolveCompoundOperator(
+    CompoundAssignmentImpl node, {
+    required ExpressionImpl? receiver,
+    required TypeImpl readType,
+  }) {
+    if (identical(readType, NeverTypeImpl.instance)) {
+      return;
+    }
+    if (readType is VoidType) {
+      _diagnosticReporter.report(diag.useOfVoidResult.at(node.operator));
+      return;
+    }
+
+    var methodName =
+        node.operator.type.binaryOperatorOfCompoundAssignment!.lexeme;
+    var result = _typePropertyResolver.resolve(
+      receiver: receiver,
+      receiverType: readType,
+      name: methodName,
+      hasRead: true,
+      hasWrite: true,
+      propertyErrorEntity: node.operator,
+      nameErrorEntity: node.operator,
+      parentNode: node,
+    );
+    node.element = result.getter2 as InternalMethodElement?;
+    if (result.needsGetterError) {
+      _diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(operator: methodName, type: readType)
+            .at(node.operator),
+      );
+    }
+  }
+
+  void _resolveInvalidCompound(
+    CompoundAssignmentImpl node,
+    InvalidExpressionAssignmentTargetImpl target,
+  ) {
+    _resolver.analyzeExpression(
+      target.expression,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+    );
+    target.expression = _resolver.popRewrite()!;
+
+    var readType = target.expression.typeOrThrow;
+    _resolveCompoundOperator(
+      node,
+      receiver: target.expression,
+      readType: readType,
+    );
+    var rhsContext = _computeCompoundRhsContext(
+      operatorTargetType: readType,
+      writeContextType: readType,
+      element: node.element,
+    );
+    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
+    node.value = _resolver.popRewrite()!;
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    );
+
+    var operatorResultType = _computeCompoundOperatorResultType(
+      node,
+      readType: readType,
+    );
+    node.operatorResultType = operatorResultType;
+    node.recordStaticType(operatorResultType, resolver: _resolver);
+    _resolver.checkForArgumentTypeNotAssignableForArgument(
+      node.value,
+      whyNotPromoted: whyNotPromoted,
+    );
+  }
+
+  void _resolveInvalidDirect(
+    DirectAssignmentImpl node,
+    InvalidExpressionAssignmentTargetImpl target, {
+    bool expressionIsResolved = false,
+  }) {
+    if (!expressionIsResolved) {
+      _resolver.analyzeExpression(
+        target.expression,
+        SharedTypeSchemaView(UnknownInferredType.instance),
+      );
+      target.expression = _resolver.popRewrite()!;
+    }
+
+    _resolver.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(InvalidTypeImpl.instance),
+    );
+    node.value = _resolver.popRewrite()!;
+    node.recordStaticType(node.value.typeOrThrow, resolver: _resolver);
+  }
+
+  void _resolveInvalidIfNull(
+    IfNullAssignmentImpl node,
+    InvalidExpressionAssignmentTargetImpl target, {
+    required TypeImpl contextType,
+    bool expressionIsResolved = false,
+    bool isExecutableTearOff = false,
+  }) {
+    if (!expressionIsResolved) {
+      _resolver.analyzeExpression(
+        target.expression,
+        SharedTypeSchemaView(UnknownInferredType.instance),
+      );
+      target.expression = _resolver.popRewrite()!;
+    }
+
+    var readType = target.expression.typeOrThrow;
+    var flow = _resolver.flowAnalysis.flow;
+    if (isExecutableTearOff) {
+      flow?.ifNullExpression_rightBegin(
+        _resolver.flowAnalysis.getExpressionInfo(target.expression),
+        SharedTypeView(readType),
+      );
+    }
+
+    _resolver.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(InvalidTypeImpl.instance),
+    );
+    node.value = _resolver.popRewrite()!;
+    node.recordStaticType(
+      _computeIfNullType(
+        readType: readType,
+        valueType: node.value.typeOrThrow,
+        contextType: contextType,
+      ),
+      resolver: _resolver,
+    );
+    if (isExecutableTearOff) {
+      flow?.ifNullExpression_end();
     }
   }
 
@@ -325,33 +762,11 @@ class AssignmentExpressionResolver {
       var t1 = node.readType!;
       //   - Let `T2` be the type of `e` inferred with context type `T1`.
       var t2 = assignedType;
-      //   - Let `T` be `UP(NonNull(T1), T2)`.
-      var nonNullT1 = _typeSystem.promoteToNonNull(t1);
-      var t = _typeSystem.leastUpperBound(nonNullT1, t2);
-      //   - Let `S` be the greatest closure of `K`.
-      var s = _resolver.operations
-          .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
-          .unwrapTypeView<TypeImpl>();
-      // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
-      if (!_resolver.definingLibrary.featureSet.isEnabled(
-        Feature.inference_update_3,
-      )) {
-        nodeType = t;
-      } else
-      //   - If `T <: S`, then the type of `E` is `T`.
-      if (_typeSystem.isSubtypeOf(t, s)) {
-        nodeType = t;
-      } else
-      //   - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of
-      //     `E` is `S`.
-      if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
-          _typeSystem.isSubtypeOf(t2, s)) {
-        nodeType = s;
-      } else
-      //   - Otherwise, the type of `E` is `T`.
-      {
-        nodeType = t;
-      }
+      nodeType = _computeIfNullType(
+        readType: t1,
+        valueType: t2,
+        contextType: contextType,
+      );
     } else {
       nodeType = assignedType;
     }
@@ -394,26 +809,45 @@ class AssignmentExpressionShared {
     if (left is SimpleIdentifier) {
       var element = left.element;
       if (element is PromotableElementImpl) {
-        var assigned = flowAnalysis.isDefinitelyAssigned(left, element);
-        var unassigned = flowAnalysis.isDefinitelyUnassigned(left, element);
+        _checkFinalAlreadyAssigned(
+          left,
+          element,
+          isForEachIdentifier: isForEachIdentifier,
+        );
+      }
+    }
+  }
 
-        if (element.isFinal) {
-          if (element.isLate) {
-            if (isForEachIdentifier || assigned) {
-              _errorReporter.report(
-                diag.lateFinalLocalAlreadyAssigned.at(left),
-              );
-            }
-          } else {
-            if (isForEachIdentifier || !unassigned) {
-              _errorReporter.report(
-                diag.assignmentToFinalLocal
-                    .withArguments(variableName: element.name!)
-                    .at(left),
-              );
-            }
-          }
+  void checkFinalTargetAlreadyAssigned(
+    UnqualifiedNameAssignmentTargetImpl target,
+  ) {
+    if (_resolver.flowAnalysis.flow == null) return;
+    var element = target.scopeLookupResult?.getter;
+    if (element is PromotableElementImpl) {
+      _checkFinalAlreadyAssigned(target, element, isForEachIdentifier: false);
+    }
+  }
+
+  void _checkFinalAlreadyAssigned(
+    AstNode node,
+    PromotableElementImpl element, {
+    required bool isForEachIdentifier,
+  }) {
+    var flowAnalysis = _resolver.flowAnalysis;
+    var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
+    var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
+
+    if (element.isFinal) {
+      if (element.isLate) {
+        if (isForEachIdentifier || assigned) {
+          _errorReporter.report(diag.lateFinalLocalAlreadyAssigned.at(node));
         }
+      } else if (isForEachIdentifier || !unassigned) {
+        _errorReporter.report(
+          diag.assignmentToFinalLocal
+              .withArguments(variableName: element.name!)
+              .at(node),
+        );
       }
     }
   }

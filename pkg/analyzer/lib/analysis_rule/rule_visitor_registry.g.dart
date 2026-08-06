@@ -568,6 +568,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addCompilationUnit(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCompoundAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addConditionalExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addConfiguration(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -615,6 +618,9 @@ abstract class RuleVisitorRegistry2 {
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
+
+  @experimental
+  void addDirectAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addDoStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -754,6 +760,9 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addIfNull(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addIfNullAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addIfStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addImplementsClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -774,6 +783,12 @@ abstract class RuleVisitorRegistry2 {
   );
 
   void addInterpolationString(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addInvalidExpressionAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addIsExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -1005,6 +1020,12 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addUnaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addUnqualifiedNameAssignmentTarget(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

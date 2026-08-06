@@ -7,7 +7,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Helper for verifying resolution of explicit [AssignmentExpression]s or
 /// implicit [IncrementOrDecrementExpression]s.
@@ -28,6 +30,49 @@ class AssignmentVerifier {
   /// [diag.undefinedIdentifier].
   void verify({
     required SimpleIdentifier node,
+    required Element? requested,
+    required Element? recovery,
+    required DartType? receiverType,
+  }) => _verify(
+    node: node,
+    name: node.name,
+    isSynthetic: node.isSynthetic,
+    requested: requested,
+    recovery: recovery,
+    receiverType: receiverType,
+  );
+
+  void verifyUnqualifiedNameAssignmentTarget({
+    required UnqualifiedNameAssignmentTarget node,
+    required Element? requested,
+    required Element? recovery,
+  }) {
+    var ambiguousElement =
+        requested.tryCast<MultiplyDefinedElementImpl>() ??
+        recovery.tryCast<MultiplyDefinedElementImpl>();
+    if (ambiguousElement != null) {
+      _diagnosticReporter.report(
+        DiagnosticFactory().ambiguousImport(
+          name: node.name,
+          element: ambiguousElement,
+        ),
+      );
+      return;
+    }
+    _verify(
+      node: node,
+      name: node.name.lexeme,
+      isSynthetic: node.name.isSynthetic,
+      requested: requested,
+      recovery: recovery,
+      receiverType: null,
+    );
+  }
+
+  void _verify({
+    required AstNode node,
+    required String name,
+    required bool isSynthetic,
     required Element? requested,
     required Element? recovery,
     required DartType? receiverType,
@@ -87,18 +132,18 @@ class AssignmentVerifier {
     } else if (recovery is MultiplyDefinedElementImpl) {
       // Will be reported in ErrorVerifier.
     } else {
-      if (node.isSynthetic) {
+      if (isSynthetic) {
         return;
       }
       if (receiverType != null) {
         _diagnosticReporter.report(
           diag.undefinedSetter
-              .withArguments(setterName: node.name, type: receiverType)
+              .withArguments(setterName: name, type: receiverType)
               .at(node),
         );
       } else {
         _diagnosticReporter.report(
-          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
+          diag.undefinedIdentifier.withArguments(name: name).at(node),
         );
       }
     }

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
@@ -87,6 +87,21 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case ValidNamedReadResolution(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+      if (target.write case ValidNamedWriteResolution(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+    }
+    _checkSinceSdkVersion(node.element, node);
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConstructorReference2(ConstructorReference2 node) {
     var typeReference = node.typeReference;
     _checkSinceSdkVersion(
@@ -115,6 +130,18 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      var write = target.write;
+      if (write case ValidNamedWriteResolution(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+    }
+    super.visitDirectAssignment(node);
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkSinceSdkVersion(node.element, node);
     super.visitFunctionExpressionInvocation(node);
@@ -123,6 +150,20 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitHideCombinator(HideCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    var target = node.target;
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case ValidNamedReadResolution(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+      if (target.write case ValidNamedWriteResolution(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+    }
+    super.visitIfNullAssignment(node);
   }
 
   @override

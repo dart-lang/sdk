@@ -335,15 +335,25 @@ void f() {
 
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: y
+    operator: =
+    value: IntegerLiteral
+      literal: 0
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  rightHandSide: AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: y
     operator: =
-    rightHandSide2: IntegerLiteral
+    rightHandSide: IntegerLiteral
       literal: 0
 ''');
   }
@@ -1464,11 +1474,17 @@ ConditionalExpression
   condition2: SimpleIdentifier
     token: b
   question: ?
-  thenExpression2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  thenExpression2: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: c
+    operator: =
+    value: BooleanLiteral
+      literal: true
+  thenExpression(v1): AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: c
     operator: =
-    rightHandSide2: BooleanLiteral
+    rightHandSide: BooleanLiteral
       literal: true
   colon: :
   elseExpression2: MethodInvocation
@@ -1497,11 +1513,17 @@ ConditionalExpression
     identifier: SimpleIdentifier
       token: x
   question: ?
-  thenExpression2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  thenExpression2: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: c
+    operator: =
+    value: BooleanLiteral
+      literal: true
+  thenExpression(v1): AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: c
     operator: =
-    rightHandSide2: BooleanLiteral
+    rightHandSide: BooleanLiteral
       literal: true
   colon: :
   elseExpression2: MethodInvocation
