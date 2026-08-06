@@ -361,8 +361,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitDirectAssignment(DirectAssignment node) {
     _elementUsageFrontierDetector.directAssignment(node);
     var target = node.target;
-    if (target is UnqualifiedNameAssignmentTarget) {
-      _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+    switch (target) {
+      case PropertyAssignmentTarget():
+        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
+      case UnqualifiedNameAssignmentTarget():
+        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+      case InvalidAssignmentTarget():
+        break;
     }
     super.visitDirectAssignment(node);
   }
@@ -1870,6 +1875,24 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
+  void verifyPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    var readElement = switch (node.read) {
+      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    var writeElement = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    for (var element in {readElement, writeElement}) {
+      _verify(node: node, nameToken: node.propertyName, element: element);
+    }
+  }
+
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     if (element == null || _inCurrentLibrary(element)) return;
@@ -1904,13 +1927,13 @@ class _InvalidAccessVerifier {
     var readElement = switch (node.read) {
       InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
-      ValidNamedReadResolution(:var element) => element,
+      NamedReadResolutionWithElement(:var element) => element,
       _ => null,
     };
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
-      ValidNamedWriteResolution(:var element) => element,
+      NamedWriteResolutionWithElement(:var element) => element,
       _ => null,
     };
     for (var element in {readElement, writeElement}) {
@@ -2157,6 +2180,9 @@ class _InvalidAccessVerifier {
     } else if (node is CombinatorName) {
       name = node.name.lexeme;
       errorEntity = node.name;
+    } else if (node is PropertyAssignmentTarget) {
+      name = node.propertyName.lexeme;
+      errorEntity = node.propertyName;
     } else if (node is UnqualifiedNameAssignmentTarget) {
       name = node.name.lexeme;
       errorEntity = node.name;

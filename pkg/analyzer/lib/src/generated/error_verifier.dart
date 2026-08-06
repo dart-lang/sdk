@@ -652,16 +652,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     switch (node.target) {
       case InvalidExpressionAssignmentTargetImpl():
         break;
+      case PropertyAssignmentTargetImpl():
+        throw StateError(
+          'Property targets are not produced for compound assignment.',
+        );
       case UnqualifiedNameAssignmentTargetImpl target:
         var readElement = switch (target.read) {
           null => null,
           InvalidNamedReadResolutionImpl() => null,
-          ValidNamedReadResolutionImpl(:var element) => element,
+          NamedReadResolutionWithElementImpl(:var element) => element,
         };
         var writeElement = switch (target.write) {
           null => null,
+          DynamicPropertyWriteResolutionImpl() => null,
           InvalidNamedWriteResolutionImpl() => null,
-          ValidNamedWriteResolutionImpl(:var element) => element,
+          NamedWriteResolutionWithElementImpl(:var element) => element,
         };
         for (var element in {readElement, writeElement}) {
           if (element == null) continue;
@@ -875,7 +880,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     var write = target.write;
-    if (write case ValidNamedWriteResolutionImpl(:var element)) {
+    if (write case NamedWriteResolutionWithElementImpl(:var element)) {
       _checkForReferenceBeforeDeclaration(
         nameToken: target.name,
         element: element,
@@ -1491,11 +1496,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
     target as UnqualifiedNameAssignmentTargetImpl;
     var readElement = switch (target.read) {
-      ValidNamedReadResolutionImpl(:var element) => element,
+      NamedReadResolutionWithElementImpl(:var element) => element,
       _ => null,
     };
     var writeElement = switch (target.write) {
-      ValidNamedWriteResolutionImpl(:var element) => element,
+      NamedWriteResolutionWithElementImpl(:var element) => element,
       _ => null,
     };
     if (target.read case NamedReadResolutionImpl(:var type)) {

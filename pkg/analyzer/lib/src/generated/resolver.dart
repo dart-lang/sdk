@@ -1687,6 +1687,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return (null, SharedTypeView(typeProvider.dynamicType));
   }
 
+  NamedWriteResolutionImpl? resolvePropertyDirectAssignmentTarget(
+    PropertyAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver.resolvePropertyDirectAssignmentTarget(node);
+  }
+
   @override
   RelationalOperatorResolution? resolveRelationalPatternOperator(
     covariant RelationalPatternImpl node,
@@ -4838,10 +4844,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       context = parent.writeType!;
     } else if (parent is AssignmentExpression2Impl) {
       var target = parent.target;
-      if (target is! UnqualifiedNameAssignmentTargetImpl) {
-        return;
-      }
-      var write = target.write;
+      var write = switch (target) {
+        PropertyAssignmentTargetImpl(:var write) => write,
+        UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+        InvalidExpressionAssignmentTargetImpl() => null,
+      };
       if (write == null) {
         return;
       }

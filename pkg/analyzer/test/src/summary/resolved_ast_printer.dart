@@ -1557,6 +1557,20 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitPropertyAssignmentTarget(
+    covariant PropertyAssignmentTargetImpl node,
+  ) {
+    _sink.writeln('PropertyAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('read', node.read);
+        _writeNamedWriteResolution('write', node.write);
+      }
+    });
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     _sink.writeln('RecordLiteral');
     _sink.withIndent(() {
@@ -2439,6 +2453,11 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writelnWithIndent('$name: VariableWriteResolution');
         _sink.withIndent(() {
           _writeElement('element', resolution.element);
+          _writeType('acceptedType', resolution.acceptedType);
+        });
+      case DynamicPropertyWriteResolutionImpl():
+        _sink.writelnWithIndent('$name: DynamicPropertyWriteResolution');
+        _sink.withIndent(() {
           _writeType('acceptedType', resolution.acceptedType);
         });
     }

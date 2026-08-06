@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -42,6 +43,22 @@ class AssignmentVerifier {
     receiverType: receiverType,
   );
 
+  void verifyPropertyAssignmentTarget({
+    required PropertyAssignmentTarget node,
+    required Element? requested,
+    required Element? recovery,
+    required DartType receiverType,
+  }) {
+    _verify(
+      node: node.propertyName,
+      name: node.propertyName.lexeme,
+      isSynthetic: node.propertyName.isSynthetic,
+      requested: requested,
+      recovery: recovery,
+      receiverType: receiverType,
+    );
+  }
+
   void verifyUnqualifiedNameAssignmentTarget({
     required UnqualifiedNameAssignmentTarget node,
     required Element? requested,
@@ -70,7 +87,7 @@ class AssignmentVerifier {
   }
 
   void _verify({
-    required AstNode node,
+    required SyntacticEntity node,
     required String name,
     required bool isSynthetic,
     required Element? requested,

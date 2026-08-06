@@ -566,11 +566,10 @@ test(C c) => (c).p ??= hook(123, '123');
 test(List l) => (l).length = 3;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('(l).length = 3')]
+    var assignment = result.findNode.directAssignment('(l).length = 3');
+    check(astNodes)[assignment]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
-      ..containsSubrange(
-        astNodes[result.findNode.propertyAccess('(l).length')]!,
-      )
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('3')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);

@@ -2147,6 +2147,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    _runSubscriptions(node, _registry._forPropertyAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitRecordLiteral(RecordLiteral node) {
     _runSubscriptions(node, _registry._forRecordLiteral);
@@ -4600,6 +4607,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<PropertyAccess>> _forPropertyAccess = [];
 
+  final List<_Subscription2<PropertyAssignmentTarget>>
+  _forPropertyAssignmentTarget = [];
+
   final List<_Subscription2<RecordLiteral>> _forRecordLiteral = [];
 
   final List<_Subscription2<RecordLiteralNamedField>>
@@ -5830,6 +5840,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forPropertyAccess.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addPropertyAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forPropertyAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

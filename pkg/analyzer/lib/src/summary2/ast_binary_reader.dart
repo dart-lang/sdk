@@ -951,7 +951,8 @@ class AstBinaryReader {
         var type = _reader.readRequiredType();
         var candidates = _reader.readElementList<Element>();
         var recovery = _reader.readOptionalObject(() {
-          return _readNamedReadResolution() as ValidNamedReadResolutionImpl;
+          return _readNamedReadResolution()
+              as NamedReadResolutionWithElementImpl;
         });
         return InvalidNamedReadResolutionImpl(
           candidates: candidates,
@@ -989,7 +990,8 @@ class AstBinaryReader {
         var acceptedType = _reader.readType()!;
         var candidates = _reader.readElementList<Element>();
         var recovery = _reader.readOptionalObject(() {
-          return _readNamedWriteResolution() as ValidNamedWriteResolutionImpl;
+          return _readNamedWriteResolution()
+              as NamedWriteResolutionWithElementImpl;
         });
         return InvalidNamedWriteResolutionImpl(
           acceptedType: acceptedType,
@@ -1005,6 +1007,8 @@ class AstBinaryReader {
           element: _reader.readElement() as InternalVariableElement,
           acceptedType: _reader.readType()!,
         );
+      case NamedWriteResolutionTag.dynamicPropertyWrite:
+        return const DynamicPropertyWriteResolutionImpl();
     }
   }
 
@@ -1149,6 +1153,8 @@ class AstBinaryReader {
         return _readPrefixedIdentifier();
       case Tag.PropertyAccess:
         return _readPropertyAccess();
+      case Tag.PropertyAssignmentTarget:
+        return _readPropertyAssignmentTarget();
       case Tag.RecordLiteral:
         return _readRecordLiteral();
       case Tag.RecordLiteralNamedField:
@@ -1342,6 +1348,20 @@ class AstBinaryReader {
       propertyName: propertyName,
     );
     _readExpressionResolution(node);
+    return node;
+  }
+
+  PropertyAssignmentTarget _readPropertyAssignmentTarget() {
+    var receiver = _readNode() as ExpressionImpl;
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var propertyName = _readStringReference();
+    var node = PropertyAssignmentTargetImpl(
+      receiver: receiver,
+      operator: Tokens.fromType(operatorType),
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
     return node;
   }
 

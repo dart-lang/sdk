@@ -122,6 +122,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
+    } else if (node is PropertyAssignmentTarget) {
+      errorEntity = node.propertyName;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -568,6 +570,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
+    } else if (node is PropertyAssignmentTarget) {
+      errorEntity = node.propertyName;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -638,10 +642,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   void compoundAssignment(CompoundAssignment node) {
     var target = node.target;
     if (target is UnqualifiedNameAssignmentTarget) {
-      if (target.read case ValidNamedReadResolution(:var element)) {
+      if (target.read case NamedReadResolutionWithElement(:var element)) {
         checkUsage(element, target);
       }
-      if (target.write case ValidNamedWriteResolution(:var element)) {
+      if (target.write case NamedWriteResolutionWithElement(:var element)) {
         checkUsage(element, target);
       }
     }
@@ -681,11 +685,13 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void directAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target is UnqualifiedNameAssignmentTarget) {
-      var write = target.write;
-      if (write case ValidNamedWriteResolution(:var element)) {
-        checkUsage(element, target);
-      }
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
     }
   }
 
@@ -764,10 +770,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   void ifNullAssignment(IfNullAssignment node) {
     var target = node.target;
     if (target is UnqualifiedNameAssignmentTarget) {
-      if (target.read case ValidNamedReadResolution(:var element)) {
+      if (target.read case NamedReadResolutionWithElement(:var element)) {
         checkUsage(element, target);
       }
-      if (target.write case ValidNamedWriteResolution(:var element)) {
+      if (target.write case NamedWriteResolutionWithElement(:var element)) {
         checkUsage(element, target);
       }
     }

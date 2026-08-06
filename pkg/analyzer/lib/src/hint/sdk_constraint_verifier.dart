@@ -90,10 +90,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   void visitCompoundAssignment(CompoundAssignment node) {
     var target = node.target;
     if (target is UnqualifiedNameAssignmentTarget) {
-      if (target.read case ValidNamedReadResolution(:var element)) {
+      if (target.read case NamedReadResolutionWithElement(:var element)) {
         _checkSinceSdkVersion(element, target);
       }
-      if (target.write case ValidNamedWriteResolution(:var element)) {
+      if (target.write case NamedWriteResolutionWithElement(:var element)) {
         _checkSinceSdkVersion(element, target);
       }
     }
@@ -132,11 +132,21 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target is UnqualifiedNameAssignmentTarget) {
-      var write = target.write;
-      if (write case ValidNamedWriteResolution(:var element)) {
-        _checkSinceSdkVersion(element, target);
-      }
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      _checkSinceSdkVersion(
+        element,
+        target,
+        errorEntity: switch (target) {
+          PropertyAssignmentTarget() => target.propertyName,
+          UnqualifiedNameAssignmentTarget() => target.name,
+          _ => null,
+        },
+      );
     }
     super.visitDirectAssignment(node);
   }
@@ -156,10 +166,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   void visitIfNullAssignment(IfNullAssignment node) {
     var target = node.target;
     if (target is UnqualifiedNameAssignmentTarget) {
-      if (target.read case ValidNamedReadResolution(:var element)) {
+      if (target.read case NamedReadResolutionWithElement(:var element)) {
         _checkSinceSdkVersion(element, target);
       }
-      if (target.write case ValidNamedWriteResolution(:var element)) {
+      if (target.write case NamedWriteResolutionWithElement(:var element)) {
         _checkSinceSdkVersion(element, target);
       }
     }

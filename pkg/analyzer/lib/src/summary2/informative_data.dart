@@ -2168,6 +2168,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    _tokenOrNull(node.operator);
+    _tokenOrNull(node.propertyName);
+    super.visitPropertyAssignmentTarget(node);
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     _tokenOrNull(node.constKeyword);
     _tokenOrNull(node.leftParenthesis);

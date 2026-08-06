@@ -1395,6 +1395,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitPropertyAccess(PropertyAccess node) =>
       visitCommentReferableExpression(node);
 
+  @experimental
+  @override
+  R? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) =>
+      visitAssignmentTarget(node);
+
   @override
   R? visitRecordLiteral(RecordLiteral node) => visitLiteral(node);
 
@@ -3667,6 +3672,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitRecordLiteral(RecordLiteral node) {
     node.visitChildren2(this);
@@ -5047,6 +5059,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitPropertyAccess(PropertyAccess node) => null;
 
+  @experimental
+  @override
+  R? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) => null;
+
   @override
   R? visitRecordLiteral(RecordLiteral node) => null;
 
@@ -6316,6 +6332,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) =>
+      _throw(node);
 
   @override
   R? visitRecordLiteral(RecordLiteral node) => _throw(node);
@@ -9235,6 +9256,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitPropertyAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitRecordLiteral(RecordLiteral node) {
     stopwatch.start();
@@ -10784,6 +10814,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) =>
+      visitNode(node);
 
   @override
   R? visitRecordLiteral(RecordLiteral node) => visitNode(node);

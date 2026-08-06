@@ -918,6 +918,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addPropertyAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addRecordLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addRecordLiteralNamedField(

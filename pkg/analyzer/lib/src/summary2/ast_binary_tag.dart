@@ -32,7 +32,12 @@ enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 
 enum NamedReadResolutionTag { getterInvocation, invalid, variableRead }
 
-enum NamedWriteResolutionTag { invalid, setterInvocation, variableWrite }
+enum NamedWriteResolutionTag {
+  invalid,
+  setterInvocation,
+  variableWrite,
+  dynamicPropertyWrite,
+}
 
 class Tag {
   static const int Nothing = 0;
@@ -113,6 +118,7 @@ class Tag {
   static const int UnqualifiedNameAssignmentTarget = 135;
   static const int IfNullAssignment = 136;
   static const int InvalidExpressionAssignmentTarget = 137;
+  static const int PropertyAssignmentTarget = 139;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PrefixedIdentifier = 32;

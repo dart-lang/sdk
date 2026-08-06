@@ -1268,6 +1268,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    _visitNode(node.receiver);
+    sink.write(node.operator.lexeme);
+    sink.write(node.propertyName.lexeme);
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     _visitToken(node.leftParenthesis);
     _visitNodeList(node.fields2, separator: ', ');

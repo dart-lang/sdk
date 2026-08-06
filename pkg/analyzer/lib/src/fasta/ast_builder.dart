@@ -3707,6 +3707,13 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(rhs);
+    var propertyReceiver = switch (lhs) {
+      PropertyAccessImpl(target2: var receiver?, operator: var operator)
+          when operator.type == TokenType.PERIOD &&
+              _isSupportedPropertyAssignmentReceiver(receiver) =>
+        receiver,
+      _ => null,
+    };
     if (!isAssignable && token.type == TokenType.EQ) {
       push(
         DirectAssignmentImpl(
@@ -3719,6 +3726,19 @@ class AstBuilder extends StackListener {
       push(
         IfNullAssignmentImpl(
           target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
+          operator: token,
+          value: rhs,
+        ),
+      );
+    } else if (token.type == TokenType.EQ && propertyReceiver != null) {
+      lhs as PropertyAccessImpl;
+      push(
+        DirectAssignmentImpl(
+          target: PropertyAssignmentTargetImpl(
+            receiver: propertyReceiver,
+            operator: lhs.operator,
+            propertyName: lhs.propertyName.token,
+          ),
           operator: token,
           value: rhs,
         ),
@@ -6457,6 +6477,27 @@ class AstBuilder extends StackListener {
         typeArguments: typeArguments,
       ),
     );
+  }
+
+  /// Whether [receiver] is in the property-assignment migration slice.
+  ///
+  /// Parentheses establish an expression boundary even when the expression
+  /// inside them requires resolution. Ordinary property accesses preserve a
+  /// supported root, while other postfix operations remain on their existing
+  /// AST shapes until they are migrated explicitly.
+  bool _isSupportedPropertyAssignmentReceiver(ExpressionImpl receiver) {
+    switch (receiver) {
+      case LiteralImpl():
+      case ParenthesizedExpressionImpl():
+      case ConstructorInvocationImpl():
+      case InstanceCreationExpressionImpl():
+        return true;
+      case PropertyAccessImpl(target2: var target?, operator: var operator)
+          when operator.type == TokenType.PERIOD:
+        return _isSupportedPropertyAssignmentReceiver(target);
+      default:
+        return false;
+    }
   }
 
   List<NamedTypeImpl> _popNamedTypeList({
