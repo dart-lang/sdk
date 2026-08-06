@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'test_support.dart';
 
-main() {
+void main() {
   group('validates arguments', () {
     group('for Dart CLI adapter', () {
       late DapTestSession dap;
@@ -138,7 +138,8 @@ main() {
         test('when a non-String is supplied for a String', () async {
           await expectError(
             {'program': true},
-            '"program" argument in launch configuration must be a String but provided value was a bool (true)',
+            '"program" argument in launch configuration must be a '
+            'String but provided value was a bool (true)',
           );
         });
 
@@ -178,7 +179,8 @@ main() {
         test('when a non-String is supplied for a String?', () async {
           await expectError(
             {'vmServiceUri': true},
-            '"vmServiceUri" argument in attach configuration must be a String? but provided value was a bool (true)',
+            '"vmServiceUri" argument in attach configuration must be a '
+            'String? but provided value was a bool (true)',
           );
         });
 

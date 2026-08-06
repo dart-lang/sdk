@@ -23,6 +23,46 @@ import 'test_support.dart';
 /// Methods on this class should map directly to protocol methods. Additional
 /// helpers are available in [DapTestClientExtension].
 class DapTestClient {
+  DapTestClient._(
+    this._channel,
+    this._logger, {
+    this.captureVmServiceTraffic = false,
+  }) {
+    // Set up a future that will complete when the 'dart.debuggerUris' event is
+    // emitted by the debug adapter so tests have easy access to it.
+    vmServiceUri = event('dart.debuggerUris')
+        .then<Uri?>((event) {
+          final body = event.body as Map<String, Object?>;
+          return Uri.parse(body['vmServiceUri'] as String);
+        })
+        .catchError((e) => null);
+
+    _subscription = _channel.listen(
+      _handleMessage,
+      onDone: () {
+        _isStopping = true;
+        if (_pendingRequests.isNotEmpty) {
+          _logger?.call(
+            'Application terminated without a '
+            'response to ${_pendingRequests.length} requests',
+          );
+        }
+        _pendingRequests.forEach(
+          (id, request) => request.completer.completeError(
+            'Application terminated without a response '
+            'to request $id (${request.name})',
+          ),
+        );
+        _pendingRequests.clear();
+      },
+    );
+
+    // Collect stderr output events so if we can write this to the real
+    // stderr when the app terminates to help track down things like VM crashes.
+    outputEvents
+        .where((event) => event.category == 'stderr')
+        .listen((event) => _stderr.write(event.output));
+  }
   final ByteStreamServerChannel _channel;
   late final StreamSubscription<String> _subscription;
 
@@ -58,67 +98,28 @@ class DapTestClient {
   /// A default cwd to use for all launches.
   String? defaultCwd;
 
-  DapTestClient._(
-    this._channel,
-    this._logger, {
-    this.captureVmServiceTraffic = false,
-  }) {
-    // Set up a future that will complete when the 'dart.debuggerUris' event is
-    // emitted by the debug adapter so tests have easy access to it.
-    vmServiceUri = event('dart.debuggerUris')
-        .then<Uri?>((event) {
-          final body = event.body as Map<String, Object?>;
-          return Uri.parse(body['vmServiceUri'] as String);
-        })
-        .catchError((e) => null);
-
-    _subscription = _channel.listen(
-      _handleMessage,
-      onDone: () {
-        _isStopping = true;
-        if (_pendingRequests.isNotEmpty) {
-          _logger?.call(
-            'Application terminated without a response to ${_pendingRequests.length} requests',
-          );
-        }
-        _pendingRequests.forEach(
-          (id, request) => request.completer.completeError(
-            'Application terminated without a response to request $id (${request.name})',
-          ),
-        );
-        _pendingRequests.clear();
-      },
-    );
-
-    // Collect stderr output events so if we can write this to the real
-    // stderr when the app terminates to help track down things like VM crashes.
-    outputEvents
-        .where((event) => event.category == 'stderr')
-        .listen((event) => _stderr.write(event.output));
-  }
-
   /// Returns a stream of [OutputEventBody] events.
-  Stream<OutputEventBody> get outputEvents =>
-      events('output')
-          .map((e) => OutputEventBody.fromJson(e.body as Map<String, Object?>));
+  Stream<OutputEventBody> get outputEvents => events(
+    'output',
+  ).map((e) => OutputEventBody.fromJson(e.body as Map<String, Object?>));
 
   /// Returns a stream of custom 'dart.serviceExtensionAdded' events.
-  Stream<Map<String, Object?>> get serviceExtensionAddedEvents =>
-      events('dart.serviceExtensionAdded')
-          .map((e) => e.body as Map<String, Object?>);
+  Stream<Map<String, Object?>> get serviceExtensionAddedEvents => events(
+    'dart.serviceExtensionAdded',
+  ).map((e) => e.body as Map<String, Object?>);
 
   /// Returns a stream of custom 'dart.serviceRegistered' events.
-  Stream<Map<String, Object?>> get serviceRegisteredEvents =>
-      events('dart.serviceRegistered')
-          .map((e) => e.body as Map<String, Object?>);
+  Stream<Map<String, Object?>> get serviceRegisteredEvents => events(
+    'dart.serviceRegistered',
+  ).map((e) => e.body as Map<String, Object?>);
 
   /// Returns a stream of 'dart.testNotification' custom events from the
   /// package:test JSON reporter.
-  Stream<Map<String, Object?>> get testNotificationEvents =>
-      events('dart.testNotification')
-          .map((e) => e.body as Map<String, Object?>);
+  Stream<Map<String, Object?>> get testNotificationEvents => events(
+    'dart.testNotification',
+  ).map((e) => e.body as Map<String, Object?>);
 
-  /// Waits for a 'breakpoint' event that changes the breakpoint with [id].
+  /// Waits for a 'breakpoint' event that changes the breakpoint with `id`.
   Stream<BreakpointEventBody> get breakpointChangeEvents => events('breakpoint')
       .map(
         (event) =>
@@ -127,9 +128,9 @@ class DapTestClient {
       .where((body) => body.reason == 'changed');
 
   /// Returns a stream of [ThreadEventBody] events.
-  Stream<ThreadEventBody> get threadEvents =>
-      events('thread')
-          .map((e) => ThreadEventBody.fromJson(e.body as Map<String, Object?>));
+  Stream<ThreadEventBody> get threadEvents => events(
+    'thread',
+  ).map((e) => ThreadEventBody.fromJson(e.body as Map<String, Object?>));
 
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
@@ -162,9 +163,11 @@ class DapTestClient {
     // started the app with a user-provided pause-on-exit but wants to
     // simulate the user resuming after the exit pause.
     if (autoResumeOnExit) {
-      stoppedEvents
-          .firstWhere((e) => e.reason == 'exit')
-          .then((event) => continue_(event.threadId!));
+      unawaited(
+        stoppedEvents
+            .firstWhere((e) => e.reason == 'exit')
+            .then((event) => continue_(event.threadId!)),
+      );
     }
 
     cwd ??= defaultCwd;
@@ -212,7 +215,7 @@ class DapTestClient {
       sendRequest(ContinueArguments(threadId: threadId));
 
   /// Sends a custom request to the server and waits for a response.
-  Future<Response> custom(String name, [Object? args]) async {
+  Future<Response> custom(String name, [Object? args]) {
     return sendRequest(args, overrideCommand: name);
   }
 
@@ -244,7 +247,8 @@ class DapTestClient {
     'Event "$event"',
     allEvents.firstWhere(
       (e) => e.event == event,
-      orElse: () => throw 'Did not receive $event event before stream closed',
+      orElse: () =>
+          throw StateError('Did not receive $event event before stream closed'),
     ),
   );
 
@@ -298,7 +302,7 @@ class DapTestClient {
   }
 
   /// Send a custom 'hotReload' request to the server.
-  Future<Response> hotReload() async {
+  Future<Response> hotReload() {
     return custom('hotReload');
   }
 
@@ -524,7 +528,7 @@ class DapTestClient {
   /// For convenience, returns a Future that completes when either this request
   /// completes, or when a `terminated` event is received since it is not
   /// guaranteed that this request will return a response during a shutdown.
-  Future<void> terminate() async {
+  Future<void> terminate() {
     _isStopping = true;
     _hasSentTerminateRequest = true;
     return Future.any([
@@ -571,7 +575,8 @@ class DapTestClient {
     );
   }
 
-  /// Handles an incoming message from the server, completing the relevant request
+  /// Handles an incoming message from the server, completing the relevant
+  /// request
   /// of raising the appropriate event.
   Future<void> _handleMessage(ProtocolMessage message) async {
     _verifyMessageOrdering(message);
@@ -608,7 +613,9 @@ class DapTestClient {
       final args = message.arguments;
       final handler = _serverRequestHandlers[command];
       if (handler == null) {
-        throw 'Test did not configure a handler for servers request: $command';
+        throw StateError(
+          'Test did not configure a handler for servers request: $command',
+        );
       }
       final result = await handler(args);
       sendResponse(message, result);
@@ -624,7 +631,7 @@ class DapTestClient {
     // the test is being torn down.
     final endTime = DateTime.now().add(_requestWarningDuration);
     late Timer timer;
-    timer = Timer.periodic(Duration(milliseconds: 100), (_) {
+    timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
       // Shutting down, so just abort.
       if (_isStopping) {
         timer.cancel();
@@ -652,7 +659,8 @@ class DapTestClient {
       if (message.event == 'initialized' &&
           !_receivedResponses.contains('initialize')) {
         throw StateError(
-          'Adapter sent "initialized" event before the "initialize" request had '
+          'Adapter sent "initialized" event before '
+          'the "initialize" request had '
           'been responded to',
         );
       }
@@ -693,7 +701,7 @@ class DapTestClient {
   final _receivedResponses = <String>{};
 
   /// Creates a [DapTestClient] that connects the server listening on
-  /// [host]:[port].
+  /// [host]:`port`.
   static Future<DapTestClient> connect(
     DapTestServer server, {
     bool captureVmServiceTraffic = false,
@@ -710,21 +718,20 @@ class DapTestClient {
 
 /// Useful events produced by the debug adapter during a debug session.
 class TestEvents {
+  TestEvents({required this.output, required this.testNotifications});
   final List<OutputEventBody> output;
   final List<Map<String, Object?>> testNotifications;
-
-  TestEvents({required this.output, required this.testNotifications});
 }
 
 class _OutgoingRequest {
+  _OutgoingRequest(this.completer, this.name, this.allowFailure);
   final Completer<Response> completer;
   final String name;
   final bool allowFailure;
-
-  _OutgoingRequest(this.completer, this.name, this.allowFailure);
 }
 
-/// Additional helper method for tests to simplify interaction with [DapTestClient].
+/// Additional helper method for tests to simplify interaction with
+/// [DapTestClient].
 ///
 /// Unlike the methods on [DapTestClient] these methods might not map directly
 /// onto protocol methods. They may call multiple protocol methods and/or
@@ -733,8 +740,8 @@ extension DapTestClientExtension on DapTestClient {
   /// Sets a breakpoint at [line] in [file] and expects to hit it after running
   /// the script.
   ///
-  /// Launch options can be customised by passing a custom [launch] function that
-  /// will be used instead of calling `launch(file.path)`.
+  /// Launch options can be customised by passing a custom [launch] function
+  /// that will be used instead of calling `launch(file.path)`.
   Future<StoppedEventBody> hitBreakpoint(
     File file,
     int line, {
@@ -811,17 +818,17 @@ extension DapTestClientExtension on DapTestClient {
   }
 
   /// Normalizes a breakpoint path being sent to the debug adapter based on
-  /// the values of [forceBreakpointDriveLetterCasingUpper] and
-  /// [forceBreakpointDriveLetterCasingLower].
+  /// the values of `forceBreakpointDriveLetterCasingUpper` and
+  /// `forceBreakpointDriveLetterCasingLower`.
   String _normalizeBreakpointPath(String path) {
     return setDriveLetterCasing(path, forceBreakpointDriveLetterCasing);
   }
 
-  /// Sets the exception pause mode to [pauseMode] and expects to pause after
+  /// Sets the exception pause mode to `pauseMode` and expects to pause after
   /// running the script.
   ///
-  /// Launch options can be customised by passing a custom [launch] function that
-  /// will be used instead of calling `launch(file.path)`.
+  /// Launch options can be customised by passing a custom [launch] function
+  /// that will be used instead of calling `launch(file.path)`.
   Future<StoppedEventBody> pauseOnException(
     File file, {
     String? exceptionPauseMode, // All, Unhandled, None
@@ -833,9 +840,7 @@ extension DapTestClientExtension on DapTestClient {
     await Future.wait([
       initialize(),
       sendRequest(
-        SetExceptionBreakpointsArguments(
-          filters: [if (exceptionPauseMode != null) exceptionPauseMode],
-        ),
+        SetExceptionBreakpointsArguments(filters: [?exceptionPauseMode]),
       ),
       launch?.call() ?? this.launch(file.path),
     ], eagerError: true);
@@ -850,8 +855,8 @@ extension DapTestClientExtension on DapTestClient {
   /// Sets a breakpoint at [line] in [file] and expects _not_ to hit it after
   /// running the script (instead the script is expected to terminate).
   ///
-  /// Launch options can be customised by passing a custom [launch] function that
-  /// will be used instead of calling `launch(file.path)`.
+  /// Launch options can be customised by passing a custom [launch] function
+  /// that will be used instead of calling `launch(file.path)`.
   Future<void> doNotHitBreakpoint(
     File file,
     int line, {
@@ -881,7 +886,7 @@ extension DapTestClientExtension on DapTestClient {
   /// Returns whether DDS is available for the VM Service the debug adapter
   /// is connected to.
   Future<bool> get ddsAvailable async {
-    final response = await custom('_getSupportedProtocols', null);
+    final response = await custom('_getSupportedProtocols');
 
     // For convenience, use the ProtocolList to deserialize the custom
     // response to check if included DDS.
@@ -1002,7 +1007,7 @@ extension DapTestClientExtension on DapTestClient {
   ///
   /// Only one of [start] or [launch] may be provided. Use [start] to customise
   /// the whole start of the session (including initialise) or [launch] to only
-  /// customise the [launchRequest].
+  /// customise the `launchRequest`.
   Future<List<OutputEventBody>> collectOutput({
     File? file,
     Future<Response> Function()? start,
@@ -1026,11 +1031,12 @@ extension DapTestClientExtension on DapTestClient {
   /// Collects all output and test events until the program terminates.
   ///
   /// These results include all events in the order they are received, including
-  /// console, stdout, stderr and test notifications from the test JSON reporter.
+  /// console, stdout, stderr and test notifications from the test JSON
+  /// reporter.
   ///
   /// Only one of [start] or [launch] may be provided. Use [start] to customise
   /// the whole start of the session (including initialise) or [launch] to only
-  /// customise the [launchRequest].
+  /// customise the `launchRequest`.
   Future<TestEvents> collectTestOutput({
     File? file,
     Future<Response> Function()? start,
@@ -1082,7 +1088,7 @@ extension DapTestClientExtension on DapTestClient {
     final scopes = await getValidScopes(frameId);
     return scopes.scopes.singleWhere(
       (s) => s.name == name,
-      orElse: () => throw 'Did not find scope with name $name',
+      orElse: () => throw StateError('Did not find scope with name $name'),
     );
   }
 
@@ -1144,8 +1150,10 @@ extension DapTestClientExtension on DapTestClient {
     final variables = await getValidVariables(variablesReference);
     return variables.variables.singleWhere(
       (variable) => variable.name == name,
-      orElse: () =>
-          throw 'Did not find $name in ${variables.variables.map((v) => v.name).join(', ')}',
+      orElse: () => throw StateError(
+        'Did not find $name '
+        'in ${variables.variables.map((v) => v.name).join(', ')}',
+      ),
     );
   }
 
@@ -1341,16 +1349,16 @@ extension DapTestClientExtension on DapTestClient {
 /// Represents an error message returned from the debug adapter in response
 /// to a request.
 class RequestException implements Exception {
+  RequestException(this.requestName, this.message);
+
   /// The name of the request that was made by the client.
   final String requestName;
 
   /// The raw message that came from back from the adapter.
   final ProtocolMessage message;
 
-  RequestException(this.requestName, this.message);
-
   @override
   String toString() =>
       'Request "$requestName" failed:\n'
-      '${JsonEncoder.withIndent('    ').convert(message.toJson())}';
+      '${const JsonEncoder.withIndent('    ').convert(message.toJson())}';
 }

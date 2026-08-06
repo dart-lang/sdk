@@ -17,6 +17,7 @@ import 'protocol_stream_transformers.dart';
 /// A wrapper over a Stream/StreamSink that encodes/decores DAP/LSP
 /// request/response/event messages.
 class ByteStreamServerChannel {
+  ByteStreamServerChannel(this._input, this._output, this._logger);
   final Stream<List<int>> _input;
 
   final StreamSink<List<int>> _output;
@@ -24,15 +25,13 @@ class ByteStreamServerChannel {
   final Logger? _logger;
 
   /// Completer that will be signalled when the input stream is closed.
-  final Completer _closed = Completer();
+  final Completer<void> _closed = Completer<void>();
 
   /// True if [close] has been called.
   bool _closeRequested = false;
 
-  ByteStreamServerChannel(this._input, this._output, this._logger);
-
   /// Future that will be completed when the input stream is closed.
-  Future get closed {
+  Future<void> get closed {
     return _closed.future;
   }
 
@@ -79,7 +78,7 @@ class ByteStreamServerChannel {
     }
     _logger?.call('<== [DAP] $data');
     try {
-      final Map<String, Object?> json = jsonDecode(data);
+      final json = jsonDecode(data) as Map<String, Object?>;
       final type = json['type'] as String;
       if (type == 'request') {
         onMessage(Request.fromJson(json));
@@ -117,7 +116,8 @@ class ByteStreamServerChannel {
   }
 
   void _sendParseError(String data) {
-    // TODO(dantup): Review LSP implementation of this when consolidating classes.
+    // TODO(dantup): Review LSP implementation of this when consolidating
+    // classes.
     throw DebugAdapterException('Message does not conform to DAP spec: $data');
   }
 

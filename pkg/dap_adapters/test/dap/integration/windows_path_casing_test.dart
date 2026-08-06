@@ -11,7 +11,7 @@ import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   group(
     'windows path casing',
     () {
@@ -57,7 +57,8 @@ main() {
                   cwd: cwdCasing == null ? null : dap!.testAppDir.path,
                 );
 
-                // Resume and expect termination (as the script will get to the end).
+                // Resume and expect termination (as the script will get to the
+                // end).
                 await Future.wait([
                   client.event('terminated'),
                   client.continue_(stop.threadId!),

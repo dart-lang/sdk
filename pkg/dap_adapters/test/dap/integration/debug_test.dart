@@ -14,7 +14,7 @@ import 'test_scripts.dart';
 import 'test_server.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   group('debug mode', () {
     late DapTestSession dap;
     setUp(() async {
@@ -51,7 +51,8 @@ main() {
       ]);
     });
 
-    test('does not include empty output events when output ends with a newline', () async {
+    test('does not include empty output events '
+        'when output ends with a newline', () async {
       final testFile = dap.createTestFile(simpleArgPrintingProgram);
 
       final outputEvents = await dap.client.collectOutput(
@@ -63,7 +64,7 @@ main() {
       // and previously would include empty output events at the end if the
       // content ended with a newline.
       // https://github.com/flutter/flutter/pull/147250#issuecomment-2075128834
-      for (var output in outputEvents) {
+      for (final output in outputEvents) {
         expect(output.output, isNotEmpty);
       }
     });
@@ -97,7 +98,7 @@ main() {
       await Future.wait([
         dap.client.event('terminated'),
         dap.client.initialize(supportsRunInTerminalRequest: true),
-        dap.client.launch(testFile.path, console: "terminal"),
+        dap.client.launch(testFile.path, console: 'terminal'),
       ], eagerError: true);
 
       expect(runInTerminalArgs, isNotNull);
@@ -139,7 +140,8 @@ main() {
       ]);
     }, skip: 'Fails because of https://github.com/dart-lang/sdk/issues/52632');
 
-    test('does not resume isolates if user passes --pause-isolates-on-exit', () async {
+    test('does not resume isolates '
+        'if user passes --pause-isolates-on-exit', () async {
       // Internally we always pass --pause-isolates-on-exit and resume the
       // isolates after waiting for any output events to complete (in case they
       // need to resolve URIs that involve API calls on an Isolate).
@@ -155,7 +157,7 @@ main() {
         dap.client.initialize(),
         dap.client.launch(
           testFile.path,
-          toolArgs: ["--pause-isolates-on-exit"],
+          toolArgs: ['--pause-isolates-on-exit'],
         ),
       ], eagerError: true);
 
@@ -183,7 +185,7 @@ main() {
           dap.client.initialize(),
           dap.client.launch(
             testFile.path,
-            toolArgs: ["--pause-isolates-on-start"],
+            toolArgs: ['--pause-isolates-on-start'],
           ),
         ], eagerError: true);
 
@@ -195,88 +197,99 @@ main() {
       },
     );
 
-    test('receives thread, stopped, continued events during pause/resume', () async {
-      final client = dap.client;
-      final testFile = dap.createTestFile(debuggerPauseAndPrintManyProgram);
+    test(
+      'receives thread, stopped, continued events during pause/resume',
+      () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(debuggerPauseAndPrintManyProgram);
 
-      // Collect interesting events that we want to verify exist and in the
-      // right order.
-      final interestingEvents = const {
-        'thread',
-        'stopped',
-        'continued',
-        'terminated',
-      };
-      final eventsFuture = client.allEvents
-          .where((e) => interestingEvents.contains(e.event))
-          .map((e) {
-            // Create a descriptive string for verifying later.
-            final body = e.body as Map<String, Object?>;
-            const interestingFields = [
-              'reason',
-              'threadId',
-              'allThreadsContinued',
-              'allThreadsStopped',
-            ];
-            final description = interestingFields
-                .where(body.containsKey)
-                .map((field) => '$field: ${body[field]}')
-                .join(', ');
-            return description.isNotEmpty
-                ? '${e.event} ($description)'
-                : e.event;
-          })
-          .toList();
-
-      // Start the program and wait to pause on `debugger()`.
-      final stoppedFuture = client.expectStop('step');
-      await client.start(file: testFile);
-      final threadId = (await stoppedFuture).threadId!;
-
-      // Step 3 times and wait for the corresponding stop.
-      for (var i = 0; i < 3; i++) {
-        client.next(threadId);
-        await client.stoppedEvents.first;
-      }
-
-      // Resume to run to end.
-      client.continue_(threadId);
-
-      // Verify we had the expected events.
-      expect(
-        await eventsFuture,
-        containsAllInOrder([
-          'thread (reason: started, threadId: $threadId)',
-          'stopped (reason: entry, threadId: $threadId, allThreadsStopped: false)',
-          'continued (threadId: $threadId, allThreadsContinued: false)',
-          // stop on debugger()
-          'stopped (reason: step, threadId: $threadId, allThreadsStopped: false)',
-          // step 1
-          'continued (threadId: $threadId, allThreadsContinued: false)',
-          'stopped (reason: step, threadId: $threadId, allThreadsStopped: false)',
-          // step 2
-          'continued (threadId: $threadId, allThreadsContinued: false)',
-          'stopped (reason: step, threadId: $threadId, allThreadsStopped: false)',
-          // step 3
-          'continued (threadId: $threadId, allThreadsContinued: false)',
-          'stopped (reason: step, threadId: $threadId, allThreadsStopped: false)',
-          // continue
-          'continued (threadId: $threadId, allThreadsContinued: false)',
-          // pause-on-exit to drain stdout and handle looking up URIs
-          'stopped (reason: exit, threadId: $threadId, allThreadsStopped: false)',
-
-          // We don't check for *thread* exit events, because they are not
-          // guaranteed since they can occur while the VM is terminating
-          // and a termination event implies all threads exit.
+        // Collect interesting events that we want to verify exist and in the
+        // right order.
+        final interestingEvents = const {
+          'thread',
+          'stopped',
+          'continued',
           'terminated',
-        ]),
-      );
-    });
+        };
+        final eventsFuture = client.allEvents
+            .where((e) => interestingEvents.contains(e.event))
+            .map((e) {
+              // Create a descriptive string for verifying later.
+              final body = e.body as Map<String, Object?>;
+              const interestingFields = [
+                'reason',
+                'threadId',
+                'allThreadsContinued',
+                'allThreadsStopped',
+              ];
+              final description = interestingFields
+                  .where(body.containsKey)
+                  .map((field) => '$field: ${body[field]}')
+                  .join(', ');
+              return description.isNotEmpty
+                  ? '${e.event} ($description)'
+                  : e.event;
+            })
+            .toList();
+
+        // Start the program and wait to pause on `debugger()`.
+        final stoppedFuture = client.expectStop('step');
+        await client.start(file: testFile);
+        final threadId = (await stoppedFuture).threadId!;
+
+        // Step 3 times and wait for the corresponding stop.
+        for (var i = 0; i < 3; i++) {
+          unawaited(client.next(threadId));
+          await client.stoppedEvents.first;
+        }
+
+        // Resume to run to end.
+        unawaited(client.continue_(threadId));
+
+        // Verify we had the expected events.
+        expect(
+          await eventsFuture,
+          containsAllInOrder([
+            'thread (reason: started, threadId: $threadId)',
+            'stopped (reason: entry, threadId: '
+                '$threadId, allThreadsStopped: false)',
+            'continued (threadId: $threadId, allThreadsContinued: false)',
+            // stop on debugger()
+            'stopped (reason: step, threadId: '
+                '$threadId, allThreadsStopped: false)',
+            // step 1
+            'continued (threadId: $threadId, allThreadsContinued: false)',
+            'stopped (reason: step, threadId: '
+                '$threadId, allThreadsStopped: false)',
+            // step 2
+            'continued (threadId: $threadId, allThreadsContinued: false)',
+            'stopped (reason: step, threadId: '
+                '$threadId, allThreadsStopped: false)',
+            // step 3
+            'continued (threadId: $threadId, allThreadsContinued: false)',
+            'stopped (reason: step, threadId: '
+                '$threadId, allThreadsStopped: false)',
+            // continue
+            'continued (threadId: $threadId, allThreadsContinued: false)',
+            // pause-on-exit to drain stdout and handle looking up URIs
+            'stopped (reason: exit, threadId: '
+                '$threadId, allThreadsStopped: false)',
+
+            // We don't check for *thread* exit events, because they are not
+            // guaranteed since they can occur while the VM is terminating
+            // and a termination event implies all threads exit.
+            'terminated',
+          ]),
+        );
+      },
+    );
 
     for (final outputKind in ['stdout', 'stderr']) {
       test('sends $outputKind output events in the correct order', () async {
-        // Output events that have their URIs mapped will be processed slowly due
-        // the async requests for resolving the package URI. This should not cause
+        // Output events that have their URIs mapped will be processed slowly
+        // due
+        // the async requests for resolving the package URI. This should not
+        // cause
         // them to appear out-of-order with other lines that do not require this
         // work.
         //
@@ -312,7 +325,8 @@ main() {
           'End',
         ]);
 
-        // As a sanity check, verify we did actually do the async path mapping and
+        // As a sanity check, verify we did actually do the async path mapping
+        // and
         // got both frames with paths in our test folder.
         final stackFramesWithPaths = outputEvents.where(
           (e) =>
@@ -326,79 +340,78 @@ main() {
         );
       });
 
-      test(
-        'fades $outputKind stack frames that are not part of our project when allowAnsiColorOutput=true',
-        () async {
-          // Use a sample program that prints output to stderr that includes:
-          // - non stack frame lines
-          // - stack frames with file:// URIs
-          // - stack frames with package URIs (that need asynchronously resolving)
-          // - stack frames with dart URIs (that need asynchronously resolving)
-          final fileUri = Uri.file(dap.createTestFile('').path);
-          final (packageUri, _) = await dap.createFooPackage();
-          final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
-          final testFile = dap.createTestFile(
-            stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
-          );
+      test('fades $outputKind stack frames that are not '
+          'part of our project when allowAnsiColorOutput=true', () async {
+        // Use a sample program that prints output to stderr that includes:
+        // - non stack frame lines
+        // - stack frames with file:// URIs
+        // - stack frames with package URIs (that need asynchronously
+        // resolving)
+        // - stack frames with dart URIs (that need asynchronously resolving)
+        final fileUri = Uri.file(dap.createTestFile('').path);
+        final (packageUri, _) = await dap.createFooPackage();
+        final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+        final testFile = dap.createTestFile(
+          stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
+        );
 
-          var outputEvents = await dap.client.collectOutput(
-            launch: () => dap.client.launch(
-              testFile.path,
-              allowAnsiColorOutput: true,
-              // Include package:foo as being user-code, to ensure it's not faded.
-              additionalProjectPaths: [
-                path.join(dap.testPackagesDir.path, 'foo'),
-              ],
-            ),
-          );
-          outputEvents = outputEvents
-              .where((e) => e.category == outputKind)
-              .toList();
+        var outputEvents = await dap.client.collectOutput(
+          launch: () => dap.client.launch(
+            testFile.path,
+            allowAnsiColorOutput: true,
+            // Include package:foo as being user-code, to ensure it's not
+            // faded.
+            additionalProjectPaths: [
+              path.join(dap.testPackagesDir.path, 'foo'),
+            ],
+          ),
+        );
+        outputEvents = outputEvents
+            .where((e) => e.category == outputKind)
+            .toList();
 
-          // Verify the order of the stderr output events.
-          final output = outputEvents
-              .map((e) => e.output.trim())
-              .where((output) => output.isNotEmpty)
-              .join('\n');
-          expectLines(output, [
-            'Start',
-            '#0      main ($fileUri:1:2)',
-            '#1      main2 ($packageUri:3:4)',
-            '\u001B[2m#2      main3 ($dartUri:5:6)\u001B[0m',
-            'End',
-          ]);
-        },
-      );
+        // Verify the order of the stderr output events.
+        final output = outputEvents
+            .map((e) => e.output.trim())
+            .where((output) => output.isNotEmpty)
+            .join('\n');
+        expectLines(output, [
+          'Start',
+          '#0      main ($fileUri:1:2)',
+          '#1      main2 ($packageUri:3:4)',
+          '\u001B[2m#2      main3 ($dartUri:5:6)\u001B[0m',
+          'End',
+        ]);
+      });
 
-      test(
-        'includes correct Source.name for SDK and package sources in $outputKind output',
-        () async {
-          // Use a sample program that prints output to stderr that includes:
-          // - non stack frame lines
-          // - stack frames with file:// URIs
-          // - stack frames with package URIs (that need asynchronously resolving)
-          // - stack frames with dart URIs (that need asynchronously resolving)
-          final fileUri = Uri.file(dap.createTestFile('').path);
-          final (packageUri, _) = await dap.createFooPackage();
-          final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
-          final testFile = dap.createTestFile(
-            stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
-          );
+      test('includes correct Source.name for SDK and '
+          'package sources in $outputKind output', () async {
+        // Use a sample program that prints output to stderr that includes:
+        // - non stack frame lines
+        // - stack frames with file:// URIs
+        // - stack frames with package URIs (that need asynchronously
+        // resolving)
+        // - stack frames with dart URIs (that need asynchronously resolving)
+        final fileUri = Uri.file(dap.createTestFile('').path);
+        final (packageUri, _) = await dap.createFooPackage();
+        final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+        final testFile = dap.createTestFile(
+          stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
+        );
 
-          final outputEvents = await dap.client.collectOutput(file: testFile);
-          final outputSourceNames = outputEvents
-              .where((e) => e.category == outputKind)
-              .map((output) => output.source?.name)
-              .where((sourceName) => (sourceName?.isNotEmpty ?? false))
-              .toList();
+        final outputEvents = await dap.client.collectOutput(file: testFile);
+        final outputSourceNames = outputEvents
+            .where((e) => e.category == outputKind)
+            .map((output) => output.source?.name)
+            .where((sourceName) => sourceName?.isNotEmpty ?? false)
+            .toList();
 
-          expect(outputSourceNames, [
-            fileUri.toFilePath(),
-            packageUri.toString(),
-            dartUri.toString(),
-          ]);
-        },
-      );
+        expect(outputSourceNames, [
+          fileUri.toFilePath(),
+          packageUri.toString(),
+          dartUri.toString(),
+        ]);
+      });
     }
 
     group('progress notifications', () {

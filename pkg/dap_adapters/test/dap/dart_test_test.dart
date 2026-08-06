@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 
 import 'mocks.dart';
 
-main() {
+void main() {
   group('dart test adapter', () {
     late MockDartTestDebugAdapter adapter;
 
@@ -214,7 +214,7 @@ main() {
       });
     });
 
-    String converter(input) {
+    String converter(Object? input) {
       return 'converted: $input';
     }
 
@@ -230,7 +230,7 @@ main() {
 
       await adapter.configurationDoneRequest(request, null, () {});
       await adapter.launchRequest(request, args, responseCompleter.complete);
-      adapter.connectDebugger(Uri());
+      unawaited(adapter.connectDebugger(Uri()));
       await responseCompleter.future;
 
       expect(adapter.uriConverter(), converter);

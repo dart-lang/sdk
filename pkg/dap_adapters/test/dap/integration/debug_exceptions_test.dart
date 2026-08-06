@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:test/test.dart';
 
 import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   group('debug mode', () {
     late DapTestSession dap;
     setUp(() async {
@@ -71,7 +73,7 @@ main() {
       // The stack trace is populated later after we've stepped (or been caught
       // further up). Issue a continue and wait for it to break at the next
       // level up before expecting the stack trace.
-      client.continue_(stoppedEvent.threadId!);
+      unawaited(client.continue_(stoppedEvent.threadId!));
       final nextStop = await client.expectStop('exception');
       // Now we expect the stack trace where the exception really occurred
       // (which is not where we currently are), so it should include the

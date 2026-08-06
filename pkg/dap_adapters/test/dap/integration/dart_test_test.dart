@@ -8,7 +8,7 @@ import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   late DapTestSession dap;
   setUp(() async {
     dap = await DapTestSession.setUp(additionalArgs: ['--test']);
@@ -195,7 +195,7 @@ main() {
       );
       for (final frame in stack.stackFrames) {
         // Skip labels frames (eg. "<async gap>").
-        if (frame.presentationHint == "label") continue;
+        if (frame.presentationHint == 'label') continue;
 
         expect(frame.line, isPositive);
         expect(frame.column, isPositive);
@@ -274,8 +274,9 @@ main() {
       await Future.wait([
         client.breakpointChangeEvents.first.then((_) {
           if (!setBreakpointsResponded) {
-            throw 'breakpoint change event arrived before '
-                'setBreakpoints completed';
+            throw StateError(
+              'breakpoint change event arrived before setBreakpoints completed',
+            );
           }
         }),
         client

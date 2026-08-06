@@ -27,15 +27,6 @@ abstract class DapTestServer {
 /// serialized and deserialized but it's not quite the same running out of
 /// process.
 class InProcessDapTestServer extends DapTestServer {
-  late final DapServer _server;
-  final stdinController = StreamController<List<int>>();
-  final stdoutController = StreamController<List<int>>();
-
-  @override
-  StreamSink<List<int>> get sink => stdinController.sink;
-  @override
-  Stream<List<int>> get stream => stdoutController.stream;
-
   InProcessDapTestServer._(List<String> args, {Function? onError}) {
     _server = DapServer(
       stdinController.stream,
@@ -46,6 +37,15 @@ class InProcessDapTestServer extends DapTestServer {
       onError: onError,
     );
   }
+
+  late final DapServer _server;
+  final stdinController = StreamController<List<int>>();
+  final stdoutController = StreamController<List<int>>();
+
+  @override
+  StreamSink<List<int>> get sink => stdinController.sink;
+  @override
+  Stream<List<int>> get stream => stdoutController.stream;
 
   @override
   Future<void> stop() async {
@@ -67,6 +67,38 @@ class InProcessDapTestServer extends DapTestServer {
 /// but will be a little more difficult to debug tests as the debugger will not
 /// be attached to the process.
 class OutOfProcessDapTestServer extends DapTestServer {
+  OutOfProcessDapTestServer._(
+    this._process,
+    Logger? logger, {
+    void Function(Object error)? onError,
+  }) {
+    // Handle any stderr from the process. If an error handler was provided by
+    // the test, call it. Otherwise throw to fail the test as it's likely
+    // unexpected.
+    _process.stderr.transform(utf8.decoder).listen((Object error) {
+      final message = error.toString();
+      logger?.call(message);
+      if (onError != null) {
+        onError(message);
+      } else {
+        throw StateError(message);
+      }
+    });
+    unawaited(
+      _process.exitCode.then((code) {
+        final message = 'Out-of-process DAP server terminated with code $code';
+        logger?.call(message);
+        if (!_isShuttingDown && code != 0) {
+          if (onError != null) {
+            onError(message);
+          } else {
+            throw StateError(message);
+          }
+        }
+      }),
+    );
+  }
+
   var _isShuttingDown = false;
   final Process _process;
 
@@ -75,33 +107,6 @@ class OutOfProcessDapTestServer extends DapTestServer {
   StreamSink<List<int>> get sink => _process.stdin;
   @override
   Stream<List<int>> get stream => _process.stdout;
-
-  OutOfProcessDapTestServer._(
-    this._process,
-    Logger? logger, {
-    Function? onError,
-  }) {
-    // Handle any stderr from the process. If an error handler was provided by
-    // the test, call it. Otherwise throw to fail the test as it's likely
-    // unexpected.
-    _process.stderr.transform(utf8.decoder).listen((error) {
-      logger?.call(error);
-      if (onError != null) {
-        onError(error);
-      } else {
-        throw error;
-      }
-    });
-    unawaited(
-      _process.exitCode.then((code) {
-        final message = 'Out-of-process DAP server terminated with code $code';
-        logger?.call(message);
-        if (!_isShuttingDown && code != 0) {
-          throw message;
-        }
-      }),
-    );
-  }
 
   @override
   Future<void> stop() async {
@@ -112,7 +117,7 @@ class OutOfProcessDapTestServer extends DapTestServer {
 
   static Future<OutOfProcessDapTestServer> create({
     Logger? logger,
-    Function? onError,
+    void Function(Object error)? onError,
     List<String>? additionalArgs,
   }) async {
     final ddsEntryScript = await Isolate.resolvePackageUri(
