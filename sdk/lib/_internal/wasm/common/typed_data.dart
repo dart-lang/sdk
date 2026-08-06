@@ -1852,6 +1852,23 @@ class _V128ByteBuffer extends ByteBufferBase {
   }
 
   @override
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
+    length ??= (lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
+    _rangeCheck(
+      lengthInBytes,
+      offsetInBytes,
+      length * Float64x2List.bytesPerElement,
+    );
+    _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
+    return F64x2List._withMutability(
+      _data,
+      offsetInBytes ~/ Float64x2List.bytesPerElement,
+      length,
+      _mutable,
+    );
+  }
+
+  @override
   _V128ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
@@ -3472,6 +3489,56 @@ final class F32x4List extends WasmV128ArrayBase
   ]) => _setRange(start, end, from, skipCount);
 }
 
+final class F64x2List extends WasmV128ArrayBase
+    with _FixedLengthListMixin<Float64x2>, _TypedListCommonOperationsMixin
+    implements Float64x2List {
+  F64x2List(int length) : super(length);
+
+  F64x2List._(WasmArray<WasmV128> data, int offsetInElements, int length)
+    : super._(data, offsetInElements, length);
+
+  factory F64x2List._withMutability(
+    WasmArray<WasmV128> data,
+    int offsetInElements,
+    int length,
+    bool mutable,
+  ) => mutable
+      ? F64x2List._(data, offsetInElements, length)
+      : UnmodifiableF64x2List._(data, offsetInElements, length);
+
+  @override
+  @pragma('wasm:prefer-inline')
+  Float64x2 operator [](int index) {
+    IndexErrorUtils.checkIndex(index, length, '[]');
+    return F64x2.fromV128(_data[_offsetInElements + index]);
+  }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  void operator []=(int index, Float64x2 value) {
+    IndexErrorUtils.checkIndex(index, length, '[]=');
+    _data[_offsetInElements + index] = (value as F64x2).bits;
+  }
+
+  @override
+  Float64x2List asUnmodifiableView() =>
+      UnmodifiableF64x2List._(_data, _offsetInElements, length);
+
+  @override
+  Float64x2List sublist(int start, [int? end]) {
+    final copy = _sublist(start, end);
+    return F64x2List._(copy, 0, copy.length);
+  }
+
+  @override
+  void setRange(
+    int start,
+    int end,
+    Iterable<Float64x2> from, [
+    int skipCount = 0,
+  ]) => _setRange(start, end, from, skipCount);
+}
+
 class UnmodifiableI8List extends I8List with _UnmodifiableListMixin<int> {
   UnmodifiableI8List(I8List list)
     : super._(list._data, list._offsetInElements, list.length);
@@ -3648,6 +3715,19 @@ class UnmodifiableI32x4List extends I32x4List
 class UnmodifiableF32x4List extends F32x4List
     with _UnmodifiableListMixin<Float32x4> {
   UnmodifiableF32x4List._(
+    WasmArray<WasmV128> data,
+    int offsetInElements,
+    int length,
+  ) : super._(data, offsetInElements, length);
+
+  @override
+  @pragma('wasm:prefer-inline')
+  _V128ByteBuffer get buffer => _V128ByteBuffer._(_data, false);
+}
+
+class UnmodifiableF64x2List extends F64x2List
+    with _UnmodifiableListMixin<Float64x2> {
+  UnmodifiableF64x2List._(
     WasmArray<WasmV128> data,
     int offsetInElements,
     int length,

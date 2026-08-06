@@ -588,6 +588,13 @@ final class F64x2 extends WasmTypedDataBase implements Float64x2 {
   Float64x2 sqrt() => F64x2.fromV128(WasmF64x2(_bits).sqrt());
 }
 
+/// Exposes the raw [WasmV128] backing an [F64x2] to the SIMD-backed
+/// `Float64x2List`, which lives in a different library than [F64x2].
+extension F64x2Ext on F64x2 {
+  @pragma("wasm:prefer-inline")
+  WasmV128 get bits => _bits;
+}
+
 @pragma("wasm:entry-point")
 final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   @pragma("wasm:entry-point")
