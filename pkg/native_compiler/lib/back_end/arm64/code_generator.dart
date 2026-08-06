@@ -1105,6 +1105,41 @@ final class Arm64CodeGenerator extends CodeGenerator {
     }
   }
 
+  @override
+  void visitSubtypeCheck(SubtypeCheck instr) {
+    final temp0Reg = temporaryReg(instr, 0);
+    final temp1Reg = temporaryReg(instr, 1);
+    // The arrangement of arguments on the stack for runtime call:
+    //     args[0]  instantiator type args
+    //     args[1]  function type args
+    //     args[2]  sub_type
+    //     args[3]  super_type
+    //     args[4]  name
+    //   no return value, but slot is still allocated for it
+    const nArguments = 5;
+    const nArgumentsPlusReturnResult = nArguments + 1;
+    // Order of inputs is determined by _referencedTypeParameters in ast_to_ir.dart.
+    final instantiatorTypeReg = inputReg(instr, 0);
+    final functionTypeReg = inputReg(instr, 1);
+
+    _asm.loadFromPool(temp0Reg, instr.name);
+    _asm.loadFromPool(temp1Reg, instr.bound.dartType);
+    assert(stackFrame.maxArgumentsStackSlots >= nArgumentsPlusReturnResult);
+    _asm.stp(temp0Reg, temp1Reg, RegOffsetAddress(stackPointerReg, 0));
+    _asm.loadFromPool(temp0Reg, instr.type.dartType);
+    _asm.stp(
+      temp0Reg,
+      functionTypeReg,
+      RegOffsetAddress(stackPointerReg, 2 * wordSize),
+    );
+    _asm.stp(
+      instantiatorTypeReg,
+      nullReg,
+      RegOffsetAddress(stackPointerReg, 4 * wordSize),
+    );
+    _callRuntime(RuntimeEntry.SubtypeCheck, nArguments);
+  }
+
   int _getNumberOfInputsForSubtypeTestCache(
     ast.DartType type, {
     required bool hasInstantiatorTypeArgs,

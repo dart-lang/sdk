@@ -378,14 +378,23 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitSubtypeCheck(SubtypeCheck instr) {
+    assert(instr.bound is! TopType);
+    assert(instr.bound is! ExtendedType);
+    assert(instr.type is! ExtendedType);
+  }
+
+  @override
   void visitTypeParameters(TypeParameters instr) {
     assert(instr.block is EntryBlock);
     // TypeParameters can only be used in TypeCast, TypeTest,
-    // TypeArguments, TypeLiteral and StoreInstanceField for capturing.
+    // TypeArguments, TypeLiteral, SubtypeCheck and StoreInstanceField
+    // for capturing.
     for (final use in instr.inputUses) {
       final user = use.getInstruction(graph);
       switch (user) {
         case TypeCast() || TypeTest() || TypeArguments() || TypeLiteral():
+        case SubtypeCheck():
         case StoreInstanceField(:var field)
             when field.isSynthetic &&
                 (field.asSynthetic is ClosureField ||

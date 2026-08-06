@@ -220,6 +220,27 @@ class AstToIr extends ast.RecursiveVisitor {
         builder.addStoreLocal(param);
       }
     }
+
+    final functionNode = function.functionNode;
+    if (functionNode != null) {
+      for (final typeParam in functionNode.typeParameters) {
+        if (!typeParam.isCovariantByClass) {
+          continue;
+        }
+        final type = ast.TypeParameterType.withDefaultNullability(typeParam);
+        final dartTypeParamBound = _typeTranslator.translate(typeParam.bound);
+        if (dartTypeParamBound is TopType) {
+          continue;
+        }
+        builder.addSubtypeCheck(
+          _typeTranslator.translate(type),
+          dartTypeParamBound,
+          typeParam.name!,
+          _typeParametersForTypes([type, typeParam.bound]),
+        );
+      }
+    }
+
     if (function.isSuspendable) {
       final emittedValueType = function.functionNode!.emittedValueType!;
       builder.addTypeArguments([

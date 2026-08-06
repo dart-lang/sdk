@@ -385,6 +385,9 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitSubtypeCheck(SubtypeCheck instr) {}
+
+  @override
   void visitTypeParameters(TypeParameters instr) {
     _setNonConstant(instr);
   }
