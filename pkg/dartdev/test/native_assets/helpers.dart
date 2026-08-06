@@ -300,6 +300,12 @@ Future<void> copyTestProjects(
       'meta',
     ])
       package: {'path': sdkRoot.resolve('pkg/$package/').toFilePath()},
+    for (final package in ['test', 'test_api', 'test_core'])
+      package: {
+        'path': sdkRoot
+            .resolve('third_party/pkg/test/pkgs/$package/')
+            .toFilePath(),
+      },
   };
   final userDefinesWorkspace = {};
   for (final pubspecPath in pubspecPaths) {

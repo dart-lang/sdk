@@ -4,10 +4,38 @@
 
 // @dart=2.18
 
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 import '../utils.dart';
 import 'helpers.dart';
+
+String? get _sanitizerSkipReason {
+  if (!Platform.isLinux) return 'Sanitizer runtimes are Linux-only.';
+  return null;
+}
+
+Future<void> _makeNativeAddMemoryError(Uri packageUri) async {
+  final sourceFile = File.fromUri(packageUri.resolve('src/native_add.c'));
+  final source = await sourceFile.readAsString();
+  expect(source, contains('#include "native_add.h"'));
+  expect(source, contains('   return a + b;'));
+  await sourceFile.writeAsString(
+    source
+        .replaceFirst(
+          '#include "native_add.h"',
+          '#include "native_add.h"\n\n#include <stdlib.h>',
+        )
+        .replaceFirst(
+          '   return a + b;',
+          '   volatile char* buffer = malloc(1);\n'
+              '   buffer[1] = 0;\n'
+              '   free((void*)buffer);\n'
+              '   return a + b;',
+        ),
+  );
+}
 
 void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
@@ -73,6 +101,68 @@ void main([List<String> args = const []]) async {
       });
     });
   }
+
+  for (final sanitizer in ['asan', 'msan', 'tsan']) {
+    test(
+      'dart test -c cli -p vm-$sanitizer with native assets',
+      timeout: longTimeout,
+      skip: _sanitizerSkipReason,
+      () async {
+        await nativeAssetsTest('native_add', (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              'test',
+              '-c',
+              'cli',
+              '-p',
+              'vm-$sanitizer',
+            ],
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(result.stdout, contains('Running build hooks'));
+          expect(
+            result.stdout,
+            stringContainsInOrder([
+              'native add test',
+              'All tests passed!',
+            ]),
+          );
+        });
+      },
+    );
+  }
+
+  test(
+    'dart test -c cli -p vm-asan reports native memory errors',
+    timeout: longTimeout,
+    skip: _sanitizerSkipReason,
+    () async {
+      await nativeAssetsTest('native_add', (packageUri) async {
+        await _makeNativeAddMemoryError(packageUri);
+        final result = await runDart(
+          arguments: [
+            'test',
+            '-c',
+            'cli',
+            '-p',
+            'vm-asan',
+          ],
+          workingDirectory: packageUri,
+          logger: logger,
+          expectExitCodeZero: false,
+          environment: {
+            'ASAN_OPTIONS': 'halt_on_error=1:exitcode=6:symbolize=1',
+          },
+        );
+        expect(result.exitCode, isNot(0));
+        expect(
+          '${result.stdout}\n${result.stderr}',
+          contains('ERROR: AddressSanitizer: heap-buffer-overflow'),
+        );
+      });
+    },
+  );
 
   test('run pub get if needed', timeout: longTimeout, () async {
     await nativeAssetsTest(
