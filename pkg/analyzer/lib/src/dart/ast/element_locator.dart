@@ -438,6 +438,11 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    return node.fieldElement;
+  }
+
+  @override
   Element? visitConstructorInvocation(ConstructorInvocation node) {
     return node.constructorReference.element;
   }

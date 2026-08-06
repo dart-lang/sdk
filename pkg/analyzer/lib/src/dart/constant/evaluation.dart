@@ -3176,7 +3176,7 @@ class _ConstructorInvocationEvaluator {
         );
         switch (evaluationResult) {
           case DartObjectImpl():
-            var fieldName = initializer.fieldName.name;
+            var fieldName = initializer.fieldName2.lexeme;
             _fieldMap[fieldName] = evaluationResult;
             var getter = definingType.getGetter(fieldName);
             if (getter != null) {

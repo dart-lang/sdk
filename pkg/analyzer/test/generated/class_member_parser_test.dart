@@ -588,7 +588,8 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: x
+      fieldName(v1): SimpleIdentifier
         token: x
       equals: =
       expression2: ConditionalExpression
@@ -1242,7 +1243,8 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: _a
+      fieldName(v1): SimpleIdentifier
         token: _a
       equals: =
       expression2: BinaryOperatorInvocation
@@ -2914,7 +2916,8 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: _x
+      fieldName(v1): SimpleIdentifier
         token: _x
       equals: =
       expression2: SimpleIdentifier
@@ -2937,7 +2940,8 @@ ConstructorDeclaration
           token: y
       rightParenthesis: )
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: _y
+      fieldName(v1): SimpleIdentifier
         token: _y
       equals: =
       expression2: SimpleIdentifier
@@ -3025,7 +3029,8 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: _x
+      fieldName(v1): SimpleIdentifier
         token: _x
       equals: =
       expression2: SimpleIdentifier
@@ -3033,7 +3038,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: _y
+      fieldName(v1): SimpleIdentifier
         token: _y
       equals: =
       expression2: SimpleIdentifier
@@ -3285,7 +3291,8 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: a
+      fieldName(v1): SimpleIdentifier
         token: a
       equals: =
       expression2: ParenthesizedExpression
@@ -3312,7 +3319,8 @@ class C {
 ConstructorFieldInitializer
   thisKeyword: this
   period: .
-  fieldName: SimpleIdentifier
+  fieldName2: a
+  fieldName(v1): SimpleIdentifier
     token: a
   equals: =
   expression2: SimpleIdentifier
@@ -3330,7 +3338,8 @@ class C {
         parseResult.findNode.singleConstructorDeclaration.initializers.first;
     assertParsedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: a
+  fieldName(v1): SimpleIdentifier
     token: a
   equals: =
   expression2: SimpleIdentifier

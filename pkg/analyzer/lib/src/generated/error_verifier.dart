@@ -792,13 +792,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    SimpleIdentifier fieldName = node.fieldName;
-    var element = fieldName.element;
-    _checkForInvalidField(element, node, fieldName);
+    var element = node.fieldElement;
+    _checkForInvalidField(element, node, node.fieldName2);
     if (element is FieldElement) {
       _checkForAbstractOrExternalFieldConstructorInitializer(
         element,
-        node.fieldName.token,
+        node.fieldName2,
       );
     }
     super.visitConstructorFieldInitializer(node);
@@ -5872,26 +5871,26 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkForInvalidField(
     Element? staticElement,
     ConstructorFieldInitializer initializer,
-    SimpleIdentifier fieldName,
+    Token fieldName,
   ) {
     if (staticElement is FieldElement) {
       if (staticElement.isOriginGetterSetter) {
         diagnosticReporter.report(
           diag.initializerForNonExistentField
-              .withArguments(formalName: fieldName.name)
+              .withArguments(formalName: fieldName.lexeme)
               .at(initializer),
         );
       } else if (staticElement.isStatic) {
         diagnosticReporter.report(
           diag.initializerForStaticField
-              .withArguments(formalName: fieldName.name)
+              .withArguments(formalName: fieldName.lexeme)
               .at(initializer),
         );
       }
     } else {
       diagnosticReporter.report(
         diag.initializerForNonExistentField
-            .withArguments(formalName: fieldName.name)
+            .withArguments(formalName: fieldName.lexeme)
             .at(initializer),
       );
       return;

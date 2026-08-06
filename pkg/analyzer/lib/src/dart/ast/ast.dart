@@ -10120,7 +10120,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 /// The initialization of a field within a constructor's initialization list.
 ///
 ///    fieldInitializer ::=
-///        ('this' '.')? [SimpleIdentifier] '=' [Expression]
+///        ('this' '.')? identifier '=' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorFieldInitializer
     implements ConstructorInitializer {
@@ -10134,8 +10134,18 @@ abstract final class ConstructorFieldInitializer
   @experimental
   Expression get expression2;
 
+  /// The field being initialized, or `null` if the AST structure hasn't been
+  /// resolved or if the field couldn't be resolved.
+  @experimental
+  FieldElement? get fieldElement;
+
   /// The name of the field being initialized.
+  @ToBeDeprecated('Use fieldName2 instead.')
   SimpleIdentifier get fieldName;
+
+  /// The name of the field being initialized.
+  @experimental
+  Token get fieldName2;
 
   /// The token for the period after the `this` keyword, or `null` if there's no
   /// `this` keyword.
@@ -10149,7 +10159,7 @@ abstract final class ConstructorFieldInitializer
   childEntitiesOrder: [
     GenerateNodeProperty('thisKeyword'),
     GenerateNodeProperty('period'),
-    GenerateNodeProperty('fieldName'),
+    GenerateNodeProperty('fieldName2'),
     GenerateNodeProperty('equals'),
     GenerateNodeProperty(
       'expression2',
@@ -10170,7 +10180,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   final Token? period;
 
   @generated
-  SimpleIdentifierImpl _fieldName;
+  @override
+  final Token fieldName2;
 
   @generated
   @override
@@ -10179,16 +10190,21 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   ExpressionImpl _expression2;
 
+  InternalFieldElement? _fieldElement;
+
+  @override
+  late final SimpleIdentifierImpl fieldName = _becomeParentOf1(
+    SimpleIdentifierImpl.v1Projection(token: fieldName2),
+  );
+
   @generated
   ConstructorFieldInitializerImpl({
     required this.thisKeyword,
     required this.period,
-    required SimpleIdentifierImpl fieldName,
+    required this.fieldName2,
     required this.equals,
     required ExpressionImpl expression2,
-  }) : _fieldName = fieldName,
-       _expression2 = expression2 {
-    _becomeParentOf12(fieldName);
+  }) : _expression2 = expression2 {
     _becomeParentOf2(expression2);
     _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
@@ -10202,7 +10218,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     if (period case var period?) {
       return period;
     }
-    return fieldName.beginToken;
+    return fieldName2;
   }
 
   @generated
@@ -10228,16 +10244,15 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
-  @generated
   @override
-  SimpleIdentifierImpl get fieldName => _fieldName;
+  InternalFieldElement? get fieldElement => _fieldElement;
 
-  @generated
-  set fieldName(SimpleIdentifierImpl fieldName) {
-    _fieldName = _becomeParentOf12(fieldName);
+  set fieldElement(InternalFieldElement? value) {
+    _fieldElement = value;
+    fieldName.element = value;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
@@ -10251,7 +10266,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
     ..addToken('period', period)
-    ..addNode('fieldName', fieldName)
+    ..addToken('fieldName2', fieldName2)
     ..addToken('equals', equals)
     ..addNode('expression2', expression2);
 
@@ -10271,15 +10286,12 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
-    return identical(expression2, child);
+    return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(fieldName, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'fieldName'.");
-    }
     if (identical(expression2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
@@ -10289,10 +10301,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(fieldName, oldNode)) {
-      fieldName = newNode as SimpleIdentifierImpl;
-      return;
-    }
     if (identical(expression2, oldNode)) {
       expression2 = newNode as ExpressionImpl;
       return;
@@ -10300,7 +10308,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10312,7 +10320,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    fieldName.accept2(visitor);
     expression2.accept2(visitor);
   }
 
@@ -10325,14 +10332,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(SimpleIdentifierImpl)? visitFieldName,
     void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitFieldName != null) {
-      visitFieldName(fieldName);
-    } else {
-      fieldName.accept2(visitor);
-    }
     if (visitExpression2 != null) {
       visitExpression2(expression2);
     } else {
@@ -10340,7 +10341,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fieldName._containsOffset(rangeOffset, rangeEnd)) {
@@ -10355,9 +10356,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (fieldName._containsOffset(rangeOffset, rangeEnd)) {
-      return fieldName;
-    }
     if (expression2._containsOffset(rangeOffset, rangeEnd)) {
       return expression2;
     }

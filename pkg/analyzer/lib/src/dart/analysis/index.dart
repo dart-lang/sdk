@@ -919,9 +919,12 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    var fieldName = node.fieldName;
-    var element = fieldName.element;
-    recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, fieldName, true);
+    recordRelation(
+      node.fieldElement,
+      IndexRelationKind.IS_WRITTEN_BY,
+      node.fieldName2,
+      true,
+    );
     node.expression2.accept2(this);
   }
 

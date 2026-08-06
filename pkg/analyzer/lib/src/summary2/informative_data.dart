@@ -1909,6 +1909,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _tokenOrNull(node.thisKeyword);
+    _tokenOrNull(node.fieldName2);
     _tokenOrNull(node.equals);
     super.visitConstructorFieldInitializer(node);
   }

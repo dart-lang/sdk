@@ -1601,7 +1601,8 @@ class C {
 ConstructorFieldInitializer
   thisKeyword: this
   period: .
-  fieldName: SimpleIdentifier
+  fieldName2: a
+  fieldName(v1): SimpleIdentifier
     token: a
   equals: =
   expression2: ParenthesizedExpression

@@ -484,7 +484,8 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: x
+      fieldName(v1): SimpleIdentifier
         token: x
       equals: =
       expression2: IntegerLiteral
@@ -593,7 +594,8 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: x
+      fieldName(v1): SimpleIdentifier
         token: x
       equals: =
       expression2: IntegerLiteral
@@ -804,7 +806,8 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: f
+      fieldName(v1): SimpleIdentifier
         token: f
       equals: =
       expression2: IntegerLiteral
@@ -4167,7 +4170,8 @@ PrimaryConstructorBody
   colon: :
   initializers
     ConstructorFieldInitializer
-      fieldName: SimpleIdentifier
+      fieldName2: x
+      fieldName(v1): SimpleIdentifier
         token: x
       equals: =
       expression2: IntegerLiteral

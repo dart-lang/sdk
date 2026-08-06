@@ -366,6 +366,20 @@ class A {
 ''');
   }
 
+  test_locate_Identifier_fieldName_constructorInitializer_v1Projection() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int f;
+  A() : f = 0;
+}
+''');
+    var initializer = result.findNode.singleConstructorFieldInitializer;
+    var element = ElementLocator.locate(initializer.fieldName);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@field::f
+''');
+  }
+
   test_locate_Identifier_functionCallMethod_invocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
@@ -967,6 +981,20 @@ class A {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_locate_ConstructorFieldInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int f;
+  A() : f = 0;
+}
+''');
+    var node = result.findNode.singleConstructorFieldInitializer;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@field::f
 ''');
   }
 

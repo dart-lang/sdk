@@ -9664,7 +9664,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @42
+              fieldName(v1): SimpleIdentifier
                 token: x @42
                 element: <testLibrary>::@class::A::@field::x
                 staticType: null
@@ -9672,6 +9673,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @46
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
@@ -9865,7 +9867,8 @@ library
               element: dart:core::@class::Deprecated::@constructor::new
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @61
+              fieldName(v1): SimpleIdentifier
                 token: x @61
                 element: <testLibrary>::@class::A::@field::x
                 staticType: null
@@ -9873,6 +9876,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @65
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
@@ -13501,7 +13505,8 @@ library
           firstFragment: #F5
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: f @66
+              fieldName(v1): SimpleIdentifier
                 token: f @66
                 element: <testLibrary>::@class::A::@field::f
                 staticType: null
@@ -13509,6 +13514,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @70
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::f
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::A::@getter::f
@@ -24253,7 +24259,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @35
+              fieldName(v1): SimpleIdentifier
                 token: x @35
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -24261,6 +24268,7 @@ library
               expression2: IntegerLiteral
                 literal: 42 @39
                 staticType: int
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -24321,7 +24329,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @35
+              fieldName(v1): SimpleIdentifier
                 token: x @35
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -24336,6 +24345,7 @@ library
                   rightParenthesis: ) @43
                 staticInvokeType: int Function()
                 staticType: int
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -24409,7 +24419,8 @@ library
                 expression: expression_0
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: _f @51
+              fieldName(v1): SimpleIdentifier
                 token: _f @51
                 element: <testLibrary>::@class::A::@field::_f
                 staticType: null
@@ -24418,6 +24429,7 @@ library
                 token: f @56
                 element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::_f
       getters
         isOriginVariable _f
           reference: <testLibrary>::@class::A::@getter::_f
@@ -24479,7 +24491,8 @@ library
               type: int
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @47
+              fieldName(v1): SimpleIdentifier
                 token: x @47
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -24496,6 +24509,7 @@ library
                     staticType: int
                 rightParenthesis: ) @56
                 staticType: (int, int)
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -24550,7 +24564,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: f @35
+              fieldName(v1): SimpleIdentifier
                 token: f @35
                 element: <testLibrary>::@class::C::@field::f
                 staticType: null
@@ -24569,6 +24584,7 @@ library
                     contents: ' @45
                 staticType: String
                 stringValue: null
+              fieldElement: <testLibrary>::@class::C::@field::f
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@getter::f
@@ -24630,7 +24646,8 @@ library
               type: int
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: f @40
+              fieldName(v1): SimpleIdentifier
                 token: f @40
                 element: <testLibrary>::@class::C::@field::f
                 staticType: null
@@ -24649,6 +24666,7 @@ library
                     contents: ' @47
                 staticType: String
                 stringValue: null
+              fieldElement: <testLibrary>::@class::C::@field::f
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@getter::f
@@ -24710,7 +24728,8 @@ library
               type: int
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @40
+              fieldName(v1): SimpleIdentifier
                 token: x @40
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -24739,6 +24758,7 @@ library
                 element: dart:core::@class::num::@method::+
                 staticInvokeType: num Function(num)
                 staticType: int
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -28294,7 +28314,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @35
+              fieldName(v1): SimpleIdentifier
                 token: x @35
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -28323,6 +28344,7 @@ library
                   leftParenthesis: ( @46
                   rightParenthesis: ) @47
                 staticType: D
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -28344,7 +28366,8 @@ library
           firstFragment: #F8
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @88
+              fieldName(v1): SimpleIdentifier
                 token: x @88
                 element: <testLibrary>::@class::D::@field::x
                 staticType: null
@@ -28373,6 +28396,7 @@ library
                   leftParenthesis: ( @99
                   rightParenthesis: ) @100
                 staticType: C
+              fieldElement: <testLibrary>::@class::D::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::D::@getter::x
@@ -29089,7 +29113,8 @@ library
           firstFragment: #F3
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: foo @24
+              fieldName(v1): SimpleIdentifier
                 token: foo @24
                 element: <testLibrary>::@class::A::@field::foo
                 staticType: null
@@ -29097,6 +29122,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @30
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo

@@ -330,7 +330,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _visitToken(node.thisKeyword, suffix: '.');
-    _visitNode(node.fieldName);
+    _visitToken(node.fieldName2);
     sink.write(' = ');
     _visitNode(node.expression2);
   }

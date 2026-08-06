@@ -1397,7 +1397,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
                 expression2: AsExpression
@@ -1408,7 +1409,8 @@ CompilationUnit
                     name: String
                     question: ?
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: y
+                fieldName(v1): SimpleIdentifier
                   token: y
                 equals: =
                 expression2: IntegerLiteral
@@ -1479,7 +1481,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: y
+                fieldName(v1): SimpleIdentifier
                   token: y
                 equals: =
                 expression2: ConditionalExpression
@@ -1501,7 +1504,8 @@ CompilationUnit
                   elseExpression2: NullLiteral
                     literal: null
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
                 expression2: NullLiteral
@@ -1572,7 +1576,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: y
+                fieldName(v1): SimpleIdentifier
                   token: y
                 equals: =
                 expression2: ConditionalExpression
@@ -1593,7 +1598,8 @@ CompilationUnit
                   elseExpression2: NullLiteral
                     literal: null
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
                 expression2: NullLiteral

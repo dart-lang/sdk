@@ -305,7 +305,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   void visitConstructorFieldInitializer(
     covariant ConstructorFieldInitializerImpl node,
   ) {
-    node.visitChildrenWithHooks(this, visitFieldName: (_) {});
+    node.visitChildren2(this);
   }
 
   @override

@@ -2587,13 +2587,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void visitConstructorFieldInitializer(
     covariant ConstructorFieldInitializerImpl node,
   ) {
-    //
-    // We visit the expression, but do not visit the field name because it needs
-    // to be visited in the context of the constructor field initializer node.
-    //
-    var fieldName = node.fieldName;
-    var fieldElement = enclosingInstanceElement!.getField(fieldName.name);
-    fieldName.element = fieldElement;
+    var fieldElement = enclosingInstanceElement!.getField(
+      node.fieldName2.lexeme,
+    );
+    node.fieldElement = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression2;
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));

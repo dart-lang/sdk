@@ -700,7 +700,7 @@ class AstBuilder extends StackListener {
       return ConstructorFieldInitializerImpl(
         thisKeyword: null,
         period: null,
-        fieldName: SimpleIdentifierImpl(token: target.name),
+        fieldName2: target.name,
         equals: initializerObject.operator,
         expression2: initializerObject.value,
       );
@@ -730,7 +730,7 @@ class AstBuilder extends StackListener {
       return ConstructorFieldInitializerImpl(
         thisKeyword: thisKeyword,
         period: period,
-        fieldName: fieldName,
+        fieldName2: fieldName.token,
         equals: initializerObject.operator,
         expression2: initializerObject.rightHandSide2,
       );

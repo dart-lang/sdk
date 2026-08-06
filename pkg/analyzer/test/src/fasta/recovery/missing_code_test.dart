@@ -1547,7 +1547,8 @@ CompilationUnit
                   literal: true
                 rightParenthesis: )
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
                 expression2: IntegerLiteral
@@ -1596,7 +1597,8 @@ CompilationUnit
               ConstructorFieldInitializer
                 thisKeyword: this
                 period: .
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
                 expression2: IntegerLiteral

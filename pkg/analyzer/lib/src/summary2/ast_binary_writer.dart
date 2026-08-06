@@ -156,7 +156,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _writeByte(AstBinaryFlags.encode(hasThis: node.thisKeyword != null));
 
-    _writeNode(node.fieldName);
+    _writeStringReference(node.fieldName2.lexeme);
+    _sink.writeElement(node.fieldElement);
     _writeNode(node.expression2);
   }
 

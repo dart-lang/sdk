@@ -215,16 +215,17 @@ class AstBinaryReader {
 
   ConstructorFieldInitializer _readConstructorFieldInitializer() {
     var flags = _readByte();
-    var fieldName = _readNode() as SimpleIdentifierImpl;
+    var fieldName = _readStringReference();
+    var fieldElement = _reader.readElement() as InternalFieldElement?;
     var expression = _readNode() as ExpressionImpl;
     var hasThis = AstBinaryFlags.hasThis(flags);
     return ConstructorFieldInitializerImpl(
       thisKeyword: hasThis ? Tokens.this_() : null,
       period: hasThis ? Tokens.period() : null,
-      fieldName: fieldName,
+      fieldName2: StringToken(TokenType.STRING, fieldName, -1),
       equals: Tokens.eq(),
       expression2: expression,
-    );
+    )..fieldElement = fieldElement;
   }
 
   ConstructorInvocation _readConstructorInvocation() {
