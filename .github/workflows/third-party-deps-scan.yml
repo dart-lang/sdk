@@ -53,4 +53,5 @@ jobs:
     permissions:
       # Needed to upload the SARIF results to the code-scanning dashboard.
       security-events: write
+      actions: read
       contents: read
