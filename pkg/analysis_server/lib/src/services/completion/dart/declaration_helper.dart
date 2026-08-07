@@ -590,12 +590,17 @@ class DeclarationHelper {
       return;
     }
 
-    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructor == null) {
-      return;
+    NodeList<ConstructorInitializer>? initializers;
+    ConstructorElement? constructorElement;
+    if (node.thisOrAncestorOfType<ConstructorDeclaration>()
+        case var constructor?) {
+      initializers = constructor.initializers;
+      constructorElement = constructor.declaredFragment?.element;
+    } else if (node.thisOrAncestorOfType<PrimaryConstructorDeclaration>()
+        case var constructor?) {
+      initializers = constructor.body?.initializers;
+      constructorElement = constructor.declaredFragment?.element;
     }
-
-    var constructorElement = constructor.declaredFragment?.element;
     if (constructorElement is! ConstructorElementImpl) {
       return;
     }
@@ -606,8 +611,8 @@ class DeclarationHelper {
     }
 
     if (node.isNamed) {
-      var superConstructorInvocation = constructor.initializers
-          .whereType<SuperConstructorInvocation>()
+      var superConstructorInvocation = initializers
+          ?.whereType<SuperConstructorInvocation>()
           .singleOrNull;
       var specified = <String>{
         ...constructorElement.formalParameters.map((e) => e.name).nonNulls,

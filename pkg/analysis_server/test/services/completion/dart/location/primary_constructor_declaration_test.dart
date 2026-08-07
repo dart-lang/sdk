@@ -304,4 +304,30 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_superField() async {
+    await computeSuggestions('''
+class C({var int f0});
+
+class D({super.^}) extends C;
+''');
+    assertResponse('''
+suggestions
+  f0
+    kind: parameter
+''');
+  }
+
+  Future<void> test_superParameter() async {
+    await computeSuggestions('''
+class C(int p0);
+
+class D(super.^) extends C;
+''');
+    assertResponse('''
+suggestions
+  p0
+    kind: parameter
+''');
+  }
 }
