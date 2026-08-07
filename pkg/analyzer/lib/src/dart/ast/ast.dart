@@ -136,6 +136,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(strings.contains(child));
     return true;
   }
 
@@ -946,6 +947,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -1594,6 +1596,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(arguments2.contains(child));
     return true;
   }
 
@@ -3577,6 +3580,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -9477,6 +9481,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -10286,6 +10291,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -16013,6 +16019,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -16523,6 +16530,7 @@ final class ExpressionStatementImpl extends StatementImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -19604,6 +19612,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(value2, child));
     return true;
   }
 
@@ -27604,6 +27613,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -27901,6 +27911,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression, child));
     return true;
   }
 
@@ -29991,6 +30002,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(operand, child));
     return true;
   }
 
@@ -32765,6 +32777,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(argumentExpression2, child));
     return true;
   }
 
@@ -34179,6 +34192,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(operand, child));
     return true;
   }
 
@@ -34539,6 +34553,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(value2, child));
     return true;
   }
 
@@ -35278,6 +35293,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -39536,6 +39552,7 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(receiver, child));
     return true;
   }
 
@@ -39918,6 +39935,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(fields2.contains(child));
     return true;
   }
 
@@ -40116,6 +40134,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(fieldExpression2, child));
     return true;
   }
 
@@ -41859,6 +41878,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(operand2, child));
     return true;
   }
 
@@ -42336,6 +42356,7 @@ final class ReturnStatementImpl extends StatementImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -43579,6 +43600,7 @@ final class SpreadElementImpl extends AstNodeImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -46447,6 +46469,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -48018,6 +48041,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(operand, child));
     return true;
   }
 
@@ -48786,6 +48810,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(initializer2, child));
     return true;
   }
 
@@ -49485,6 +49510,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 
@@ -50296,6 +50322,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(expression2, child));
     return true;
   }
 

@@ -871,6 +871,18 @@ bool isInValueExpressionSlot(AstNode child) {
 @override
 bool isInValueExpressionSlot(AstNode child) {
   assert(identical(child.$parentGetter, this));
+''');
+      if (valueNodeOrListProperties case [var property]) {
+        switch (property.typeKind) {
+          case _PropertyTypeKindNode():
+            buffer.writeln('assert(identical(${property.name}, child));');
+          case _PropertyTypeKindNodeList():
+            buffer.writeln('assert(${property.name}.contains(child));');
+          default:
+            throw StateError('Unexpected property: ${property.name}');
+        }
+      }
+      buffer.write('''
   return true;
 }
 ''');
