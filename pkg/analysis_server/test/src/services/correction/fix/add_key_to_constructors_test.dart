@@ -401,6 +401,29 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_initializer_final_constant_identifier() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+const int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+const int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+
+  const MyWidget({super.key});
+}
+''');
+  }
+
   Future<void> test_initializer_final_not_constant() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -416,6 +439,71 @@ class MyWidget extends StatelessWidget {
   final c = Container();
 
   MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_identifier() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+
+  MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_listLiteral() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final List<int> l = [1, 2];
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final List<int> l = [1, 2];
+
+  MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_methodInvocation() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String txt = getNonConstString();
+
+  static String getNonConstString() => 'Hello World';
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String txt = getNonConstString();
+
+  MyWidget({super.key});
+
+  static String getNonConstString() => 'Hello World';
 }
 ''');
   }
@@ -477,6 +565,25 @@ class MyWidget extends StatelessWidget {
   static Text t = const Text('');
 
   const MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_lateField() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  late final int x = 5;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  late final int x = 5;
+
+  MyWidget({super.key});
 }
 ''');
   }
@@ -947,6 +1054,29 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_initializer_final_constant_identifier() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+const int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+const int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+
+  const MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
   Future<void> test_initializer_final_not_constant() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -962,6 +1092,71 @@ class MyWidget extends StatelessWidget {
   final c = Container();
 
   MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_identifier() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+
+  MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_listLiteral() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final List<int> l = [1, 2];
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final List<int> l = [1, 2];
+
+  MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_methodInvocation() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String txt = getNonConstString();
+
+  static String getNonConstString() => 'Hello World';
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String txt = getNonConstString();
+
+  MyWidget({Key? key}) : super(key: key);
+
+  static String getNonConstString() => 'Hello World';
 }
 ''');
   }
@@ -1023,6 +1218,25 @@ class MyWidget extends StatelessWidget {
   static Text t = const Text('');
 
   const MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_lateField() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  late final int x = 5;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  late final int x = 5;
+
+  MyWidget({Key? key}) : super(key: key);
 }
 ''');
   }
