@@ -162,6 +162,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
   }
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitForEachPartsWithIdentifier(node);
+  }
+
+  @override
   void visitForElement(ForElement node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitForElement(node);

@@ -149,23 +149,11 @@ class SimpleIdentifierResolver with ScopeHelpers {
     // Otherwise, the node should be resolved.
     //
 
-    // TODO(scheglov): Special-case resolution of ForStatement, don't use this.
-    var hasRead = true;
-    var hasWrite = false;
-    {
-      var parent = node.parent2;
-      if (parent is ForEachPartsWithIdentifierImpl &&
-          parent.identifier == node) {
-        hasRead = false;
-        hasWrite = true;
-      }
-    }
-
     var resolver = PropertyElementResolver(_resolver);
     var result = resolver.resolveSimpleIdentifier(
       node: node,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
+      hasRead: true,
+      hasWrite: false,
     );
 
     var callFunctionType = result.functionTypeCallType;
@@ -188,7 +176,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return null;
     }
 
-    var element = hasRead ? result.readElement2 : result.writeElement2;
+    var element = result.readElement2;
 
     var enclosingInstanceElement = _resolver.enclosingInstanceElement;
     if (_isFactoryConstructorReturnType(node) &&

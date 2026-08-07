@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -59,8 +60,9 @@ class AssignmentVerifier {
     );
   }
 
-  void verifyUnqualifiedNameAssignmentTarget({
-    required UnqualifiedNameAssignmentTarget node,
+  void verifyUnqualifiedName({
+    required SyntacticEntity node,
+    required Token name,
     required Element? requested,
     required Element? recovery,
   }) {
@@ -70,7 +72,7 @@ class AssignmentVerifier {
     if (ambiguousElement != null) {
       _diagnosticReporter.report(
         DiagnosticFactory().ambiguousImport(
-          name: node.name,
+          name: name,
           element: ambiguousElement,
         ),
       );
@@ -78,8 +80,8 @@ class AssignmentVerifier {
     }
     _verify(
       node: node,
-      name: node.name.lexeme,
-      isSynthetic: node.name.isSynthetic,
+      name: name.lexeme,
+      isSynthetic: name.isSynthetic,
       requested: requested,
       recovery: recovery,
       receiverType: null,

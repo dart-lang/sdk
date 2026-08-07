@@ -1672,6 +1672,8 @@ package:analyzer/dart/ast/ast.dart:
     loopVariable (getter: DeclaredIdentifier)
   ForEachPartsWithIdentifier (class extends Object implements ForEachParts, abstract, final):
     identifier (getter: SimpleIdentifier)
+    identifier2 (getter: Token, experimental)
+    write (getter: NamedWriteResolution?, experimental)
   ForEachPartsWithPattern (class extends Object implements ForEachParts, abstract, final):
     keyword (getter: Token)
     metadata (getter: NodeList<Annotation>)

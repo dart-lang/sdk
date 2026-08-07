@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -130,6 +132,24 @@ class PropertyElementResolver with ScopeHelpers {
 
     diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
     return PropertyElementResolverResult();
+  }
+
+  NamedWriteResolutionImpl resolveForEachPartsWithIdentifier(
+    ForEachPartsWithIdentifierImpl node,
+  ) {
+    var scopeLookupResult = node.scopeLookupResult!;
+    reportDeprecatedExportUse(
+      scopeLookupResult: scopeLookupResult,
+      nameToken: node.identifier2,
+      hasRead: false,
+      hasWrite: true,
+    );
+
+    return _resolveUnqualifiedNameWrite(
+      node: node,
+      name: node.identifier2,
+      scopeLookupResult: scopeLookupResult,
+    )!;
   }
 
   PropertyElementResolverResult resolveIndexExpression({
@@ -485,7 +505,11 @@ class PropertyElementResolver with ScopeHelpers {
       hasWrite: true,
     );
 
-    var writeResolution = _resolveUnqualifiedNameWrite(node, scopeLookupResult);
+    var writeResolution = _resolveUnqualifiedNameWrite(
+      node: node,
+      name: node.name,
+      scopeLookupResult: scopeLookupResult,
+    );
     if (writeResolution == null) return null;
 
     return writeResolution;
@@ -508,7 +532,11 @@ class PropertyElementResolver with ScopeHelpers {
     );
 
     var readResult = _resolveUnqualifiedNameRead(node, scopeLookupResult);
-    var writeResolution = _resolveUnqualifiedNameWrite(node, scopeLookupResult);
+    var writeResolution = _resolveUnqualifiedNameWrite(
+      node: node,
+      name: node.name,
+      scopeLookupResult: scopeLookupResult,
+    );
     if (readResult == null || writeResolution == null) return null;
 
     return (
@@ -1343,23 +1371,34 @@ class PropertyElementResolver with ScopeHelpers {
     return (resolution: resolution, expressionInfo: expressionInfo);
   }
 
-  NamedWriteResolutionImpl? _resolveUnqualifiedNameWrite(
-    UnqualifiedNameAssignmentTargetImpl node,
-    ScopeLookupResult scopeLookupResult,
-  ) {
+  NamedWriteResolutionImpl? _resolveUnqualifiedNameWrite({
+    required AstNode node,
+    required Token name,
+    required ScopeLookupResult scopeLookupResult,
+  }) {
     var writeLookup =
         LexicalLookup.resolveSetter(scopeLookupResult) ??
-        _resolver.thisLookupSetter2(node);
+        ThisLookup.lookupSetter2(_resolver, node: node, name: name.lexeme);
     var writeElementRequested = writeLookup?.requested;
     var writeElementRecovery = writeLookup?.recovery;
 
-    AssignmentVerifier(
-      diagnosticReporter,
-    ).verifyUnqualifiedNameAssignmentTarget(
-      node: node,
-      requested: writeElementRequested,
-      recovery: writeElementRecovery,
-    );
+    var assignmentVerifier = AssignmentVerifier(diagnosticReporter);
+    if (node is ForEachPartsWithIdentifier) {
+      assignmentVerifier.verifyUnqualifiedName(
+        node: node.identifier2,
+        name: node.identifier2,
+        requested: writeElementRequested,
+        recovery: writeElementRecovery,
+      );
+    } else {
+      var unqualifiedNode = node as UnqualifiedNameAssignmentTarget;
+      assignmentVerifier.verifyUnqualifiedName(
+        node: unqualifiedNode,
+        name: unqualifiedNode.name,
+        requested: writeElementRequested,
+        recovery: writeElementRecovery,
+      );
+    }
 
     var isInvalidExpressionTarget =
         [writeElementRequested, writeElementRecovery]

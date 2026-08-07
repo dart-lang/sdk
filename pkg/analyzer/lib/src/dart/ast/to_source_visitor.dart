@@ -607,7 +607,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    _visitNode(node.identifier);
+    _visitToken(node.identifier2);
     sink.write(' in ');
     _visitNode(node.iterable2);
   }

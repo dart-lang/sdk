@@ -766,6 +766,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('ForEachPartsWithIdentifier');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedWriteResolution(
+          'write',
+          (node as ForEachPartsWithIdentifierImpl).write,
+        );
+      }
     });
   }
 

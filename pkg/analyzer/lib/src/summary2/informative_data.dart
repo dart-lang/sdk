@@ -1981,6 +1981,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    _tokenOrNull(node.identifier2);
+    super.visitForEachPartsWithIdentifier(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     _tokenOrNull(node.leftParenthesis);
     _tokenOrNull(node.rightParenthesis);

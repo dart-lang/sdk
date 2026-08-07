@@ -5493,14 +5493,14 @@ class _WhyNotPromotedVisitor
     DemoteViaExplicitWrite<PromotableElementImpl, AstNode> reason,
   ) {
     var node = reason.node;
-    if (node is ForEachPartsWithIdentifier) {
-      node = node.identifier;
-    }
     if (_dataForTesting != null) {
       _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
     }
     var variableName = reason.variable.name;
-    return [_contextMessageForWrite(variableName, node, reason)];
+    var errorEntity = node is ForEachPartsWithIdentifier
+        ? node.identifier2
+        : node;
+    return [_contextMessageForWrite(variableName, errorEntity, reason)];
   }
 
   @override
@@ -5670,7 +5670,7 @@ class _WhyNotPromotedVisitor
 
   DiagnosticMessageImpl _contextMessageForWrite(
     String? variableName,
-    AstNode node,
+    SyntacticEntity node,
     DemoteViaExplicitWrite<PromotableElementImpl, AstNode> reason,
   ) {
     return DiagnosticMessageImpl(

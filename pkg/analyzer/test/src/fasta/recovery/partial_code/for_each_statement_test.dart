@@ -819,7 +819,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -866,7 +867,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -910,7 +912,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -954,7 +957,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -997,7 +1001,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1048,7 +1053,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1088,7 +1094,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1142,7 +1149,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1191,7 +1199,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1239,7 +1248,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1292,7 +1302,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1345,7 +1356,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1392,7 +1404,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1435,7 +1448,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1483,7 +1497,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1532,7 +1547,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1639,7 +1655,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1682,7 +1699,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1724,7 +1742,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1766,7 +1785,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1817,7 +1837,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1860,7 +1881,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1913,7 +1935,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -1963,7 +1986,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: l
+                  identifier(v1): SimpleIdentifier
                     token: l
                   inKeyword: :
                   iterable2: SetOrMapLiteral
@@ -2213,7 +2237,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -2256,7 +2281,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -2304,7 +2330,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: <empty> <synthetic>
+                  identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -3884,7 +3911,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: FunctionExpressionInvocation
@@ -3934,7 +3962,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SetOrMapLiteral
@@ -3979,7 +4008,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4021,7 +4051,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4063,7 +4094,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4114,7 +4146,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4157,7 +4190,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4210,7 +4244,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4365,7 +4400,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: FunctionExpression
@@ -4414,7 +4450,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4461,7 +4498,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4504,7 +4542,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SwitchExpression
@@ -4553,7 +4592,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier
@@ -4601,7 +4641,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier: SimpleIdentifier
+                  identifier2: a
+                  identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: SimpleIdentifier

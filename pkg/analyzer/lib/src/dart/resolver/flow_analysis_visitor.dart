@@ -1369,7 +1369,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       iterable.accept2(this);
 
       if (forLoopParts is ForEachPartsWithIdentifierImpl) {
-        var element = forLoopParts.identifier.element;
+        // Assigned-variable collection runs before expression resolution fills
+        // in the write resolution. [ResolutionVisitor] has already recorded
+        // the scope lookup used by this prepass.
+        var element = forLoopParts.scopeLookupResult?.getter;
         if (element is PromotableElementImpl) {
           assignedVariables.write(element);
         }

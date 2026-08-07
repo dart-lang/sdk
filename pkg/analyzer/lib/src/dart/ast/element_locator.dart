@@ -530,6 +530,16 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    return switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) =>
+        candidates.isEmpty ? null : candidates.first,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+  }
+
+  @override
   Element? visitFormalParameter(FormalParameter node) {
     return node.declaredFragment?.element;
   }

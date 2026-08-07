@@ -1349,7 +1349,8 @@ void f() {
   for (v in [0]) {}
 }
 ''');
-    var identifier = parseResult.findNode.simple('v in');
+    var parts = parseResult.findNode.singleForEachPartsWithIdentifier;
+    var identifier = parts.identifier;
     expect(identifier.inGetterContext(), isFalse);
   }
 
@@ -1382,7 +1383,8 @@ void f() {
   for (v in [0]) {}
 }
 ''');
-    var identifier = parseResult.findNode.simple('v in');
+    var parts = parseResult.findNode.singleForEachPartsWithIdentifier;
+    var identifier = parts.identifier;
     expect(identifier.inSetterContext(), isTrue);
   }
 

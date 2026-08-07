@@ -4450,7 +4450,7 @@ class AstBuilder extends StackListener {
         );
       }
       forLoopParts = ForEachPartsWithIdentifierImpl(
-        identifier: variableOrDeclaration,
+        identifier2: variableOrDeclaration.token,
         inKeyword: inKeyword,
         iterable2: iterable,
       );
