@@ -73,26 +73,22 @@ class MigrateCommand extends DartdevCommand {
 
     final steps = args.multiOption('step');
     final rest = args.rest;
+    final targets = _getTargets(rest);
 
-    // TODO(kallentu): Support multiple targets.
-    final target = getTarget(rest);
-    if (!target.existsSync()) {
-      final entity = target is io.Directory ? 'Directory' : 'File';
-      usageException("$entity doesn't exist: ${target.path}");
+    String targetDescription;
+    if (targets.length == 1) {
+      final targetName = path.basename(targets.single.path);
+      targetDescription = 'package ${log.ansi.emphasized(targetName)}';
+    } else {
+      targetDescription = '${targets.length} packages';
     }
-
-    final migratePath = target.path;
-    final targetName = path.basename(migratePath);
     final modeText = dryRun ? ' (dry run)' : '';
-
-    Progress? progress = log.progress(
-      'Migrating package ${log.ansi.emphasized(targetName)}$modeText',
-    );
+    Progress? progress = log.progress('Migrating $targetDescription$modeText');
 
     final server = LspAnalysisServer(
       null,
       io.Directory(sdk.sdkPath),
-      [target],
+      targets,
       commandName: 'migrate',
       argResults: argResults,
       usePlugins: false,
@@ -118,7 +114,7 @@ class MigrateCommand extends DartdevCommand {
     try {
       final result = await _executeMigration(
         server,
-        migratePath,
+        targets,
         apply: apply,
         steps: steps,
       );
@@ -215,25 +211,68 @@ class MigrateCommand extends DartdevCommand {
   /// [DartMigrateResult], or `null` if an error occurred.
   Future<DartMigrateResult?> _executeMigration(
     LspAnalysisServer server,
-    String migratePath, {
+    List<io.FileSystemEntity> targets, {
     required bool apply,
     required List<String> steps,
   }) async {
-    final uri = Uri.file(
-      path.canonicalize(path.normalize(path.absolute(migratePath))),
-    );
+    final uris = [for (final target in targets) Uri.file(target.path)];
+
     try {
       // Ensure the server has finished discovering analysis roots and building
       // contexts for the target workspace before sending the migration request.
       await server.workspaceAnalysisComplete();
       return await server.migrate(
-        [uri],
+        uris,
         apply: apply,
         steps: steps.map(MigrationStep.new).toList(),
       );
     } finally {
       await server.shutdown();
     }
+  }
+
+  /// Returns a list of unique [io.FileSystemEntity] targets to migrate.
+  ///
+  /// Defaults to the current directory if [rest] is empty. Validates that all
+  /// specified targets exist and deduplicates any paths that refer to the same
+  /// target.
+  List<io.FileSystemEntity> _getTargets(List<String> rest) {
+    // If there are no targets, the tool migrates the current directory.
+    if (rest.isEmpty) {
+      return [getTarget([])];
+    }
+
+    final targets = <io.FileSystemEntity>[];
+    final nonExistentPaths = <String>[];
+    for (final arg in rest) {
+      final currentTarget = getTarget([arg]);
+      if (!currentTarget.existsSync()) {
+        nonExistentPaths.add(currentTarget.path);
+        continue;
+      }
+
+      // Deduplicate target paths.
+      final currentTargetPath = currentTarget.resolveSymbolicLinksSync();
+      if (!targets.any(
+        (t) => io.FileSystemEntity.identicalSync(
+          t.resolveSymbolicLinksSync(),
+          currentTargetPath,
+        ),
+      )) {
+        targets.add(currentTarget);
+      }
+    }
+
+    if (nonExistentPaths.isNotEmpty) {
+      usageException(
+        [
+          "Directory or file doesn't exist:",
+          for (final target in nonExistentPaths) '  $target',
+        ].join('\n'),
+      );
+    }
+
+    return targets;
   }
 
   /// Returns `true` if [edit] contains any proposed file or document changes.
