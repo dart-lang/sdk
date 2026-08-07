@@ -78,37 +78,66 @@ Middleware originCheckMiddleware({required DartRuntimeService frontend}) =>
         return innerHandler(request);
       }
 
-      bool isAllowedOrigin(String origin) {
-        Uri uri;
-        try {
-          uri = Uri.parse(origin);
-        } catch (_) {
-          return false;
-        }
-
-        // Explicitly add localhost and 127.0.0.1 on any port (necessary for
-        // adb port forwarding).
-        if ((uri.host == 'localhost') ||
-            (uri.host == InternetAddress.loopbackIPv6.address) ||
-            (uri.host == InternetAddress.loopbackIPv4.address)) {
-          return true;
-        }
-
-        final serverUri = frontend.uri;
-        if (uri.port == serverUri.port && uri.host == serverUri.host) {
-          return true;
-        }
-
-        return false;
-      }
-
       for (final origin in origins.split(',')) {
-        if (isAllowedOrigin(origin)) {
+        if (_isAllowedOrigin(origin, frontend)) {
           return innerHandler(request);
         }
       }
       return Response.forbidden('forbidden origin');
     };
+
+Middleware hostCheckMiddleware({required DartRuntimeService frontend}) =>
+    (Handler innerHandler) => (Request request) {
+      final hostHeader = request.headers[HttpHeaders.hostHeader];
+      if (hostHeader == null) {
+        return Response.forbidden('missing Host header');
+      }
+
+      if (!_isAllowedHost(hostHeader, frontend)) {
+        return Response.forbidden('forbidden host');
+      }
+
+      return innerHandler(request);
+    };
+
+/// Validates if [origin] is allowed to connect to the service.
+///
+/// Returns `true` if the origin is localhost, loopback, or matches the
+/// bound address of the server.
+bool _isAllowedOrigin(String origin, DartRuntimeService frontend) {
+  Uri uri;
+  try {
+    uri = Uri.parse(origin);
+  } catch (_) {
+    return false;
+  }
+
+  // Explicitly add localhost and 127.0.0.1 on any port (necessary for
+  // adb port forwarding).
+  if ((uri.host == 'localhost') ||
+      (uri.host == InternetAddress.loopbackIPv6.address) ||
+      (uri.host == InternetAddress.loopbackIPv4.address)) {
+    return true;
+  }
+
+  final serverUri = frontend.uri;
+  if (uri.port == serverUri.port && uri.host == serverUri.host) {
+    return true;
+  }
+
+  return false;
+}
+
+/// Validates if the [hostHeader] value is allowed.
+///
+/// The [hostHeader] should be the raw value of the HTTP `Host` header,
+/// which may optionally include a port (e.g., `localhost` or `localhost:8080`).
+///
+/// Prepends `http://` to the host header to parse it as a [Uri] and delegates
+/// to [_isAllowedOrigin].
+bool _isAllowedHost(String hostHeader, DartRuntimeService frontend) {
+  return _isAllowedOrigin('http://$hostHeader', frontend);
+}
 
 /// Creates a [Handler] responsible for processing HTTP requests.
 ///

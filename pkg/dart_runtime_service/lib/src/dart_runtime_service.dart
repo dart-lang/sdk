@@ -374,7 +374,8 @@ class DartRuntimeService {
     }
 
     if (!config.disableOriginCheck) {
-      _logger.info('Origin checks are enabled. Adding CORS check handler.');
+      _logger.info('Origin and Host checks are enabled.');
+      pipeline = pipeline.addMiddleware(hostCheckMiddleware(frontend: this));
       pipeline = pipeline.addMiddleware(originCheckMiddleware(frontend: this));
     }
 
