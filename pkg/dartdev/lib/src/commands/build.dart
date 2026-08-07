@@ -143,6 +143,11 @@ then that is used instead.''',
         valueHelp: packagesOption.valueHelp,
         help: packagesOption.help,
       )
+      ..addFlag(
+        enableAssertsOption.flag,
+        negatable: false,
+        help: enableAssertsOption.help,
+      )
       ..addOption(
         'verbosity',
         help: 'Sets the verbosity level of the compilation.',
@@ -273,6 +278,7 @@ then that is used instead.''',
     final verbosity = args.option('verbosity')!;
     final depFile = args.option('depfile');
     final enabledExperiments = args.enabledExperiments;
+    final enableAsserts = args.flag(enableAssertsOption.flag);
 
     Uri? packageConfigUri;
     final packages = args.option(packagesOption.flag);
@@ -306,6 +312,7 @@ then that is used instead.''',
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       verbose: verbose,
       verbosity: verbosity,
+      enableAsserts: enableAsserts,
       depFile: depFile,
       sanitizer: sanitizer,
       runPackageName: args.option('root-package'),
@@ -325,6 +332,7 @@ then that is used instead.''',
     required List<String> enabledExperiments,
     required bool verbose,
     required String verbosity,
+    bool enableAsserts = false,
     Sanitizer sanitizer = Sanitizer.none,
     bool progressUpdatesOnStderr = false,
     String? depFile,
@@ -478,6 +486,7 @@ then that is used instead.''',
           packages: packageConfigUri.toFilePath(),
           targetOS: targetOS,
           enableExperiment: enabledExperiments.join(','),
+          enableAsserts: enableAsserts,
           tempDir: tempDir,
           depFile: depFile,
           progressUpdatesOnStderr: progressUpdatesOnStderr,
