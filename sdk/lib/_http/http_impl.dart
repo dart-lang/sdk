@@ -1273,6 +1273,18 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   String get reasonPhrase => _findReasonPhrase(statusCode);
   void set reasonPhrase(String reasonPhrase) {
     if (_outgoing.headersWritten) throw StateError("Header already sent");
+    for (int i = 0; i < reasonPhrase.length; i++) {
+      int codeUnit = reasonPhrase.codeUnitAt(i);
+      if (codeUnit == _CharCode.CR ||
+          codeUnit == _CharCode.LF ||
+          codeUnit == 0) {
+        throw ArgumentError.value(
+          reasonPhrase,
+          "reasonPhrase",
+          "Reason phrase cannot contain CR, LF or NUL",
+        );
+      }
+    }
     _reasonPhrase = reasonPhrase;
   }
 
