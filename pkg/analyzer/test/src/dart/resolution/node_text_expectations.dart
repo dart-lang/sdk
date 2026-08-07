@@ -128,17 +128,12 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'IndexTest',
-      methodName: 'assertElementIndexText',
-      argument: _ArgumentIndex(2),
+      methodName: 'assertIndexText',
+      argument: _ArgumentNamed('expected'),
     ),
     _AssertMethod(
       className: 'IndexTest',
       methodName: 'assertLibraryFragmentIndexText',
-      argument: _ArgumentIndex(2),
-    ),
-    _AssertMethod(
-      className: 'IndexTest',
-      methodName: 'assertNameIndexText',
       argument: _ArgumentIndex(2),
     ),
     _AssertMethod(
