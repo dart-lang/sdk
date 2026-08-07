@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /// Computes [DocumentLink]s for lint names in an 'analysis_options.yaml'.
@@ -150,6 +151,8 @@ class DartDocumentLinkVisitor extends RecursiveAstVisitor<void> {
   DartDocumentLinkVisitor(this.resourceProvider, this.unit)
     : filePath = unit.path;
 
+  path.Context get pathContext => resourceProvider.pathContext;
+
   List<DocumentLink> findLinks(AstNode node) {
     _documentLinks.clear();
     node.accept(this);
@@ -160,48 +163,145 @@ class DartDocumentLinkVisitor extends RecursiveAstVisitor<void> {
   void visitComment(Comment node) {
     super.visitComment(node);
 
+    for (var directive in node.docDirectives) {
+      switch (directive.type) {
+        case DocDirectiveType.example:
+          _handleExampleDirective(directive);
+          break;
+        case DocDirectiveType.tool:
+          _handleToolDirective(directive);
+          break;
+        default:
+        // Ignore other kinds.
+      }
+    }
+  }
+
+  /// Extracts examples in the new directive format.
+  void _handleExampleDirective(DocDirective exampleDirective) {
+    if (exampleDirective is! SimpleDocDirective) return;
+
+    // This code assumes the first positional parameter is the file/path.
+    assert(exampleDirective.type.positionalParameters.first.name == 'file');
+    var pathArgument = exampleDirective.tag.positionalArguments.firstOrNull;
+    if (pathArgument == null) return;
+
+    // TODO(dantup): This code may be useful to extract to reuse for other
+    //  functionality related to this (or, may be replacable by code used by
+    //  dartdoc).
+    var uri = _resolveExampleUriToAbsoluteUri(pathArgument.value);
+    if (uri == null) return;
+
+    var offset = pathArgument.offset;
+    var length = pathArgument.end - pathArgument.offset;
+    _documentLinks.add(DocumentLink(offset, length, uri));
+  }
+
+  /// Extracts examples in the original legacy format from tool directives.
+  void _handleToolDirective(DocDirective toolDirective) {
+    if (toolDirective is! BlockDocDirective) return;
+
+    var contentsStart = toolDirective.openingTag.end;
+    var contentsEnd = toolDirective.closingTag?.offset;
+
+    // Skip unclosed tags.
+    if (contentsEnd == null) {
+      return;
+    }
+
     var content = unit.content;
+    var strValue = content.substring(contentsStart, contentsEnd);
+    if (strValue.isEmpty) {
+      return;
+    }
 
-    var toolDirectives = node.docDirectives
-        .where((directive) => directive.type == DocDirectiveType.tool)
-        .whereType<BlockDocDirective>();
-    for (var toolDirective in toolDirectives) {
-      var contentsStart = toolDirective.openingTag.end;
-      var contentsEnd = toolDirective.closingTag?.offset;
+    var seeCodeIn = '** See code in ';
+    var startIndex = strValue.indexOf('${seeCodeIn}examples/api/');
+    if (startIndex != -1) {
+      final folderWithExamplesApi = this.folderWithExamplesApi;
+      if (folderWithExamplesApi == null) {
+        // Examples directory doesn't exist.
+        return;
+      }
+      startIndex += seeCodeIn.length;
+      var endIndex = strValue.indexOf('.dart') + 5;
+      var pathSnippet = strValue.substring(startIndex, endIndex);
+      // Split on '/' because that's what the comment syntax uses, but
+      // re-join it using the resource provider to get the right separator
+      // for the platform.
+      var examplePath = resourceProvider.pathContext.joinAll([
+        folderWithExamplesApi.path,
+        ...pathSnippet.split('/'),
+      ]);
+      var offset = contentsStart + startIndex;
+      var length = endIndex - startIndex;
+      var exampleFile = resourceProvider.getFile(examplePath);
+      _documentLinks.add(DocumentLink(offset, length, exampleFile.toUri()));
+    }
+  }
 
-      // Skip unclosed tags.
-      if (contentsEnd == null) {
-        continue;
+  /// Resolves a raw uri from the example directive to the absolute file URI.
+  ///
+  /// Returns `null` if there is any failure to parse, if the target is outside
+  /// of the current files project, or the target does not exist.
+  Uri? _resolveExampleUriToAbsoluteUri(String? inputRelativeUri) {
+    if (inputRelativeUri == null) return null;
+
+    // Strip any #region from the end.
+    inputRelativeUri = inputRelativeUri.split('#').first;
+
+    // If we start with a slash, we are relative to the package root
+    // (but remove it so we can resolve the uri as relative to the base).
+    var isRelativeToPackageRoot = inputRelativeUri.startsWith('/');
+    if (isRelativeToPackageRoot) {
+      inputRelativeUri = inputRelativeUri.substring(1);
+    }
+
+    // We need the package root to ensure the link does not escape it regardless
+    // of whether it's relative to the package or the file.
+    var packageRootPath = unit
+        .session
+        .analysisContext
+        .contextRoot
+        .workspace
+        .packages
+        .packageForPath(unit.path)
+        ?.rootFolder
+        .path;
+    if (packageRootPath == null) {
+      return null;
+    }
+
+    // The URI is relative to either the package root or the current file
+    // depending on whether it starts with `/`.
+    var baseFolderPath = isRelativeToPackageRoot
+        ? packageRootPath
+        : pathContext.dirname(unit.path);
+    // Ensure the URI ends with a slash so resolve() treats it as a folder
+    // and not a file.
+    var baseFolderUri = Uri.file('$baseFolderPath${pathContext.separator}');
+
+    try {
+      // Parse the input as a URI and not a path, because it may contain
+      // URL encoding.
+      var absoluteUri = baseFolderUri.resolve(inputRelativeUri);
+      var absolutePath = absoluteUri.toFilePath();
+
+      if (!path.isWithin(packageRootPath, absolutePath)) {
+        // Target isn't within the package, so don't produce a link.
+        return null;
       }
 
-      var strValue = content.substring(contentsStart, contentsEnd);
-      if (strValue.isEmpty) {
-        continue;
+      if (!resourceProvider.getFile(absoluteUri.toFilePath()).exists) {
+        // Target doesn't exist, so don't produce a link.
+        return null;
       }
 
-      var seeCodeIn = '** See code in ';
-      var startIndex = strValue.indexOf('${seeCodeIn}examples/api/');
-      if (startIndex != -1) {
-        final folderWithExamplesApi = this.folderWithExamplesApi;
-        if (folderWithExamplesApi == null) {
-          // Examples directory doesn't exist.
-          return;
-        }
-        startIndex += seeCodeIn.length;
-        var endIndex = strValue.indexOf('.dart') + 5;
-        var pathSnippet = strValue.substring(startIndex, endIndex);
-        // Split on '/' because that's what the comment syntax uses, but
-        // re-join it using the resource provider to get the right separator
-        // for the platform.
-        var examplePath = resourceProvider.pathContext.joinAll([
-          folderWithExamplesApi.path,
-          ...pathSnippet.split('/'),
-        ]);
-        var offset = contentsStart + startIndex;
-        var length = endIndex - startIndex;
-        var exampleFile = resourceProvider.getFile(examplePath);
-        _documentLinks.add(DocumentLink(offset, length, exampleFile.toUri()));
-      }
+      return absoluteUri;
+    } catch (_) {
+      // We can't assume the user included a value that can correctly form a
+      // path or URI (they might even still be typing here).
+      return null;
     }
   }
 }

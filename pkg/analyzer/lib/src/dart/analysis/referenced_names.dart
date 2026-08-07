@@ -230,6 +230,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   });
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _addCompoundAssignmentOperator(node.operator);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
   void visitBlock(Block node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -266,6 +272,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   void visitCompilationUnit(CompilationUnit node) {
     localScope = _LocalNameScope.forUnit(node);
     super.visitCompilationUnit(node);
+  }
+
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _addCompoundAssignmentOperator(node.operator);
+    super.visitCompoundAssignment(node);
   }
 
   @override
@@ -335,6 +347,18 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
       importPrefixNames.add(prefix.name);
     }
     super.visitImportDirective(node);
+  }
+
+  @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    names.add(switch (node.operator.lexeme) {
+      '++' => '+',
+      '--' => '-',
+      var lexeme => throw StateError('Unexpected update operator: $lexeme'),
+    });
+    super.visitIncrementOrDecrementExpression(node);
   }
 
   @override
@@ -431,6 +455,13 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
     UnqualifiedNameAssignmentTarget node,
   ) {
     _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
+  void _addCompoundAssignmentOperator(Token operator) {
+    var lexeme = operator.lexeme;
+    if (lexeme != '=' && lexeme != '??=') {
+      names.add(lexeme.substring(0, lexeme.length - 1));
+    }
   }
 
   /// Adds [token] if it is not shadowed by a local element.

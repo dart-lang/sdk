@@ -2050,6 +2050,7 @@ package:analyzer_plugin/utilities/navigation/document_links.dart:
     new (constructor: DartDocumentLinkVisitor Function(ResourceProvider, ParsedUnitResult))
     filePath (getter: String)
     folderWithExamplesApi (getter: Folder?)
+    pathContext (getter: Context)
     resourceProvider (getter: ResourceProvider)
     unit (getter: ParsedUnitResult)
     findLinks (method: List<DocumentLink> Function(AstNode))
@@ -2235,5 +2236,7 @@ package:analyzer/src/dart/ast/ast.dart:
   TypeAnnotation (referenced)
 package:analyzer/src/diagnostic/diagnostic.dart:
   DiagnosticMessage@2 (referenced)
+package:path/src/context.dart:
+  Context (referenced)
 package:pub_semver/src/version.dart:
   Version (referenced)

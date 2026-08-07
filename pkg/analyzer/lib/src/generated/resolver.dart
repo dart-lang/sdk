@@ -1008,17 +1008,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   getSwitchStatementMemberInfo(covariant SwitchStatementImpl node, int index) {
     CaseHeadOrDefaultInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl>
     ofMember(SwitchMemberImpl member) {
-      if (member is SwitchCaseImpl) {
-        return CaseHeadInfo(pattern: member.expression2, variables: {});
-      } else if (member is SwitchPatternCaseImpl) {
-        var guardedPattern = member.guardedPattern;
-        return CaseHeadInfo(
-          pattern: guardedPattern.pattern,
-          variables: guardedPattern.variables,
-          guard: guardedPattern.whenClause?.expression2,
-        );
-      } else {
-        return CaseDefaultInfo();
+      switch (member) {
+        case SwitchCaseImpl(:var expression2):
+          return CaseHeadInfo(pattern: expression2, variables: {});
+        case SwitchPatternCaseImpl(:var guardedPattern):
+          return CaseHeadInfo(
+            pattern: guardedPattern.pattern,
+            variables: guardedPattern.variables,
+            guard: guardedPattern.whenClause?.expression2,
+          );
+        case SwitchDefaultImpl():
+          return CaseDefaultInfo();
       }
     }
 
