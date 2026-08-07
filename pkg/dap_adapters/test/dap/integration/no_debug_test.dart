@@ -11,7 +11,7 @@ import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   late DapTestSession dap;
   setUp(() async {
     dap = await DapTestSession.setUp();
@@ -57,7 +57,7 @@ main() {
       await Future.wait([
         dap.client.event('terminated'),
         dap.client.initialize(supportsRunInTerminalRequest: true),
-        dap.client.launch(testFile.path, noDebug: true, console: "terminal"),
+        dap.client.launch(testFile.path, noDebug: true, console: 'terminal'),
       ], eagerError: true);
 
       expect(runInTerminalArgs, isNotNull);

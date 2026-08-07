@@ -94,12 +94,15 @@ class CompiledApp {
       <<IMPORTED_JS_STRINGS_IN_MJS>>
     };
 
+    <<JS_STRING_POLYFILL_METHODS>>
+
     <<DEFERRED_LIBRARY_HELPER_METHODS>>
 
     dartInstance = await WebAssembly.instantiate(this.module, {
       ...baseImports,
       ...additionalImports,
       <<MODULE_LOADING_IMPORT>>
+      <<JS_POLYFILL_IMPORT>>
     });
 
     return new InstantiatedApp(this, dartInstance);
@@ -174,6 +177,7 @@ final moduleLoadingHelperTemplate = Template(r'''
       let moduleInstance = await WebAssembly.instantiate(module, {
         ...baseImports,
         ...additionalImports,
+        <<JS_POLYFILL_IMPORT>>
         "<<MAIN_MODULE_NAME>>": dartInstance.exports,
       });
     }

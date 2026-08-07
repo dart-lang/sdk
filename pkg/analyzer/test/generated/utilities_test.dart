@@ -504,7 +504,7 @@ class A {
     _assertReplacementForChildren<ConstructorFieldInitializer>(
       destination: parseResult.findNode.constructorFieldInitializer('a ='),
       source: parseResult.findNode.constructorFieldInitializer('b ='),
-      childAccessors: [(node) => node.fieldName, (node) => node.expression2],
+      childAccessors: [(node) => node.expression2],
     );
   }
 

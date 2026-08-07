@@ -8,7 +8,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'mocks.dart';
 
-main() {
+void main() {
   group('IsolateManager', () {
     late MockDartCliDebugAdapter adapter;
     late IsolateManager isolateManager;
@@ -116,8 +116,8 @@ main() {
       final thread2 = isolateManager.threads[1];
 
       // Store some data in both threads.
-      final ref1 = thread1.storeData("test1");
-      final ref2 = thread2.storeData("test2");
+      final ref1 = thread1.storeData('test1');
+      final ref2 = thread2.storeData('test2');
 
       // Resume thread1
       thread1.paused = true; // Fake pause to allow resume.

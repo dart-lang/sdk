@@ -243,7 +243,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
       expression2: IntegerLiteral
@@ -274,7 +275,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
       expression2: IntegerLiteral
@@ -303,7 +305,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
       expression2: IntegerLiteral
@@ -333,7 +336,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
       expression2: IntegerLiteral
@@ -429,7 +433,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
       expression2: IntegerLiteral
@@ -459,7 +464,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
       expression2: IntegerLiteral

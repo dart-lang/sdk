@@ -3346,8 +3346,8 @@ abstract class AstCodeGenerator
     DartType bound,
   ) {
     b.local_get(typeLocal);
-    final boundLocal = b.addLocal(translator.runtimeTypeType);
-    types.makeType(this, bound);
+    final boundType = types.makeType(this, bound);
+    final boundLocal = b.addLocal(boundType);
     b.local_tee(boundLocal);
     call(translator.isTypeSubtype.reference);
 
@@ -4004,9 +4004,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     }
 
     final outputs = translator.callTarget(callTarget, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(b, outputs.single, returnType);
-    }
+    translator.convertType(b, translator.outputOrVoid(outputs), returnType);
     b.return_();
     b.end();
   }
@@ -4038,7 +4036,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       b.local_get(receiverLocal);
       translator.convertType(b, receiverLocal.type, getterInputs.single);
       call(target);
-      translator.convertType(b, getterOutputs.single, translator.topType);
+      translator.convertType(
+        b,
+        translator.outputOrVoid(getterOutputs),
+        translator.topType,
+      );
     }
 
     b.end(); // end function

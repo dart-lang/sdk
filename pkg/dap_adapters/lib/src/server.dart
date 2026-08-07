@@ -17,12 +17,6 @@ import 'protocol_stream.dart';
 /// multiple debug sessions, there would be multiple servers (and the editor
 /// would have a client for each of them).
 class DapServer {
-  final ByteStreamServerChannel channel;
-  late final DartDebugAdapter adapter;
-  final bool ipv6;
-  final bool test;
-  final Logger? logger;
-
   DapServer(
     Stream<List<int>> input,
     StreamSink<List<int>> output, {
@@ -45,6 +39,11 @@ class DapServer {
             onError: onError,
           );
   }
+  final ByteStreamServerChannel channel;
+  late final DartDebugAdapter adapter;
+  final bool ipv6;
+  final bool test;
+  final Logger? logger;
 
   void stop() {
     channel.close();

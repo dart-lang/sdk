@@ -652,16 +652,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     switch (node.target) {
       case InvalidExpressionAssignmentTargetImpl():
         break;
+      case PropertyAssignmentTargetImpl():
+        throw StateError(
+          'Property targets are not produced for compound assignment.',
+        );
       case UnqualifiedNameAssignmentTargetImpl target:
         var readElement = switch (target.read) {
           null => null,
           InvalidNamedReadResolutionImpl() => null,
-          ValidNamedReadResolutionImpl(:var element) => element,
+          NamedReadResolutionWithElementImpl(:var element) => element,
         };
         var writeElement = switch (target.write) {
           null => null,
+          DynamicPropertyWriteResolutionImpl() => null,
           InvalidNamedWriteResolutionImpl() => null,
-          ValidNamedWriteResolutionImpl(:var element) => element,
+          NamedWriteResolutionWithElementImpl(:var element) => element,
         };
         for (var element in {readElement, writeElement}) {
           if (element == null) continue;
@@ -787,13 +792,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    SimpleIdentifier fieldName = node.fieldName;
-    var element = fieldName.element;
-    _checkForInvalidField(element, node, fieldName);
+    var element = node.fieldElement;
+    _checkForInvalidField(element, node, node.fieldName2);
     if (element is FieldElement) {
       _checkForAbstractOrExternalFieldConstructorInitializer(
         element,
-        node.fieldName.token,
+        node.fieldName2,
       );
     }
     super.visitConstructorFieldInitializer(node);
@@ -875,7 +879,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     var write = target.write;
-    if (write case ValidNamedWriteResolutionImpl(:var element)) {
+    if (write case NamedWriteResolutionWithElementImpl(:var element)) {
       _checkForReferenceBeforeDeclaration(
         nameToken: target.name,
         element: element,
@@ -1491,11 +1495,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
     target as UnqualifiedNameAssignmentTargetImpl;
     var readElement = switch (target.read) {
-      ValidNamedReadResolutionImpl(:var element) => element,
+      NamedReadResolutionWithElementImpl(:var element) => element,
       _ => null,
     };
     var writeElement = switch (target.write) {
-      ValidNamedWriteResolutionImpl(:var element) => element,
+      NamedWriteResolutionWithElementImpl(:var element) => element,
       _ => null,
     };
     if (target.read case NamedReadResolutionImpl(:var type)) {
@@ -5867,26 +5871,26 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkForInvalidField(
     Element? staticElement,
     ConstructorFieldInitializer initializer,
-    SimpleIdentifier fieldName,
+    Token fieldName,
   ) {
     if (staticElement is FieldElement) {
       if (staticElement.isOriginGetterSetter) {
         diagnosticReporter.report(
           diag.initializerForNonExistentField
-              .withArguments(formalName: fieldName.name)
+              .withArguments(formalName: fieldName.lexeme)
               .at(initializer),
         );
       } else if (staticElement.isStatic) {
         diagnosticReporter.report(
           diag.initializerForStaticField
-              .withArguments(formalName: fieldName.name)
+              .withArguments(formalName: fieldName.lexeme)
               .at(initializer),
         );
       }
     } else {
       diagnosticReporter.report(
         diag.initializerForNonExistentField
-            .withArguments(formalName: fieldName.name)
+            .withArguments(formalName: fieldName.lexeme)
             .at(initializer),
       );
       return;

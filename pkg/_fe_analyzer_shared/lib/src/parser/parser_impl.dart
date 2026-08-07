@@ -3092,12 +3092,12 @@ class Parser {
     Token? constToken,
     String className,
   ) {
-    Token start = token;
     token = parsePrimaryConstructorOpt(
       DeclarationKind.Class,
       token,
       constToken,
     );
+    Token headerStart = token;
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
@@ -3112,7 +3112,7 @@ class Parser {
     } else {
       if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
         // Recovery
-        token = parseClassHeaderRecovery(start, beginToken, classKeyword);
+        token = parseClassHeaderRecovery(headerStart, beginToken, classKeyword);
         ensureBlock(token, BlockKind.classDeclaration);
       }
       token = parseClassOrMixinOrExtensionBody(

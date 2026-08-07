@@ -6737,7 +6737,7 @@ main() {
   79 6:10 |foo| REFERENCE qualified
 <testLibraryFragment> main@95
   111 11:8 |foo| REFERENCE qualified
-  124 12:5 |foo| REFERENCE qualified
+  124 12:5 |foo| WRITE qualified
 ''');
   }
 

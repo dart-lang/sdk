@@ -289,14 +289,6 @@ class Translator with KernelNodes {
     true,
   );
 
-  // The wasm type used to hold values of `Type`
-  late final w.RefType runtimeTypeType =
-      translateType(coreTypes.typeNonNullableRawType) as w.RefType;
-
-  // The wasm type used to hold values of `Type?`
-  late final w.RefType runtimeTypeTypeNullable = runtimeTypeType
-      .withNullability(true);
-
   // The wasm type used to hold values of `String`
   late final w.RefType stringType =
       translateType(coreTypes.stringNonNullableRawType) as w.RefType;
@@ -2902,13 +2894,11 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
     assert(argNameIndex == argNames.length);
 
     final outputs = translator.callTarget(target, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(
-        b,
-        outputs.single,
-        translator.outputOrVoid(trampoline.type.outputs),
-      );
-    }
+    translator.convertType(
+      b,
+      translator.outputOrVoid(outputs),
+      translator.outputOrVoid(trampoline.type.outputs),
+    );
     b.end();
   }
 }
@@ -3099,13 +3089,11 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     }
 
     final outputs = translator.callTarget(target, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(
-        b,
-        outputs.single,
-        translator.outputOrVoid(function.type.outputs),
-      );
-    }
+    translator.convertType(
+      b,
+      translator.outputOrVoid(outputs),
+      translator.outputOrVoid(function.type.outputs),
+    );
 
     b.end(); // end function
   }

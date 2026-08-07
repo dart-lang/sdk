@@ -40,8 +40,8 @@ final verboseLogging = Platform.environment['DAP_TEST_VERBOSE'] == 'true';
 /// an authentication token.
 final vmServiceAuthCodePathPattern = RegExp(r'^/[\w_\-=]{5,15}/ws$');
 
-/// A [RegExp] that matches the "The Dart VM service is listening on" banner that is sent
-/// by the VM when not using --write-service-info.
+/// A [RegExp] that matches the "The Dart VM service is listening on" banner
+/// that is sent by the VM when not using --write-service-info.
 final vmServiceBannerPattern = RegExp(
   r'The Dart VM service is listening on ([^\s]+)\s',
 );
@@ -65,14 +65,14 @@ void expectLinesStartWith(String actual, List<String> expected) {
 }
 
 /// Expects [response] to fail with a `message` matching [messageMatcher].
-expectResponseError<T>(Future<T> response, Matcher messageMatcher) {
+void expectResponseError<T>(Future<T> response, Matcher messageMatcher) {
   expect(
     response,
     throwsA(
       const TypeMatcher<RequestException>().having(
         (r) => r.message,
         'message',
-        TypeMatcher<Response>()
+        const TypeMatcher<Response>()
             .having((r) => r.success, 'success', isFalse)
             .having((r) => r.message, 'message', messageMatcher),
       ),
@@ -91,7 +91,7 @@ Future<Process> startDartProcessPaused(
   required String cwd,
   List<String>? vmArgs,
   required bool pauseOnExit,
-}) async {
+}) {
   final vmPath = Platform.resolvedExecutable;
   vmArgs ??= [];
   vmArgs.addAll([
@@ -115,10 +115,11 @@ Future<Uri> waitForStdoutVmServiceBanner(Process process) {
         (line) {
           final match = vmServiceBannerPattern.firstMatch(line);
           if (match != null) {
-            // We do not cancel the stream subscription here because doing so closes
-            // the read end of the process.stdout pipe. Disconnecting the pipe can
-            // cause the child Dart VM to crash with a Broken Pipe (EPIPE) if it
-            // subsequently attempts to log additional output (e.g., about DevTools).
+            // We do not cancel the stream subscription here because doing so
+            // closes the read end of the process.stdout pipe. Disconnecting
+            // the pipe can cause the child Dart VM to crash with a Broken Pipe
+            // (EPIPE) if it subsequently attempts to log additional output
+            // (e.g., about DevTools).
             if (!vmServiceUriCompleter.isCompleted) {
               vmServiceUriCompleter.complete(Uri.parse(match[1]!));
             }
@@ -136,6 +137,11 @@ Future<Uri> waitForStdoutVmServiceBanner(Process process) {
 
 /// A helper class containing the DAP server/client for DAP integration tests.
 class DapTestSession {
+  DapTestSession._(this.server, this.client) {
+    testAppDir = testDir.createTempSync('app');
+    createPubspec(testAppDir, 'my_test_project');
+    testPackagesDir = testDir.createTempSync('packages');
+  }
   DapTestServer server;
   DapTestClient client;
   final Directory testDir = Directory.systemTemp.createTempSync(
@@ -144,16 +150,11 @@ class DapTestSession {
   late final Directory testAppDir;
   late final Directory testPackagesDir;
 
-  DapTestSession._(this.server, this.client) {
-    testAppDir = testDir.createTempSync('app');
-    createPubspec(testAppDir, 'my_test_project');
-    testPackagesDir = testDir.createTempSync('packages');
-  }
-
   /// Adds package with [name] (optionally at [packageFolderUri]) to the
   /// project in [dir].
   ///
-  /// If [packageFolderUri] is not supplied, will use [Isolate.resolvePackageUri]
+  /// If [packageFolderUri] is not supplied, will use
+  /// `Isolate.resolvePackageUri`
   /// assuming the package is available to the tests.
   Future<void> addPackageDependency(
     Directory dir,
@@ -226,7 +227,8 @@ environment:
     return (Uri.parse('package:$name/$filename'), testFile);
   }
 
-  /// Creates a file in a temporary folder to be used as an application for testing.
+  /// Creates a file in a temporary folder to be used as an application for
+  /// testing.
   ///
   /// The file will be deleted at the end of the test run.
   File createTestFile(String content, {String filename = 'test_file.dart'}) {
@@ -248,7 +250,8 @@ environment:
     await tryDelete(testDir);
   }
 
-  /// Tries to delete [dir] multiple times before printing a warning and giving up.
+  /// Tries to delete [dir] multiple times before printing a warning and giving
+  /// up.
   ///
   /// This avoids "The process cannot access the file because it is being
   /// used by another process" errors on Windows trying to delete folders that
@@ -266,7 +269,7 @@ environment:
           print('Failed to delete $testDir after $maxAttempts attempts.\n$e');
           break;
         }
-        await Future.delayed(delay);
+        await Future<void>.delayed(delay);
       }
     }
   }
@@ -277,7 +280,7 @@ environment:
     String? logPrefix = '',
   }) async {
     final logger = forceVerboseLogging || verboseLogging
-        ? (s) => print('$logPrefix$s')
+        ? (Object s) => print('$logPrefix$s')
         : null;
 
     final server = await startServer(additionalArgs: additionalArgs);
@@ -292,7 +295,7 @@ environment:
   /// Starts a DAP server that can be shared across tests.
   static Future<DapTestServer> startServer({
     Logger? logger,
-    Function? onError,
+    void Function(Object error)? onError,
     List<String>? additionalArgs,
   }) async {
     return useInProcessDap

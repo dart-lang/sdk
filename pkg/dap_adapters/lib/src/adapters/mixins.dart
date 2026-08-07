@@ -41,7 +41,7 @@ mixin PidTracker {
   void terminatePids(ProcessSignal signal) {
     // TODO(dantup): In Dart-Code DAP, we first try again with sigint and wait
     // for a few seconds before sending sigkill.
-    for (var pid in pidsToTerminate) {
+    for (final pid in pidsToTerminate) {
       // Skip any negative pids. On Linux, kill -1 means kill everything that
       // you can. See https://github.com/dart-lang/sdk/issues/55209 for details.
       if (pid >= 0) {
@@ -55,9 +55,9 @@ mixin PidTracker {
 /// provides some basic test reporting since otherwise nothing is printed when
 /// using the JSON test reporter.
 mixin TestAdapter {
-  static const _passSymbol = "✓";
-  static const _failSymbol = "✖";
-  static const _skippedSymbol = "!";
+  static const _passSymbol = '✓';
+  static const _failSymbol = '✖';
+  static const _skippedSymbol = '!';
 
   /// Test names by testID.
   ///
@@ -107,7 +107,6 @@ mixin TestAdapter {
             _testNames[testID] = testName;
           }
         }
-        break;
 
       case 'testDone':
         // Print the status of completed tests with a tick/cross.
@@ -120,13 +119,12 @@ mixin TestAdapter {
           if (testName != null) {
             final symbol = testNotification['skipped'] == true
                 ? _skippedSymbol
-                : testNotification['result'] == "success"
+                : testNotification['result'] == 'success'
                 ? _passSymbol
                 : _failSymbol;
             sendOutput('console', '$symbol $testName\n');
           }
         }
-        break;
 
       case 'print':
         final message = testNotification['message'] as String?;
@@ -147,7 +145,6 @@ mixin TestAdapter {
         if (message != null) {
           sendOutput('stdout', '${message.trimRight()}\n');
         }
-        break;
 
       case 'error':
         final error = testNotification['error'] as String?;
@@ -158,7 +155,6 @@ mixin TestAdapter {
         if (stack != null) {
           sendOutput('stderr', '${stack.trimRight()}\n');
         }
-        break;
     }
   }
 }
@@ -186,10 +182,7 @@ mixin VmServiceInfoFileUtils on FileUtils {
 
   /// Waits for [vmServiceInfoFile] to exist and become valid before returning
   /// the VM Service URI contained within.
-  Future<Uri> waitForVmServiceInfoFile(
-    Logger? logger,
-    File vmServiceInfoFile,
-  ) async {
+  Future<Uri> waitForVmServiceInfoFile(Logger? logger, File vmServiceInfoFile) {
     final completer = Completer<Uri>();
 
     void tryParseServiceInfoFile(FileSystemEvent event) {
@@ -201,11 +194,12 @@ mixin VmServiceInfoFileUtils on FileUtils {
     }
 
     _vmServiceInfoFileWatcher = vmServiceInfoFile.parent
-        .watch(events: FileSystemEvent.all)
+        .watch()
         .where((event) => event.path == vmServiceInfoFile.path)
         .listen(
           tryParseServiceInfoFile,
-          onError: (e) => logger?.call('Ignoring exception from watcher: $e'),
+          onError: (Object e) =>
+              logger?.call('Ignoring exception from watcher: $e'),
         );
 
     // After setting up the watcher, also check if the file already exists to
@@ -213,7 +207,7 @@ mixin VmServiceInfoFileUtils on FileUtils {
     // watched up.
     final uri = _readVmServiceInfoFile(logger, vmServiceInfoFile);
     if (uri != null && !completer.isCompleted) {
-      unawaited(_vmServiceInfoFileWatcher?.cancel());
+      _vmServiceInfoFileWatcher?.cancel();
       completer.complete(uri);
     }
 
@@ -242,7 +236,10 @@ mixin VmServiceInfoFileUtils on FileUtils {
     try {
       final content = file.readAsStringSync();
       final json = jsonDecode(content);
-      return Uri.parse(json['uri']);
+      if (json case {'uri': final String uri}) {
+        return Uri.parse(uri);
+      }
+      return null;
     } catch (e) {
       // It's possible we tried to read the file before it was completely
       // written so ignore and try again on the next event.

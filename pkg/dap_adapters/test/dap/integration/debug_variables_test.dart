@@ -9,7 +9,7 @@ import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   late DapTestSession dap;
   setUp(() async {
     dap = await DapTestSession.setUp();
@@ -205,7 +205,8 @@ class A {
       },
     );
 
-    test('includes lazy public getters when showGettersInDebugViews=true', () async {
+    test('includes lazy public '
+        'getters when showGettersInDebugViews=true', () async {
       final client = dap.client;
       final testFile = dap.createTestFile('''
 void main(List<String> args) {
@@ -501,7 +502,8 @@ void main(List<String> args) {
       );
     });
 
-    test('toString() throwing expired sentinel is handled per-item in variables', () async {
+    test('toString() throwing expired sentinel is '
+        'handled per-item in variables', () async {
       final client = dap.client;
       final testFile = dap.createTestFile('''
 class S {
@@ -527,8 +529,8 @@ void main(List<String> args) {
 
       final listVariable = await client.expectEvalResult(
         topFrameId,
-        "myList",
-        "List (10000 items)",
+        'myList',
+        'List (10000 items)',
       );
       // Try to fetch all 10000 items (which is more than the buffer).
       final variables = await client.getValidVariables(
@@ -544,7 +546,7 @@ void main(List<String> args) {
     });
 
     /// Helper to verify variables types of list.
-    checkList(
+    void checkList(
       String typeName, {
       required String constructor,
       required List<String> expectedDisplayStrings,
@@ -935,7 +937,8 @@ void main() {
 
     test('does not use toString() result if "Instance of Foo"', () async {
       // When evaluateToStringInDebugViews=true, we should discard the result of
-      // calling toString() when it's just 'Instance of Foo' because we're already
+      // calling toString() when it's just 'Instance of Foo' because we're
+      // already
       // showing the type, and otherwise we show:
       //
       //     myVariable: Foo (Instance of Foo)
@@ -1048,7 +1051,8 @@ void main() {
         String inspectCode, {
         required String expectedVariables,
       }) {
-        test('sends variable in OutputEvent for inspect($inspectCode)', () async {
+        test('sends variable in '
+            'OutputEvent for inspect($inspectCode)', () async {
           final client = dap.client;
           final testFile = dap.createTestFile('''
 import 'dart:developer';
@@ -1278,20 +1282,20 @@ class C {
         );
 
         // Walk down the variables path to locate our `A().myField`.
-        var c = await client.getLocalVariable(stop.threadId!, 'c');
-        var cOther = await client.getChildVariable(
+        final c = await client.getLocalVariable(stop.threadId!, 'c');
+        final cOther = await client.getChildVariable(
           c.variablesReference,
           'other',
         );
-        var cOtherValue = await client.getChildVariable(
+        final cOtherValue = await client.getChildVariable(
           cOther.variablesReference,
           'value',
         );
-        var cOtherGetter = await client.getChildVariable(
+        final cOtherGetter = await client.getChildVariable(
           c.variablesReference,
           'otherGetter',
         );
-        var cOtherGetterValueGetter = await client.getChildVariable(
+        final cOtherGetterValueGetter = await client.getChildVariable(
           cOtherGetter.variablesReference,
           'valueGetter',
         );

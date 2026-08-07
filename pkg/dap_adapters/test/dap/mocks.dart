@@ -6,26 +6,15 @@ import 'dart:async';
 
 import 'package:dap/dap.dart' as dap;
 import 'package:dap_adapters/dap_adapters.dart' hide Response;
-import 'package:dds/dds_launcher.dart';
 import 'package:dap_adapters/src/adapters/dart_cli_adapter.dart';
 import 'package:dap_adapters/src/adapters/dart_test_adapter.dart';
 import 'package:dap_adapters/src/isolate_manager.dart';
+import 'package:dds/dds_launcher.dart';
 import 'package:vm_service/vm_service.dart';
 
 /// A [DartCliDebugAdapter] that captures information about the process that
 /// will be launched.
 class MockDartCliDebugAdapter extends DartCliDebugAdapter {
-  final StreamSink<List<int>> stdin;
-  final Stream<List<int>> stdout;
-
-  final mockService = MockVmService();
-
-  late bool launchedInTerminal;
-  late String executable;
-  late List<String> processArgs;
-  late String? workingDirectory;
-  late Map<String, String>? env;
-
   factory MockDartCliDebugAdapter() {
     final stdinController = StreamController<List<int>>();
     final stdoutController = StreamController<List<int>>();
@@ -49,6 +38,16 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
   ) : super(channel) {
     vmService = mockService;
   }
+  final StreamSink<List<int>> stdin;
+  final Stream<List<int>> stdout;
+
+  final mockService = MockVmService();
+
+  late bool launchedInTerminal;
+  late String executable;
+  late List<String> processArgs;
+  late String? workingDirectory;
+  late Map<String, String>? env;
 
   @override
   Future<bool> isExternalPackageLibrary(ThreadInfo thread, Uri uri) async {
@@ -98,17 +97,6 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
 /// A [DartTestDebugAdapter] that captures information about the process that
 /// will be launched.
 class MockDartTestDebugAdapter extends DartTestDebugAdapter {
-  final StreamSink<List<int>> stdin;
-  final Stream<List<int>> stdout;
-
-  late String executable;
-  late List<String> processArgs;
-  late String? workingDirectory;
-  late Map<String, String>? env;
-
-  UriConverter? get currentUriConverter => _uriConverter;
-  UriConverter? _uriConverter;
-
   factory MockDartTestDebugAdapter() {
     final stdinController = StreamController<List<int>>();
     final stdoutController = StreamController<List<int>>();
@@ -130,6 +118,16 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
     this.stdout,
     ByteStreamServerChannel channel,
   ) : super(channel);
+  final StreamSink<List<int>> stdin;
+  final Stream<List<int>> stdout;
+
+  late String executable;
+  late List<String> processArgs;
+  late String? workingDirectory;
+  late Map<String, String>? env;
+
+  UriConverter? get currentUriConverter => _uriConverter;
+  UriConverter? _uriConverter;
 
   @override
   Future<void> launchAsProcess(
@@ -155,13 +153,13 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
 }
 
 class MockRequest extends dap.Request {
-  static var _requestId = 1;
   MockRequest()
     : super.fromMap({
         'command': 'mock_command',
         'type': 'mock_type',
         'seq': _requestId++,
       });
+  static var _requestId = 1;
 }
 
 class MockVmService implements VmService {
@@ -252,7 +250,9 @@ class MockVmService implements VmService {
           : throw SentinelException.parse(method, {});
     }
 
-    throw 'MockVmService does not handle $method ($isolateId, $args)';
+    throw StateError(
+      'MockVmService does not handle $method ($isolateId, $args)',
+    );
   }
 
   @override

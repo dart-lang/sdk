@@ -1470,6 +1470,9 @@ class Assembler : public AssemblerBase {
   void vceqd(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VCEQD, vd, vn, vm);
   }
+  void vceqw(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCEQW, vd, vn, vm);
+  }
   void vcgts(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VCGTS, vd, vn, vm);
   }

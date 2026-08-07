@@ -1941,7 +1941,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: foo @45
+              fieldName(v1): SimpleIdentifier
                 token: foo @45
                 element: <testLibrary>::@class::A::@field::foo
                 staticType: null
@@ -1950,6 +1951,7 @@ library
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
+              fieldElement: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo

@@ -402,11 +402,9 @@ class FlowAnalysisHelper {
     }
 
     bodyOrInitializer_enter(node, formalParameters);
-    try {
-      return operation();
-    } finally {
-      bodyOrInitializer_exit();
-    }
+    var result = operation();
+    bodyOrInitializer_exit();
+    return result;
   }
 
   /// Computes the [AssignedVariables] map for the given [node].

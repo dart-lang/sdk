@@ -8556,6 +8556,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
   @DoNotGenerate(reason: 'Projects the canonical V2 target')
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target => target.propertyAccess,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
       target.expression,
@@ -8575,6 +8576,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get readElement => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -8583,6 +8585,8 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get readType => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target =>
+      target.read?.type ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
     InvalidExpressionAssignmentTargetImpl target =>
       target.expression.staticType,
@@ -8602,6 +8606,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get writeElement => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -8610,6 +8615,8 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get writeType => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
@@ -10113,7 +10120,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 /// The initialization of a field within a constructor's initialization list.
 ///
 ///    fieldInitializer ::=
-///        ('this' '.')? [SimpleIdentifier] '=' [Expression]
+///        ('this' '.')? identifier '=' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorFieldInitializer
     implements ConstructorInitializer {
@@ -10127,8 +10134,18 @@ abstract final class ConstructorFieldInitializer
   @experimental
   Expression get expression2;
 
+  /// The field being initialized, or `null` if the AST structure hasn't been
+  /// resolved or if the field couldn't be resolved.
+  @experimental
+  FieldElement? get fieldElement;
+
   /// The name of the field being initialized.
+  @ToBeDeprecated('Use fieldName2 instead.')
   SimpleIdentifier get fieldName;
+
+  /// The name of the field being initialized.
+  @experimental
+  Token get fieldName2;
 
   /// The token for the period after the `this` keyword, or `null` if there's no
   /// `this` keyword.
@@ -10142,7 +10159,7 @@ abstract final class ConstructorFieldInitializer
   childEntitiesOrder: [
     GenerateNodeProperty('thisKeyword'),
     GenerateNodeProperty('period'),
-    GenerateNodeProperty('fieldName'),
+    GenerateNodeProperty('fieldName2'),
     GenerateNodeProperty('equals'),
     GenerateNodeProperty(
       'expression2',
@@ -10163,7 +10180,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   final Token? period;
 
   @generated
-  SimpleIdentifierImpl _fieldName;
+  @override
+  final Token fieldName2;
 
   @generated
   @override
@@ -10172,16 +10190,21 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   ExpressionImpl _expression2;
 
+  InternalFieldElement? _fieldElement;
+
+  @override
+  late final SimpleIdentifierImpl fieldName = _becomeParentOf1(
+    SimpleIdentifierImpl.v1Projection(token: fieldName2),
+  );
+
   @generated
   ConstructorFieldInitializerImpl({
     required this.thisKeyword,
     required this.period,
-    required SimpleIdentifierImpl fieldName,
+    required this.fieldName2,
     required this.equals,
     required ExpressionImpl expression2,
-  }) : _fieldName = fieldName,
-       _expression2 = expression2 {
-    _becomeParentOf12(fieldName);
+  }) : _expression2 = expression2 {
     _becomeParentOf2(expression2);
     _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
@@ -10195,7 +10218,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     if (period case var period?) {
       return period;
     }
-    return fieldName.beginToken;
+    return fieldName2;
   }
 
   @generated
@@ -10221,16 +10244,15 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     _becomeParentOf1(V1Projection.toV1Expression(expression2));
   }
 
-  @generated
   @override
-  SimpleIdentifierImpl get fieldName => _fieldName;
+  InternalFieldElement? get fieldElement => _fieldElement;
 
-  @generated
-  set fieldName(SimpleIdentifierImpl fieldName) {
-    _fieldName = _becomeParentOf12(fieldName);
+  set fieldElement(InternalFieldElement? value) {
+    _fieldElement = value;
+    fieldName.element = value;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
@@ -10244,7 +10266,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
     ..addToken('period', period)
-    ..addNode('fieldName', fieldName)
+    ..addToken('fieldName2', fieldName2)
     ..addToken('equals', equals)
     ..addNode('expression2', expression2);
 
@@ -10264,15 +10286,12 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
-    return identical(expression2, child);
+    return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(fieldName, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'fieldName'.");
-    }
     if (identical(expression2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
@@ -10282,10 +10301,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(fieldName, oldNode)) {
-      fieldName = newNode as SimpleIdentifierImpl;
-      return;
-    }
     if (identical(expression2, oldNode)) {
       expression2 = newNode as ExpressionImpl;
       return;
@@ -10293,7 +10308,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10305,7 +10320,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    fieldName.accept2(visitor);
     expression2.accept2(visitor);
   }
 
@@ -10318,14 +10332,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(SimpleIdentifierImpl)? visitFieldName,
     void Function(ExpressionImpl)? visitExpression2,
   }) {
-    if (visitFieldName != null) {
-      visitFieldName(fieldName);
-    } else {
-      fieldName.accept2(visitor);
-    }
     if (visitExpression2 != null) {
       visitExpression2(expression2);
     } else {
@@ -10333,7 +10341,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fieldName._containsOffset(rangeOffset, rangeEnd)) {
@@ -10348,9 +10356,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (fieldName._containsOffset(rangeOffset, rangeEnd)) {
-      return fieldName;
-    }
     if (expression2._containsOffset(rangeOffset, rangeEnd)) {
       return expression2;
     }
@@ -12850,11 +12855,12 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
 
   @override
   InternalFormalParameterElement? get _staticParameterElementForValue {
-    var target = this.target;
-    if (target is! UnqualifiedNameAssignmentTargetImpl) {
-      return null;
-    }
-    if (target.write case SetterInvocationResolutionImpl(:var element)) {
+    var write = switch (target) {
+      PropertyAssignmentTargetImpl(:var write) => write,
+      UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+      InvalidExpressionAssignmentTargetImpl() => null,
+    };
+    if (write case SetterInvocationResolutionImpl(:var element)) {
       return element.formalParameters.single;
     }
     return null;
@@ -13009,6 +13015,7 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
   @DoNotGenerate(reason: 'Projects the canonical V2 target')
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target => target.propertyAccess,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
       target.expression,
@@ -13046,6 +13053,7 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get writeElement => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -13054,6 +13062,8 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get writeType => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
@@ -14339,6 +14349,20 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
+}
+
+/// A property write whose setter is selected dynamically at runtime.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DynamicPropertyWriteResolution
+    implements NamedWriteResolution {}
+
+final class DynamicPropertyWriteResolutionImpl extends NamedWriteResolutionImpl
+    implements DynamicPropertyWriteResolution {
+  const DynamicPropertyWriteResolutionImpl();
+
+  @override
+  TypeImpl get acceptedType => DynamicTypeImpl.instance;
 }
 
 /// The empty class body.
@@ -16125,6 +16149,9 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
 
   @override
   bool get inConstantContext {
+    if (_astNodeApi == AstNodeApi.v1) {
+      return constantContext(includeSelf: false) != null;
+    }
     return constantContext2(includeSelf: false) != null;
   }
 
@@ -23783,14 +23810,15 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class GetterInvocationResolution
-    implements ValidNamedReadResolution {
+    implements NamedReadResolutionWithElement {
   @override
   GetterElement get element;
 
   FunctionType get invokeType;
 }
 
-final class GetterInvocationResolutionImpl extends ValidNamedReadResolutionImpl
+final class GetterInvocationResolutionImpl
+    extends NamedReadResolutionWithElementImpl
     implements GetterInvocationResolution {
   @override
   final InternalGetterElement element;
@@ -23798,10 +23826,7 @@ final class GetterInvocationResolutionImpl extends ValidNamedReadResolutionImpl
   @override
   final TypeImpl type;
 
-  const GetterInvocationResolutionImpl({
-    required this.element,
-    required this.type,
-  });
+  GetterInvocationResolutionImpl({required this.element, required this.type});
 
   @override
   FunctionTypeImpl get invokeType => element.type;
@@ -24901,6 +24926,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
   @DoNotGenerate(reason: 'Projects the canonical V2 target')
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target => target.propertyAccess,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
       target.expression,
@@ -24920,6 +24946,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get readElement => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -24928,6 +24955,8 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get readType => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target =>
+      target.read?.type ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
     InvalidExpressionAssignmentTargetImpl target =>
       target.expression.staticType,
@@ -24947,6 +24976,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get writeElement => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -24955,6 +24985,8 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get writeType => switch (_origin.target) {
+    PropertyAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
@@ -27949,7 +27981,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
 abstract final class InvalidNamedReadResolution implements NamedReadResolution {
   List<Element> get candidates;
 
-  ValidNamedReadResolution? get recovery;
+  NamedReadResolutionWithElement? get recovery;
 }
 
 final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
@@ -27958,7 +27990,7 @@ final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
   final List<Element> candidates;
 
   @override
-  final ValidNamedReadResolutionImpl? recovery;
+  final NamedReadResolutionWithElementImpl? recovery;
 
   @override
   final TypeImpl type;
@@ -27980,7 +28012,7 @@ abstract final class InvalidNamedWriteResolution
 
   List<Element> get candidates;
 
-  ValidNamedWriteResolution? get recovery;
+  NamedWriteResolutionWithElement? get recovery;
 }
 
 final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
@@ -27992,7 +28024,7 @@ final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
   final List<Element> candidates;
 
   @override
-  final ValidNamedWriteResolutionImpl? recovery;
+  final NamedWriteResolutionWithElementImpl? recovery;
 
   InvalidNamedWriteResolutionImpl({
     required this.acceptedType,
@@ -32821,10 +32853,28 @@ abstract final class NamedReadResolution {
 }
 
 sealed class NamedReadResolutionImpl implements NamedReadResolution {
-  const NamedReadResolutionImpl();
+  NamedReadResolutionImpl();
 
   @override
   TypeImpl get type;
+}
+
+/// A named read that was resolved to an element.
+///
+/// Instances are exposed through the read properties of assignment targets
+/// that require the target's current value. Concrete subtypes describe how the
+/// name is read, such as by directly reading a local variable or formal
+/// parameter, or by invoking a getter.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class NamedReadResolutionWithElement
+    implements NamedReadResolution {
+  Element get element;
+}
+
+sealed class NamedReadResolutionWithElementImpl extends NamedReadResolutionImpl
+    implements NamedReadResolutionWithElement {
+  NamedReadResolutionWithElementImpl();
 }
 
 /// A named type, which can optionally include type arguments.
@@ -33202,6 +33252,20 @@ sealed class NamedWriteResolutionImpl implements NamedWriteResolution {
 
   @override
   TypeImpl get acceptedType;
+}
+
+/// A named write that was resolved to an element.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class NamedWriteResolutionWithElement
+    implements NamedWriteResolution {
+  Element get element;
+}
+
+sealed class NamedWriteResolutionWithElementImpl
+    extends NamedWriteResolutionImpl
+    implements NamedWriteResolutionWithElement {
+  NamedWriteResolutionWithElementImpl();
 }
 
 /// A node that represents a directive that impacts the namespace of a library.
@@ -39333,6 +39397,377 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 }
 
+/// A property selected on an explicitly written expression receiver and used
+/// as an assignment destination.
+///
+/// This initial migration slice supports ordinary `.` receiver chains rooted
+/// at a literal, parenthesized expression, or explicit instance creation.
+/// Other receiver forms, null-aware access, and cascades remain on their
+/// existing AST shapes.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class PropertyAssignmentTarget implements AssignmentTarget {
+  /// The property access operator.
+  Token get operator;
+
+  /// The written property name.
+  Token get propertyName;
+
+  /// The read operation, or `null` if the assignment does not read the target
+  /// or this target has not been resolved.
+  NamedReadResolution? get read;
+
+  /// The expression whose value receives the property selection.
+  Expression get receiver;
+
+  /// The write operation, or `null` if this target has not been resolved or
+  /// the receiver makes the property access unreachable.
+  NamedWriteResolution? get write;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('propertyName'),
+  ],
+)
+final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
+    implements PropertyAssignmentTarget {
+  @generated
+  ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  @override
+  final Token propertyName;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
+  @override
+  NamedReadResolutionImpl? read;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed write resolution')
+  @override
+  NamedWriteResolutionImpl? write;
+
+  PropertyAssignmentTargetV1Impl? _propertyAccess;
+
+  @generated
+  PropertyAssignmentTargetImpl({
+    required ExpressionImpl receiver,
+    required this.operator,
+    required this.propertyName,
+  }) : _receiver = receiver {
+    _becomeParentOf2(receiver);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return receiver.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return propertyName;
+  }
+
+  /// The cached V1 compatibility projection for this target.
+  PropertyAssignmentTargetV1Impl get propertyAccess =>
+      _propertyAccess ??= PropertyAssignmentTargetV1Impl._(this);
+
+  @generated
+  @override
+  ExpressionImpl get receiver => _receiver;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set receiver(ExpressionImpl receiver) {
+    _receiver = _becomeParentOf2(receiver);
+    _propertyAccess?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('PropertyAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('receiver', receiver)
+    ..addToken('operator', operator)
+    ..addToken('propertyName', propertyName);
+
+  Element? get _legacyReadElement => switch (read) {
+    NamedReadResolutionWithElementImpl(:var element) => element,
+    _ => null,
+  };
+
+  Element? get _legacyWriteElement => switch (write) {
+    InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
+    NamedWriteResolutionWithElementImpl(:var element) => element,
+    _ => null,
+  };
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('PropertyAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitPropertyAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(receiver, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'receiver'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(receiver, oldNode)) {
+      receiver = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('PropertyAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    receiver.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitReceiver,
+  }) {
+    if (visitReceiver != null) {
+      visitReceiver(receiver);
+    } else {
+      receiver.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('PropertyAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
+      return receiver;
+    }
+    return null;
+  }
+}
+
+/// The V1 compatibility projection of a [PropertyAssignmentTarget].
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('target'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('propertyName'),
+  ],
+)
+final class PropertyAssignmentTargetV1Impl
+    extends CommentReferableExpressionImpl
+    implements PropertyAccess {
+  final PropertyAssignmentTargetImpl _origin;
+
+  @DoNotGenerate(reason: 'Caches the projected V1 property name')
+  late final SimpleIdentifierImpl _propertyName =
+      SimpleIdentifierImpl.v1Projection(token: _origin.propertyName);
+
+  PropertyAssignmentTargetV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  bool get isCascaded => false;
+
+  @override
+  bool get isNullAware => false;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get operator => _origin.operator;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 property name')
+  @override
+  SimpleIdentifierImpl get propertyName => _propertyName;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
+  @override
+  ExpressionImpl get realTarget => target!;
+
+  @experimental
+  @override
+  ExpressionImpl get realTarget2 => target!;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
+  @override
+  ExpressionImpl? get target => V1Projection.toV1Expression(_origin.receiver);
+
+  @experimental
+  @override
+  ExpressionImpl? get target2 => target;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('operator', operator)
+    ..addNode('propertyName', propertyName);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('PropertyAccess is not in the V2 AST view.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('PropertyAccess is not in the V2 AST view.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projection children are value expressions')
+  @override
+  bool isInValueExpressionSlot(AstNode child) => true;
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('PropertyAccess is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    target?.accept(visitor);
+    propertyName.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('PropertyAccess is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(target);
+    _becomeParentOf1(propertyName);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (target case var target?) {
+      if (target._containsOffset(rangeOffset, rangeEnd)) {
+        return target;
+      }
+    }
+    if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
+      return propertyName;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('PropertyAccess is not in the V2 AST view.');
+  }
+}
+
 /// A record literal.
 ///
 ///    recordLiteral ::= '(' recordField (',' recordField)* ','? ')'
@@ -42386,17 +42821,18 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SetterInvocationResolution
-    implements ValidNamedWriteResolution {
+    implements NamedWriteResolutionWithElement {
   @override
   SetterElement get element;
 }
 
-final class SetterInvocationResolutionImpl extends ValidNamedWriteResolutionImpl
+final class SetterInvocationResolutionImpl
+    extends NamedWriteResolutionWithElementImpl
     implements SetterInvocationResolution {
   @override
   final InternalSetterElement element;
 
-  const SetterInvocationResolutionImpl({required this.element});
+  SetterInvocationResolutionImpl({required this.element});
 
   @override
   TypeImpl get acceptedType => element.formalParameters.single.type;
@@ -42746,13 +43182,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       if (identical(initialParent.prefix, this)) {
         return true;
       }
-      parent = initialParent.parent2!;
+      parent = (initialParent as AstNodeImpl).parentInPrimaryView!;
       target = initialParent;
     } else if (initialParent is PropertyAccess) {
       if (identical(initialParent.target2, this)) {
         return true;
       }
-      parent = initialParent.parent2!;
+      parent = (initialParent as AstNodeImpl).parentInPrimaryView!;
       target = initialParent;
     }
     // skip label
@@ -42789,13 +43225,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       if (identical(initialParent.prefix, this)) {
         return false;
       }
-      parent = initialParent.parent2!;
+      parent = (initialParent as AstNodeImpl).parentInPrimaryView!;
       target = initialParent;
     } else if (initialParent is PropertyAccess) {
       if (identical(initialParent.target2, this)) {
         return false;
       }
-      parent = initialParent.parent2!;
+      parent = (initialParent as AstNodeImpl).parentInPrimaryView!;
       target = initialParent;
     }
     // analyze usage
@@ -47861,7 +48297,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
       null => null,
       InvalidNamedReadResolutionImpl(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
-      ValidNamedReadResolutionImpl(:var element) => element,
+      NamedReadResolutionWithElementImpl(:var element) => element,
     };
   }
 
@@ -47870,9 +48306,10 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   Element? get _legacyWriteElement {
     return switch (write) {
       null => null,
+      DynamicPropertyWriteResolutionImpl() => null,
       InvalidNamedWriteResolutionImpl(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
-      ValidNamedWriteResolutionImpl(:var element) => element,
+      NamedWriteResolutionWithElementImpl(:var element) => element,
     };
   }
 
@@ -48138,39 +48575,6 @@ enum V1Projection {
     }
     return node;
   }
-}
-
-/// A successful resolution of a read performed on a named assignment target.
-///
-/// Instances are exposed through the read properties of assignment targets
-/// that require the target's current value. Concrete subtypes describe how the
-/// name is read, such as by directly reading a local variable or formal
-/// parameter, or by invoking a getter.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ValidNamedReadResolution implements NamedReadResolution {
-  Element get element;
-}
-
-sealed class ValidNamedReadResolutionImpl extends NamedReadResolutionImpl
-    implements ValidNamedReadResolution {
-  const ValidNamedReadResolutionImpl();
-}
-
-/// A successfully resolved named write.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ValidNamedWriteResolution implements NamedWriteResolution {
-  // TODO(scheglov): When DynamicPropertyWriteResolution is implemented,
-  // decide whether it should be a sibling of ValidNamedWriteResolution,
-  // whether this getter should be nullable, or whether element-backed valid
-  // writes should have a separate interface.
-  Element get element;
-}
-
-sealed class ValidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
-    implements ValidNamedWriteResolution {
-  const ValidNamedWriteResolutionImpl();
 }
 
 /// An identifier that has an initial value associated with it.
@@ -48938,12 +49342,13 @@ sealed class VariablePatternImpl extends DartPatternImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableReadResolution
-    implements ValidNamedReadResolution {
+    implements NamedReadResolutionWithElement {
   @override
   VariableElement get element;
 }
 
-final class VariableReadResolutionImpl extends ValidNamedReadResolutionImpl
+final class VariableReadResolutionImpl
+    extends NamedReadResolutionWithElementImpl
     implements VariableReadResolution {
   @override
   final InternalVariableElement element;
@@ -48951,19 +49356,20 @@ final class VariableReadResolutionImpl extends ValidNamedReadResolutionImpl
   @override
   final TypeImpl type;
 
-  const VariableReadResolutionImpl({required this.element, required this.type});
+  VariableReadResolutionImpl({required this.element, required this.type});
 }
 
 /// A direct write to a variable.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableWriteResolution
-    implements ValidNamedWriteResolution {
+    implements NamedWriteResolutionWithElement {
   @override
   VariableElement get element;
 }
 
-final class VariableWriteResolutionImpl extends ValidNamedWriteResolutionImpl
+final class VariableWriteResolutionImpl
+    extends NamedWriteResolutionWithElementImpl
     implements VariableWriteResolution {
   @override
   final TypeImpl acceptedType;
@@ -48971,7 +49377,7 @@ final class VariableWriteResolutionImpl extends ValidNamedWriteResolutionImpl
   @override
   final InternalVariableElement element;
 
-  const VariableWriteResolutionImpl({
+  VariableWriteResolutionImpl({
     required this.element,
     required this.acceptedType,
   });

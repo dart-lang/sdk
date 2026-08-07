@@ -3669,7 +3669,8 @@ library
           firstFragment: #F8
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @41
+              fieldName(v1): SimpleIdentifier
                 token: x @41
                 element: <testLibrary>::@enum::E::@field::x
                 staticType: null
@@ -3677,6 +3678,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @45
                 staticType: int
+              fieldElement: <testLibrary>::@enum::E::@field::x
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -3827,7 +3829,8 @@ library
               element: dart:core::@class::Deprecated::@constructor::new
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: y @60
+              fieldName(v1): SimpleIdentifier
                 token: y @60
                 element: <testLibrary>::@enum::E::@field::y
                 staticType: null
@@ -3835,6 +3838,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @64
                 staticType: int
+              fieldElement: <testLibrary>::@enum::E::@field::y
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -7354,7 +7358,8 @@ library
           firstFragment: #F9
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: f @70
+              fieldName(v1): SimpleIdentifier
                 token: f @70
                 element: <testLibrary>::@enum::A::@field::f
                 staticType: null
@@ -7362,6 +7367,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @74
                 staticType: int
+              fieldElement: <testLibrary>::@enum::A::@field::f
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -9083,7 +9089,8 @@ library
                 staticType: bool
               rightParenthesis: ) @64
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @67
+              fieldName(v1): SimpleIdentifier
                 token: x @67
                 element: <testLibrary>::@enum::E::@field::x
                 staticType: null
@@ -9091,6 +9098,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @71
                 staticType: int
+              fieldElement: <testLibrary>::@enum::E::@field::x
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -16271,7 +16279,8 @@ library
           firstFragment: #F7
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: foo @28
+              fieldName(v1): SimpleIdentifier
                 token: foo @28
                 element: <testLibrary>::@enum::A::@field::foo
                 staticType: null
@@ -16279,6 +16288,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @34
                 staticType: int
+              fieldElement: <testLibrary>::@enum::A::@field::foo
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v

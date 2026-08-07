@@ -6404,7 +6404,8 @@ library
               type: int
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: it @52
+              fieldName(v1): SimpleIdentifier
                 token: it @52
                 element: <testLibrary>::@extensionType::A::@field::it
                 staticType: null
@@ -6413,6 +6414,7 @@ library
                 token: a @57
                 element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
                 staticType: int
+              fieldElement: <testLibrary>::@extensionType::A::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
           reference: <testLibrary>::@extensionType::A::@getter::it

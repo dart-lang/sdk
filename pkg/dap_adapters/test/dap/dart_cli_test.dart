@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 
 import 'mocks.dart';
 
-main() {
+void main() {
   group('dart cli adapter', () {
     late MockDartCliDebugAdapter adapter;
 

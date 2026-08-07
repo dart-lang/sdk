@@ -134,16 +134,17 @@ bool containsVmFlag(List<String> args, String flagName) {
   return args.contains(flagUnderscores) ||
       args.contains(flagDashes) ||
       args.any(
-        ((arg) =>
+        (arg) =>
             arg.startsWith('$flagUnderscores=') ||
-            arg.startsWith('$flagDashes=')),
+            arg.startsWith('$flagDashes='),
       );
 }
 
 typedef StackFrameLocation = ({Uri uri, int? line, int? column});
 
 extension RpcErrorExtension on vm.RPCError {
-  /// Whether this [vm.RPCError] is some kind of "VM Service connection has gone"
+  /// Whether this [vm.RPCError] is some kind of "VM Service connection has
+  /// gone"
   /// error that may occur if the VM is shut down.
   bool get isServiceDisposedError {
     if (code == RpcErrorCodes.kServiceDisappeared ||
@@ -155,9 +156,9 @@ extension RpcErrorExtension on vm.RPCError {
       // Always ignore "client is closed" and "closed with pending request"
       // errors because these can always occur during shutdown if we were
       // just starting to send (or had just sent) a request.
-      return message.contains("The client is closed") ||
-          message.contains("The client closed with pending request") ||
-          message.contains("Service connection disposed");
+      return message.contains('The client is closed') ||
+          message.contains('The client closed with pending request') ||
+          message.contains('Service connection disposed');
     }
 
     return false;

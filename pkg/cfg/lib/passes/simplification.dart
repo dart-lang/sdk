@@ -228,6 +228,9 @@ final class Simplification extends Pass
   }
 
   @override
+  Instruction visitSubtypeCheck(SubtypeCheck instr) => instr;
+
+  @override
   Instruction visitTypeParameters(TypeParameters instr) => instr;
 
   @override

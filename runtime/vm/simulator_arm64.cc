@@ -3344,6 +3344,9 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
       } else if ((U == 1) && (opcode == 0x3)) {
         // Format(instr, "veor 'vd, 'vn, 'vm");
         res = vn_val ^ vm_val;
+      } else if ((U == 1) && (opcode == 0x11)) {
+        // Format(instr, "vceq'vsz 'vd, 'vn, 'vm");
+        res = (vn_val == vm_val) ? 0xffffffff : 0;
       } else if ((U == 0) && (opcode == 0x10)) {
         // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
         res = vn_val + vm_val;

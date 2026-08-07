@@ -845,11 +845,15 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case InvalidExpressionAssignmentTargetImpl():
         break;
+      case PropertyAssignmentTargetImpl():
+        throw StateError(
+          'Property targets are not produced for compound assignment.',
+        );
       case UnqualifiedNameAssignmentTargetImpl target:
         var read = target.read;
         var write = target.write;
-        if (read is ValidNamedReadResolutionImpl &&
-            write is ValidNamedWriteResolutionImpl) {
+        if (read is NamedReadResolutionWithElementImpl &&
+            write is NamedWriteResolutionWithElementImpl) {
           var readElement = read.element;
           var writeElement = write.element;
           for (var element in {readElement, writeElement}) {
@@ -915,9 +919,12 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    var fieldName = node.fieldName;
-    var element = fieldName.element;
-    recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, fieldName, true);
+    recordRelation(
+      node.fieldElement,
+      IndexRelationKind.IS_WRITTEN_BY,
+      node.fieldName2,
+      true,
+    );
     node.expression2.accept2(this);
   }
 
@@ -977,9 +984,29 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case InvalidExpressionAssignmentTargetImpl():
         break;
+      case PropertyAssignmentTargetImpl target:
+        var write = target.write;
+        if (write case NamedWriteResolutionWithElementImpl(:var element)) {
+          if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+            assembler.addPrefixForElement(element);
+          }
+          recordRelation(
+            element,
+            IndexRelationKind.IS_WRITTEN_BY,
+            target.propertyName,
+            true,
+          );
+        } else {
+          assembler.addNameRelation(
+            target.propertyName.lexeme,
+            IndexRelationKind.IS_WRITTEN_BY,
+            target.propertyName.offset,
+            false,
+          );
+        }
       case UnqualifiedNameAssignmentTargetImpl target:
         var write = target.write;
-        if (write is! ValidNamedWriteResolutionImpl) {
+        if (write is! NamedWriteResolutionWithElementImpl) {
           assembler.addNameRelation(
             target.name.lexeme,
             IndexRelationKind.IS_WRITTEN_BY,
@@ -1143,11 +1170,15 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case InvalidExpressionAssignmentTargetImpl():
         break;
+      case PropertyAssignmentTargetImpl():
+        throw StateError(
+          'Property targets are not produced for if-null assignment.',
+        );
       case UnqualifiedNameAssignmentTargetImpl target:
         var read = target.read;
         var write = target.write;
-        if (read is ValidNamedReadResolutionImpl &&
-            write is ValidNamedWriteResolutionImpl) {
+        if (read is NamedReadResolutionWithElementImpl &&
+            write is NamedWriteResolutionWithElementImpl) {
           var readElement = read.element;
           var writeElement = write.element;
           for (var element in {readElement, writeElement}) {

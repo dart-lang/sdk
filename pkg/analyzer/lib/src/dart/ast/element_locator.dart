@@ -438,6 +438,11 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    return node.fieldElement;
+  }
+
+  @override
   Element? visitConstructorInvocation(ConstructorInvocation node) {
     return node.constructorReference.element;
   }
@@ -707,6 +712,14 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    if (node.write case NamedWriteResolutionWithElement(:var element)) {
+      return element;
+    }
+    return null;
+  }
+
+  @override
   Element? visitStringLiteral(StringLiteral node) {
     var parent = node.parent2;
     if (parent is ExportDirective) {
@@ -733,7 +746,7 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   Element? visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    if (node.write case ValidNamedWriteResolution(:var element)) {
+    if (node.write case NamedWriteResolutionWithElement(:var element)) {
       return element;
     }
     return null;

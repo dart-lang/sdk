@@ -7,9 +7,9 @@ import 'dart:convert';
 import 'package:dap_adapters/dap_adapters.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('DartLaunchRequestArguments', () {
-    test('handles only required arguments', () async {
+    test('handles only required arguments', () {
       final json = '{"program":"a"}';
       final decoded = DartLaunchRequestArguments.fromJson(
         jsonDecode(json) as Map<String, Object?>,
@@ -19,7 +19,7 @@ main() {
       expect(encoded, json);
     });
 
-    test('handles env variables map', () async {
+    test('handles env variables map', () {
       final json = '{"env":{"a":"b"},"program":"a"}';
       final decoded = DartLaunchRequestArguments.fromJson(
         jsonDecode(json) as Map<String, Object?>,
@@ -29,7 +29,7 @@ main() {
       expect(encoded, json);
     });
 
-    test('handles additional project paths list', () async {
+    test('handles additional project paths list', () {
       final json = '{"additionalProjectPaths":["a","b"],"program":"a"}';
       final decoded = DartLaunchRequestArguments.fromJson(
         jsonDecode(json) as Map<String, Object?>,

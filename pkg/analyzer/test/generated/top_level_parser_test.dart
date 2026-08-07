@@ -73,7 +73,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: a
+                fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
                 expression2: MethodInvocation
@@ -124,7 +125,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: a
+                fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
                 expression2: IndexExpression
@@ -173,7 +175,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: a
+                fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
                 expression2: ListLiteral
@@ -221,7 +224,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: a
+                fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
                 expression2: SetOrMapLiteral
@@ -274,7 +278,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: a
+                fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
                 expression2: ParenthesizedExpression
@@ -321,7 +326,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: a
+                fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
                 expression2: StringInterpolation

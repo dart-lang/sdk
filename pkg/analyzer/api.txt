@@ -463,6 +463,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addPrimaryConstructorDeclaration (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addPrimaryConstructorName (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addPropertyAccess (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
+    addPropertyAssignmentTarget (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addRecordLiteral (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addRecordLiteralNamedField (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addRecordPattern (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
@@ -1216,6 +1217,7 @@ package:analyzer/dart/ast/ast.dart:
     visitPrimaryConstructorDeclaration (method: R? Function(PrimaryConstructorDeclaration))
     visitPrimaryConstructorName (method: R? Function(PrimaryConstructorName))
     visitPropertyAccess (method: R? Function(PropertyAccess))
+    visitPropertyAssignmentTarget (method: R? Function(PropertyAssignmentTarget), experimental)
     visitRecordLiteral (method: R? Function(RecordLiteral))
     visitRecordLiteralNamedField (method: R? Function(RecordLiteralNamedField))
     visitRecordPattern (method: R? Function(RecordPattern))
@@ -1471,7 +1473,9 @@ package:analyzer/dart/ast/ast.dart:
     equals (getter: Token)
     expression (getter: Expression)
     expression2 (getter: Expression, experimental)
+    fieldElement (getter: FieldElement?, experimental)
     fieldName (getter: SimpleIdentifier)
+    fieldName2 (getter: Token, experimental)
     period (getter: Token?)
     thisKeyword (getter: Token?)
   ConstructorInitializer (class extends Object implements AstNode, sealed (immediate subtypes: AssertInitializer, ConstructorFieldInitializer, ConstructorInitializerImpl, RedirectingConstructorInvocation, SuperConstructorInvocation))
@@ -1559,6 +1563,7 @@ package:analyzer/dart/ast/ast.dart:
   DoubleLiteral (class extends Object implements Literal, abstract, final):
     literal (getter: Token)
     value (getter: double)
+  DynamicPropertyWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental)
   EmptyClassBody (class extends Object implements ClassBody, sealed (immediate subtypes: EmptyClassBodyImpl)):
     semicolon (getter: Token)
   EmptyEnumBody (class extends Object implements EnumBody, abstract, final):
@@ -1789,7 +1794,7 @@ package:analyzer/dart/ast/ast.dart:
     functionType (getter: GenericFunctionType?)
     type (getter: TypeAnnotation)
     typeParameters (getter: TypeParameterList?)
-  GetterInvocationResolution (class extends Object implements ValidNamedReadResolution, abstract, final, experimental):
+  GetterInvocationResolution (class extends Object implements NamedReadResolutionWithElement, abstract, final, experimental):
     element (getter: GetterElement)
     invokeType (getter: FunctionType)
   GuardedPattern (class extends Object implements AstNode, abstract, final):
@@ -1893,11 +1898,11 @@ package:analyzer/dart/ast/ast.dart:
     expression (getter: Expression)
   InvalidNamedReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
     candidates (getter: List<Element>)
-    recovery (getter: ValidNamedReadResolution?)
+    recovery (getter: NamedReadResolutionWithElement?)
   InvalidNamedWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental):
     acceptedType (getter: DartType)
     candidates (getter: List<Element>)
-    recovery (getter: ValidNamedWriteResolution?)
+    recovery (getter: NamedWriteResolutionWithElement?)
   InvocationExpression (class extends Object implements Expression, abstract, final):
     argumentList (getter: ArgumentList)
     function (getter: Expression)
@@ -2027,6 +2032,8 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: Token)
   NamedReadResolution (class extends Object, abstract, final, experimental):
     type (getter: DartType)
+  NamedReadResolutionWithElement (class extends Object implements NamedReadResolution, abstract, final, experimental):
+    element (getter: Element)
   NamedType (class extends Object implements TypeAnnotation, abstract, final):
     element (getter: Element?)
     importPrefix (getter: ImportPrefixReference?)
@@ -2036,6 +2043,8 @@ package:analyzer/dart/ast/ast.dart:
     typeArguments (getter: TypeArgumentList?)
   NamedWriteResolution (class extends Object, abstract, final, experimental):
     acceptedType (getter: DartType)
+  NamedWriteResolutionWithElement (class extends Object implements NamedWriteResolution, abstract, final, experimental):
+    element (getter: Element)
   NamespaceDirective (class extends Object implements UriBasedDirective, sealed (immediate subtypes: ExportDirective, ImportDirective, NamespaceDirectiveImpl)):
     combinators (getter: NodeList<Combinator>)
     configurations (getter: NodeList<Configuration>)
@@ -2165,6 +2174,12 @@ package:analyzer/dart/ast/ast.dart:
     realTarget2 (getter: Expression, experimental)
     target (getter: Expression?)
     target2 (getter: Expression?, experimental)
+  PropertyAssignmentTarget (class extends Object implements AssignmentTarget, abstract, final, experimental):
+    operator (getter: Token)
+    propertyName (getter: Token)
+    read (getter: NamedReadResolution?)
+    receiver (getter: Expression)
+    write (getter: NamedWriteResolution?)
   RecordLiteral (class extends Object implements Literal, abstract, final):
     constKeyword (getter: Token?)
     fields (getter: NodeList<RecordLiteralField>)
@@ -2231,7 +2246,7 @@ package:analyzer/dart/ast/ast.dart:
     isSet (getter: bool)
     leftBracket (getter: Token)
     rightBracket (getter: Token)
-  SetterInvocationResolution (class extends Object implements ValidNamedWriteResolution, abstract, final, experimental):
+  SetterInvocationResolution (class extends Object implements NamedWriteResolutionWithElement, abstract, final, experimental):
     element (getter: SetterElement)
   ShowCombinator (class extends Object implements Combinator, abstract, final):
     shownNames (getter: NodeList<SimpleIdentifier>)
@@ -2374,10 +2389,6 @@ package:analyzer/dart/ast/ast.dart:
     write (getter: NamedWriteResolution?)
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
-  ValidNamedReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
-    element (getter: Element)
-  ValidNamedWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental):
-    element (getter: Element)
   VariableDeclaration (class extends Object implements Declaration, abstract, final):
     declaredFragment (getter: VariableFragment?)
     equals (getter: Token?)
@@ -2400,9 +2411,9 @@ package:analyzer/dart/ast/ast.dart:
     variables (getter: VariableDeclarationList)
   VariablePattern (class extends Object implements DartPattern, sealed (immediate subtypes: AssignedVariablePattern, DeclaredVariablePattern, VariablePatternImpl)):
     name (getter: Token)
-  VariableReadResolution (class extends Object implements ValidNamedReadResolution, abstract, final, experimental):
+  VariableReadResolution (class extends Object implements NamedReadResolutionWithElement, abstract, final, experimental):
     element (getter: VariableElement)
-  VariableWriteResolution (class extends Object implements ValidNamedWriteResolution, abstract, final, experimental):
+  VariableWriteResolution (class extends Object implements NamedWriteResolutionWithElement, abstract, final, experimental):
     element (getter: VariableElement)
   WhenClause (class extends Object implements AstNode, abstract, final):
     expression (getter: Expression)
@@ -3227,6 +3238,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitPrimaryConstructorDeclaration (method: R? Function(PrimaryConstructorDeclaration))
     visitPrimaryConstructorName (method: R? Function(PrimaryConstructorName))
     visitPropertyAccess (method: R? Function(PropertyAccess))
+    visitPropertyAssignmentTarget (method: R? Function(PropertyAssignmentTarget), experimental)
     visitRecordLiteral (method: R? Function(RecordLiteral))
     visitRecordLiteralNamedField (method: R? Function(RecordLiteralNamedField))
     visitRecordPattern (method: R? Function(RecordPattern))
@@ -3623,6 +3635,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitPrimaryConstructorDeclaration (method: R? Function(PrimaryConstructorDeclaration))
     visitPrimaryConstructorName (method: R? Function(PrimaryConstructorName))
     visitPropertyAccess (method: R? Function(PropertyAccess))
+    visitPropertyAssignmentTarget (method: R? Function(PropertyAssignmentTarget), experimental)
     visitRecordLiteral (method: R? Function(RecordLiteral))
     visitRecordLiteralNamedField (method: R? Function(RecordLiteralNamedField))
     visitRecordPattern (method: R? Function(RecordPattern))
@@ -4009,6 +4022,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitPrimaryConstructorDeclaration (method: R? Function(PrimaryConstructorDeclaration))
     visitPrimaryConstructorName (method: R? Function(PrimaryConstructorName))
     visitPropertyAccess (method: R? Function(PropertyAccess))
+    visitPropertyAssignmentTarget (method: R? Function(PropertyAssignmentTarget), experimental)
     visitRecordLiteral (method: R? Function(RecordLiteral))
     visitRecordLiteralNamedField (method: R? Function(RecordLiteralNamedField))
     visitRecordPattern (method: R? Function(RecordPattern))
@@ -4395,6 +4409,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitPrimaryConstructorDeclaration (method: R? Function(PrimaryConstructorDeclaration))
     visitPrimaryConstructorName (method: R? Function(PrimaryConstructorName))
     visitPropertyAccess (method: R? Function(PropertyAccess))
+    visitPropertyAssignmentTarget (method: R? Function(PropertyAssignmentTarget), experimental)
     visitRecordLiteral (method: R? Function(RecordLiteral))
     visitRecordLiteralNamedField (method: R? Function(RecordLiteralNamedField))
     visitRecordPattern (method: R? Function(RecordPattern))
@@ -4783,6 +4798,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitPrimaryConstructorDeclaration (method: T? Function(PrimaryConstructorDeclaration))
     visitPrimaryConstructorName (method: T? Function(PrimaryConstructorName))
     visitPropertyAccess (method: T? Function(PropertyAccess))
+    visitPropertyAssignmentTarget (method: T? Function(PropertyAssignmentTarget), experimental)
     visitRecordLiteral (method: T? Function(RecordLiteral))
     visitRecordLiteralNamedField (method: T? Function(RecordLiteralNamedField))
     visitRecordPattern (method: T? Function(RecordPattern))
@@ -5171,6 +5187,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitPrimaryConstructorDeclaration (method: R? Function(PrimaryConstructorDeclaration))
     visitPrimaryConstructorName (method: R? Function(PrimaryConstructorName))
     visitPropertyAccess (method: R? Function(PropertyAccess))
+    visitPropertyAssignmentTarget (method: R? Function(PropertyAssignmentTarget), experimental)
     visitRecordLiteral (method: R? Function(RecordLiteral))
     visitRecordLiteralNamedField (method: R? Function(RecordLiteralNamedField))
     visitRecordPattern (method: R? Function(RecordPattern))

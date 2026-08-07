@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         AssignmentTargetImpl,
         IncrementOrDecrementExpressionImpl,
         InvalidExpressionAssignmentTargetImpl,
+        PropertyAssignmentTargetImpl,
         UnqualifiedNameAssignmentTargetImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
@@ -456,6 +457,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     switch (target) {
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
+      case PropertyAssignmentTargetImpl():
+        throw StateError(
+          'Property targets are not produced for compound assignment.',
+        );
       case UnqualifiedNameAssignmentTargetImpl():
         lValueTemplates = _unqualifiedNameAssignmentTarget(target);
     }
@@ -518,6 +523,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     switch (target) {
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
+      case PropertyAssignmentTargetImpl():
+        lValueTemplates = _propertyAssignmentTarget(target);
       case UnqualifiedNameAssignmentTargetImpl():
         lValueTemplates = _unqualifiedNameAssignmentTarget(target);
     }
@@ -699,6 +706,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     switch (target) {
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
+      case PropertyAssignmentTargetImpl():
+        throw StateError(
+          'Property targets are not produced for if-null assignment.',
+        );
       case UnqualifiedNameAssignmentTargetImpl():
         lValueTemplates = _unqualifiedNameAssignmentTarget(target);
     }
@@ -1130,11 +1141,28 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
   }
 
+  _LValueTemplates _propertyAssignmentTarget(PropertyAssignmentTarget node) {
+    dispatchNode(node.receiver);
+    var writeElement = switch (node.write) {
+      SetterInvocationResolution(:var element) => element,
+      DynamicPropertyWriteResolution() => null,
+      InvalidNamedWriteResolution() => throw UnimplementedError(
+        'Invalid property assignment target',
+      ),
+      null => null,
+      _ => throw StateError('Unexpected property write resolution'),
+    };
+    return _PropertyAccessTemplates.direct(
+      name: node.propertyName.lexeme,
+      writeElement: writeElement,
+    );
+  }
+
   _LValueTemplates _unqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
     var write = node.write;
-    if (write is! ValidNamedWriteResolution) {
+    if (write is! NamedWriteResolutionWithElement) {
       throw UnimplementedError('TODO(paulberry): ${write.runtimeType}');
     }
     var element = write.element;

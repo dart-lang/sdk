@@ -214,19 +214,45 @@ class AssignmentExpressionResolver {
       _resolveInvalidDirect(node, target);
       return;
     }
-    target as UnqualifiedNameAssignmentTargetImpl;
-    var writeResolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
-      target,
-    );
-    if (writeResolution == null) {
-      var invalidTarget = _invalidTargetForExecutable(target);
-      node.target = invalidTarget;
-      _resolveInvalidDirect(node, invalidTarget);
-      return;
+    late NamedWriteResolutionImpl writeResolution;
+    switch (target) {
+      case PropertyAssignmentTargetImpl():
+        _resolver.analyzeExpression(
+          target.receiver,
+          SharedTypeSchemaView(UnknownInferredType.instance),
+          continueNullShorting: true,
+        );
+        target.receiver = _resolver.popRewrite()!;
+        var resolution = _resolver.resolvePropertyDirectAssignmentTarget(
+          target,
+        );
+        target.write = resolution;
+        if (resolution == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        writeResolution = resolution;
+      case UnqualifiedNameAssignmentTargetImpl():
+        var resolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
+          target,
+        );
+        if (resolution == null) {
+          var invalidTarget = _invalidTargetForExecutable(target);
+          node.target = invalidTarget;
+          _resolveInvalidDirect(node, invalidTarget);
+          return;
+        }
+        target.write = resolution;
+        writeResolution = resolution;
+        _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        throw StateError('Handled above');
     }
-    target.write = writeResolution;
-
-    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
     var rhsContext = writeResolution.acceptedType;
     if (writeResolution case VariableWriteResolutionImpl(:var element)) {
       rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);

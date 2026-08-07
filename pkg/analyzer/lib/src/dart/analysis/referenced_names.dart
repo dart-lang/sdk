@@ -376,6 +376,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    names.add(node.propertyName.lexeme);
+    super.visitPropertyAssignmentTarget(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore all declarations.
     if (node.inDeclarationContext()) {

@@ -1512,7 +1512,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: a
+                fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
                 expression2: RecordLiteral

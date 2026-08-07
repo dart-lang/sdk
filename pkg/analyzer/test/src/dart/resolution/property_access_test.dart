@@ -1304,10 +1304,10 @@ void f(E e) {
     var node = result.findNode.assignment('foo = 1');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ParenthesizedExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression: SimpleIdentifier
         token: e
         element: <testLibrary>::@function::f::@formalParameter::e
         staticType: E
@@ -1320,7 +1320,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
     staticType: int
@@ -1386,10 +1386,10 @@ augment extension E {
     var node = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ParenthesizedExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
@@ -1402,7 +1402,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
@@ -1808,10 +1808,10 @@ void f(A a) {
     var node = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ParenthesizedExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
@@ -1824,7 +1824,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
     staticType: int

@@ -476,6 +476,28 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [SubtypeCheck] to the graph.
+  SubtypeCheck addSubtypeCheck(
+    CType type,
+    CType bound,
+    String name,
+    List<Definition> typeParameters,
+  ) {
+    final instr = SubtypeCheck(
+      graph,
+      currentSourcePosition,
+      type,
+      bound,
+      name,
+      inputCount: typeParameters.length,
+    );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(i, typeParameters[i]);
+    }
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [TypeParameters] to the graph.
   TypeParameters addTypeParameters(TypeParametersKind kind, int inputCount) {
     final instr = TypeParameters(

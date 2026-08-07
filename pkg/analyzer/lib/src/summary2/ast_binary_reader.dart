@@ -215,16 +215,17 @@ class AstBinaryReader {
 
   ConstructorFieldInitializer _readConstructorFieldInitializer() {
     var flags = _readByte();
-    var fieldName = _readNode() as SimpleIdentifierImpl;
+    var fieldName = _readStringReference();
+    var fieldElement = _reader.readElement() as InternalFieldElement?;
     var expression = _readNode() as ExpressionImpl;
     var hasThis = AstBinaryFlags.hasThis(flags);
     return ConstructorFieldInitializerImpl(
       thisKeyword: hasThis ? Tokens.this_() : null,
       period: hasThis ? Tokens.period() : null,
-      fieldName: fieldName,
+      fieldName2: StringToken(TokenType.STRING, fieldName, -1),
       equals: Tokens.eq(),
       expression2: expression,
-    );
+    )..fieldElement = fieldElement;
   }
 
   ConstructorInvocation _readConstructorInvocation() {
@@ -951,7 +952,8 @@ class AstBinaryReader {
         var type = _reader.readRequiredType();
         var candidates = _reader.readElementList<Element>();
         var recovery = _reader.readOptionalObject(() {
-          return _readNamedReadResolution() as ValidNamedReadResolutionImpl;
+          return _readNamedReadResolution()
+              as NamedReadResolutionWithElementImpl;
         });
         return InvalidNamedReadResolutionImpl(
           candidates: candidates,
@@ -989,7 +991,8 @@ class AstBinaryReader {
         var acceptedType = _reader.readType()!;
         var candidates = _reader.readElementList<Element>();
         var recovery = _reader.readOptionalObject(() {
-          return _readNamedWriteResolution() as ValidNamedWriteResolutionImpl;
+          return _readNamedWriteResolution()
+              as NamedWriteResolutionWithElementImpl;
         });
         return InvalidNamedWriteResolutionImpl(
           acceptedType: acceptedType,
@@ -1005,6 +1008,8 @@ class AstBinaryReader {
           element: _reader.readElement() as InternalVariableElement,
           acceptedType: _reader.readType()!,
         );
+      case NamedWriteResolutionTag.dynamicPropertyWrite:
+        return const DynamicPropertyWriteResolutionImpl();
     }
   }
 
@@ -1149,6 +1154,8 @@ class AstBinaryReader {
         return _readPrefixedIdentifier();
       case Tag.PropertyAccess:
         return _readPropertyAccess();
+      case Tag.PropertyAssignmentTarget:
+        return _readPropertyAssignmentTarget();
       case Tag.RecordLiteral:
         return _readRecordLiteral();
       case Tag.RecordLiteralNamedField:
@@ -1342,6 +1349,20 @@ class AstBinaryReader {
       propertyName: propertyName,
     );
     _readExpressionResolution(node);
+    return node;
+  }
+
+  PropertyAssignmentTarget _readPropertyAssignmentTarget() {
+    var receiver = _readNode() as ExpressionImpl;
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var propertyName = _readStringReference();
+    var node = PropertyAssignmentTargetImpl(
+      receiver: receiver,
+      operator: Tokens.fromType(operatorType),
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
     return node;
   }
 

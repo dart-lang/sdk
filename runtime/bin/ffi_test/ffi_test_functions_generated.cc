@@ -61,6 +61,17 @@ struct Struct4BytesHomogeneousInt16 {
   int16_t a1;
 };
 
+struct Struct4BytesInt1Field {
+  int32_t a0;
+};
+
+struct Struct4BytesHomogeneousUint84Bytes {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+  uint8_t a3;
+};
+
 struct Struct4BytesFloat {
   float a0;
 };
@@ -87,6 +98,11 @@ struct Struct8BytesInt {
   int32_t a2;
 };
 
+struct Struct8BytesHomogeneousInt322Fields {
+  int32_t a0;
+  int32_t a1;
+};
+
 struct Struct8BytesHomogeneousFloat {
   float a0;
   float a1;
@@ -100,6 +116,11 @@ struct Struct8BytesMixed {
   float a0;
   int16_t a1;
   int16_t a2;
+};
+
+struct Struct8BytesMixedInt32Float {
+  int32_t a0;
+  float a1;
 };
 
 struct Struct9BytesHomogeneousUint8 {
@@ -149,6 +170,13 @@ struct Struct16BytesHomogeneousFloat {
   float a1;
   float a2;
   float a3;
+};
+
+struct Struct16BytesHomogeneousInt324Fields {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
 };
 
 struct Struct16BytesMixed {
@@ -615,9 +643,7 @@ struct StructInlineArrayVariableNestedDeep2 {
 
 // Used for testing the size of Struct1ByteBool.
 DART_EXPORT uint64_t SizeOfStruct1ByteBool() {
-  std::cout << "SizeOfStruct1ByteBool"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct1ByteBool" << "()" << "\n";
 
   uint64_t result = sizeof(Struct1ByteBool);
 
@@ -628,9 +654,7 @@ DART_EXPORT uint64_t SizeOfStruct1ByteBool() {
 
 // Used for testing the size of Struct1ByteInt.
 DART_EXPORT uint64_t SizeOfStruct1ByteInt() {
-  std::cout << "SizeOfStruct1ByteInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct1ByteInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct1ByteInt);
 
@@ -641,9 +665,7 @@ DART_EXPORT uint64_t SizeOfStruct1ByteInt() {
 
 // Used for testing the size of Struct3BytesHomogeneousUint8.
 DART_EXPORT uint64_t SizeOfStruct3BytesHomogeneousUint8() {
-  std::cout << "SizeOfStruct3BytesHomogeneousUint8"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct3BytesHomogeneousUint8" << "()" << "\n";
 
   uint64_t result = sizeof(Struct3BytesHomogeneousUint8);
 
@@ -654,9 +676,7 @@ DART_EXPORT uint64_t SizeOfStruct3BytesHomogeneousUint8() {
 
 // Used for testing the size of Struct3BytesInt2ByteAligned.
 DART_EXPORT uint64_t SizeOfStruct3BytesInt2ByteAligned() {
-  std::cout << "SizeOfStruct3BytesInt2ByteAligned"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct3BytesInt2ByteAligned" << "()" << "\n";
 
   uint64_t result = sizeof(Struct3BytesInt2ByteAligned);
 
@@ -667,9 +687,7 @@ DART_EXPORT uint64_t SizeOfStruct3BytesInt2ByteAligned() {
 
 // Used for testing the size of Struct4BytesHomogeneousInt16.
 DART_EXPORT uint64_t SizeOfStruct4BytesHomogeneousInt16() {
-  std::cout << "SizeOfStruct4BytesHomogeneousInt16"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct4BytesHomogeneousInt16" << "()" << "\n";
 
   uint64_t result = sizeof(Struct4BytesHomogeneousInt16);
 
@@ -678,11 +696,31 @@ DART_EXPORT uint64_t SizeOfStruct4BytesHomogeneousInt16() {
   return result;
 }
 
+// Used for testing the size of Struct4BytesInt1Field.
+DART_EXPORT uint64_t SizeOfStruct4BytesInt1Field() {
+  std::cout << "SizeOfStruct4BytesInt1Field" << "()" << "\n";
+
+  uint64_t result = sizeof(Struct4BytesInt1Field);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing the size of Struct4BytesHomogeneousUint84Bytes.
+DART_EXPORT uint64_t SizeOfStruct4BytesHomogeneousUint84Bytes() {
+  std::cout << "SizeOfStruct4BytesHomogeneousUint84Bytes" << "()" << "\n";
+
+  uint64_t result = sizeof(Struct4BytesHomogeneousUint84Bytes);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
 // Used for testing the size of Struct4BytesFloat.
 DART_EXPORT uint64_t SizeOfStruct4BytesFloat() {
-  std::cout << "SizeOfStruct4BytesFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct4BytesFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Struct4BytesFloat);
 
@@ -693,9 +731,7 @@ DART_EXPORT uint64_t SizeOfStruct4BytesFloat() {
 
 // Used for testing the size of Struct7BytesHomogeneousUint8.
 DART_EXPORT uint64_t SizeOfStruct7BytesHomogeneousUint8() {
-  std::cout << "SizeOfStruct7BytesHomogeneousUint8"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct7BytesHomogeneousUint8" << "()" << "\n";
 
   uint64_t result = sizeof(Struct7BytesHomogeneousUint8);
 
@@ -706,9 +742,7 @@ DART_EXPORT uint64_t SizeOfStruct7BytesHomogeneousUint8() {
 
 // Used for testing the size of Struct7BytesInt4ByteAligned.
 DART_EXPORT uint64_t SizeOfStruct7BytesInt4ByteAligned() {
-  std::cout << "SizeOfStruct7BytesInt4ByteAligned"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct7BytesInt4ByteAligned" << "()" << "\n";
 
   uint64_t result = sizeof(Struct7BytesInt4ByteAligned);
 
@@ -719,9 +753,7 @@ DART_EXPORT uint64_t SizeOfStruct7BytesInt4ByteAligned() {
 
 // Used for testing the size of Struct8BytesInt.
 DART_EXPORT uint64_t SizeOfStruct8BytesInt() {
-  std::cout << "SizeOfStruct8BytesInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesInt);
 
@@ -730,11 +762,20 @@ DART_EXPORT uint64_t SizeOfStruct8BytesInt() {
   return result;
 }
 
+// Used for testing the size of Struct8BytesHomogeneousInt322Fields.
+DART_EXPORT uint64_t SizeOfStruct8BytesHomogeneousInt322Fields() {
+  std::cout << "SizeOfStruct8BytesHomogeneousInt322Fields" << "()" << "\n";
+
+  uint64_t result = sizeof(Struct8BytesHomogeneousInt322Fields);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
 // Used for testing the size of Struct8BytesHomogeneousFloat.
 DART_EXPORT uint64_t SizeOfStruct8BytesHomogeneousFloat() {
-  std::cout << "SizeOfStruct8BytesHomogeneousFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesHomogeneousFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesHomogeneousFloat);
 
@@ -745,9 +786,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesHomogeneousFloat() {
 
 // Used for testing the size of Struct8BytesFloat.
 DART_EXPORT uint64_t SizeOfStruct8BytesFloat() {
-  std::cout << "SizeOfStruct8BytesFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesFloat);
 
@@ -758,9 +797,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesFloat() {
 
 // Used for testing the size of Struct8BytesMixed.
 DART_EXPORT uint64_t SizeOfStruct8BytesMixed() {
-  std::cout << "SizeOfStruct8BytesMixed"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesMixed" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesMixed);
 
@@ -769,11 +806,20 @@ DART_EXPORT uint64_t SizeOfStruct8BytesMixed() {
   return result;
 }
 
+// Used for testing the size of Struct8BytesMixedInt32Float.
+DART_EXPORT uint64_t SizeOfStruct8BytesMixedInt32Float() {
+  std::cout << "SizeOfStruct8BytesMixedInt32Float" << "()" << "\n";
+
+  uint64_t result = sizeof(Struct8BytesMixedInt32Float);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
 // Used for testing the size of Struct9BytesHomogeneousUint8.
 DART_EXPORT uint64_t SizeOfStruct9BytesHomogeneousUint8() {
-  std::cout << "SizeOfStruct9BytesHomogeneousUint8"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct9BytesHomogeneousUint8" << "()" << "\n";
 
   uint64_t result = sizeof(Struct9BytesHomogeneousUint8);
 
@@ -784,9 +830,7 @@ DART_EXPORT uint64_t SizeOfStruct9BytesHomogeneousUint8() {
 
 // Used for testing the size of Struct9BytesInt4Or8ByteAligned.
 DART_EXPORT uint64_t SizeOfStruct9BytesInt4Or8ByteAligned() {
-  std::cout << "SizeOfStruct9BytesInt4Or8ByteAligned"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct9BytesInt4Or8ByteAligned" << "()" << "\n";
 
   uint64_t result = sizeof(Struct9BytesInt4Or8ByteAligned);
 
@@ -797,9 +841,7 @@ DART_EXPORT uint64_t SizeOfStruct9BytesInt4Or8ByteAligned() {
 
 // Used for testing the size of Struct10BytesHomogeneousBool.
 DART_EXPORT uint64_t SizeOfStruct10BytesHomogeneousBool() {
-  std::cout << "SizeOfStruct10BytesHomogeneousBool"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct10BytesHomogeneousBool" << "()" << "\n";
 
   uint64_t result = sizeof(Struct10BytesHomogeneousBool);
 
@@ -810,9 +852,7 @@ DART_EXPORT uint64_t SizeOfStruct10BytesHomogeneousBool() {
 
 // Used for testing the size of Struct12BytesHomogeneousFloat.
 DART_EXPORT uint64_t SizeOfStruct12BytesHomogeneousFloat() {
-  std::cout << "SizeOfStruct12BytesHomogeneousFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct12BytesHomogeneousFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Struct12BytesHomogeneousFloat);
 
@@ -823,9 +863,7 @@ DART_EXPORT uint64_t SizeOfStruct12BytesHomogeneousFloat() {
 
 // Used for testing the size of Struct12BytesHomogeneousInt32.
 DART_EXPORT uint64_t SizeOfStruct12BytesHomogeneousInt32() {
-  std::cout << "SizeOfStruct12BytesHomogeneousInt32"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct12BytesHomogeneousInt32" << "()" << "\n";
 
   uint64_t result = sizeof(Struct12BytesHomogeneousInt32);
 
@@ -836,9 +874,7 @@ DART_EXPORT uint64_t SizeOfStruct12BytesHomogeneousInt32() {
 
 // Used for testing the size of Struct16BytesHomogeneousFloat.
 DART_EXPORT uint64_t SizeOfStruct16BytesHomogeneousFloat() {
-  std::cout << "SizeOfStruct16BytesHomogeneousFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct16BytesHomogeneousFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Struct16BytesHomogeneousFloat);
 
@@ -847,11 +883,20 @@ DART_EXPORT uint64_t SizeOfStruct16BytesHomogeneousFloat() {
   return result;
 }
 
+// Used for testing the size of Struct16BytesHomogeneousInt324Fields.
+DART_EXPORT uint64_t SizeOfStruct16BytesHomogeneousInt324Fields() {
+  std::cout << "SizeOfStruct16BytesHomogeneousInt324Fields" << "()" << "\n";
+
+  uint64_t result = sizeof(Struct16BytesHomogeneousInt324Fields);
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
 // Used for testing the size of Struct16BytesMixed.
 DART_EXPORT uint64_t SizeOfStruct16BytesMixed() {
-  std::cout << "SizeOfStruct16BytesMixed"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct16BytesMixed" << "()" << "\n";
 
   uint64_t result = sizeof(Struct16BytesMixed);
 
@@ -862,9 +907,7 @@ DART_EXPORT uint64_t SizeOfStruct16BytesMixed() {
 
 // Used for testing the size of Struct16BytesMixed2.
 DART_EXPORT uint64_t SizeOfStruct16BytesMixed2() {
-  std::cout << "SizeOfStruct16BytesMixed2"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct16BytesMixed2" << "()" << "\n";
 
   uint64_t result = sizeof(Struct16BytesMixed2);
 
@@ -875,9 +918,7 @@ DART_EXPORT uint64_t SizeOfStruct16BytesMixed2() {
 
 // Used for testing the size of Struct17BytesInt.
 DART_EXPORT uint64_t SizeOfStruct17BytesInt() {
-  std::cout << "SizeOfStruct17BytesInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct17BytesInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct17BytesInt);
 
@@ -888,9 +929,7 @@ DART_EXPORT uint64_t SizeOfStruct17BytesInt() {
 
 // Used for testing the size of Struct19BytesHomogeneousUint8.
 DART_EXPORT uint64_t SizeOfStruct19BytesHomogeneousUint8() {
-  std::cout << "SizeOfStruct19BytesHomogeneousUint8"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct19BytesHomogeneousUint8" << "()" << "\n";
 
   uint64_t result = sizeof(Struct19BytesHomogeneousUint8);
 
@@ -901,9 +940,7 @@ DART_EXPORT uint64_t SizeOfStruct19BytesHomogeneousUint8() {
 
 // Used for testing the size of Struct20BytesHomogeneousInt32.
 DART_EXPORT uint64_t SizeOfStruct20BytesHomogeneousInt32() {
-  std::cout << "SizeOfStruct20BytesHomogeneousInt32"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct20BytesHomogeneousInt32" << "()" << "\n";
 
   uint64_t result = sizeof(Struct20BytesHomogeneousInt32);
 
@@ -914,9 +951,7 @@ DART_EXPORT uint64_t SizeOfStruct20BytesHomogeneousInt32() {
 
 // Used for testing the size of Struct20BytesHomogeneousFloat.
 DART_EXPORT uint64_t SizeOfStruct20BytesHomogeneousFloat() {
-  std::cout << "SizeOfStruct20BytesHomogeneousFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct20BytesHomogeneousFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Struct20BytesHomogeneousFloat);
 
@@ -927,9 +962,7 @@ DART_EXPORT uint64_t SizeOfStruct20BytesHomogeneousFloat() {
 
 // Used for testing the size of Struct32BytesHomogeneousDouble.
 DART_EXPORT uint64_t SizeOfStruct32BytesHomogeneousDouble() {
-  std::cout << "SizeOfStruct32BytesHomogeneousDouble"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct32BytesHomogeneousDouble" << "()" << "\n";
 
   uint64_t result = sizeof(Struct32BytesHomogeneousDouble);
 
@@ -940,9 +973,7 @@ DART_EXPORT uint64_t SizeOfStruct32BytesHomogeneousDouble() {
 
 // Used for testing the size of Struct40BytesHomogeneousDouble.
 DART_EXPORT uint64_t SizeOfStruct40BytesHomogeneousDouble() {
-  std::cout << "SizeOfStruct40BytesHomogeneousDouble"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct40BytesHomogeneousDouble" << "()" << "\n";
 
   uint64_t result = sizeof(Struct40BytesHomogeneousDouble);
 
@@ -953,9 +984,7 @@ DART_EXPORT uint64_t SizeOfStruct40BytesHomogeneousDouble() {
 
 // Used for testing the size of Struct1024BytesHomogeneousUint64.
 DART_EXPORT uint64_t SizeOfStruct1024BytesHomogeneousUint64() {
-  std::cout << "SizeOfStruct1024BytesHomogeneousUint64"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct1024BytesHomogeneousUint64" << "()" << "\n";
 
   uint64_t result = sizeof(Struct1024BytesHomogeneousUint64);
 
@@ -966,9 +995,7 @@ DART_EXPORT uint64_t SizeOfStruct1024BytesHomogeneousUint64() {
 
 // Used for testing the size of StructAlignmentInt16.
 DART_EXPORT uint64_t SizeOfStructAlignmentInt16() {
-  std::cout << "SizeOfStructAlignmentInt16"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructAlignmentInt16" << "()" << "\n";
 
   uint64_t result = sizeof(StructAlignmentInt16);
 
@@ -979,9 +1006,7 @@ DART_EXPORT uint64_t SizeOfStructAlignmentInt16() {
 
 // Used for testing the size of StructAlignmentInt32.
 DART_EXPORT uint64_t SizeOfStructAlignmentInt32() {
-  std::cout << "SizeOfStructAlignmentInt32"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructAlignmentInt32" << "()" << "\n";
 
   uint64_t result = sizeof(StructAlignmentInt32);
 
@@ -992,9 +1017,7 @@ DART_EXPORT uint64_t SizeOfStructAlignmentInt32() {
 
 // Used for testing the size of StructAlignmentInt64.
 DART_EXPORT uint64_t SizeOfStructAlignmentInt64() {
-  std::cout << "SizeOfStructAlignmentInt64"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructAlignmentInt64" << "()" << "\n";
 
   uint64_t result = sizeof(StructAlignmentInt64);
 
@@ -1005,9 +1028,7 @@ DART_EXPORT uint64_t SizeOfStructAlignmentInt64() {
 
 // Used for testing the size of Struct8BytesNestedInt.
 DART_EXPORT uint64_t SizeOfStruct8BytesNestedInt() {
-  std::cout << "SizeOfStruct8BytesNestedInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesNestedInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesNestedInt);
 
@@ -1018,9 +1039,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesNestedInt() {
 
 // Used for testing the size of Struct8BytesNestedFloat.
 DART_EXPORT uint64_t SizeOfStruct8BytesNestedFloat() {
-  std::cout << "SizeOfStruct8BytesNestedFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesNestedFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesNestedFloat);
 
@@ -1031,9 +1050,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesNestedFloat() {
 
 // Used for testing the size of Struct8BytesNestedFloat2.
 DART_EXPORT uint64_t SizeOfStruct8BytesNestedFloat2() {
-  std::cout << "SizeOfStruct8BytesNestedFloat2"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesNestedFloat2" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesNestedFloat2);
 
@@ -1044,9 +1061,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesNestedFloat2() {
 
 // Used for testing the size of Struct8BytesNestedMixed.
 DART_EXPORT uint64_t SizeOfStruct8BytesNestedMixed() {
-  std::cout << "SizeOfStruct8BytesNestedMixed"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesNestedMixed" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesNestedMixed);
 
@@ -1057,9 +1072,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesNestedMixed() {
 
 // Used for testing the size of Struct16BytesNestedInt.
 DART_EXPORT uint64_t SizeOfStruct16BytesNestedInt() {
-  std::cout << "SizeOfStruct16BytesNestedInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct16BytesNestedInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct16BytesNestedInt);
 
@@ -1070,9 +1083,7 @@ DART_EXPORT uint64_t SizeOfStruct16BytesNestedInt() {
 
 // Used for testing the size of Struct32BytesNestedInt.
 DART_EXPORT uint64_t SizeOfStruct32BytesNestedInt() {
-  std::cout << "SizeOfStruct32BytesNestedInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct32BytesNestedInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct32BytesNestedInt);
 
@@ -1083,9 +1094,7 @@ DART_EXPORT uint64_t SizeOfStruct32BytesNestedInt() {
 
 // Used for testing the size of StructNestedIntStructAlignmentInt16.
 DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt16() {
-  std::cout << "SizeOfStructNestedIntStructAlignmentInt16"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructNestedIntStructAlignmentInt16" << "()" << "\n";
 
   uint64_t result = sizeof(StructNestedIntStructAlignmentInt16);
 
@@ -1096,9 +1105,7 @@ DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt16() {
 
 // Used for testing the size of StructNestedIntStructAlignmentInt32.
 DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt32() {
-  std::cout << "SizeOfStructNestedIntStructAlignmentInt32"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructNestedIntStructAlignmentInt32" << "()" << "\n";
 
   uint64_t result = sizeof(StructNestedIntStructAlignmentInt32);
 
@@ -1109,9 +1116,7 @@ DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt32() {
 
 // Used for testing the size of StructNestedIntStructAlignmentInt64.
 DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt64() {
-  std::cout << "SizeOfStructNestedIntStructAlignmentInt64"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructNestedIntStructAlignmentInt64" << "()" << "\n";
 
   uint64_t result = sizeof(StructNestedIntStructAlignmentInt64);
 
@@ -1122,9 +1127,7 @@ DART_EXPORT uint64_t SizeOfStructNestedIntStructAlignmentInt64() {
 
 // Used for testing the size of StructNestedIrregularBig.
 DART_EXPORT uint64_t SizeOfStructNestedIrregularBig() {
-  std::cout << "SizeOfStructNestedIrregularBig"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructNestedIrregularBig" << "()" << "\n";
 
   uint64_t result = sizeof(StructNestedIrregularBig);
 
@@ -1135,9 +1138,7 @@ DART_EXPORT uint64_t SizeOfStructNestedIrregularBig() {
 
 // Used for testing the size of StructNestedIrregularBigger.
 DART_EXPORT uint64_t SizeOfStructNestedIrregularBigger() {
-  std::cout << "SizeOfStructNestedIrregularBigger"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructNestedIrregularBigger" << "()" << "\n";
 
   uint64_t result = sizeof(StructNestedIrregularBigger);
 
@@ -1148,9 +1149,7 @@ DART_EXPORT uint64_t SizeOfStructNestedIrregularBigger() {
 
 // Used for testing the size of StructNestedIrregularEvenBigger.
 DART_EXPORT uint64_t SizeOfStructNestedIrregularEvenBigger() {
-  std::cout << "SizeOfStructNestedIrregularEvenBigger"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructNestedIrregularEvenBigger" << "()" << "\n";
 
   uint64_t result = sizeof(StructNestedIrregularEvenBigger);
 
@@ -1161,9 +1160,7 @@ DART_EXPORT uint64_t SizeOfStructNestedIrregularEvenBigger() {
 
 // Used for testing the size of Struct8BytesInlineArrayInt.
 DART_EXPORT uint64_t SizeOfStruct8BytesInlineArrayInt() {
-  std::cout << "SizeOfStruct8BytesInlineArrayInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesInlineArrayInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesInlineArrayInt);
 
@@ -1174,9 +1171,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesInlineArrayInt() {
 
 // Used for testing the size of Struct10BytesInlineArrayBool.
 DART_EXPORT uint64_t SizeOfStruct10BytesInlineArrayBool() {
-  std::cout << "SizeOfStruct10BytesInlineArrayBool"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct10BytesInlineArrayBool" << "()" << "\n";
 
   uint64_t result = sizeof(Struct10BytesInlineArrayBool);
 
@@ -1187,9 +1182,7 @@ DART_EXPORT uint64_t SizeOfStruct10BytesInlineArrayBool() {
 
 // Used for testing the size of StructInlineArrayIrregular.
 DART_EXPORT uint64_t SizeOfStructInlineArrayIrregular() {
-  std::cout << "SizeOfStructInlineArrayIrregular"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayIrregular" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayIrregular);
 
@@ -1200,9 +1193,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayIrregular() {
 
 // Used for testing the size of StructInlineArray100Bytes.
 DART_EXPORT uint64_t SizeOfStructInlineArray100Bytes() {
-  std::cout << "SizeOfStructInlineArray100Bytes"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArray100Bytes" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArray100Bytes);
 
@@ -1213,9 +1204,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArray100Bytes() {
 
 // Used for testing the size of StructInlineArrayBig.
 DART_EXPORT uint64_t SizeOfStructInlineArrayBig() {
-  std::cout << "SizeOfStructInlineArrayBig"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayBig" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayBig);
 
@@ -1226,9 +1215,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayBig() {
 
 // Used for testing the size of StructStruct16BytesHomogeneousFloat2.
 DART_EXPORT uint64_t SizeOfStructStruct16BytesHomogeneousFloat2() {
-  std::cout << "SizeOfStructStruct16BytesHomogeneousFloat2"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructStruct16BytesHomogeneousFloat2" << "()" << "\n";
 
   uint64_t result = sizeof(StructStruct16BytesHomogeneousFloat2);
 
@@ -1239,9 +1226,7 @@ DART_EXPORT uint64_t SizeOfStructStruct16BytesHomogeneousFloat2() {
 
 // Used for testing the size of StructStruct32BytesHomogeneousDouble2.
 DART_EXPORT uint64_t SizeOfStructStruct32BytesHomogeneousDouble2() {
-  std::cout << "SizeOfStructStruct32BytesHomogeneousDouble2"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructStruct32BytesHomogeneousDouble2" << "()" << "\n";
 
   uint64_t result = sizeof(StructStruct32BytesHomogeneousDouble2);
 
@@ -1252,9 +1237,7 @@ DART_EXPORT uint64_t SizeOfStructStruct32BytesHomogeneousDouble2() {
 
 // Used for testing the size of StructStruct16BytesMixed3.
 DART_EXPORT uint64_t SizeOfStructStruct16BytesMixed3() {
-  std::cout << "SizeOfStructStruct16BytesMixed3"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructStruct16BytesMixed3" << "()" << "\n";
 
   uint64_t result = sizeof(StructStruct16BytesMixed3);
 
@@ -1265,8 +1248,7 @@ DART_EXPORT uint64_t SizeOfStructStruct16BytesMixed3() {
 
 // Used for testing the size of Struct8BytesInlineArrayMultiDimensionalInt.
 DART_EXPORT uint64_t SizeOfStruct8BytesInlineArrayMultiDimensionalInt() {
-  std::cout << "SizeOfStruct8BytesInlineArrayMultiDimensionalInt"
-            << "()"
+  std::cout << "SizeOfStruct8BytesInlineArrayMultiDimensionalInt" << "()"
             << "\n";
 
   uint64_t result = sizeof(Struct8BytesInlineArrayMultiDimensionalInt);
@@ -1278,8 +1260,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesInlineArrayMultiDimensionalInt() {
 
 // Used for testing the size of Struct32BytesInlineArrayMultiDimensionalInt.
 DART_EXPORT uint64_t SizeOfStruct32BytesInlineArrayMultiDimensionalInt() {
-  std::cout << "SizeOfStruct32BytesInlineArrayMultiDimensionalInt"
-            << "()"
+  std::cout << "SizeOfStruct32BytesInlineArrayMultiDimensionalInt" << "()"
             << "\n";
 
   uint64_t result = sizeof(Struct32BytesInlineArrayMultiDimensionalInt);
@@ -1291,8 +1272,7 @@ DART_EXPORT uint64_t SizeOfStruct32BytesInlineArrayMultiDimensionalInt() {
 
 // Used for testing the size of Struct64BytesInlineArrayMultiDimensionalInt.
 DART_EXPORT uint64_t SizeOfStruct64BytesInlineArrayMultiDimensionalInt() {
-  std::cout << "SizeOfStruct64BytesInlineArrayMultiDimensionalInt"
-            << "()"
+  std::cout << "SizeOfStruct64BytesInlineArrayMultiDimensionalInt" << "()"
             << "\n";
 
   uint64_t result = sizeof(Struct64BytesInlineArrayMultiDimensionalInt);
@@ -1304,8 +1284,7 @@ DART_EXPORT uint64_t SizeOfStruct64BytesInlineArrayMultiDimensionalInt() {
 
 // Used for testing the size of Struct4BytesInlineArrayMultiDimensionalInt.
 DART_EXPORT uint64_t SizeOfStruct4BytesInlineArrayMultiDimensionalInt() {
-  std::cout << "SizeOfStruct4BytesInlineArrayMultiDimensionalInt"
-            << "()"
+  std::cout << "SizeOfStruct4BytesInlineArrayMultiDimensionalInt" << "()"
             << "\n";
 
   uint64_t result = sizeof(Struct4BytesInlineArrayMultiDimensionalInt);
@@ -1317,9 +1296,7 @@ DART_EXPORT uint64_t SizeOfStruct4BytesInlineArrayMultiDimensionalInt() {
 
 // Used for testing the size of Struct3BytesPackedInt.
 DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
-  std::cout << "SizeOfStruct3BytesPackedInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct3BytesPackedInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct3BytesPackedInt);
 
@@ -1330,9 +1307,7 @@ DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
 
 // Used for testing the size of Struct3BytesPackedIntMembersAligned.
 DART_EXPORT uint64_t SizeOfStruct3BytesPackedIntMembersAligned() {
-  std::cout << "SizeOfStruct3BytesPackedIntMembersAligned"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct3BytesPackedIntMembersAligned" << "()" << "\n";
 
   uint64_t result = sizeof(Struct3BytesPackedIntMembersAligned);
 
@@ -1343,9 +1318,7 @@ DART_EXPORT uint64_t SizeOfStruct3BytesPackedIntMembersAligned() {
 
 // Used for testing the size of Struct5BytesPackedMixed.
 DART_EXPORT uint64_t SizeOfStruct5BytesPackedMixed() {
-  std::cout << "SizeOfStruct5BytesPackedMixed"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct5BytesPackedMixed" << "()" << "\n";
 
   uint64_t result = sizeof(Struct5BytesPackedMixed);
 
@@ -1356,8 +1329,7 @@ DART_EXPORT uint64_t SizeOfStruct5BytesPackedMixed() {
 
 // Used for testing the size of StructNestedAlignmentStruct5BytesPackedMixed.
 DART_EXPORT uint64_t SizeOfStructNestedAlignmentStruct5BytesPackedMixed() {
-  std::cout << "SizeOfStructNestedAlignmentStruct5BytesPackedMixed"
-            << "()"
+  std::cout << "SizeOfStructNestedAlignmentStruct5BytesPackedMixed" << "()"
             << "\n";
 
   uint64_t result = sizeof(StructNestedAlignmentStruct5BytesPackedMixed);
@@ -1369,9 +1341,7 @@ DART_EXPORT uint64_t SizeOfStructNestedAlignmentStruct5BytesPackedMixed() {
 
 // Used for testing the size of Struct6BytesInlineArrayInt.
 DART_EXPORT uint64_t SizeOfStruct6BytesInlineArrayInt() {
-  std::cout << "SizeOfStruct6BytesInlineArrayInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct6BytesInlineArrayInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct6BytesInlineArrayInt);
 
@@ -1382,9 +1352,7 @@ DART_EXPORT uint64_t SizeOfStruct6BytesInlineArrayInt() {
 
 // Used for testing the size of Struct8BytesPackedInt.
 DART_EXPORT uint64_t SizeOfStruct8BytesPackedInt() {
-  std::cout << "SizeOfStruct8BytesPackedInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct8BytesPackedInt" << "()" << "\n";
 
   uint64_t result = sizeof(Struct8BytesPackedInt);
 
@@ -1395,9 +1363,7 @@ DART_EXPORT uint64_t SizeOfStruct8BytesPackedInt() {
 
 // Used for testing the size of Struct9BytesPackedMixed.
 DART_EXPORT uint64_t SizeOfStruct9BytesPackedMixed() {
-  std::cout << "SizeOfStruct9BytesPackedMixed"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct9BytesPackedMixed" << "()" << "\n";
 
   uint64_t result = sizeof(Struct9BytesPackedMixed);
 
@@ -1408,9 +1374,7 @@ DART_EXPORT uint64_t SizeOfStruct9BytesPackedMixed() {
 
 // Used for testing the size of Struct15BytesInlineArrayMixed.
 DART_EXPORT uint64_t SizeOfStruct15BytesInlineArrayMixed() {
-  std::cout << "SizeOfStruct15BytesInlineArrayMixed"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStruct15BytesInlineArrayMixed" << "()" << "\n";
 
   uint64_t result = sizeof(Struct15BytesInlineArrayMixed);
 
@@ -1421,9 +1385,7 @@ DART_EXPORT uint64_t SizeOfStruct15BytesInlineArrayMixed() {
 
 // Used for testing the size of Union4BytesMixed.
 DART_EXPORT uint64_t SizeOfUnion4BytesMixed() {
-  std::cout << "SizeOfUnion4BytesMixed"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfUnion4BytesMixed" << "()" << "\n";
 
   uint64_t result = sizeof(Union4BytesMixed);
 
@@ -1434,9 +1396,7 @@ DART_EXPORT uint64_t SizeOfUnion4BytesMixed() {
 
 // Used for testing the size of Union8BytesNestedFloat.
 DART_EXPORT uint64_t SizeOfUnion8BytesNestedFloat() {
-  std::cout << "SizeOfUnion8BytesNestedFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfUnion8BytesNestedFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Union8BytesNestedFloat);
 
@@ -1447,9 +1407,7 @@ DART_EXPORT uint64_t SizeOfUnion8BytesNestedFloat() {
 
 // Used for testing the size of Union9BytesNestedInt.
 DART_EXPORT uint64_t SizeOfUnion9BytesNestedInt() {
-  std::cout << "SizeOfUnion9BytesNestedInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfUnion9BytesNestedInt" << "()" << "\n";
 
   uint64_t result = sizeof(Union9BytesNestedInt);
 
@@ -1460,9 +1418,7 @@ DART_EXPORT uint64_t SizeOfUnion9BytesNestedInt() {
 
 // Used for testing the size of Union16BytesNestedInlineArrayFloat.
 DART_EXPORT uint64_t SizeOfUnion16BytesNestedInlineArrayFloat() {
-  std::cout << "SizeOfUnion16BytesNestedInlineArrayFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfUnion16BytesNestedInlineArrayFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Union16BytesNestedInlineArrayFloat);
 
@@ -1473,9 +1429,7 @@ DART_EXPORT uint64_t SizeOfUnion16BytesNestedInlineArrayFloat() {
 
 // Used for testing the size of Union16BytesNestedFloat.
 DART_EXPORT uint64_t SizeOfUnion16BytesNestedFloat() {
-  std::cout << "SizeOfUnion16BytesNestedFloat"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfUnion16BytesNestedFloat" << "()" << "\n";
 
   uint64_t result = sizeof(Union16BytesNestedFloat);
 
@@ -1486,9 +1440,7 @@ DART_EXPORT uint64_t SizeOfUnion16BytesNestedFloat() {
 
 // Used for testing the size of StructInlineArrayInt.
 DART_EXPORT uint64_t SizeOfStructInlineArrayInt() {
-  std::cout << "SizeOfStructInlineArrayInt"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayInt" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayInt);
 
@@ -1499,9 +1451,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayInt() {
 
 // Used for testing the size of StructInlineArrayVariable.
 DART_EXPORT uint64_t SizeOfStructInlineArrayVariable() {
-  std::cout << "SizeOfStructInlineArrayVariable"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayVariable" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayVariable);
 
@@ -1512,9 +1462,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayVariable() {
 
 // Used for testing the size of StructInlineArrayVariableNested.
 DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNested() {
-  std::cout << "SizeOfStructInlineArrayVariableNested"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayVariableNested" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayVariableNested);
 
@@ -1525,9 +1473,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNested() {
 
 // Used for testing the size of StructInlineArrayVariableNestedDeep.
 DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNestedDeep() {
-  std::cout << "SizeOfStructInlineArrayVariableNestedDeep"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayVariableNestedDeep" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayVariableNestedDeep);
 
@@ -1538,9 +1484,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNestedDeep() {
 
 // Used for testing the size of StructInlineArrayVariableAlign.
 DART_EXPORT uint64_t SizeOfStructInlineArrayVariableAlign() {
-  std::cout << "SizeOfStructInlineArrayVariableAlign"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayVariableAlign" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayVariableAlign);
 
@@ -1551,9 +1495,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayVariableAlign() {
 
 // Used for testing the size of StructInlineArrayVariable2.
 DART_EXPORT uint64_t SizeOfStructInlineArrayVariable2() {
-  std::cout << "SizeOfStructInlineArrayVariable2"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayVariable2" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayVariable2);
 
@@ -1564,9 +1506,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayVariable2() {
 
 // Used for testing the size of StructInlineArrayVariableNested2.
 DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNested2() {
-  std::cout << "SizeOfStructInlineArrayVariableNested2"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayVariableNested2" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayVariableNested2);
 
@@ -1577,9 +1517,7 @@ DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNested2() {
 
 // Used for testing the size of StructInlineArrayVariableNestedDeep2.
 DART_EXPORT uint64_t SizeOfStructInlineArrayVariableNestedDeep2() {
-  std::cout << "SizeOfStructInlineArrayVariableNestedDeep2"
-            << "()"
-            << "\n";
+  std::cout << "SizeOfStructInlineArrayVariableNestedDeep2" << "()" << "\n";
 
   uint64_t result = sizeof(StructInlineArrayVariableNestedDeep2);
 
@@ -5897,8 +5835,8 @@ PassPointerStructInlineArrayVariableAlign(StructInlineArrayVariableAlign* a0) {
 // Variable length array with variable dimension of 1.
 DART_EXPORT int64_t
 PassPointerStructInlineArrayVariable2(StructInlineArrayVariable2* a0) {
-  std::cout << "PassPointerStructInlineArrayVariable2"
-            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+  std::cout << "PassPointerStructInlineArrayVariable2" << "((" << a0->a0
+            << ", [" << static_cast<int>(a0->a1[0]) << ", "
             << static_cast<int>(a0->a1[1]) << ", "
             << static_cast<int>(a0->a1[2]) << ", "
             << static_cast<int>(a0->a1[3]) << ", "
@@ -5907,8 +5845,7 @@ PassPointerStructInlineArrayVariable2(StructInlineArrayVariable2* a0) {
             << static_cast<int>(a0->a1[6]) << ", "
             << static_cast<int>(a0->a1[7]) << ", "
             << static_cast<int>(a0->a1[8]) << ", "
-            << static_cast<int>(a0->a1[9]) << "]))"
-            << "\n";
+            << static_cast<int>(a0->a1[9]) << "]))" << "\n";
 
   int64_t result = 0;
 
@@ -5923,6 +5860,448 @@ PassPointerStructInlineArrayVariable2(StructInlineArrayVariable2* a0) {
   result += a0->a1[7];
   result += a0->a1[8];
   result += a0->a1[9];
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double UncategorizedFloatx9Int32(float a0,
+                                             float a1,
+                                             float a2,
+                                             float a3,
+                                             float a4,
+                                             float a5,
+                                             float a6,
+                                             float a7,
+                                             float a8,
+                                             int32_t a9) {
+  std::cout << "UncategorizedFloatx9Int32" << "(" << a0 << ", " << a1 << ", "
+            << a2 << ", " << a3 << ", " << a4 << ", " << a5 << ", " << a6
+            << ", " << a7 << ", " << a8 << ", " << a9 << ")" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double UncategorizedFloatx10(float a0,
+                                         float a1,
+                                         float a2,
+                                         float a3,
+                                         float a4,
+                                         float a5,
+                                         float a6,
+                                         float a7,
+                                         float a8,
+                                         float a9) {
+  std::cout << "UncategorizedFloatx10" << "(" << a0 << ", " << a1 << ", " << a2
+            << ", " << a3 << ", " << a4 << ", " << a5 << ", " << a6 << ", "
+            << a7 << ", " << a8 << ", " << a9 << ")" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct4BytesInt1Field(float a0,
+                                                    float a1,
+                                                    float a2,
+                                                    float a3,
+                                                    float a4,
+                                                    float a5,
+                                                    float a6,
+                                                    float a7,
+                                                    float a8,
+                                                    Struct4BytesInt1Field a9) {
+  std::cout << "PassFloatx9Struct4BytesInt1Field" << "(" << a0 << ", " << a1
+            << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5 << ", "
+            << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct4BytesHomogeneousUint84Bytes(
+    float a0,
+    float a1,
+    float a2,
+    float a3,
+    float a4,
+    float a5,
+    float a6,
+    float a7,
+    float a8,
+    Struct4BytesHomogeneousUint84Bytes a9) {
+  std::cout << "PassFloatx9Struct4BytesHomogeneousUint84Bytes" << "(" << a0
+            << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", "
+            << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << static_cast<int>(a9.a0) << ", " << static_cast<int>(a9.a1)
+            << ", " << static_cast<int>(a9.a2) << ", "
+            << static_cast<int>(a9.a3) << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+  result += a9.a3;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct8BytesHomogeneousInt322Fields(
+    float a0,
+    float a1,
+    float a2,
+    float a3,
+    float a4,
+    float a5,
+    float a6,
+    float a7,
+    float a8,
+    Struct8BytesHomogeneousInt322Fields a9) {
+  std::cout << "PassFloatx9Struct8BytesHomogeneousInt322Fields" << "(" << a0
+            << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", "
+            << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0
+            << ", " << a9.a1 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct12BytesHomogeneousInt32(
+    float a0,
+    float a1,
+    float a2,
+    float a3,
+    float a4,
+    float a5,
+    float a6,
+    float a7,
+    float a8,
+    Struct12BytesHomogeneousInt32 a9) {
+  std::cout << "PassFloatx9Struct12BytesHomogeneousInt32" << "(" << a0 << ", "
+            << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5
+            << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0 << ", "
+            << a9.a1 << ", " << a9.a2 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct16BytesHomogeneousInt324Fields(
+    float a0,
+    float a1,
+    float a2,
+    float a3,
+    float a4,
+    float a5,
+    float a6,
+    float a7,
+    float a8,
+    Struct16BytesHomogeneousInt324Fields a9) {
+  std::cout << "PassFloatx9Struct16BytesHomogeneousInt324Fields" << "(" << a0
+            << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", "
+            << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0
+            << ", " << a9.a1 << ", " << a9.a2 << ", " << a9.a3 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+  result += a9.a3;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct4BytesFloat(float a0,
+                                                float a1,
+                                                float a2,
+                                                float a3,
+                                                float a4,
+                                                float a5,
+                                                float a6,
+                                                float a7,
+                                                float a8,
+                                                Struct4BytesFloat a9) {
+  std::cout << "PassFloatx9Struct4BytesFloat" << "(" << a0 << ", " << a1 << ", "
+            << a2 << ", " << a3 << ", " << a4 << ", " << a5 << ", " << a6
+            << ", " << a7 << ", " << a8 << ", (" << a9.a0 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct8BytesHomogeneousFloat(
+    float a0,
+    float a1,
+    float a2,
+    float a3,
+    float a4,
+    float a5,
+    float a6,
+    float a7,
+    float a8,
+    Struct8BytesHomogeneousFloat a9) {
+  std::cout << "PassFloatx9Struct8BytesHomogeneousFloat" << "(" << a0 << ", "
+            << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5
+            << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0 << ", "
+            << a9.a1 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct12BytesHomogeneousFloat(
+    float a0,
+    float a1,
+    float a2,
+    float a3,
+    float a4,
+    float a5,
+    float a6,
+    float a7,
+    float a8,
+    Struct12BytesHomogeneousFloat a9) {
+  std::cout << "PassFloatx9Struct12BytesHomogeneousFloat" << "(" << a0 << ", "
+            << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5
+            << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0 << ", "
+            << a9.a1 << ", " << a9.a2 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct16BytesHomogeneousFloat(
+    float a0,
+    float a1,
+    float a2,
+    float a3,
+    float a4,
+    float a5,
+    float a6,
+    float a7,
+    float a8,
+    Struct16BytesHomogeneousFloat a9) {
+  std::cout << "PassFloatx9Struct16BytesHomogeneousFloat" << "(" << a0 << ", "
+            << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5
+            << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0 << ", "
+            << a9.a1 << ", " << a9.a2 << ", " << a9.a3 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+  result += a9.a3;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT double PassFloatx9Struct8BytesMixedInt32Float(
+    float a0,
+    float a1,
+    float a2,
+    float a3,
+    float a4,
+    float a5,
+    float a6,
+    float a7,
+    float a8,
+    Struct8BytesMixedInt32Float a9) {
+  std::cout << "PassFloatx9Struct8BytesMixedInt32Float" << "(" << a0 << ", "
+            << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5
+            << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0 << ", "
+            << a9.a1 << "))" << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
 
   std::cout << "result = " << result << "\n";
 
@@ -13625,8 +14004,8 @@ DART_EXPORT intptr_t TestPassPointerStructInlineArrayVariable2(
   a0->a1[8] = 10;
   a0->a1[9] = 11;
 
-  std::cout << "Calling TestPassPointerStructInlineArrayVariable2("
-            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+  std::cout << "Calling TestPassPointerStructInlineArrayVariable2(" << "(("
+            << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
             << static_cast<int>(a0->a1[1]) << ", "
             << static_cast<int>(a0->a1[2]) << ", "
             << static_cast<int>(a0->a1[3]) << ", "
@@ -13635,8 +14014,7 @@ DART_EXPORT intptr_t TestPassPointerStructInlineArrayVariable2(
             << static_cast<int>(a0->a1[6]) << ", "
             << static_cast<int>(a0->a1[7]) << ", "
             << static_cast<int>(a0->a1[8]) << ", "
-            << static_cast<int>(a0->a1[9]) << "]))"
-            << ")\n";
+            << static_cast<int>(a0->a1[9]) << "]))" << ")\n";
 
   int64_t result = f(a0);
 
@@ -13659,6 +14037,793 @@ DART_EXPORT intptr_t TestPassPointerStructInlineArrayVariable2(
   CHECK_EQ(0, result);
 
   free(a0);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestUncategorizedFloatx9Int32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                int32_t a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  int32_t a9;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9 = 10;
+
+  std::cout << "Calling TestUncategorizedFloatx9Int32(" << "(" << a0 << ", "
+            << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5
+            << ", " << a6 << ", " << a7 << ", " << a8 << ", " << a9 << ")"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(5.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestUncategorizedFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                float a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  float a9;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9 = 10.0;
+
+  std::cout << "Calling TestUncategorizedFloatx10(" << "(" << a0 << ", " << a1
+            << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5 << ", "
+            << a6 << ", " << a7 << ", " << a8 << ", " << a9 << ")" << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(5.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct4BytesInt1Field(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct4BytesInt1Field a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct4BytesInt1Field a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+
+  std::cout << "Calling TestPassFloatx9Struct4BytesInt1Field(" << "(" << a0
+            << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", "
+            << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0
+            << "))" << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(5.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct4BytesHomogeneousUint84Bytes(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct4BytesHomogeneousUint84Bytes a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct4BytesHomogeneousUint84Bytes a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = 11;
+  a9.a2 = 12;
+  a9.a3 = 13;
+
+  std::cout << "Calling TestPassFloatx9Struct4BytesHomogeneousUint84Bytes("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << static_cast<int>(a9.a0) << ", " << static_cast<int>(a9.a1)
+            << ", " << static_cast<int>(a9.a2) << ", "
+            << static_cast<int>(a9.a3) << "))" << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(41.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct8BytesHomogeneousInt322Fields(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct8BytesHomogeneousInt322Fields a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct8BytesHomogeneousInt322Fields a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+
+  std::cout << "Calling TestPassFloatx9Struct8BytesHomogeneousInt322Fields("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << "))" << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(-6.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct12BytesHomogeneousInt32 a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct12BytesHomogeneousInt32 a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+  a9.a2 = 12;
+
+  std::cout << "Calling TestPassFloatx9Struct12BytesHomogeneousInt32(" << "("
+            << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << ", " << a9.a2 << "))" << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(6.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct16BytesHomogeneousInt324Fields(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct16BytesHomogeneousInt324Fields a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct16BytesHomogeneousInt324Fields a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+  a9.a2 = 12;
+  a9.a3 = -13;
+
+  std::cout << "Calling TestPassFloatx9Struct16BytesHomogeneousInt324Fields("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << ", " << a9.a2 << ", " << a9.a3 << "))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(-7.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct4BytesFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct4BytesFloat a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct4BytesFloat a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+
+  std::cout << "Calling TestPassFloatx9Struct4BytesFloat(" << "(" << a0 << ", "
+            << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5
+            << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0 << "))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(5.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct8BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct8BytesHomogeneousFloat a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct8BytesHomogeneousFloat a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+
+  std::cout << "Calling TestPassFloatx9Struct8BytesHomogeneousFloat(" << "("
+            << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << "))" << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(-6.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct12BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct12BytesHomogeneousFloat a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct12BytesHomogeneousFloat a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+  a9.a2 = 12.0;
+
+  std::cout << "Calling TestPassFloatx9Struct12BytesHomogeneousFloat(" << "("
+            << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << ", " << a9.a2 << "))" << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(6.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct16BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct16BytesHomogeneousFloat a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct16BytesHomogeneousFloat a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+  a9.a2 = 12.0;
+  a9.a3 = -13.0;
+
+  std::cout << "Calling TestPassFloatx9Struct16BytesHomogeneousFloat(" << "("
+            << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << ", " << a9.a2 << ", " << a9.a3 << "))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(-7.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT intptr_t TestPassFloatx9Struct8BytesMixedInt32Float(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(float a0,
+                float a1,
+                float a2,
+                float a3,
+                float a4,
+                float a5,
+                float a6,
+                float a7,
+                float a8,
+                Struct8BytesMixedInt32Float a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct8BytesMixedInt32Float a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11.0;
+
+  std::cout << "Calling TestPassFloatx9Struct8BytesMixedInt32Float(" << "("
+            << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << "))" << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(-6.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
 
   return 0;
 }
@@ -22202,8 +23367,8 @@ DART_EXPORT void TestAsyncPassPointerStructInlineArrayVariable2(
   a0->a1[8] = 10;
   a0->a1[9] = 11;
 
-  std::cout << "Calling TestAsyncPassPointerStructInlineArrayVariable2("
-            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+  std::cout << "Calling TestAsyncPassPointerStructInlineArrayVariable2(" << "(("
+            << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
             << static_cast<int>(a0->a1[1]) << ", "
             << static_cast<int>(a0->a1[2]) << ", "
             << static_cast<int>(a0->a1[3]) << ", "
@@ -22212,12 +23377,560 @@ DART_EXPORT void TestAsyncPassPointerStructInlineArrayVariable2(
             << static_cast<int>(a0->a1[6]) << ", "
             << static_cast<int>(a0->a1[7]) << ", "
             << static_cast<int>(a0->a1[8]) << ", "
-            << static_cast<int>(a0->a1[9]) << "]))"
-            << ")\n";
+            << static_cast<int>(a0->a1[9]) << "]))" << ")\n";
 
   f(a0);
 
   free(a0);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncUncategorizedFloatx9Int32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              int32_t a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  int32_t a9;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9 = 10;
+
+  std::cout << "Calling TestAsyncUncategorizedFloatx9Int32(" << "(" << a0
+            << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", "
+            << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", " << a9 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncUncategorizedFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              float a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  float a9;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9 = 10.0;
+
+  std::cout << "Calling TestAsyncUncategorizedFloatx10(" << "(" << a0 << ", "
+            << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", " << a5
+            << ", " << a6 << ", " << a7 << ", " << a8 << ", " << a9 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct4BytesInt1Field(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct4BytesInt1Field a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct4BytesInt1Field a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+
+  std::cout << "Calling TestAsyncPassFloatx9Struct4BytesInt1Field(" << "(" << a0
+            << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", "
+            << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0
+            << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct4BytesHomogeneousUint84Bytes(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct4BytesHomogeneousUint84Bytes a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct4BytesHomogeneousUint84Bytes a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = 11;
+  a9.a2 = 12;
+  a9.a3 = 13;
+
+  std::cout << "Calling TestAsyncPassFloatx9Struct4BytesHomogeneousUint84Bytes("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << static_cast<int>(a9.a0) << ", " << static_cast<int>(a9.a1)
+            << ", " << static_cast<int>(a9.a2) << ", "
+            << static_cast<int>(a9.a3) << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct8BytesHomogeneousInt322Fields(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct8BytesHomogeneousInt322Fields a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct8BytesHomogeneousInt322Fields a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+
+  std::cout
+      << "Calling TestAsyncPassFloatx9Struct8BytesHomogeneousInt322Fields("
+      << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+      << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0
+      << ", " << a9.a1 << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct12BytesHomogeneousInt32 a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct12BytesHomogeneousInt32 a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+  a9.a2 = 12;
+
+  std::cout << "Calling TestAsyncPassFloatx9Struct12BytesHomogeneousInt32("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << ", " << a9.a2 << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct16BytesHomogeneousInt324Fields(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct16BytesHomogeneousInt324Fields a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct16BytesHomogeneousInt324Fields a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+  a9.a2 = 12;
+  a9.a3 = -13;
+
+  std::cout
+      << "Calling TestAsyncPassFloatx9Struct16BytesHomogeneousInt324Fields("
+      << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+      << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0
+      << ", " << a9.a1 << ", " << a9.a2 << ", " << a9.a3 << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct4BytesFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct4BytesFloat a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct4BytesFloat a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+
+  std::cout << "Calling TestAsyncPassFloatx9Struct4BytesFloat(" << "(" << a0
+            << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << ", "
+            << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", (" << a9.a0
+            << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct8BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct8BytesHomogeneousFloat a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct8BytesHomogeneousFloat a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+
+  std::cout << "Calling TestAsyncPassFloatx9Struct8BytesHomogeneousFloat("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct12BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct12BytesHomogeneousFloat a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct12BytesHomogeneousFloat a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+  a9.a2 = 12.0;
+
+  std::cout << "Calling TestAsyncPassFloatx9Struct12BytesHomogeneousFloat("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << ", " << a9.a2 << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct16BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct16BytesHomogeneousFloat a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct16BytesHomogeneousFloat a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+  a9.a2 = 12.0;
+  a9.a3 = -13.0;
+
+  std::cout << "Calling TestAsyncPassFloatx9Struct16BytesHomogeneousFloat("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << ", " << a9.a2 << ", " << a9.a3 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exhaust FP registers with 9 floats, then pass $t by value.
+DART_EXPORT void TestAsyncPassFloatx9Struct8BytesMixedInt32Float(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              float a1,
+              float a2,
+              float a3,
+              float a4,
+              float a5,
+              float a6,
+              float a7,
+              float a8,
+              Struct8BytesMixedInt32Float a9)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+  float a5;
+  float a6;
+  float a7;
+  float a8;
+  Struct8BytesMixedInt32Float a9 = {};
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11.0;
+
+  std::cout << "Calling TestAsyncPassFloatx9Struct8BytesMixedInt32Float(" << "("
+            << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", ("
+            << a9.a0 << ", " << a9.a1 << "))" << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 }
 
 // Used for testing structs and unions by value.

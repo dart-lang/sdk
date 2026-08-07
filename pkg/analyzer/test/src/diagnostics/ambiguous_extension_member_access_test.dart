@@ -499,8 +499,8 @@ f() {
     var node = result.findNode.assignment('= 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: IntegerLiteral
+  leftHandSide: PropertyAccess
+    target: IntegerLiteral
       literal: 0
       staticType: int
     operator: .
@@ -510,7 +510,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <null>
     staticType: int

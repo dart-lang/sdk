@@ -114,6 +114,7 @@ class RuntimeFinalizer {
       }
       sb.writeln('$indent],');
     }
+    sb.writeln('$indent"": new Proxy({}, { get(_, prop) { return prop; } }),');
     return '$sb';
   }
 
@@ -132,6 +133,9 @@ class RuntimeFinalizer {
 
     String internalizedStrings = _generateInternalizedStrings(constantStrings);
 
+    final jsStringBuiltinPolyfillImportVars = {
+      'JS_POLYFILL_IMPORT': '"wasm:js-string": jsStringPolyfill,',
+    };
     final moduleLoadingImportVars = {
       'MODULE_LOADING_IMPORT': supportsAdditionalModuleLoading
           ? '"moduleLoadingHelper": moduleLoadingHelper,'
@@ -140,17 +144,20 @@ class RuntimeFinalizer {
 
     final moduleLoadingHelperMethods = supportsAdditionalModuleLoading
         ? moduleLoadingHelperTemplate.instantiate({
+            ...jsStringBuiltinPolyfillImportVars,
             'MAIN_MODULE_NAME': mainModuleName,
           })
         : '';
 
     return jsRuntimeBlobTemplate.instantiate({
+      ...jsStringBuiltinPolyfillImportVars,
       ...moduleLoadingImportVars,
       'BUILTINS_MAP_BODY': builtins.join(', '),
       'JS_METHODS': jsMethods,
       'INTERNAL_IMPORTS_MODULE_NAME':
           _interopMemberNamer.interopHelperModuleName,
       'IMPORTED_JS_STRINGS_IN_MJS': internalizedStrings,
+      'JS_STRING_POLYFILL_METHODS': jsPolyFillMethods,
       'DEFERRED_LIBRARY_HELPER_METHODS': moduleLoadingHelperMethods,
     });
   }

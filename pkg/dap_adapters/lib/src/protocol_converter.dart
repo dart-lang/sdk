@@ -22,11 +22,11 @@ import 'variables.dart';
 /// fetch scripts from the VM Service in order to map token positions back to
 /// line/columns as required by DAP.
 class ProtocolConverter {
+  ProtocolConverter(this._adapter);
+
   /// The parent debug adapter, used to access arguments and the VM Service for
   /// the debug session.
   final DartDebugAdapter _adapter;
-
-  ProtocolConverter(this._adapter);
 
   /// Converts an absolute path to one relative to the cwd used to launch the
   /// application.
@@ -75,7 +75,7 @@ class ProtocolConverter {
               allowTruncatedValue: allowTruncatedValue,
               // Quotes are handled below, so they can be wrapped around the
               // ellipsis.
-              format: VariableFormat.noQuotes(),
+              format: const VariableFormat.noQuotes(),
             )
           : null;
       stringValue ??= '$valueAsString…';
@@ -83,7 +83,7 @@ class ProtocolConverter {
       return formatter.formatString(stringValue);
     } else if (ref.kind == vm.InstanceKind.kString) {
       // Untruncated strings.
-      return formatter.formatString(valueAsString ?? "");
+      return formatter.formatString(valueAsString ?? '');
     } else if (ref.kind == vm.InstanceKind.kPointer) {
       return '${vm.InstanceKind.kPointer} (${valueAsString ?? 'unknown'})';
     } else if (valueAsString != null) {
@@ -102,7 +102,7 @@ class ProtocolConverter {
           ref,
           allowTruncatedValue: allowTruncatedValue,
           // Suppress quotes because this is going inside a longer string.
-          format: VariableFormat.noQuotes(),
+          format: const VariableFormat.noQuotes(),
         );
         // Include the toString() result only if it's not the default (which
         // duplicates the type name we're already showing).
@@ -112,7 +112,8 @@ class ProtocolConverter {
       }
       return stringValue;
     } else if (ref.isList) {
-      return '${ref.kind} (${ref.length} ${ref.length == 1 ? "item" : "items"})';
+      final items = ref.length == 1 ? 'item' : 'items';
+      return '${ref.kind} (${ref.length} $items)';
     } else if (ref.isMap) {
       return 'Map (${ref.length} ${ref.length == 1 ? "item" : "items"})';
     } else if (ref.isSet) {
@@ -208,18 +209,22 @@ class ProtocolConverter {
           final callToString =
               allowCallingToString && index < maxToStringsPerEvaluation;
 
-          final keyDisplay = await convertVmResponseToDisplayString(
-            thread,
-            key,
-            allowCallingToString: callToString,
-            format: format,
-          );
-          final valueDisplay = await convertVmResponseToDisplayString(
-            thread,
-            value,
-            allowCallingToString: callToString,
-            format: format,
-          );
+          final keyDisplay = key is vm.Response
+              ? await convertVmResponseToDisplayString(
+                  thread,
+                  key,
+                  allowCallingToString: callToString,
+                  format: format,
+                )
+              : null;
+          final valueDisplay = value is vm.Response
+              ? await convertVmResponseToDisplayString(
+                  thread,
+                  value,
+                  allowCallingToString: callToString,
+                  format: format,
+                )
+              : null;
 
           // We only provide an evaluateName for the value, and only if the
           // key is a simple value.
@@ -268,12 +273,9 @@ class ProtocolConverter {
             // users will expect to see them as they are accessed like `$1`.
             name = '\$${field.name}';
           } else {
-            name ??= field.name;
+            name ??= field.name as String?;
           }
           final isNullable = isDeclaredNullable(field.decl?.declaredType);
-          final fieldEvaluateNameString = name != null
-              ? _adapter.combineEvaluateName(evaluateName, '.$name')
-              : null;
           final value = field.value;
 
           if (value is vm.InstanceRef &&
@@ -284,7 +286,8 @@ class ProtocolConverter {
             return dap.Variable(
               name: name ?? '<unnamed field>',
               value:
-                  '${vm.InstanceKind.kPointer} (${value.valueAsString ?? 'unknown'})',
+                  '${vm.InstanceKind.kPointer} '
+                  '(${value.valueAsString ?? 'unknown'})',
               type: type,
               variablesReference: thread.storeData(
                 PointerData(
@@ -298,16 +301,16 @@ class ProtocolConverter {
           }
 
           final fieldEvaluateName =
-              fieldEvaluateNameString != null && value is vm.ObjRef
+              name != null && evaluateName != null && value is vm.ObjRef
               ? _adapter.storeEvaluateName(
                   value,
-                  fieldEvaluateNameString,
+                  _adapter.combineEvaluateName(evaluateName, '.$name'),
                   isNullable: isNullable,
                 )
               : null;
           return convertVmResponseToVariable(
             thread,
-            field.value,
+            field.value is vm.Response ? (field.value as vm.Response) : null,
             name: name ?? '<unnamed field>',
             evaluateName: fieldEvaluateName,
             allowCallingToString:
@@ -467,7 +470,7 @@ class ProtocolConverter {
   }
 
   /// Decodes the bytes of a list from the base64 encoded string
-  /// [instance.bytes].
+  /// `instance.bytes`.
   List<Object?> _decodeList(vm.Instance instance) {
     final bytes = base64Decode(instance.bytes!);
     switch (instance.kind) {
@@ -735,7 +738,8 @@ class ProtocolConverter {
     );
   }
 
-  /// Whether [kind] is a simple kind, and does not need to be mapped to a variable.
+  /// Whether [kind] is a simple kind, and does not need to be mapped to a
+  /// variable.
   bool isSimpleKind(String? kind) {
     return kind == 'String' ||
         kind == 'Bool' ||
@@ -750,7 +754,7 @@ class ProtocolConverter {
   /// response to a user-friendly display string.
   ///
   /// Strings are usually wrapped in quotes to indicate their type. This can be
-  /// controlled with [includeQuotesAroundString] (for example to suppress them
+  /// controlled with `includeQuotesAroundString` (for example to suppress them
   /// if the context indicates the user is copying the value to the clipboard).
   Future<String?> _callToString(
     ThreadInfo thread,
@@ -771,8 +775,8 @@ class ProtocolConverter {
         disableBreakpoints: true,
       );
 
-      // If the response is a string and is truncated, use getObject() to get the
-      // full value.
+      // If the response is a string and is truncated, use getObject() to
+      // get the full value.
       if (result is vm.InstanceRef &&
           result.kind == 'String' &&
           (result.valueAsStringIsTruncated ?? false) &&

@@ -157,12 +157,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target is! UnqualifiedNameAssignmentTarget) {
-      super.visitDirectAssignment(node);
-      return;
-    }
-    var write = target.write;
-    if (write is! ValidNamedWriteResolution) {
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (write is! NamedWriteResolutionWithElement) {
       super.visitDirectAssignment(node);
       return;
     }
@@ -534,7 +534,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     if (target is! UnqualifiedNameAssignmentTarget) {
       return;
     }
-    if (target.read case ValidNamedReadResolution(:var element)) {
+    if (target.read case NamedReadResolutionWithElement(:var element)) {
       if (element is SubstitutedExecutableElementImpl) {
         element = element.baseElement;
       }
@@ -572,7 +572,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       }
     }
 
-    if (target.write case ValidNamedWriteResolution(:var element)) {
+    if (target.write case NamedWriteResolutionWithElement(:var element)) {
       if (element is SubstitutedExecutableElementImpl) {
         element = element.baseElement;
       }

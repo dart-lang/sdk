@@ -91,6 +91,25 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       typeArguments: expression.typeArguments,
       argumentList: expression.argumentList,
     );
+  } else if (expression is DirectAssignmentImpl) {
+    var target = expression.target;
+    if (target is! PropertyAssignmentTargetImpl) {
+      throw UnimplementedError(
+        'Unhandled ${target.runtimeType} in $expression',
+      );
+    }
+    return DirectAssignmentImpl(
+      target: PropertyAssignmentTargetImpl(
+        receiver: insertCascadeTargetIntoExpression(
+          expression: target.receiver,
+          cascadeTarget: cascadeTarget,
+        ),
+        operator: target.operator,
+        propertyName: target.propertyName,
+      ),
+      operator: expression.operator,
+      value: expression.value,
+    );
   } else if (expression is PropertyAccessImpl) {
     var expressionTarget = expression.realTarget;
     return PropertyAccessImpl(

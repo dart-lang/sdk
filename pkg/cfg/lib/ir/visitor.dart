@@ -35,6 +35,7 @@ abstract interface class InstructionVisitor<R> {
   R visitThrow(Throw instr);
   R visitNullCheck(NullCheck instr);
   R visitIndexCheck(IndexCheck instr);
+  R visitSubtypeCheck(SubtypeCheck instr);
   R visitTypeParameters(TypeParameters instr);
   R visitTypeCast(TypeCast instr);
   R visitTypeTest(TypeTest instr);
@@ -113,6 +114,7 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitThrow(Throw instr) => defaultInstruction(instr);
   R visitNullCheck(NullCheck instr) => defaultInstruction(instr);
   R visitIndexCheck(IndexCheck instr) => defaultInstruction(instr);
+  R visitSubtypeCheck(SubtypeCheck instr) => defaultInstruction(instr);
   R visitTypeParameters(TypeParameters instr) => defaultInstruction(instr);
   R visitTypeCast(TypeCast instr) => defaultInstruction(instr);
   R visitTypeTest(TypeTest instr) => defaultInstruction(instr);

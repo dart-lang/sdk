@@ -1233,6 +1233,33 @@ final class IndexCheck extends Definition with CanThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitIndexCheck(this);
 }
 
+// Checks that a [type] is subtype of a [bound].
+//
+// Throws TypeError if relationship doesn't hold.
+// Inputs to this instructions are type parameters needed for type
+// instantiation.
+final class SubtypeCheck extends Instruction with CanThrow, Pure, Idempotent {
+  final CType type;
+  final CType bound;
+  final String name;
+
+  SubtypeCheck(
+    super.graph,
+    super.sourcePosition,
+    this.type,
+    this.bound,
+    this.name, {
+    required super.inputCount,
+  }) : assert(inputCount > 0);
+
+  @override
+  bool attributesEqual(covariant SubtypeCheck other) =>
+      type == other.type && bound == other.bound && name == other.name;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitSubtypeCheck(this);
+}
+
 enum TypeParametersKind {
   /// All type parameters of the current function and all enclosing functions.
   functionTypeParameters,

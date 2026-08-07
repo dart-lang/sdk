@@ -44,7 +44,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -95,7 +96,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -146,7 +148,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -185,7 +188,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -231,7 +235,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -280,7 +285,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -329,7 +335,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -378,7 +385,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -437,7 +445,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -495,7 +504,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -554,7 +564,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -595,7 +606,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -643,7 +655,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -696,13 +709,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -755,13 +770,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -802,13 +819,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -856,13 +875,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -913,13 +934,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -970,13 +993,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: int
+                fieldName(v1): SimpleIdentifier
                   token: int
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1025,13 +1050,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: int
+                fieldName(v1): SimpleIdentifier
                   token: int
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1090,13 +1117,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1156,13 +1185,15 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: set
+                fieldName(v1): SimpleIdentifier
                   token: set
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1220,7 +1251,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1261,7 +1293,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1309,7 +1342,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1360,7 +1394,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1411,7 +1446,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -1462,7 +1498,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1521,7 +1558,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1568,7 +1606,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1622,7 +1661,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1679,7 +1719,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1736,7 +1777,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1793,7 +1835,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1860,7 +1903,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1926,7 +1970,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
@@ -1991,7 +2036,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2052,7 +2098,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2112,7 +2159,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2171,7 +2219,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2222,7 +2271,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2273,7 +2323,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: int
+                fieldName(v1): SimpleIdentifier
                   token: int
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2322,7 +2373,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: int
+                fieldName(v1): SimpleIdentifier
                   token: int
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2381,7 +2433,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2439,7 +2492,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2488,7 +2542,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2525,7 +2580,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2569,7 +2625,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2616,7 +2673,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2663,7 +2721,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2710,7 +2769,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2767,7 +2827,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2823,7 +2884,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -2880,7 +2942,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: set
+                fieldName(v1): SimpleIdentifier
                   token: set
                 equals: = <synthetic>
                 expression2: SimpleIdentifier
@@ -3155,7 +3218,8 @@ CompilationUnit
                   leftParenthesis: ( <synthetic>
                   rightParenthesis: ) <synthetic>
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: f
+                fieldName(v1): SimpleIdentifier
                   token: f
                 equals: =
                 expression2: IntegerLiteral

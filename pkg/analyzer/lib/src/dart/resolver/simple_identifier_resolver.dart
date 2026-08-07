@@ -141,9 +141,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var parent = node.parent2;
     if (parent is FieldFormalParameterImpl) {
       return null;
-    } else if (parent is ConstructorFieldInitializerImpl &&
-        parent.fieldName == node) {
-      return null;
     } else if (parent is AnnotationImpl && parent.constructorName == node) {
       return null;
     }

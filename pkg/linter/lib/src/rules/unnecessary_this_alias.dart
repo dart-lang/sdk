@@ -43,27 +43,31 @@ class UnnecessaryThisAlias extends AnalysisRule {
 }
 
 class _ReferenceVisitor(final LocalVariableElement element)
-    extends RecursiveAstVisitor<void> {
+    extends UnifyingAstVisitor<void> {
   bool hasPromotionUsage = false;
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
+  visitNode(AstNode node) {
+    // The visitor only needs to look until a promotion usage has been found.
     if (hasPromotionUsage) return;
+    super.visitNode(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.element == element) {
       if (_isPromotionUsage(node)) {
         hasPromotionUsage = true;
       }
     }
-    super.visitSimpleIdentifier(node);
   }
 
   bool _isPromotionUsage(SimpleIdentifier node) {
     var expr = _skipParenthesesUp(node);
     return switch (expr.parent) {
-      IsExpression(:var expression) => expression == expr,
+      // ignore: experimental_member_use
+      AnonymousMethodInvocation(:var isNullAware) => isNullAware,
       AsExpression(:var expression) => expression == expr,
-      PostfixExpression(:var operand, :var operator) =>
-        operand == expr && operator.type == TokenType.BANG,
       BinaryExpression(:var leftOperand, :var rightOperand, :var operator) =>
         (operator.type == TokenType.EQ_EQ ||
                 operator.type == TokenType.BANG_EQ) &&
@@ -71,10 +75,17 @@ class _ReferenceVisitor(final LocalVariableElement element)
                     rightOperand.unParenthesized is NullLiteral) ||
                 (rightOperand == expr &&
                     leftOperand.unParenthesized is NullLiteral)),
-      SwitchStatement(:var expression) => expression == expr,
-      SwitchExpression(:var expression) => expression == expr,
+      CascadeExpression(:var isNullAware) => isNullAware,
       IfStatement(:var expression, :var caseClause) =>
         expression == expr && caseClause != null,
+      IndexExpression(:var isNullAware) => isNullAware,
+      IsExpression(:var expression) => expression == expr,
+      MethodInvocation(:var isNullAware) => isNullAware,
+      PostfixExpression(:var operand, :var operator) =>
+        operand == expr && operator.type == TokenType.BANG,
+      PropertyAccess(:var isNullAware) => isNullAware,
+      SwitchStatement(:var expression) => expression == expr,
+      SwitchExpression(:var expression) => expression == expr,
       _ => false,
     };
   }

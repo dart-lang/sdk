@@ -156,7 +156,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _writeByte(AstBinaryFlags.encode(hasThis: node.thisKeyword != null));
 
-    _writeNode(node.fieldName);
+    _writeStringReference(node.fieldName2.lexeme);
+    _sink.writeElement(node.fieldElement);
     _writeNode(node.expression2);
   }
 
@@ -705,6 +706,18 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyAssignmentTarget(
+    covariant PropertyAssignmentTargetImpl node,
+  ) {
+    _writeByte(Tag.PropertyAssignmentTarget);
+    _writeNode(node.receiver);
+    _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
+    _writeStringReference(node.propertyName.lexeme);
+    _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
+    _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     _writeByte(Tag.RecordLiteral);
     _writeByte(AstBinaryFlags.encode(isConst: node.constKeyword != null));
@@ -1113,6 +1126,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
         _writeByte(NamedWriteResolutionTag.variableWrite.index);
         _sink.writeElement(resolution.element);
         _sink.writeType(resolution.acceptedType);
+      case DynamicPropertyWriteResolutionImpl():
+        _writeByte(NamedWriteResolutionTag.dynamicPropertyWrite.index);
     }
   }
 

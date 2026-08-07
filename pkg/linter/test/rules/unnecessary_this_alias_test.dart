@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -14,6 +15,13 @@ void main() {
 
 @reflectiveTest
 class UnnecessaryThisAliasTest extends LintRuleTest {
+  @override
+  List<Feature> get experimentalFeatures => [
+    ...super.experimentalFeatures,
+    // ignore: experimental_member_use
+    Feature.anonymous_methods,
+  ];
+
   @override
   String get lintRule => LintNames.unnecessary_this_alias;
 
@@ -87,6 +95,38 @@ class C {
   }
 }
 class D extends C {}
+''');
+  }
+
+  test_thisPromotion_anonymousMethod_notNullAware() async {
+    await assertNoDiagnostics(r'''
+extension on C? {
+  void m() {
+    var self = this;
+    self.{
+      m();
+    };
+  }
+}
+class C {
+  void m() {}
+}
+''');
+  }
+
+  test_thisPromotion_anonymousMethod_nullAware() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension on C? {
+  void m() {
+    var [!self!] = this;
+    self?.{
+      m();
+    };
+  }
+}
+class C {
+  void m() {}
+}
 ''');
   }
 
@@ -173,6 +213,60 @@ class C {
   }
 }
 class D extends C {}
+''');
+  }
+
+  test_thisPromotion_nullAwareCascade() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension on C? {
+  void m() {
+    var [!self!] = this;
+    self?..m();
+  }
+}
+class C {
+  void m() {}
+}
+''');
+  }
+
+  test_thisPromotion_nullAwareIndexAccess() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension on C? {
+  void m() {
+    var [!self!] = this;
+    self?[0];
+  }
+}
+class C {
+  operator [](int index) {}
+}
+''');
+  }
+
+  test_thisPromotion_nullAwareMethodInvocation() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension on C? {
+  void m() {
+    var [!self!] = this;
+    self?.m();
+  }
+}
+class C {
+  void m() {}
+}
+''');
+  }
+
+  test_thisPromotion_nullAwarePropertyAccess() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension on C? {
+  void m() {
+    var [!self!] = this;
+    self?.x = self.y;
+  }
+}
+class C(var int x, var int y);
 ''');
   }
 

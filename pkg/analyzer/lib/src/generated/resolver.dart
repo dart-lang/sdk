@@ -1687,6 +1687,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return (null, SharedTypeView(typeProvider.dynamicType));
   }
 
+  NamedWriteResolutionImpl? resolvePropertyDirectAssignmentTarget(
+    PropertyAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver.resolvePropertyDirectAssignmentTarget(node);
+  }
+
   @override
   RelationalOperatorResolution? resolveRelationalPatternOperator(
     covariant RelationalPatternImpl node,
@@ -2581,13 +2587,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void visitConstructorFieldInitializer(
     covariant ConstructorFieldInitializerImpl node,
   ) {
-    //
-    // We visit the expression, but do not visit the field name because it needs
-    // to be visited in the context of the constructor field initializer node.
-    //
-    var fieldName = node.fieldName;
-    var fieldElement = enclosingInstanceElement!.getField(fieldName.name);
-    fieldName.element = fieldElement;
+    var fieldElement = enclosingInstanceElement!.getField(
+      node.fieldName2.lexeme,
+    );
+    node.fieldElement = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression2;
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
@@ -4838,10 +4841,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       context = parent.writeType!;
     } else if (parent is AssignmentExpression2Impl) {
       var target = parent.target;
-      if (target is! UnqualifiedNameAssignmentTargetImpl) {
-        return;
-      }
-      var write = target.write;
+      var write = switch (target) {
+        PropertyAssignmentTargetImpl(:var write) => write,
+        UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+        InvalidExpressionAssignmentTargetImpl() => null,
+      };
       if (write == null) {
         return;
       }

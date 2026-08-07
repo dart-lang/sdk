@@ -146,9 +146,9 @@ class Float32x4List {
 @patch
 class Float64x2List {
   @patch
-  factory Float64x2List(int length) = NaiveFloat64x2List;
+  factory Float64x2List(int length) = F64x2List;
 
   @patch
-  factory Float64x2List.fromList(List<Float64x2> elements) =
-      NaiveFloat64x2List.fromList;
+  factory Float64x2List.fromList(List<Float64x2> elements) =>
+      F64x2List(elements.length)..setRange(0, elements.length, elements);
 }

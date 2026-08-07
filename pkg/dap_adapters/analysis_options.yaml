@@ -1,9 +1,17 @@
-include: ../dart_runtime_service/analysis_options.yaml
+include: package:dart_flutter_team_lints/analysis_options.yaml
 
-# TODO(bkonyi): Re-enable analysis for DAP files when they are migrated
-# to conform with the stricter dart_flutter_team_lints rules.
 analyzer:
-  exclude:
-    - lib/src/**
-    - lib/dap_adapters.dart
-    - test/**
+  language:
+    strict-raw-types: true
+  errors:
+    remove_deprecations_in_breaking_versions: ignore
+
+linter:
+  rules:
+    - avoid_redundant_argument_values
+    - prefer_final_in_for_each
+    - prefer_final_locals
+    - sort_constructors_first
+    - sort_unnamed_constructors_first
+    - unnecessary_async
+    - unnecessary_breaks

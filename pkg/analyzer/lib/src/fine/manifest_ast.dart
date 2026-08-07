@@ -267,6 +267,7 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     node.visitChildren2(this);
+    _addElement(node.fieldElement);
   }
 
   @override

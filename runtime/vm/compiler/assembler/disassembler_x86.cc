@@ -1378,6 +1378,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "psubd";
         } else if (opcode == 0xEF) {
           mnemonic = "pxor";
+        } else if (opcode == 0x76) {
+          mnemonic = "pcmpeqd";
         } else {
           UnimplementedInstruction(*data);
           return 1;

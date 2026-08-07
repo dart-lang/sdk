@@ -21,25 +21,30 @@ import("../utils/application_snapshot.gni")
 
 # If we're are embedded in another GN buildroot, such as Flutter, the sysroot
 # might already be imported from elsewhere.
-if (get_path_info(".", "abspath") == "//sdk/") {
+_standalone_sdk_build = get_path_info(".", "abspath") == "//sdk/"
+if (_standalone_sdk_build) {
   import("../build/config/sysroot.gni")
 }
 
 declare_args() {
-  # Windows and Fuchsia binaries are stripped by default.
-  if (is_win || is_fuchsia) {
+  # In our buildroot Windows and Fuchsia binaries are stripped by default, while
+  # on Mac and Linux stripped binaries are emitted into "exe.stripped"
+  # directory. Other buildroots can configure stripping differently.
+  if (is_win || is_fuchsia || !_standalone_sdk_build) {
     stripped_binary_prefix = ""
   } else {
     stripped_binary_prefix = "exe.stripped/"
   }
+}
 
+declare_args() {
   # Path to stripped dart binaries relative to build output directory.
-  dartvm_stripped_binary = "$stripped_binary_prefix/dartvm"
-  dart_stripped_binary = "$stripped_binary_prefix/dart"
-  dart_aotruntime_stripped_binary = "$stripped_binary_prefix/dartaotruntime_product"
-  dart_cliruntime_stripped_binary = "$stripped_binary_prefix/dartcliruntime_product"
-  gen_snapshot_stripped_binary = "$stripped_binary_prefix/gen_snapshot_product"
-  wasm_opt_stripped_binary = "$stripped_binary_prefix/wasm-opt"
+  dartvm_stripped_binary = "${stripped_binary_prefix}dartvm"
+  dart_stripped_binary = "${stripped_binary_prefix}dart"
+  dart_aotruntime_stripped_binary = "${stripped_binary_prefix}dartaotruntime_product"
+  dart_cliruntime_stripped_binary = "${stripped_binary_prefix}dartcliruntime_product"
+  gen_snapshot_stripped_binary = "${stripped_binary_prefix}gen_snapshot_product"
+  wasm_opt_stripped_binary = "${stripped_binary_prefix}wasm-opt"
 
   # Binaryen does not build under MSVC.
   dart_include_wasm_opt = is_clang || !is_win

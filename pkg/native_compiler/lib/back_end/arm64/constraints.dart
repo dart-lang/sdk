@@ -261,6 +261,18 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
+  InstructionConstraints? visitSubtypeCheck(SubtypeCheck instr) {
+    final inputs = allocatableRegisters.take(instr.inputCount).toList();
+
+    return InstructionConstraints(
+      null,
+      inputs,
+      allRegistersExcept(null, inputs),
+      Safepoint(),
+    );
+  }
+
+  @override
   InstructionConstraints? visitTypeCast(TypeCast instr) {
     final callsTypeTestingStub =
         instr.isChecked &&
