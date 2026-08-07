@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
@@ -96,7 +97,7 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
     );
   }
 
-  Set<String> _convertVars(Iterable<int> x) =>
+  Set<String> _convertVars(Iterable<PromotionKey> x) =>
       x.map((e) => _assignedVariables.variableForKey(e).cosmeticName!).toSet();
 
   @override

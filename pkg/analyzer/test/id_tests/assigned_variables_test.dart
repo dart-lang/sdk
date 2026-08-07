@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -113,7 +114,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
     );
   }
 
-  Set<String> _convertVars(Iterable<int> x) =>
+  Set<String> _convertVars(Iterable<PromotionKey> x) =>
       x.map((e) => _currentAssignedVariables!.variableForKey(e).name!).toSet();
 
   void _handlePossibleTopLevelDeclaration(

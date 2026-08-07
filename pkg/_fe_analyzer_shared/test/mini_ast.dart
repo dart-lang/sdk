@@ -23,6 +23,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.d
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
@@ -6834,7 +6835,7 @@ class YieldStatement extends Statement {
 class _Checkpoint {
   final int offset;
   final PromotionInfo? expectedPromotionInfo;
-  final int? expectedThisBinding;
+  final PromotionKey? expectedThisBinding;
   final String location;
 
   _Checkpoint({

@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_link.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:test/test.dart';
 
@@ -5135,10 +5136,10 @@ main() {
   });
 
   group('join', () {
-    late int x;
-    late int y;
-    late int z;
-    late int w;
+    late PromotionKey x;
+    late PromotionKey y;
+    late PromotionKey z;
+    late PromotionKey w;
     late Type intType;
     late Type intQType;
     late Type stringType;
@@ -5395,7 +5396,7 @@ main() {
   });
 
   group('inheritTested', () {
-    late int x;
+    late PromotionKey x;
     late Type intType;
     late Type stringType;
 
@@ -13459,7 +13460,7 @@ extension on FlowModel {
 
   FlowModel _setInfo(
     FlowAnalysisTestHarness h,
-    Map<int, PromotionModel> newInfo,
+    Map<PromotionKey, PromotionModel> newInfo,
   ) {
     var result = this;
     for (var core.MapEntry(:key, :value) in newInfo.entries) {
@@ -13483,7 +13484,7 @@ extension on FlowModel {
     SharedTypeView(Type(type)),
   );
 
-  int _varRef(FlowAnalysisTestHarness h, Var variable) =>
+  PromotionKey _varRef(FlowAnalysisTestHarness h, Var variable) =>
       h.promotionKeyStore.keyForVariable(variable);
 
   TrivialVariableReference _varRefWithType(
@@ -13519,9 +13520,9 @@ extension on FlowModel {
 }
 
 extension on PromotionInfo? {
-  Map<int, PromotionModel> unwrap(FlowAnalysisTestHarness h) => {
+  Map<PromotionKey, PromotionModel> unwrap(FlowAnalysisTestHarness h) => {
     for (var FlowLinkDiffEntry(:int key, right: second!)
         in h.reader.diff(null, this).entries)
-      key: second.model,
+      PromotionKey(key): second.model,
   };
 }
