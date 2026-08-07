@@ -135,7 +135,7 @@ class ParameterInfo {
     });
     final named = {
       for (NamedParameter param in function.namedParameters)
-        param.parameterName: defaultValue(param),
+        param.parameterName: param.isRequired ? null : defaultValue(param),
     };
     return ParameterInfo._(true, typeParamCount, positional, named);
   }
