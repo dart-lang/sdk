@@ -409,9 +409,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     SourceInformation? sourceInformation,
   ) {
     pushStatement(
-      js.ExpressionStatement(
-        expression,
-      ).withSourceInformation(sourceInformation),
+      js.ExpressionStatement(expression)
+          .withSourceInformation(sourceInformation),
     );
   }
 
@@ -1797,9 +1796,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         implicitBreakWithLabel(label.target);
       } else {
         pushStatement(
-          js.Break(
-            _namer.breakLabelName(label),
-          ).withSourceInformation(node.sourceInformation),
+          js.Break(_namer.breakLabelName(label))
+              .withSourceInformation(node.sourceInformation),
         );
       }
     } else {
@@ -1809,9 +1807,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       } else {
         if (node.breakSwitchContinueLoop) {
           pushStatement(
-            js.Break(
-              _namer.implicitContinueLabelName(target),
-            ).withSourceInformation(node.sourceInformation),
+            js.Break(_namer.implicitContinueLabelName(target))
+                .withSourceInformation(node.sourceInformation),
           );
         } else {
           pushStatement(
@@ -1832,9 +1829,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       } else {
         // TODO(floitsch): should this really be the breakLabelName?
         pushStatement(
-          js.Continue(
-            _namer.breakLabelName(label),
-          ).withSourceInformation(node.sourceInformation),
+          js.Continue(_namer.breakLabelName(label))
+              .withSourceInformation(node.sourceInformation),
         );
       }
     } else {
@@ -1844,9 +1840,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       } else {
         if (target.isSwitch) {
           pushStatement(
-            js.Continue(
-              _namer.implicitContinueLabelName(target),
-            ).withSourceInformation(node.sourceInformation),
+            js.Continue(_namer.implicitContinueLabelName(target))
+                .withSourceInformation(node.sourceInformation),
           );
         } else {
           pushStatement(
@@ -2385,29 +2380,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         );
         staticUse = StaticUse.constructorInvoke(element, callStructure);
         if (_shouldRecordConstructor(element)) {
-          recordedMethodUses = _recordConstructorUses(
-            element,
-            node.inputs,
-            node.sourceInformation!,
-          );
+          recordedMethodUses = _recordConstructorUses(element, node.inputs);
         }
       } else if (element.isGetter) {
         staticUse = StaticUse.staticGet(element);
         if (_shouldRecordMethodUses(element)) {
-          recordedMethodUses = _recordMethodUses(
-            element,
-            node.inputs,
-            node.sourceInformation!,
-          );
+          recordedMethodUses = _recordMethodUses(element, node.inputs);
         }
       } else if (element.isSetter) {
         staticUse = StaticUse.staticSet(element);
         if (_shouldRecordMethodUses(element)) {
-          recordedMethodUses = _recordMethodUses(
-            element,
-            node.inputs,
-            node.sourceInformation!,
-          );
+          recordedMethodUses = _recordMethodUses(element, node.inputs);
         }
       } else {
         assert(element.isFunction);
@@ -2421,11 +2404,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           node.typeArguments,
         );
         if (_shouldRecordMethodUses(element)) {
-          recordedMethodUses = _recordMethodUses(
-            element,
-            node.inputs,
-            node.sourceInformation!,
-          );
+          recordedMethodUses = _recordMethodUses(element, node.inputs);
         }
         if (_shouldRecordConstructor(element)) {
           final elementNode = _closedWorld.elementMap
@@ -2433,16 +2412,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
               .node;
           if (elementNode is ir.Procedure &&
               getConstructorTearOffLoweringTarget(elementNode) != null) {
-            recordedMethodUses = _recordConstructorTearOff(
-              element,
-              node.sourceInformation!,
-            );
+            recordedMethodUses = _recordConstructorTearOff(element);
           } else {
-            recordedMethodUses = _recordConstructorUses(
-              element,
-              node.inputs,
-              node.sourceInformation!,
-            );
+            recordedMethodUses = _recordConstructorUses(element, node.inputs);
           }
         }
       }
@@ -2582,7 +2554,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   RecordedUse _recordConstructorUses(
     MemberEntity element,
     List<HInstruction> arguments,
-    SourceInformation sourceInformation,
   ) {
     ir.Member node =
         _closedWorld.elementMap.getMemberDefinition(element).node as ir.Member;
@@ -2613,14 +2584,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       constructor: constructor,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
-      sourceInformation: sourceInformation,
     );
   }
 
-  RecordedUse _recordConstructorTearOff(
-    FunctionEntity element,
-    SourceInformation sourceInformation,
-  ) {
+  RecordedUse _recordConstructorTearOff(FunctionEntity element) {
     final node = _closedWorld.elementMap.getMemberDefinition(element).node;
     ir.Member target = node as ir.Member;
     if (node is ir.Procedure) {
@@ -2631,14 +2598,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     return RecordedConstructorTearOff(
       constructor: constructor as ConstructorEntity,
-      sourceInformation: sourceInformation,
     );
   }
 
   RecordedUse _recordMethodUses(
     FunctionEntity element,
     List<HInstruction> arguments,
-    SourceInformation sourceInformation,
   ) {
     final node = _closedWorld.elementMap.getMemberDefinition(element).node;
     var definitionHasReceiver = false;
@@ -2685,7 +2650,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         function: element,
         definitionHasReceiver: definitionHasReceiver,
         constantReceiver: constantReceiver,
-        sourceInformation: sourceInformation,
       );
     }
 
@@ -2693,7 +2657,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       function: element,
       definitionHasReceiver: definitionHasReceiver,
       constantReceiver: constantReceiver,
-      sourceInformation: sourceInformation,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
     );
@@ -2704,15 +2667,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   /// Since this is a tear-off of a static method, it has no receiver.
   /// Extension member tear-offs are recorded as calls to their tear-off
   /// implementation in [_recordMethodUses] instead.
-  RecordedUse _recordTearOff(
-    FunctionEntity element,
-    SourceInformation sourceInformation,
-  ) {
+  RecordedUse _recordTearOff(FunctionEntity element) {
     return RecordedTearOff(
       function: element,
       definitionHasReceiver: false,
       constantReceiver: null,
-      sourceInformation: sourceInformation,
     );
   }
 
@@ -2766,12 +2725,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       // TODO(sra): We can lower these in the simplifier.
       js.Name fieldName = _namer.instanceFieldPropertyName(superElement);
       use(node.getDartReceiver());
-      js.PropertyAccess access =
-          js.PropertyAccess(
-                pop(),
-                fieldName,
-              ).withSourceInformation(node.sourceInformation)
-              as js.PropertyAccess;
+      js.PropertyAccess access = js.PropertyAccess(
+        pop(),
+        fieldName,
+      ).withSourceInformation(node.sourceInformation) as js.PropertyAccess;
       if (node.isSetter) {
         use(node.value);
         push(
@@ -2953,9 +2910,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         : target.name;
 
     Object? recordedMethodUses;
-    final sourceInformation = node.sourceInformation;
-    if (sourceInformation != null && _shouldRecordMethodUses(target)) {
-      recordedMethodUses = _recordMethodUses(target, inputs, sourceInformation);
+    if (_shouldRecordMethodUses(target)) {
+      recordedMethodUses = _recordMethodUses(target, inputs);
     }
 
     void invokeWithJavaScriptReceiver(js.Expression receiverExpression) {
@@ -3181,22 +3137,14 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       // TODO(johnniwinther): Support source information on synthetic constants.
       expression = expression.withSourceInformation(sourceInformation);
     }
-    for (final recordedUse in _recordConstantUses(
-      constant,
-      sourceInformation,
-    )) {
+    for (final recordedUse in _recordConstantUses(constant)) {
       expression = expression.withAnnotation(recordedUse);
     }
     push(expression);
   }
 
-  _RecordedUseSequence _recordConstantUses(
-    ConstantValue constant,
-    SourceInformation? sourceInformation,
-  ) {
+  _RecordedUseSequence _recordConstantUses(ConstantValue constant) {
     if (_recordedConstantUsesVisited.containsKey(constant)) {
-      // Note: This returns the recorded uses with the wrong source information,
-      // but we're not using the source information anymore.
       return _recordedConstantUsesVisited[constant]!;
     }
 
@@ -3205,22 +3153,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       case FunctionConstantValue():
         final element = constant.element;
         if (_shouldRecordMethodUses(element)) {
-          resultList.add(_recordTearOff(element, sourceInformation!));
+          resultList.add(_recordTearOff(element));
         }
         if (_shouldRecordConstructor(element)) {
-          resultList.add(
-            _recordConstructorTearOff(element, sourceInformation!),
-          );
+          resultList.add(_recordConstructorTearOff(element));
         }
       case ConstructedConstantValue():
         final element = constant.type.element;
         if (_closedWorld.annotationsData.shouldRecordConstInstances(element)) {
-          resultList.add(
-            RecordedConstInstance(
-              constant: constant,
-              sourceInformation: sourceInformation!,
-            ),
-          );
+          resultList.add(RecordedConstInstance(constant: constant));
         }
       default:
         break;
@@ -3230,7 +3171,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     // Cover nested constants.
     for (final dependency in constant.getDependencies()) {
-      result += _recordConstantUses(dependency, sourceInformation);
+      result += _recordConstantUses(dependency);
     }
 
     _recordedConstantUsesVisited[constant] = result;
@@ -3603,7 +3544,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           .withSourceInformation(node.sourceInformation);
       if (_shouldRecordConstructor(element)) {
         expression = expression.withAnnotation(
-          _recordConstructorTearOff(element, node.sourceInformation!),
+          _recordConstructorTearOff(element),
         );
       }
       push(expression);
@@ -3712,9 +3653,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       return pop();
     }).toList();
     push(
-      js.ArrayInitializer(
-        elements,
-      ).withSourceInformation(node.sourceInformation),
+      js.ArrayInitializer(elements)
+          .withSourceInformation(node.sourceInformation),
     );
   }
 

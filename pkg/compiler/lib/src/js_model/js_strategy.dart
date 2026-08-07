@@ -108,7 +108,7 @@ class JsBackendStrategy {
 
   JsBackendStrategy(this._compiler) {
     bool generateSourceMap = _compiler.options.generateSourceMap;
-    if (!generateSourceMap && !_compiler.options.writeRecordedUses) {
+    if (!generateSourceMap) {
       sourceInformationStrategy = const JavaScriptSourceInformationStrategy();
     } else {
       sourceInformationStrategy = OnlineKernelSourceInformationStrategy();
