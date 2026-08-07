@@ -18677,16 +18677,25 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 /// variable is declared outside of the for loop.
 ///
 ///   forLoopParts ::=
-///       [SimpleIdentifier] 'in' [Expression]
+///       identifier 'in' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForEachPartsWithIdentifier implements ForEachParts {
   /// The loop variable.
+  @ToBeDeprecated('Use identifier2 instead.')
   SimpleIdentifier get identifier;
+
+  /// The loop variable.
+  @experimental
+  Token get identifier2;
+
+  /// The write operation, or `null` if the AST structure hasn't been resolved.
+  @experimental
+  NamedWriteResolution? get write;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('identifier'),
+    GenerateNodeProperty('identifier2'),
     GenerateNodeProperty('inKeyword', isSuper: true),
     GenerateNodeProperty(
       'iterable2',
@@ -18700,21 +18709,29 @@ abstract final class ForEachPartsWithIdentifier implements ForEachParts {
 final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     implements ForEachPartsWithIdentifier {
   @generated
-  SimpleIdentifierImpl _identifier;
+  @override
+  final Token identifier2;
+
+  ScopeLookupResult? scopeLookupResult;
+
+  NamedWriteResolutionImpl? _write;
+
+  @override
+  late final SimpleIdentifierImpl identifier = _becomeParentOf1(
+    SimpleIdentifierImpl.v1Projection(token: identifier2),
+  );
 
   @generated
   ForEachPartsWithIdentifierImpl({
-    required SimpleIdentifierImpl identifier,
+    required this.identifier2,
     required super.inKeyword,
     required super.iterable2,
-  }) : _identifier = identifier {
-    _becomeParentOf12(identifier);
-  }
+  });
 
   @generated
   @override
   Token get beginToken {
-    return identifier.beginToken;
+    return identifier2;
   }
 
   @generated
@@ -18723,16 +18740,21 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     return iterable2.endToken;
   }
 
-  @generated
   @override
-  SimpleIdentifierImpl get identifier => _identifier;
+  NamedWriteResolutionImpl? get write => _write;
 
-  @generated
-  set identifier(SimpleIdentifierImpl identifier) {
-    _identifier = _becomeParentOf12(identifier);
+  set write(NamedWriteResolutionImpl? value) {
+    _write = value;
+    identifier.element = writeElement;
   }
 
-  @generated
+  Element? get writeElement => switch (_write) {
+    InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
+    NamedWriteResolutionWithElementImpl(:var element) => element,
+    _ => null,
+  };
+
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('identifier', identifier)
@@ -18742,7 +18764,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('identifier', identifier)
+    ..addToken('identifier2', identifier2)
     ..addToken('inKeyword', inKeyword)
     ..addNode('iterable2', iterable2);
 
@@ -18762,15 +18784,12 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
-    return identical(iterable2, child);
+    return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(identifier, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'identifier'.");
-    }
     if (identical(iterable2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'iterable2'.");
     }
@@ -18780,10 +18799,6 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(identifier, oldNode)) {
-      identifier = newNode as SimpleIdentifierImpl;
-      return;
-    }
     if (identical(iterable2, oldNode)) {
       iterable2 = newNode as ExpressionImpl;
       return;
@@ -18791,7 +18806,11 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  void setIdentifierStaticType(TypeImpl type) {
+    identifier.setPseudoExpressionStaticType(type);
+  }
+
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -18803,7 +18822,6 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    identifier.accept2(visitor);
     iterable2.accept2(visitor);
   }
 
@@ -18816,14 +18834,8 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(SimpleIdentifierImpl)? visitIdentifier,
     void Function(ExpressionImpl)? visitIterable2,
   }) {
-    if (visitIdentifier != null) {
-      visitIdentifier(identifier);
-    } else {
-      identifier.accept2(visitor);
-    }
     if (visitIterable2 != null) {
       visitIterable2(iterable2);
     } else {
@@ -18831,7 +18843,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (identifier._containsOffset(rangeOffset, rangeEnd)) {
@@ -18846,9 +18858,6 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (identifier._containsOffset(rangeOffset, rangeEnd)) {
-      return identifier;
-    }
     if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
       return iterable2;
     }

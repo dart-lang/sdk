@@ -234,7 +234,8 @@ ListLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -316,7 +317,8 @@ ListLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -440,7 +442,8 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: y
+        identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -483,7 +486,8 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: y
+        identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -695,7 +699,8 @@ SetOrMapLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: c
+          identifier(v1): SimpleIdentifier
             token: c
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -801,7 +806,8 @@ SetOrMapLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier

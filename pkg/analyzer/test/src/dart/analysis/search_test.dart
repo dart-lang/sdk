@@ -3615,90 +3615,347 @@ void f() {
 ''');
   }
 
-  test_searchReferences_FieldElement_ofClass_instance() async {
+  test_searchReferences_FieldElement_ofClass_instance_fieldDeclaration() async {
     var result = await resolveTestCode('''
 /// [foo] and [A.foo]
 class A {
   int foo;
-  A({this.foo});
+  A({this.foo = 0});
   A.foo() : foo = 0;
 
   void useField() {
     foo;
     foo = 0;
+    foo += 1;
+    foo ??= 2;
+    foo++;
+    --foo;
     this.foo;
     this.foo = 0;
+    this.foo += 1;
+    this.foo ??= 2;
+    this.foo++;
+    --this.foo;
   }
 }
 
 void useField(A a) {
   a.foo;
   a.foo = 0;
+  a.foo += 1;
+  a.foo ??= 2;
+  a.foo++;
+  --a.foo;
   A(foo: 0);
 }
-''');
-    var element = result.findElement.field('foo');
 
-    await assertElementReferencesText(element, r'''
+class B extends A {
+  void useSuper() {
+    super.foo;
+    super.foo = 0;
+    super.foo += 1;
+    super.foo ??= 2;
+    super.foo++;
+    --super.foo;
+  }
+}
+''');
+    var field = result.findElement.field('foo');
+
+    await assertElementReferencesText(field, r'''
 <testLibraryFragment> A@28
   5 1:6 |foo| READ
   17 1:18 |foo| READ qualified
 <testLibraryFragment> foo@53
   53 4:11 |foo| WRITE qualified
-<testLibraryFragment> foo@64
-  72 5:13 |foo| WRITE qualified
-<testLibraryFragment> useField@89
-  106 8:5 |foo| READ
-  115 9:5 |foo| WRITE
-  133 10:10 |foo| READ qualified
-  147 11:10 |foo| WRITE qualified
-<testLibraryFragment> useField@168
-  188 16:5 |foo| READ qualified
-  197 17:5 |foo| WRITE qualified
+<testLibraryFragment> foo@68
+  76 5:13 |foo| WRITE qualified
+<testLibraryFragment> useField@93
+  110 8:5 |foo| READ
+  119 9:5 |foo| WRITE
+  132 10:5 |foo| WRITE
+  146 11:5 |foo| WRITE
+  161 12:5 |foo| WRITE
+  174 13:7 |foo| WRITE
+  188 14:10 |foo| READ qualified
+  202 15:10 |foo| WRITE qualified
+  220 16:10 |foo| WRITE qualified
+  239 17:10 |foo| WRITE qualified
+  259 18:10 |foo| WRITE qualified
+  277 19:12 |foo| WRITE qualified
+<testLibraryFragment> useField@294
+  314 24:5 |foo| READ qualified
+  323 25:5 |foo| WRITE qualified
+  336 26:5 |foo| WRITE qualified
+  350 27:5 |foo| WRITE qualified
+  365 28:5 |foo| WRITE qualified
+  378 29:7 |foo| WRITE qualified
+<testLibraryFragment> useSuper@426
+  449 35:11 |foo| READ qualified
+  464 36:11 |foo| WRITE qualified
+  483 37:11 |foo| WRITE qualified
+  503 38:11 |foo| WRITE qualified
+  524 39:11 |foo| WRITE qualified
+  543 40:13 |foo| WRITE qualified
+''');
+
+    await assertElementReferencesText(field.getter!, r'''
+<testLibraryFragment> A@28
+  5 1:6 |foo| REFERENCE
+  17 1:18 |foo| REFERENCE qualified
+<testLibraryFragment> useField@93
+  110 8:5 |foo| REFERENCE
+  188 14:10 |foo| REFERENCE qualified
+<testLibraryFragment> useField@294
+  314 24:5 |foo| REFERENCE qualified
+<testLibraryFragment> useSuper@426
+  449 35:11 |foo| REFERENCE qualified
+''');
+
+    await assertElementReferencesText(field.setter!, r'''
+<testLibraryFragment> useField@93
+  119 9:5 |foo| WRITE
+  132 10:5 |foo| WRITE
+  146 11:5 |foo| WRITE
+  161 12:5 |foo| REFERENCE
+  174 13:7 |foo| REFERENCE
+  202 15:10 |foo| REFERENCE qualified
+  220 16:10 |foo| REFERENCE qualified
+  239 17:10 |foo| REFERENCE qualified
+  259 18:10 |foo| REFERENCE qualified
+  277 19:12 |foo| REFERENCE qualified
+<testLibraryFragment> useField@294
+  323 25:5 |foo| REFERENCE qualified
+  336 26:5 |foo| REFERENCE qualified
+  350 27:5 |foo| REFERENCE qualified
+  365 28:5 |foo| REFERENCE qualified
+  378 29:7 |foo| REFERENCE qualified
+<testLibraryFragment> useSuper@426
+  464 36:11 |foo| REFERENCE qualified
+  483 37:11 |foo| REFERENCE qualified
+  503 38:11 |foo| REFERENCE qualified
+  524 39:11 |foo| REFERENCE qualified
+  543 40:13 |foo| REFERENCE qualified
 ''');
   }
 
-  test_searchReferences_FieldElement_ofClass_instance_synthetic_hasGetter() async {
+  test_searchReferences_FieldElement_ofClass_instance_getterDeclaration() async {
+    var result = await resolveTestCode('''
+/// [foo] and [A.foo]
+class A {
+  A() : foo = 0;
+  int get foo => 0;
+
+  void useGetter() {
+    foo;
+    this.foo;
+  }
+}
+
+void useGetter(A a) {
+  a.foo;
+}
+
+class B extends A {
+  void useSuper() {
+    super.foo;
+  }
+}
+''');
+    var field = result.findElement.field('foo');
+
+    await assertElementReferencesText(field, r'''
+<testLibraryFragment> A@28
+  5 1:6 |foo| READ
+  17 1:18 |foo| READ qualified
+<testLibraryFragment> useGetter@77
+  95 7:5 |foo| READ
+  109 8:10 |foo| READ qualified
+<testLibraryFragment> useGetter@126
+  147 13:5 |foo| READ qualified
+<testLibraryFragment> useSuper@182
+  205 18:11 |foo| READ qualified
+''');
+
+    await assertElementReferencesText(field.getter!, r'''
+<testLibraryFragment> A@28
+  5 1:6 |foo| REFERENCE
+  17 1:18 |foo| REFERENCE qualified
+<testLibraryFragment> useGetter@77
+  95 7:5 |foo| REFERENCE
+  109 8:10 |foo| REFERENCE qualified
+<testLibraryFragment> useGetter@126
+  147 13:5 |foo| REFERENCE qualified
+<testLibraryFragment> useSuper@182
+  205 18:11 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_FieldElement_ofClass_instance_getterSetterDeclarations() async {
     var result = await resolveTestCode('''
 class A {
   A() : foo = 0;
   int get foo => 0;
+  set foo(int _) {}
+
+  void useField() {
+    foo;
+    foo = 0;
+    foo += 1;
+    foo ??= 2;
+    foo++;
+    --foo;
+    this.foo;
+    this.foo = 0;
+    this.foo += 1;
+    this.foo ??= 2;
+    this.foo++;
+    --this.foo;
+  }
+}
+
+void useField(A a) {
+  a.foo;
+  a.foo = 0;
+  a.foo += 1;
+  a.foo ??= 2;
+  a.foo++;
+  --a.foo;
+}
+
+class B extends A {
+  void useSuper() {
+    super.foo;
+    super.foo = 0;
+    super.foo += 1;
+    super.foo ??= 2;
+    super.foo++;
+    --super.foo;
+  }
 }
 ''');
-    var element = result.findElement.field('foo');
+    var field = result.findElement.field('foo');
 
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(field, r'''
+<testLibraryFragment> useField@75
+  92 7:5 |foo| READ
+  101 8:5 |foo| WRITE
+  114 9:5 |foo| WRITE
+  128 10:5 |foo| WRITE
+  143 11:5 |foo| WRITE
+  156 12:7 |foo| WRITE
+  170 13:10 |foo| READ qualified
+  184 14:10 |foo| WRITE qualified
+  202 15:10 |foo| WRITE qualified
+  221 16:10 |foo| WRITE qualified
+  241 17:10 |foo| WRITE qualified
+  259 18:12 |foo| WRITE qualified
+<testLibraryFragment> useField@276
+  296 23:5 |foo| READ qualified
+  305 24:5 |foo| WRITE qualified
+  318 25:5 |foo| WRITE qualified
+  332 26:5 |foo| WRITE qualified
+  347 27:5 |foo| WRITE qualified
+  360 28:7 |foo| WRITE qualified
+<testLibraryFragment> useSuper@395
+  418 33:11 |foo| READ qualified
+  433 34:11 |foo| WRITE qualified
+  452 35:11 |foo| WRITE qualified
+  472 36:11 |foo| WRITE qualified
+  493 37:11 |foo| WRITE qualified
+  512 38:13 |foo| WRITE qualified
+''');
+
+    await assertElementReferencesText(field.getter!, r'''
+<testLibraryFragment> useField@75
+  92 7:5 |foo| REFERENCE
+  170 13:10 |foo| REFERENCE qualified
+<testLibraryFragment> useField@276
+  296 23:5 |foo| REFERENCE qualified
+<testLibraryFragment> useSuper@395
+  418 33:11 |foo| REFERENCE qualified
+''');
+
+    await assertElementReferencesText(field.setter!, r'''
+<testLibraryFragment> useField@75
+  101 8:5 |foo| WRITE
+  114 9:5 |foo| WRITE
+  128 10:5 |foo| WRITE
+  143 11:5 |foo| REFERENCE
+  156 12:7 |foo| REFERENCE
+  184 14:10 |foo| REFERENCE qualified
+  202 15:10 |foo| REFERENCE qualified
+  221 16:10 |foo| REFERENCE qualified
+  241 17:10 |foo| REFERENCE qualified
+  259 18:12 |foo| REFERENCE qualified
+<testLibraryFragment> useField@276
+  305 24:5 |foo| REFERENCE qualified
+  318 25:5 |foo| REFERENCE qualified
+  332 26:5 |foo| REFERENCE qualified
+  347 27:5 |foo| REFERENCE qualified
+  360 28:7 |foo| REFERENCE qualified
+<testLibraryFragment> useSuper@395
+  433 34:11 |foo| REFERENCE qualified
+  452 35:11 |foo| REFERENCE qualified
+  472 36:11 |foo| REFERENCE qualified
+  493 37:11 |foo| REFERENCE qualified
+  512 38:13 |foo| REFERENCE qualified
 ''');
   }
 
-  test_searchReferences_FieldElement_ofClass_instance_synthetic_hasGetterSetter() async {
+  test_searchReferences_FieldElement_ofClass_instance_setterDeclaration() async {
     var result = await resolveTestCode('''
+/// [foo] and [A.foo]
 class A {
   A() : foo = 0;
-  int get foo => 0;
-  set foo(_) {}
+  set foo(int _) {}
+
+  void useSetter() {
+    foo = 0;
+    this.foo = 0;
+  }
+}
+
+void useSetter(A a) {
+  a.foo = 0;
+}
+
+class B extends A {
+  void useSuper() {
+    super.foo = 0;
+  }
 }
 ''');
-    var element = result.findElement.field('foo');
+    var field = result.findElement.field('foo');
 
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(field, r'''
+<testLibraryFragment> A@28
+  5 1:6 |foo| WRITE
+  17 1:18 |foo| WRITE qualified
+<testLibraryFragment> useSetter@77
+  95 7:5 |foo| WRITE
+  113 8:10 |foo| WRITE qualified
+<testLibraryFragment> useSetter@134
+  155 13:5 |foo| WRITE qualified
+<testLibraryFragment> useSuper@194
+  217 18:11 |foo| WRITE qualified
+''');
+
+    await assertElementReferencesText(field.setter!, r'''
+<testLibraryFragment> A@28
+  5 1:6 |foo| REFERENCE
+  17 1:18 |foo| REFERENCE qualified
+<testLibraryFragment> useSetter@77
+  95 7:5 |foo| WRITE
+  113 8:10 |foo| REFERENCE qualified
+<testLibraryFragment> useSetter@134
+  155 13:5 |foo| REFERENCE qualified
+<testLibraryFragment> useSuper@194
+  217 18:11 |foo| REFERENCE qualified
 ''');
   }
 
-  test_searchReferences_FieldElement_ofClass_instance_synthetic_hasSetter() async {
-    var result = await resolveTestCode('''
-class A {
-  A() : foo = 0;
-  set foo(_) {}
-}
-''');
-    var element = result.findElement.field('foo');
-
-    await assertElementReferencesText(element, r'''
-''');
-  }
-
-  test_searchReferences_FieldElement_ofClass_static() async {
+  test_searchReferences_FieldElement_ofClass_static_fieldDeclaration() async {
     var result = await resolveTestCode('''
 /// [foo] and [A.foo]
 class A {
@@ -3717,9 +3974,9 @@ void useField() {
   A a = .foo;
 }
 ''');
-    var element = result.findElement.field('foo');
+    var field = result.findElement.field('foo');
 
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(field, r'''
 <testLibraryFragment> A@28
   5 1:6 |foo| READ
   17 1:18 |foo| READ qualified
@@ -3733,9 +3990,29 @@ void useField() {
   167 14:5 |foo| WRITE qualified
   185 15:10 |foo| READ qualified
 ''');
+
+    await assertElementReferencesText(field.getter!, r'''
+<testLibraryFragment> A@28
+  5 1:6 |foo| REFERENCE
+  17 1:18 |foo| REFERENCE qualified
+<testLibraryFragment> useField@68
+  85 5:5 |foo| REFERENCE
+  109 7:7 |foo| REFERENCE qualified
+<testLibraryFragment> useField@141
+  158 13:5 |foo| REFERENCE qualified
+  185 15:10 |foo| REFERENCE qualified
+''');
+
+    await assertElementReferencesText(field.setter!, r'''
+<testLibraryFragment> useField@68
+  94 6:5 |foo| WRITE
+  120 8:7 |foo| REFERENCE qualified
+<testLibraryFragment> useField@141
+  167 14:5 |foo| REFERENCE qualified
+''');
   }
 
-  test_searchReferences_FieldElement_ofEnum_instance() async {
+  test_searchReferences_FieldElement_ofEnum_instance_fieldDeclaration() async {
     var result = await resolveTestCode('''
 /// [foo] and [E.foo]
 enum E {
@@ -3753,9 +4030,9 @@ void useField(E e) {
   E(foo: 0);
 }
 ''');
-    var element = result.findElement.field('foo');
+    var field = result.findElement.field('foo');
 
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(field, r'''
 <testLibraryFragment> E@27
   5 1:6 |foo| READ
   17 1:18 |foo| READ qualified
@@ -3768,9 +4045,26 @@ void useField(E e) {
   162 12:5 |foo| READ qualified
   171 13:5 |foo| WRITE qualified
 ''');
+
+    await assertElementReferencesText(field.getter!, r'''
+<testLibraryFragment> E@27
+  5 1:6 |foo| REFERENCE
+  17 1:18 |foo| REFERENCE qualified
+<testLibraryFragment> useField@96
+  113 7:5 |foo| REFERENCE
+<testLibraryFragment> useField@142
+  162 12:5 |foo| REFERENCE qualified
+''');
+
+    await assertElementReferencesText(field.setter!, r'''
+<testLibraryFragment> useField@96
+  122 8:5 |foo| WRITE
+<testLibraryFragment> useField@142
+  171 13:5 |foo| REFERENCE qualified
+''');
   }
 
-  test_searchReferences_FieldElement_ofEnum_instance_final_invalidWrite() async {
+  test_searchReferences_FieldElement_ofEnum_instance_fieldDeclaration_final_invalidWrite() async {
     var result = await resolveTestCode('''
 enum E {
   v;
@@ -3780,9 +4074,46 @@ enum E {
   }
 }
 ''');
-    var element = result.findElement.field('foo');
+    var field = result.findElement.field('foo');
 
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(field, r'''
+''');
+    await assertElementReferencesText(field.getter!, r'''
+''');
+  }
+
+  test_searchReferences_FieldElement_ofEnum_instance_getterDeclaration() async {
+    var result = await resolveTestCode('''
+enum E {
+  v;
+  E() : foo = 0;
+  int get foo => 0;
+}
+''');
+    var field = result.findElement.field('foo');
+
+    await assertElementReferencesText(field, r'''
+''');
+    await assertElementReferencesText(field.getter!, r'''
+''');
+  }
+
+  test_searchReferences_FieldElement_ofEnum_instance_getterSetterDeclarations() async {
+    var result = await resolveTestCode('''
+enum E {
+  v;
+  E() : foo = 0;
+  int get foo => 0;
+  set foo(_) {}
+}
+''');
+    var field = result.findElement.field('foo');
+
+    await assertElementReferencesText(field, r'''
+''');
+    await assertElementReferencesText(field.getter!, r'''
+''');
+    await assertElementReferencesText(field.setter!, r'''
 ''');
   }
 
@@ -3803,38 +4134,14 @@ main() {
 <testLibraryFragment> main@29
   50 5:13 |index| READ qualified
 ''');
-  }
 
-  test_searchReferences_FieldElement_ofEnum_instance_synthetic_hasGetter() async {
-    var result = await resolveTestCode('''
-enum E {
-  v;
-  E() : foo = 0;
-  int get foo => 0;
-}
-''');
-    var element = result.findElement.field('foo');
-
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(index.getter!, r'''
+<testLibraryFragment> main@29
+  50 5:13 |index| REFERENCE qualified
 ''');
   }
 
-  test_searchReferences_FieldElement_ofEnum_instance_synthetic_hasGetterSetter() async {
-    var result = await resolveTestCode('''
-enum E {
-  v;
-  E() : foo = 0;
-  int get foo => 0;
-  set foo(_) {}
-}
-''');
-    var element = result.findElement.field('foo');
-
-    await assertElementReferencesText(element, r'''
-''');
-  }
-
-  test_searchReferences_FieldElement_ofEnum_instance_synthetic_hasSetter() async {
+  test_searchReferences_FieldElement_ofEnum_instance_setterDeclaration() async {
     var result = await resolveTestCode('''
 enum E {
   v;
@@ -3842,9 +4149,11 @@ enum E {
   set foo(_) {}
 }
 ''');
-    var element = result.findElement.field('foo');
+    var field = result.findElement.field('foo');
 
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(field, r'''
+''');
+    await assertElementReferencesText(field.setter!, r'''
 ''');
   }
 
@@ -3871,6 +4180,11 @@ main() {
   133 9:10 |values| READ qualified
   193 13:12 |values| READ qualified
 ''');
+    await assertElementReferencesText(values.getter!, r'''
+<testLibraryFragment> main@96
+  133 9:10 |values| REFERENCE qualified
+  193 13:12 |values| REFERENCE qualified
+''');
 
     var v1 = result.findElement.field('v1');
     await assertElementReferencesText(v1, r'''
@@ -3883,15 +4197,90 @@ main() {
   150 10:10 |v1| READ qualified
   178 12:12 |v1| READ qualified
 ''');
+    await assertElementReferencesText(v1.getter!, r'''
+<testLibraryFragment> MyEnum@72
+  31 3:6 |v1| REFERENCE
+  44 3:19 |v1| REFERENCE qualified
+  63 3:38 |v1| REFERENCE qualified
+<testLibraryFragment> main@96
+  114 8:10 |v1| REFERENCE qualified
+  150 10:10 |v1| REFERENCE qualified
+  178 12:12 |v1| REFERENCE qualified
+''');
 
     var v2 = result.findElement.field('v2');
     await assertElementReferencesText(v2, r'''
 <testLibraryFragment> main@96
   163 11:10 |v2| READ qualified
 ''');
+    await assertElementReferencesText(v2.getter!, r'''
+<testLibraryFragment> main@96
+  163 11:10 |v2| REFERENCE qualified
+''');
   }
 
-  test_searchReferences_FieldElement_ofExtensionType_static() async {
+  test_searchReferences_FieldElement_ofExtension_instance_getterSetterDeclarations() async {
+    var result = await resolveTestCode('''
+extension E on int {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void useField(int a) {
+  a.foo;
+  a.foo = 0;
+  a.foo += 1;
+  a.foo ??= 2;
+  a.foo++;
+  --a.foo;
+  E(a).foo;
+  E(a).foo = 0;
+  E(a).foo += 1;
+  E(a).foo ??= 2;
+  E(a).foo++;
+  --E(a).foo;
+}
+''');
+    var field = result.findElement.field('foo');
+
+    await assertElementReferencesText(field, r'''
+<testLibraryFragment> useField@69
+  91 7:5 |foo| READ qualified
+  100 8:5 |foo| WRITE qualified
+  113 9:5 |foo| WRITE qualified
+  127 10:5 |foo| WRITE qualified
+  142 11:5 |foo| WRITE qualified
+  155 12:7 |foo| WRITE qualified
+  167 13:8 |foo| READ qualified
+  179 14:8 |foo| WRITE qualified
+  195 15:8 |foo| WRITE qualified
+  212 16:8 |foo| WRITE qualified
+  230 17:8 |foo| WRITE qualified
+  246 18:10 |foo| WRITE qualified
+''');
+
+    await assertElementReferencesText(field.getter!, r'''
+<testLibraryFragment> useField@69
+  91 7:5 |foo| REFERENCE qualified
+  167 13:8 |foo| REFERENCE qualified
+''');
+
+    await assertElementReferencesText(field.setter!, r'''
+<testLibraryFragment> useField@69
+  100 8:5 |foo| REFERENCE qualified
+  113 9:5 |foo| REFERENCE qualified
+  127 10:5 |foo| REFERENCE qualified
+  142 11:5 |foo| REFERENCE qualified
+  155 12:7 |foo| REFERENCE qualified
+  179 14:8 |foo| REFERENCE qualified
+  195 15:8 |foo| REFERENCE qualified
+  212 16:8 |foo| REFERENCE qualified
+  230 17:8 |foo| REFERENCE qualified
+  246 18:10 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_FieldElement_ofExtensionType_static_fieldDeclaration() async {
     var result = await resolveTestCode('''
 /// [foo] and [A.foo]
 extension type A(int it) {
@@ -3906,9 +4295,9 @@ void useField() {
   A.foo = 0;
 }
 ''');
-    var element = result.findElement.field('foo');
+    var field = result.findElement.field('foo');
 
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(field, r'''
 <testLibraryFragment> A@37
   5 1:6 |foo| READ
   17 1:18 |foo| READ qualified
@@ -3918,6 +4307,23 @@ void useField() {
 <testLibraryFragment> useField@124
   141 10:5 |foo| READ qualified
   150 11:5 |foo| WRITE qualified
+''');
+
+    await assertElementReferencesText(field.getter!, r'''
+<testLibraryFragment> A@37
+  5 1:6 |foo| REFERENCE
+  17 1:18 |foo| REFERENCE qualified
+<testLibraryFragment> useField@78
+  95 5:5 |foo| REFERENCE
+<testLibraryFragment> useField@124
+  141 10:5 |foo| REFERENCE qualified
+''');
+
+    await assertElementReferencesText(field.setter!, r'''
+<testLibraryFragment> useField@78
+  104 6:5 |foo| WRITE
+<testLibraryFragment> useField@124
+  150 11:5 |foo| REFERENCE qualified
 ''');
   }
 
@@ -4972,34 +5378,6 @@ main() {
 <testLibraryFragment> main@0
   23 3:3 |test| INVOCATION
   33 4:3 |test| REFERENCE
-''');
-  }
-
-  test_searchReferences_GetterElement_ofClass_instance() async {
-    var result = await resolveTestCode('''
-/// [foo] and [A.foo]
-class A {
-  int get foo => 0;
-  void useGetter() {
-    foo;
-    this.foo;
-  }
-}
-
-void useGetter(A a) {
-  a.foo;
-}
-''');
-    var element = result.findElement.getter('foo');
-    await assertElementReferencesText(element, r'''
-<testLibraryFragment> A@28
-  5 1:6 |foo| REFERENCE
-  17 1:18 |foo| REFERENCE qualified
-<testLibraryFragment> useGetter@59
-  77 5:5 |foo| REFERENCE
-  91 6:10 |foo| REFERENCE qualified
-<testLibraryFragment> useGetter@108
-  129 11:5 |foo| REFERENCE qualified
 ''');
   }
 
@@ -6781,34 +7159,6 @@ class A {
 ''');
   }
 
-  test_searchReferences_SetterElement_ofClass_instance() async {
-    var result = await resolveTestCode('''
-/// [foo] and [A.foo]
-class A {
-  set foo(int _) {}
-  void useSetter() {
-    foo = 0;
-    this.foo = 0;
-  }
-}
-
-void useSetter(A a) {
-  a.foo = 0;
-}
-''');
-    var element = result.findElement.setter('foo');
-    await assertElementReferencesText(element, r'''
-<testLibraryFragment> A@28
-  5 1:6 |foo| REFERENCE
-  17 1:18 |foo| REFERENCE qualified
-<testLibraryFragment> useSetter@59
-  77 5:5 |foo| WRITE
-  95 6:10 |foo| REFERENCE qualified
-<testLibraryFragment> useSetter@116
-  137 11:5 |foo| REFERENCE qualified
-''');
-  }
-
   test_searchReferences_SetterElement_ofClass_static() async {
     var result = await resolveTestCode('''
 import 'test.dart' as p;
@@ -7001,7 +7351,235 @@ void f() {
 ''');
   }
 
-  test_searchReferences_TopLevelVariableElement() async {
+  test_searchReferences_TopLevelVariableElement_getterDeclaration() async {
+    var result = await resolveTestCode('''
+import 'test.dart' as p;
+
+int get foo => 0;
+
+/// [foo] and [p.foo].
+void f() {
+  foo;
+  p.foo;
+}
+''');
+
+    var variable = result.findElement.topVar('foo');
+    await assertElementReferencesText(variable, r'''
+<testLibraryFragment> f@73
+  50 5:6 |foo| READ
+  62 5:18 |foo| READ qualified
+  81 7:3 |foo| READ
+  90 8:5 |foo| READ qualified
+''');
+    await assertElementReferencesText(variable.getter!, r'''
+<testLibraryFragment> f@73
+  50 5:6 |foo| REFERENCE
+  62 5:18 |foo| REFERENCE qualified
+  81 7:3 |foo| REFERENCE
+  90 8:5 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_TopLevelVariableElement_getterSetterDeclarations() async {
+    var result = await resolveTestCode('''
+import 'test.dart' as p;
+
+int get foo => 0;
+set foo(int _) {}
+
+/// [foo] and [p.foo].
+void f() {
+  foo;
+  foo = 0;
+  foo += 1;
+  foo ??= 2;
+  foo++;
+  --foo;
+  p.foo;
+  p.foo = 0;
+  p.foo += 1;
+  p.foo ??= 2;
+  p.foo++;
+  --p.foo;
+}
+''');
+
+    var variable = result.findElement.topVar('foo');
+    await assertElementReferencesText(variable, r'''
+<testLibraryFragment> f@91
+  68 6:6 |foo| READ
+  80 6:18 |foo| READ qualified
+  99 8:3 |foo| READ
+  106 9:3 |foo| WRITE
+  117 10:3 |foo| WRITE
+  129 11:3 |foo| WRITE
+  142 12:3 |foo| WRITE
+  153 13:5 |foo| WRITE
+  162 14:5 |foo| READ qualified
+  171 15:5 |foo| WRITE qualified
+  184 16:5 |foo| WRITE qualified
+  198 17:5 |foo| WRITE qualified
+  213 18:5 |foo| WRITE qualified
+  226 19:7 |foo| WRITE qualified
+''');
+    await assertElementReferencesText(variable.getter!, r'''
+<testLibraryFragment> f@91
+  68 6:6 |foo| REFERENCE
+  80 6:18 |foo| REFERENCE qualified
+  99 8:3 |foo| REFERENCE
+  162 14:5 |foo| REFERENCE qualified
+''');
+    await assertElementReferencesText(variable.setter!, r'''
+<testLibraryFragment> f@91
+  106 9:3 |foo| WRITE
+  117 10:3 |foo| WRITE
+  129 11:3 |foo| WRITE
+  142 12:3 |foo| REFERENCE
+  153 13:5 |foo| REFERENCE
+  171 15:5 |foo| REFERENCE qualified
+  184 16:5 |foo| REFERENCE qualified
+  198 17:5 |foo| REFERENCE qualified
+  213 18:5 |foo| REFERENCE qualified
+  226 19:7 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_TopLevelVariableElement_getterSetterDeclarations_importCombinator_show() async {
+    var result = await resolveTestCode('''
+import 'test.dart' show foo;
+
+int get foo => 0;
+void set foo(_) {}
+''');
+    var variable = result.findElement.topVar('foo');
+    await assertElementReferencesText(variable, r'''
+#F0
+  24 1:25 |foo| READ qualified
+  24 1:25 |foo| WRITE qualified
+''');
+    await assertElementReferencesText(variable.getter!, r'''
+#F0
+  24 1:25 |foo| REFERENCE qualified
+''');
+    await assertElementReferencesText(variable.setter!, r'''
+#F0
+  24 1:25 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_TopLevelVariableElement_setterDeclaration() async {
+    var result = await resolveTestCode('''
+import 'test.dart' as p;
+
+set foo(int _) {}
+
+void f() {
+  foo = 0;
+  p.foo = 0;
+}
+''');
+
+    var variable = result.findElement.topVar('foo');
+    await assertElementReferencesText(variable, r'''
+<testLibraryFragment> f@50
+  58 6:3 |foo| WRITE
+  71 7:5 |foo| WRITE qualified
+''');
+    await assertElementReferencesText(variable.setter!, r'''
+<testLibraryFragment> f@50
+  58 6:3 |foo| WRITE
+  71 7:5 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_TopLevelVariableElement_setterDeclaration_importCombinator_show() async {
+    var result = await resolveTestCode('''
+import 'test.dart' show foo;
+
+void set foo(_) {}
+''');
+    var variable = result.findElement.topVar('foo');
+    await assertElementReferencesText(variable, r'''
+#F0
+  24 1:25 |foo| WRITE qualified
+''');
+    await assertElementReferencesText(variable.setter!, r'''
+#F0
+  24 1:25 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_TopLevelVariableElement_variableDeclaration() async {
+    var result = await resolveTestCode('''
+import 'test.dart' as p;
+
+int foo = 0;
+
+/// [foo] and [p.foo].
+@foo
+@p.foo
+void f() {
+  foo;
+  foo = 0;
+  foo += 1;
+  foo ??= 2;
+  foo++;
+  --foo;
+  p.foo;
+  p.foo = 0;
+  p.foo += 1;
+  p.foo ??= 2;
+  p.foo++;
+  --p.foo;
+}
+''');
+    var variable = result.findElement.topVar('foo');
+
+    await assertElementReferencesText(variable, r'''
+<testLibraryFragment> f@80
+  45 5:6 |foo| READ
+  57 5:18 |foo| READ qualified
+  64 6:2 |foo| READ
+  71 7:4 |foo| READ qualified
+  88 9:3 |foo| READ
+  95 10:3 |foo| WRITE
+  106 11:3 |foo| WRITE
+  118 12:3 |foo| WRITE
+  131 13:3 |foo| WRITE
+  142 14:5 |foo| WRITE
+  151 15:5 |foo| READ qualified
+  160 16:5 |foo| WRITE qualified
+  173 17:5 |foo| WRITE qualified
+  187 18:5 |foo| WRITE qualified
+  202 19:5 |foo| WRITE qualified
+  215 20:7 |foo| WRITE qualified
+''');
+    await assertElementReferencesText(variable.getter!, r'''
+<testLibraryFragment> f@80
+  45 5:6 |foo| REFERENCE
+  57 5:18 |foo| REFERENCE qualified
+  64 6:2 |foo| REFERENCE
+  71 7:4 |foo| REFERENCE qualified
+  88 9:3 |foo| REFERENCE
+  151 15:5 |foo| REFERENCE qualified
+''');
+    await assertElementReferencesText(variable.setter!, r'''
+<testLibraryFragment> f@80
+  95 10:3 |foo| WRITE
+  106 11:3 |foo| WRITE
+  118 12:3 |foo| WRITE
+  131 13:3 |foo| REFERENCE
+  142 14:5 |foo| REFERENCE
+  160 16:5 |foo| REFERENCE qualified
+  173 17:5 |foo| REFERENCE qualified
+  187 18:5 |foo| REFERENCE qualified
+  202 19:5 |foo| REFERENCE qualified
+  215 20:7 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_TopLevelVariableElement_variableDeclaration_invocation() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 var V;
@@ -7018,10 +7596,10 @@ main() {
   V();
 }
 ''');
-    var element = result.findElement
+    var variable = result.findElement
         .importFind('package:test/lib.dart', mustBeUnique: false)
         .topVar('V');
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(variable, r'''
 #F0
   23 1:24 |V| READ qualified
   23 1:24 |V| WRITE qualified
@@ -7033,70 +7611,21 @@ main() {
   109 8:3 |V| READ
   114 9:3 |V| READ
 ''');
-  }
-
-  test_searchReferences_TopLevelVariableElement_reference() async {
-    var result = await resolveTestCode('''
-import 'test.dart' as p;
-
-var foo = 0;
-
-/// [foo] and [p.foo].
-@foo
-@p.foo
-void f() {
-  foo;
-  foo = 0;
-  p.foo;
-  p.foo = 0;
-}
-''');
-    var element = result.findElement.topVar('foo');
-    var getter = element.getter!;
-    var setter = element.setter!;
-
-    await assertElementReferencesText(getter, r'''
-<testLibraryFragment> f@80
-  45 5:6 |foo| REFERENCE
-  57 5:18 |foo| REFERENCE qualified
-  64 6:2 |foo| REFERENCE
-  71 7:4 |foo| REFERENCE qualified
-  88 9:3 |foo| REFERENCE
-  108 11:5 |foo| REFERENCE qualified
-''');
-
-    await assertElementReferencesText(setter, r'''
-<testLibraryFragment> f@80
-  95 10:3 |foo| WRITE
-  117 12:5 |foo| REFERENCE qualified
-''');
-  }
-
-  test_searchReferences_TopLevelVariableElement_reference_combinator_show_hasGetterSetter() async {
-    var result = await resolveTestCode('''
-import 'test.dart' show foo;
-
-int get foo => 0;
-void set foo(_) {}
-''');
-    var element = result.findElement.topVar('foo');
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(variable.getter!, r'''
 #F0
-  24 1:25 |foo| READ qualified
-  24 1:25 |foo| WRITE qualified
+  23 1:24 |V| REFERENCE qualified
+<testLibraryFragment> main@53
+  83 5:8 |V| REFERENCE qualified
+  93 6:8 |V| REFERENCE qualified
+  109 8:3 |V| REFERENCE
+  114 9:3 |V| REFERENCE
 ''');
-  }
-
-  test_searchReferences_TopLevelVariableElement_reference_combinator_show_hasSetter() async {
-    var result = await resolveTestCode('''
-import 'test.dart' show foo;
-
-void set foo(_) {}
-''');
-    var element = result.findElement.topVar('foo');
-    await assertElementReferencesText(element, r'''
+    await assertElementReferencesText(variable.setter!, r'''
 #F0
-  24 1:25 |foo| WRITE qualified
+  23 1:24 |V| REFERENCE qualified
+<testLibraryFragment> main@53
+  69 4:8 |V| REFERENCE qualified
+  100 7:3 |V| WRITE
 ''');
   }
 

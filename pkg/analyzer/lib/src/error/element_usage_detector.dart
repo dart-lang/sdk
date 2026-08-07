@@ -732,6 +732,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void forEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    var element = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) =>
+        candidates.isEmpty ? null : candidates.first,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    checkUsage(element, node);
+  }
+
   void formalParameter(FormalParameter node) {
     var parameterList = node.parentFormalParameterList2;
     if (parameterList.parent2 case ConstructorDeclaration constructor) {

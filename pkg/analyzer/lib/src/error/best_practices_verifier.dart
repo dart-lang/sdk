@@ -512,6 +512,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    _elementUsageFrontierDetector.forEachPartsWithIdentifier(node);
+    super.visitForEachPartsWithIdentifier(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredFragment!.element;

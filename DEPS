@@ -59,7 +59,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "60c0eacc4701121cb5de4e4fb0567faf88352215",
+  "co19_rev": "ab10223374c3290a189f66187d9196e3c5444476",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "02b00ba22d77dc489e481c33b279edf5d008e0cd",
@@ -102,7 +102,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "9926156a583cec3d22d521232b31c70fa9a87dc1",
-  "boringssl_rev": "7515be5ccd601ae0433d3682ba7737592b402014",
+  "boringssl_rev": "619e6bc3deda4e0d2fe4ad3fc439ae4fc1e00caf",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "21f1838f3a9b138ac377efb953ca5a53c8832e75",

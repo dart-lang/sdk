@@ -1797,6 +1797,24 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    var element = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) =>
+        candidates.isEmpty ? null : candidates.first,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    if (elements.contains(element)) {
+      _addResultImpl(
+        node.identifier2,
+        SearchResultKind.WRITE,
+        isQualified: false,
+      );
+    }
+    node.iterable2.accept2(this);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     var element = node.element;
     if (elements.contains(element)) {

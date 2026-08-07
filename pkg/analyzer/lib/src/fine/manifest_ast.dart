@@ -300,6 +300,21 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   void visitDoubleLiteral(DoubleLiteral node) {}
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    node.visitChildren2(this);
+    switch (node.write) {
+      case InvalidNamedWriteResolution(:var candidates):
+        for (var element in candidates) {
+          _addElement(element);
+        }
+      case NamedWriteResolutionWithElement(:var element):
+        _addElement(element);
+      case null:
+      case DynamicPropertyWriteResolution():
+    }
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     node.visitChildren2(this);
   }

@@ -1166,6 +1166,30 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    var write = node.write;
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+        assembler.addPrefixForElement(element);
+      }
+      recordRelation(
+        element,
+        IndexRelationKind.IS_WRITTEN_BY,
+        node.identifier2,
+        false,
+      );
+    } else {
+      assembler.addNameRelation(
+        node.identifier2.lexeme,
+        IndexRelationKind.IS_WRITTEN_BY,
+        node.identifier2.offset,
+        false,
+      );
+    }
+    node.iterable2.accept2(this);
+  }
+
+  @override
   void visitIfNullAssignment(IfNullAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
       case InvalidExpressionAssignmentTargetImpl():

@@ -816,7 +816,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithIdentifier>(
       destination: parseResult.findNode.forEachPartsWithIdentifier('a in'),
       source: parseResult.findNode.forEachPartsWithIdentifier('b in'),
-      childAccessors: [(node) => node.identifier, (node) => node.iterable2],
+      childAccessors: [(node) => node.iterable2],
     );
   }
 

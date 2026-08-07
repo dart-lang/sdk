@@ -755,7 +755,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -943,7 +944,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -971,7 +973,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier

@@ -844,6 +844,20 @@ class AssignmentExpressionShared {
     }
   }
 
+  void checkFinalForEachIdentifier(ForEachPartsWithIdentifierImpl node) {
+    if (_resolver.flowAnalysis.flow == null) return;
+    if (node.write case VariableWriteResolutionImpl(
+      element: PromotableElementImpl element,
+    )) {
+      _checkFinalAlreadyAssigned(
+        node,
+        element,
+        isForEachIdentifier: true,
+        errorToken: node.identifier2,
+      );
+    }
+  }
+
   void checkFinalTargetAlreadyAssigned(
     UnqualifiedNameAssignmentTargetImpl target,
   ) {
@@ -858,6 +872,7 @@ class AssignmentExpressionShared {
     AstNode node,
     PromotableElementImpl element, {
     required bool isForEachIdentifier,
+    Token? errorToken,
   }) {
     var flowAnalysis = _resolver.flowAnalysis;
     var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
@@ -866,13 +881,15 @@ class AssignmentExpressionShared {
     if (element.isFinal) {
       if (element.isLate) {
         if (isForEachIdentifier || assigned) {
-          _errorReporter.report(diag.lateFinalLocalAlreadyAssigned.at(node));
+          _errorReporter.report(
+            diag.lateFinalLocalAlreadyAssigned.at(errorToken ?? node),
+          );
         }
       } else if (isForEachIdentifier || !unassigned) {
         _errorReporter.report(
           diag.assignmentToFinalLocal
               .withArguments(variableName: element.name!)
-              .at(node),
+              .at(errorToken ?? node),
         );
       }
     }

@@ -160,7 +160,11 @@ class DartRuntimeService {
     if (silenceServiceOutput) {
       return;
     }
-    stdout.writeln(message);
+    // print() must be used instead of stdout.writeln() so that embedded
+    // environments (such as Flutter on Android) can capture VM service
+    // listening announcements through the embedder's print handler and
+    // system logcat, as stdout is discarded by default on Android.
+    print(message);
   }
 
   /// Initializes the service's state without starting the web server.

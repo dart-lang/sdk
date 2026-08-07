@@ -380,6 +380,19 @@ class A {
 ''');
   }
 
+  test_locate_Identifier_forEachParts_v1Projection() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int x) {
+  for (x in <int>[]) {}
+}
+''');
+    var parts = result.findNode.singleForEachPartsWithIdentifier;
+    var element = ElementLocator.locate(parts.identifier);
+    _assertElement(element, r'''
+<testLibrary>::@function::f::@formalParameter::x
+''');
+  }
+
   test_locate_Identifier_functionCallMethod_invocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
@@ -1230,6 +1243,19 @@ extension type A(int it) {}
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extensionType::A
+''');
+  }
+
+  test_locate_ForEachPartsWithIdentifier() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int x) {
+  for (x in <int>[]) {}
+}
+''');
+    var node = result.findNode.singleForEachPartsWithIdentifier;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f::@formalParameter::x
 ''');
   }
 
