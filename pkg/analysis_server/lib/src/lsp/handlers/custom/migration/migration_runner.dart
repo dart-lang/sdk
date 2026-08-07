@@ -65,7 +65,7 @@ class MigrationRunner({
     );
   }
 
-  void _applyAndRecordEdits(ChangeBuilder builder) {
+  Future<void> _applyAndRecordEdits(ChangeBuilder builder) async {
     for (var fileEdit in builder.sourceChange.edits) {
       // Record the edit to be returned to the client at the end of the entire
       // migration.
@@ -75,6 +75,7 @@ class MigrationRunner({
       // updated code.
       applyTemporaryOverlayEdits(fileEdit);
     }
+    await applyOverlays();
   }
 
   /// Applies the pubspec SDK constraint bump edit.
@@ -178,7 +179,7 @@ class MigrationRunner({
     }
 
     summaryBuilder.recordCleanUpChanges(cleanUpFixDetails, pubspec);
-    _applyAndRecordEdits(targetVersionChangeBuilder);
+    await _applyAndRecordEdits(targetVersionChangeBuilder);
 
     return ExecutionOutcome.success;
   }
@@ -211,41 +212,37 @@ class MigrationRunner({
 
     // Run preparatory fixes.
     var builder = await _createBuilder();
-    if (runPrepare || runBump) {
-      // If we are preparing, we write the edits to the main builder.
-      // If we are bumping without preparing, we only check for edits without
-      // applying them, so we write them to a separate temporary builder to
-      // discard them.
-      var preparatoryStepBuilder = runPrepare
-          ? builder
-          : await _createBuilder();
-      var lintCodes =
-          preparatoryLintsRegistry[versionBumpEdit.targetVersion] ?? [];
-      var preparatoryFixDetails = await _runMigrations(
-        context: context,
-        pubspec: pubspec,
-        lintCodes: lintCodes,
-        builder: preparatoryStepBuilder,
-        step: MigrationStep.Prepare,
+    // If we are preparing, we write the edits to the main builder.
+    // If we are bumping without preparing, we only check for edits without
+    // applying them, so we write them to a separate temporary builder to
+    // discard them.
+    var preparatoryStepBuilder = runPrepare ? builder : await _createBuilder();
+    var lintCodes =
+        preparatoryLintsRegistry[versionBumpEdit.targetVersion] ?? [];
+    var preparatoryFixDetails = await _runMigrations(
+      context: context,
+      pubspec: pubspec,
+      lintCodes: lintCodes,
+      builder: preparatoryStepBuilder,
+      step: MigrationStep.Prepare,
+    );
+    if (preparatoryFixDetails == null) {
+      return ExecutionOutcome.exception;
+    }
+
+    // Prevent version bumps when the user needs to migrate their code.
+    if (runBump && !runPrepare && preparatoryFixDetails.isNotEmpty) {
+      summaryBuilder.recordStepFailure(
+        pubspec,
+        MigrationStep.Bump,
+        'Package "${pubspec.displayName}" requires pre-bump fixes '
+        'before the SDK constraint can be bumped.',
       );
-      if (preparatoryFixDetails == null) {
-        return ExecutionOutcome.exception;
-      }
+      return ExecutionOutcome.exception;
+    }
 
-      // Prevent version bumps when the user needs to migrate their code.
-      if (runBump && !runPrepare && preparatoryFixDetails.isNotEmpty) {
-        summaryBuilder.recordStepFailure(
-          pubspec,
-          MigrationStep.Bump,
-          'Package "${pubspec.displayName}" requires pre-bump fixes '
-          'before the SDK constraint can be bumped.',
-        );
-        return ExecutionOutcome.exception;
-      }
-
-      if (runPrepare) {
-        summaryBuilder.recordPreparatoryChanges(preparatoryFixDetails, pubspec);
-      }
+    if (runPrepare) {
+      summaryBuilder.recordPreparatoryChanges(preparatoryFixDetails, pubspec);
     }
 
     // Bump version constraint.
@@ -259,11 +256,7 @@ class MigrationRunner({
       );
     }
 
-    if (runPrepare || runBump) {
-      _applyAndRecordEdits(builder);
-      await applyOverlays();
-      await server.analysisDriverScheduler.waitForIdle();
-    }
+    await _applyAndRecordEdits(builder);
 
     return ExecutionOutcome.success;
   }
