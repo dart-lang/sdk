@@ -33,8 +33,10 @@ static Dart_Handle GetFilter(Dart_Handle filter_obj, Filter** filter) {
 }
 
 static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
-                                  uint8_t** dictionary) {
+                                  uint8_t** dictionary,
+                                  intptr_t* dictionary_length) {
   ASSERT(dictionary != nullptr);
+  ASSERT(dictionary_length != nullptr);
   uint8_t* src = nullptr;
   intptr_t size;
   Dart_TypedData_Type type;
@@ -63,6 +65,7 @@ static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
   }
 
   *dictionary = result;
+  *dictionary_length = size;
   return Dart_Null();
 }
 
@@ -77,17 +80,11 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
   uint8_t* dictionary = nullptr;
   intptr_t dictionary_length = 0;
   if (!Dart_IsNull(dict_obj)) {
-    err = CopyDictionary(dict_obj, &dictionary);
+    err = CopyDictionary(dict_obj, &dictionary, &dictionary_length);
     if (Dart_IsError(err)) {
       Dart_PropagateError(err);
     }
     ASSERT(dictionary != nullptr);
-    dictionary_length = 0;
-    err = Dart_ListLength(dict_obj, &dictionary_length);
-    if (Dart_IsError(err)) {
-      delete[] dictionary;
-      Dart_PropagateError(err);
-    }
   }
 
   ZLibInflateFilter* filter =
@@ -127,17 +124,11 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   uint8_t* dictionary = nullptr;
   intptr_t dictionary_length = 0;
   if (!Dart_IsNull(dict_obj)) {
-    err = CopyDictionary(dict_obj, &dictionary);
+    err = CopyDictionary(dict_obj, &dictionary, &dictionary_length);
     if (Dart_IsError(err)) {
       Dart_PropagateError(err);
     }
     ASSERT(dictionary != nullptr);
-    dictionary_length = 0;
-    err = Dart_ListLength(dict_obj, &dictionary_length);
-    if (Dart_IsError(err)) {
-      delete[] dictionary;
-      Dart_PropagateError(err);
-    }
   }
 
   ZLibDeflateFilter* filter = new ZLibDeflateFilter(
