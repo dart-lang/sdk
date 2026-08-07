@@ -39,6 +39,21 @@ void f() {
     assertHasTarget('test = 0');
   }
 
+  Future<void> test_comment_exampleDirective() async {
+    var examplePath = 'examples/api/foo.dart';
+    newFile('$testPackageLibPath/$examplePath', '');
+    addTestFile('''
+/// {@tool dartpad}
+/// {@example $examplePath}
+/// {@end-tool}
+String f() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(search: examplePath, length: 1);
+    expect(regions, hasLength(1));
+    assertHasRegion(examplePath, length: examplePath.length);
+  }
+
   Future<void> test_comment_outsideReference() async {
     addTestFile('''
 /// Returns a [String].

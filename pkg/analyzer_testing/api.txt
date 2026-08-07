@@ -62,6 +62,7 @@ package:analyzer_testing/resource_provider_mixin.dart:
     newPackageConfigJsonFileFromBuilder (method: File Function(String, PackageConfigFileBuilder))
     newPubspecYamlFile (method: File Function(String, String))
     newSinglePackageConfigJsonFile (method: void Function({required String name, required String packagePath}))
+    normalize (method: String Function(String))
     toUri (method: Uri Function(String))
     toUriStr (method: String Function(String))
 package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart:
