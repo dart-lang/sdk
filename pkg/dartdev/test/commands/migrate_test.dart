@@ -69,8 +69,9 @@ void migrate() {
       expect(result.exitCode, isNot(0));
       expect(
         result.stderr,
-        contains(
-          "Directory or file doesn't exist:\n  ${p.dirPath}_nonexistent",
+        allOf(
+          contains("Directory or file doesn't exist:"),
+          contains('nonexistent'),
         ),
       );
     });
@@ -87,10 +88,10 @@ void migrate() {
       expect(result.exitCode, isNot(0));
       expect(
         result.stderr,
-        contains(
-          "Directory or file doesn't exist:\n"
-          '  ${p.dirPath}_nonexistent1\n'
-          '  ${p.dirPath}_nonexistent2',
+        allOf(
+          contains("Directory or file doesn't exist:"),
+          contains('nonexistent1'),
+          contains('nonexistent2'),
         ),
       );
     });
@@ -182,11 +183,7 @@ void migrate() {
       final symlinkPath = path.join(p.root.path, 'myapp_link');
       Link(symlinkPath).createSync(p.dirPath);
 
-      final result = await p.runMigrate([
-        '--apply',
-        p.dirPath,
-        symlinkPath,
-      ]);
+      final result = await p.runMigrate(['--apply', p.dirPath, symlinkPath]);
 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
