@@ -29,23 +29,34 @@ main() {
 
 @reflectiveTest
 class IndexTest extends PubPackageResolutionTest {
-  void assertIndexText(
-    _IndexResult result, {
-    required Set<String> names,
-    required String expected,
-  }) {
-    if (names.isEmpty) {
-      throw ArgumentError.value(names, 'names', 'Must not be empty');
-    }
+  void assertElementIndexText(
+    _IndexResult result,
+    Element element,
+    String expected,
+  ) {
+    _assertIndexText(result, elements: {'': element}, expected: expected);
+  }
 
-    var actual = _IndexTextBuilder(result).indexText(names);
-    if (actual != expected) {
-      NodeTextExpectationsCollector.add(actual);
-      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
-        printPrettyDiff(expected, actual);
-      }
-      fail('See the difference above.');
+  /// Asserts index relations for the elements in [elements].
+  ///
+  /// Each key in [elements] is a label for the corresponding element. The
+  /// label is printed before the relation in [expected]. For example, given
+  /// `{'getter': getter, 'setter': setter}`, the expected text can contain:
+  /// ```
+  ///   foo;
+  ///   ^^^ getter IS_REFERENCED_BY
+  ///   foo = 0;
+  ///   ^^^ setter IS_WRITTEN_BY
+  /// ```
+  void assertElementsIndexText(
+    _IndexResult result,
+    Map<String, Element> elements,
+    String expected,
+  ) {
+    if (elements.isEmpty) {
+      throw ArgumentError.value(elements, 'elements', 'Must not be empty');
     }
+    _assertIndexText(result, elements: elements, expected: expected);
   }
 
   void assertLibraryFragmentIndexText(
@@ -61,6 +72,17 @@ class IndexTest extends PubPackageResolutionTest {
       }
       fail('See the difference above.');
     }
+  }
+
+  void assertNamesIndexText(
+    _IndexResult result,
+    Set<String> names,
+    String expected,
+  ) {
+    if (names.isEmpty) {
+      throw ArgumentError.value(names, 'names', 'Must not be empty');
+    }
+    _assertIndexText(result, names: names, expected: expected);
   }
 
   void assertSubtypeIndexText(_IndexResult result, String expected) {
@@ -100,16 +122,17 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'myDiagnosticCode'},
-      expected: r'''
+    var diagnosticLibrary = await libraryElementForFile(diagnosticFile);
+    var element = diagnosticLibrary.topLevelVariables.firstWhere(
+      (v) => v.name == 'myDiagnosticCode',
+    );
+
+    assertElementIndexText(result, element, r'''
 void f() {
   '// [diag.myDiagnosticCode] message';
-            ^^^^^^^^^^^^^^^^ IS_REFERENCED_BY qualified package:analyzer/src/diagnostic/diagnostic.dart::@topLevelVariable::myDiagnosticCode
+            ^^^^^^^^^^^^^^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_ClassElement_emptyBody() async {
@@ -128,24 +151,19 @@ class B extends A {}
 class B_q extends p.A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('A'), r'''
 import 'test.dart' as p;
 
 class A {}
 
 class B extends A {}
-                ^ IS_EXTENDED_BY <testLibrary>::@class::A
-                ^ IS_REFERENCED_BY <testLibrary>::@class::A
+                ^ IS_EXTENDED_BY
+                ^ IS_REFERENCED_BY
 class B_q extends p.A {}
-                    ^ IS_EXTENDED_BY qualified <testLibrary>::@class::A
-                    ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+                    ^ IS_EXTENDED_BY qualified
+                    ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_hierarchy_class_extends_implicitObject() async {
@@ -153,12 +171,12 @@ Prefixes:
 class A {}
 ''');
 
-    assertIndexText(
+    assertElementIndexText(
       result,
-      names: {'Object'},
-      expected: r'''
+      result.resolvedUnit.typeProvider.objectElement,
+      r'''
 class A {}
-      ^0 IS_EXTENDED_BY qualified dart:core::@class::Object
+      ^0 IS_EXTENDED_BY qualified
 ''',
     );
   }
@@ -173,24 +191,19 @@ class B implements A {}
 class B_q implements p.A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('A'), r'''
 import 'test.dart' as p;
 
 class A {}
 
 class B implements A {}
-                   ^ IS_IMPLEMENTED_BY <testLibrary>::@class::A
-                   ^ IS_REFERENCED_BY <testLibrary>::@class::A
+                   ^ IS_IMPLEMENTED_BY
+                   ^ IS_REFERENCED_BY
 class B_q implements p.A {}
-                       ^ IS_IMPLEMENTED_BY qualified <testLibrary>::@class::A
-                       ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+                       ^ IS_IMPLEMENTED_BY qualified
+                       ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_hierarchy_class_with() async {
@@ -207,24 +220,19 @@ class D_q extends Object with p.A {}
 // [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('A'), r'''
 import 'test.dart' as p;
 
 class A {}
 
 class D extends Object with A {}
-                            ^ IS_MIXED_IN_BY <testLibrary>::@class::A
-                            ^ IS_REFERENCED_BY <testLibrary>::@class::A
+                            ^ IS_MIXED_IN_BY
+                            ^ IS_REFERENCED_BY
 class D_q extends Object with p.A {}
-                                ^ IS_MIXED_IN_BY qualified <testLibrary>::@class::A
-                                ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+                                ^ IS_MIXED_IN_BY qualified
+                                ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_hierarchy_classTypeAlias_with() async {
@@ -241,24 +249,19 @@ class D2_q = Object with p.A;
 // [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('A'), r'''
 import 'test.dart' as p;
 
 class A {}
 
 class D2 = Object with A;
-                       ^ IS_MIXED_IN_BY <testLibrary>::@class::A
-                       ^ IS_REFERENCED_BY <testLibrary>::@class::A
+                       ^ IS_MIXED_IN_BY
+                       ^ IS_REFERENCED_BY
 class D2_q = Object with p.A;
-                           ^ IS_MIXED_IN_BY qualified <testLibrary>::@class::A
-                           ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+                           ^ IS_MIXED_IN_BY qualified
+                           ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_hierarchy_enum_implements() async {
@@ -271,24 +274,19 @@ enum E implements A { v }
 enum E_q implements p.A { v }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('A'), r'''
 import 'test.dart' as p;
 
 class A {}
 
 enum E implements A { v }
-                  ^ IS_IMPLEMENTED_BY <testLibrary>::@class::A
-                  ^ IS_REFERENCED_BY <testLibrary>::@class::A
+                  ^ IS_IMPLEMENTED_BY
+                  ^ IS_REFERENCED_BY
 enum E_q implements p.A { v }
-                      ^ IS_IMPLEMENTED_BY qualified <testLibrary>::@class::A
-                      ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+                      ^ IS_IMPLEMENTED_BY qualified
+                      ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_hierarchy_extensionType_implements() async {
@@ -301,26 +299,21 @@ extension type E(A it) implements A {}
 extension type E_q(A it) implements p.A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('A'), r'''
 import 'test.dart' as p;
 
 class A {}
 
 extension type E(A it) implements A {}
-                 ^ IS_REFERENCED_BY <testLibrary>::@class::A
-                                  ^ IS_IMPLEMENTED_BY <testLibrary>::@class::A
-                                  ^ IS_REFERENCED_BY <testLibrary>::@class::A
+                 ^ IS_REFERENCED_BY
+                                  ^ IS_IMPLEMENTED_BY
+                                  ^ IS_REFERENCED_BY
 extension type E_q(A it) implements p.A {}
-                   ^ IS_REFERENCED_BY <testLibrary>::@class::A
-                                      ^ IS_IMPLEMENTED_BY qualified <testLibrary>::@class::A
-                                      ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+                   ^ IS_REFERENCED_BY
+                                      ^ IS_IMPLEMENTED_BY qualified
+                                      ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_hierarchy_mixin_implements() async {
@@ -333,24 +326,19 @@ mixin M implements A {}
 mixin M_q implements p.A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('A'), r'''
 import 'test.dart' as p;
 
 class A {}
 
 mixin M implements A {}
-                   ^ IS_IMPLEMENTED_BY <testLibrary>::@class::A
-                   ^ IS_REFERENCED_BY <testLibrary>::@class::A
+                   ^ IS_IMPLEMENTED_BY
+                   ^ IS_REFERENCED_BY
 mixin M_q implements p.A {}
-                       ^ IS_IMPLEMENTED_BY qualified <testLibrary>::@class::A
-                       ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+                       ^ IS_IMPLEMENTED_BY qualified
+                       ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_hierarchy_mixin_on() async {
@@ -363,24 +351,19 @@ mixin M2 on A {}
 mixin M2_q on p.A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('A'), r'''
 import 'test.dart' as p;
 
 class A {}
 
 mixin M2 on A {}
-            ^ CONSTRAINS <testLibrary>::@class::A
-            ^ IS_REFERENCED_BY <testLibrary>::@class::A
+            ^ CONSTRAINS
+            ^ IS_REFERENCED_BY
 mixin M2_q on p.A {}
-                ^ CONSTRAINS qualified <testLibrary>::@class::A
-                ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+                ^ CONSTRAINS qualified
+                ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_reference_annotation() async {
@@ -402,37 +385,34 @@ class A {
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 class A {
   const A();
-        ^ IS_REFERENCED_BY <testLibrary>::@class::A
+        ^ IS_REFERENCED_BY
   const A.named();
-        ^ IS_REFERENCED_BY <testLibrary>::@class::A
+        ^ IS_REFERENCED_BY
   static const int myConstant = 0;
 }
 
 @A()
- ^ IS_REFERENCED_BY <testLibrary>::@class::A
+ ^ IS_REFERENCED_BY
 @p.A()
-   ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
+   ^ IS_REFERENCED_BY qualified
 @A.named()
- ^ IS_REFERENCED_BY <testLibrary>::@class::A
+ ^ IS_REFERENCED_BY
 @p.A.named()
-   ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
+   ^ IS_REFERENCED_BY qualified
 @A.myConstant
- ^ IS_REFERENCED_BY <testLibrary>::@class::A
+ ^ IS_REFERENCED_BY
 @p.A.myConstant
-   ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
+   ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_reference_annotation_typeArgument_namedConstructor() async {
@@ -450,10 +430,7 @@ class B {}
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'B'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('B'), r'''
 import 'test.dart' as p;
 
 class A<T> {
@@ -463,12 +440,11 @@ class A<T> {
 class B {}
 
 @A<B>.named()
-   ^ IS_REFERENCED_BY <testLibrary>::@class::B
+   ^ IS_REFERENCED_BY
 @p.A<B>.named()
-     ^ IS_REFERENCED_BY <testLibrary>::@class::B
+     ^ IS_REFERENCED_BY
 void f() {}
-''',
-    );
+''');
   }
 
   test_ClassElement_reference_annotation_typeArgument_unnamedConstructor() async {
@@ -483,10 +459,7 @@ class B {}
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'B'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.class_('B'), r'''
 class A<T> {
   const A();
 }
@@ -494,10 +467,9 @@ class A<T> {
 class B {}
 
 @A<B>()
-   ^ IS_REFERENCED_BY <testLibrary>::@class::B
+   ^ IS_REFERENCED_BY
 void f() {}
-''',
-    );
+''');
   }
 
   test_ClassElement_reference_classTypeAlias() async {
@@ -513,19 +485,17 @@ void f(B p) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'B'},
-      expected: r'''
+    var element = result.findElement.class_('B');
+
+    assertElementIndexText(result, element, r'''
 class A {}
 class B = Object with A;
 void f(B p) {
-       ^ IS_REFERENCED_BY <testLibrary>::@class::B
+       ^ IS_REFERENCED_BY
   B v;
-  ^ IS_REFERENCED_BY <testLibrary>::@class::B
+  ^ IS_REFERENCED_BY
 }
-''',
-    );
+''');
   }
 
   test_ClassElement_reference_comment() async {
@@ -538,22 +508,19 @@ class A {}
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 class A {}
 
 /// [A] and [p.A].
-     ^ IS_REFERENCED_BY <testLibrary>::@class::A
-               ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
+     ^ IS_REFERENCED_BY
+               ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_reference_definedInSdk() async {
@@ -567,17 +534,15 @@ Random v2;
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'v2' must be initialized.
 ''');
 
-    assertIndexText(
-      result,
-      names: {'Random'},
-      expected: r'''
+    var element = result.findElement.importFind('dart:math').class_('Random');
+
+    assertElementIndexText(result, element, r'''
 import 'dart:math';
 Random v1;
-^^^^^^ IS_REFERENCED_BY dart:math::@class::Random
+^^^^^^ IS_REFERENCED_BY
 Random v2;
-^^^^^^ IS_REFERENCED_BY dart:math::@class::Random
-''',
-    );
+^^^^^^ IS_REFERENCED_BY
+''');
   }
 
   test_ClassElement_reference_definedOutside() async {
@@ -594,19 +559,17 @@ void f(A p) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.resolvedUnit.findNode.namedType('A p').element!;
+
+    assertElementIndexText(result, element, r'''
 import 'lib.dart';
 
 void f(A p) {
-       ^ IS_REFERENCED_BY package:test/lib.dart::@class::A
+       ^ IS_REFERENCED_BY
   A v = p;
-  ^ IS_REFERENCED_BY package:test/lib.dart::@class::A
+  ^ IS_REFERENCED_BY
 }
-''',
-    );
+''');
   }
 
   test_ClassElement_reference_instanceCreation() async {
@@ -621,24 +584,21 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 class A {}
 
 void f() {
   A();
-  ^ IS_REFERENCED_BY <testLibrary>::@class::A
+  ^ IS_REFERENCED_BY
   p.A();
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_reference_memberAccess() async {
@@ -655,10 +615,9 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 class A {
@@ -667,14 +626,12 @@ class A {
 
 void f() {
   A.foo();
-  ^ IS_REFERENCED_BY <testLibrary>::@class::A
+  ^ IS_REFERENCED_BY
   p.A.foo();
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_reference_namedType() async {
@@ -699,28 +656,25 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 class A {}
 
 void f() {
   A v1;
-  ^ IS_REFERENCED_BY <testLibrary>::@class::A
+  ^ IS_REFERENCED_BY
   p.A v2;
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
+    ^ IS_REFERENCED_BY qualified
   List<A> v3;
-       ^ IS_REFERENCED_BY <testLibrary>::@class::A
+       ^ IS_REFERENCED_BY
   List<p.A> v4;
-         ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
+         ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ClassElement_reference_recordTypeAnnotation_named() async {
@@ -730,16 +684,14 @@ class A {}
 void f(({int foo, A bar}) r) {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
 class A {}
 
 void f(({int foo, A bar}) r) {}
-                  ^ IS_REFERENCED_BY <testLibrary>::@class::A
-''',
-    );
+                  ^ IS_REFERENCED_BY
+''');
   }
 
   test_ClassElement_reference_recordTypeAnnotation_positional() async {
@@ -749,16 +701,14 @@ class A {}
 void f((int, A) r) {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
 class A {}
 
 void f((int, A) r) {}
-             ^ IS_REFERENCED_BY <testLibrary>::@class::A
-''',
-    );
+             ^ IS_REFERENCED_BY
+''');
   }
 
   test_ClassElement_reference_typeLiteral() async {
@@ -771,22 +721,19 @@ var v = A;
 var v_p = p.A;
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 class A {}
 
 var v = A;
-        ^ IS_REFERENCED_BY <testLibrary>::@class::A
+        ^ IS_REFERENCED_BY
 var v_p = p.A;
-            ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A
-Prefixes:
-  <testLibrary>::@class::A: (unprefixed),p
-''',
-    );
+            ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ConstructorElement_class_annotation() async {
@@ -805,27 +752,28 @@ class A {
 void f() {}
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'named', 'new'},
-      expected: r'''
+      {
+        'new': result.findElement.unnamedConstructor('A'),
+        'named': result.findElement.constructor('named', of: 'A'),
+      },
+      r'''
 import 'test.dart' as p;
 
 class A {
   const A();
-        ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   const A.named();
-        ^^^^^^^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
 }
 
 @A()
-  ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+  ^0 new IS_INVOKED_BY qualified
 @p.A()
-    ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+    ^0 new IS_INVOKED_BY qualified
 @A.named()
-  ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::named
+  ^^^^^^ named IS_INVOKED_BY qualified
 @p.A.named()
-    ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::named
+    ^^^^^^ named IS_INVOKED_BY qualified
 void f() {}
 ''',
     );
@@ -842,21 +790,18 @@ class A {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 class A {
   A.foo() {
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@class::A::@method::foo
   }
 
   A foo() => A.foo();
-              ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+              ^^^^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_named_newHead() async {
@@ -881,34 +826,32 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 class A {
   new foo() {}
   new bar() : this.foo();
-                  ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                  ^^^^ IS_INVOKED_BY qualified
   factory baz() = A.foo;
-                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                   ^^^^ IS_REFERENCED_BY qualified
 }
 class B extends A {
   new () : super.foo();
-                ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                ^^^^ IS_INVOKED_BY qualified
 }
 void useConstructor() {
   A.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   A.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .foo();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_named_primary() async {
@@ -932,33 +875,31 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 class A.foo() {
   new bar() : this.foo();
-                  ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                  ^^^^ IS_INVOKED_BY qualified
   factory baz() = A.foo;
-                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                   ^^^^ IS_REFERENCED_BY qualified
 }
 class B() extends A {
   this : super.foo();
-              ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+              ^^^^ IS_INVOKED_BY qualified
 }
 void useConstructor() {
   A.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   A.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .foo();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_named_typeName() async {
@@ -983,34 +924,32 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 class A {
   A.foo() {}
   A.bar() : this.foo();
-                ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                ^^^^ IS_INVOKED_BY qualified
   factory A.baz() = A.foo;
-                     ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                     ^^^^ IS_REFERENCED_BY qualified
 }
 class B extends A {
   B() : super.foo();
-             ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+             ^^^^ IS_INVOKED_BY qualified
 }
 void useConstructor() {
   A.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   A.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .foo();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_named_typeName_viaTypeAlias() async {
@@ -1036,35 +975,33 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new B.foo] and [B.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
-                ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                ^^^^ IS_INVOKED_BY qualified
   factory A.baz() = A.foo;
-                     ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::foo
+                     ^^^^ IS_REFERENCED_BY qualified
 }
 typedef B = A<int>;
 class C extends B {
   C() : super.foo();
-             ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+             ^^^^ IS_INVOKED_BY qualified
 }
 void useConstructor() {
   B.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   B.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   B b = .foo();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_unnamed_implicit() async {
@@ -1089,35 +1026,31 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 class B {
   B();
-  ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   factory B.baz() = A;
-                     ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                     ^0 IS_REFERENCED_BY qualified
 }
 class A extends B {}
-      ^ IS_INVOKED_BY qualified <testLibrary>::@class::B::@constructor::new
 class C extends A {
   C() : super();
-             ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+             ^0 IS_INVOKED_BY qualified
 }
 void useConstructor() {
   A();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_unnamed_implicitInvocation_fromNewHead() async {
@@ -1138,26 +1071,22 @@ class B extends A {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 class A {
   A();
-  ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
 }
 
 class B extends A {
   new ();
-  ^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+  ^^^ IS_INVOKED_BY qualified
   new bar();
-  ^^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+  ^^^^^^^ IS_INVOKED_BY qualified
   factory new.baz() = A;
-          ^^^ IS_READ_BY name: new
-                       ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                       ^0 IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_unnamed_implicitInvocation_fromTypeName() async {
@@ -1177,28 +1106,25 @@ class B extends A {
 class C extends A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 class A {
   A();
-  ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
 }
 
 class B extends A {
   B();
-  ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+  ^ IS_INVOKED_BY qualified
   B.bar();
-  ^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+  ^^^^^ IS_INVOKED_BY qualified
   factory B.baz() = A;
-                     ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                     ^0 IS_REFERENCED_BY qualified
 }
 
 class C extends A {}
-      ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
-''',
-    );
+      ^ IS_INVOKED_BY qualified
+''');
   }
 
   test_ConstructorElement_class_unnamed_newHead() async {
@@ -1223,41 +1149,38 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 class A {
   new () {}
-  ^^^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   new bar() : this();
-                  ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                  ^0 IS_INVOKED_BY qualified
   factory baz() = A;
-                   ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                   ^0 IS_REFERENCED_BY qualified
 }
 class B extends A {
   new () : super();
-                ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                ^0 IS_INVOKED_BY qualified
 }
 void useConstructor() {
   A();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_unnamed_otherFile() async {
     var otherFile = getFile('$testPackageLibPath/other.dart');
 
-    await resolveTestCodeWithDiagnostics('''
+    var testResult = await resolveTestCodeWithDiagnostics('''
 class A {
   A() {}
 }
@@ -1271,18 +1194,16 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = testResult.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart';
 
 void f() {
   A();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_unnamed_primary() async {
@@ -1306,33 +1227,31 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 class A() {
   new bar() : this();
-                  ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                  ^0 IS_INVOKED_BY qualified
   factory baz() = A;
-                   ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                   ^0 IS_REFERENCED_BY qualified
 }
 class B() extends A {
   this : super();
-              ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+              ^0 IS_INVOKED_BY qualified
 }
 void useConstructor() {
   A();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_unnamed_typeName() async {
@@ -1357,35 +1276,32 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 class A {
   A() {}
-  ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   A.bar() : this();
-                ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                ^0 IS_INVOKED_BY qualified
   factory A.baz() = A;
-                     ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                     ^0 IS_REFERENCED_BY qualified
 }
 class B extends A {
   B() : super();
-             ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+             ^0 IS_INVOKED_BY qualified
 }
 void useConstructor() {
   A();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_class_unnamed_typeName_explicitNew() async {
@@ -1410,35 +1326,32 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 class A {
   A.new() {}
-  ^^^^^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   A.bar() : this.new();
-                ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                ^^^^ IS_INVOKED_BY qualified
   factory A.baz() = A.new;
-                     ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                     ^^^^ IS_REFERENCED_BY qualified
 }
 class B extends A {
   B() : super.new();
-             ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+             ^^^^ IS_INVOKED_BY qualified
 }
 void useConstructor() {
   A.new();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^^^^ IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@class::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_classTypeAlias() async {
@@ -1462,29 +1375,29 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'named', 'new'},
-      expected: r'''
+      {
+        'new': result.findElement.unnamedConstructor('A'),
+        'named': result.findElement.constructor('named', of: 'A'),
+      },
+      r'''
 class M {}
-      ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
 class A {
   A() {}
-  ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   A.named() {}
-  ^^^^^^^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
 }
 class B = A with M;
 class C = B with M;
 void useConstructor() {
   B();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 new IS_INVOKED_BY qualified
   B.named();
-   ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::named
+   ^^^^^^ named IS_INVOKED_BY qualified
   C();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 new IS_INVOKED_BY qualified
   C.named();
-   ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::named
+   ^^^^^^ named IS_INVOKED_BY qualified
 }
 ''',
     );
@@ -1528,29 +1441,30 @@ enum E {
 void f() {}
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'named', 'new'},
-      expected: r'''
+      {
+        'new': result.findElement.unnamedConstructor('E'),
+        'named': result.findElement.constructor('named', of: 'E'),
+      },
+      r'''
 import 'test.dart' as p;
 
 enum E {
   v;
-   ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 new IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
   const E();
-        ^ IS_INVOKED_BY qualified dart:core::@class::Enum::@constructor::new
   const E.named();
-        ^^^^^^^ IS_INVOKED_BY qualified dart:core::@class::Enum::@constructor::new
 }
 
 @E()
-  ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+  ^0 new IS_INVOKED_BY qualified
 @p.E()
-    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 new IS_INVOKED_BY qualified
 @E.named()
-  ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::named
+  ^^^^^^ named IS_INVOKED_BY qualified
 @p.E.named()
-    ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::named
+    ^^^^^^ named IS_INVOKED_BY qualified
 void f() {}
 ''',
     );
@@ -1586,32 +1500,30 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 enum E {
   v.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   const new foo();
   const new bar() : this.foo();
-                        ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+                        ^^^^ IS_INVOKED_BY qualified
   const factory baz() = E.foo;
-                         ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+                         ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   E.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   E.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   E a = .foo();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@enum::E::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_enum_named_primary() async {
@@ -1643,31 +1555,29 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 enum E.foo() {
   v.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   const new bar() : this.foo();
-                        ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+                        ^^^^ IS_INVOKED_BY qualified
   const factory baz() = E.foo;
-                         ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+                         ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   E.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   E.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   E a = .foo();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@enum::E::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_enum_named_typeName() async {
@@ -1700,32 +1610,30 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 enum E {
   v.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   const E.foo();
   const E.bar() : this.foo();
-                      ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+                      ^^^^ IS_INVOKED_BY qualified
   const factory E.baz() = E.foo;
-                           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+                           ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   E.foo();
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   E.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   E a = .foo();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@enum::E::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_enum_unnamed_implicit() async {
@@ -1756,33 +1664,31 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('E');
+
+    assertElementIndexText(result, element, r'''
 /// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 enum E {
   v1,
-    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
   v2(),
-    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified
   v3.new();
-    ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^^^^ IS_INVOKED_BY qualified
   const factory E.other() = E;
-                             ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+                             ^0 IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   E();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   E.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   E a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@enum::E::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_enum_unnamed_newHead() async {
@@ -1814,35 +1720,32 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('E');
+
+    assertElementIndexText(result, element, r'''
 /// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 enum E {
   v1,
-    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
   v2(),
-    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified
   v3.new();
-    ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^^^^ IS_INVOKED_BY qualified
   const new ();
-        ^^^ IS_INVOKED_BY qualified dart:core::@class::Enum::@constructor::new
   const factory other() = E.new;
-                           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+                           ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   E();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   E.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   E a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@enum::E::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_enum_unnamed_primary() async {
@@ -1873,33 +1776,31 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('E');
+
+    assertElementIndexText(result, element, r'''
 /// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 enum E() {
   v1,
-    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
   v2(),
-    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified
   v3.new();
-    ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^^^^ IS_INVOKED_BY qualified
   const factory other() = E.new;
-                           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+                           ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   E();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   E.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   E a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@enum::E::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_enum_unnamed_typeName() async {
@@ -1931,35 +1832,32 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('E');
+
+    assertElementIndexText(result, element, r'''
 /// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 enum E {
   v1,
-    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
   v2(),
-    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified
   v3.new();
-    ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^^^^ IS_INVOKED_BY qualified
   const E();
-        ^ IS_INVOKED_BY qualified dart:core::@class::Enum::@constructor::new
   const factory E.other() = E;
-                             ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+                             ^0 IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   E();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   E.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   E a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@enum::E::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_enum_unnamed_typeName_explicitNew() async {
@@ -1991,35 +1889,32 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('E');
+
+    assertElementIndexText(result, element, r'''
 /// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 enum E {
   v1,
-    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
   v2(),
-    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified
   v3.new();
-    ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^^^^ IS_INVOKED_BY qualified
   const E.new();
-        ^^^^^ IS_INVOKED_BY qualified dart:core::@class::Enum::@constructor::new
   const factory E.other() = E.new;
-                             ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+                             ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   E();
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   E.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   E a = .new();
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@enum::E::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_extensionType_annotation() async {
@@ -2037,25 +1932,28 @@ extension type const A(int it) {
 void f() {}
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'named', 'new'},
-      expected: r'''
+      {
+        'new': result.findElement.unnamedConstructor('A'),
+        'named': result.findElement.constructor('named', of: 'A'),
+      },
+      r'''
 import 'test.dart' as p;
 
 extension type const A(int it) {
   const A.named(int it) : this(it);
-                              ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                              ^0 new IS_INVOKED_BY qualified
 }
 
 @A(0)
-  ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+  ^0 new IS_INVOKED_BY qualified
 @p.A(0)
-    ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+    ^0 new IS_INVOKED_BY qualified
 @A.named(0)
-  ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::named
+  ^^^^^^ named IS_INVOKED_BY qualified
 @p.A.named(0)
-    ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::named
+    ^^^^^^ named IS_INVOKED_BY qualified
 void f() {}
 ''',
     );
@@ -2080,30 +1978,28 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
-                  ^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+                  ^^^^ IS_INVOKED_BY qualified
   factory baz(int it) = A.foo;
-                         ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+                         ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   A.foo(0);
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   A.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .foo(0);
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@extensionType::A::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_extensionType_named_primary() async {
@@ -2124,29 +2020,27 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 extension type A.foo(int it) {
   new bar() : this.foo(0);
-                  ^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+                  ^^^^ IS_INVOKED_BY qualified
   factory baz(int it) = A.foo;
-                         ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+                         ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   A.foo(0);
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   A.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .foo(0);
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@extensionType::A::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_extensionType_named_typeName() async {
@@ -2168,30 +2062,28 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.constructor('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
-                      ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+          ^^^^ IS_REFERENCED_BY qualified
+                      ^^^^ IS_REFERENCED_BY qualified
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
-                ^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+                ^^^^ IS_INVOKED_BY qualified
   factory A.baz(int it) = A.foo;
-                           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+                           ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   A.foo(0);
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::foo
+   ^^^^ IS_INVOKED_BY qualified
   A.foo;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::foo
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .foo(0);
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@extensionType::A::@constructor::foo
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_extensionType_unnamed_newHead() async {
@@ -2213,30 +2105,28 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
-                  ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                  ^0 IS_INVOKED_BY qualified
   factory baz(int it) = A.new;
-                         ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                         ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   A(0);
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new(0);
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@extensionType::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_extensionType_unnamed_primary() async {
@@ -2257,29 +2147,27 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 extension type A(int it) {
   new bar() : this(0);
-                  ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                  ^0 IS_INVOKED_BY qualified
   factory baz(int it) = A.new;
-                         ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                         ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   A(0);
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new(0);
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@extensionType::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_extensionType_unnamed_typeName() async {
@@ -2301,30 +2189,28 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
-                ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                ^0 IS_INVOKED_BY qualified
   factory A.baz(int it) = A.new;
-                           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                           ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   A(0);
-   ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new(0);
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@extensionType::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_ConstructorElement_extensionType_unnamed_typeName_explicitNew() async {
@@ -2346,30 +2232,28 @@ void useConstructor() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'new'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A');
+
+    assertElementIndexText(result, element, r'''
 /// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
-                  ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified
+                  ^^^^ IS_REFERENCED_BY qualified
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);
-                ^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                ^^^^ IS_INVOKED_BY qualified
   factory A.baz(int it) = A.new;
-                           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                           ^^^^ IS_REFERENCED_BY qualified
 }
 void useConstructor() {
   A.new(0);
-   ^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^^^^ IS_INVOKED_BY qualified
   A.new;
-   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
   A a = .new(0);
-         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified <testLibrary>::@extensionType::A::@constructor::new
+         ^^^ IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 }
-''',
-    );
+''');
   }
 
   test_DynamicElement() async {
@@ -2407,38 +2291,35 @@ enum E {
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'E'},
-      expected: r'''
+    var element = result.findElement.enum_('E');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 enum E {
   v;
   const E();
-        ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+        ^ IS_REFERENCED_BY
   const E.named();
-        ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+        ^ IS_REFERENCED_BY
   static const int myConstant = 0;
 }
 
 @E()
- ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+ ^ IS_REFERENCED_BY
 @p.E()
-   ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E
+   ^ IS_REFERENCED_BY qualified
 @E.named()
- ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+ ^ IS_REFERENCED_BY
 @p.E.named()
-   ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E
+   ^ IS_REFERENCED_BY qualified
 @E.myConstant
- ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+ ^ IS_REFERENCED_BY
 @p.E.myConstant
-   ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E
+   ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@enum::E: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_EnumElement_reference_comment() async {
@@ -2451,22 +2332,19 @@ enum E { v }
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'E'},
-      expected: r'''
+    var element = result.findElement.enum_('E');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 enum E { v }
 
 /// [E] and [p.E].
-     ^ IS_REFERENCED_BY <testLibrary>::@enum::E
-               ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E
+     ^ IS_REFERENCED_BY
+               ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@enum::E: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_EnumElement_reference_instanceCreation() async {
@@ -2488,28 +2366,25 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'E'},
-      expected: r'''
+    var element = result.findElement.enum_('E');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 enum E {
   v;
   const E();
-        ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+        ^ IS_REFERENCED_BY
 }
 
 void f() {
   const E();
-        ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+        ^ IS_REFERENCED_BY
   const p.E();
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E
+          ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@enum::E: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_EnumElement_reference_memberAccess() async {
@@ -2527,10 +2402,9 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'E'},
-      expected: r'''
+    var element = result.findElement.enum_('E');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 enum E {
@@ -2540,14 +2414,12 @@ enum E {
 
 void f() {
   E.foo();
-  ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+  ^ IS_REFERENCED_BY
   p.E.foo();
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@enum::E: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_EnumElement_reference_namedType() async {
@@ -2566,24 +2438,21 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'E'},
-      expected: r'''
+    var element = result.findElement.enum_('E');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 enum E { v }
 
 void f() {
   E v1;
-  ^ IS_REFERENCED_BY <testLibrary>::@enum::E
+  ^ IS_REFERENCED_BY
   p.E v2;
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@enum::E: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ExtensionElement_emptyBody() async {
@@ -2606,10 +2475,7 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'E'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.extension_('E'), r'''
 import 'test.dart' as p;
 
 extension E on int {
@@ -2618,14 +2484,12 @@ extension E on int {
 
 void f() {
   E.foo();
-  ^ IS_REFERENCED_BY <testLibrary>::@extension::E
+  ^ IS_REFERENCED_BY
   p.E.foo();
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@extension::E: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ExtensionElement_reference_override() async {
@@ -2641,11 +2505,9 @@ void f() {
   p.E(0).foo();
 }
 ''');
+    var extension = result.findElement.extension_('E');
 
-    assertIndexText(
-      result,
-      names: {'E'},
-      expected: r'''
+    assertElementIndexText(result, extension, r'''
 import 'test.dart' as p;
 
 extension E on int {
@@ -2654,14 +2516,12 @@ extension E on int {
 
 void f() {
   E(0).foo();
-  ^ IS_REFERENCED_BY <testLibrary>::@extension::E
+  ^ IS_REFERENCED_BY
   p.E(0).foo();
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@extension::E: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ExtensionTypeElement_hierarchy_extensionType_implements() async {
@@ -2674,24 +2534,19 @@ extension type B(int it) implements A {}
 extension type B_q(int it) implements p.A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.extensionType('A'), r'''
 import 'test.dart' as p;
 
 extension type A(int it) {}
 
 extension type B(int it) implements A {}
-                                    ^ IS_IMPLEMENTED_BY <testLibrary>::@extensionType::A
-                                    ^ IS_REFERENCED_BY <testLibrary>::@extensionType::A
+                                    ^ IS_IMPLEMENTED_BY
+                                    ^ IS_REFERENCED_BY
 extension type B_q(int it) implements p.A {}
-                                        ^ IS_IMPLEMENTED_BY qualified <testLibrary>::@extensionType::A
-                                        ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A
-Prefixes:
-  <testLibrary>::@extensionType::A: (unprefixed),p
-''',
-    );
+                                        ^ IS_IMPLEMENTED_BY qualified
+                                        ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ExtensionTypeElement_reference_annotation() async {
@@ -2705,23 +2560,20 @@ extension type const A(int it) {}
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.extensionType('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 extension type const A(int it) {}
 
 @A(0)
- ^ IS_REFERENCED_BY <testLibrary>::@extensionType::A
+ ^ IS_REFERENCED_BY
 @p.A(0)
-   ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A
+   ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@extensionType::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ExtensionTypeElement_reference_comment() async {
@@ -2734,22 +2586,19 @@ extension type A(int it) {}
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.extensionType('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 extension type A(int it) {}
 
 /// [A] and [p.A].
-     ^ IS_REFERENCED_BY <testLibrary>::@extensionType::A
-               ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A
+     ^ IS_REFERENCED_BY
+               ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@extensionType::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ExtensionTypeElement_reference_instanceCreation() async {
@@ -2764,24 +2613,21 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.extensionType('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 extension type A(int it) {}
 
 void f() {
   A(0);
-  ^ IS_REFERENCED_BY <testLibrary>::@extensionType::A
+  ^ IS_REFERENCED_BY
   p.A(0);
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@extensionType::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ExtensionTypeElement_reference_memberAccess() async {
@@ -2798,10 +2644,9 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.extensionType('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 extension type A(int it) {
@@ -2810,14 +2655,12 @@ extension type A(int it) {
 
 void f() {
   A.foo();
-  ^ IS_REFERENCED_BY <testLibrary>::@extensionType::A
+  ^ IS_REFERENCED_BY
   p.A.foo();
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@extensionType::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_ExtensionTypeElement_reference_namedType() async {
@@ -2836,24 +2679,21 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.extensionType('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 extension type A(int it) {}
 
 void f() {
   A v1;
-  ^ IS_REFERENCED_BY <testLibrary>::@extensionType::A
+  ^ IS_REFERENCED_BY
   p.A v2;
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@extensionType::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_FieldElement_ofClass_instance_fieldDeclaration() async {
@@ -2912,94 +2752,100 @@ class B extends A {
   }
 }
 ''');
+    var field = result.findElement.field('foo');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'foo', '+', '-'},
-      expected: r'''
+      {
+        'field': field,
+        'getter': field.getter!,
+        'setter': field.setter!,
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+        'num.-': result.resolvedUnit.typeProvider.numElement.getMethod('-')!,
+      },
+      r'''
 /// [foo] and [A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+     ^^^ getter IS_REFERENCED_BY
+                 ^^^ getter IS_REFERENCED_BY qualified
 class A {
   int foo;
   A({this.foo = 0});
-          ^^^ IS_WRITTEN_BY qualified <testLibrary>::@class::A::@field::foo
+          ^^^ field IS_WRITTEN_BY qualified
   A.foo() : foo = 0;
-            ^^^ IS_WRITTEN_BY qualified <testLibrary>::@class::A::@field::foo
+            ^^^ field IS_WRITTEN_BY qualified
 
   void useField() {
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY
     foo = 0;
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_WRITTEN_BY
     foo += 1;
-    ^^^ IS_READ_BY <testLibrary>::@class::A::@getter::foo
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
-        ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ getter IS_READ_BY
+    ^^^ setter IS_WRITTEN_BY
+        ^^ num.+ IS_INVOKED_BY qualified
     foo ??= 2;
-    ^^^ IS_READ_BY <testLibrary>::@class::A::@getter::foo
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
+    ^^^ getter IS_READ_BY
+    ^^^ setter IS_WRITTEN_BY
     foo++;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@setter::foo
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY
+       ^^ num.+ IS_INVOKED_BY qualified
     --foo;
-    ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-      ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@setter::foo
+    ^^ num.- IS_INVOKED_BY qualified
+      ^^^ setter IS_REFERENCED_BY
     this.foo;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+         ^^^ getter IS_REFERENCED_BY qualified
     this.foo = 0;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+         ^^^ setter IS_REFERENCED_BY qualified
     this.foo += 1;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-             ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+         ^^^ setter IS_REFERENCED_BY qualified
+             ^^ num.+ IS_INVOKED_BY qualified
     this.foo ??= 2;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+         ^^^ setter IS_REFERENCED_BY qualified
     this.foo++;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-            ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+         ^^^ setter IS_REFERENCED_BY qualified
+            ^^ num.+ IS_INVOKED_BY qualified
     --this.foo;
-    ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-           ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^ num.- IS_INVOKED_BY qualified
+           ^^^ setter IS_REFERENCED_BY qualified
   }
 }
 
 void useField(A a) {
   a.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
   a.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   a.foo += 1;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-        ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+        ^^ num.+ IS_INVOKED_BY qualified
   a.foo ??= 2;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   a.foo++;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+       ^^ num.+ IS_INVOKED_BY qualified
   --a.foo;
-  ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+  ^^ num.- IS_INVOKED_BY qualified
+      ^^^ setter IS_REFERENCED_BY qualified
   A(foo: 0);
-    ^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
 }
 
 class B extends A {
   void useSuper() {
     super.foo;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+          ^^^ getter IS_REFERENCED_BY qualified
     super.foo = 0;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+          ^^^ setter IS_REFERENCED_BY qualified
     super.foo += 1;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-              ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+          ^^^ setter IS_REFERENCED_BY qualified
+              ^^ num.+ IS_INVOKED_BY qualified
     super.foo ??= 2;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+          ^^^ setter IS_REFERENCED_BY qualified
     super.foo++;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-             ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+          ^^^ setter IS_REFERENCED_BY qualified
+             ^^ num.+ IS_INVOKED_BY qualified
     --super.foo;
-    ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-            ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^ num.- IS_INVOKED_BY qualified
+            ^^^ setter IS_REFERENCED_BY qualified
   }
 }
 ''',
@@ -3031,32 +2877,34 @@ class B extends A {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'field': field, 'getter': field.getter!},
+      r'''
 class A {
   A() : foo = 0;
-        ^^^ IS_WRITTEN_BY qualified <testLibrary>::@class::A::@field::foo
+        ^^^ field IS_WRITTEN_BY qualified
   int get foo => 0;
 
   void useGetter() {
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY
     this.foo;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+         ^^^ getter IS_REFERENCED_BY qualified
   }
 }
 
 void useGetter(A a) {
   a.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+          ^^^ getter IS_REFERENCED_BY qualified
   }
 }
 ''',
@@ -3121,90 +2969,98 @@ class B extends A {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo', '+', '-'},
-      expected: r'''
+      {
+        'field': field,
+        'getter': field.getter!,
+        'setter': field.setter!,
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+        'num.-': result.resolvedUnit.typeProvider.numElement.getMethod('-')!,
+      },
+      r'''
 /// [foo] and [A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+     ^^^ getter IS_REFERENCED_BY
+                 ^^^ getter IS_REFERENCED_BY qualified
 class A {
   A() : foo = 0;
-        ^^^ IS_WRITTEN_BY qualified <testLibrary>::@class::A::@field::foo
+        ^^^ field IS_WRITTEN_BY qualified
   int get foo => 0;
   set foo(int _) {}
 
   void useField() {
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY
     foo = 0;
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_WRITTEN_BY
     foo += 1;
-    ^^^ IS_READ_BY <testLibrary>::@class::A::@getter::foo
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
-        ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ getter IS_READ_BY
+    ^^^ setter IS_WRITTEN_BY
+        ^^ num.+ IS_INVOKED_BY qualified
     foo ??= 2;
-    ^^^ IS_READ_BY <testLibrary>::@class::A::@getter::foo
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
+    ^^^ getter IS_READ_BY
+    ^^^ setter IS_WRITTEN_BY
     foo++;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@setter::foo
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY
+       ^^ num.+ IS_INVOKED_BY qualified
     --foo;
-    ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-      ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@setter::foo
+    ^^ num.- IS_INVOKED_BY qualified
+      ^^^ setter IS_REFERENCED_BY
     this.foo;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+         ^^^ getter IS_REFERENCED_BY qualified
     this.foo = 0;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+         ^^^ setter IS_REFERENCED_BY qualified
     this.foo += 1;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-             ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+         ^^^ setter IS_REFERENCED_BY qualified
+             ^^ num.+ IS_INVOKED_BY qualified
     this.foo ??= 2;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+         ^^^ setter IS_REFERENCED_BY qualified
     this.foo++;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-            ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+         ^^^ setter IS_REFERENCED_BY qualified
+            ^^ num.+ IS_INVOKED_BY qualified
     --this.foo;
-    ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-           ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^ num.- IS_INVOKED_BY qualified
+           ^^^ setter IS_REFERENCED_BY qualified
   }
 }
 
 void useField(A a) {
   a.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
   a.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   a.foo += 1;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-        ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+        ^^ num.+ IS_INVOKED_BY qualified
   a.foo ??= 2;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   a.foo++;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+       ^^ num.+ IS_INVOKED_BY qualified
   --a.foo;
-  ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+  ^^ num.- IS_INVOKED_BY qualified
+      ^^^ setter IS_REFERENCED_BY qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+          ^^^ getter IS_REFERENCED_BY qualified
     super.foo = 0;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+          ^^^ setter IS_REFERENCED_BY qualified
     super.foo += 1;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-              ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+          ^^^ setter IS_REFERENCED_BY qualified
+              ^^ num.+ IS_INVOKED_BY qualified
     super.foo ??= 2;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+          ^^^ setter IS_REFERENCED_BY qualified
     super.foo++;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-             ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+          ^^^ setter IS_REFERENCED_BY qualified
+             ^^ num.+ IS_INVOKED_BY qualified
     --super.foo;
-    ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-            ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^ num.- IS_INVOKED_BY qualified
+            ^^^ setter IS_REFERENCED_BY qualified
   }
 }
 ''',
@@ -3236,32 +3092,34 @@ class B extends A {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'field': field, 'setter': field.setter!},
+      r'''
 class A {
   A() : foo = 0;
-        ^^^ IS_WRITTEN_BY qualified <testLibrary>::@class::A::@field::foo
+        ^^^ field IS_WRITTEN_BY qualified
   set foo(int _) {}
 
   void useSetter() {
     foo = 0;
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_WRITTEN_BY
     this.foo = 0;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+         ^^^ setter IS_REFERENCED_BY qualified
   }
 }
 
 void useSetter(A a) {
   a.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo = 0;
-          ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+          ^^^ setter IS_REFERENCED_BY qualified
   }
 }
 ''',
@@ -3292,34 +3150,36 @@ void useField() {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'field': field, 'getter': field.getter!, 'setter': field.setter!},
+      r'''
 /// [foo] and [A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+     ^^^ getter IS_REFERENCED_BY
+                 ^^^ getter IS_REFERENCED_BY qualified
 class A {
   static int foo = 0;
   static void useField() {
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY
     foo = 0;
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_WRITTEN_BY
     A.foo;
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+      ^^^ getter IS_REFERENCED_BY qualified
     A.foo = 0;
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+      ^^^ setter IS_REFERENCED_BY qualified
   }
 }
 
 void useField() {
   A.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
   A.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   A a = .foo;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+         ^^^ getter IS_REFERENCED_BY qualified
 }
 ''',
     );
@@ -3348,32 +3208,33 @@ void useField(E e) {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'field': field, 'getter': field.getter!, 'setter': field.setter!},
+      r'''
 /// [foo] and [E.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@enum::E::@getter::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@getter::foo
+     ^^^ getter IS_REFERENCED_BY
+                 ^^^ getter IS_REFERENCED_BY qualified
 enum E {
   v;
   int? foo; // a compile-time error
   E({this.foo});
-          ^^^ IS_WRITTEN_BY qualified <testLibrary>::@enum::E::@field::foo
+          ^^^ field IS_WRITTEN_BY qualified
   void useField() {
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@enum::E::@getter::foo
+    ^^^ getter IS_REFERENCED_BY
     foo = 0;
-    ^^^ IS_WRITTEN_BY <testLibrary>::@enum::E::@setter::foo
+    ^^^ setter IS_WRITTEN_BY
   }
 }
 void useField(E e) {
   e.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
   e.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   E(foo: 0);
-    ^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
 }
 ''',
     );
@@ -3390,14 +3251,16 @@ enum E {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'field': field, 'getter': field.getter!},
+      r'''
 enum E {
   v;
   E() : foo = 0;
-        ^^^ IS_WRITTEN_BY qualified <testLibrary>::@enum::E::@field::foo
+        ^^^ field IS_WRITTEN_BY qualified
   int get foo => 0;
 }
 ''',
@@ -3416,14 +3279,16 @@ enum E {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'field': field, 'getter': field.getter!, 'setter': field.setter!},
+      r'''
 enum E {
   v;
   E() : foo = 0;
-        ^^^ IS_WRITTEN_BY qualified <testLibrary>::@enum::E::@field::foo
+        ^^^ field IS_WRITTEN_BY qualified
   int get foo => 0;
   set foo(_) {}
 }
@@ -3444,17 +3309,21 @@ void f() {
 }
 ''');
 
-    assertIndexText(
+    var index = result.resolvedUnit.typeProvider.enumElement!.getField(
+      'index',
+    )!;
+
+    assertElementsIndexText(
       result,
-      names: {'index'},
-      expected: r'''
+      {'field': index, 'getter': index.getter!},
+      r'''
 enum MyEnum {
   v1, v2, v3
 }
 void f() {
   MyEnum.values;
   MyEnum.v1.index;
-            ^^^^^ IS_REFERENCED_BY qualified dart:core::@class::Enum::@getter::index
+            ^^^^^ getter IS_REFERENCED_BY qualified
   MyEnum.v1;
   MyEnum.v2;
 }
@@ -3473,14 +3342,16 @@ enum E {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'field': field, 'setter': field.setter!},
+      r'''
 enum E {
   v;
   E() : foo = 0;
-        ^^^ IS_WRITTEN_BY qualified <testLibrary>::@enum::E::@field::foo
+        ^^^ field IS_WRITTEN_BY qualified
   set foo(_) {}
 }
 ''',
@@ -3505,32 +3376,39 @@ void f() {
 }
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'v1', 'v2', 'values'},
-      expected: r'''
+      {
+        'values.field': result.findElement.field('values'),
+        'values.getter': result.findElement.field('values').getter!,
+        'v1.field': result.findElement.field('v1'),
+        'v1.getter': result.findElement.field('v1').getter!,
+        'v2.field': result.findElement.field('v2'),
+        'v2.getter': result.findElement.field('v2').getter!,
+      },
+      r'''
 import 'test.dart' as p;
 
 /// [v1], [MyEnum.v1], and [p.MyEnum.v1]
-     ^^ IS_REFERENCED_BY <testLibrary>::@enum::MyEnum::@getter::v1
-                  ^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::MyEnum::@getter::v1
-                                     ^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::MyEnum::@getter::v1
+     ^^ v1.getter IS_REFERENCED_BY
+                  ^^ v1.getter IS_REFERENCED_BY qualified
+                                     ^^ v1.getter IS_REFERENCED_BY qualified
 enum MyEnum {
   v1, v2, v3
 }
 void f() {
   MyEnum.values;
-         ^^^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::MyEnum::@getter::values
+         ^^^^^^ values.getter IS_REFERENCED_BY qualified
   MyEnum.v1.index;
-         ^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::MyEnum::@getter::v1
+         ^^ v1.getter IS_REFERENCED_BY qualified
   MyEnum.v1;
-         ^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::MyEnum::@getter::v1
+         ^^ v1.getter IS_REFERENCED_BY qualified
   MyEnum.v2;
-         ^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::MyEnum::@getter::v2
+         ^^ v2.getter IS_REFERENCED_BY qualified
   p.MyEnum.v1;
-           ^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::MyEnum::@getter::v1
+           ^^ v1.getter IS_REFERENCED_BY qualified
   p.MyEnum.values;
-           ^^^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::MyEnum::@getter::values
+           ^^^^^^ values.getter IS_REFERENCED_BY qualified
 }
 ''',
     );
@@ -3564,10 +3442,18 @@ void useField(int a) {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo', '+', '-'},
-      expected: r'''
+      {
+        'field': field,
+        'getter': field.getter!,
+        'setter': field.setter!,
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+        'num.-': result.resolvedUnit.typeProvider.numElement.getMethod('-')!,
+      },
+      r'''
 extension E on int {
   int get foo => 0;
   set foo(int _) {}
@@ -3575,35 +3461,35 @@ extension E on int {
 
 void useField(int a) {
   a.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
   a.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   a.foo += 1;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
-        ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+        ^^ num.+ IS_INVOKED_BY qualified
   a.foo ??= 2;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   a.foo++;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+       ^^ num.+ IS_INVOKED_BY qualified
   --a.foo;
-  ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
+  ^^ num.- IS_INVOKED_BY qualified
+      ^^^ setter IS_REFERENCED_BY qualified
   E(a).foo;
-       ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@getter::foo
+       ^^^ getter IS_REFERENCED_BY qualified
   E(a).foo = 0;
-       ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
+       ^^^ setter IS_REFERENCED_BY qualified
   E(a).foo += 1;
-       ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
-           ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+       ^^^ setter IS_REFERENCED_BY qualified
+           ^^ num.+ IS_INVOKED_BY qualified
   E(a).foo ??= 2;
-       ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
+       ^^^ setter IS_REFERENCED_BY qualified
   E(a).foo++;
-       ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
-          ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+       ^^^ setter IS_REFERENCED_BY qualified
+          ^^ num.+ IS_INVOKED_BY qualified
   --E(a).foo;
-  ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@setter::foo
+  ^^ num.- IS_INVOKED_BY qualified
+         ^^^ setter IS_REFERENCED_BY qualified
 }
 ''',
     );
@@ -3625,27 +3511,29 @@ void useField() {
 }
 ''');
 
-    assertIndexText(
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'field': field, 'getter': field.getter!, 'setter': field.setter!},
+      r'''
 /// [foo] and [A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@extensionType::A::@getter::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@getter::foo
+     ^^^ getter IS_REFERENCED_BY
+                 ^^^ getter IS_REFERENCED_BY qualified
 extension type A(int it) {
   static int foo = 0;
   void useField() {
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@extensionType::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY
     foo = 0;
-    ^^^ IS_WRITTEN_BY <testLibrary>::@extensionType::A::@setter::foo
+    ^^^ setter IS_WRITTEN_BY
   }
 }
 void useField() {
   A.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
   A.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
 }
 ''',
     );
@@ -3677,19 +3565,24 @@ void foo() {
 }
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'test'},
-      expected: r'''
+      {
+        'field': result.findElement.field('test'),
+        'parameter': result.findElement
+            .unnamedConstructor('A')
+            .parameter('test'),
+      },
+      r'''
 class A {
   A({this.test}) : assert(test != null);
-          ^^^^ IS_WRITTEN_BY qualified <testLibrary>::@class::A::@field::test
-                          ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+          ^^^^ field IS_WRITTEN_BY qualified
+                          ^^^^ parameter IS_READ_BY
   int? test;
 }
 void foo() {
   A _ = .new(test: 0);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+             ^^^^ parameter IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 ''',
     );
@@ -3744,52 +3637,47 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A({int? test}) {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   this : assert(test != null) {
-                ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect({int? test}) : this(test: test);
-                                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                       ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
+                                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class B extends A {
   B({super.test});
-           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class C extends A {
   C({int? test}) : super(test: test);
-                         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                               ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
+                         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 void f() {
   A(test: 0);
-    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   A _ = .new(test: 0);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_primary_optionalNamed_genericClass() async {
@@ -3820,49 +3708,45 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A<T>({T? test}) {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   this : assert(test != null) {
-                ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = null;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     (test,) = (null,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [null]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect({T? test}) : this(test: test);
-                               ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                     ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
+                               ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class B<T> extends A<T> {
   B({super.test});
-           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class C<T> extends A<T> {
   C({T? test}) : super(test: test);
-                       ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                             ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
+                       ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 void f() {
   A(test: 0);
-    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   A<int> _ = .new(test: 0);
-                  ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                  ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_primary_optionalPositional() async {
@@ -3894,48 +3778,43 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A([int? test]) {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   this : assert(test != null) {
-                ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect([int? test]) : this(test);
-                                 ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
 }
 
 class B extends A {
   B([super.test]);
-           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY qualified
 }
 
 class C extends A {
   C([int? test]) : super(test);
-                         ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
 }
 
 void f() {
   A(0);
   A _ = .new(0);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_primary_requiredNamed() async {
@@ -3967,52 +3846,47 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A({required int test}) {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   this : assert(test != -1) {
-                ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect({required int test}) : this(test: test);
-                                         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                               ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
+                                         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class B extends A {
   B({required super.test});
-                    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class C extends A {
   C({required int test}) : super(test: test);
-                                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                       ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
+                                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 void f() {
   A(test: 0);
-    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   A _ = .new(test: 0);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_primary_requiredPositional() async {
@@ -4044,48 +3918,43 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A(int test) {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   this : assert(test != -1) {
-                ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect(int test) : this(test);
-                              ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
 }
 
 class B extends A {
   B(super.test);
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+          ^^^^ IS_REFERENCED_BY qualified
 }
 
 class C extends A {
   C(int test) : super(test);
-                      ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
 }
 
 void f() {
   A(0);
   A _ = .new(0);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_typeName_optionalNamed() async {
@@ -4117,52 +3986,47 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   A({int? test}) : assert(test != null) {
-                          ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                          ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect({int? test}) : this(test: test);
-                                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                       ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
+                                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class B extends A {
   B({super.test});
-           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class C extends A {
   C({int? test}) : super(test: test);
-                         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                               ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
+                         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 void f() {
   A(test: 0);
-    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   A _ = .new(test: 0);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_typeName_optionalNamed_const() async {
@@ -4191,42 +4055,40 @@ void f() {
 }
 ''');
 
-    assertIndexText(
+    assertElementIndexText(
       result,
-      names: {'test'},
-      expected: r'''
+      result.findElement.unnamedConstructor('A').parameter('test'),
+      r'''
 import 'test.dart' as p;
 
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   const A({int? test}) : assert(test != null);
-                                ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                                ^^^^ IS_READ_BY
   const A.redirect({int? test}) : this(test: test);
-                                       ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                             ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
+                                       ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class B extends A {
   const B({super.test});
-                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class C extends A {
   const C({int? test}) : super(test: test);
-                               ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                     ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
+                               ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 @A(test: 0)
-   ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+   ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 @p.A(test: 1)
-     ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 void f() {
   const A(test: 2);
-          ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+          ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   A _ = .new(test: 3);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 ''',
     );
@@ -4260,49 +4122,45 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A<T> {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   A({T? test}) : assert(test != null) {
-                        ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                        ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = null;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     (test,) = (null,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [null]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect({T? test}) : this(test: test);
-                               ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                     ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
+                               ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class B<T> extends A<T> {
   B({super.test});
-           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class C<T> extends A<T> {
   C({T? test}) : super(test: test);
-                       ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                             ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
+                       ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 void f() {
   A(test: 0);
-    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   A<int> _ = .new(test: 0);
-                  ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                  ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_typeName_optionalPositional() async {
@@ -4334,48 +4192,43 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   A([int? test]) : assert(test != null) {
-                          ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                          ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect([int? test]) : this(test);
-                                 ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
 }
 
 class B extends A {
   B([super.test]);
-           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY qualified
 }
 
 class C extends A {
   C([int? test]) : super(test);
-                         ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
 }
 
 void f() {
   A(0);
   A _ = .new(0);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_typeName_requiredNamed() async {
@@ -4407,52 +4260,47 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   A({required int test}) : assert(test != -1) {
-                                  ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                                  ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect({required int test}) : this(test: test);
-                                         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                               ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
+                                         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class B extends A {
   B({required super.test});
-                    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 class C extends A {
   C({required int test}) : super(test: test);
-                                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                       ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
+                                 ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
 
 void f() {
   A(test: 0);
-    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   A _ = .new(test: 0);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofConstructor_typeName_requiredPositional() async {
@@ -4484,48 +4332,43 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   A(int test) : assert(test != -1) {
-                       ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+                       ^^^^ IS_READ_BY
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 
   A.redirect(int test) : this(test);
-                              ^^^^ IS_READ_BY <testLibrary>::@class::A::@constructor::redirect::@formalParameter::test
 }
 
 class B extends A {
   B(super.test);
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
+          ^^^^ IS_REFERENCED_BY qualified
 }
 
 class C extends A {
   C(int test) : super(test);
-                      ^^^^ IS_READ_BY <testLibrary>::@class::C::@constructor::new::@formalParameter::test
 }
 
 void f() {
   A(0);
   A _ = .new(0);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofGenericFunctionType_optionalNamed() async {
@@ -4569,17 +4412,15 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 void f() {
   /// [test]
   void foo({int? test}) {
     test;
     test = 0;
     test += 0;
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
     (test,) = (0,);
     for (test in [0]) {}
   }
@@ -4588,8 +4429,7 @@ void f() {
   foo.call(test: 1);
   (foo)(test: 2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofLocalFunction_optionalPositional() async {
@@ -4610,17 +4450,15 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 void f() {
   /// [test]
   void foo([int? test]) {
     test;
     test = 0;
     test += 0;
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
     (test,) = (0,);
     for (test in [0]) {}
   }
@@ -4629,8 +4467,7 @@ void f() {
   foo.call(1);
   (foo)(2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofLocalFunction_requiredNamed() async {
@@ -4651,17 +4488,15 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 void f() {
   /// [test]
   void foo({required int test}) {
     test;
     test = 0;
     test += 0;
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
     (test,) = (0,);
     for (test in [0]) {}
   }
@@ -4670,8 +4505,7 @@ void f() {
   foo.call(test: 1);
   (foo)(test: 2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofLocalFunction_requiredPositional() async {
@@ -4692,17 +4526,15 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 void f() {
   /// [test]
   void foo(int test) {
     test;
     test = 0;
     test += 0;
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
     (test,) = (0,);
     for (test in [0]) {}
   }
@@ -4711,8 +4543,7 @@ void f() {
   foo.call(1);
   (foo)(2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofMethod_optionalNamed() async {
@@ -4735,38 +4566,35 @@ void f(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   void foo({int? test}) {
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 }
 
 void f(A a) {
   a.foo(test: 0);
-        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@method::foo::@formalParameter::test
+        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   a.foo.call(test: 1);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@method::foo::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   (a.foo)(test: 2);
-          ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@method::foo::@formalParameter::test
+          ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofMethod_optionalNamed_genericClass() async {
@@ -4789,36 +4617,34 @@ void f(A<int> a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A<T> {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   void foo({T? test}) {
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = null;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test = test;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
-           ^^^^ IS_READ_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
+           ^^^^ IS_READ_BY
     (test,) = (null,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [null]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 }
 
 void f(A<int> a) {
   a.foo(test: 0);
-        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@method::foo::@formalParameter::test
+        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   a.foo.call(test: 1);
   (a.foo)(test: 2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofMethod_optionalPositional() async {
@@ -4841,25 +4667,23 @@ void f(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   void foo([int? test]) {
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 }
 
@@ -4868,8 +4692,7 @@ void f(A a) {
   a.foo.call(1);
   (a.foo)(2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofMethod_requiredNamed() async {
@@ -4892,38 +4715,35 @@ void f(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   void foo({required int test}) {
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 }
 
 void f(A a) {
   a.foo(test: 0);
-        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@method::foo::@formalParameter::test
+        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   a.foo.call(test: 1);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@method::foo::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   (a.foo)(test: 2);
-          ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@method::foo::@formalParameter::test
+          ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofMethod_requiredPositional() async {
@@ -4946,25 +4766,23 @@ void f(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   void foo(int test) {
     test;
-    ^^^^ IS_READ_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_READ_BY
     test = 0;
-    ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+    ^^^^ IS_WRITTEN_BY
     test += 0;
-    ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
-         ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^^ IS_READ_WRITTEN_BY
     (test,) = (0,);
-     ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+     ^^^^ IS_WRITTEN_BY
     for (test in [0]) {}
-         ^^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@method::foo::@formalParameter::test
+         ^^^^ IS_WRITTEN_BY
   }
 }
 
@@ -4973,8 +4791,7 @@ void f(A a) {
   a.foo.call(1);
   (a.foo)(2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofTopLevelFunction_optionalNamed() async {
@@ -4994,35 +4811,32 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 /// [test]
-     ^^^^ IS_REFERENCED_BY <testLibrary>::@function::foo::@formalParameter::test
+     ^^^^ IS_REFERENCED_BY
 void foo({int? test}) {
   test;
-  ^^^^ IS_READ_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_READ_BY
   test = 1;
-  ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_WRITTEN_BY
   test += 2;
-  ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^^ IS_READ_WRITTEN_BY
   (test,) = (0,);
-   ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+   ^^^^ IS_WRITTEN_BY
   for (test in [0]) {}
-       ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+       ^^^^ IS_WRITTEN_BY
 }
 void f() {
   foo(test: 0);
-      ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+      ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   foo.call(test: 1);
-           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   (foo)(test: 2);
-        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofTopLevelFunction_optionalNamed_argumentAnywhere() async {
@@ -5043,36 +4857,33 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 /// [test]
-     ^^^^ IS_REFERENCED_BY <testLibrary>::@function::foo::@formalParameter::test
+     ^^^^ IS_REFERENCED_BY
 void foo(int a, int b, {int? test}) {
   test;
-  ^^^^ IS_READ_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_READ_BY
   test = 1;
-  ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_WRITTEN_BY
   test += 2;
-  ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^^ IS_READ_WRITTEN_BY
   (test,) = (0,);
-   ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+   ^^^^ IS_WRITTEN_BY
   for (test in [0]) {}
-       ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+       ^^^^ IS_WRITTEN_BY
 }
 
 void f() {
   foo(0, test: 0, 0);
-         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+         ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   foo.call(0, test: 1, 0);
-              ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+              ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   (foo)(0, test: 2, 0);
-           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofTopLevelFunction_optionalPositional() async {
@@ -5092,32 +4903,29 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 /// [test]
-     ^^^^ IS_REFERENCED_BY <testLibrary>::@function::foo::@formalParameter::test
+     ^^^^ IS_REFERENCED_BY
 void foo([int? test]) {
   test;
-  ^^^^ IS_READ_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_READ_BY
   test = 1;
-  ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_WRITTEN_BY
   test += 2;
-  ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^^ IS_READ_WRITTEN_BY
   (test,) = (0,);
-   ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+   ^^^^ IS_WRITTEN_BY
   for (test in [0]) {}
-       ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+       ^^^^ IS_WRITTEN_BY
 }
 void f() {
   foo(0);
   foo.call(1);
   (foo)(2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofTopLevelFunction_requiredNamed() async {
@@ -5138,36 +4946,33 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 /// [test]
-     ^^^^ IS_REFERENCED_BY <testLibrary>::@function::foo::@formalParameter::test
+     ^^^^ IS_REFERENCED_BY
 void foo({required int test}) {
   test;
-  ^^^^ IS_READ_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_READ_BY
   test = 1;
-  ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_WRITTEN_BY
   test += 2;
-  ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^^ IS_READ_WRITTEN_BY
   (test,) = (0,);
-   ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+   ^^^^ IS_WRITTEN_BY
   for (test in [0]) {}
-       ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+       ^^^^ IS_WRITTEN_BY
 }
 
 void f() {
   foo(test: 0);
-      ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+      ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   foo.call(test: 1);
-           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   (foo)(test: 2);
-        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@function::foo::@formalParameter::test
+        ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_ofTopLevelFunction_requiredPositional() async {
@@ -5188,24 +4993,22 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test', '+'},
-      expected: r'''
+    var element = result.findElement.parameter('test');
+
+    assertElementIndexText(result, element, r'''
 /// [test]
-     ^^^^ IS_REFERENCED_BY <testLibrary>::@function::foo::@formalParameter::test
+     ^^^^ IS_REFERENCED_BY
 void foo(int test) {
   test;
-  ^^^^ IS_READ_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_READ_BY
   test = 1;
-  ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+  ^^^^ IS_WRITTEN_BY
   test += 2;
-  ^^^^ IS_READ_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^^ IS_READ_WRITTEN_BY
   (test,) = (0,);
-   ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+   ^^^^ IS_WRITTEN_BY
   for (test in [0]) {}
-       ^^^^ IS_WRITTEN_BY <testLibrary>::@function::foo::@formalParameter::test
+       ^^^^ IS_WRITTEN_BY
 }
 
 void f() {
@@ -5213,8 +5016,7 @@ void f() {
   foo.call(1);
   (foo)(2);
 }
-''',
-    );
+''');
   }
 
   test_FormalParameterElement_synthetic_leastUpperBound() async {
@@ -5239,21 +5041,19 @@ class A {
   }
 }''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.getter('foo');
+
+    assertElementIndexText(result, element, r'''
 class A {
   get foo => null;
   void useGetter() {
     this.foo();
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+         ^^^ IS_REFERENCED_BY qualified
     foo();
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
-''',
-    );
+''');
   }
 
   test_GetterElement_ofClass_objectPattern() async {
@@ -5270,22 +5070,20 @@ void useGetter(Object? x) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.getter('foo');
+
+    assertElementIndexText(result, element, r'''
 class A {
   int get foo => 0;
 }
 
 void useGetter(Object? x) {
   if (x case A(foo: 0)) {}
-               ^^^ IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@getter::foo
+               ^^^ IS_REFERENCED_BY_PATTERN_FIELD qualified
   if (x case A(: var foo)) {}
-               ^0 IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@getter::foo
+               ^0 IS_REFERENCED_BY_PATTERN_FIELD qualified
 }
-''',
-    );
+''');
   }
 
   test_GetterElement_ofClass_static() async {
@@ -5306,32 +5104,30 @@ void useGetter() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.getter('foo');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 /// [foo], [A.foo], [p.A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
-              ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
-                         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+     ^^^ IS_REFERENCED_BY
+              ^^^ IS_REFERENCED_BY qualified
+                         ^^^ IS_REFERENCED_BY qualified
 class A {
   static int get foo => 0;
   static void useGetter() {
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@getter::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
 
 void useGetter() {
   A.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+    ^^^ IS_REFERENCED_BY qualified
   p.A.foo;
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@getter::foo
+      ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_LibraryFragment_reference_export() async {
@@ -5408,38 +5204,36 @@ void useFoo(A a) {
   a.foo;
 }
 ''');
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 class A {
   void foo() {}
   void useFoo(Object? x) {
     this.foo();
-         ^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::foo
+         ^^^ IS_INVOKED_BY qualified
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@class::A::@method::foo
+    ^^^ IS_INVOKED_BY
     this.foo;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::foo
+         ^^^ IS_REFERENCED_BY qualified
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo
+    ^^^ IS_REFERENCED_BY
     if (x case A(foo: _)) {}
-                 ^^^ IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@method::foo
+                 ^^^ IS_REFERENCED_BY_PATTERN_FIELD qualified
     if (x case A(: var foo)) {}
-                 ^0 IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@method::foo
+                 ^0 IS_REFERENCED_BY_PATTERN_FIELD qualified
   }
 }
 void useFoo(A a) {
   a.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   a.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofClass_static() async {
@@ -5466,40 +5260,38 @@ void useFoo() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 /// [foo], [A.foo], [p.A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo
-              ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::foo
-                         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::foo
+     ^^^ IS_REFERENCED_BY
+              ^^^ IS_REFERENCED_BY qualified
+                         ^^^ IS_REFERENCED_BY qualified
 class A {
   static A foo() => A();
   static void useFoo() {
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@class::A::@method::foo
+    ^^^ IS_INVOKED_BY
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
 
 void useFoo() {
   A.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   A.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
   A a = .foo();
-         ^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::foo
+         ^^^ IS_INVOKED_BY qualified
   p.A.foo();
-      ^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::foo
+      ^^^ IS_INVOKED_BY qualified
   p.A.foo;
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::foo
+      ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofEnum_instance() async {
@@ -5521,35 +5313,33 @@ void useFoo(E e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [E.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@enum::E::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 enum E {
   v;
   void foo() {}
   void useFoo() {
     this.foo();
-         ^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::foo
+         ^^^ IS_INVOKED_BY qualified
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@enum::E::@method::foo
+    ^^^ IS_INVOKED_BY
     this.foo;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@method::foo
+         ^^^ IS_REFERENCED_BY qualified
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@enum::E::@method::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
 void useFoo(E e) {
   e.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   e.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofEnum_static() async {
@@ -5569,31 +5359,29 @@ void useFoo() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [E.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@enum::E::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 enum E {
   v;
   static void foo() {}
   static void useFoo() {
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@enum::E::@method::foo
+    ^^^ IS_INVOKED_BY
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@enum::E::@method::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
 void useFoo() {
   E.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   E.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofExtension_named_instance() async {
@@ -5609,25 +5397,23 @@ void useFoo() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [E.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@extension::E::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 extension E on int {
   void foo() {}
 }
 
 void useFoo() {
   0.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@extension::E::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   0.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofExtension_named_static() async {
@@ -5643,25 +5429,23 @@ void useFoo() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [E.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@extension::E::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 extension E on int {
   static void foo() {}
 }
 
 void useFoo() {
   E.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@extension::E::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   E.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofExtension_unnamed_instance() async {
@@ -5683,34 +5467,66 @@ void useFoo() {
   (1.2).foo;
 }
 ''');
+    var intMethod = result.resolvedUnit.findNode.methodDeclaration(
+      'foo() {} // int',
+    );
+    var doubleMethod = result.resolvedUnit.findNode.methodDeclaration(
+      'foo() {} // double',
+    );
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {
+        'int.foo': intMethod.declaredFragment!.element,
+        'double.foo': doubleMethod.declaredFragment!.element,
+      },
+      r'''
 /// [foo] and [int.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@extension::#0::@method::foo
-                   ^^^ IS_READ_BY qualified name: foo
+     ^^^ int.foo IS_REFERENCED_BY
 extension on int {
   void foo() {} // int
 }
 
 /// [foo] and [double.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@extension::#1::@method::foo
-                      ^^^ IS_READ_BY qualified name: foo
+     ^^^ double.foo IS_REFERENCED_BY
 extension on double {
   void foo() {} // double
 }
 
 void useFoo() {
   0.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@extension::#0::@method::foo
+    ^^^ int.foo IS_INVOKED_BY qualified
   0.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::#0::@method::foo
+    ^^^ int.foo IS_REFERENCED_BY qualified
   (1.2).foo();
-        ^^^ IS_INVOKED_BY qualified <testLibrary>::@extension::#1::@method::foo
+        ^^^ double.foo IS_INVOKED_BY qualified
   (1.2).foo;
-        ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extension::#1::@method::foo
+        ^^^ double.foo IS_REFERENCED_BY qualified
+}
+''',
+    );
+
+    assertNamesIndexText(
+      result,
+      {'foo'},
+      r'''
+/// [foo] and [int.foo]
+                   ^^^ IS_READ_BY qualified
+extension on int {
+  void foo() {} // int
+}
+
+/// [foo] and [double.foo]
+                      ^^^ IS_READ_BY qualified
+extension on double {
+  void foo() {} // double
+}
+
+void useFoo() {
+  0.foo();
+  0.foo;
+  (1.2).foo();
+  (1.2).foo;
 }
 ''',
     );
@@ -5735,35 +5551,33 @@ void useFoo() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@extensionType::A::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 extension type A(int it) {
   void foo() {}
   void useFoo() {
     this.foo();
-         ^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::foo
+         ^^^ IS_INVOKED_BY qualified
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@extensionType::A::@method::foo
+    ^^^ IS_INVOKED_BY
     this.foo;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@method::foo
+         ^^^ IS_REFERENCED_BY qualified
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@extensionType::A::@method::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
 void useFoo() {
   var a = A(0);
   a.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   a.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofExtensionType_static() async {
@@ -5782,30 +5596,28 @@ void useFoo() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@extensionType::A::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 extension type A(int it) {
   static void foo() {}
   static void useFoo() {
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@extensionType::A::@method::foo
+    ^^^ IS_INVOKED_BY
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@extensionType::A::@method::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
 void useFoo() {
   A.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   A.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofMixin_instance() async {
@@ -5826,34 +5638,32 @@ void useFoo(M m) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [M.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@mixin::M::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::M::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 mixin M {
   void foo() {}
   void useFoo() {
     this.foo();
-         ^^^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::foo
+         ^^^ IS_INVOKED_BY qualified
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@mixin::M::@method::foo
+    ^^^ IS_INVOKED_BY
     this.foo;
-         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::M::@method::foo
+         ^^^ IS_REFERENCED_BY qualified
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@mixin::M::@method::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
 void useFoo(M m) {
   m.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   m.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::M::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_normal_ofMixin_static() async {
@@ -5877,32 +5687,30 @@ void useFoo() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
 /// [foo] and [M.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@mixin::M::@method::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::M::@method::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 mixin M {
   static void foo() {}
   static void useFoo() {
     foo();
-    ^^^ IS_INVOKED_BY <testLibrary>::@mixin::M::@method::foo
+    ^^^ IS_INVOKED_BY
     foo;
-    ^^^ IS_REFERENCED_BY <testLibrary>::@mixin::M::@method::foo
+    ^^^ IS_REFERENCED_BY
   }
 }
 void useFoo() {
   M.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::foo
+    ^^^ IS_INVOKED_BY qualified
   M.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::M::@method::foo
+    ^^^ IS_REFERENCED_BY qualified
   M m = .foo();
-         ^^^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::foo
+         ^^^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofClass_binary() async {
@@ -5919,28 +5727,26 @@ void useOperator(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'+'},
-      expected: r'''
+    var element = result.findElement.method('+');
+
+    assertElementIndexText(result, element, r'''
 /// [operator +] and [A.operator +]
-              ^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::+
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::+
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 class A {
   operator +(other) => this;
 }
 void useOperator(A a) {
   a + 1;
-    ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::+
+    ^ IS_INVOKED_BY qualified
   a += 2;
-    ^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::+
+    ^^ IS_INVOKED_BY qualified
   ++a;
-  ^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::+
+  ^^ IS_INVOKED_BY qualified
   a++;
-   ^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::+
+   ^^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofClass_index() async {
@@ -5954,20 +5760,18 @@ void useOperator(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]'},
-      expected: r'''
+    var element = result.findElement.method('[]');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []] and [A.operator []]
 class A {
   operator [](i) => null;
 }
 void useOperator(A a) {
   a[0];
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::[]
+   ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofClass_indexEq() async {
@@ -5981,20 +5785,18 @@ void useOperator(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]='},
-      expected: r'''
+    var element = result.findElement.method('[]=');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []=] and [A.operator []=]
 class A {
   operator []=(i, v) {}
 }
 void useOperator(A a) {
   a[1] = 42;
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::[]=
+   ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofClass_prefix() async {
@@ -6008,22 +5810,20 @@ void useOperator(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'~'},
-      expected: r'''
+    var element = result.findElement.method('~');
+
+    assertElementIndexText(result, element, r'''
 /// [operator ~] and [A.operator ~]
-              ^ IS_REFERENCED_BY <testLibrary>::@class::A::@method::~
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@method::~
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 class A {
   A operator ~() => this;
 }
 void useOperator(A a) {
   ~a;
-  ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@method::~
+  ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofEnum_binary() async {
@@ -6047,29 +5847,27 @@ void useOperator(E e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'+'},
-      expected: r'''
+    var element = result.findElement.method('+');
+
+    assertElementIndexText(result, element, r'''
 /// [operator +] and [E.operator +]
-              ^ IS_REFERENCED_BY <testLibrary>::@enum::E::@method::+
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@method::+
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 enum E {
   v;
   int operator +(other) => 0;
 }
 void useOperator(E e) {
   e + 1;
-    ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::+
+    ^ IS_INVOKED_BY qualified
   e += 2;
-    ^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::+
+    ^^ IS_INVOKED_BY qualified
   ++e;
-  ^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::+
+  ^^ IS_INVOKED_BY qualified
   e++;
-   ^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::+
+   ^^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofEnum_index() async {
@@ -6084,10 +5882,9 @@ void useOperator(E e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]'},
-      expected: r'''
+    var element = result.findElement.method('[]');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []] and [E.operator []]
 enum E {
   v;
@@ -6095,10 +5892,9 @@ enum E {
 }
 void useOperator(E e) {
   e[0];
-   ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::[]
+   ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofEnum_indexEq() async {
@@ -6113,10 +5909,9 @@ void useOperator(E e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]='},
-      expected: r'''
+    var element = result.findElement.method('[]=');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []=] and [E.operator []=]
 enum E {
   v;
@@ -6124,10 +5919,9 @@ enum E {
 }
 void useOperator(E e) {
   e[1] = 42;
-   ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::[]=
+   ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofEnum_prefix() async {
@@ -6142,23 +5936,21 @@ void useOperator(E e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'~'},
-      expected: r'''
+    var element = result.findElement.method('~');
+
+    assertElementIndexText(result, element, r'''
 /// [operator ~] and [E.operator ~]
-              ^ IS_REFERENCED_BY <testLibrary>::@enum::E::@method::~
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@method::~
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 enum E {
   e;
   int operator ~() => 0;
 }
 void useOperator(E e) {
   ~e;
-  ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@method::~
+  ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofExtension_binary() async {
@@ -6172,22 +5964,20 @@ void useOperator(int e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'+'},
-      expected: r'''
+    var element = result.findElement.method('+');
+
+    assertElementIndexText(result, element, r'''
 /// [operator +] and [E.operator +]
-              ^ IS_REFERENCED_BY <testLibrary>::@extension::E::@method::+
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@method::+
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 extension E on int {
   int operator +(int other) => 0;
 }
 void useOperator(int e) {
   E(e) + 1;
-       ^ IS_INVOKED_BY qualified <testLibrary>::@extension::E::@method::+
+       ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofExtension_index() async {
@@ -6201,20 +5991,18 @@ void useOperator(int e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]'},
-      expected: r'''
+    var element = result.findElement.method('[]');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []] and [E.operator []]
 extension E on int {
   int operator [](int index) => 0;
 }
 void useOperator(int e) {
   E(e)[0];
-      ^ IS_INVOKED_BY qualified <testLibrary>::@extension::E::@method::[]
+      ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofExtension_indexEq() async {
@@ -6228,20 +6016,18 @@ void useOperator(int e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]='},
-      expected: r'''
+    var element = result.findElement.method('[]=');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []=] and [E.operator []=]
 extension E on int {
   operator []=(int index, int value) {}
 }
 void useOperator(int e) {
   E(e)[1] = 42;
-      ^ IS_INVOKED_BY qualified <testLibrary>::@extension::E::@method::[]=
+      ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofExtension_prefix() async {
@@ -6255,22 +6041,20 @@ void useOperator(int e) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'~'},
-      expected: r'''
+    var element = result.findElement.method('~');
+
+    assertElementIndexText(result, element, r'''
 /// [operator ~] and [E.operator ~]
-              ^ IS_REFERENCED_BY <testLibrary>::@extension::E::@method::~
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@extension::E::@method::~
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 extension E on int {
   int operator ~() => 0;
 }
 void useOperator(int e) {
   ~E(e);
-  ^ IS_INVOKED_BY qualified <testLibrary>::@extension::E::@method::~
+  ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofExtensionType_binary() async {
@@ -6293,28 +6077,26 @@ void useOperator(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'+'},
-      expected: r'''
+    var element = result.findElement.method('+');
+
+    assertElementIndexText(result, element, r'''
 /// [operator +] and [A.operator +]
-              ^ IS_REFERENCED_BY <testLibrary>::@extensionType::A::@method::+
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@method::+
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 extension type A(int it) {
   int operator +(int other) => 0;
 }
 void useOperator(A a) {
   a + 1;
-    ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::+
+    ^ IS_INVOKED_BY qualified
   a += 2;
-    ^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::+
+    ^^ IS_INVOKED_BY qualified
   ++a;
-  ^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::+
+  ^^ IS_INVOKED_BY qualified
   a++;
-   ^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::+
+   ^^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofExtensionType_index() async {
@@ -6328,20 +6110,18 @@ void useOperator(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]'},
-      expected: r'''
+    var element = result.findElement.method('[]');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []] and [A.operator []]
 extension type A(int it) {
   int operator [](int index) => 0;
 }
 void useOperator(A a) {
   a[0];
-   ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::[]
+   ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofExtensionType_indexEq() async {
@@ -6355,20 +6135,18 @@ void useOperator(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]='},
-      expected: r'''
+    var element = result.findElement.method('[]=');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []=] and [A.operator []=]
 extension type A(int it) {
   operator []=(int index, int value) {}
 }
 void useOperator(A a) {
   a[1] = 42;
-   ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::[]=
+   ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofExtensionType_prefix() async {
@@ -6382,22 +6160,20 @@ void useOperator(A a) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'~'},
-      expected: r'''
+    var element = result.findElement.method('~');
+
+    assertElementIndexText(result, element, r'''
 /// [operator ~] and [A.operator ~]
-              ^ IS_REFERENCED_BY <testLibrary>::@extensionType::A::@method::~
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@method::~
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 extension type A(int it) {
   int operator ~() => 0;
 }
 void useOperator(A a) {
   ~a;
-  ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@method::~
+  ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofMixin_binary() async {
@@ -6420,28 +6196,26 @@ void useOperator(M m) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'+'},
-      expected: r'''
+    var element = result.findElement.method('+');
+
+    assertElementIndexText(result, element, r'''
 /// [operator +] and [M.operator +]
-              ^ IS_REFERENCED_BY <testLibrary>::@mixin::M::@method::+
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::M::@method::+
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 mixin M {
   int operator +(int other) => 0;
 }
 void useOperator(M m) {
   m + 1;
-    ^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::+
+    ^ IS_INVOKED_BY qualified
   m += 2;
-    ^^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::+
+    ^^ IS_INVOKED_BY qualified
   ++m;
-  ^^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::+
+  ^^ IS_INVOKED_BY qualified
   m++;
-   ^^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::+
+   ^^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofMixin_index() async {
@@ -6455,20 +6229,18 @@ void useOperator(M m) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]'},
-      expected: r'''
+    var element = result.findElement.method('[]');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []] and [M.operator []]
 mixin M {
   int operator [](int index) => 0;
 }
 void useOperator(M m) {
   m[0];
-   ^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::[]
+   ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofMixin_indexEq() async {
@@ -6482,20 +6254,18 @@ void useOperator(M m) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'[]='},
-      expected: r'''
+    var element = result.findElement.method('[]=');
+
+    assertElementIndexText(result, element, r'''
 /// [operator []=] and [M.operator []=]
 mixin M {
   operator []=(int index, int value) {}
 }
 void useOperator(M m) {
   m[1] = 42;
-   ^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::[]=
+   ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MethodElement_operator_ofMixin_prefix() async {
@@ -6509,22 +6279,20 @@ void useOperator(M m) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'~'},
-      expected: r'''
+    var element = result.findElement.method('~');
+
+    assertElementIndexText(result, element, r'''
 /// [operator ~] and [M.operator ~]
-              ^ IS_REFERENCED_BY <testLibrary>::@mixin::M::@method::~
-                                 ^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::M::@method::~
+              ^ IS_REFERENCED_BY
+                                 ^ IS_REFERENCED_BY qualified
 mixin M {
   int operator ~() => 0;
 }
 void useOperator(M m) {
   ~m;
-  ^ IS_INVOKED_BY qualified <testLibrary>::@mixin::M::@method::~
+  ^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_MixinElement_emptyBody() async {
@@ -6539,16 +6307,12 @@ mixin A {}
 class B implements A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.mixin('A'), r'''
 mixin A {}
 class B implements A {}
-                   ^ IS_IMPLEMENTED_BY <testLibrary>::@mixin::A
-                   ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-''',
-    );
+                   ^ IS_IMPLEMENTED_BY
+                   ^ IS_REFERENCED_BY
+''');
   }
 
   test_MixinElement_hierarchy_class_with() async {
@@ -6557,16 +6321,12 @@ mixin A {}
 class B extends Object with A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.mixin('A'), r'''
 mixin A {}
 class B extends Object with A {}
-                            ^ IS_MIXED_IN_BY <testLibrary>::@mixin::A
-                            ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-''',
-    );
+                            ^ IS_MIXED_IN_BY
+                            ^ IS_REFERENCED_BY
+''');
   }
 
   test_MixinElement_hierarchy_classTypeAlias_with() async {
@@ -6575,16 +6335,12 @@ mixin A {}
 class B = Object with A;
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.mixin('A'), r'''
 mixin A {}
 class B = Object with A;
-                      ^ IS_MIXED_IN_BY <testLibrary>::@mixin::A
-                      ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-''',
-    );
+                      ^ IS_MIXED_IN_BY
+                      ^ IS_REFERENCED_BY
+''');
   }
 
   test_MixinElement_hierarchy_enum_implements() async {
@@ -6595,18 +6351,14 @@ enum E implements A {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.mixin('A'), r'''
 mixin A {}
 enum E implements A {
-                  ^ IS_IMPLEMENTED_BY <testLibrary>::@mixin::A
-                  ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
+                  ^ IS_IMPLEMENTED_BY
+                  ^ IS_REFERENCED_BY
   v
 }
-''',
-    );
+''');
   }
 
   test_MixinElement_hierarchy_enum_with() async {
@@ -6617,18 +6369,14 @@ enum E with A {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.mixin('A'), r'''
 mixin A {}
 enum E with A {
-            ^ IS_MIXED_IN_BY <testLibrary>::@mixin::A
-            ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
+            ^ IS_MIXED_IN_BY
+            ^ IS_REFERENCED_BY
   v
 }
-''',
-    );
+''');
   }
 
   test_MixinElement_hierarchy_extensionType_implements() async {
@@ -6637,17 +6385,13 @@ mixin A {}
 extension type E(A it) implements A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.mixin('A'), r'''
 mixin A {}
 extension type E(A it) implements A {}
-                 ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-                                  ^ IS_IMPLEMENTED_BY <testLibrary>::@mixin::A
-                                  ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-''',
-    );
+                 ^ IS_REFERENCED_BY
+                                  ^ IS_IMPLEMENTED_BY
+                                  ^ IS_REFERENCED_BY
+''');
   }
 
   test_MixinElement_hierarchy_mixin_implements() async {
@@ -6656,16 +6400,12 @@ mixin A {}
 mixin M implements A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.mixin('A'), r'''
 mixin A {}
 mixin M implements A {}
-                   ^ IS_IMPLEMENTED_BY <testLibrary>::@mixin::A
-                   ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-''',
-    );
+                   ^ IS_IMPLEMENTED_BY
+                   ^ IS_REFERENCED_BY
+''');
   }
 
   test_MixinElement_hierarchy_mixin_on() async {
@@ -6674,16 +6414,12 @@ mixin A {}
 mixin M on A {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    assertElementIndexText(result, result.findElement.mixin('A'), r'''
 mixin A {}
 mixin M on A {}
-           ^ CONSTRAINS <testLibrary>::@mixin::A
-           ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-''',
-    );
+           ^ CONSTRAINS
+           ^ IS_REFERENCED_BY
+''');
   }
 
   test_MixinElement_reference_annotation() async {
@@ -6699,10 +6435,9 @@ mixin A {
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.mixin('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 mixin A {
@@ -6710,14 +6445,12 @@ mixin A {
 }
 
 @A.myConstant
- ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
+ ^ IS_REFERENCED_BY
 @p.A.myConstant
-   ^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::A
+   ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@mixin::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_MixinElement_reference_comment() async {
@@ -6730,22 +6463,19 @@ mixin A {}
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.mixin('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 mixin A {}
 
 /// [A] and [p.A].
-     ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-               ^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::A
+     ^ IS_REFERENCED_BY
+               ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@mixin::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_MixinElement_reference_memberAccess() async {
@@ -6762,10 +6492,9 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.mixin('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 mixin A {
@@ -6774,14 +6503,12 @@ mixin A {
 
 void f() {
   A.foo();
-  ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
+  ^ IS_REFERENCED_BY
   p.A.foo();
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::A
+    ^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@mixin::A: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_MixinElement_reference_namedType() async {
@@ -6793,21 +6520,18 @@ mixin A {}
 void f(A v1, p.A v2) {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.mixin('A');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 mixin A {}
 
 void f(A v1, p.A v2) {}
-       ^ IS_REFERENCED_BY <testLibrary>::@mixin::A
-               ^ IS_REFERENCED_BY qualified <testLibrary>::@mixin::A
-Prefixes:
-  <testLibrary>::@mixin::A: (unprefixed),p
-''',
-    );
+       ^ IS_REFERENCED_BY
+               ^ IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
   }
 
   test_MultiplyDefinedElement() async {
@@ -6848,32 +6572,30 @@ void useSetter() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.setter('foo');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 /// [foo], [A.foo], [p.A.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@class::A::@setter::foo
-              ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
-                         ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+     ^^^ IS_REFERENCED_BY
+              ^^^ IS_REFERENCED_BY qualified
+                         ^^^ IS_REFERENCED_BY qualified
 class A {
   static set foo(int _) {}
   static void useSetter() {
     foo = 0;
-    ^^^ IS_WRITTEN_BY <testLibrary>::@class::A::@setter::foo
+    ^^^ IS_WRITTEN_BY
   }
 }
 
 void useSetter() {
   A.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+    ^^^ IS_REFERENCED_BY qualified
   p.A.foo = 0;
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@setter::foo
+      ^^^ IS_REFERENCED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_subtypes_classDeclaration() async {
@@ -7132,30 +6854,27 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('B').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   A({int? test});
 }
 
 class B extends A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   B({super.test}) : assert(test != null);
-           ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                           ^^^^ IS_READ_BY <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+                           ^^^^ IS_READ_BY
 }
 
 void f() {
   B(test: 0);
-    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   B _ = .new(test: 0);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_SuperFormalParameterElement_ofConstructor_optionalPositional() async {
@@ -7175,28 +6894,25 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('B').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   A([int? test]);
 }
 
 class B extends A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   B([super.test]) : assert(test != null);
-           ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                           ^^^^ IS_READ_BY <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+                           ^^^^ IS_READ_BY
 }
 
 void f() {
   B(0);
   B _ = .new(0);
 }
-''',
-    );
+''');
   }
 
   test_SuperFormalParameterElement_ofConstructor_requiredNamed() async {
@@ -7216,30 +6932,27 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('B').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   A({required int test});
 }
 
 class B extends A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   B({required super.test}) : assert(test != -1);
-                    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                                    ^^^^ IS_READ_BY <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+                                    ^^^^ IS_READ_BY
 }
 
 void f() {
   B(test: 0);
-    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+    ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
   B _ = .new(test: 0);
-             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+             ^^^^ IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 }
-''',
-    );
+''');
   }
 
   test_SuperFormalParameterElement_ofConstructor_requiredPositional() async {
@@ -7259,28 +6972,25 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'test'},
-      expected: r'''
+    var element = result.findElement.unnamedConstructor('B').parameter('test');
+
+    assertElementIndexText(result, element, r'''
 class A {
   A(int test);
 }
 
 class B extends A {
   /// [test]
-       ^^^^ IS_REFERENCED_BY <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+       ^^^^ IS_REFERENCED_BY
   B(super.test) : assert(test != -1);
-          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new::@formalParameter::test
-                         ^^^^ IS_READ_BY <testLibrary>::@class::B::@constructor::new::@formalParameter::test
+                         ^^^^ IS_READ_BY
 }
 
 void f() {
   B(0);
   B _ = .new(0);
 }
-''',
-    );
+''');
   }
 
   test_TopLevelFunctionElement() async {
@@ -7298,31 +7008,28 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.topFunction('foo');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 void foo() {}
 
 /// [foo] and [p.foo]
-     ^^^ IS_REFERENCED_BY <testLibrary>::@function::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@function::foo
+     ^^^ IS_REFERENCED_BY
+                 ^^^ IS_REFERENCED_BY qualified
 void f() {
   foo();
-  ^^^ IS_INVOKED_BY <testLibrary>::@function::foo
+  ^^^ IS_INVOKED_BY
   p.foo();
-    ^^^ IS_INVOKED_BY qualified <testLibrary>::@function::foo
+    ^^^ IS_INVOKED_BY qualified
   foo;
-  ^^^ IS_REFERENCED_BY <testLibrary>::@function::foo
+  ^^^ IS_REFERENCED_BY
   p.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@function::foo
+    ^^^ IS_REFERENCED_BY qualified
 }
-Prefixes:
-  <testLibrary>::@function::foo: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_TopLevelFunctionElement_invalidWrite() async {
@@ -7336,18 +7043,16 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'foo'},
-      expected: r'''
+    var element = result.findElement.topFunction('foo');
+
+    assertElementIndexText(result, element, r'''
 void foo() {}
 
 void f() {
   foo = 0;
-  ^^^ IS_REFERENCED_BY <testLibrary>::@function::foo
+  ^^^ IS_REFERENCED_BY
 }
-''',
-    );
+''');
   }
 
   test_TopLevelFunctionElement_loadLibrary() async {
@@ -7361,18 +7066,17 @@ void f() {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'loadLibrary'},
-      expected: r'''
+    var mathLib = result.findElement.import('dart:math').importedLibrary!;
+    var element = mathLib.loadLibraryFunction;
+
+    assertElementIndexText(result, element, r'''
 import 'dart:math' deferred as math;
 
 void f() {
   math.loadLibrary();
-       ^^^^^^^^^^^ IS_INVOKED_BY qualified dart:math::@function::loadLibrary
+       ^^^^^^^^^^^ IS_INVOKED_BY qualified
 }
-''',
-    );
+''');
   }
 
   test_TopLevelVariableElement_getterDeclaration() async {
@@ -7388,25 +7092,27 @@ void f() {
 }
 ''');
 
-    assertIndexText(
+    var variable = result.findElement.topVar('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'variable': variable, 'getter': variable.getter!},
+      r'''
 import 'test.dart' as p;
 
 int get foo => 0;
 
 /// [foo] and [p.foo].
-     ^^^ IS_REFERENCED_BY <testLibrary>::@getter::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@getter::foo
+     ^^^ getter IS_REFERENCED_BY
+                 ^^^ getter IS_REFERENCED_BY qualified
 void f() {
   foo;
-  ^^^ IS_REFERENCED_BY <testLibrary>::@getter::foo
+  ^^^ getter IS_REFERENCED_BY
   p.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
 }
 Prefixes:
-  <testLibrary>::@getter::foo: (unprefixed),p
+  getter: (unprefixed),p
 ''',
     );
   }
@@ -7440,54 +7146,62 @@ void f() {
 }
 ''');
 
-    assertIndexText(
+    var variable = result.findElement.topVar('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo', '+', '-'},
-      expected: r'''
+      {
+        'variable': variable,
+        'getter': variable.getter!,
+        'setter': variable.setter!,
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+        'num.-': result.resolvedUnit.typeProvider.numElement.getMethod('-')!,
+      },
+      r'''
 import 'test.dart' as p;
 
 int get foo => 0;
 set foo(int _) {}
 
 /// [foo] and [p.foo].
-     ^^^ IS_REFERENCED_BY <testLibrary>::@getter::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@getter::foo
+     ^^^ getter IS_REFERENCED_BY
+                 ^^^ getter IS_REFERENCED_BY qualified
 void f() {
   foo;
-  ^^^ IS_REFERENCED_BY <testLibrary>::@getter::foo
+  ^^^ getter IS_REFERENCED_BY
   foo = 0;
-  ^^^ IS_WRITTEN_BY <testLibrary>::@setter::foo
+  ^^^ setter IS_WRITTEN_BY
   foo += 1;
-  ^^^ IS_READ_BY <testLibrary>::@getter::foo
-  ^^^ IS_WRITTEN_BY <testLibrary>::@setter::foo
-      ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^ getter IS_READ_BY
+  ^^^ setter IS_WRITTEN_BY
+      ^^ num.+ IS_INVOKED_BY qualified
   foo ??= 2;
-  ^^^ IS_READ_BY <testLibrary>::@getter::foo
-  ^^^ IS_WRITTEN_BY <testLibrary>::@setter::foo
+  ^^^ getter IS_READ_BY
+  ^^^ setter IS_WRITTEN_BY
   foo++;
-  ^^^ IS_REFERENCED_BY <testLibrary>::@setter::foo
-     ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^ setter IS_REFERENCED_BY
+     ^^ num.+ IS_INVOKED_BY qualified
   --foo;
-  ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-    ^^^ IS_REFERENCED_BY <testLibrary>::@setter::foo
+  ^^ num.- IS_INVOKED_BY qualified
+    ^^^ setter IS_REFERENCED_BY
   p.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
   p.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   p.foo += 1;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
-        ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+        ^^ num.+ IS_INVOKED_BY qualified
   p.foo ??= 2;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   p.foo++;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+       ^^ num.+ IS_INVOKED_BY qualified
   --p.foo;
-  ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+  ^^ num.- IS_INVOKED_BY qualified
+      ^^^ setter IS_REFERENCED_BY qualified
 }
 Prefixes:
-  <testLibrary>::@getter::foo: (unprefixed),p
+  getter: (unprefixed),p
 ''',
     );
   }
@@ -7502,13 +7216,19 @@ int get foo => 0;
 void set foo(_) {}
 ''');
 
-    assertIndexText(
+    var variable = result.findElement.topVar('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {
+        'variable': variable,
+        'getter': variable.getter!,
+        'setter': variable.setter!,
+      },
+      r'''
 import 'test.dart' show foo;
-                        ^^^ IS_REFERENCED_BY qualified <testLibrary>::@getter::foo
-                        ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+                        ^^^ getter IS_REFERENCED_BY qualified
+                        ^^^ setter IS_REFERENCED_BY qualified
 
 int get foo => 0;
 void set foo(_) {}
@@ -7528,19 +7248,21 @@ void f() {
 }
 ''');
 
-    assertIndexText(
+    var variable = result.findElement.topVar('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'variable': variable, 'setter': variable.setter!},
+      r'''
 import 'test.dart' as p;
 
 set foo(int _) {}
 
 void f() {
   foo = 0;
-  ^^^ IS_WRITTEN_BY <testLibrary>::@setter::foo
+  ^^^ setter IS_WRITTEN_BY
   p.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
 }
 ''',
     );
@@ -7555,12 +7277,14 @@ import 'test.dart' show foo;
 void set foo(_) {}
 ''');
 
-    assertIndexText(
+    var variable = result.findElement.topVar('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo'},
-      expected: r'''
+      {'variable': variable, 'setter': variable.setter!},
+      r'''
 import 'test.dart' show foo;
-                        ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+                        ^^^ setter IS_REFERENCED_BY qualified
 
 void set foo(_) {}
 ''',
@@ -7599,57 +7323,65 @@ void f() {
 }
 ''');
 
-    assertIndexText(
+    var variable = result.findElement.topVar('foo');
+
+    assertElementsIndexText(
       result,
-      names: {'foo', '+', '-'},
-      expected: r'''
+      {
+        'variable': variable,
+        'getter': variable.getter!,
+        'setter': variable.setter!,
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+        'num.-': result.resolvedUnit.typeProvider.numElement.getMethod('-')!,
+      },
+      r'''
 import 'test.dart' as p;
 
 int foo = 0;
 
 /// [foo] and [p.foo].
-     ^^^ IS_REFERENCED_BY <testLibrary>::@getter::foo
-                 ^^^ IS_REFERENCED_BY qualified <testLibrary>::@getter::foo
+     ^^^ getter IS_REFERENCED_BY
+                 ^^^ getter IS_REFERENCED_BY qualified
 @foo
- ^^^ IS_REFERENCED_BY <testLibrary>::@getter::foo
+ ^^^ getter IS_REFERENCED_BY
 @p.foo
-   ^^^ IS_REFERENCED_BY qualified <testLibrary>::@getter::foo
+   ^^^ getter IS_REFERENCED_BY qualified
 void f() {
   foo;
-  ^^^ IS_REFERENCED_BY <testLibrary>::@getter::foo
+  ^^^ getter IS_REFERENCED_BY
   foo = 0;
-  ^^^ IS_WRITTEN_BY <testLibrary>::@setter::foo
+  ^^^ setter IS_WRITTEN_BY
   foo += 1;
-  ^^^ IS_READ_BY <testLibrary>::@getter::foo
-  ^^^ IS_WRITTEN_BY <testLibrary>::@setter::foo
-      ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^ getter IS_READ_BY
+  ^^^ setter IS_WRITTEN_BY
+      ^^ num.+ IS_INVOKED_BY qualified
   foo ??= 2;
-  ^^^ IS_READ_BY <testLibrary>::@getter::foo
-  ^^^ IS_WRITTEN_BY <testLibrary>::@setter::foo
+  ^^^ getter IS_READ_BY
+  ^^^ setter IS_WRITTEN_BY
   foo++;
-  ^^^ IS_REFERENCED_BY <testLibrary>::@setter::foo
-     ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+  ^^^ setter IS_REFERENCED_BY
+     ^^ num.+ IS_INVOKED_BY qualified
   --foo;
-  ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-    ^^^ IS_REFERENCED_BY <testLibrary>::@setter::foo
+  ^^ num.- IS_INVOKED_BY qualified
+    ^^^ setter IS_REFERENCED_BY
   p.foo;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@getter::foo
+    ^^^ getter IS_REFERENCED_BY qualified
   p.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   p.foo += 1;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
-        ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+        ^^ num.+ IS_INVOKED_BY qualified
   p.foo ??= 2;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+    ^^^ setter IS_REFERENCED_BY qualified
   p.foo++;
-    ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
-       ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::+
+    ^^^ setter IS_REFERENCED_BY qualified
+       ^^ num.+ IS_INVOKED_BY qualified
   --p.foo;
-  ^^ IS_INVOKED_BY qualified dart:core::@class::num::@method::-
-      ^^^ IS_REFERENCED_BY qualified <testLibrary>::@setter::foo
+  ^^ num.- IS_INVOKED_BY qualified
+      ^^^ setter IS_REFERENCED_BY qualified
 }
 Prefixes:
-  <testLibrary>::@getter::foo: (unprefixed),p
+  getter: (unprefixed),p
 ''',
     );
   }
@@ -7661,17 +7393,15 @@ typedef void A();
 void f(A p) {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A'},
-      expected: r'''
+    var element = result.findElement.typeAlias('A');
+
+    assertElementIndexText(result, element, r'''
 typedef void A();
 /// [A]
-     ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::A
+     ^ IS_REFERENCED_BY
 void f(A p) {}
-       ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::A
-''',
-    );
+       ^ IS_REFERENCED_BY
+''');
   }
 
   test_TypeAliasElement_modern_hierarchy_class_extends() async {
@@ -7681,16 +7411,19 @@ typedef B = A<int>;
 class C extends B {}
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'A', 'B'},
-      expected: r'''
+      {
+        'class': result.findElement.class_('A'),
+        'alias': result.findElement.typeAlias('B'),
+      },
+      r'''
 class A<T> {}
 typedef B = A<int>;
-            ^ IS_REFERENCED_BY <testLibrary>::@class::A
+            ^ class IS_REFERENCED_BY
 class C extends B {}
-                ^ IS_EXTENDED_BY <testLibrary>::@typeAlias::B
-                ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+                ^ alias IS_EXTENDED_BY
+                ^ alias IS_REFERENCED_BY
 ''',
     );
   }
@@ -7702,16 +7435,19 @@ typedef B = A<int>;
 class C implements B {}
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'A', 'B'},
-      expected: r'''
+      {
+        'class': result.findElement.class_('A'),
+        'alias': result.findElement.typeAlias('B'),
+      },
+      r'''
 class A<T> {}
 typedef B = A<int>;
-            ^ IS_REFERENCED_BY <testLibrary>::@class::A
+            ^ class IS_REFERENCED_BY
 class C implements B {}
-                   ^ IS_IMPLEMENTED_BY <testLibrary>::@typeAlias::B
-                   ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+                   ^ alias IS_IMPLEMENTED_BY
+                   ^ alias IS_REFERENCED_BY
 ''',
     );
   }
@@ -7725,16 +7461,19 @@ class C extends Object with B {}
 // [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
 ''');
 
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'A', 'B'},
-      expected: r'''
+      {
+        'class': result.findElement.class_('A'),
+        'alias': result.findElement.typeAlias('B'),
+      },
+      r'''
 class A<T> {}
 typedef B = A<int>;
-            ^ IS_REFERENCED_BY <testLibrary>::@class::A
+            ^ class IS_REFERENCED_BY
 class C extends Object with B {}
-                            ^ IS_MIXED_IN_BY <testLibrary>::@typeAlias::B
-                            ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+                            ^ alias IS_MIXED_IN_BY
+                            ^ alias IS_REFERENCED_BY
 ''',
     );
   }
@@ -7760,35 +7499,32 @@ void f(B p) {
 }
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A', 'B'},
-      expected: r'''
+    var element = result.findElement.typeAlias('B');
+
+    assertElementIndexText(result, element, r'''
 class A<T> {
   static int field = 0;
   static void method() {}
 }
 
 typedef B = A<int>;
-            ^ IS_REFERENCED_BY <testLibrary>::@class::A
 
 /// [B]
-     ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+     ^ IS_REFERENCED_BY
 void f(B p) {
-       ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+       ^ IS_REFERENCED_BY
   B v;
-  ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+  ^ IS_REFERENCED_BY
   B();
-  ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+  ^ IS_REFERENCED_BY
   B.field;
-  ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+  ^ IS_REFERENCED_BY
   B.field = 0;
-  ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+  ^ IS_REFERENCED_BY
   B.method();
-  ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
+  ^ IS_REFERENCED_BY
 }
-''',
-    );
+''');
   }
 
   test_TypeAliasElement_modern_reference_comment() async {
@@ -7802,24 +7538,20 @@ typedef B = A<int>;
 void f() {}
 ''');
 
-    assertIndexText(
-      result,
-      names: {'A', 'B'},
-      expected: r'''
+    var element = result.findElement.typeAlias('B');
+
+    assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
 class A<T> {}
 typedef B = A<int>;
-            ^ IS_REFERENCED_BY <testLibrary>::@class::A
 
 /// [B] and [p.B].
-     ^ IS_REFERENCED_BY <testLibrary>::@typeAlias::B
-               ^ IS_REFERENCED_BY qualified <testLibrary>::@typeAlias::B
+     ^ IS_REFERENCED_BY
+               ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes:
-  <testLibrary>::@typeAlias::B: (unprefixed),p
-''',
-    );
+Prefixes: (unprefixed),p
+''');
   }
 
   test_usedName_inLibraryIdentifier() async {
@@ -7832,17 +7564,17 @@ void f(p) {
   p.bbb = 1;
 }
 ''');
-    assertIndexText(
+    assertNamesIndexText(
       result,
-      names: {'bbb'},
-      expected: r'''
+      {'bbb'},
+      r'''
 library aaa.bbb.ccc;
 class C {
   var bbb;
 }
 void f(p) {
   p.bbb = 1;
-    ^^^ IS_WRITTEN_BY qualified name: bbb
+    ^^^ IS_WRITTEN_BY qualified
 }
 ''',
     );
@@ -7860,22 +7592,25 @@ void f(C c) {
   c.x();
 }
 ''');
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'x', '+'},
-      expected: r'''
+      {
+        'getter': result.findElement.field('x').getter!,
+        'setter': result.findElement.field('x').setter!,
+      },
+      r'''
 class C {
   var x;
 }
 void f(C c) {
   c.x; // 1
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@class::C::@getter::x
+    ^ getter IS_REFERENCED_BY qualified
   c.x = 1;
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@class::C::@setter::x
+    ^ setter IS_REFERENCED_BY qualified
   c.x += 2;
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@class::C::@setter::x
+    ^ setter IS_REFERENCED_BY qualified
   c.x();
-    ^ IS_REFERENCED_BY qualified <testLibrary>::@class::C::@getter::x
+    ^ getter IS_REFERENCED_BY qualified
 }
 ''',
     );
@@ -7890,19 +7625,19 @@ void f(p) {
   p.x();
 }
 ''');
-    assertIndexText(
+    assertNamesIndexText(
       result,
-      names: {'x', '+'},
-      expected: r'''
+      {'x', '+'},
+      r'''
 void f(p) {
   p.x;
-    ^ IS_READ_BY qualified name: x
+    ^ x IS_READ_BY qualified
   p.x = 1;
-    ^ IS_WRITTEN_BY qualified name: x
+    ^ x IS_WRITTEN_BY qualified
   p.x += 2;
-    ^ IS_READ_WRITTEN_BY qualified name: x
+    ^ x IS_READ_WRITTEN_BY qualified
   p.x();
-    ^ IS_INVOKED_BY qualified name: x
+    ^ x IS_INVOKED_BY qualified
 }
 ''',
     );
@@ -7920,22 +7655,25 @@ class C {
   }
 }
 ''');
-    assertIndexText(
+    assertElementsIndexText(
       result,
-      names: {'x', '+'},
-      expected: r'''
+      {
+        'getter': result.findElement.field('x').getter!,
+        'setter': result.findElement.field('x').setter!,
+      },
+      r'''
 class C {
   var x;
   m() {
     x; // 1
-    ^ IS_REFERENCED_BY <testLibrary>::@class::C::@getter::x
+    ^ getter IS_REFERENCED_BY
     x = 1;
-    ^ IS_WRITTEN_BY <testLibrary>::@class::C::@setter::x
+    ^ setter IS_WRITTEN_BY
     x += 2;
-    ^ IS_READ_BY <testLibrary>::@class::C::@getter::x
-    ^ IS_WRITTEN_BY <testLibrary>::@class::C::@setter::x
+    ^ getter IS_READ_BY
+    ^ setter IS_WRITTEN_BY
     x();
-    ^ IS_REFERENCED_BY <testLibrary>::@class::C::@getter::x
+    ^ getter IS_REFERENCED_BY
   }
 }
 ''',
@@ -7959,22 +7697,40 @@ void f() {
 // [diag.undefinedFunction] The function 'x' isn't defined.
 }
 ''');
-    assertIndexText(
+    assertNamesIndexText(
       result,
-      names: {'x', '+'},
-      expected: r'''
+      {'x', '+'},
+      r'''
 void f() {
   x;
-  ^ IS_READ_BY name: x
+  ^ x IS_READ_BY
   x = 1;
-  ^ IS_WRITTEN_BY name: x
+  ^ x IS_WRITTEN_BY
   x += 2;
-  ^ IS_READ_WRITTEN_BY name: x
+  ^ x IS_READ_WRITTEN_BY
   x();
-  ^ IS_INVOKED_BY name: x
+  ^ x IS_INVOKED_BY
 }
 ''',
     );
+  }
+
+  void _assertIndexText(
+    _IndexResult result, {
+    Map<String, Element> elements = const {},
+    Set<String> names = const {},
+    required String expected,
+  }) {
+    var actual = _IndexTextBuilder(
+      result,
+    ).indexText(elements: elements, names: names);
+    if (actual != expected) {
+      NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
+    }
   }
 
   Future<_IndexResult> _indexFileWithDiagnostics(File file, String code) async {
@@ -8001,17 +7757,23 @@ void f() {
 final class _IndexAnnotation {
   final int offset;
   final int length;
-  final IndexRelationKind kind;
-  final bool isQualified;
-  final String target;
+  final int? labelOrder;
+  final String text;
 
   _IndexAnnotation({
     required this.offset,
     required this.length,
-    required this.kind,
-    required this.isQualified,
-    required this.target,
+    this.labelOrder,
+    required this.text,
   });
+}
+
+final class _IndexElementToPrint {
+  final Element element;
+  final String? label;
+  final int? order;
+
+  _IndexElementToPrint({required this.element, this.label, this.order});
 }
 
 final class _IndexResult {
@@ -8030,10 +7792,24 @@ final class _IndexTextBuilder {
 
   _IndexTextBuilder(this.result);
 
-  String indexText(Set<String> names) {
+  String indexText({
+    required Map<String, Element> elements,
+    required Set<String> names,
+  }) {
     var index = result.index;
     var annotations = <_IndexAnnotation>[];
-    var elementsWithPrefixes = <int, Element>{};
+    var elementsWithPrefixes = <int, _IndexElementToPrint>{};
+
+    var elementLabels = <int, ({String text, int order})>{};
+    var nextLabelOrder = 0;
+    for (var entry in elements.entries) {
+      if (_findElementId(entry.value) case var elementId?) {
+        if (elementLabels.containsKey(elementId)) {
+          fail('The index element $elementId has more than one label.');
+        }
+        elementLabels[elementId] = (text: entry.key, order: nextLabelOrder++);
+      }
+    }
 
     expect(index.usedElements.length, index.usedElementKinds.length);
     expect(index.usedElements.length, index.usedElementOffsets.length);
@@ -8043,22 +7819,33 @@ final class _IndexTextBuilder {
 
     for (var i = 0; i < index.usedElements.length; i++) {
       var elementId = index.usedElements[i];
-      if (!names.contains(_nameForElementId(elementId))) {
+      var labelInfo = elementLabels[elementId];
+      if (labelInfo == null) {
         continue;
       }
       var element = _elementForId(elementId);
+      var labelText = labelInfo.text;
+      var labelOrder = labelInfo.order;
+      var kind = index.usedElementKinds[i];
+      var isQualified = index.usedElementIsQualifiedFlags[i];
 
       annotations.add(
         _IndexAnnotation(
           offset: index.usedElementOffsets[i],
           length: index.usedElementLengths[i],
-          kind: index.usedElementKinds[i],
-          isQualified: index.usedElementIsQualifiedFlags[i],
-          target: _elementText(element),
+          labelOrder: labelOrder,
+          text: [
+            if (labelText.isNotEmpty) labelText,
+            _relationText(kind, isQualified),
+          ].join(' '),
         ),
       );
       if (index.elementImportPrefixes[elementId].isNotEmpty) {
-        elementsWithPrefixes[elementId] = element;
+        elementsWithPrefixes[elementId] = _IndexElementToPrint(
+          element: element,
+          label: labelText,
+          order: labelOrder,
+        );
       }
     }
 
@@ -8071,14 +7858,17 @@ final class _IndexTextBuilder {
       if (!names.contains(name)) {
         continue;
       }
+      var kind = index.usedNameKinds[i];
+      var isQualified = index.usedNameIsQualifiedFlags[i];
 
       annotations.add(
         _IndexAnnotation(
           offset: index.usedNameOffsets[i],
           length: name.length,
-          kind: index.usedNameKinds[i],
-          isQualified: index.usedNameIsQualifiedFlags[i],
-          target: 'name: $name',
+          text: [
+            if (names.length > 1) name,
+            _relationText(kind, isQualified),
+          ].join(' '),
         ),
       );
     }
@@ -8088,13 +7878,12 @@ final class _IndexTextBuilder {
       if (result != 0) return result;
       result = first.length.compareTo(second.length);
       if (result != 0) return result;
-      result = first.kind.name.compareTo(second.kind.name);
+      result = switch ((first.labelOrder, second.labelOrder)) {
+        (var first?, var second?) => first.compareTo(second),
+        _ => 0,
+      };
       if (result != 0) return result;
-      result = first.isQualified.toString().compareTo(
-        second.isQualified.toString(),
-      );
-      if (result != 0) return result;
-      return first.target.compareTo(second.target);
+      return first.text.compareTo(second.text);
     });
 
     for (var i = 1; i < annotations.length; i++) {
@@ -8102,13 +7891,8 @@ final class _IndexTextBuilder {
       var current = annotations[i];
       if (previous.offset == current.offset &&
           previous.length == current.length &&
-          previous.kind == current.kind &&
-          previous.isQualified == current.isQualified &&
-          previous.target == current.target) {
-        fail(
-          'Duplicate relation at ${current.offset}: '
-          '${current.kind.name} ${current.target}',
-        );
+          previous.text == current.text) {
+        fail('Duplicate relation at ${current.offset}: ${current.text}');
       }
     }
 
@@ -8136,25 +7920,41 @@ final class _IndexTextBuilder {
         } else {
           buffer.write('^' * annotation.length);
         }
-        buffer.write(' ${annotation.kind.name}');
-        if (annotation.isQualified) {
-          buffer.write(' qualified');
-        }
-        buffer.writeln(' ${annotation.target}');
+        buffer.write(' ${annotation.text}');
+        buffer.writeln();
       }
     }
 
     if (elementsWithPrefixes.isNotEmpty) {
-      buffer.writeln('Prefixes:');
-      var entries = elementsWithPrefixes.entries.sortedBy((entry) {
-        return _elementText(entry.value);
+      var entries = elementsWithPrefixes.entries.sorted((first, second) {
+        var firstOrder = first.value.order;
+        var secondOrder = second.value.order;
+        if (firstOrder != null && secondOrder != null) {
+          return firstOrder.compareTo(secondOrder);
+        }
+        return _elementText(
+          first.value.element,
+        ).compareTo(_elementText(second.value.element));
       });
-      for (var entry in entries) {
-        var prefixes = index.elementImportPrefixes[entry.key]
+
+      String prefixesFor(int elementId) {
+        return index.elementImportPrefixes[elementId]
             .split(',')
             .map((prefix) => prefix.isEmpty ? '(unprefixed)' : prefix)
             .join(',');
-        buffer.writeln('  ${_elementText(entry.value)}: $prefixes');
+      }
+
+      if (entries case [var entry] when entry.value.label == '') {
+        buffer.writeln('Prefixes: ${prefixesFor(entry.key)}');
+        return buffer.toString();
+      }
+
+      buffer.writeln('Prefixes:');
+      for (var entry in entries) {
+        var prefixes = prefixesFor(entry.key);
+        var element = entry.value;
+        var target = element.label ?? _elementText(element.element);
+        buffer.writeln('  $target: $prefixes');
       }
     }
 
@@ -8309,34 +8109,6 @@ final class _IndexTextBuilder {
     return result.index.getLibraryFragmentId(unitElement);
   }
 
-  /// Returns the lookup name of the element encoded by [elementId].
-  ///
-  /// An element is encoded as a path containing a unit member, optionally a
-  /// class member, and optionally a named parameter. The innermost non-null
-  /// component is the name matched by `assertIndexText`, so a parameter takes
-  /// precedence over a class member, which takes precedence over a unit
-  /// member.
-  ///
-  /// Constructor names have a leading `.` in the class-member component to
-  /// distinguish them in the encoded path. The prefix is not part of the name
-  /// used by `assertIndexText`, so it is removed here.
-  String _nameForElementId(int elementId) {
-    var index = result.index;
-    var parameterNameId = index.elementNameParameterIds[elementId];
-    if (parameterNameId != index.nullStringId) {
-      return index.strings[parameterNameId];
-    }
-
-    var classMemberNameId = index.elementNameClassMemberIds[elementId];
-    if (classMemberNameId != index.nullStringId) {
-      var name = index.strings[classMemberNameId];
-      return name.startsWith('.') ? name.substring(1) : name;
-    }
-
-    var unitMemberNameId = index.elementNameUnitMemberIds[elementId];
-    return index.strings[unitMemberNameId];
-  }
-
   void _writeSourceSpanText(StringBuffer buffer, int offset, int length) {
     var lineInfo = result.resolvedUnit.unit.lineInfo;
     var location = lineInfo.getLocation(offset);
@@ -8351,5 +8123,9 @@ final class _IndexTextBuilder {
     buffer.write(location.columnNumber);
     buffer.write(' ');
     buffer.write('|$snippet|');
+  }
+
+  static String _relationText(IndexRelationKind kind, bool isQualified) {
+    return '${kind.name}${isQualified ? ' qualified' : ''}';
   }
 }
