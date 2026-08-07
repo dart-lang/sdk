@@ -263,6 +263,11 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'SearchTest',
+      methodName: 'assertElementsReferencesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
       methodName: 'assertLibraryFragmentReferencesText',
       argument: _ArgumentIndex(1),
     ),

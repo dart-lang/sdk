@@ -296,6 +296,40 @@ f(A a) {
     expect(names, unorderedEquals(['A', 'B']));
   }
 
+  test_operator_compoundAssignment_property() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a.foo += 1;
+  a.foo -= 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-', 'foo']));
+  }
+
+  test_operator_compoundAssignment_unqualifiedName() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  var x = a;
+  x += 1;
+  x -= 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-']));
+  }
+
+  test_operator_incrementOrDecrement() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  var x = a;
+  x++;
+  --x;
+  a.foo++;
+  --a.foo;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-', 'foo']));
+  }
+
   test_patternField_objectPattern_explicitName() {
     var names = _computeReferencedNames('''
 f(Object? x) {

@@ -158,7 +158,7 @@ class A {}
       names: {'Object'},
       expected: r'''
 class A {}
-      ^ IS_EXTENDED_BY qualified dart:core::@class::Object
+      ^0 IS_EXTENDED_BY qualified dart:core::@class::Object
 ''',
     );
   }
@@ -819,9 +819,9 @@ class A {
 }
 
 @A()
-  ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+  ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
 @p.A()
-    ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+    ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
 @A.named()
   ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::named
 @p.A.named()
@@ -1094,23 +1094,23 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 class B {
   B();
   ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   factory B.baz() = A;
-                     ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                     ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 class A extends B {}
       ^ IS_INVOKED_BY qualified <testLibrary>::@class::B::@constructor::new
 class C extends A {
   C() : super();
-             ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+             ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 void useConstructor() {
   A();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   A.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
   A a = .new();
@@ -1154,7 +1154,7 @@ class B extends A {
   ^^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   factory new.baz() = A;
           ^^^ IS_READ_BY name: new
-                       ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                       ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 ''',
     );
@@ -1192,7 +1192,7 @@ class B extends A {
   B.bar();
   ^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   factory B.baz() = A;
-                     ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                     ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 
 class C extends A {}
@@ -1228,23 +1228,23 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 class A {
   new () {}
   ^^^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   new bar() : this();
-                  ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                  ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   factory baz() = A;
-                   ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                   ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 class B extends A {
   new () : super();
-                ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 void useConstructor() {
   A();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   A.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
   A a = .new();
@@ -1279,7 +1279,7 @@ import 'test.dart';
 
 void f() {
   A();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 ''',
     );
@@ -1311,21 +1311,21 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 class A() {
   new bar() : this();
-                  ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                  ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   factory baz() = A;
-                   ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                   ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 class B() extends A {
   this : super();
-              ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+              ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 void useConstructor() {
   A();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   A.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
   A a = .new();
@@ -1362,23 +1362,23 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 class A {
   A() {}
   ^ IS_INVOKED_BY qualified dart:core::@class::Object::@constructor::new
   A.bar() : this();
-                ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+                ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   factory A.baz() = A;
-                     ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+                     ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 class B extends A {
   B() : super();
-             ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+             ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
 }
 void useConstructor() {
   A();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   A.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@class::A::@constructor::new
   A a = .new();
@@ -1415,7 +1415,7 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@class::A::@constructor::new
 class A {
   A.new() {}
@@ -1478,11 +1478,11 @@ class B = A with M;
 class C = B with M;
 void useConstructor() {
   B();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   B.named();
    ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::named
   C();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::new
   C.named();
    ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@class::A::@constructor::named
 }
@@ -1536,7 +1536,7 @@ import 'test.dart' as p;
 
 enum E {
   v;
-   ^ IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
   const E();
         ^ IS_INVOKED_BY qualified dart:core::@class::Enum::@constructor::new
   const E.named();
@@ -1544,9 +1544,9 @@ enum E {
 }
 
 @E()
-  ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+  ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
 @p.E()
-    ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
 @E.named()
   ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::named
 @p.E.named()
@@ -1761,21 +1761,21 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new E] and [E.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
 enum E {
   v1,
-    ^ IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
   v2(),
-    ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   v3.new();
     ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   const factory E.other() = E;
-                             ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+                             ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
 }
 void useConstructor() {
   E();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   E.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
   E a = .new();
@@ -1819,13 +1819,13 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new E] and [E.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
 enum E {
   v1,
-    ^ IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
   v2(),
-    ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   v3.new();
     ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   const new ();
@@ -1835,7 +1835,7 @@ enum E {
 }
 void useConstructor() {
   E();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   E.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
   E a = .new();
@@ -1878,13 +1878,13 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new E] and [E.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
 enum E() {
   v1,
-    ^ IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
   v2(),
-    ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   v3.new();
     ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   const factory other() = E.new;
@@ -1892,7 +1892,7 @@ enum E() {
 }
 void useConstructor() {
   E();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   E.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
   E a = .new();
@@ -1936,23 +1936,23 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new E] and [E.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
 enum E {
   v1,
-    ^ IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
   v2(),
-    ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   v3.new();
     ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   const E();
         ^ IS_INVOKED_BY qualified dart:core::@class::Enum::@constructor::new
   const factory E.other() = E;
-                             ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+                             ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
 }
 void useConstructor() {
   E();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   E.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
   E a = .new();
@@ -1996,13 +1996,13 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new E] and [E.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@enum::E::@constructor::new
 enum E {
   v1,
-    ^ IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified <testLibrary>::@enum::E::@constructor::new
   v2(),
-    ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+    ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   v3.new();
     ^^^^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   const E.new();
@@ -2012,7 +2012,7 @@ enum E {
 }
 void useConstructor() {
   E();
-   ^ IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@enum::E::@constructor::new
   E.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@enum::E::@constructor::new
   E a = .new();
@@ -2045,13 +2045,13 @@ import 'test.dart' as p;
 
 extension type const A(int it) {
   const A.named(int it) : this(it);
-                              ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                              ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 }
 
 @A(0)
-  ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+  ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 @p.A(0)
-    ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+    ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 @A.named(0)
   ^^^^^^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::named
 @p.A.named(0)
@@ -2218,18 +2218,18 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
-                  ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                  ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
   factory baz(int it) = A.new;
                          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 }
 void useConstructor() {
   A(0);
-   ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
   A.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::new
   A a = .new(0);
@@ -2262,17 +2262,17 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 extension type A(int it) {
   new bar() : this(0);
-                  ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                  ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
   factory baz(int it) = A.new;
                          ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 }
 void useConstructor() {
   A(0);
-   ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
   A.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::new
   A a = .new(0);
@@ -2306,18 +2306,18 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
-                ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+                ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
   factory A.baz(int it) = A.new;
                            ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 }
 void useConstructor() {
   A(0);
-   ^ IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+   ^0 IS_INVOKED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
   A.new;
    ^^^^ IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified <testLibrary>::@extensionType::A::@constructor::new
   A a = .new(0);
@@ -2351,7 +2351,7 @@ void useConstructor() {
       names: {'new'},
       expected: r'''
 /// [new A] and [A.new]
-          ^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
+          ^0 IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
                   ^^^^ IS_REFERENCED_BY qualified <testLibrary>::@extensionType::A::@constructor::new
 extension type A.named(int it) {
   A.new(this.it);
@@ -5282,7 +5282,7 @@ void useGetter(Object? x) {
   if (x case A(foo: 0)) {}
                ^^^ IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@getter::foo
   if (x case A(: var foo)) {}
-               ^ IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@getter::foo
+               ^0 IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@getter::foo
 }
 ''',
     );
@@ -5429,7 +5429,7 @@ class A {
     if (x case A(foo: _)) {}
                  ^^^ IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@method::foo
     if (x case A(: var foo)) {}
-                 ^ IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@method::foo
+                 ^0 IS_REFERENCED_BY_PATTERN_FIELD qualified <testLibrary>::@class::A::@method::foo
   }
 }
 void useFoo(A a) {
@@ -8131,8 +8131,11 @@ final class _IndexTextBuilder {
           annotation.offset,
         );
         buffer.write(' ' * (location.columnNumber - 1));
-        var markerLength = annotation.length == 0 ? 1 : annotation.length;
-        buffer.write('^' * markerLength);
+        if (annotation.length == 0) {
+          buffer.write('^0');
+        } else {
+          buffer.write('^' * annotation.length);
+        }
         buffer.write(' ${annotation.kind.name}');
         if (annotation.isQualified) {
           buffer.write(' qualified');
