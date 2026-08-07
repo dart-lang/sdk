@@ -1957,99 +1957,275 @@ Prefixes: (unprefixed),p
 ''');
   }
 
-  test_FieldElement_ofClass_instance() async {
+  test_FieldElement_ofClass_instance_fieldDeclaration() async {
     var result = await _indexTestCode('''
 /// [foo] and [A.foo]
 class A {
   int foo;
-  A({this.foo});
-//        ^^^
-// [diag.missingDefaultValueForParameter] The parameter 'foo' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+  A({this.foo = 0});
   A.foo() : foo = 0;
 
   void useField() {
     foo;
     foo = 0;
+    foo += 1;
+    foo ??= 2;
+// [diag.deadCode][column 13][length 127] Dead code.
+//          ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+    foo++;
+    --foo;
     this.foo;
     this.foo = 0;
+    this.foo += 1;
+    this.foo ??= 2;
+//               ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+    this.foo++;
+    --this.foo;
   }
 }
 
 void useField(A a) {
   a.foo;
   a.foo = 0;
+  a.foo += 1;
+  a.foo ??= 2;
+// [diag.deadCode][column 13][length 37] Dead code.
+//          ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  a.foo++;
+  --a.foo;
   A(foo: 0);
+}
+
+class B extends A {
+  void useSuper() {
+    super.foo;
+    super.foo = 0;
+    super.foo += 1;
+    super.foo ??= 2;
+// [diag.deadCode][column 19][length 36] Dead code.
+//                ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+    super.foo++;
+    --super.foo;
+  }
 }
 ''');
 
     var field = result.findElement.class_('A').getField('foo')!;
     assertElementIndexText(result, field, r'''
 53 4:11 |foo| IS_WRITTEN_BY qualified
-72 5:13 |foo| IS_WRITTEN_BY qualified
+76 5:13 |foo| IS_WRITTEN_BY qualified
 ''');
 
     assertElementIndexText(result, field.getter!, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
-106 8:5 |foo| IS_REFERENCED_BY
-133 10:10 |foo| IS_REFERENCED_BY qualified
-188 16:5 |foo| IS_REFERENCED_BY qualified
+110 8:5 |foo| IS_REFERENCED_BY
+132 10:5 |foo| IS_READ_BY
+146 11:5 |foo| IS_READ_BY
+188 14:10 |foo| IS_REFERENCED_BY qualified
+314 24:5 |foo| IS_REFERENCED_BY qualified
+449 35:11 |foo| IS_REFERENCED_BY qualified
 ''');
 
     assertElementIndexText(result, field.setter!, r'''
-115 9:5 |foo| IS_WRITTEN_BY
-147 11:10 |foo| IS_REFERENCED_BY qualified
-197 17:5 |foo| IS_REFERENCED_BY qualified
+119 9:5 |foo| IS_WRITTEN_BY
+132 10:5 |foo| IS_WRITTEN_BY
+146 11:5 |foo| IS_WRITTEN_BY
+161 12:5 |foo| IS_REFERENCED_BY
+174 13:7 |foo| IS_REFERENCED_BY
+202 15:10 |foo| IS_REFERENCED_BY qualified
+220 16:10 |foo| IS_REFERENCED_BY qualified
+239 17:10 |foo| IS_REFERENCED_BY qualified
+259 18:10 |foo| IS_REFERENCED_BY qualified
+277 19:12 |foo| IS_REFERENCED_BY qualified
+323 25:5 |foo| IS_REFERENCED_BY qualified
+336 26:5 |foo| IS_REFERENCED_BY qualified
+350 27:5 |foo| IS_REFERENCED_BY qualified
+365 28:5 |foo| IS_REFERENCED_BY qualified
+378 29:7 |foo| IS_REFERENCED_BY qualified
+464 36:11 |foo| IS_REFERENCED_BY qualified
+483 37:11 |foo| IS_REFERENCED_BY qualified
+503 38:11 |foo| IS_REFERENCED_BY qualified
+524 39:11 |foo| IS_REFERENCED_BY qualified
+543 40:13 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
-  test_FieldElement_ofClass_instance_synthetic_hasGetter() async {
+  test_FieldElement_ofClass_instance_getterDeclaration() async {
+    var result = await _indexTestCode('''
+/// [foo] and [A.foo]
+class A {
+  A() : foo = 0;
+//      ^^^^^^^
+// [diag.initializerForNonExistentField] 'foo' isn't a field in the enclosing class.
+  int get foo => 0;
+
+  void useGetter() {
+    foo;
+    this.foo;
+  }
+}
+
+void useGetter(A a) {
+  a.foo;
+}
+
+class B extends A {
+  void useSuper() {
+    super.foo;
+  }
+}
+''');
+    var field = result.findElement.field('foo');
+    assertElementIndexText(result, field, r'''
+40 3:9 |foo| IS_WRITTEN_BY qualified
+''');
+    assertElementIndexText(result, field.getter!, r'''
+5 1:6 |foo| IS_REFERENCED_BY
+17 1:18 |foo| IS_REFERENCED_BY qualified
+95 7:5 |foo| IS_REFERENCED_BY
+109 8:10 |foo| IS_REFERENCED_BY qualified
+147 13:5 |foo| IS_REFERENCED_BY qualified
+205 18:11 |foo| IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_FieldElement_ofClass_instance_getterSetterDeclarations() async {
     var result = await _indexTestCode('''
 class A {
   A() : foo = 0;
 //      ^^^^^^^
 // [diag.initializerForNonExistentField] 'foo' isn't a field in the enclosing class.
   int get foo => 0;
+  set foo(int _) {}
+
+  void useField() {
+    foo;
+    foo = 0;
+    foo += 1;
+    foo ??= 2;
+// [diag.deadCode][column 13][length 127] Dead code.
+//          ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+    foo++;
+    --foo;
+    this.foo;
+    this.foo = 0;
+    this.foo += 1;
+    this.foo ??= 2;
+//               ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+    this.foo++;
+    --this.foo;
+  }
+}
+
+void useField(A a) {
+  a.foo;
+  a.foo = 0;
+  a.foo += 1;
+  a.foo ??= 2;
+// [diag.deadCode][column 13][length 24] Dead code.
+//          ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  a.foo++;
+  --a.foo;
+}
+
+class B extends A {
+  void useSuper() {
+    super.foo;
+    super.foo = 0;
+    super.foo += 1;
+    super.foo ??= 2;
+// [diag.deadCode][column 19][length 36] Dead code.
+//                ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+    super.foo++;
+    --super.foo;
+  }
 }
 ''');
-    var element = result.findElement.field('foo');
-    assertElementIndexText(result, element, r'''
+    var field = result.findElement.field('foo');
+    assertElementIndexText(result, field, r'''
 18 2:9 |foo| IS_WRITTEN_BY qualified
+''');
+    assertElementIndexText(result, field.getter!, r'''
+92 7:5 |foo| IS_REFERENCED_BY
+114 9:5 |foo| IS_READ_BY
+128 10:5 |foo| IS_READ_BY
+170 13:10 |foo| IS_REFERENCED_BY qualified
+296 23:5 |foo| IS_REFERENCED_BY qualified
+418 33:11 |foo| IS_REFERENCED_BY qualified
+''');
+    assertElementIndexText(result, field.setter!, r'''
+101 8:5 |foo| IS_WRITTEN_BY
+114 9:5 |foo| IS_WRITTEN_BY
+128 10:5 |foo| IS_WRITTEN_BY
+143 11:5 |foo| IS_REFERENCED_BY
+156 12:7 |foo| IS_REFERENCED_BY
+184 14:10 |foo| IS_REFERENCED_BY qualified
+202 15:10 |foo| IS_REFERENCED_BY qualified
+221 16:10 |foo| IS_REFERENCED_BY qualified
+241 17:10 |foo| IS_REFERENCED_BY qualified
+259 18:12 |foo| IS_REFERENCED_BY qualified
+305 24:5 |foo| IS_REFERENCED_BY qualified
+318 25:5 |foo| IS_REFERENCED_BY qualified
+332 26:5 |foo| IS_REFERENCED_BY qualified
+347 27:5 |foo| IS_REFERENCED_BY qualified
+360 28:7 |foo| IS_REFERENCED_BY qualified
+433 34:11 |foo| IS_REFERENCED_BY qualified
+452 35:11 |foo| IS_REFERENCED_BY qualified
+472 36:11 |foo| IS_REFERENCED_BY qualified
+493 37:11 |foo| IS_REFERENCED_BY qualified
+512 38:13 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
-  test_FieldElement_ofClass_instance_synthetic_hasGetterSetter() async {
+  test_FieldElement_ofClass_instance_setterDeclaration() async {
     var result = await _indexTestCode('''
+/// [foo] and [A.foo]
 class A {
   A() : foo = 0;
 //      ^^^^^^^
 // [diag.initializerForNonExistentField] 'foo' isn't a field in the enclosing class.
-  int get foo => 0;
-  set foo(_) {}
+  set foo(int _) {}
+
+  void useSetter() {
+    foo = 0;
+    this.foo = 0;
+  }
+}
+
+void useSetter(A a) {
+  a.foo = 0;
+}
+
+class B extends A {
+  void useSuper() {
+    super.foo = 0;
+  }
 }
 ''');
-    var element = result.findElement.field('foo');
-    assertElementIndexText(result, element, r'''
-18 2:9 |foo| IS_WRITTEN_BY qualified
+    var field = result.findElement.field('foo');
+    assertElementIndexText(result, field, r'''
+40 3:9 |foo| IS_WRITTEN_BY qualified
+''');
+    assertElementIndexText(result, field.setter!, r'''
+5 1:6 |foo| IS_REFERENCED_BY
+17 1:18 |foo| IS_REFERENCED_BY qualified
+95 7:5 |foo| IS_WRITTEN_BY
+113 8:10 |foo| IS_REFERENCED_BY qualified
+155 13:5 |foo| IS_REFERENCED_BY qualified
+217 18:11 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
-  test_FieldElement_ofClass_instance_synthetic_hasSetter() async {
-    var result = await _indexTestCode('''
-class A {
-  A() : foo = 0;
-//      ^^^^^^^
-// [diag.initializerForNonExistentField] 'foo' isn't a field in the enclosing class.
-  set foo(_) {}
-}
-''');
-    var element = result.findElement.field('foo');
-    assertElementIndexText(result, element, r'''
-18 2:9 |foo| IS_WRITTEN_BY qualified
-''');
-  }
-
-  test_FieldElement_ofClass_static() async {
+  test_FieldElement_ofClass_static_fieldDeclaration() async {
     var result = await _indexTestCode('''
 /// [foo] and [A.foo]
 class A {
@@ -2091,7 +2267,7 @@ void useField() {
 ''');
   }
 
-  test_FieldElement_ofEnum_instance() async {
+  test_FieldElement_ofEnum_instance_fieldDeclaration() async {
     var result = await _indexTestCode('''
 /// [foo] and [E.foo]
 enum E {
@@ -2134,6 +2310,39 @@ void useField(E e) {
 ''');
   }
 
+  test_FieldElement_ofEnum_instance_getterDeclaration() async {
+    var result = await _indexTestCode('''
+enum E {
+  v;
+  E() : foo = 0;
+//      ^^^^^^^
+// [diag.initializerForNonExistentField] 'foo' isn't a field in the enclosing class.
+  int get foo => 0;
+}
+''');
+    var element = result.findElement.field('foo');
+    assertElementIndexText(result, element, r'''
+22 3:9 |foo| IS_WRITTEN_BY qualified
+''');
+  }
+
+  test_FieldElement_ofEnum_instance_getterSetterDeclarations() async {
+    var result = await _indexTestCode('''
+enum E {
+  v;
+  E() : foo = 0;
+//      ^^^^^^^
+// [diag.initializerForNonExistentField] 'foo' isn't a field in the enclosing class.
+  int get foo => 0;
+  set foo(_) {}
+}
+''');
+    var element = result.findElement.field('foo');
+    assertElementIndexText(result, element, r'''
+22 3:9 |foo| IS_WRITTEN_BY qualified
+''');
+  }
+
   test_FieldElement_ofEnum_instance_index() async {
     var result = await _indexTestCode('''
 enum MyEnum {
@@ -2155,40 +2364,7 @@ void f() {
 ''');
   }
 
-  test_FieldElement_ofEnum_instance_synthetic_hasGetter() async {
-    var result = await _indexTestCode('''
-enum E {
-  v;
-  E() : foo = 0;
-//      ^^^^^^^
-// [diag.initializerForNonExistentField] 'foo' isn't a field in the enclosing class.
-  int get foo => 0;
-}
-''');
-    var element = result.findElement.field('foo');
-    assertElementIndexText(result, element, r'''
-22 3:9 |foo| IS_WRITTEN_BY qualified
-''');
-  }
-
-  test_FieldElement_ofEnum_instance_synthetic_hasGetterSetter() async {
-    var result = await _indexTestCode('''
-enum E {
-  v;
-  E() : foo = 0;
-//      ^^^^^^^
-// [diag.initializerForNonExistentField] 'foo' isn't a field in the enclosing class.
-  int get foo => 0;
-  set foo(_) {}
-}
-''');
-    var element = result.findElement.field('foo');
-    assertElementIndexText(result, element, r'''
-22 3:9 |foo| IS_WRITTEN_BY qualified
-''');
-  }
-
-  test_FieldElement_ofEnum_instance_synthetic_hasSetter() async {
+  test_FieldElement_ofEnum_instance_setterDeclaration() async {
     var result = await _indexTestCode('''
 enum E {
   v;
@@ -2241,7 +2417,55 @@ void f() {
 ''');
   }
 
-  test_FieldElement_ofExtensionType_static() async {
+  test_FieldElement_ofExtension_instance_getterSetterDeclarations() async {
+    var result = await _indexTestCode('''
+extension E on int {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void useField(int a) {
+  a.foo;
+  a.foo = 0;
+  a.foo += 1;
+  a.foo ??= 2;
+// [diag.deadCode][column 13][length 115] Dead code.
+//          ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  a.foo++;
+  --a.foo;
+  E(a).foo;
+  E(a).foo = 0;
+  E(a).foo += 1;
+  E(a).foo ??= 2;
+//             ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  E(a).foo++;
+  --E(a).foo;
+}
+''');
+    var field = result.findElement.field('foo');
+    assertElementIndexText(result, field, r'''
+''');
+    assertElementIndexText(result, field.getter!, r'''
+91 7:5 |foo| IS_REFERENCED_BY qualified
+167 13:8 |foo| IS_REFERENCED_BY qualified
+''');
+    assertElementIndexText(result, field.setter!, r'''
+100 8:5 |foo| IS_REFERENCED_BY qualified
+113 9:5 |foo| IS_REFERENCED_BY qualified
+127 10:5 |foo| IS_REFERENCED_BY qualified
+142 11:5 |foo| IS_REFERENCED_BY qualified
+155 12:7 |foo| IS_REFERENCED_BY qualified
+179 14:8 |foo| IS_REFERENCED_BY qualified
+195 15:8 |foo| IS_REFERENCED_BY qualified
+212 16:8 |foo| IS_REFERENCED_BY qualified
+230 17:8 |foo| IS_REFERENCED_BY qualified
+246 18:10 |foo| IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_FieldElement_ofExtensionType_static_fieldDeclaration() async {
     var result = await _indexTestCode('''
 /// [foo] and [A.foo]
 extension type A(int it) {
@@ -3220,31 +3444,6 @@ void g(bool b) {
 }''');
     // We should not crash because of reference to "test" - a named parameter
     // of a synthetic LUB FunctionElement created for "f".
-  }
-
-  test_GetterElement_ofClass_instance() async {
-    var result = await _indexTestCode('''
-/// [foo] and [A.foo]
-class A {
-  int get foo => 0;
-  void useGetter() {
-    foo;
-    this.foo;
-  }
-}
-
-void useGetter(A a) {
-  a.foo;
-}
-''');
-    var element = result.findElement.getter('foo');
-    assertElementIndexText(result, element, r'''
-5 1:6 |foo| IS_REFERENCED_BY
-17 1:18 |foo| IS_REFERENCED_BY qualified
-77 5:5 |foo| IS_REFERENCED_BY
-91 6:10 |foo| IS_REFERENCED_BY qualified
-129 11:5 |foo| IS_REFERENCED_BY qualified
-''');
   }
 
   test_GetterElement_ofClass_invocation() async {
@@ -4295,31 +4494,6 @@ Never f() {}
     expect(result.index.usedElementOffsets, isEmpty);
   }
 
-  test_SetterElement_ofClass_instance() async {
-    var result = await _indexTestCode('''
-/// [foo] and [A.foo]
-class A {
-  set foo(int _) {}
-  void useSetter() {
-    foo = 0;
-    this.foo = 0;
-  }
-}
-
-void useSetter(A a) {
-  a.foo = 0;
-}
-''');
-    var element = result.findElement.setter('foo');
-    assertElementIndexText(result, element, r'''
-5 1:6 |foo| IS_REFERENCED_BY
-17 1:18 |foo| IS_REFERENCED_BY qualified
-77 5:5 |foo| IS_WRITTEN_BY
-95 6:10 |foo| IS_REFERENCED_BY qualified
-137 11:5 |foo| IS_REFERENCED_BY qualified
-''');
-  }
-
   test_SetterElement_ofClass_static() async {
     var result = await _indexTestCode('''
 import 'test.dart' as p;
@@ -4744,46 +4918,87 @@ void f() {
 ''');
   }
 
-  test_TopLevelVariableElement_reference() async {
+  test_TopLevelVariableElement_getterDeclaration() async {
     var result = await _indexTestCode('''
 import 'test.dart' as p;
 
-var foo = 0;
+int get foo => 0;
 
 /// [foo] and [p.foo].
-@foo
-// [diag.invalidAnnotation][column 1][length 4] Annotation must be either a const variable reference or const constructor invocation.
-@p.foo
-// [diag.invalidAnnotation][column 1][length 6] Annotation must be either a const variable reference or const constructor invocation.
 void f() {
   foo;
-  foo = 0;
   p.foo;
-  p.foo = 0;
 }
 ''');
 
-    var element = result.findElement.topVar('foo');
-    var getter = element.getter!;
-    var setter = element.setter!;
-
-    assertElementIndexText(result, getter, r'''
-45 5:6 |foo| IS_REFERENCED_BY
-57 5:18 |foo| IS_REFERENCED_BY qualified
-64 6:2 |foo| IS_REFERENCED_BY
-71 7:4 |foo| IS_REFERENCED_BY qualified
-88 9:3 |foo| IS_REFERENCED_BY
-108 11:5 |foo| IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
+    var variable = result.findElement.topVar('foo');
+    assertElementIndexText(result, variable, r'''
 ''');
-
-    assertElementIndexText(result, setter, r'''
-95 10:3 |foo| IS_WRITTEN_BY
-117 12:5 |foo| IS_REFERENCED_BY qualified
+    assertElementIndexText(result, variable.getter!, r'''
+50 5:6 |foo| IS_REFERENCED_BY
+62 5:18 |foo| IS_REFERENCED_BY qualified
+81 7:3 |foo| IS_REFERENCED_BY
+90 8:5 |foo| IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
 ''');
   }
 
-  test_TopLevelVariableElement_reference_combinator_show_hasGetterSetter() async {
+  test_TopLevelVariableElement_getterSetterDeclarations() async {
+    var result = await _indexTestCode('''
+import 'test.dart' as p;
+
+int get foo => 0;
+set foo(int _) {}
+
+/// [foo] and [p.foo].
+void f() {
+  foo;
+  foo = 0;
+  foo += 1;
+  foo ??= 2;
+// [diag.deadCode][column 11][length 93] Dead code.
+//        ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  foo++;
+  --foo;
+  p.foo;
+  p.foo = 0;
+  p.foo += 1;
+  p.foo ??= 2;
+//          ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  p.foo++;
+  --p.foo;
+}
+''');
+
+    var variable = result.findElement.topVar('foo');
+    assertElementIndexText(result, variable, r'''
+''');
+    assertElementIndexText(result, variable.getter!, r'''
+68 6:6 |foo| IS_REFERENCED_BY
+80 6:18 |foo| IS_REFERENCED_BY qualified
+99 8:3 |foo| IS_REFERENCED_BY
+117 10:3 |foo| IS_READ_BY
+129 11:3 |foo| IS_READ_BY
+162 14:5 |foo| IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
+    assertElementIndexText(result, variable.setter!, r'''
+106 9:3 |foo| IS_WRITTEN_BY
+117 10:3 |foo| IS_WRITTEN_BY
+129 11:3 |foo| IS_WRITTEN_BY
+142 12:3 |foo| IS_REFERENCED_BY
+153 13:5 |foo| IS_REFERENCED_BY
+171 15:5 |foo| IS_REFERENCED_BY qualified
+184 16:5 |foo| IS_REFERENCED_BY qualified
+198 17:5 |foo| IS_REFERENCED_BY qualified
+213 18:5 |foo| IS_REFERENCED_BY qualified
+226 19:7 |foo| IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_TopLevelVariableElement_getterSetterDeclarations_importCombinator_show() async {
     var result = await _indexTestCode('''
 import 'test.dart' show foo;
 //     ^^^^^^^^^^^
@@ -4793,18 +5008,40 @@ int get foo => 0;
 void set foo(_) {}
 ''');
 
-    var getter = result.findElement.topGet('foo');
-    assertElementIndexText(result, getter, r'''
+    var variable = result.findElement.topVar('foo');
+    assertElementIndexText(result, variable, r'''
+''');
+    assertElementIndexText(result, variable.getter!, r'''
 24 1:25 |foo| IS_REFERENCED_BY qualified
 ''');
 
-    var setter = result.findElement.topSet('foo');
-    assertElementIndexText(result, setter, r'''
+    assertElementIndexText(result, variable.setter!, r'''
 24 1:25 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
-  test_TopLevelVariableElement_reference_combinator_show_hasSetter() async {
+  test_TopLevelVariableElement_setterDeclaration() async {
+    var result = await _indexTestCode('''
+import 'test.dart' as p;
+
+set foo(int _) {}
+
+void f() {
+  foo = 0;
+  p.foo = 0;
+}
+''');
+
+    var variable = result.findElement.topVar('foo');
+    assertElementIndexText(result, variable, r'''
+''');
+    assertElementIndexText(result, variable.setter!, r'''
+58 6:3 |foo| IS_WRITTEN_BY
+71 7:5 |foo| IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_TopLevelVariableElement_setterDeclaration_importCombinator_show() async {
     var result = await _indexTestCode('''
 import 'test.dart' show foo;
 //     ^^^^^^^^^^^
@@ -4812,9 +5049,73 @@ import 'test.dart' show foo;
 
 void set foo(_) {}
 ''');
-    var setter = result.findElement.topSet('foo');
-    assertElementIndexText(result, setter, r'''
+    var variable = result.findElement.topVar('foo');
+    assertElementIndexText(result, variable, r'''
+''');
+    assertElementIndexText(result, variable.setter!, r'''
 24 1:25 |foo| IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_TopLevelVariableElement_variableDeclaration() async {
+    var result = await _indexTestCode('''
+import 'test.dart' as p;
+
+int foo = 0;
+
+/// [foo] and [p.foo].
+@foo
+// [diag.invalidAnnotation][column 1][length 4] Annotation must be either a const variable reference or const constructor invocation.
+@p.foo
+// [diag.invalidAnnotation][column 1][length 6] Annotation must be either a const variable reference or const constructor invocation.
+void f() {
+  foo;
+  foo = 0;
+  foo += 1;
+  foo ??= 2;
+// [diag.deadCode][column 11][length 93] Dead code.
+//        ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  foo++;
+  --foo;
+  p.foo;
+  p.foo = 0;
+  p.foo += 1;
+  p.foo ??= 2;
+//          ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+  p.foo++;
+  --p.foo;
+}
+''');
+
+    var variable = result.findElement.topVar('foo');
+    assertElementIndexText(result, variable, r'''
+''');
+
+    assertElementIndexText(result, variable.getter!, r'''
+45 5:6 |foo| IS_REFERENCED_BY
+57 5:18 |foo| IS_REFERENCED_BY qualified
+64 6:2 |foo| IS_REFERENCED_BY
+71 7:4 |foo| IS_REFERENCED_BY qualified
+88 9:3 |foo| IS_REFERENCED_BY
+106 11:3 |foo| IS_READ_BY
+118 12:3 |foo| IS_READ_BY
+151 15:5 |foo| IS_REFERENCED_BY qualified
+Prefixes: (unprefixed),p
+''');
+
+    assertElementIndexText(result, variable.setter!, r'''
+95 10:3 |foo| IS_WRITTEN_BY
+106 11:3 |foo| IS_WRITTEN_BY
+118 12:3 |foo| IS_WRITTEN_BY
+131 13:3 |foo| IS_REFERENCED_BY
+142 14:5 |foo| IS_REFERENCED_BY
+160 16:5 |foo| IS_REFERENCED_BY qualified
+173 17:5 |foo| IS_REFERENCED_BY qualified
+187 18:5 |foo| IS_REFERENCED_BY qualified
+202 19:5 |foo| IS_REFERENCED_BY qualified
+215 20:7 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
