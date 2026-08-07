@@ -9,15 +9,12 @@
 ///   composite constants.
 /// * [Entity] is used for definitions, so that it can be used in the last stage
 ///   of the compiler to see in which loading unit it ended up.
-/// * [SourceLocation] is used for source locations instead of
-///   [record_use.Location] to keep the serialization smaller.
 ///
 /// Please keep this library in sync with `package:record_use`.
 library;
 
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/io/source_information.dart';
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:record_use/record_use.dart' as record_use;
@@ -35,54 +32,36 @@ enum RecordedUseKind {
   constructorTearOff,
 }
 
-/// Dart2js version of `record_use.Reference`, with [sourceInformation].
+/// Dart2js version of `record_use.Reference`.
 ///
 /// Has no loading unit yet as these are assigned only all the way at the end of
 /// the compilation.
 sealed class RecordedUse {
   static const String tag = 'record-use';
 
-  // TODO(dcharkes): Remove this field if we decide to not support source
-  // information in the recorded uses output. Currently it is not used in the
-  // output, but it is mentioned in the documentation.
-  final SourceInformation sourceInformation;
-
   RecordedUseKind get kind;
 
-  RecordedUse({required this.sourceInformation});
+  RecordedUse();
 
   factory RecordedUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     RecordedUseKind kind = source.readEnum(RecordedUseKind.values);
-    final sourceInformation = SourceInformation.readFromDataSource(source);
     RecordedUse result;
     switch (kind) {
       case RecordedUseKind.staticCallWithArguments:
-        result = RecordedCallWithArguments._readFromDataSource(
-          sourceInformation,
-          source,
-        );
+        result = RecordedCallWithArguments._readFromDataSource(source);
         break;
       case RecordedUseKind.staticCallTearOff:
-        result = RecordedTearOff._readFromDataSource(sourceInformation, source);
+        result = RecordedTearOff._readFromDataSource(source);
         break;
       case RecordedUseKind.constInstance:
-        result = RecordedConstInstance._readFromDataSource(
-          sourceInformation,
-          source,
-        );
+        result = RecordedConstInstance._readFromDataSource(source);
         break;
       case RecordedUseKind.instanceCreation:
-        result = RecordedInstanceCreation._readFromDataSource(
-          sourceInformation,
-          source,
-        );
+        result = RecordedInstanceCreation._readFromDataSource(source);
         break;
       case RecordedUseKind.constructorTearOff:
-        result = RecordedConstructorTearOff._readFromDataSource(
-          sourceInformation,
-          source,
-        );
+        result = RecordedConstructorTearOff._readFromDataSource(source);
         break;
     }
     source.end(tag);
@@ -92,7 +71,6 @@ sealed class RecordedUse {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
-    SourceInformation.writeToDataSink(sink, sourceInformation);
     _writeFieldsForKind(sink);
     sink.end(tag);
   }
@@ -130,7 +108,6 @@ sealed class RecordedStaticCall extends RecordedUse {
     required this.function,
     required this.definitionHasReceiver,
     required this.constantReceiver,
-    required super.sourceInformation,
   });
 
   @override
@@ -138,17 +115,12 @@ sealed class RecordedStaticCall extends RecordedUse {
     if (other is! RecordedStaticCall) return false;
     return function == other.function &&
         definitionHasReceiver == other.definitionHasReceiver &&
-        constantReceiver == other.constantReceiver &&
-        sourceInformation == other.sourceInformation;
+        constantReceiver == other.constantReceiver;
   }
 
   @override
-  int get hashCode => Object.hash(
-    function,
-    definitionHasReceiver,
-    constantReceiver,
-    sourceInformation,
-  );
+  int get hashCode =>
+      Object.hash(function, definitionHasReceiver, constantReceiver);
 }
 
 /// Dart2js version of [record_use.CallWithArguments], with [ConstantValue]s
@@ -174,7 +146,6 @@ class RecordedCallWithArguments extends RecordedStaticCall {
     required super.function,
     required super.definitionHasReceiver,
     required super.constantReceiver,
-    required super.sourceInformation,
     required this.positionalArguments,
     required this.namedArguments,
   });
@@ -183,7 +154,6 @@ class RecordedCallWithArguments extends RecordedStaticCall {
   RecordedUseKind get kind => RecordedUseKind.staticCallWithArguments;
 
   static RecordedCallWithArguments _readFromDataSource(
-    SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
     final function = source.readMember() as FunctionEntity;
@@ -195,7 +165,6 @@ class RecordedCallWithArguments extends RecordedStaticCall {
       function: function,
       definitionHasReceiver: definitionHasReceiver,
       constantReceiver: constantReceiver,
-      sourceInformation: sourceInformation,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
     );
@@ -233,16 +202,12 @@ class RecordedTearOff extends RecordedStaticCall {
     required super.function,
     required super.definitionHasReceiver,
     required super.constantReceiver,
-    required super.sourceInformation,
   });
 
   @override
   RecordedUseKind get kind => RecordedUseKind.staticCallTearOff;
 
-  static RecordedTearOff _readFromDataSource(
-    SourceInformation sourceInformation,
-    DataSourceReader source,
-  ) {
+  static RecordedTearOff _readFromDataSource(DataSourceReader source) {
     final function = source.readMember() as FunctionEntity;
     final definitionHasReceiver = source.readBool();
     final constantReceiver = source.readConstantOrNull();
@@ -250,7 +215,6 @@ class RecordedTearOff extends RecordedStaticCall {
       function: function,
       definitionHasReceiver: definitionHasReceiver,
       constantReceiver: constantReceiver,
-      sourceInformation: sourceInformation,
     );
   }
 
@@ -267,25 +231,16 @@ class RecordedTearOff extends RecordedStaticCall {
 class RecordedConstInstance extends RecordedUse {
   final ConstructedConstantValue constant;
 
-  RecordedConstInstance({
-    required this.constant,
-    required super.sourceInformation,
-  });
+  RecordedConstInstance({required this.constant});
 
   ClassEntity get constantClass => constant.type.element;
 
   @override
   RecordedUseKind get kind => RecordedUseKind.constInstance;
 
-  static RecordedConstInstance _readFromDataSource(
-    SourceInformation sourceInformation,
-    DataSourceReader source,
-  ) {
+  static RecordedConstInstance _readFromDataSource(DataSourceReader source) {
     final constant = source.readConstant() as ConstructedConstantValue;
-    return RecordedConstInstance(
-      constant: constant,
-      sourceInformation: sourceInformation,
-    );
+    return RecordedConstInstance(constant: constant);
   }
 
   @override
@@ -296,12 +251,11 @@ class RecordedConstInstance extends RecordedUse {
   @override
   bool operator ==(Object other) {
     if (other is! RecordedConstInstance) return false;
-    return constant == other.constant &&
-        sourceInformation == other.sourceInformation;
+    return constant == other.constant;
   }
 
   @override
-  int get hashCode => Object.hash(constant, sourceInformation);
+  int get hashCode => constant.hashCode;
 }
 
 /// Dart2js version of [record_use.InstanceCreationReference], with
@@ -315,7 +269,6 @@ class RecordedInstanceCreation extends RecordedUse {
     required this.constructor,
     required this.positionalArguments,
     required this.namedArguments,
-    required super.sourceInformation,
   });
 
   ClassEntity get cls => constructor.enclosingClass;
@@ -323,10 +276,7 @@ class RecordedInstanceCreation extends RecordedUse {
   @override
   RecordedUseKind get kind => RecordedUseKind.instanceCreation;
 
-  static RecordedInstanceCreation _readFromDataSource(
-    SourceInformation sourceInformation,
-    DataSourceReader source,
-  ) {
+  static RecordedInstanceCreation _readFromDataSource(DataSourceReader source) {
     final constructor = source.readMember() as ConstructorEntity;
     final positionalArguments = source.readList(source.readConstantOrNull);
     final namedArguments = source.readStringMap(source.readConstantOrNull);
@@ -334,7 +284,6 @@ class RecordedInstanceCreation extends RecordedUse {
       constructor: constructor,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
-      sourceInformation: sourceInformation,
     );
   }
 
@@ -362,7 +311,7 @@ class RecordedInstanceCreation extends RecordedUse {
         return false;
       }
     }
-    return sourceInformation == other.sourceInformation;
+    return true;
   }
 
   @override
@@ -371,7 +320,6 @@ class RecordedInstanceCreation extends RecordedUse {
     Object.hashAll(positionalArguments),
     Object.hashAll(namedArguments.keys),
     Object.hashAll(namedArguments.values),
-    sourceInformation,
   );
 }
 
@@ -379,10 +327,7 @@ class RecordedInstanceCreation extends RecordedUse {
 class RecordedConstructorTearOff extends RecordedUse {
   final ConstructorEntity constructor;
 
-  RecordedConstructorTearOff({
-    required this.constructor,
-    required super.sourceInformation,
-  });
+  RecordedConstructorTearOff({required this.constructor});
 
   ClassEntity get cls => constructor.enclosingClass;
 
@@ -390,14 +335,10 @@ class RecordedConstructorTearOff extends RecordedUse {
   RecordedUseKind get kind => RecordedUseKind.constructorTearOff;
 
   static RecordedConstructorTearOff _readFromDataSource(
-    SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
     final constructor = source.readMember() as ConstructorEntity;
-    return RecordedConstructorTearOff(
-      constructor: constructor,
-      sourceInformation: sourceInformation,
-    );
+    return RecordedConstructorTearOff(constructor: constructor);
   }
 
   @override
@@ -408,12 +349,11 @@ class RecordedConstructorTearOff extends RecordedUse {
   @override
   bool operator ==(Object other) {
     if (other is! RecordedConstructorTearOff) return false;
-    return constructor == other.constructor &&
-        sourceInformation == other.sourceInformation;
+    return constructor == other.constructor;
   }
 
   @override
-  int get hashCode => Object.hash(constructor, sourceInformation);
+  int get hashCode => constructor.hashCode;
 }
 
 /// [RecordUseValueConverter] transforms dart2js [ConstantValue] objects into the
