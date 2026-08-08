@@ -8,6 +8,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
@@ -14174,14 +14175,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   List<VariableBase> _capturedVariablesForNode(InternalNode node) {
     List<VariableBase> capturedVariables = [];
     AssignedVariablesNodeInfo nodeInfo = assignedVariables.getInfoForNode(node);
-    for (int variableKey in nodeInfo.read) {
+    for (PromotionKey variableKey in nodeInfo.read) {
       capturedVariables.add(
         assignedVariables.promotionKeyStore
             .variableForKey(variableKey)!
             .astVariable,
       );
     }
-    for (int variableKey in nodeInfo.written) {
+    for (PromotionKey variableKey in nodeInfo.written) {
       capturedVariables.add(
         assignedVariables.promotionKeyStore
             .variableForKey(variableKey)!

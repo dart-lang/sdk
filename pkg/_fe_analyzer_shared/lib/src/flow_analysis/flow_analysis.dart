@@ -402,7 +402,7 @@ abstract class FlowAnalysis<
   /// that names the variable is probably the best choice.
   void assignMatchedPatternVariable(
     Variable variable,
-    int promotionKey, {
+    PromotionKey promotionKey, {
     int offset = 0,
   });
 
@@ -558,8 +558,8 @@ abstract class FlowAnalysis<
   /// to the copy. The end offset of the logical-or pattern is probably the best
   /// choice.
   void copyPromotionData({
-    required int sourceKey,
-    required int destinationKey,
+    required PromotionKey sourceKey,
+    required PromotionKey destinationKey,
     int offset = 0,
   });
 
@@ -606,7 +606,7 @@ abstract class FlowAnalysis<
   /// [offset] is the last source offset that should be considered prior to the
   /// variable being considered to be "assigned". The offset of the identifier
   /// that names the variable is probably the best choice.
-  int declaredVariablePattern({
+  PromotionKey declaredVariablePattern({
     required SharedTypeView matchedType,
     required SharedTypeView staticType,
     bool isFinal = false,
@@ -819,7 +819,7 @@ abstract class FlowAnalysis<
   /// This is used in tests to validate that the information stored in the flow
   /// analysis log is an accurate recording of flow analysis state changes.
   @visibleForTesting
-  int getCurrentThisBinding();
+  PromotionKey getCurrentThisBinding();
 
   /// Retrieves the [FlowAnalysisLog].
   ///
@@ -2118,7 +2118,7 @@ class FlowAnalysisDebug<
   @override
   void assignMatchedPatternVariable(
     Variable variable,
-    int promotionKey, {
+    PromotionKey promotionKey, {
     int offset = 0,
   }) {
     _wrap(
@@ -2265,8 +2265,8 @@ class FlowAnalysisDebug<
 
   @override
   void copyPromotionData({
-    required int sourceKey,
-    required int destinationKey,
+    required PromotionKey sourceKey,
+    required PromotionKey destinationKey,
     int offset = 0,
   }) {
     _wrap(
@@ -2300,7 +2300,7 @@ class FlowAnalysisDebug<
   }
 
   @override
-  int declaredVariablePattern({
+  PromotionKey declaredVariablePattern({
     required SharedTypeView matchedType,
     required SharedTypeView staticType,
     bool isFinal = false,
@@ -2480,7 +2480,7 @@ class FlowAnalysisDebug<
   }
 
   @override
-  int getCurrentThisBinding() {
+  PromotionKey getCurrentThisBinding() {
     return _wrap(
       'getCurrentThisBinding()',
       () => _wrapped.getCurrentThisBinding(),
@@ -3627,13 +3627,14 @@ class FlowModel {
   /// be able to remove this method.
   FlowModel conservativeJoin(
     FlowModelHelper helper,
-    Iterable<int> writtenVariables,
-    Iterable<int> capturedVariables, {
-    NonPromotionReason? Function(int variableKey)? getNonPromotionReason,
+    Iterable<PromotionKey> writtenVariables,
+    Iterable<PromotionKey> capturedVariables, {
+    NonPromotionReason? Function(PromotionKey variableKey)?
+    getNonPromotionReason,
   }) {
     FlowModel result = this;
 
-    for (int variableKey in writtenVariables) {
+    for (PromotionKey variableKey in writtenVariables) {
       PromotionModel? info = result.promotionInfo?.get(helper, variableKey);
       if (info == null) continue;
 
@@ -3649,7 +3650,7 @@ class FlowModel {
       }
     }
 
-    for (int variableKey in capturedVariables) {
+    for (PromotionKey variableKey in capturedVariables) {
       PromotionModel? info = result.promotionInfo?.get(helper, variableKey);
       if (info == null) continue;
       if (!info.writeCaptured) {
@@ -3673,7 +3674,11 @@ class FlowModel {
   ///
   /// A local variable is [initialized] if its declaration has an initializer.
   /// A function parameter is always initialized, so [initialized] is `true`.
-  FlowModel declare(FlowModelHelper helper, int variableKey, bool initialized) {
+  FlowModel declare(
+    FlowModelHelper helper,
+    PromotionKey variableKey,
+    bool initialized,
+  ) {
     PromotionModel newInfoForVar = new PromotionModel.fresh(
       assigned: initialized,
       ssaNode: new SsaNode(),
@@ -3691,7 +3696,7 @@ class FlowModel {
   /// in the target's [SsaNode._promotableProperties] map.
   PromotionModel infoFor(
     FlowModelHelper helper,
-    int promotionKey, {
+    PromotionKey promotionKey, {
     required SsaNode ssaNode,
   }) =>
       promotionInfo?.get(helper, promotionKey) ??
@@ -3706,7 +3711,7 @@ class FlowModel {
   FlowModel inheritTested(FlowModelHelper helper, FlowModel other) {
     FlowModel result = this;
     for (var FlowLinkDiffEntry(
-          key: int promotionKey,
+          key: int promotionKeyIndex,
           :PromotionInfo? left,
           :PromotionInfo? right,
         )
@@ -3723,7 +3728,7 @@ class FlowModel {
       if (!identical(newPromotionModel, promotionModel)) {
         result = result.updatePromotionInfo(
           helper,
-          promotionKey,
+          new PromotionKey(promotionKeyIndex),
           newPromotionModel,
         );
       }
@@ -3767,11 +3772,12 @@ class FlowModel {
     }
     // Consider each promotion key in the new base model.
     for (var FlowLinkDiffEntry(
-          key: int promotionKey,
+          key: int promotionKeyIndex,
           :PromotionInfo? left,
           :PromotionInfo? right,
         )
         in entries) {
+      PromotionKey promotionKey = new PromotionKey(promotionKeyIndex);
       PromotionModel? thisModel = left?.model;
       if (thisModel == null) {
         // Either this promotion key represents a variable that has newly come
@@ -4040,14 +4046,14 @@ class FlowModel {
   @visibleForTesting
   FlowModel updatePromotionInfo(
     FlowModelHelper helper,
-    int promotionKey,
+    PromotionKey promotionKey,
     PromotionModel model,
   ) {
     PromotionInfo newPromotionInfo = new PromotionInfo._(
       model,
-      key: promotionKey,
+      key: promotionKey.index,
       previous: promotionInfo,
-      previousForKey: helper.reader.get(promotionInfo, promotionKey),
+      previousForKey: helper.reader.get(promotionInfo, promotionKey.index),
     );
     return new FlowModel.withInfo(reachable, newPromotionInfo);
   }
@@ -4062,7 +4068,7 @@ class FlowModel {
   FlowModel write<Variable extends Object>(
     FlowModelHelper helper,
     NonPromotionReason? nonPromotionReason,
-    int variableKey,
+    PromotionKey variableKey,
     SharedTypeView writtenType,
     SsaNode newSsaNode, {
     bool promoteToTypeOfInterest = true,
@@ -4192,11 +4198,12 @@ class FlowModel {
     );
     FlowModel newFlowModel = new FlowModel.withInfo(first.reachable, ancestor);
     for (var FlowLinkDiffEntry(
-          key: int promotionKey,
+          key: int promotionKeyIndex,
           left: PromotionInfo? leftInfo,
           right: PromotionInfo? rightInfo,
         )
         in entries) {
+      PromotionKey promotionKey = new PromotionKey(promotionKeyIndex);
       PromotionModel? firstModel = leftInfo?.model;
       if (firstModel == null) {
         continue;
@@ -4238,8 +4245,8 @@ mixin FlowModelHelper {
   /// Returns the client's representation of the type `bool`.
   SharedTypeView get boolType;
 
-  /// The [PromotionKeyStore], which tracks the unique integer assigned to
-  /// everything in the control flow that might be promotable.
+  /// The [PromotionKeyStore], which assigns keys to everything in the control
+  /// flow that might be promotable.
   @visibleForTesting
   PromotionKeyStore<Object> get promotionKeyStore;
 
@@ -4253,7 +4260,7 @@ mixin FlowModelHelper {
 
   /// Whether the variable of [variableKey] was declared with the `final`
   /// modifier and the `inference-update-4` feature flag is enabled.
-  bool isFinal(int variableKey);
+  bool isFinal(PromotionKey variableKey);
 
   /// Determines whether a promotion from type [previousType] to [newType] is
   /// allowed to occur, given the current configuration of flow analysis.
@@ -4428,7 +4435,7 @@ class PatternVariableInfo<Variable> {
 
   /// Map from variable name to the promotion key used by flow analysis to track
   /// the merged variable.
-  final Map<String, int> patternVariablePromotionKeys = {};
+  final Map<String, PromotionKey> patternVariablePromotionKeys = {};
 }
 
 /// Map-like data structure recording the [PromotionModel]s for each promotable
@@ -4436,9 +4443,9 @@ class PatternVariableInfo<Variable> {
 /// analysis.
 ///
 /// Each instance of [PromotionInfo] is an immutable key/value pair binding a
-/// single promotion [key] (a unique integer assigned by [PromotionKeyStore] to
-/// track a particular promotable thing) with an instance of [PromotionModel]
-/// describing the promotion state of that thing.
+/// single promotion [key] (the [PromotionKey.index] of a key assigned by
+/// [PromotionKeyStore] to track a particular promotable thing) with an instance
+/// of [PromotionModel] describing the promotion state of that thing.
 ///
 /// Please see the documentation for [FlowLink] for more information about how
 /// this data structure works.
@@ -4467,8 +4474,8 @@ base class PromotionInfo extends FlowLink<PromotionInfo> {
   /// the linked list formed by [previous] to find the nearest link whose [key]
   /// matches [promotionKey].
   @visibleForTesting
-  PromotionModel? get(FlowModelHelper helper, int promotionKey) =>
-      helper.reader.get(this, promotionKey)?.model;
+  PromotionModel? get(FlowModelHelper helper, PromotionKey promotionKey) =>
+      helper.reader.get(this, promotionKey.index)?.model;
 }
 
 /// An instance of the [PromotionModel] class represents the information
@@ -4609,7 +4616,7 @@ class PromotionModel {
   PromotionModel write<Variable extends Object>(
     FlowModelHelper helper,
     NonPromotionReason? nonPromotionReason,
-    int variableKey,
+    PromotionKey variableKey,
     SharedTypeView writtenType,
     SsaNode newSsaNode, {
     required bool promoteToTypeOfInterest,
@@ -5554,7 +5561,8 @@ class SsaNode {
       _PropertySsaNode? secondProperty = second[propertyName];
       if (secondProperty == null) continue;
       // Make a new promotion key to represent the joined property.
-      int newPromotionKey = helper.promotionKeyStore.makeTemporaryKey();
+      PromotionKey newPromotionKey = helper.promotionKeyStore
+          .makeTemporaryKey();
       // If the property has a promotion model along both control flow paths,
       // it might be promoted, so join the two promotion models to preserve the
       // promotion.
@@ -6009,7 +6017,9 @@ class _FlowAnalysisImpl<
 
   final List<SsaNode> _thisSsaNodes = [new SsaNode()];
 
-  late final List<int> _thisPromotionKeys = [_makeInitialThisPromotionKey()];
+  late final List<PromotionKey> _thisPromotionKeys = [
+    _makeInitialThisPromotionKey(),
+  ];
 
   @override
   final List<_Reference> _cascadeTargetStack = [];
@@ -6152,10 +6162,10 @@ class _FlowAnalysisImpl<
   @override
   void assignMatchedPatternVariable(
     Variable variable,
-    int promotionKey, {
+    PromotionKey promotionKey, {
     int offset = 0,
   }) {
-    int mergedKey = promotionKeyStore.keyForVariable(variable);
+    PromotionKey mergedKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel info =
         _current.promotionInfo?.get(this, promotionKey) ??
         new PromotionModel.fresh(ssaNode: new SsaNode());
@@ -6332,8 +6342,8 @@ class _FlowAnalysisImpl<
 
   @override
   void copyPromotionData({
-    required int sourceKey,
-    required int destinationKey,
+    required PromotionKey sourceKey,
+    required PromotionKey destinationKey,
     int offset = 0,
   }) {
     _setCurrent(
@@ -6370,7 +6380,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  int declaredVariablePattern({
+  PromotionKey declaredVariablePattern({
     required SharedTypeView matchedType,
     required SharedTypeView staticType,
     bool isFinal = false,
@@ -6381,7 +6391,7 @@ class _FlowAnalysisImpl<
     _PatternContext context = _stack.last as _PatternContext;
     // Choose a fresh promotion key to represent the temporary variable that
     // stores the matched value, and mark it as initialized.
-    int promotionKey = promotionKeyStore.makeTemporaryKey();
+    PromotionKey promotionKey = promotionKeyStore.makeTemporaryKey();
     _setCurrent(_current.declare(this, promotionKey, true), offset: offset);
     _initialize(
       promotionKey,
@@ -6599,7 +6609,7 @@ class _FlowAnalysisImpl<
   PromotionInfo? getCurrentPromotionInfo() => _current.promotionInfo;
 
   @override
-  int getCurrentThisBinding() => _thisPromotionKeys.last;
+  PromotionKey getCurrentThisBinding() => _thisPromotionKeys.last;
 
   @override
   FlowAnalysisLog? getLog() => _logBuilder?.finish();
@@ -6779,7 +6789,7 @@ class _FlowAnalysisImpl<
     int offset = 0,
   }) {
     SharedTypeView unpromotedType = operations.variableType(variable);
-    int variableKey = promotionKeyStore.keyForVariable(variable);
+    PromotionKey variableKey = promotionKeyStore.keyForVariable(variable);
     _initialize(
       variableKey,
       matchedType,
@@ -6837,7 +6847,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  bool isFinal(int variableKey) {
+  bool isFinal(PromotionKey variableKey) {
     if (!typeAnalyzerOptions.inferenceUpdate4Enabled) return false;
     Variable? variable = promotionKeyStore.variableForKey(variableKey);
     if (variable != null && operations.isFinal(variable)) return true;
@@ -7541,7 +7551,7 @@ class _FlowAnalysisImpl<
     // might potentially get written to, blowing away any promotions that are
     // currently in effect.
     if (_enclosingFunctionExpressionInfoStack case [..., var info]) {
-      Set<int> variablesToDemote = info.read
+      Set<PromotionKey> variablesToDemote = info.read
           .intersection(_assignedVariables.anywhere.written)
           .difference(info.declared);
       _setCurrent(
@@ -7635,10 +7645,10 @@ class _FlowAnalysisImpl<
       (patternVariableInfo.componentVariables[variableName] ??= []).add(
         variable,
       );
-      int promotionKey = promotionKeyStore.keyForVariable(variable);
+      PromotionKey promotionKey = promotionKeyStore.keyForVariable(variable);
       // See if this variable appeared in any previous patterns that share the
       // same case body.
-      int? previousPromotionKey =
+      PromotionKey? previousPromotionKey =
           patternVariableInfo.patternVariablePromotionKeys[variableName];
       if (previousPromotionKey == null) {
         // This variable hasn't been seen in any previous patterns that share
@@ -7728,7 +7738,7 @@ class _FlowAnalysisImpl<
               : null,
         );
     _thisSsaNodes.add(ssaNode);
-    int thisPromotionKey = promotionKeyStore.makeTemporaryKey();
+    PromotionKey thisPromotionKey = promotionKeyStore.makeTemporaryKey();
     _thisPromotionKeys.add(thisPromotionKey);
     _logBuilder?.thisBindingChanged(thisPromotionKey, offset: offset);
   }
@@ -7781,13 +7791,13 @@ class _FlowAnalysisImpl<
     _TryContext context = _stack.last as _TryContext;
     FlowModel current = context._beforeCatch!;
     if (exceptionVariable != null) {
-      int exceptionVariableKey = promotionKeyStore.keyForVariable(
+      PromotionKey exceptionVariableKey = promotionKeyStore.keyForVariable(
         exceptionVariable,
       );
       current = current.declare(this, exceptionVariableKey, true);
     }
     if (stackTraceVariable != null) {
-      int stackTraceVariableKey = promotionKeyStore.keyForVariable(
+      PromotionKey stackTraceVariableKey = promotionKeyStore.keyForVariable(
         stackTraceVariable,
       );
       current = current.declare(this, stackTraceVariableKey, true);
@@ -7883,7 +7893,7 @@ class _FlowAnalysisImpl<
     int offset = 0,
   }) {
     SharedTypeView unpromotedType = operations.variableType(variable);
-    int variableKey = promotionKeyStore.keyForVariable(variable);
+    PromotionKey variableKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel? promotionModel = _current.promotionInfo?.get(
       this,
       variableKey,
@@ -8028,11 +8038,12 @@ class _FlowAnalysisImpl<
     FlowModel result = afterTry.setReachability(r4);
     List<({SsaNode from, SsaNode to})> fieldPromotionsToReapply = [];
     for (var FlowLinkDiffEntry(
-          key: int promotionKey,
+          key: int promotionKeyIndex,
           :PromotionInfo? left,
           :PromotionInfo? right,
         )
         in reader.diff(VI1, VI3).entries) {
+      PromotionKey promotionKey = new PromotionKey(promotionKeyIndex);
       PromotionModel? v1 = left?.model;
       PromotionModel? v3 = right?.model;
 
@@ -8555,7 +8566,7 @@ class _FlowAnalysisImpl<
   }
 
   void _initialize(
-    int promotionKey,
+    PromotionKey promotionKey,
     SharedTypeView matchedType,
     ExpressionInfo? expressionInfo, {
     required bool isFinal,
@@ -8654,8 +8665,8 @@ class _FlowAnalysisImpl<
   FlowModel _join(FlowModel? first, FlowModel? second) =>
       FlowModel.join(this, first, second);
 
-  int _makeInitialThisPromotionKey() {
-    int key = promotionKeyStore.makeTemporaryKey();
+  PromotionKey _makeInitialThisPromotionKey() {
+    PromotionKey key = promotionKeyStore.makeTemporaryKey();
 
     // Record the initial `this` promotion key at offset 0, so that it takes
     // effect starting at the beginning of the code being analyzed.
@@ -8674,7 +8685,7 @@ class _FlowAnalysisImpl<
     SharedTypeView type, {
     required int offset,
   }) {
-    int promotionKey = promotionKeyStore.makeTemporaryKey();
+    PromotionKey promotionKey = promotionKeyStore.makeTemporaryKey();
     _setCurrent(
       _current.updatePromotionInfo(
         this,
@@ -8746,7 +8757,9 @@ class _FlowAnalysisImpl<
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
-      int promotionKey = promotionKeyStore.keyForVariable(guardVariable);
+      PromotionKey promotionKey = promotionKeyStore.keyForVariable(
+        guardVariable,
+      );
       SharedTypeView nonNullType = operations.promoteToNonNull(targetType);
       _setCurrent(
         _current.updatePromotionInfo(
@@ -8900,7 +8913,7 @@ class _FlowAnalysisImpl<
   }
 
   TrivialVariableReference _variableReference(
-    int variableKey,
+    PromotionKey variableKey,
     SharedTypeView unpromotedType,
   ) {
     PromotionModel info = _current.promotionInfo!.get(this, variableKey)!;
@@ -8927,7 +8940,7 @@ class _FlowAnalysisImpl<
     required int offset,
   }) {
     SharedTypeView unpromotedType = operations.variableType(variable);
-    int variableKey = promotionKeyStore.keyForVariable(variable);
+    PromotionKey variableKey = promotionKeyStore.keyForVariable(variable);
     SsaNode newSsaNode = new SsaNode(
       conditionVariableState:
           expressionInfo != null && expressionInfo.isNonTrivial
@@ -9215,7 +9228,7 @@ class _PropertyReference extends _Reference {
 class _PropertySsaNode extends SsaNode {
   /// The promotion key associated with this value. This allows for field
   /// promotion.
-  final int promotionKey;
+  final PromotionKey promotionKey;
 
   /// If this property is not promotable, then a fresh SSA node is assigned at
   /// the time of each access; when that occurs, this field points to the
@@ -9248,9 +9261,9 @@ abstract class _PropertyTargetHelper<Expression extends Object> {
 /// Specialization of [ExpressionInfo] for the case where the expression is a
 /// reference to a variable, property, `this`, or the pseudo-expression `super`.
 class _Reference extends ExpressionInfo {
-  /// The integer key representing the thing referred to by this expression in
+  /// The key representing the thing referred to by this expression in
   /// [FlowModel.promotionInfo].
-  final int promotionKey;
+  final PromotionKey promotionKey;
 
   /// Whether the thing referred to by this expression is `this` (or the
   /// pseudo-expression `super`).

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -505,9 +506,8 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   CaptureKind captureKindForVariable(InternalVariable variable) {
-    int variableKey = assignedVariables.promotionKeyStore.keyForVariable(
-      variable,
-    );
+    PromotionKey variableKey = assignedVariables.promotionKeyStore
+        .keyForVariable(variable);
 
     if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
         assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {

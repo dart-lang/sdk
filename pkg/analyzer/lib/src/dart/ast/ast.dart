@@ -18784,6 +18784,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
+    assert(identical(iterable2, child));
     return true;
   }
 

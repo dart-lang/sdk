@@ -938,20 +938,81 @@ class Search {
     }
     if (getter != null) {
       await _addResults(results, getter, const {
-        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
         IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
             SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
-        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.READ,
       });
     }
     if (setter != null) {
       await _addResults(results, setter, const {
-        IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
-        // TODO(scheglov): Remove when all assignment targets use IS_WRITTEN_BY.
-        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE,
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.WRITE,
       });
     }
-    return results;
+
+    // A non-invocation reference, such as an import combinator, can be
+    // recorded against both synthetic accessors of the field.
+    var uniqueResults = {
+      for (var result in results)
+        (
+          result.enclosingFragment,
+          result.kind,
+          result.offset,
+          result.length,
+          result.isResolved,
+          result.isQualified,
+        ): result,
+    }.values;
+
+    var resultsByLocation =
+        <(Fragment, int, int, bool, bool), List<SearchResult>>{};
+    for (var result in uniqueResults) {
+      var key = (
+        result.enclosingFragment,
+        result.offset,
+        result.length,
+        result.isResolved,
+        result.isQualified,
+      );
+      resultsByLocation.add(key, result);
+    }
+
+    var mergedResults = <SearchResult>[];
+    for (var locationResults in resultsByLocation.values) {
+      SearchResult? readResult;
+      SearchResult? writeResult;
+      for (var result in locationResults) {
+        switch (result.kind) {
+          case SearchResultKind.READ:
+            readResult = result;
+          case SearchResultKind.WRITE:
+            writeResult = result;
+          default:
+            mergedResults.add(result);
+        }
+      }
+      if (readResult != null && writeResult != null) {
+        mergedResults.add(
+          SearchResult._(
+            readResult.enclosingFragment,
+            SearchResultKind.READ_WRITE,
+            readResult.offset,
+            readResult.length,
+            readResult.isResolved,
+            readResult.isQualified,
+          ),
+        );
+      } else {
+        if (readResult != null) {
+          mergedResults.add(readResult);
+        }
+        if (writeResult != null) {
+          mergedResults.add(writeResult);
+        }
+      }
+    }
+    return mergedResults;
   }
 
   Future<List<SearchResult>> _searchReferences_Function(Element element) async {

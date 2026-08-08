@@ -6,8 +6,8 @@
 library;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_log.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
@@ -38,42 +38,43 @@ main() {
     });
 
     test('Empty log with initial `this` binding', () {
-      var logBuilder = FlowAnalysisLogBuilder()..recordInitialThisBinding(10);
-      check(logBuilder.finish().getThisBinding(0)).equals(10);
+      var logBuilder = FlowAnalysisLogBuilder()
+        ..recordInitialThisBinding(PromotionKey(10));
+      check(logBuilder.finish().getThisBinding(0)).equals(PromotionKey(10));
     });
 
     test('Nontrivial queries', () {
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(1)
-        ..thisBindingChanged(2, offset: 20)
-        ..thisBindingChanged(3, offset: 30)
-        ..thisBindingChanged(4, offset: 40);
+        ..recordInitialThisBinding(PromotionKey(1))
+        ..thisBindingChanged(PromotionKey(2), offset: 20)
+        ..thisBindingChanged(PromotionKey(3), offset: 30)
+        ..thisBindingChanged(PromotionKey(4), offset: 40);
       var log = logBuilder.finish();
-      check(log.getThisBinding(0)).equals(1);
-      check(log.getThisBinding(20)).equals(1);
-      check(log.getThisBinding(21)).equals(2);
-      check(log.getThisBinding(30)).equals(2);
-      check(log.getThisBinding(31)).equals(3);
-      check(log.getThisBinding(40)).equals(3);
-      check(log.getThisBinding(41)).equals(4);
+      check(log.getThisBinding(0)).equals(PromotionKey(1));
+      check(log.getThisBinding(20)).equals(PromotionKey(1));
+      check(log.getThisBinding(21)).equals(PromotionKey(2));
+      check(log.getThisBinding(30)).equals(PromotionKey(2));
+      check(log.getThisBinding(31)).equals(PromotionKey(3));
+      check(log.getThisBinding(40)).equals(PromotionKey(3));
+      check(log.getThisBinding(41)).equals(PromotionKey(4));
     });
 
     test('Check offsets in order', () {
       if (!assertionsEnabled) return;
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(1)
-        ..thisBindingChanged(2, offset: 20)
-        ..thisBindingChanged(3, offset: 30);
+        ..recordInitialThisBinding(PromotionKey(1))
+        ..thisBindingChanged(PromotionKey(2), offset: 20)
+        ..thisBindingChanged(PromotionKey(3), offset: 30);
       check(
-        () => logBuilder.thisBindingChanged(4, offset: 25),
+        () => logBuilder.thisBindingChanged(PromotionKey(4), offset: 25),
       ).throws<AssertionError>();
       check(() => logBuilder.checkOffset(25)).throws<AssertionError>();
       // allowOutOfOrderOffsets relaxes the order check for the next offset
       // only.
       logBuilder.allowOutOfOrderOffsets();
-      logBuilder.thisBindingChanged(4, offset: 25);
+      logBuilder.thisBindingChanged(PromotionKey(4), offset: 25);
       check(
-        () => logBuilder.thisBindingChanged(4, offset: 23),
+        () => logBuilder.thisBindingChanged(PromotionKey(4), offset: 23),
       ).throws<AssertionError>();
       logBuilder.allowOutOfOrderOffsets();
       logBuilder.checkOffset(23);
@@ -82,20 +83,20 @@ main() {
 
     test('Queries handle out-of-order offsets', () {
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(1)
-        ..thisBindingChanged(4, offset: 40)
+        ..recordInitialThisBinding(PromotionKey(1))
+        ..thisBindingChanged(PromotionKey(4), offset: 40)
         ..allowOutOfOrderOffsets()
-        ..thisBindingChanged(3, offset: 30)
+        ..thisBindingChanged(PromotionKey(3), offset: 30)
         ..allowOutOfOrderOffsets()
-        ..thisBindingChanged(2, offset: 20);
+        ..thisBindingChanged(PromotionKey(2), offset: 20);
       var log = logBuilder.finish();
-      check(log.getThisBinding(0)).equals(1);
-      check(log.getThisBinding(20)).equals(1);
-      check(log.getThisBinding(21)).equals(2);
-      check(log.getThisBinding(30)).equals(2);
-      check(log.getThisBinding(31)).equals(3);
-      check(log.getThisBinding(40)).equals(3);
-      check(log.getThisBinding(41)).equals(4);
+      check(log.getThisBinding(0)).equals(PromotionKey(1));
+      check(log.getThisBinding(20)).equals(PromotionKey(1));
+      check(log.getThisBinding(21)).equals(PromotionKey(2));
+      check(log.getThisBinding(30)).equals(PromotionKey(2));
+      check(log.getThisBinding(31)).equals(PromotionKey(3));
+      check(log.getThisBinding(40)).equals(PromotionKey(3));
+      check(log.getThisBinding(41)).equals(PromotionKey(4));
     });
   });
 
@@ -114,7 +115,7 @@ main() {
       var flowModel0 = FlowModel(Reachability.initial);
       var flowModel1 = flowModel0.updatePromotionInfo(
         helper,
-        0,
+        PromotionKey(0),
         PromotionModel.fresh(assigned: false, ssaNode: null),
       );
       var logBuilder = FlowAnalysisLogBuilder()
@@ -129,12 +130,12 @@ main() {
       var flowModel0 = FlowModel(Reachability.initial);
       var flowModel1 = flowModel0.updatePromotionInfo(
         helper,
-        0,
+        PromotionKey(0),
         PromotionModel.fresh(assigned: false, ssaNode: null),
       );
       var flowModel2 = flowModel0.updatePromotionInfo(
         helper,
-        1,
+        PromotionKey(1),
         PromotionModel.fresh(assigned: false, ssaNode: null),
       );
       var logBuilder = FlowAnalysisLogBuilder()
@@ -160,7 +161,7 @@ main() {
       var ssaNode = SsaNode();
       var flowModel1 = flowModel0.updatePromotionInfo(
         helper,
-        0,
+        PromotionKey(0),
         PromotionModel(
           promotedTypes: [SharedTypeView(Type('num'))],
           tested: [],
@@ -171,7 +172,7 @@ main() {
       );
       var flowModel2 = flowModel1.updatePromotionInfo(
         helper,
-        0,
+        PromotionKey(0),
         PromotionModel(
           promotedTypes: [
             SharedTypeView(Type('num')),
@@ -184,7 +185,7 @@ main() {
         ),
       );
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(0)
+        ..recordInitialThisBinding(PromotionKey(0))
         ..promotionInfoChanged(flowModel1.promotionInfo, offset: 10)
         ..promotionInfoChanged(flowModel2.promotionInfo, offset: 20);
       check(logBuilder.finish().lookupPromotedThisType(offset: 5)).isNull();
@@ -201,7 +202,7 @@ main() {
       var flowModel0 = FlowModel(Reachability.initial);
       var flowModel1 = flowModel0.updatePromotionInfo(
         helper,
-        0,
+        PromotionKey(0),
         PromotionModel(
           promotedTypes: [SharedTypeView(Type('int'))],
           tested: [],
@@ -211,9 +212,9 @@ main() {
         ),
       );
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(0)
+        ..recordInitialThisBinding(PromotionKey(0))
         ..promotionInfoChanged(flowModel1.promotionInfo, offset: 10)
-        ..thisBindingChanged(1, offset: 20);
+        ..thisBindingChanged(PromotionKey(1), offset: 20);
       check(
         logBuilder.finish().lookupPromotedThisType(offset: 15),
       ).equals(SharedTypeView(Type('int')));
