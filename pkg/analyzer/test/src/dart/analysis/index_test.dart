@@ -44,9 +44,9 @@ class IndexTest extends PubPackageResolutionTest {
   /// `{'getter': getter, 'setter': setter}`, the expected text can contain:
   /// ```
   ///   foo;
-  ///   ^^^ getter IS_REFERENCED_BY
+  ///   ^^^ getter IS_INVOKED_BY
   ///   foo = 0;
-  ///   ^^^ setter IS_WRITTEN_BY
+  ///   ^^^ setter IS_INVOKED_BY
   /// ```
   void assertElementsIndexText(
     _IndexResult result,
@@ -2776,76 +2776,90 @@ class A {
 
   void useField() {
     foo;
-    ^^^ getter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
     foo = 0;
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ setter IS_INVOKED_BY
     foo += 1;
-    ^^^ getter IS_READ_BY
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ getter IS_INVOKED_BY
+    ^^^ setter IS_INVOKED_BY
         ^^ num.+ IS_INVOKED_BY qualified
     foo ??= 2;
-    ^^^ getter IS_READ_BY
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ getter IS_INVOKED_BY
+    ^^^ setter IS_INVOKED_BY
     foo++;
-    ^^^ setter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
+    ^^^ setter IS_INVOKED_BY
        ^^ num.+ IS_INVOKED_BY qualified
     --foo;
     ^^ num.- IS_INVOKED_BY qualified
-      ^^^ setter IS_REFERENCED_BY
+      ^^^ getter IS_INVOKED_BY
+      ^^^ setter IS_INVOKED_BY
     this.foo;
-         ^^^ getter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
     this.foo = 0;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
     this.foo += 1;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
              ^^ num.+ IS_INVOKED_BY qualified
     this.foo ??= 2;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
     this.foo++;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
             ^^ num.+ IS_INVOKED_BY qualified
     --this.foo;
     ^^ num.- IS_INVOKED_BY qualified
-           ^^^ setter IS_REFERENCED_BY qualified
+           ^^^ getter IS_INVOKED_BY qualified
+           ^^^ setter IS_INVOKED_BY qualified
   }
 }
 
 void useField(A a) {
   a.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
   a.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   a.foo += 1;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
         ^^ num.+ IS_INVOKED_BY qualified
   a.foo ??= 2;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   a.foo++;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
        ^^ num.+ IS_INVOKED_BY qualified
   --a.foo;
   ^^ num.- IS_INVOKED_BY qualified
-      ^^^ setter IS_REFERENCED_BY qualified
+      ^^^ getter IS_INVOKED_BY qualified
+      ^^^ setter IS_INVOKED_BY qualified
   A(foo: 0);
 }
 
 class B extends A {
   void useSuper() {
     super.foo;
-          ^^^ getter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
     super.foo = 0;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
     super.foo += 1;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
               ^^ num.+ IS_INVOKED_BY qualified
     super.foo ??= 2;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
     super.foo++;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
              ^^ num.+ IS_INVOKED_BY qualified
     --super.foo;
     ^^ num.- IS_INVOKED_BY qualified
-            ^^^ setter IS_REFERENCED_BY qualified
+            ^^^ getter IS_INVOKED_BY qualified
+            ^^^ setter IS_INVOKED_BY qualified
   }
 }
 ''',
@@ -2890,21 +2904,21 @@ class A {
 
   void useGetter() {
     foo;
-    ^^^ getter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
     this.foo;
-         ^^^ getter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
   }
 }
 
 void useGetter(A a) {
   a.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo;
-          ^^^ getter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
   }
 }
 ''',
@@ -2992,75 +3006,89 @@ class A {
 
   void useField() {
     foo;
-    ^^^ getter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
     foo = 0;
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ setter IS_INVOKED_BY
     foo += 1;
-    ^^^ getter IS_READ_BY
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ getter IS_INVOKED_BY
+    ^^^ setter IS_INVOKED_BY
         ^^ num.+ IS_INVOKED_BY qualified
     foo ??= 2;
-    ^^^ getter IS_READ_BY
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ getter IS_INVOKED_BY
+    ^^^ setter IS_INVOKED_BY
     foo++;
-    ^^^ setter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
+    ^^^ setter IS_INVOKED_BY
        ^^ num.+ IS_INVOKED_BY qualified
     --foo;
     ^^ num.- IS_INVOKED_BY qualified
-      ^^^ setter IS_REFERENCED_BY
+      ^^^ getter IS_INVOKED_BY
+      ^^^ setter IS_INVOKED_BY
     this.foo;
-         ^^^ getter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
     this.foo = 0;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
     this.foo += 1;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
              ^^ num.+ IS_INVOKED_BY qualified
     this.foo ??= 2;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
     this.foo++;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
             ^^ num.+ IS_INVOKED_BY qualified
     --this.foo;
     ^^ num.- IS_INVOKED_BY qualified
-           ^^^ setter IS_REFERENCED_BY qualified
+           ^^^ getter IS_INVOKED_BY qualified
+           ^^^ setter IS_INVOKED_BY qualified
   }
 }
 
 void useField(A a) {
   a.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
   a.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   a.foo += 1;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
         ^^ num.+ IS_INVOKED_BY qualified
   a.foo ??= 2;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   a.foo++;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
        ^^ num.+ IS_INVOKED_BY qualified
   --a.foo;
   ^^ num.- IS_INVOKED_BY qualified
-      ^^^ setter IS_REFERENCED_BY qualified
+      ^^^ getter IS_INVOKED_BY qualified
+      ^^^ setter IS_INVOKED_BY qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo;
-          ^^^ getter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
     super.foo = 0;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
     super.foo += 1;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
               ^^ num.+ IS_INVOKED_BY qualified
     super.foo ??= 2;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
     super.foo++;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ getter IS_INVOKED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
              ^^ num.+ IS_INVOKED_BY qualified
     --super.foo;
     ^^ num.- IS_INVOKED_BY qualified
-            ^^^ setter IS_REFERENCED_BY qualified
+            ^^^ getter IS_INVOKED_BY qualified
+            ^^^ setter IS_INVOKED_BY qualified
   }
 }
 ''',
@@ -3105,21 +3133,21 @@ class A {
 
   void useSetter() {
     foo = 0;
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ setter IS_INVOKED_BY
     this.foo = 0;
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
   }
 }
 
 void useSetter(A a) {
   a.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo = 0;
-          ^^^ setter IS_REFERENCED_BY qualified
+          ^^^ setter IS_INVOKED_BY qualified
   }
 }
 ''',
@@ -3163,23 +3191,23 @@ class A {
   static int foo = 0;
   static void useField() {
     foo;
-    ^^^ getter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
     foo = 0;
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ setter IS_INVOKED_BY
     A.foo;
-      ^^^ getter IS_REFERENCED_BY qualified
+      ^^^ getter IS_INVOKED_BY qualified
     A.foo = 0;
-      ^^^ setter IS_REFERENCED_BY qualified
+      ^^^ setter IS_INVOKED_BY qualified
   }
 }
 
 void useField() {
   A.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
   A.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   A a = .foo;
-         ^^^ getter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
 }
 ''',
     );
@@ -3224,16 +3252,16 @@ enum E {
           ^^^ field IS_WRITTEN_BY qualified
   void useField() {
     foo;
-    ^^^ getter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
     foo = 0;
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ setter IS_INVOKED_BY
   }
 }
 void useField(E e) {
   e.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
   e.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   E(foo: 0);
 }
 ''',
@@ -3323,7 +3351,7 @@ enum MyEnum {
 void f() {
   MyEnum.values;
   MyEnum.v1.index;
-            ^^^^^ getter IS_REFERENCED_BY qualified
+            ^^^^^ getter IS_INVOKED_BY qualified
   MyEnum.v1;
   MyEnum.v2;
 }
@@ -3398,17 +3426,17 @@ enum MyEnum {
 }
 void f() {
   MyEnum.values;
-         ^^^^^^ values.getter IS_REFERENCED_BY qualified
+         ^^^^^^ values.getter IS_INVOKED_BY qualified
   MyEnum.v1.index;
-         ^^ v1.getter IS_REFERENCED_BY qualified
+         ^^ v1.getter IS_INVOKED_BY qualified
   MyEnum.v1;
-         ^^ v1.getter IS_REFERENCED_BY qualified
+         ^^ v1.getter IS_INVOKED_BY qualified
   MyEnum.v2;
-         ^^ v2.getter IS_REFERENCED_BY qualified
+         ^^ v2.getter IS_INVOKED_BY qualified
   p.MyEnum.v1;
-           ^^ v1.getter IS_REFERENCED_BY qualified
+           ^^ v1.getter IS_INVOKED_BY qualified
   p.MyEnum.values;
-           ^^^^^^ values.getter IS_REFERENCED_BY qualified
+           ^^^^^^ values.getter IS_INVOKED_BY qualified
 }
 ''',
     );
@@ -3461,35 +3489,43 @@ extension E on int {
 
 void useField(int a) {
   a.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
   a.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   a.foo += 1;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
         ^^ num.+ IS_INVOKED_BY qualified
   a.foo ??= 2;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   a.foo++;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
        ^^ num.+ IS_INVOKED_BY qualified
   --a.foo;
   ^^ num.- IS_INVOKED_BY qualified
-      ^^^ setter IS_REFERENCED_BY qualified
+      ^^^ getter IS_INVOKED_BY qualified
+      ^^^ setter IS_INVOKED_BY qualified
   E(a).foo;
-       ^^^ getter IS_REFERENCED_BY qualified
+       ^^^ getter IS_INVOKED_BY qualified
   E(a).foo = 0;
-       ^^^ setter IS_REFERENCED_BY qualified
+       ^^^ setter IS_INVOKED_BY qualified
   E(a).foo += 1;
-       ^^^ setter IS_REFERENCED_BY qualified
+       ^^^ getter IS_INVOKED_BY qualified
+       ^^^ setter IS_INVOKED_BY qualified
            ^^ num.+ IS_INVOKED_BY qualified
   E(a).foo ??= 2;
-       ^^^ setter IS_REFERENCED_BY qualified
+       ^^^ getter IS_INVOKED_BY qualified
+       ^^^ setter IS_INVOKED_BY qualified
   E(a).foo++;
-       ^^^ setter IS_REFERENCED_BY qualified
+       ^^^ getter IS_INVOKED_BY qualified
+       ^^^ setter IS_INVOKED_BY qualified
           ^^ num.+ IS_INVOKED_BY qualified
   --E(a).foo;
   ^^ num.- IS_INVOKED_BY qualified
-         ^^^ setter IS_REFERENCED_BY qualified
+         ^^^ getter IS_INVOKED_BY qualified
+         ^^^ setter IS_INVOKED_BY qualified
 }
 ''',
     );
@@ -3524,16 +3560,16 @@ extension type A(int it) {
   static int foo = 0;
   void useField() {
     foo;
-    ^^^ getter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
     foo = 0;
-    ^^^ setter IS_WRITTEN_BY
+    ^^^ setter IS_INVOKED_BY
   }
 }
 void useField() {
   A.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
   A.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
 }
 ''',
     );
@@ -5048,9 +5084,9 @@ class A {
   get foo => null;
   void useGetter() {
     this.foo();
-         ^^^ IS_REFERENCED_BY qualified
+         ^^^ IS_INVOKED_BY qualified
     foo();
-    ^^^ IS_REFERENCED_BY
+    ^^^ IS_INVOKED_BY
   }
 }
 ''');
@@ -5117,15 +5153,15 @@ class A {
   static int get foo => 0;
   static void useGetter() {
     foo;
-    ^^^ IS_REFERENCED_BY
+    ^^^ IS_INVOKED_BY
   }
 }
 
 void useGetter() {
   A.foo;
-    ^^^ IS_REFERENCED_BY qualified
+    ^^^ IS_INVOKED_BY qualified
   p.A.foo;
-      ^^^ IS_REFERENCED_BY qualified
+      ^^^ IS_INVOKED_BY qualified
 }
 ''');
   }
@@ -6585,15 +6621,15 @@ class A {
   static set foo(int _) {}
   static void useSetter() {
     foo = 0;
-    ^^^ IS_WRITTEN_BY
+    ^^^ IS_INVOKED_BY
   }
 }
 
 void useSetter() {
   A.foo = 0;
-    ^^^ IS_REFERENCED_BY qualified
+    ^^^ IS_INVOKED_BY qualified
   p.A.foo = 0;
-      ^^^ IS_REFERENCED_BY qualified
+      ^^^ IS_INVOKED_BY qualified
 }
 ''');
   }
@@ -7107,9 +7143,9 @@ int get foo => 0;
                  ^^^ getter IS_REFERENCED_BY qualified
 void f() {
   foo;
-  ^^^ getter IS_REFERENCED_BY
+  ^^^ getter IS_INVOKED_BY
   p.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
 }
 Prefixes:
   getter: (unprefixed),p
@@ -7168,37 +7204,43 @@ set foo(int _) {}
                  ^^^ getter IS_REFERENCED_BY qualified
 void f() {
   foo;
-  ^^^ getter IS_REFERENCED_BY
+  ^^^ getter IS_INVOKED_BY
   foo = 0;
-  ^^^ setter IS_WRITTEN_BY
+  ^^^ setter IS_INVOKED_BY
   foo += 1;
-  ^^^ getter IS_READ_BY
-  ^^^ setter IS_WRITTEN_BY
+  ^^^ getter IS_INVOKED_BY
+  ^^^ setter IS_INVOKED_BY
       ^^ num.+ IS_INVOKED_BY qualified
   foo ??= 2;
-  ^^^ getter IS_READ_BY
-  ^^^ setter IS_WRITTEN_BY
+  ^^^ getter IS_INVOKED_BY
+  ^^^ setter IS_INVOKED_BY
   foo++;
-  ^^^ setter IS_REFERENCED_BY
+  ^^^ getter IS_INVOKED_BY
+  ^^^ setter IS_INVOKED_BY
      ^^ num.+ IS_INVOKED_BY qualified
   --foo;
   ^^ num.- IS_INVOKED_BY qualified
-    ^^^ setter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
+    ^^^ setter IS_INVOKED_BY
   p.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
   p.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   p.foo += 1;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
         ^^ num.+ IS_INVOKED_BY qualified
   p.foo ??= 2;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   p.foo++;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
        ^^ num.+ IS_INVOKED_BY qualified
   --p.foo;
   ^^ num.- IS_INVOKED_BY qualified
-      ^^^ setter IS_REFERENCED_BY qualified
+      ^^^ getter IS_INVOKED_BY qualified
+      ^^^ setter IS_INVOKED_BY qualified
 }
 Prefixes:
   getter: (unprefixed),p
@@ -7260,9 +7302,9 @@ set foo(int _) {}
 
 void f() {
   foo = 0;
-  ^^^ setter IS_WRITTEN_BY
+  ^^^ setter IS_INVOKED_BY
   p.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
 }
 ''',
     );
@@ -7343,42 +7385,48 @@ int foo = 0;
      ^^^ getter IS_REFERENCED_BY
                  ^^^ getter IS_REFERENCED_BY qualified
 @foo
- ^^^ getter IS_REFERENCED_BY
+ ^^^ getter IS_INVOKED_BY
 @p.foo
-   ^^^ getter IS_REFERENCED_BY qualified
+   ^^^ getter IS_INVOKED_BY qualified
 void f() {
   foo;
-  ^^^ getter IS_REFERENCED_BY
+  ^^^ getter IS_INVOKED_BY
   foo = 0;
-  ^^^ setter IS_WRITTEN_BY
+  ^^^ setter IS_INVOKED_BY
   foo += 1;
-  ^^^ getter IS_READ_BY
-  ^^^ setter IS_WRITTEN_BY
+  ^^^ getter IS_INVOKED_BY
+  ^^^ setter IS_INVOKED_BY
       ^^ num.+ IS_INVOKED_BY qualified
   foo ??= 2;
-  ^^^ getter IS_READ_BY
-  ^^^ setter IS_WRITTEN_BY
+  ^^^ getter IS_INVOKED_BY
+  ^^^ setter IS_INVOKED_BY
   foo++;
-  ^^^ setter IS_REFERENCED_BY
+  ^^^ getter IS_INVOKED_BY
+  ^^^ setter IS_INVOKED_BY
      ^^ num.+ IS_INVOKED_BY qualified
   --foo;
   ^^ num.- IS_INVOKED_BY qualified
-    ^^^ setter IS_REFERENCED_BY
+    ^^^ getter IS_INVOKED_BY
+    ^^^ setter IS_INVOKED_BY
   p.foo;
-    ^^^ getter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
   p.foo = 0;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   p.foo += 1;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
         ^^ num.+ IS_INVOKED_BY qualified
   p.foo ??= 2;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
   p.foo++;
-    ^^^ setter IS_REFERENCED_BY qualified
+    ^^^ getter IS_INVOKED_BY qualified
+    ^^^ setter IS_INVOKED_BY qualified
        ^^ num.+ IS_INVOKED_BY qualified
   --p.foo;
   ^^ num.- IS_INVOKED_BY qualified
-      ^^^ setter IS_REFERENCED_BY qualified
+      ^^^ getter IS_INVOKED_BY qualified
+      ^^^ setter IS_INVOKED_BY qualified
 }
 Prefixes:
   getter: (unprefixed),p
@@ -7604,13 +7652,14 @@ class C {
 }
 void f(C c) {
   c.x; // 1
-    ^ getter IS_REFERENCED_BY qualified
+    ^ getter IS_INVOKED_BY qualified
   c.x = 1;
-    ^ setter IS_REFERENCED_BY qualified
+    ^ setter IS_INVOKED_BY qualified
   c.x += 2;
-    ^ setter IS_REFERENCED_BY qualified
+    ^ getter IS_INVOKED_BY qualified
+    ^ setter IS_INVOKED_BY qualified
   c.x();
-    ^ getter IS_REFERENCED_BY qualified
+    ^ getter IS_INVOKED_BY qualified
 }
 ''',
     );
@@ -7666,14 +7715,14 @@ class C {
   var x;
   m() {
     x; // 1
-    ^ getter IS_REFERENCED_BY
+    ^ getter IS_INVOKED_BY
     x = 1;
-    ^ setter IS_WRITTEN_BY
+    ^ setter IS_INVOKED_BY
     x += 2;
-    ^ getter IS_READ_BY
-    ^ setter IS_WRITTEN_BY
+    ^ getter IS_INVOKED_BY
+    ^ setter IS_INVOKED_BY
     x();
-    ^ getter IS_REFERENCED_BY
+    ^ getter IS_INVOKED_BY
   }
 }
 ''',

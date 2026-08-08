@@ -4277,9 +4277,9 @@ class B extends A {
       },
       r'''
 /// [foo] and [A.foo]
-     ^^^ field READ
+     ^^^ field REFERENCE
      ^^^ getter REFERENCE
-                 ^^^ field READ qualified
+                 ^^^ field REFERENCE qualified
                  ^^^ getter REFERENCE qualified
 class A {
   int foo;
@@ -4291,71 +4291,83 @@ class A {
   void useField() {
     foo;
     ^^^ field READ
-    ^^^ getter REFERENCE
+    ^^^ getter INVOCATION
     foo = 0;
     ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ setter INVOCATION
     foo += 1;
-    ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ field READ_WRITE
+    ^^^ getter INVOCATION
+    ^^^ setter INVOCATION
         ^^ num.+ INVOCATION qualified
     foo ??= 2;
-    ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ field READ_WRITE
+    ^^^ getter INVOCATION
+    ^^^ setter INVOCATION
     foo++;
-    ^^^ field WRITE
-    ^^^ setter REFERENCE
+    ^^^ field READ_WRITE
+    ^^^ getter INVOCATION
+    ^^^ setter INVOCATION
        ^^ num.+ INVOCATION qualified
     --foo;
     ^^ num.- INVOCATION qualified
-      ^^^ field WRITE
-      ^^^ setter REFERENCE
+      ^^^ field READ_WRITE
+      ^^^ getter INVOCATION
+      ^^^ setter INVOCATION
     this.foo;
          ^^^ field READ qualified
-         ^^^ getter REFERENCE qualified
+         ^^^ getter INVOCATION qualified
     this.foo = 0;
          ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ setter INVOCATION qualified
     this.foo += 1;
-         ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ field READ_WRITE qualified
+         ^^^ getter INVOCATION qualified
+         ^^^ setter INVOCATION qualified
              ^^ num.+ INVOCATION qualified
     this.foo ??= 2;
-         ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ field READ_WRITE qualified
+         ^^^ getter INVOCATION qualified
+         ^^^ setter INVOCATION qualified
     this.foo++;
-         ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ field READ_WRITE qualified
+         ^^^ getter INVOCATION qualified
+         ^^^ setter INVOCATION qualified
             ^^ num.+ INVOCATION qualified
     --this.foo;
     ^^ num.- INVOCATION qualified
-           ^^^ field WRITE qualified
-           ^^^ setter REFERENCE qualified
+           ^^^ field READ_WRITE qualified
+           ^^^ getter INVOCATION qualified
+           ^^^ setter INVOCATION qualified
   }
 }
 
 void useField(A a) {
   a.foo;
     ^^^ field READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
   a.foo = 0;
     ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
   a.foo += 1;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
         ^^ num.+ INVOCATION qualified
   a.foo ??= 2;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
   a.foo++;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
        ^^ num.+ INVOCATION qualified
   --a.foo;
   ^^ num.- INVOCATION qualified
-      ^^^ field WRITE qualified
-      ^^^ setter REFERENCE qualified
+      ^^^ field READ_WRITE qualified
+      ^^^ getter INVOCATION qualified
+      ^^^ setter INVOCATION qualified
   A(foo: 0);
 }
 
@@ -4363,25 +4375,29 @@ class B extends A {
   void useSuper() {
     super.foo;
           ^^^ field READ qualified
-          ^^^ getter REFERENCE qualified
+          ^^^ getter INVOCATION qualified
     super.foo = 0;
           ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ setter INVOCATION qualified
     super.foo += 1;
-          ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ field READ_WRITE qualified
+          ^^^ getter INVOCATION qualified
+          ^^^ setter INVOCATION qualified
               ^^ num.+ INVOCATION qualified
     super.foo ??= 2;
-          ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ field READ_WRITE qualified
+          ^^^ getter INVOCATION qualified
+          ^^^ setter INVOCATION qualified
     super.foo++;
-          ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ field READ_WRITE qualified
+          ^^^ getter INVOCATION qualified
+          ^^^ setter INVOCATION qualified
              ^^ num.+ INVOCATION qualified
     --super.foo;
     ^^ num.- INVOCATION qualified
-            ^^^ field WRITE qualified
-            ^^^ setter REFERENCE qualified
+            ^^^ field READ_WRITE qualified
+            ^^^ getter INVOCATION qualified
+            ^^^ setter INVOCATION qualified
   }
 }
 ''',
@@ -4417,9 +4433,9 @@ class B extends A {
       {'field': field, 'getter': field.getter!},
       r'''
 /// [foo] and [A.foo]
-     ^^^ field READ
+     ^^^ field REFERENCE
      ^^^ getter REFERENCE
-                 ^^^ field READ qualified
+                 ^^^ field REFERENCE qualified
                  ^^^ getter REFERENCE qualified
 class A {
   A() : foo = 0;
@@ -4428,24 +4444,24 @@ class A {
   void useGetter() {
     foo;
     ^^^ field READ
-    ^^^ getter REFERENCE
+    ^^^ getter INVOCATION
     this.foo;
          ^^^ field READ qualified
-         ^^^ getter REFERENCE qualified
+         ^^^ getter INVOCATION qualified
   }
 }
 
 void useGetter(A a) {
   a.foo;
     ^^^ field READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo;
           ^^^ field READ qualified
-          ^^^ getter REFERENCE qualified
+          ^^^ getter INVOCATION qualified
   }
 }
 ''',
@@ -4514,96 +4530,112 @@ class A {
   void useField() {
     foo;
     ^^^ field READ
-    ^^^ getter REFERENCE
+    ^^^ getter INVOCATION
     foo = 0;
     ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ setter INVOCATION
     foo += 1;
-    ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ field READ_WRITE
+    ^^^ getter INVOCATION
+    ^^^ setter INVOCATION
         ^^ num.+ INVOCATION qualified
     foo ??= 2;
-    ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ field READ_WRITE
+    ^^^ getter INVOCATION
+    ^^^ setter INVOCATION
     foo++;
-    ^^^ field WRITE
-    ^^^ setter REFERENCE
+    ^^^ field READ_WRITE
+    ^^^ getter INVOCATION
+    ^^^ setter INVOCATION
        ^^ num.+ INVOCATION qualified
     --foo;
     ^^ num.- INVOCATION qualified
-      ^^^ field WRITE
-      ^^^ setter REFERENCE
+      ^^^ field READ_WRITE
+      ^^^ getter INVOCATION
+      ^^^ setter INVOCATION
     this.foo;
          ^^^ field READ qualified
-         ^^^ getter REFERENCE qualified
+         ^^^ getter INVOCATION qualified
     this.foo = 0;
          ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ setter INVOCATION qualified
     this.foo += 1;
-         ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ field READ_WRITE qualified
+         ^^^ getter INVOCATION qualified
+         ^^^ setter INVOCATION qualified
              ^^ num.+ INVOCATION qualified
     this.foo ??= 2;
-         ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ field READ_WRITE qualified
+         ^^^ getter INVOCATION qualified
+         ^^^ setter INVOCATION qualified
     this.foo++;
-         ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ field READ_WRITE qualified
+         ^^^ getter INVOCATION qualified
+         ^^^ setter INVOCATION qualified
             ^^ num.+ INVOCATION qualified
     --this.foo;
     ^^ num.- INVOCATION qualified
-           ^^^ field WRITE qualified
-           ^^^ setter REFERENCE qualified
+           ^^^ field READ_WRITE qualified
+           ^^^ getter INVOCATION qualified
+           ^^^ setter INVOCATION qualified
   }
 }
 
 void useField(A a) {
   a.foo;
     ^^^ field READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
   a.foo = 0;
     ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
   a.foo += 1;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
         ^^ num.+ INVOCATION qualified
   a.foo ??= 2;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
   a.foo++;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
        ^^ num.+ INVOCATION qualified
   --a.foo;
   ^^ num.- INVOCATION qualified
-      ^^^ field WRITE qualified
-      ^^^ setter REFERENCE qualified
+      ^^^ field READ_WRITE qualified
+      ^^^ getter INVOCATION qualified
+      ^^^ setter INVOCATION qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo;
           ^^^ field READ qualified
-          ^^^ getter REFERENCE qualified
+          ^^^ getter INVOCATION qualified
     super.foo = 0;
           ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ setter INVOCATION qualified
     super.foo += 1;
-          ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ field READ_WRITE qualified
+          ^^^ getter INVOCATION qualified
+          ^^^ setter INVOCATION qualified
               ^^ num.+ INVOCATION qualified
     super.foo ??= 2;
-          ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ field READ_WRITE qualified
+          ^^^ getter INVOCATION qualified
+          ^^^ setter INVOCATION qualified
     super.foo++;
-          ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ field READ_WRITE qualified
+          ^^^ getter INVOCATION qualified
+          ^^^ setter INVOCATION qualified
              ^^ num.+ INVOCATION qualified
     --super.foo;
     ^^ num.- INVOCATION qualified
-            ^^^ field WRITE qualified
-            ^^^ setter REFERENCE qualified
+            ^^^ field READ_WRITE qualified
+            ^^^ getter INVOCATION qualified
+            ^^^ setter INVOCATION qualified
   }
 }
 ''',
@@ -4639,9 +4671,9 @@ class B extends A {
       {'field': field, 'setter': field.setter!},
       r'''
 /// [foo] and [A.foo]
-     ^^^ field WRITE
+     ^^^ field REFERENCE
      ^^^ setter REFERENCE
-                 ^^^ field WRITE qualified
+                 ^^^ field REFERENCE qualified
                  ^^^ setter REFERENCE qualified
 class A {
   A() : foo = 0;
@@ -4650,24 +4682,24 @@ class A {
   void useSetter() {
     foo = 0;
     ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ setter INVOCATION
     this.foo = 0;
          ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ setter INVOCATION qualified
   }
 }
 
 void useSetter(A a) {
   a.foo = 0;
     ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
 }
 
 class B extends A {
   void useSuper() {
     super.foo = 0;
           ^^^ field WRITE qualified
-          ^^^ setter REFERENCE qualified
+          ^^^ setter INVOCATION qualified
   }
 }
 ''',
@@ -4699,38 +4731,38 @@ void useField() {
       {'field': field, 'getter': field.getter!, 'setter': field.setter!},
       r'''
 /// [foo] and [A.foo]
-     ^^^ field READ
+     ^^^ field REFERENCE
      ^^^ getter REFERENCE
-                 ^^^ field READ qualified
+                 ^^^ field REFERENCE qualified
                  ^^^ getter REFERENCE qualified
 class A {
   static int foo = 0;
   static void useField() {
     foo;
     ^^^ field READ
-    ^^^ getter REFERENCE
+    ^^^ getter INVOCATION
     foo = 0;
     ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ setter INVOCATION
     A.foo;
       ^^^ field READ qualified
-      ^^^ getter REFERENCE qualified
+      ^^^ getter INVOCATION qualified
     A.foo = 0;
       ^^^ field WRITE qualified
-      ^^^ setter REFERENCE qualified
+      ^^^ setter INVOCATION qualified
   }
 }
 
 void useField() {
   A.foo;
     ^^^ field READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
   A.foo = 0;
     ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
   A a = .foo;
          ^^^ field READ qualified
-         ^^^ getter REFERENCE qualified
+         ^^^ getter INVOCATION qualified
 }
 ''',
     );
@@ -4760,9 +4792,9 @@ void useField(E e) {
       {'field': field, 'getter': field.getter!, 'setter': field.setter!},
       r'''
 /// [foo] and [E.foo]
-     ^^^ field READ
+     ^^^ field REFERENCE
      ^^^ getter REFERENCE
-                 ^^^ field READ qualified
+                 ^^^ field REFERENCE qualified
                  ^^^ getter REFERENCE qualified
 enum E {
   v;
@@ -4772,19 +4804,19 @@ enum E {
   void useField() {
     foo;
     ^^^ field READ
-    ^^^ getter REFERENCE
+    ^^^ getter INVOCATION
     foo = 0;
     ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ setter INVOCATION
   }
 }
 void useField(E e) {
   e.foo;
     ^^^ field READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
   e.foo = 0;
     ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
   E(foo: 0);
 }
 ''',
@@ -4867,7 +4899,7 @@ enum MyEnum {
 main() {
   MyEnum.v1.index;
             ^^^^^ field READ qualified
-            ^^^^^ getter REFERENCE qualified
+            ^^^^^ getter INVOCATION qualified
   MyEnum.values;
   MyEnum.v1;
   MyEnum.v2;
@@ -4924,13 +4956,13 @@ main() {
   MyEnum.v1.index;
   MyEnum.values;
          ^^^^^^ field READ qualified
-         ^^^^^^ getter REFERENCE qualified
+         ^^^^^^ getter INVOCATION qualified
   MyEnum.v1;
   MyEnum.v2;
   p.MyEnum.v1;
   p.MyEnum.values;
            ^^^^^^ field READ qualified
-           ^^^^^^ getter REFERENCE qualified
+           ^^^^^^ getter INVOCATION qualified
 }
 ''',
     );
@@ -4942,11 +4974,11 @@ main() {
 import 'test.dart' as p;
 
 /// [v1], [MyEnum.v1], and [p.MyEnum.v1]
-     ^^ field READ
+     ^^ field REFERENCE
      ^^ getter REFERENCE
-                  ^^ field READ qualified
+                  ^^ field REFERENCE qualified
                   ^^ getter REFERENCE qualified
-                                     ^^ field READ qualified
+                                     ^^ field REFERENCE qualified
                                      ^^ getter REFERENCE qualified
 enum MyEnum {
   v1, v2, v3
@@ -4954,15 +4986,15 @@ enum MyEnum {
 main() {
   MyEnum.v1.index;
          ^^ field READ qualified
-         ^^ getter REFERENCE qualified
+         ^^ getter INVOCATION qualified
   MyEnum.values;
   MyEnum.v1;
          ^^ field READ qualified
-         ^^ getter REFERENCE qualified
+         ^^ getter INVOCATION qualified
   MyEnum.v2;
   p.MyEnum.v1;
            ^^ field READ qualified
-           ^^ getter REFERENCE qualified
+           ^^ getter INVOCATION qualified
   p.MyEnum.values;
 }
 ''',
@@ -4984,7 +5016,7 @@ main() {
   MyEnum.v1;
   MyEnum.v2;
          ^^ field READ qualified
-         ^^ getter REFERENCE qualified
+         ^^ getter INVOCATION qualified
   p.MyEnum.v1;
   p.MyEnum.values;
 }
@@ -5033,46 +5065,54 @@ extension E on int {
 void useField(int a) {
   a.foo;
     ^^^ field READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
   a.foo = 0;
     ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
   a.foo += 1;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
         ^^ num.+ INVOCATION qualified
   a.foo ??= 2;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
   a.foo++;
-    ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ field READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
        ^^ num.+ INVOCATION qualified
   --a.foo;
   ^^ num.- INVOCATION qualified
-      ^^^ field WRITE qualified
-      ^^^ setter REFERENCE qualified
+      ^^^ field READ_WRITE qualified
+      ^^^ getter INVOCATION qualified
+      ^^^ setter INVOCATION qualified
   E(a).foo;
        ^^^ field READ qualified
-       ^^^ getter REFERENCE qualified
+       ^^^ getter INVOCATION qualified
   E(a).foo = 0;
        ^^^ field WRITE qualified
-       ^^^ setter REFERENCE qualified
+       ^^^ setter INVOCATION qualified
   E(a).foo += 1;
-       ^^^ field WRITE qualified
-       ^^^ setter REFERENCE qualified
+       ^^^ field READ_WRITE qualified
+       ^^^ getter INVOCATION qualified
+       ^^^ setter INVOCATION qualified
            ^^ num.+ INVOCATION qualified
   E(a).foo ??= 2;
-       ^^^ field WRITE qualified
-       ^^^ setter REFERENCE qualified
+       ^^^ field READ_WRITE qualified
+       ^^^ getter INVOCATION qualified
+       ^^^ setter INVOCATION qualified
   E(a).foo++;
-       ^^^ field WRITE qualified
-       ^^^ setter REFERENCE qualified
+       ^^^ field READ_WRITE qualified
+       ^^^ getter INVOCATION qualified
+       ^^^ setter INVOCATION qualified
           ^^ num.+ INVOCATION qualified
   --E(a).foo;
   ^^ num.- INVOCATION qualified
-         ^^^ field WRITE qualified
-         ^^^ setter REFERENCE qualified
+         ^^^ field READ_WRITE qualified
+         ^^^ getter INVOCATION qualified
+         ^^^ setter INVOCATION qualified
 }
 ''',
     );
@@ -5099,28 +5139,28 @@ void useField() {
       {'field': field, 'getter': field.getter!, 'setter': field.setter!},
       r'''
 /// [foo] and [A.foo]
-     ^^^ field READ
+     ^^^ field REFERENCE
      ^^^ getter REFERENCE
-                 ^^^ field READ qualified
+                 ^^^ field REFERENCE qualified
                  ^^^ getter REFERENCE qualified
 extension type A(int it) {
   static int foo = 0;
   void useField() {
     foo;
     ^^^ field READ
-    ^^^ getter REFERENCE
+    ^^^ getter INVOCATION
     foo = 0;
     ^^^ field WRITE
-    ^^^ setter WRITE
+    ^^^ setter INVOCATION
   }
 }
 void useField() {
   A.foo;
     ^^^ field READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
   A.foo = 0;
     ^^^ field WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
 }
 ''',
     );
@@ -6628,9 +6668,9 @@ class A {
   get foo => null;
   void useGetter() {
     this.foo();
-         ^^^ REFERENCE qualified
+         ^^^ INVOCATION qualified
     foo();
-    ^^^ REFERENCE
+    ^^^ INVOCATION
   }
 }
 ''');
@@ -6723,15 +6763,15 @@ class A {
   static int get foo => 0;
   static void useGetter() {
     foo;
-    ^^^ REFERENCE
+    ^^^ INVOCATION
   }
 }
 
 void useGetter() {
   A.foo;
-    ^^^ REFERENCE qualified
+    ^^^ INVOCATION qualified
   p.A.foo;
-      ^^^ REFERENCE qualified
+      ^^^ INVOCATION qualified
 }
 ''');
   }
@@ -8815,17 +8855,17 @@ extension E on int {
 
   void bar() {
     foo;
-    ^^^ REFERENCE
+    ^^^ INVOCATION
     this.foo;
-         ^^^ REFERENCE qualified
+         ^^^ INVOCATION qualified
   }
 }
 
 main() {
   E(0).foo;
-       ^^^ REFERENCE qualified
+       ^^^ INVOCATION qualified
   0.foo;
-    ^^^ REFERENCE qualified
+    ^^^ INVOCATION qualified
 }
 ''');
   }
@@ -8853,17 +8893,17 @@ extension E on int {
 
   void bar() {
     foo = 1;
-    ^^^ WRITE
+    ^^^ INVOCATION
     this.foo = 2;
-         ^^^ REFERENCE qualified
+         ^^^ INVOCATION qualified
   }
 }
 
 main() {
   E(0).foo = 3;
-       ^^^ REFERENCE qualified
+       ^^^ INVOCATION qualified
   0.foo = 4;
-    ^^^ WRITE qualified
+    ^^^ INVOCATION qualified
 }
 ''');
   }
@@ -8886,13 +8926,13 @@ class A {
   get ggg => null;
   main() {
     ggg;
-    ^^^ REFERENCE
+    ^^^ INVOCATION
     this.ggg;
-         ^^^ REFERENCE qualified
+         ^^^ INVOCATION qualified
     ggg();
-    ^^^ REFERENCE
+    ^^^ INVOCATION
     this.ggg();
-         ^^^ REFERENCE qualified
+         ^^^ INVOCATION qualified
   }
 }
 ''');
@@ -8914,9 +8954,9 @@ class A {
   set s(x) {}
   main() {
     s = 1;
-    ^ WRITE
+    ^ INVOCATION
     this.s = 2;
-         ^ REFERENCE qualified
+         ^ INVOCATION qualified
   }
 }
 ''');
@@ -8951,15 +8991,15 @@ class A {
   static set foo(int _) {}
   static void useSetter() {
     foo = 0;
-    ^^^ WRITE
+    ^^^ INVOCATION
   }
 }
 
 void useSetter() {
   A.foo = 0;
-    ^^^ REFERENCE qualified
+    ^^^ INVOCATION qualified
   p.A.foo = 0;
-      ^^^ REFERENCE qualified
+      ^^^ INVOCATION qualified
 }
 ''');
   }
@@ -9211,17 +9251,17 @@ import 'test.dart' as p;
 int get foo => 0;
 
 /// [foo] and [p.foo].
-     ^^^ variable READ
+     ^^^ variable REFERENCE
      ^^^ getter REFERENCE
-                 ^^^ variable READ qualified
+                 ^^^ variable REFERENCE qualified
                  ^^^ getter REFERENCE qualified
 void f() {
   foo;
   ^^^ variable READ
-  ^^^ getter REFERENCE
+  ^^^ getter INVOCATION
   p.foo;
     ^^^ variable READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
 }
 ''',
     );
@@ -9267,53 +9307,61 @@ int get foo => 0;
 set foo(int _) {}
 
 /// [foo] and [p.foo].
-     ^^^ variable READ
+     ^^^ variable REFERENCE
      ^^^ getter REFERENCE
-                 ^^^ variable READ qualified
+                 ^^^ variable REFERENCE qualified
                  ^^^ getter REFERENCE qualified
 void f() {
   foo;
   ^^^ variable READ
-  ^^^ getter REFERENCE
+  ^^^ getter INVOCATION
   foo = 0;
   ^^^ variable WRITE
-  ^^^ setter WRITE
+  ^^^ setter INVOCATION
   foo += 1;
-  ^^^ variable WRITE
-  ^^^ setter WRITE
+  ^^^ variable READ_WRITE
+  ^^^ getter INVOCATION
+  ^^^ setter INVOCATION
       ^^ num.+ INVOCATION qualified
   foo ??= 2;
-  ^^^ variable WRITE
-  ^^^ setter WRITE
+  ^^^ variable READ_WRITE
+  ^^^ getter INVOCATION
+  ^^^ setter INVOCATION
   foo++;
-  ^^^ variable WRITE
-  ^^^ setter REFERENCE
+  ^^^ variable READ_WRITE
+  ^^^ getter INVOCATION
+  ^^^ setter INVOCATION
      ^^ num.+ INVOCATION qualified
   --foo;
   ^^ num.- INVOCATION qualified
-    ^^^ variable WRITE
-    ^^^ setter REFERENCE
+    ^^^ variable READ_WRITE
+    ^^^ getter INVOCATION
+    ^^^ setter INVOCATION
   p.foo;
     ^^^ variable READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
   p.foo = 0;
     ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
   p.foo += 1;
-    ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ variable READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
         ^^ num.+ INVOCATION qualified
   p.foo ??= 2;
-    ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ variable READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
   p.foo++;
-    ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ variable READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
        ^^ num.+ INVOCATION qualified
   --p.foo;
   ^^ num.- INVOCATION qualified
-      ^^^ variable WRITE qualified
-      ^^^ setter REFERENCE qualified
+      ^^^ variable READ_WRITE qualified
+      ^^^ getter INVOCATION qualified
+      ^^^ setter INVOCATION qualified
 }
 ''',
     );
@@ -9335,8 +9383,7 @@ void set foo(_) {}
       },
       r'''
 import 'test.dart' show foo;
-                        ^^^ variable READ qualified
-                        ^^^ variable WRITE qualified
+                        ^^^ variable REFERENCE qualified
                         ^^^ getter REFERENCE qualified
                         ^^^ setter REFERENCE qualified
 
@@ -9369,10 +9416,10 @@ set foo(int _) {}
 void f() {
   foo = 0;
   ^^^ variable WRITE
-  ^^^ setter WRITE
+  ^^^ setter INVOCATION
   p.foo = 0;
     ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
 }
 ''',
     );
@@ -9389,7 +9436,7 @@ void set foo(_) {}
       {'variable': variable, 'setter': variable.setter!},
       r'''
 import 'test.dart' show foo;
-                        ^^^ variable WRITE qualified
+                        ^^^ variable REFERENCE qualified
                         ^^^ setter REFERENCE qualified
 
 void set foo(_) {}
@@ -9437,59 +9484,67 @@ import 'test.dart' as p;
 int foo = 0;
 
 /// [foo] and [p.foo].
-     ^^^ variable READ
+     ^^^ variable REFERENCE
      ^^^ getter REFERENCE
-                 ^^^ variable READ qualified
+                 ^^^ variable REFERENCE qualified
                  ^^^ getter REFERENCE qualified
 @foo
  ^^^ variable READ
- ^^^ getter REFERENCE
+ ^^^ getter INVOCATION
 @p.foo
    ^^^ variable READ qualified
-   ^^^ getter REFERENCE qualified
+   ^^^ getter INVOCATION qualified
 void f() {
   foo;
   ^^^ variable READ
-  ^^^ getter REFERENCE
+  ^^^ getter INVOCATION
   foo = 0;
   ^^^ variable WRITE
-  ^^^ setter WRITE
+  ^^^ setter INVOCATION
   foo += 1;
-  ^^^ variable WRITE
-  ^^^ setter WRITE
+  ^^^ variable READ_WRITE
+  ^^^ getter INVOCATION
+  ^^^ setter INVOCATION
       ^^ num.+ INVOCATION qualified
   foo ??= 2;
-  ^^^ variable WRITE
-  ^^^ setter WRITE
+  ^^^ variable READ_WRITE
+  ^^^ getter INVOCATION
+  ^^^ setter INVOCATION
   foo++;
-  ^^^ variable WRITE
-  ^^^ setter REFERENCE
+  ^^^ variable READ_WRITE
+  ^^^ getter INVOCATION
+  ^^^ setter INVOCATION
      ^^ num.+ INVOCATION qualified
   --foo;
   ^^ num.- INVOCATION qualified
-    ^^^ variable WRITE
-    ^^^ setter REFERENCE
+    ^^^ variable READ_WRITE
+    ^^^ getter INVOCATION
+    ^^^ setter INVOCATION
   p.foo;
     ^^^ variable READ qualified
-    ^^^ getter REFERENCE qualified
+    ^^^ getter INVOCATION qualified
   p.foo = 0;
     ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ setter INVOCATION qualified
   p.foo += 1;
-    ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ variable READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
         ^^ num.+ INVOCATION qualified
   p.foo ??= 2;
-    ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ variable READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
   p.foo++;
-    ^^^ variable WRITE qualified
-    ^^^ setter REFERENCE qualified
+    ^^^ variable READ_WRITE qualified
+    ^^^ getter INVOCATION qualified
+    ^^^ setter INVOCATION qualified
        ^^ num.+ INVOCATION qualified
   --p.foo;
   ^^ num.- INVOCATION qualified
-      ^^^ variable WRITE qualified
-      ^^^ setter REFERENCE qualified
+      ^^^ variable READ_WRITE qualified
+      ^^^ getter INVOCATION qualified
+      ^^^ setter INVOCATION qualified
 }
 ''',
     );
@@ -9523,30 +9578,29 @@ main() {
       },
       r'''
 import 'lib.dart' show V;
-                       ^ variable READ qualified
-                       ^ variable WRITE qualified
+                       ^ variable REFERENCE qualified
                        ^ getter REFERENCE qualified
                        ^ setter REFERENCE qualified
 import 'lib.dart' as pref;
 main() {
   pref.V = 1;
        ^ variable WRITE qualified
-       ^ setter REFERENCE qualified
+       ^ setter INVOCATION qualified
   pref.V;
        ^ variable READ qualified
-       ^ getter REFERENCE qualified
+       ^ getter INVOCATION qualified
   pref.V();
        ^ variable READ qualified
-       ^ getter REFERENCE qualified
+       ^ getter INVOCATION qualified
   V = 1;
   ^ variable WRITE
-  ^ setter WRITE
+  ^ setter INVOCATION
   V;
   ^ variable READ
-  ^ getter REFERENCE
+  ^ getter INVOCATION
   V();
   ^ variable READ
-  ^ getter REFERENCE
+  ^ getter INVOCATION
 }
 ''',
     );
