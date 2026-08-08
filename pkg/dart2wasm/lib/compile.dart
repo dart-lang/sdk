@@ -656,6 +656,7 @@ Future<CompilationResult> _runCodegenPhase(
       translator.internalizedStringsForJSRuntime,
       translator.options.enableDeferredLoading ||
           translator.options.enableMultiModuleStressTestMode,
+      options.supportsES6Modules,
     );
 
     final supportJs = _generateSupportJs(options.translatorOptions);

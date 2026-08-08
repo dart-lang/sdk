@@ -218,6 +218,12 @@ final List<Option> options = [
     (o, value) => o.moduleIdsToOptimize = value.toSet(),
   ),
   UriOption("recorded-uses", (o, value) => o.recordedUsesFile = value),
+  Flag(
+    "supports-es6-modules",
+    (o, value) => o.supportsES6Modules = value,
+    defaultsTo: _d.supportsES6Modules,
+    negatable: true,
+  ),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

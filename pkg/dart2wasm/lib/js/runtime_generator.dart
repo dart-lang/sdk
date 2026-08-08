@@ -123,6 +123,7 @@ class RuntimeFinalizer {
     Iterable<Procedure> translatedProcedures,
     List<String> constantStrings,
     bool supportsAdditionalModuleLoading,
+    bool supportsES6Modules,
   ) {
     final jsMethods = generateJsMethods(translatedProcedures);
 
@@ -148,18 +149,34 @@ class RuntimeFinalizer {
             'MAIN_MODULE_NAME': mainModuleName,
           })
         : '';
+    final result = StringBuffer();
 
-    return jsRuntimeBlobTemplate.instantiate({
-      ...jsStringBuiltinPolyfillImportVars,
-      ...moduleLoadingImportVars,
-      'BUILTINS_MAP_BODY': builtins.join(', '),
-      'JS_METHODS': jsMethods,
-      'INTERNAL_IMPORTS_MODULE_NAME':
-          _interopMemberNamer.interopHelperModuleName,
-      'IMPORTED_JS_STRINGS_IN_MJS': internalizedStrings,
-      'JS_STRING_POLYFILL_METHODS': jsPolyFillMethods,
-      'DEFERRED_LIBRARY_HELPER_METHODS': moduleLoadingHelperMethods,
-    });
+    final moduleTemplate = supportsES6Modules
+        ? es6MjsTemplate
+        : nonEs6MjsTemplate;
+    result.write(
+      moduleTemplate.instantiate({
+        'COMPILE_STREAMING': compileStreamingTemplate.instantiate({
+          'BUILTINS_MAP_BODY': builtins.join(', '),
+        }),
+        'COMPILE': compileTemplate.instantiate({
+          'BUILTINS_MAP_BODY': builtins.join(', '),
+        }),
+        'REST': jsRuntimeBlobTemplate.instantiate({
+          ...jsStringBuiltinPolyfillImportVars,
+          ...moduleLoadingImportVars,
+          'BUILTINS_MAP_BODY': builtins.join(', '),
+          'JS_METHODS': jsMethods,
+          'INTERNAL_IMPORTS_MODULE_NAME':
+              _interopMemberNamer.interopHelperModuleName,
+          'IMPORTED_JS_STRINGS_IN_MJS': internalizedStrings,
+          'JS_STRING_POLYFILL_METHODS': jsPolyFillMethods,
+          'DEFERRED_LIBRARY_HELPER_METHODS': moduleLoadingHelperMethods,
+        }),
+      }),
+    );
+
+    return result.toString();
   }
 }
 
