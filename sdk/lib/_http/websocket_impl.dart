@@ -1322,12 +1322,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       throw WebSocketException("Unsupported URL scheme '${uri.scheme}'");
     }
 
-    Random random = Random();
     // Generate 16 random bytes.
-    Uint8List nonceData = Uint8List(16);
-    for (int i = 0; i < 16; i++) {
-      nonceData[i] = random.nextInt(256);
-    }
+    Uint8List nonceData = _CryptoUtils.getRandomBytes(16);
     String nonce = base64Encode(nonceData);
 
     final callerStackTrace = StackTrace.current;
