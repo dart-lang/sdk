@@ -1984,6 +1984,15 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
       (false, true) => SearchResultKind.WRITE,
       (false, false) => null,
     };
+
+    if (kind == null) {
+      if (node.write case InvalidNamedWriteResolution(:var candidates)) {
+        if (candidates.any(_matches)) {
+          kind = SearchResultKind.REFERENCE;
+        }
+      }
+    }
+
     if (kind != null) {
       _addResult(node, kind);
     }

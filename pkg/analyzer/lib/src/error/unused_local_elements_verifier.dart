@@ -162,6 +162,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,
     };
+    if (write case InvalidNamedWriteResolution(:var candidates)) {
+      for (var candidate in candidates) {
+        if (candidate is SubstitutedExecutableElementImpl) {
+          candidate = candidate.baseElement;
+        }
+        _useIdentifierElement(candidate);
+      }
+      super.visitDirectAssignment(node);
+      return;
+    }
     if (write is! NamedWriteResolutionWithElement) {
       super.visitDirectAssignment(node);
       return;

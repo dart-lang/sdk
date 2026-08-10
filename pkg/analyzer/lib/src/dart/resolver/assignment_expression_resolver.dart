@@ -139,12 +139,6 @@ class AssignmentExpressionResolver {
     target as UnqualifiedNameAssignmentTargetImpl;
     var targetResult = _resolver
         .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
-    if (targetResult == null) {
-      var invalidTarget = _invalidTargetForExecutable(target);
-      node.target = invalidTarget;
-      _resolveInvalidCompound(node, invalidTarget);
-      return;
-    }
     target.read = targetResult.read;
     target.write = targetResult.write;
 
@@ -241,12 +235,6 @@ class AssignmentExpressionResolver {
         var resolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
           target,
         );
-        if (resolution == null) {
-          var invalidTarget = _invalidTargetForExecutable(target);
-          node.target = invalidTarget;
-          _resolveInvalidDirect(node, invalidTarget);
-          return;
-        }
         target.write = resolution;
         writeResolution = resolution;
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
@@ -299,30 +287,48 @@ class AssignmentExpressionResolver {
       _resolveInvalidIfNull(node, target, contextType: contextType);
       return;
     }
-    target as UnqualifiedNameAssignmentTargetImpl;
-    var targetResult = _resolver
-        .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
-    if (targetResult == null) {
-      var invalidTarget = _invalidTargetForExecutable(target);
-      node.target = invalidTarget;
-      _resolveInvalidIfNull(
-        node,
-        invalidTarget,
-        contextType: contextType,
-        isExecutableTearOff: true,
-      );
-      return;
+    late NamedReadResolutionImpl readResolution;
+    late NamedWriteResolutionImpl writeResolution;
+    ExpressionInfo? readExpressionInfo;
+    switch (target) {
+      case PropertyAssignmentTargetImpl():
+        _resolver.analyzeExpression(
+          target.receiver,
+          SharedTypeSchemaView(UnknownInferredType.instance),
+          continueNullShorting: true,
+        );
+        target.receiver = _resolver.popRewrite()!;
+        var targetResult = _resolver.resolvePropertyReadWriteAssignmentTarget(
+          target,
+        );
+        if (targetResult == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        target.read = readResolution = targetResult.read;
+        target.write = writeResolution = targetResult.write;
+        readExpressionInfo = targetResult.readExpressionInfo;
+      case UnqualifiedNameAssignmentTargetImpl():
+        var targetResult = _resolver
+            .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
+        target.read = readResolution = targetResult.read;
+        target.write = writeResolution = targetResult.write;
+        readExpressionInfo = targetResult.readExpressionInfo;
+        _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        throw StateError('Handled above');
     }
-    target.read = targetResult.read;
-    target.write = targetResult.write;
 
-    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
-
-    var readType = targetResult.read.type;
+    var readType = readResolution.type;
     if (readType is VoidType) {
       _diagnosticReporter.report(diag.useOfVoidResult.at(node.operator));
     }
-    var writeResolution = targetResult.write;
+
     var rhsContext = writeResolution.acceptedType;
     if (writeResolution case VariableWriteResolutionImpl(:var element)) {
       rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
@@ -330,7 +336,7 @@ class AssignmentExpressionResolver {
 
     var flow = _resolver.flowAnalysis.flow;
     flow?.ifNullExpression_rightBegin(
-      targetResult.readExpressionInfo,
+      readExpressionInfo,
       SharedTypeView(readType),
     );
 
@@ -547,15 +553,6 @@ class AssignmentExpressionResolver {
     }
   }
 
-  InvalidExpressionAssignmentTargetImpl _invalidTargetForExecutable(
-    UnqualifiedNameAssignmentTargetImpl target,
-  ) {
-    return InvalidExpressionAssignmentTargetImpl(
-      expression: SimpleIdentifierImpl(token: target.name)
-        ..scopeLookupResult = target.scopeLookupResult,
-    );
-  }
-
   void _resolveCompoundOperator(
     CompoundAssignmentImpl node, {
     required ExpressionImpl? receiver,
@@ -656,7 +653,6 @@ class AssignmentExpressionResolver {
     InvalidExpressionAssignmentTargetImpl target, {
     required TypeImpl contextType,
     bool expressionIsResolved = false,
-    bool isExecutableTearOff = false,
   }) {
     if (!expressionIsResolved) {
       _resolver.analyzeExpression(
@@ -667,14 +663,6 @@ class AssignmentExpressionResolver {
     }
 
     var readType = target.expression.typeOrThrow;
-    var flow = _resolver.flowAnalysis.flow;
-    if (isExecutableTearOff) {
-      flow?.ifNullExpression_rightBegin(
-        _resolver.flowAnalysis.getExpressionInfo(target.expression),
-        SharedTypeView(readType),
-      );
-    }
-
     _resolver.analyzeExpression(
       node.value,
       SharedTypeSchemaView(InvalidTypeImpl.instance),
@@ -688,9 +676,6 @@ class AssignmentExpressionResolver {
       ),
       resolver: _resolver,
     );
-    if (isExecutableTearOff) {
-      flow?.ifNullExpression_end();
-    }
   }
 
   void _resolveOperator(AssignmentExpressionImpl node) {

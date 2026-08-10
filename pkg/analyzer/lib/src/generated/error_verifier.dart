@@ -661,6 +661,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           null => null,
           InvalidNamedReadResolutionImpl() => null,
           NamedReadResolutionWithElementImpl(:var element) => element,
+          _ => null,
         };
         var writeElement = switch (target.write) {
           null => null,
@@ -1498,39 +1499,47 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       super.visitIfNullAssignment(node);
       return;
     }
-    target as UnqualifiedNameAssignmentTargetImpl;
-    var readElement = switch (target.read) {
-      NamedReadResolutionWithElementImpl(:var element) => element,
-      _ => null,
-    };
-    var writeElement = switch (target.write) {
-      NamedWriteResolutionWithElementImpl(:var element) => element,
-      _ => null,
-    };
-    if (target.read case NamedReadResolutionImpl(:var type)) {
-      _checkForDeadNullCoalesce(type, node.value);
-    }
-    for (var element in {readElement, writeElement}) {
-      if (element == null) continue;
-      _checkForReferenceBeforeDeclaration(
-        nameToken: target.name,
-        element: element,
-      );
-      _checkForInvalidInstanceMemberAccess2(
-        entity: target,
-        name: target.name.lexeme,
-        element: element,
-      );
-      _checkForUnqualifiedReferenceToNonLocalStaticMember2(
-        entity: target,
-        element: element,
-      );
-    }
-    if (writeElement != null) {
-      _checkForAssignmentToPrimaryConstructorParameter(
-        target,
-        element: writeElement,
-      );
+    switch (target) {
+      case PropertyAssignmentTargetImpl(:var read):
+        if (read case NamedReadResolutionImpl(:var type)) {
+          _checkForDeadNullCoalesce(type, node.value);
+        }
+      case UnqualifiedNameAssignmentTargetImpl():
+        var readElement = switch (target.read) {
+          NamedReadResolutionWithElementImpl(:var element) => element,
+          _ => null,
+        };
+        var writeElement = switch (target.write) {
+          NamedWriteResolutionWithElementImpl(:var element) => element,
+          _ => null,
+        };
+        if (target.read case NamedReadResolutionImpl(:var type)) {
+          _checkForDeadNullCoalesce(type, node.value);
+        }
+        for (var element in {readElement, writeElement}) {
+          if (element == null) continue;
+          _checkForReferenceBeforeDeclaration(
+            nameToken: target.name,
+            element: element,
+          );
+          _checkForInvalidInstanceMemberAccess2(
+            entity: target,
+            name: target.name.lexeme,
+            element: element,
+          );
+          _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+            entity: target,
+            element: element,
+          );
+        }
+        if (writeElement != null) {
+          _checkForAssignmentToPrimaryConstructorParameter(
+            target,
+            element: writeElement,
+          );
+        }
+      case InvalidExpressionAssignmentTargetImpl():
+        throw StateError('Handled above');
     }
     _constArgumentsVerifier.visitIfNullAssignment(node);
     super.visitIfNullAssignment(node);

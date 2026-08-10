@@ -149,7 +149,7 @@ class PropertyElementResolver with ScopeHelpers {
       node: node,
       name: node.identifier2,
       scopeLookupResult: scopeLookupResult,
-    )!;
+    );
   }
 
   PropertyElementResolverResult resolveIndexExpression({
@@ -403,6 +403,137 @@ class PropertyElementResolver with ScopeHelpers {
         );
   }
 
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })?
+  resolvePropertyReadWriteAssignmentTarget(PropertyAssignmentTargetImpl node) {
+    var receiver = node.receiver;
+    var receiverType = receiver.typeOrThrow;
+
+    if (receiverType is NeverType) {
+      diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+      return null;
+    }
+
+    if (receiverType is VoidType) {
+      diagnosticReporter.report(diag.useOfVoidResult.at(node.propertyName));
+      return (
+        read: InvalidNamedReadResolutionImpl(
+          candidates: const [],
+          recovery: null,
+          type: InvalidTypeImpl.instance,
+        ),
+        write: InvalidNamedWriteResolutionImpl(
+          acceptedType: InvalidTypeImpl.instance,
+          candidates: const [],
+          recovery: null,
+        ),
+        readExpressionInfo: null,
+      );
+    }
+
+    if (_typeSystem.isDynamicBounded(receiverType)) {
+      return (
+        read: DynamicPropertyReadResolutionImpl(),
+        write: const DynamicPropertyWriteResolutionImpl(),
+        readExpressionInfo: null,
+      );
+    }
+
+    var result = _resolver.typePropertyResolver.resolve(
+      receiver: receiver,
+      receiverType: receiverType,
+      name: node.propertyName.lexeme,
+      hasRead: true,
+      hasWrite: true,
+      propertyErrorEntity: node.propertyName,
+      nameErrorEntity: node.propertyName,
+      parentNode: node.parent2,
+    );
+
+    var readElement = result.getter2;
+    var writeElement = result.setter2;
+    _checkForStaticMember2(
+      target: receiver,
+      propertyName: node.propertyName.lexeme,
+      propertyNameEntity: node.propertyName,
+      element: readElement,
+    );
+    _checkForStaticMember2(
+      target: receiver,
+      propertyName: node.propertyName.lexeme,
+      propertyNameEntity: node.propertyName,
+      element: writeElement,
+    );
+
+    if (result.needsGetterError) {
+      diagnosticReporter.report(
+        diag.undefinedGetter
+            .withArguments(
+              memberName: node.propertyName.lexeme,
+              type: receiverType,
+            )
+            .at(node.propertyName),
+      );
+    }
+    if (result.needsSetterError) {
+      AssignmentVerifier(diagnosticReporter).verifyPropertyAssignmentTarget(
+        node: node,
+        requested: null,
+        recovery: readElement,
+        receiverType: receiverType,
+      );
+    }
+
+    var recordField = result.recordField;
+    var readType = switch (readElement) {
+      InternalPropertyAccessorElement(:var returnType) => returnType,
+      InternalMethodElement(:var type) => type,
+      _ => recordField?.type,
+    };
+    ExpressionInfo? readExpressionInfo;
+    if (readType != null) {
+      if (_resolver.flowAnalysis.flow case var flow?) {
+        var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+          ExpressionPropertyTarget(
+            _resolver.flowAnalysis.getExpressionInfo(receiver),
+          ),
+          node.propertyName.lexeme,
+          readElement,
+          SharedTypeView(readType),
+        );
+        readExpressionInfo = expressionInfo;
+        readType = wrappedPromotedType?.unwrapTypeView<TypeImpl>() ?? readType;
+      }
+    }
+
+    var readResolution = _createPropertyReadResolution(
+      element: readElement,
+      recordField: recordField,
+      type: readType,
+    );
+    readResolution ??= InvalidNamedReadResolutionImpl(
+      candidates: [?readElement, ?writeElement],
+      recovery: null,
+      type: InvalidTypeImpl.instance,
+    );
+    NamedWriteResolutionImpl? writeResolution =
+        _createNamedWriteResolutionWithElement(writeElement);
+    writeResolution ??= InvalidNamedWriteResolutionImpl(
+      acceptedType: InvalidTypeImpl.instance,
+      candidates: [?writeElement, ?readElement],
+      recovery: null,
+    );
+
+    return (
+      read: readResolution,
+      write: writeResolution,
+      readExpressionInfo: readExpressionInfo,
+    );
+  }
+
   PropertyElementResolverResult resolveSimpleIdentifier({
     required SimpleIdentifierImpl node,
     required bool hasRead,
@@ -494,7 +625,7 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  NamedWriteResolutionImpl? resolveUnqualifiedNameAssignmentTarget(
+  NamedWriteResolutionImpl resolveUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTargetImpl node,
   ) {
     var scopeLookupResult = node.scopeLookupResult!;
@@ -510,8 +641,6 @@ class PropertyElementResolver with ScopeHelpers {
       name: node.name,
       scopeLookupResult: scopeLookupResult,
     );
-    if (writeResolution == null) return null;
-
     return writeResolution;
   }
 
@@ -519,7 +648,7 @@ class PropertyElementResolver with ScopeHelpers {
     NamedReadResolutionImpl read,
     NamedWriteResolutionImpl write,
     ExpressionInfo? readExpressionInfo,
-  })?
+  })
   resolveUnqualifiedNameReadWriteAssignmentTarget(
     UnqualifiedNameAssignmentTargetImpl node,
   ) {
@@ -537,8 +666,6 @@ class PropertyElementResolver with ScopeHelpers {
       name: node.name,
       scopeLookupResult: scopeLookupResult,
     );
-    if (readResult == null || writeResolution == null) return null;
-
     return (
       read: readResult.resolution,
       write: writeResolution,
@@ -631,6 +758,9 @@ class PropertyElementResolver with ScopeHelpers {
     if (element is InternalGetterElement) {
       return GetterInvocationResolutionImpl(element: element, type: type);
     }
+    if (element is InternalExecutableElement) {
+      return ExecutableTearOffResolutionImpl(element: element);
+    }
     return null;
   }
 
@@ -650,6 +780,24 @@ class PropertyElementResolver with ScopeHelpers {
     return null;
   }
 
+  NamedReadResolutionImpl? _createPropertyReadResolution({
+    required Element? element,
+    required RecordTypeFieldImpl? recordField,
+    required TypeImpl? type,
+  }) {
+    if (type == null) return null;
+    if (element is InternalGetterElement) {
+      return GetterInvocationResolutionImpl(element: element, type: type);
+    }
+    if (element is InternalExecutableElement) {
+      return ExecutableTearOffResolutionImpl(element: element);
+    }
+    if (recordField != null) {
+      return RecordFieldReadResolutionImpl(type: type);
+    }
+    return null;
+  }
+
   bool _isAccessible(ExecutableElement element) {
     return element.isAccessibleIn(_definingLibrary);
   }
@@ -658,6 +806,7 @@ class PropertyElementResolver with ScopeHelpers {
     return switch (element) {
       InternalVariableElement() => element.type,
       InternalGetterElement() => element.returnType,
+      InternalExecutableElement() => element.type,
       _ => null,
     };
   }
@@ -1295,7 +1444,7 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  ({NamedReadResolutionImpl resolution, ExpressionInfo? expressionInfo})?
+  ({NamedReadResolutionImpl resolution, ExpressionInfo? expressionInfo})
   _resolveUnqualifiedNameRead(
     UnqualifiedNameAssignmentTargetImpl node,
     ScopeLookupResult scopeLookupResult,
@@ -1311,13 +1460,6 @@ class PropertyElementResolver with ScopeHelpers {
         diag.undefinedIdentifier.withArguments(name: node.name.lexeme).at(node),
       );
     }
-
-    var isInvalidExpressionTarget =
-        readElementRequested is! InternalVariableElement &&
-        readElementRequested is! InternalGetterElement &&
-        [readElementRequested, readElementRecovery]
-            .whereType<InternalExecutableElement>()
-            .any((element) => element is! InternalPropertyAccessorElement);
 
     _resolver.checkReadOfNotAssignedLocalVariable2(
       node,
@@ -1354,8 +1496,6 @@ class PropertyElementResolver with ScopeHelpers {
       readType = readElementRequested.type;
     }
 
-    if (isInvalidExpressionTarget) return null;
-
     NamedReadResolutionImpl? resolution = _createNamedReadResolutionWithElement(
       readElementRequested,
       type: readType,
@@ -1371,7 +1511,7 @@ class PropertyElementResolver with ScopeHelpers {
     return (resolution: resolution, expressionInfo: expressionInfo);
   }
 
-  NamedWriteResolutionImpl? _resolveUnqualifiedNameWrite({
+  NamedWriteResolutionImpl _resolveUnqualifiedNameWrite({
     required AstNode node,
     required Token name,
     required ScopeLookupResult scopeLookupResult,
@@ -1399,12 +1539,6 @@ class PropertyElementResolver with ScopeHelpers {
         recovery: writeElementRecovery,
       );
     }
-
-    var isInvalidExpressionTarget =
-        [writeElementRequested, writeElementRecovery]
-            .whereType<InternalExecutableElement>()
-            .any((element) => element is! InternalPropertyAccessorElement);
-    if (isInvalidExpressionTarget) return null;
 
     var requestedResolution = _createNamedWriteResolutionWithElement(
       writeElementRequested,

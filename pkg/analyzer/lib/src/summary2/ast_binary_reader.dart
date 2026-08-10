@@ -943,6 +943,12 @@ class AstBinaryReader {
 
   NamedReadResolutionImpl _readNamedReadResolution() {
     switch (NamedReadResolutionTag.values[_readByte()]) {
+      case NamedReadResolutionTag.dynamicPropertyRead:
+        return DynamicPropertyReadResolutionImpl();
+      case NamedReadResolutionTag.executableTearOff:
+        return ExecutableTearOffResolutionImpl(
+          element: _reader.readElement() as InternalExecutableElement,
+        );
       case NamedReadResolutionTag.getterInvocation:
         return GetterInvocationResolutionImpl(
           element: _reader.readElement() as InternalGetterElement,
@@ -960,6 +966,8 @@ class AstBinaryReader {
           recovery: recovery,
           type: type,
         );
+      case NamedReadResolutionTag.recordFieldRead:
+        return RecordFieldReadResolutionImpl(type: _reader.readRequiredType());
       case NamedReadResolutionTag.variableRead:
         return VariableReadResolutionImpl(
           element: _reader.readElement() as InternalVariableElement,

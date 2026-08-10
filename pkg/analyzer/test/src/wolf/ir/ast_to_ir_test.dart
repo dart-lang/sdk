@@ -538,9 +538,12 @@ class C {
 test(C c) => (c).p ??= hook(123, '123');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment("(c).p ??= hook(123, '123')")]
+    var assignment = result.findNode.ifNullAssignment(
+      "(c).p ??= hook(123, '123')",
+    );
+    check(astNodes)[assignment]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(c)')]!)
-      ..containsSubrange(astNodes[result.findNode.propertyAccess('(c).p')]!)
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
       );

@@ -3154,6 +3154,35 @@ class B extends A {
     );
   }
 
+  test_FieldElement_ofClass_parenthesizedReceiver_ifNull() async {
+    var result = await _indexTestCode('''
+class A {
+  int? foo;
+}
+
+void f(A a) {
+  (a).foo ??= 2;
+}
+''');
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
+      result,
+      {'field': field, 'getter': field.getter!, 'setter': field.setter!},
+      r'''
+class A {
+  int? foo;
+}
+
+void f(A a) {
+  (a).foo ??= 2;
+      ^^^ getter IS_INVOKED_BY qualified
+      ^^^ setter IS_INVOKED_BY qualified
+}
+''',
+    );
+  }
+
   test_FieldElement_ofClass_static_fieldDeclaration() async {
     var result = await _indexTestCode('''
 /// [foo] and [A.foo]
@@ -5272,6 +5301,35 @@ void useFoo(A a) {
 ''');
   }
 
+  test_MethodElement_normal_ofClass_parenthesizedReceiver_ifNull() async {
+    var result = await _indexTestCode('''
+class A {
+  void foo() {}
+}
+
+void f(A a) {
+  (a).foo ??= () {};
+//    ^^^
+// [diag.assignmentToMethod] Methods can't be assigned a value.
+//            ^^^^^
+// [diag.deadCode] Dead code.
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+}
+''');
+    var element = result.findElement.method('foo');
+
+    assertElementIndexText(result, element, r'''
+class A {
+  void foo() {}
+}
+
+void f(A a) {
+  (a).foo ??= () {};
+      ^^^ IS_REFERENCED_BY qualified
+}
+''');
+  }
+
   test_MethodElement_normal_ofClass_static() async {
     var result = await _indexTestCode('''
 import 'test.dart' as p;
@@ -7115,6 +7173,30 @@ void f() {
 ''');
   }
 
+  test_TopLevelFunctionElement_unqualified_ifNull() async {
+    var result = await _indexTestCode('''
+void foo() {}
+
+void f() {
+  foo ??= () {};
+//^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+//        ^^^^^
+// [diag.deadCode] Dead code.
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+}
+''');
+    var element = result.findElement.topFunction('foo');
+    assertElementIndexText(result, element, r'''
+void foo() {}
+
+void f() {
+  foo ??= () {};
+  ^^^ IS_REFERENCED_BY
+}
+''');
+  }
+
   test_TopLevelVariableElement_getterDeclaration() async {
     var result = await _indexTestCode('''
 import 'test.dart' as p;
@@ -7151,6 +7233,29 @@ Prefixes:
   getter: (unprefixed),p
 ''',
     );
+  }
+
+  test_TopLevelVariableElement_getterDeclaration_invalidWrite() async {
+    var result = await _indexTestCode(r'''
+int get foo => 0;
+
+void f() {
+  foo = 1;
+//^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+}
+''');
+
+    var getter = result.findElement.topVar('foo').getter!;
+
+    assertElementIndexText(result, getter, r'''
+int get foo => 0;
+
+void f() {
+  foo = 1;
+  ^^^ IS_REFERENCED_BY
+}
+''');
   }
 
   test_TopLevelVariableElement_getterSetterDeclarations() async {

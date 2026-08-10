@@ -14357,6 +14357,20 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 }
 
+/// A property read whose getter is selected dynamically at runtime.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DynamicPropertyReadResolution
+    implements NamedReadResolution {}
+
+final class DynamicPropertyReadResolutionImpl extends NamedReadResolutionImpl
+    implements DynamicPropertyReadResolution {
+  DynamicPropertyReadResolutionImpl();
+
+  @override
+  TypeImpl get type => DynamicTypeImpl.instance;
+}
+
 /// A property write whose setter is selected dynamically at runtime.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -15544,6 +15558,34 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
     }
     return null;
   }
+}
+
+/// A read that produces the tear-off of an executable declaration.
+///
+/// The [element] is the executable selected for this occurrence after applying
+/// substitutions from receiver or enclosing-type lookup. Use
+/// [ExecutableElement.baseElement] to access the declaration. Type arguments
+/// applied to the executable's own type parameters belong to the explicit or
+/// implicit function-instantiation operation around the resulting tear-off,
+/// not to this resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ExecutableTearOffResolution
+    implements NamedReadResolutionWithElement {
+  @override
+  ExecutableElement get element;
+}
+
+final class ExecutableTearOffResolutionImpl
+    extends NamedReadResolutionWithElementImpl
+    implements ExecutableTearOffResolution {
+  @override
+  final InternalExecutableElement element;
+
+  ExecutableTearOffResolutionImpl({required this.element});
+
+  @override
+  TypeImpl get type => element.type;
 }
 
 /// An export directive.
@@ -24786,11 +24828,12 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
 
   @override
   InternalFormalParameterElement? get _staticParameterElementForValue {
-    var target = this.target;
-    if (target is! UnqualifiedNameAssignmentTargetImpl) {
-      return null;
-    }
-    if (target.write case SetterInvocationResolutionImpl(:var element)) {
+    var write = switch (target) {
+      PropertyAssignmentTargetImpl(:var write) => write,
+      UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+      InvalidExpressionAssignmentTargetImpl() => null,
+    };
+    if (write case SetterInvocationResolutionImpl(:var element)) {
       return element.formalParameters.single;
     }
     return null;
@@ -39524,14 +39567,18 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
     ..addToken('propertyName', propertyName);
 
   Element? get _legacyReadElement => switch (read) {
+    null => null,
+    DynamicPropertyReadResolutionImpl() => null,
+    InvalidNamedReadResolutionImpl() => null,
     NamedReadResolutionWithElementImpl(:var element) => element,
-    _ => null,
+    RecordFieldReadResolutionImpl() => null,
   };
 
   Element? get _legacyWriteElement => switch (write) {
+    null => null,
+    DynamicPropertyWriteResolutionImpl() => null,
     InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
     NamedWriteResolutionWithElementImpl(:var element) => element,
-    _ => null,
   };
 
   @generated
@@ -39782,6 +39829,19 @@ final class PropertyAssignmentTargetV1Impl
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     throw StateError('PropertyAccess is not in the V2 AST view.');
   }
+}
+
+/// A read of a field from a record value.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class RecordFieldReadResolution implements NamedReadResolution {}
+
+final class RecordFieldReadResolutionImpl extends NamedReadResolutionImpl
+    implements RecordFieldReadResolution {
+  @override
+  final TypeImpl type;
+
+  RecordFieldReadResolutionImpl({required this.type});
 }
 
 /// A record literal.
@@ -48318,9 +48378,11 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   Element? get _legacyReadElement {
     return switch (read) {
       null => null,
+      DynamicPropertyReadResolutionImpl() => null,
       InvalidNamedReadResolutionImpl(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
       NamedReadResolutionWithElementImpl(:var element) => element,
+      RecordFieldReadResolutionImpl() => null,
     };
   }
 

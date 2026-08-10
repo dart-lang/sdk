@@ -3730,19 +3730,20 @@ class AstBuilder extends StackListener {
           value: rhs,
         ),
       );
-    } else if (token.type == TokenType.EQ && propertyReceiver != null) {
+    } else if ((token.type == TokenType.EQ ||
+            token.type == TokenType.QUESTION_QUESTION_EQ) &&
+        propertyReceiver != null) {
       lhs as PropertyAccessImpl;
-      push(
-        DirectAssignmentImpl(
-          target: PropertyAssignmentTargetImpl(
-            receiver: propertyReceiver,
-            operator: lhs.operator,
-            propertyName: lhs.propertyName.token,
-          ),
-          operator: token,
-          value: rhs,
-        ),
+      var target = PropertyAssignmentTargetImpl(
+        receiver: propertyReceiver,
+        operator: lhs.operator,
+        propertyName: lhs.propertyName.token,
       );
+      if (token.type == TokenType.EQ) {
+        push(DirectAssignmentImpl(target: target, operator: token, value: rhs));
+      } else {
+        push(IfNullAssignmentImpl(target: target, operator: token, value: rhs));
+      }
     } else if (lhs is SimpleIdentifierImpl) {
       if (token.type == TokenType.EQ) {
         push(

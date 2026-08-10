@@ -1563,6 +1563,7 @@ package:analyzer/dart/ast/ast.dart:
   DoubleLiteral (class extends Object implements Literal, abstract, final):
     literal (getter: Token)
     value (getter: double)
+  DynamicPropertyReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental)
   DynamicPropertyWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental)
   EmptyClassBody (class extends Object implements ClassBody, sealed (immediate subtypes: EmptyClassBodyImpl)):
     semicolon (getter: Token)
@@ -1593,6 +1594,8 @@ package:analyzer/dart/ast/ast.dart:
     implementsClause (getter: ImplementsClause?)
     namePart (getter: ClassNamePart)
     withClause (getter: WithClause?)
+  ExecutableTearOffResolution (class extends Object implements NamedReadResolutionWithElement, abstract, final, experimental):
+    element (getter: ExecutableElement)
   ExportDirective (class extends Object implements NamespaceDirective, abstract, final):
     exportKeyword (getter: Token)
     libraryExport (getter: LibraryExport?)
@@ -2183,6 +2186,7 @@ package:analyzer/dart/ast/ast.dart:
     read (getter: NamedReadResolution?)
     receiver (getter: Expression)
     write (getter: NamedWriteResolution?)
+  RecordFieldReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental)
   RecordLiteral (class extends Object implements Literal, abstract, final):
     constKeyword (getter: Token?)
     fields (getter: NodeList<RecordLiteralField>)

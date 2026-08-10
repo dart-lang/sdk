@@ -577,17 +577,30 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,
     };
-    if (write case NamedWriteResolutionWithElement(element: var writeElement)) {
-      if (writeElement is PropertyAccessorElement &&
-          (writeElement.variable == element || writeElement == element)) {
-        var entity = switch (target) {
-          PropertyAssignmentTarget() => target.propertyName,
-          _ => target,
-        };
-        references.add(
-          MatchInfo(entity.offset, entity.length, MatchKind.WRITE),
-        );
-      }
+    switch (write) {
+      case NamedWriteResolutionWithElement(element: var writeElement):
+        if (writeElement is PropertyAccessorElement &&
+            (writeElement.variable == element || writeElement == element)) {
+          var entity = switch (target) {
+            PropertyAssignmentTarget() => target.propertyName,
+            _ => target,
+          };
+          references.add(
+            MatchInfo(entity.offset, entity.length, MatchKind.WRITE),
+          );
+        }
+      case InvalidNamedWriteResolution(:var candidates):
+        if (candidates.any(
+          (candidate) =>
+              candidate == element ||
+              candidate is PropertyAccessorElement &&
+                  candidate.variable == element,
+        )) {
+          references.add(
+            MatchInfo(target.offset, target.length, MatchKind.REFERENCE),
+          );
+        }
+      default:
     }
     super.visitDirectAssignment(node);
   }
@@ -616,15 +629,26 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     var target = node.target;
-    if (target is UnqualifiedNameAssignmentTarget) {
-      var readMatches = switch (target.read) {
+    if (target is PropertyAssignmentTarget ||
+        target is UnqualifiedNameAssignmentTarget) {
+      var read = switch (target) {
+        PropertyAssignmentTarget() => target.read,
+        UnqualifiedNameAssignmentTarget() => target.read,
+        _ => null,
+      };
+      var write = switch (target) {
+        PropertyAssignmentTarget() => target.write,
+        UnqualifiedNameAssignmentTarget() => target.write,
+        _ => null,
+      };
+      var readMatches = switch (read) {
         NamedReadResolutionWithElement(element: var readElement) =>
           readElement is PropertyAccessorElement
               ? readElement.variable == element || readElement == element
               : readElement == element,
         _ => false,
       };
-      var writeMatches = switch (target.write) {
+      var writeMatches = switch (write) {
         NamedWriteResolutionWithElement(element: var writeElement) =>
           writeElement is PropertyAccessorElement
               ? writeElement.variable == element || writeElement == element
@@ -637,7 +661,12 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
             : readMatches
             ? MatchKind.READ
             : MatchKind.WRITE;
-        references.add(MatchInfo(target.offset, target.length, kind));
+        var entity = switch (target) {
+          PropertyAssignmentTarget() => target.propertyName,
+          UnqualifiedNameAssignmentTarget() => target,
+          _ => target,
+        };
+        references.add(MatchInfo(entity.offset, entity.length, kind));
       }
     }
     super.visitIfNullAssignment(node);
