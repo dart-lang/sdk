@@ -443,6 +443,23 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [StoreArrayElement] to the graph.
+  StoreArrayElement addStoreArrayElement(ArrayKind kind) {
+    final value = pop();
+    final index = pop();
+    final array = pop();
+    final instr = StoreArrayElement(
+      graph,
+      currentSourcePosition,
+      kind,
+      array,
+      index,
+      value,
+    );
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [Throw] to the graph.
   /// Ends current block.
   void addThrow(ThrowKind kind, int inputCount) {

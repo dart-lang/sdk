@@ -789,6 +789,26 @@ void main() {
       });
     });
 
+    test('csetm', () {
+      asm.csetm(R0, .greater);
+      asm.csetm(R1, .unsignedLessOrEqual);
+      asm.csetm(R2, .noOverflow, .s32);
+      expectDisassembly(
+        'csetm r0, gt\n'
+        'csetm r1, ls\n'
+        'csetmw r2, vc\n',
+      );
+      expectThrows(() {
+        asm.csetm(SP, .greater);
+      });
+      expectThrows(() {
+        asm.csetm(R0, .greater, .u8);
+      });
+      expectThrows(() {
+        asm.csetm(R0, .unconditional);
+      });
+    });
+
     test('csneg', () {
       asm.csneg(R5, R6, R7, .greaterOrEqual);
       asm.csneg(R1, ZR, R0, .unsignedLess);

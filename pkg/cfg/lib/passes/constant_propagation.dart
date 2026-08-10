@@ -349,6 +349,9 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitStoreArrayElement(StoreArrayElement instr) {}
+
+  @override
   void visitThrow(Throw instr) {}
 
   @override
@@ -622,9 +625,6 @@ final class ConstantPropagation extends Pass
   void visitAllocateArray(AllocateArray instr) {
     _setNonConstant(instr);
   }
-
-  @override
-  void visitSetListElement(SetListElement instr) {}
 
   @override
   void visitAllocateRecord(AllocateRecord instr) {

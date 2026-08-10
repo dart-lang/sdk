@@ -89,6 +89,26 @@ void buildArrayElementGetter(
   builder.addReturn();
 }
 
+/// Build IR for indexed store to an array element.
+void buildArrayElementSetter(
+  FlowGraphBuilder builder,
+  ArrayKind kind,
+  CField lengthField,
+) {
+  final value = builder.pop();
+  final index = builder.pop();
+  final array = builder.pop();
+  builder.push(array);
+  builder.push(index);
+  builder.push(array);
+  builder.addLoadInstanceField(lengthField);
+  builder.addIndexCheck();
+  builder.push(value);
+  builder.addStoreArrayElement(kind);
+  builder.addNullConstant();
+  builder.addReturn();
+}
+
 /// Build IR for factory constructors of typed data lists and built-in _List.
 void buildArrayFactory(
   FlowGraphBuilder builder,
@@ -343,6 +363,29 @@ final class VmRecognizedMethods(
           arrayKind,
           objectLayout.TypedListBase_length,
           const IntType(),
+        );
+      },
+
+    for (ArrayKind arrayKind in [
+      .int8List,
+      .uint8List,
+      .uint8ClampedList,
+      .int16List,
+      .uint16List,
+      .int32List,
+      .uint32List,
+      .int64List,
+      .uint64List,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '_${arrayKind.elementName}List',
+        '[]=',
+      ): (FlowGraphBuilder builder) {
+        buildArrayElementSetter(
+          builder,
+          arrayKind,
+          objectLayout.TypedListBase_length,
         );
       },
 

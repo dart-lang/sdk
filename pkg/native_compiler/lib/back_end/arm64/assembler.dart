@@ -1246,6 +1246,14 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
+  void csetm(
+    Register rd,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    csinv(rd, ZR, ZR, condition.inverted, sz);
+  }
+
   void csneg(
     Register rd,
     Register rn,
@@ -2479,20 +2487,38 @@ extension on Label {
 
 extension on Condition {
   int get encoding => switch (this) {
-    Condition.equal => 0, // EQ
-    Condition.notEqual => 1, // NE
-    Condition.unsignedGreaterOrEqual => 2, // CS/HS
-    Condition.unsignedLess => 3, // CC/LO
-    Condition.negative => 4, // MI
-    Condition.positiveOrZero => 5, // PL
-    Condition.overflow => 6, // VS
-    Condition.noOverflow => 7, // VC
-    Condition.unsignedGreater => 8, // HI
-    Condition.unsignedLessOrEqual => 9, // LS
-    Condition.greaterOrEqual => 10, // GE
-    Condition.less => 11, // LT
-    Condition.greater => 12, // GT
-    Condition.lessOrEqual => 13, // LE
-    Condition.unconditional => 14, // AL
+    .equal => 0, // EQ
+    .notEqual => 1, // NE
+    .unsignedGreaterOrEqual => 2, // CS/HS
+    .unsignedLess => 3, // CC/LO
+    .negative => 4, // MI
+    .positiveOrZero => 5, // PL
+    .overflow => 6, // VS
+    .noOverflow => 7, // VC
+    .unsignedGreater => 8, // HI
+    .unsignedLessOrEqual => 9, // LS
+    .greaterOrEqual => 10, // GE
+    .less => 11, // LT
+    .greater => 12, // GT
+    .lessOrEqual => 13, // LE
+    .unconditional => 14, // AL
+  };
+
+  Condition get inverted => switch (this) {
+    .equal => .notEqual,
+    .notEqual => .equal,
+    .unsignedGreaterOrEqual => .unsignedLess,
+    .unsignedLess => .unsignedGreaterOrEqual,
+    .negative => .positiveOrZero,
+    .positiveOrZero => .negative,
+    .overflow => .noOverflow,
+    .noOverflow => .overflow,
+    .unsignedGreater => .unsignedLessOrEqual,
+    .unsignedLessOrEqual => .unsignedGreater,
+    .greaterOrEqual => .less,
+    .less => .greaterOrEqual,
+    .greater => .lessOrEqual,
+    .lessOrEqual => .greater,
+    .unconditional => throw '${this} cannot be negated',
   };
 }

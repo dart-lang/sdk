@@ -1119,6 +1119,9 @@ enum ArrayKind {
 }
 
 /// Load value from an array element.
+///
+/// [LoadArrayElement] assumes index was already checked to be within
+/// array bounds, e.g. via [IndexCheck].
 final class LoadArrayElement extends Definition with NoThrow, Pure {
   final ArrayKind kind;
 
@@ -1142,6 +1145,34 @@ final class LoadArrayElement extends Definition with NoThrow, Pure {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadArrayElement(this);
+}
+
+/// Store value to an array element.
+///
+/// [StoreArrayElement] assumes index was already checked to be within
+/// array bounds, e.g. via [IndexCheck].
+final class StoreArrayElement extends Instruction with NoThrow, HasSideEffects {
+  final ArrayKind kind;
+
+  StoreArrayElement(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    Definition array,
+    Definition index,
+    Definition value,
+  ) : super(inputCount: 3) {
+    setInputAt(0, array);
+    setInputAt(1, index);
+    setInputAt(2, value);
+  }
+
+  Definition get array => inputDefAt(0);
+  Definition get index => inputDefAt(1);
+  Definition get value => inputDefAt(2);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStoreArrayElement(this);
 }
 
 /// Kinds of exceptions thrown via [Throw].
@@ -1914,29 +1945,6 @@ final class AllocateArray extends Definition
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateArray(this);
-}
-
-/// Set value of [index]-th element of the given fixed-size List.
-final class SetListElement extends Instruction
-    with NoThrow, HasSideEffects, BackendInstruction {
-  SetListElement(
-    super.graph,
-    super.sourcePosition,
-    Definition list,
-    Definition index,
-    Definition value,
-  ) : super(inputCount: 3) {
-    setInputAt(0, list);
-    setInputAt(1, index);
-    setInputAt(2, value);
-  }
-
-  Definition get list => inputDefAt(0);
-  Definition get index => inputDefAt(1);
-  Definition get value => inputDefAt(2);
-
-  @override
-  R accept<R>(InstructionVisitor<R> v) => v.visitSetListElement(this);
 }
 
 /// Allocate a Record instance of given type.

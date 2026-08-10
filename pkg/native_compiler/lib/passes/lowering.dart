@@ -285,9 +285,10 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     );
     argument.insertBefore(instr);
     for (int i = 0, n = instr.length; i < n; ++i) {
-      final setElem = SetListElement(
+      final setElem = StoreArrayElement(
         graph,
         instr.sourcePosition,
+        .fixedLengthList,
         argument,
         graph.getConstant(ConstantValue.fromInt(i)),
         instr.elementAt(i),
@@ -325,17 +326,19 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       );
       argument.insertBefore(instr);
       for (int i = 0, n = instr.length; i < n; ++i) {
-        final setKey = SetListElement(
+        final setKey = StoreArrayElement(
           graph,
           instr.sourcePosition,
+          .fixedLengthList,
           argument,
           graph.getConstant(ConstantValue.fromInt((i << 1) + 0)),
           instr.keyAt(i),
         );
         setKey.insertBefore(instr);
-        final setValue = SetListElement(
+        final setValue = StoreArrayElement(
           graph,
           instr.sourcePosition,
+          .fixedLengthList,
           argument,
           graph.getConstant(ConstantValue.fromInt((i << 1) + 1)),
           instr.valueAt(i),
@@ -397,9 +400,10 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       );
       argument.insertBefore(instr);
       for (int i = 0, n = instr.inputCount; i < n; ++i) {
-        final setElem = SetListElement(
+        final setElem = StoreArrayElement(
           graph,
           instr.sourcePosition,
+          .fixedLengthList,
           argument,
           graph.getConstant(ConstantValue.fromInt(i)),
           instr.inputDefAt(i),
