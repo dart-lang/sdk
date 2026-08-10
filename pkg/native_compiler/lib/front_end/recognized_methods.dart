@@ -224,11 +224,38 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildInstanceGetter(builder, objectLayout.Array_length);
     },
+    index.getProcedure(
+      'dart:core',
+      '_Array',
+      '[]',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementGetter(
+        builder,
+        .fixedLengthList,
+        objectLayout.Array_length,
+        StaticType(
+          ast.TypeParameterType.withDefaultNullability(
+            index.getClass('dart:core', '_Array').typeParameters.single,
+          ),
+        ),
+      );
+    },
     index.getProcedure('dart:core', '_List', ''): (FlowGraphBuilder builder) {
       buildArrayFactory(
         builder,
         .fixedLengthList,
         index.getClass('dart:core', '_List'),
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_List',
+      '[]=',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementSetter(
+        builder,
+        .fixedLengthList,
+        objectLayout.Array_length,
       );
     },
 
@@ -331,6 +358,29 @@ final class VmRecognizedMethods(
           smiBits(objectLayout.compressedWordSize) + 1; // Including sign bit.
       final has63BitSmis = totalSmiBits >= 63;
       buildConstantGetter(builder, ConstantValue.fromBool(has63BitSmis));
+    },
+
+    // dart:isolate
+    index.getProcedure(
+      'dart:isolate',
+      '_RawReceivePort',
+      'get:_handler',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.RawReceivePort_handler);
+    },
+    index.getProcedure(
+      'dart:isolate',
+      '_RawReceivePort',
+      'set:_handler',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.RawReceivePort_handler);
+    },
+    index.getProcedure(
+      'dart:isolate',
+      '_RawReceivePort',
+      'get:sendPort',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.RawReceivePort_sendPort);
     },
 
     // dart:typed_data

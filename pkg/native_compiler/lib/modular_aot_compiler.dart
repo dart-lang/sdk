@@ -17,6 +17,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalFlags,
         resolveInputUri;
 import 'package:kernel/ast.dart' as ast show Component;
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:native_compiler/compilation_set.dart';
 import 'package:native_compiler/configuration.dart';
@@ -300,6 +301,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     results.coreTypes!,
     results.classHierarchy!,
   );
+  final coreLibraries = LibraryIndex.coreLibraries(component);
   final config = DevelopmentCompilerConfiguration(
     targetCPU,
     imageFormat,
@@ -311,7 +313,10 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     printFlowGraphAfterEveryPass: printFlowGraphAfterEveryPass,
     printRegisterAllocation: printRegisterAllocation,
   );
-  final context = GlobalContext(typeEnvironment: typeEnvironment);
+  final context = GlobalContext(
+    typeEnvironment: typeEnvironment,
+    coreLibraries: coreLibraries,
+  );
   await GlobalContext.withContext(context, () {
     final compilationSet = CompilationSet(libraries, config);
     compilationSet.compileAllFunctions();

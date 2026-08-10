@@ -148,7 +148,7 @@ class ObjectLayout {
   }
 
   late final CoreTypes _coreTypes = GlobalContext.instance.coreTypes;
-  late final LibraryIndex _libraryIndex = _coreTypes.index;
+  late final LibraryIndex _libraryIndex = GlobalContext.instance.coreLibraries;
 
   late final ast.Class _arrayClass = _libraryIndex.getClass(
     'dart:core',
@@ -157,6 +157,14 @@ class ObjectLayout {
   late final ast.Class _linkedHashBaseClass = _libraryIndex.getClass(
     'dart:_compact_hash',
     '_LinkedHashBase',
+  );
+  late final ast.Class _rawReceivePortClass = _libraryIndex.getClass(
+    'dart:isolate',
+    '_RawReceivePort',
+  );
+  late final ast.Class _sendPortClass = _libraryIndex.getClass(
+    'dart:isolate',
+    'SendPort',
   );
   late final ast.Class _typedListBaseClass = _libraryIndex.getClass(
     'dart:typed_data',
@@ -206,6 +214,21 @@ class ObjectLayout {
     'deletedKeys',
     _coreTypes.intNonNullableRawType,
     vmOffsets.LinkedHashBase_deleted_keys_offset,
+  );
+
+  // dart:isolate
+  late final CField RawReceivePort_handler = _createBuiltInField(
+    _rawReceivePortClass,
+    'handler',
+    _coreTypes.functionNullableRawType,
+    vmOffsets.ReceivePort_handler_offset,
+  );
+  late final CField RawReceivePort_sendPort = _createBuiltInField(
+    _rawReceivePortClass,
+    'sendPort',
+    _coreTypes.nonNullableRawType(_sendPortClass),
+    vmOffsets.ReceivePort_send_port_offset,
+    isFinal: true,
   );
 
   // dart:typed_data
