@@ -26751,7 +26751,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
     uword call_addr,
     uword instructions,
     LoadingUnit* unit = nullptr) {
-  const Image image(reinterpret_cast<const uint8_t*>(instructions));
+  const TextImage image(reinterpret_cast<const uint8_t*>(instructions));
   if (!image.contains(call_addr)) return false;
   if (unit != nullptr) {
     ASSERT(!unit->IsNull());
@@ -26759,7 +26759,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
     // information from the header can be checked.
     buffer->Printf(" unit %" Pd "", unit->id());
   }
-  auto const offset = call_addr - instructions;
+  auto const offset = call_addr - image.instructions_address();
   // Only print the relocated address of the call when we know the saved
   // debugging information (if any) will have the same relocated address.
   // Also only print 'virt' fields for isolate addresses.
@@ -26981,7 +26981,8 @@ const char* StackTrace::ToCString() const {
     const uword isolate_dso_base = OS::GetAppDSOBase(isolate_instructions);
     buffer.Printf("isolate_dso_base: %" Px "", isolate_dso_base);
     buffer.Printf(", vm_dso_base: 0\n");
-    buffer.Printf("isolate_instructions: %" Px "", isolate_instructions);
+    buffer.Printf("isolate_instructions: %" Px "",
+                  TextImage(isolate_instructions).instructions_address());
     buffer.Printf(", vm_instructions: 0\n");
   }
 #endif

@@ -794,7 +794,7 @@ import 'dart:async' as a;
     checkOffset<PrefixFragment>(
       importDirective,
       importDirective.libraryImport!.prefix!,
-      importDirective.prefix!.offset,
+      importDirective.prefixName!.offset,
     );
   }
 
@@ -809,7 +809,7 @@ import 'dart:math' as a; // second
     checkOffset<PrefixFragment>(
       firstImportDirective,
       firstImportDirective.libraryImport!.prefix!,
-      firstImportDirective.prefix!.offset,
+      firstImportDirective.prefixName!.offset,
     );
   }
 

@@ -1147,20 +1147,20 @@ class FileState {
     required bool isDocImport,
   }) {
     UnlinkedLibraryImportPrefix? unlinkedPrefix;
-    var prefix = node.prefix;
-    if (prefix != null) {
+    var prefixName = node.prefixName;
+    if (prefixName != null) {
       UnlinkedLibraryImportPrefixName? name;
-      if (!prefix.isSynthetic) {
+      if (!prefixName.isSynthetic) {
         name = UnlinkedLibraryImportPrefixName(
-          name: prefix.name,
-          nameOffset: prefix.offset,
+          name: prefixName.lexeme,
+          nameOffset: prefixName.offset,
         );
       }
 
       unlinkedPrefix = UnlinkedLibraryImportPrefix(
         deferredOffset: node.deferredKeyword?.offset,
         asOffset: node.asKeyword!.offset,
-        nameOffset: prefix.offset,
+        nameOffset: prefixName.offset,
         name: name,
       );
     }

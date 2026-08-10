@@ -707,9 +707,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case PropertyAssignmentTargetImpl():
-        throw StateError(
-          'Property targets are not produced for if-null assignment.',
-        );
+        lValueTemplates = _propertyAssignmentTarget(target);
       case UnqualifiedNameAssignmentTargetImpl():
         lValueTemplates = _unqualifiedNameAssignmentTarget(target);
     }
@@ -1143,6 +1141,17 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   _LValueTemplates _propertyAssignmentTarget(PropertyAssignmentTarget node) {
     dispatchNode(node.receiver);
+    var readElement = switch (node.read) {
+      GetterInvocationResolution(:var element) => element,
+      DynamicPropertyReadResolution() => null,
+      InvalidNamedReadResolution() => throw UnimplementedError(
+        'Invalid property assignment target read',
+      ),
+      ExecutableTearOffResolution() || RecordFieldReadResolution() =>
+        throw UnimplementedError('Unsupported property assignment target read'),
+      null => null,
+      _ => throw StateError('Unexpected property read resolution'),
+    };
     var writeElement = switch (node.write) {
       SetterInvocationResolution(:var element) => element,
       DynamicPropertyWriteResolution() => null,
@@ -1154,6 +1163,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     };
     return _PropertyAccessTemplates.direct(
       name: node.propertyName.lexeme,
+      readElement: readElement,
       writeElement: writeElement,
     );
   }
@@ -1390,8 +1400,12 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     // Stack: value target value
     visitor.instanceSet(
       writeElement ??
-          visitor.assignmentTargeting(property!)!.writeElement
-              as PropertyAccessorElement?,
+          switch (property) {
+            var property? =>
+              visitor.assignmentTargeting(property)!.writeElement
+                  as PropertyAccessorElement?,
+            null => null,
+          },
       name,
     );
     // Stack: value returnValue

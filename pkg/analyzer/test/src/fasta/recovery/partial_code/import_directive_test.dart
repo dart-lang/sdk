@@ -33,9 +33,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     ClassDeclaration
       classKeyword: class
@@ -64,9 +65,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
@@ -98,9 +100,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     EnumDeclaration
       enumKeyword: enum
@@ -132,9 +135,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
 ''');
   }
 
@@ -155,9 +159,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
     ExportDirective
       exportKeyword: export
       uri: SimpleStringLiteral
@@ -183,9 +188,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
@@ -215,9 +221,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: int
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: int
-      semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
       name: f
@@ -249,9 +256,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
       returnType: NamedType
@@ -283,9 +291,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: int
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: int
-      semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
       propertyKeyword: get
@@ -316,9 +325,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
     ImportDirective
       importKeyword: import
       uri: SimpleStringLiteral
@@ -344,9 +354,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     MixinDeclaration
       mixinKeyword: mixin
@@ -374,9 +385,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
     PartDirective
       partKeyword: part
       uri: SimpleStringLiteral
@@ -402,9 +414,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
       propertyKeyword: set
@@ -445,9 +458,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     GenericTypeAlias
       typedefKeyword: typedef
@@ -497,9 +511,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'a.dart'
       asKeyword: as
+      prefixName: <empty> <synthetic>
+      semicolon: ; <synthetic>
       prefix: SimpleIdentifier
         token: <empty> <synthetic>
-      semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList

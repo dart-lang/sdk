@@ -210,19 +210,6 @@ class ElementResolver {
   void visitGenericTypeAlias(GenericTypeAlias node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
-    var prefixNode = node.prefix;
-    if (prefixNode != null) {
-      String prefixName = prefixNode.name;
-      var prefixes = _resolver.libraryFragment.prefixes;
-      int count = prefixes.length;
-      for (int i = 0; i < count; i++) {
-        var prefixElement = prefixes[i];
-        if (prefixElement.displayName == prefixName) {
-          prefixNode.element = prefixElement;
-          break;
-        }
-      }
-    }
     var importElement = node.libraryImport;
     if (importElement != null) {
       // The element is null when the URI is invalid

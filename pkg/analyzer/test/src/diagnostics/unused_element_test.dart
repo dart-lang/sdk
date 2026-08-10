@@ -2312,6 +2312,18 @@ main() {
 ''');
   }
 
+  test_getter_isUsed_invalidAssignment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int get _g => 0;
+
+void f() {
+  _g = 1;
+//^^
+// [diag.assignmentToFinal] '_g' can't be used as a setter because it's final.
+}
+''');
+  }
+
   test_getter_isUsed_invocation_deepSubclass() async {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class A {

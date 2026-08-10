@@ -117,6 +117,10 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   /// A wrapper that executes a test, printing the instrumentation log if
   /// the test fails (due to an exception, or timing out).
   ///
+  /// Provide [testTimeout] if the test has a timeout different to the default
+  /// 30s so that this helper can time out earlier and print the instrumentation
+  /// log.
+  ///
   /// To use it, either add an additional test that calls this method (the
   /// original test will also still run normally):
   ///
@@ -134,13 +138,14 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   /// }
   /// ```
   Future<void> printInstrumentationLogOnFailure(
-    Future<void> Function() test,
-  ) async {
+    Future<void> Function() test, {
+    Duration testTimeout = const Duration(seconds: 30),
+  }) async {
     try {
       // The normal test timeout is 30s but we can't catch that to print the log
       // so instead add our own 28s timeout, assuming that if we hit 28s we
       // would hit 30s.
-      await test().timeout(Duration(seconds: 28));
+      await test().timeout(testTimeout - const Duration(seconds: 2));
     } catch (e) {
       print('Test failed. Instrumentation log:');
       try {

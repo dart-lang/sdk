@@ -843,7 +843,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     if (node.deferredKeyword != null) {
       sink.write(' deferred');
     }
-    _visitNode(node.prefix, prefix: ' as ');
+    _visitToken(node.prefixName, prefix: ' as ');
     _visitNodeList(node.combinators, prefix: ' ', separator: ' ');
     sink.write(';');
   }

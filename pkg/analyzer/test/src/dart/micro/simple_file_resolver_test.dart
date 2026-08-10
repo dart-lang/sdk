@@ -1316,6 +1316,26 @@ main() {
     expect(result, unorderedEquals(expected));
   }
 
+  test_findReferences_top_level_getter_invalidWrite() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+int get foo => 0;
+
+void f() {
+  foo = 1;
+}
+''');
+
+    await resolveFile(a);
+    var element = await _findElement(9, a);
+    var result = await fileResolver.findReferences(element);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(a.path, [
+        CiderSearchInfo(CharacterLocation(4, 3), 3, MatchKind.REFERENCE),
+      ]),
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
   test_findReferences_top_level_setter() async {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 int _foo;

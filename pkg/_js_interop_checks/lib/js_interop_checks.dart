@@ -29,6 +29,7 @@ class JsInteropChecks extends RecursiveVisitor {
   late final ExtensionIndex extensionIndex;
   final Procedure _functionToJSTarget;
   final Procedure _functionToJSCaptureThisTarget;
+  final ExtensionTypeDeclaration _jsAny;
   // Errors on constants need source information, so we use the surrounding
   // `ConstantExpression` as the source.
   ConstantExpression? _lastConstantExpression;
@@ -100,6 +101,7 @@ class JsInteropChecks extends RecursiveVisitor {
          'dart:js_interop',
          'FunctionToJSExportedDartFunction|get#toJSCaptureThis',
        ),
+       _jsAny = _coreTypes.index.getExtensionType('dart:js_interop', 'JSAny'),
        _staticTypeContext = StatefulStaticTypeContext.stacked(
          TypeEnvironment(_coreTypes, hierarchy),
        ) {
@@ -1107,7 +1109,40 @@ class JsInteropChecks extends RecursiveVisitor {
     FunctionType functionType,
     StaticInvocation invocation,
   ) {
-    if (!_isAllowedExternalFunctionType(functionType)) {
+    final returnType = functionType.returnType;
+    var hasAllowedReturnType = _isAllowedExternalType(returnType);
+    if (returnType is InterfaceType &&
+        returnType.classNode == _coreTypes.futureClass) {
+      final typeArgument = returnType.typeArguments[0];
+      final isVoid = typeArgument is VoidType;
+      final jsAnyType = ExtensionType(_jsAny, Nullability.nullable);
+
+      if (isVoid ||
+          _staticTypeContext.typeEnvironment.isSubtypeOf(
+            typeArgument,
+            jsAnyType,
+          )) {
+        hasAllowedReturnType = true;
+      } else {
+        _reporter.report(
+          diag.futureTypeMustBeSubtypeOfJSAnyForConversionToJSPromise,
+          invocation.fileOffset,
+          invocation.name.text.length,
+          invocation.location?.file,
+        );
+        return;
+      }
+    }
+
+    final hasAllowedParameters =
+        functionType.namedParameters.every(
+          (p) => _isAllowedExternalType(p.type),
+        ) &&
+        functionType.positionalParameters.every(
+          (p) => _isAllowedExternalType(p),
+        );
+
+    if (!hasAllowedReturnType || !hasAllowedParameters) {
       _reporter.report(
         diag.jsInteropFunctionToJSTypeViolation.withArguments(
           conversion: invocation.target == _functionToJSTarget

@@ -612,9 +612,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     _elementUsageFrontierDetector.ifNullAssignment(node);
-    var target = node.target;
-    if (target is UnqualifiedNameAssignmentTarget) {
-      _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+    switch (node.target) {
+      case PropertyAssignmentTarget target:
+        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
+      case UnqualifiedNameAssignmentTarget target:
+        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+      case InvalidAssignmentTarget():
+        break;
     }
     super.visitIfNullAssignment(node);
   }

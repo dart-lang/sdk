@@ -59,7 +59,7 @@ plugins:
     await workspaceAnalysisComplete();
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/63955')
+  @TestTimeout(Timeout.factor(5)) // Plugins can be slow on bots.
   Future<void> test_plugin_throws_asynchronously() async {
     createPlugins([throwAsynchronouslyPlugin]);
 
@@ -71,7 +71,7 @@ plugins:
     await workspaceAnalysisComplete();
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/63955')
+  @TestTimeout(Timeout.factor(5)) // Plugins can be slow on bots.
   Future<void> test_plugin_throws_duringAnalysis() async {
     createPlugins([throwDuringAnalysisPlugin]);
 
@@ -83,7 +83,7 @@ plugins:
     await workspaceAnalysisComplete();
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/63955')
+  @TestTimeout(Timeout.factor(5)) // Plugins can be slow on bots.
   Future<void> test_plugin_throws_inConstructor() async {
     createPlugins([throwInConstructorPlugin]);
 
@@ -95,7 +95,7 @@ plugins:
     await workspaceAnalysisComplete();
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/63955')
+  @TestTimeout(Timeout.factor(5)) // Plugins can be slow on bots.
   Future<void> test_plugin_valid() async {
     createPlugins([alwaysProduceDiagnosticPlugin]);
 

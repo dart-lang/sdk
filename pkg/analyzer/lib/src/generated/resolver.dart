@@ -1693,6 +1693,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return _propertyElementResolver.resolvePropertyDirectAssignmentTarget(node);
   }
 
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })?
+  resolvePropertyReadWriteAssignmentTarget(PropertyAssignmentTargetImpl node) {
+    return _propertyElementResolver.resolvePropertyReadWriteAssignmentTarget(
+      node,
+    );
+  }
+
   @override
   RelationalOperatorResolution? resolveRelationalPatternOperator(
     covariant RelationalPatternImpl node,
@@ -1752,7 +1763,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
   }
 
-  NamedWriteResolutionImpl? resolveUnqualifiedNameAssignmentTarget(
+  NamedWriteResolutionImpl resolveUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTargetImpl node,
   ) {
     return _propertyElementResolver.resolveUnqualifiedNameAssignmentTarget(
@@ -1764,7 +1775,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     NamedReadResolutionImpl read,
     NamedWriteResolutionImpl write,
     ExpressionInfo? readExpressionInfo,
-  })?
+  })
   resolveUnqualifiedNameReadWriteAssignmentTarget(
     UnqualifiedNameAssignmentTargetImpl node,
   ) {

@@ -1092,6 +1092,11 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   void _writeNamedReadResolution(NamedReadResolutionImpl resolution) {
     switch (resolution) {
+      case DynamicPropertyReadResolutionImpl():
+        _writeByte(NamedReadResolutionTag.dynamicPropertyRead.index);
+      case ExecutableTearOffResolutionImpl():
+        _writeByte(NamedReadResolutionTag.executableTearOff.index);
+        _sink.writeElement(resolution.element);
       case GetterInvocationResolutionImpl():
         _writeByte(NamedReadResolutionTag.getterInvocation.index);
         _sink.writeElement(resolution.element);
@@ -1103,6 +1108,9 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
         _sink.writeOptionalObject(resolution.recovery, (recovery) {
           _writeNamedReadResolution(recovery);
         });
+      case RecordFieldReadResolutionImpl():
+        _writeByte(NamedReadResolutionTag.recordFieldRead.index);
+        _sink.writeType(resolution.type);
       case VariableReadResolutionImpl():
         _writeByte(NamedReadResolutionTag.variableRead.index);
         _sink.writeElement(resolution.element);

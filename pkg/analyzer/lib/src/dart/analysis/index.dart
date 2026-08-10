@@ -863,48 +863,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
           'Property targets are not produced for compound assignment.',
         );
       case UnqualifiedNameAssignmentTargetImpl target:
-        switch ((target.read, target.write)) {
-          case (
-            VariableReadResolutionImpl(element: var readElement),
-            VariableWriteResolutionImpl(element: var writeElement),
-          ):
-            assert(identical(readElement, writeElement));
-            recordRelation(
-              readElement,
-              IndexRelationKind.IS_READ_WRITTEN_BY,
-              target,
-              false,
-            );
-          case (
-            GetterInvocationResolutionImpl(element: var getter),
-            SetterInvocationResolutionImpl(element: var setter),
-          ):
-            for (var element in [getter, setter]) {
-              if (element.firstFragment.enclosingFragment
-                  is LibraryFragmentImpl) {
-                assembler.addPrefixForElement(element);
-              }
-            }
-            recordRelation(
-              getter,
-              IndexRelationKind.IS_INVOKED_BY,
-              target,
-              false,
-            );
-            recordRelation(
-              setter,
-              IndexRelationKind.IS_INVOKED_BY,
-              target,
-              false,
-            );
-          default:
-            assembler.addNameRelation(
-              target.name.lexeme,
-              IndexRelationKind.IS_READ_WRITTEN_BY,
-              target.offset,
-              false,
-            );
-        }
+        _recordUnqualifiedNameReadWriteTarget(target);
     }
     super.visitCompoundAssignment(node);
   }
@@ -1039,6 +998,20 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
               target,
               false,
             );
+          case InvalidNamedWriteResolutionImpl(:var candidates)
+              when candidates.isNotEmpty:
+            for (var element in candidates) {
+              if (element.firstFragment.enclosingFragment
+                  is LibraryFragmentImpl) {
+                assembler.addPrefixForElement(element);
+              }
+              recordRelation(
+                element,
+                IndexRelationKind.IS_REFERENCED_BY,
+                target,
+                false,
+              );
+            }
           default:
             assembler.addNameRelation(
               target.name.lexeme,
@@ -1225,53 +1198,57 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case InvalidExpressionAssignmentTargetImpl():
         break;
-      case PropertyAssignmentTargetImpl():
-        throw StateError(
-          'Property targets are not produced for if-null assignment.',
-        );
-      case UnqualifiedNameAssignmentTargetImpl target:
-        switch ((target.read, target.write)) {
-          case (
-            VariableReadResolutionImpl(element: var readElement),
-            VariableWriteResolutionImpl(element: var writeElement),
-          ):
-            assert(identical(readElement, writeElement));
-            recordRelation(
-              readElement,
-              IndexRelationKind.IS_READ_WRITTEN_BY,
-              target,
-              false,
-            );
-          case (
-            GetterInvocationResolutionImpl(element: var getter),
-            SetterInvocationResolutionImpl(element: var setter),
-          ):
-            for (var element in [getter, setter]) {
-              if (element.firstFragment.enclosingFragment
-                  is LibraryFragmentImpl) {
-                assembler.addPrefixForElement(element);
-              }
+      case PropertyAssignmentTargetImpl target:
+        var hasRelation = false;
+        switch (target.read) {
+          case GetterInvocationResolutionImpl(:var element):
+            if (element.firstFragment.enclosingFragment
+                is LibraryFragmentImpl) {
+              assembler.addPrefixForElement(element);
             }
             recordRelation(
-              getter,
+              element,
               IndexRelationKind.IS_INVOKED_BY,
-              target,
-              false,
+              target.propertyName,
+              true,
             );
+            hasRelation = true;
+          case ExecutableTearOffResolutionImpl(:var element):
+            if (element.firstFragment.enclosingFragment
+                is LibraryFragmentImpl) {
+              assembler.addPrefixForElement(element);
+            }
             recordRelation(
-              setter,
-              IndexRelationKind.IS_INVOKED_BY,
-              target,
-              false,
+              element,
+              IndexRelationKind.IS_REFERENCED_BY,
+              target.propertyName,
+              true,
             );
+            hasRelation = true;
           default:
-            assembler.addNameRelation(
-              target.name.lexeme,
-              IndexRelationKind.IS_READ_WRITTEN_BY,
-              target.offset,
-              false,
-            );
         }
+        if (target.write case SetterInvocationResolutionImpl(:var element)) {
+          if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+            assembler.addPrefixForElement(element);
+          }
+          recordRelation(
+            element,
+            IndexRelationKind.IS_INVOKED_BY,
+            target.propertyName,
+            true,
+          );
+          hasRelation = true;
+        }
+        if (!hasRelation) {
+          assembler.addNameRelation(
+            target.propertyName.lexeme,
+            IndexRelationKind.IS_READ_WRITTEN_BY,
+            target.propertyName.offset,
+            true,
+          );
+        }
+      case UnqualifiedNameAssignmentTargetImpl target:
+        _recordUnqualifiedNameReadWriteTarget(target);
     }
     super.visitIfNullAssignment(node);
   }
@@ -1798,6 +1775,62 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       name,
       isQualified: importPrefix != null,
     );
+  }
+
+  void _recordUnqualifiedNameReadWriteTarget(
+    UnqualifiedNameAssignmentTargetImpl target,
+  ) {
+    if (target.read case VariableReadResolutionImpl(element: var readElement)) {
+      if (target.write case VariableWriteResolutionImpl(
+        element: var writeElement,
+      )) {
+        assert(identical(readElement, writeElement));
+        recordRelation(
+          readElement,
+          IndexRelationKind.IS_READ_WRITTEN_BY,
+          target,
+          false,
+        );
+        return;
+      }
+    }
+
+    var hasRelation = false;
+    switch (target.read) {
+      case GetterInvocationResolutionImpl(:var element):
+        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+          assembler.addPrefixForElement(element);
+        }
+        recordRelation(element, IndexRelationKind.IS_INVOKED_BY, target, false);
+        hasRelation = true;
+      case ExecutableTearOffResolutionImpl(:var element):
+        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+          assembler.addPrefixForElement(element);
+        }
+        recordRelation(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          target,
+          false,
+        );
+        hasRelation = true;
+      default:
+    }
+    if (target.write case SetterInvocationResolutionImpl(:var element)) {
+      if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+        assembler.addPrefixForElement(element);
+      }
+      recordRelation(element, IndexRelationKind.IS_INVOKED_BY, target, false);
+      hasRelation = true;
+    }
+    if (!hasRelation) {
+      assembler.addNameRelation(
+        target.name.lexeme,
+        IndexRelationKind.IS_READ_WRITTEN_BY,
+        target.offset,
+        false,
+      );
+    }
   }
 }
 

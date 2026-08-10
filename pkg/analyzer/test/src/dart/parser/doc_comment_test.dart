@@ -696,9 +696,10 @@ Comment
         uri: SimpleStringLiteral
           literal: 'dart:html'
         asKeyword: as
+        prefixName: html
+        semicolon: ;
         prefix: SimpleIdentifier
           token: html
-        semicolon: ;
 ''');
   }
 

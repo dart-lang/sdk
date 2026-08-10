@@ -57,6 +57,7 @@ front_end/ExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface/example
 front_end/FastaCLIArgumentRequired/example: missingExample # Used in the compile tool
 front_end/FastaUsageLong/example: missingExample # Help for the compile tool
 front_end/FastaUsageShort/example: missingExample # Help for the compile tool
+front_end/FutureTypeMustBeSubtypeOfJSAnyForConversionToJSPromise/example: missingExample # Async not supported in messages suite.
 _fe_analyzer_shared/IllegalAssignmentToNonAssignable/part_wrapped_script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
 _fe_analyzer_shared/IllegalAssignmentToNonAssignable/script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
 front_end/IncrementalCompilerIllegalParameter/example: missingExample # Expression compilation.

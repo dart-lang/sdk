@@ -2788,13 +2788,38 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('x ??= 2');
+    var node = result.findNode.ifNullAssignment('x ??= 2');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ParenthesizedExpression
+IfNullAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int? Function()
+      type: int?
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num?
+  operator: ??=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
+    staticType: int
+  staticType: int
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
@@ -2807,9 +2832,9 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: ??=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <null>
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   readElement: <testLibrary>::@class::A::@getter::x
   readType: int?
@@ -3046,6 +3071,236 @@ AssignmentExpression
 ''');
   }
 
+  test_propertyAccess_parenthesized_dynamic_ifNull() async {
+    var result = await resolveTestCode(r'''
+void f(dynamic a) {
+  (a).x ??= 2;
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('x ??= 2');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: dynamic
+      rightParenthesis: )
+      staticType: dynamic
+    operator: .
+    propertyName: x
+    read: DynamicPropertyReadResolution
+      type: dynamic
+    write: DynamicPropertyWriteResolution
+      acceptedType: dynamic
+  operator: ??=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  staticType: dynamic
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: dynamic
+      rightParenthesis: )
+      staticType: dynamic
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  element: <null>
+  staticType: dynamic
+''');
+  }
+
+  test_propertyAccess_parenthesized_method_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  void foo() {}
+}
+
+void f(A a) {
+  (a).foo ??= () {};
+//    ^^^
+// [diag.assignmentToMethod] Methods can't be assigned a value.
+//            ^^^^^
+// [diag.deadCode] Dead code.
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('foo ??= () {}');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: foo
+    read: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function()
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: <testLibrary>::@class::A::@method::foo
+      recovery: <null>
+  operator: ??=
+  value: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> null@null
+      element: null@null
+        type: Never Function()
+    correspondingParameter: <null>
+    staticType: Never Function()
+  staticType: void Function()
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> null@null
+      element: null@null
+        type: Never Function()
+    correspondingParameter: <null>
+    staticType: Never Function()
+  readElement: <testLibrary>::@class::A::@method::foo
+  readType: void Function()
+  writeElement: <testLibrary>::@class::A::@method::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: void Function()
+''');
+  }
+
+  test_propertyAccess_parenthesized_method_ifNull_substituted() async {
+    var result = await resolveTestCode(r'''
+class A<T> {
+  void foo(T value) {}
+}
+
+void f(A<int> a) {
+  (a).foo ??= 0;
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('foo ??=');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A<int>
+      rightParenthesis: )
+      staticType: A<int>
+    operator: .
+    propertyName: foo
+    read: ExecutableTearOffResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@class::A::@method::foo
+        substitution: {T: int}
+      type: void Function(int)
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: SubstitutedMethodElementImpl
+          baseElement: <testLibrary>::@class::A::@method::foo
+          substitution: {T: int}
+      recovery: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: Object
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A<int>
+      rightParenthesis: )
+      staticType: A<int>
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: SubstitutedMethodElementImpl
+    baseElement: <testLibrary>::@class::A::@method::foo
+    substitution: {T: int}
+  readType: void Function(int)
+  writeElement: SubstitutedMethodElementImpl
+    baseElement: <testLibrary>::@class::A::@method::foo
+    substitution: {T: int}
+  writeType: InvalidType
+  element: <null>
+  staticType: Object
+''');
+  }
+
   test_propertyAccess_parenthesized_propertyAccess_simple() async {
     var result = await resolveTestCode(r'''
 class A {
@@ -3124,6 +3379,75 @@ AssignmentExpression
   readType: null
   writeElement: <testLibrary>::@class::B::@setter::y
   writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_parenthesized_recordField_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(({int x}) r) {
+  (r).x ??= 0;
+//    ^
+// [diag.undefinedSetter] The setter 'x' isn't defined for the type '({int x})'.
+//          ^^
+// [diag.deadCode] Dead code.
+//          ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('x ??= 0');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: r
+        element: <testLibrary>::@function::f::@formalParameter::r
+        staticType: ({int x})
+      rightParenthesis: )
+      staticType: ({int x})
+    operator: .
+    propertyName: x
+    read: RecordFieldReadResolution
+      type: int
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+      recovery: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: r
+        element: <testLibrary>::@function::f::@formalParameter::r
+        staticType: ({int x})
+      rightParenthesis: )
+      staticType: ({int x})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: int
+  writeElement: <null>
+  writeType: InvalidType
   element: <null>
   staticType: int
 ''');
@@ -5452,11 +5776,16 @@ class B extends A {
     var node = result.findNode.ifNullAssignment('x ??= 2');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: InvalidExpressionAssignmentTarget
-    expression: SimpleIdentifier
-      token: x
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: ExecutableTearOffResolution
       element: <testLibrary>::@class::B::@method::x
-      staticType: void Function()
+      type: void Function()
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: <testLibrary>::@class::B::@method::x
+      recovery: <null>
   operator: ??=
   value: IntegerLiteral
     literal: 2
@@ -5466,8 +5795,8 @@ IfNullAssignment
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibrary>::@class::B::@method::x
-    staticType: void Function()
+    element: <null>
+    staticType: null
   operator: ??=
   rightHandSide: IntegerLiteral
     literal: 2
@@ -5504,11 +5833,14 @@ class B extends A {
     var node = result.findNode.directAssignment('x = 2');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: InvalidExpressionAssignmentTarget
-    expression: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@class::B::@method::x
-      staticType: void Function()
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: <null>
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: <testLibrary>::@class::B::@method::x
+      recovery: <null>
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -5518,8 +5850,8 @@ DirectAssignment
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibrary>::@class::B::@method::x
-    staticType: void Function()
+    element: <null>
+    staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
@@ -6148,11 +6480,16 @@ void f() {
     var node = result.findNode.compoundAssignment('foo += 0');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: InvalidExpressionAssignmentTarget
-    expression: SimpleIdentifier
-      token: foo
+  target: UnqualifiedNameAssignmentTarget
+    name: foo
+    read: ExecutableTearOffResolution
       element: <testLibrary>::@function::foo
-      staticType: void Function(int)
+      type: void Function(int)
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: <testLibrary>::@function::foo
+      recovery: <null>
   operator: +=
   value: IntegerLiteral
     literal: 0
@@ -6165,8 +6502,8 @@ CompoundAssignment
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
-    element: <testLibrary>::@function::foo
-    staticType: void Function(int)
+    element: <null>
+    staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
@@ -6195,11 +6532,14 @@ void f() {
     var node = result.findNode.directAssignment('foo = 0');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: InvalidExpressionAssignmentTarget
-    expression: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: void Function(int)
+  target: UnqualifiedNameAssignmentTarget
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: <testLibrary>::@function::foo
+      recovery: <null>
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -6209,8 +6549,8 @@ DirectAssignment
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
-    element: <testLibrary>::@function::foo
-    staticType: void Function(int)
+    element: <null>
+    staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0

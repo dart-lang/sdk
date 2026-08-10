@@ -2398,6 +2398,17 @@ Expected parent: (${parent.runtimeType}) $parent
     switch (resolution) {
       case null:
         _sink.writelnWithIndent('$name: <null>');
+      case DynamicPropertyReadResolutionImpl():
+        _sink.writelnWithIndent('$name: DynamicPropertyReadResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+        });
+      case ExecutableTearOffResolutionImpl():
+        _sink.writelnWithIndent('$name: ExecutableTearOffResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('type', resolution.type);
+        });
       case GetterInvocationResolutionImpl():
         _sink.writelnWithIndent('$name: GetterInvocationResolution');
         _sink.withIndent(() {
@@ -2416,6 +2427,11 @@ Expected parent: (${parent.runtimeType}) $parent
             }
           });
           _writeNamedReadResolution('recovery', resolution.recovery);
+        });
+      case RecordFieldReadResolutionImpl():
+        _sink.writelnWithIndent('$name: RecordFieldReadResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
         });
       case VariableReadResolutionImpl():
         _sink.writelnWithIndent('$name: VariableReadResolution');

@@ -30,7 +30,14 @@ enum ElementTag {
 
 enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 
-enum NamedReadResolutionTag { getterInvocation, invalid, variableRead }
+enum NamedReadResolutionTag {
+  getterInvocation,
+  invalid,
+  variableRead,
+  dynamicPropertyRead,
+  executableTearOff,
+  recordFieldRead,
+}
 
 enum NamedWriteResolutionTag {
   invalid,
