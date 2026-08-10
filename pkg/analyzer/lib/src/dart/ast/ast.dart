@@ -26109,7 +26109,13 @@ abstract final class ImportDirective implements NamespaceDirective {
 
   /// The prefix to be used with the imported names, or `null` if the imported
   /// names aren't prefixed.
+  @ToBeDeprecated('Use prefixName instead.')
   SimpleIdentifier? get prefix;
+
+  /// The name of the prefix to be used with the imported names, or `null` if
+  /// the imported names aren't prefixed.
+  @experimental
+  Token? get prefixName;
 }
 
 @GenerateNodeImpl(
@@ -26119,7 +26125,7 @@ abstract final class ImportDirective implements NamespaceDirective {
     GenerateNodeProperty('configurations', isSuper: true),
     GenerateNodeProperty('deferredKeyword'),
     GenerateNodeProperty('asKeyword'),
-    GenerateNodeProperty('prefix'),
+    GenerateNodeProperty('prefixName'),
     GenerateNodeProperty('combinators', isSuper: true),
     GenerateNodeProperty('semicolon', isSuper: true),
   ],
@@ -26139,10 +26145,18 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   final Token? asKeyword;
 
   @generated
-  SimpleIdentifierImpl? _prefix;
+  @override
+  final Token? prefixName;
+
+  LibraryImportImpl? _libraryImport;
 
   @override
-  LibraryImportImpl? libraryImport;
+  late final SimpleIdentifierImpl? prefix = switch (prefixName) {
+    null => null,
+    var prefixName => _becomeParentOf1(
+      SimpleIdentifierImpl.v1Projection(token: prefixName),
+    ),
+  };
 
   @generated
   ImportDirectiveImpl({
@@ -26153,12 +26167,10 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     required super.configurations,
     required this.deferredKeyword,
     required this.asKeyword,
-    required SimpleIdentifierImpl? prefix,
+    required this.prefixName,
     required super.combinators,
     required super.semicolon,
-  }) : _prefix = prefix {
-    _becomeParentOf12(prefix);
-  }
+  });
 
   @generated
   @override
@@ -26172,16 +26184,15 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     return importKeyword;
   }
 
-  @generated
   @override
-  SimpleIdentifierImpl? get prefix => _prefix;
+  LibraryImportImpl? get libraryImport => _libraryImport;
 
-  @generated
-  set prefix(SimpleIdentifierImpl? prefix) {
-    _prefix = _becomeParentOf12(prefix);
+  set libraryImport(LibraryImportImpl? value) {
+    _libraryImport = value;
+    prefix?.element = value?.prefix?.element;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('importKeyword', importKeyword)
@@ -26201,7 +26212,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     ..addNodeList('configurations', configurations)
     ..addToken('deferredKeyword', deferredKeyword)
     ..addToken('asKeyword', asKeyword)
-    ..addNode('prefix', prefix)
+    ..addToken('prefixName', prefixName)
     ..addNodeList('combinators', combinators)
     ..addToken('semicolon', semicolon);
 
@@ -26233,10 +26244,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
         "Cannot remove child 'configurations' because NodeList cannot be resized.",
       );
     }
-    if (identical(prefix, oldNode)) {
-      prefix = null;
-      return;
-    }
     if (combinators.containsChild(oldNode)) {
       throw UnsupportedError(
         "Cannot remove child 'combinators' because NodeList cannot be resized.",
@@ -26255,17 +26262,13 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     if (configurations.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (identical(prefix, oldNode)) {
-      prefix = newNode as SimpleIdentifierImpl?;
-      return;
-    }
     if (combinators.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -26283,7 +26286,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     _visitCommentAndAnnotations2(visitor);
     uri.accept2(visitor);
     configurations.accept2(visitor);
-    prefix?.accept2(visitor);
     combinators.accept2(visitor);
   }
 
@@ -26298,7 +26300,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     AstVisitor2 visitor, {
     void Function(StringLiteralImpl)? visitUri,
     void Function(NodeListImpl<ConfigurationImpl>)? visitConfigurations,
-    void Function(SimpleIdentifierImpl)? visitPrefix,
     void Function(NodeListImpl<CombinatorImpl>)? visitCombinators,
   }) {
     _visitCommentAndAnnotations2(visitor);
@@ -26312,13 +26313,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     } else {
       configurations.accept2(visitor);
     }
-    if (prefix case var prefix?) {
-      if (visitPrefix != null) {
-        visitPrefix(prefix);
-      } else {
-        prefix.accept2(visitor);
-      }
-    }
     if (visitCombinators != null) {
       visitCombinators(combinators);
     } else {
@@ -26326,7 +26320,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -26364,11 +26358,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
         case var result?) {
       return result;
     }
-    if (prefix case var prefix?) {
-      if (prefix._containsOffset(rangeOffset, rangeEnd)) {
-        return prefix;
-      }
-    }
     if (combinators._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -26388,7 +26377,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   ) {
     if (node1 is ImportDirective &&
         node2 is ImportDirective &&
-        node1.prefix?.name != node2.prefix?.name) {
+        node1.prefixName?.lexeme != node2.prefixName?.lexeme) {
       return false;
     }
 

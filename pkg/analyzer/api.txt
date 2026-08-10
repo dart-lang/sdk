@@ -1849,6 +1849,7 @@ package:analyzer/dart/ast/ast.dart:
     importKeyword (getter: Token)
     libraryImport (getter: LibraryImport?)
     prefix (getter: SimpleIdentifier?)
+    prefixName (getter: Token?, experimental)
   ImportPrefixReference (class extends Object implements AstNode, abstract, final):
     element (getter: Element?)
     name (getter: Token)

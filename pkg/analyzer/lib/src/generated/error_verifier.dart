@@ -1539,9 +1539,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitImportDirective(ImportDirective node) {
     var importElement = node.libraryImport;
-    if (node.prefix != null) {
+    if (node.prefixName case var prefixName?) {
       _checkForBuiltInIdentifierAsName(
-        node.prefix!.token,
+        prefixName,
         diag.builtInIdentifierAsPrefixName,
       );
     }
@@ -4733,17 +4733,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       for (int i = 0; i < count; i++) {
         Directive directive = directives[i];
         if (directive is ImportDirective) {
-          var prefix = directive.prefix;
-          if (prefix != null) {
-            var element = prefix.element;
-            if (element is PrefixElement) {
-              var elements = prefixToDirectivesMap[element];
-              if (elements == null) {
-                elements = <ImportDirective>[];
-                prefixToDirectivesMap[element] = elements;
-              }
-              elements.add(directive);
+          var element = directive.libraryImport?.prefix?.element;
+          if (element != null) {
+            var elements = prefixToDirectivesMap[element];
+            if (elements == null) {
+              elements = <ImportDirective>[];
+              prefixToDirectivesMap[element] = elements;
             }
+            elements.add(directive);
           }
         }
       }

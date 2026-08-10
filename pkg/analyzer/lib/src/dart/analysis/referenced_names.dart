@@ -342,9 +342,9 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var prefix = node.prefix;
-    if (prefix != null) {
-      importPrefixNames.add(prefix.name);
+    var prefixName = node.prefixName;
+    if (prefixName != null) {
+      importPrefixNames.add(prefixName.lexeme);
     }
     super.visitImportDirective(node);
   }

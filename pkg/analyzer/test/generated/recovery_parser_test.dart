@@ -1607,9 +1607,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'b.dart'
       asKeyword: as
+      prefixName: b
+      semicolon: ;
       prefix: SimpleIdentifier
         token: b
-      semicolon: ;
 ''');
   }
 

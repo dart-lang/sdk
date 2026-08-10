@@ -533,8 +533,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
-      prefix: SimpleIdentifier
-        token: p
+      prefixName: p
       combinators
         ShowCombinator
           keyword: show
@@ -553,6 +552,8 @@ CompilationUnit
             SimpleIdentifier
               token: B
       semicolon: ;
+      prefix: SimpleIdentifier
+        token: p
 ''');
   }
 
@@ -572,8 +573,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
-      prefix: SimpleIdentifier
-        token: p
+      prefixName: p
       combinators
         ShowCombinator
           keyword: show
@@ -584,6 +584,8 @@ CompilationUnit
             SimpleIdentifier
               token: A
       semicolon: ;
+      prefix: SimpleIdentifier
+        token: p
 ''');
   }
 
@@ -604,8 +606,7 @@ CompilationUnit
         literal: 'bar.dart'
       deferredKeyword: deferred
       asKeyword: as
-      prefix: SimpleIdentifier
-        token: p
+      prefixName: p
       combinators
         ShowCombinator
           keyword: show
@@ -616,6 +617,8 @@ CompilationUnit
             SimpleIdentifier
               token: A
       semicolon: ;
+      prefix: SimpleIdentifier
+        token: p
 ''');
   }
 
@@ -636,9 +639,10 @@ CompilationUnit
         literal: 'bar.dart'
       deferredKeyword: deferred
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 
@@ -658,9 +662,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 
@@ -680,9 +685,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 
@@ -702,9 +708,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 
@@ -729,8 +736,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
-      prefix: SimpleIdentifier
-        token: p
+      prefixName: p
       combinators
         ShowCombinator
           keyword: show
@@ -741,6 +747,8 @@ CompilationUnit
             SimpleIdentifier
               token: A
       semicolon: ; <synthetic>
+      prefix: SimpleIdentifier
+        token: p
     ImportDirective
       importKeyword: import
       uri: SimpleStringLiteral
@@ -766,9 +774,10 @@ CompilationUnit
         literal: 'bar.dart'
       deferredKeyword: deferred
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 }

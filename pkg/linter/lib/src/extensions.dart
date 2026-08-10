@@ -180,7 +180,7 @@ extension AstNodeExtension on AstNode {
 
     // Neither lexical scoping nor nested declarations can see instance
     // members, which are resolved through the implicit `this`.
-    var enclosingElement = enclosingInstanceElement2;
+    var enclosingElement = enclosingInstanceElement;
     if (enclosingElement == null) return false;
 
     var library = enclosingElement.library;

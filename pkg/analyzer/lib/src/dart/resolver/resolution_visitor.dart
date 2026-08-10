@@ -660,7 +660,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     if (element != null) {
       _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
-    node.visitChildrenWithHooks(this, visitPrefix: (_) {});
+    node.visitChildren2(this);
   }
 
   @override

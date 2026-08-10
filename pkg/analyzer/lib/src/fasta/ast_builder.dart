@@ -2181,7 +2181,7 @@ class AstBuilder extends StackListener {
     var combinators = pop() as List<CombinatorImpl>?;
     var deferredKeyword = pop(NullValues.Deferred) as Token?;
     var asKeyword = pop(NullValues.As) as Token?;
-    var prefix = pop(NullValues.Prefix) as SimpleIdentifierImpl?;
+    var prefixName = (pop(NullValues.Prefix) as SimpleIdentifierImpl?)?.token;
     var configurations = pop() as List<ConfigurationImpl>?;
     var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -2196,7 +2196,7 @@ class AstBuilder extends StackListener {
         configurations: configurations,
         deferredKeyword: deferredKeyword,
         asKeyword: asKeyword,
-        prefix: prefix,
+        prefixName: prefixName,
         combinators: combinators,
         semicolon: semicolon ?? Tokens.semicolon(),
       ),
@@ -5559,7 +5559,7 @@ class AstBuilder extends StackListener {
     var combinators = pop() as List<CombinatorImpl>?;
     var deferredKeyword = pop(NullValues.Deferred) as Token?;
     var asKeyword = pop(NullValues.As) as Token?;
-    var prefix = pop(NullValues.Prefix) as SimpleIdentifierImpl?;
+    var prefixName = (pop(NullValues.Prefix) as SimpleIdentifierImpl?)?.token;
     var configurations = pop() as List<ConfigurationImpl>?;
 
     var directive = directives.last;
@@ -5567,10 +5567,10 @@ class AstBuilder extends StackListener {
       case ImportDirectiveImpl():
         // TODO(scheglov): This code would be easier if we used one object.
         var mergedAsKeyword = directive.asKeyword;
-        var mergedPrefix = directive.prefix;
+        var mergedPrefixName = directive.prefixName;
         if (directive.asKeyword == null && asKeyword != null) {
           mergedAsKeyword = asKeyword;
-          mergedPrefix = prefix;
+          mergedPrefixName = prefixName;
         }
 
         directives.last = ImportDirectiveImpl(
@@ -5581,7 +5581,7 @@ class AstBuilder extends StackListener {
           configurations: [...directive.configurations, ...?configurations],
           deferredKeyword: directive.deferredKeyword ?? deferredKeyword,
           asKeyword: mergedAsKeyword,
-          prefix: mergedPrefix,
+          prefixName: mergedPrefixName,
           combinators: [...directive.combinators, ...?combinators],
           semicolon: semicolon ?? directive.semicolon,
         );

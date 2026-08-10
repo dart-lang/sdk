@@ -927,7 +927,7 @@ class _InfoBuilder {
   _InfoImport _buildImport(ImportDirective node) {
     return _InfoImport(
       importKeywordOffset: node.importKeyword.offset,
-      prefixOffset: node.prefix?.token.offsetIfNotEmpty,
+      prefixOffset: node.prefixName?.offsetIfNotEmpty,
       combinators: _buildCombinators(node.combinators),
     );
   }
