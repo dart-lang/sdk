@@ -6134,7 +6134,7 @@ jsInteropFunctionToJSTypeViolation:
     String conversion: The "toJS" conversion in use.
     String typeWithDiasllowedPartsHighlighted: The function type, with disallowed types surrounded by asterisks.
   problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#typeWithDiasllowedPartsHighlighted'."
-  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type. If the return type is a Future, then the result type must be a subtype of 'JSAny?' or 'void'."
 
 jsInteropInvalidStaticClassMemberName:
   parameters: none
@@ -7553,6 +7553,10 @@ awaitOfExtensionTypeNotFuture:
   problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
   script: |
     extension type E(num foo) { test(E e) async { await e; } }
+
+futureTypeMustBeSubtypeOfJSAnyForConversionToJSPromise:
+  parameters: none
+  problemMessage: "Calling 'toJS' on a function returning 'Future<T>' requires 'T' to be a subtype of 'JSAny?' or 'void'."
 
 namedParametersInExtensionTypeDeclaration:
   parameters: none
