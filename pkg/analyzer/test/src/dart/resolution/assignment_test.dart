@@ -2692,13 +2692,41 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ParenthesizedExpression
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
@@ -2711,7 +2739,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -2744,13 +2772,41 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ParenthesizedExpression
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@function::f::@formalParameter::c
+        staticType: C
+      rightParenthesis: )
+      staticType: C
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@mixin::M2::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@mixin::M2::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
@@ -2763,7 +2819,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -3071,6 +3127,219 @@ AssignmentExpression
 ''');
   }
 
+  test_propertyAccess_parenthesized_classGetter_compound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get x => 0;
+}
+
+void f(A a) {
+  (a).x += 2;
+//    ^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
+}
+''');
+
+    var node = result.findNode.compoundAssignment('(a).x += 2');
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: <testLibrary>::@class::A::@getter::x
+      recovery: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <testLibrary>::@class::A::@getter::x
+  readType: int
+  writeElement: <testLibrary>::@class::A::@getter::x
+  writeType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_parenthesized_classSetter_compound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set x(int _) {}
+}
+
+void f(A a) {
+  (a).x += 2;
+//    ^
+// [diag.undefinedGetter] The getter 'x' isn't defined for the type 'A'.
+}
+''');
+
+    var node = result.findNode.compoundAssignment('(a).x += 2');
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: x
+    read: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+        candidate: <testLibrary>::@class::A::@setter::x
+      recovery: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <testLibrary>::@class::A::@setter::x
+  writeType: int
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_propertyAccess_parenthesized_dynamic_compound() async {
+    var result = await resolveTestCode(r'''
+void f(dynamic a) {
+  (a).x += 2;
+}
+''');
+
+    var node = result.findNode.compoundAssignment('x += 2');
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: dynamic
+      rightParenthesis: )
+      staticType: dynamic
+    operator: .
+    propertyName: x
+    read: DynamicPropertyReadResolution
+      type: dynamic
+    write: DynamicPropertyWriteResolution
+      acceptedType: dynamic
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: dynamic
+  staticType: dynamic
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: dynamic
+      rightParenthesis: )
+      staticType: dynamic
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  element: <null>
+  staticType: dynamic
+''');
+  }
+
   test_propertyAccess_parenthesized_dynamic_ifNull() async {
     var result = await resolveTestCode(r'''
 void f(dynamic a) {
@@ -3301,6 +3570,72 @@ AssignmentExpression
 ''');
   }
 
+  test_propertyAccess_parenthesized_never_compound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(Never a) {
+  (a).x += 2;
+//^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//         ^^
+// [diag.deadCode] Dead code.
+}
+''');
+
+    var node = result.findNode.compoundAssignment('x += 2');
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: Never
+      rightParenthesis: )
+      staticType: Never
+    operator: .
+    propertyName: x
+    read: <null>
+    write: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: Never
+  staticType: Never
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: Never
+      rightParenthesis: )
+      staticType: Never
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: Never
+''');
+  }
+
   test_propertyAccess_parenthesized_propertyAccess_simple() async {
     var result = await resolveTestCode(r'''
 class A {
@@ -3450,6 +3785,79 @@ AssignmentExpression
   writeType: InvalidType
   element: <null>
   staticType: int
+''');
+  }
+
+  test_propertyAccess_parenthesized_unresolved_compound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int a, int c) {
+  (a).b += c;
+//    ^
+// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'int'.
+// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
+}
+''');
+
+    var node = result.findNode.compoundAssignment('(a).b += c');
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: int
+      rightParenthesis: )
+      staticType: int
+    operator: .
+    propertyName: b
+    read: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+      recovery: <null>
+  operator: +=
+  value: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: int
+      rightParenthesis: )
+      staticType: int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: b
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
 ''');
   }
 

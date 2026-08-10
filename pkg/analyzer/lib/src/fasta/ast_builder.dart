@@ -3730,9 +3730,7 @@ class AstBuilder extends StackListener {
           value: rhs,
         ),
       );
-    } else if ((token.type == TokenType.EQ ||
-            token.type == TokenType.QUESTION_QUESTION_EQ) &&
-        propertyReceiver != null) {
+    } else if (propertyReceiver != null) {
       lhs as PropertyAccessImpl;
       var target = PropertyAssignmentTargetImpl(
         receiver: propertyReceiver,
@@ -3741,8 +3739,12 @@ class AstBuilder extends StackListener {
       );
       if (token.type == TokenType.EQ) {
         push(DirectAssignmentImpl(target: target, operator: token, value: rhs));
-      } else {
+      } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
         push(IfNullAssignmentImpl(target: target, operator: token, value: rhs));
+      } else {
+        push(
+          CompoundAssignmentImpl(target: target, operator: token, value: rhs),
+        );
       }
     } else if (lhs is SimpleIdentifierImpl) {
       if (token.type == TokenType.EQ) {

@@ -458,9 +458,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case PropertyAssignmentTargetImpl():
-        throw StateError(
-          'Property targets are not produced for compound assignment.',
-        );
+        lValueTemplates = _propertyAssignmentTarget(target);
       case UnqualifiedNameAssignmentTargetImpl():
         lValueTemplates = _unqualifiedNameAssignmentTarget(target);
     }

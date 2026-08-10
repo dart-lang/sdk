@@ -3154,6 +3154,41 @@ class B extends A {
     );
   }
 
+  test_FieldElement_ofClass_parenthesizedReceiver_compound() async {
+    var result = await _indexTestCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  (a).foo += 2;
+}
+''');
+    var field = result.findElement.field('foo');
+
+    assertElementsIndexText(
+      result,
+      {
+        'field': field,
+        'getter': field.getter!,
+        'setter': field.setter!,
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  (a).foo += 2;
+      ^^^ getter IS_INVOKED_BY qualified
+      ^^^ setter IS_INVOKED_BY qualified
+          ^^ num.+ IS_INVOKED_BY qualified
+}
+''',
+    );
+  }
+
   test_FieldElement_ofClass_parenthesizedReceiver_ifNull() async {
     var result = await _indexTestCode('''
 class A {
