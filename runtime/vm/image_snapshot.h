@@ -32,17 +32,31 @@ class Instructions;
 class Object;
 class SharedObjectWriter;
 
-class Image : ValueObject {
- public:
+template <typename T>
+static T* Auth(T* ptr) {
+#if defined(HOST_ARCH_ARM64E)
+  return ptrauth_auth_data(ptr, ptrauth_key_function_pointer, 0);
+#else
+  return ptr;
+#endif
+}
+
+static uword Auth(uword ptr) {
+  return reinterpret_cast<uword>(Auth(reinterpret_cast<void*>(ptr)));
+}
+
+class Image : public ValueObject {
+ protected:
   explicit Image(const void* raw_memory)
       : Image(reinterpret_cast<uword>(raw_memory)) {}
   explicit Image(const uword raw_memory)
       : raw_memory_(raw_memory),
         snapshot_size_(FieldValue(raw_memory, HeaderField::ImageSize)),
-        extra_info_(ExtraInfo(raw_memory_, snapshot_size_)) {
+        extra_info_(ExtraInfo(raw_memory, snapshot_size_)) {
     ASSERT(Utils::IsAligned(raw_memory, kObjectStartAlignment));
   }
 
+ public:
   // Even though an Image is read-only memory, we must return a void* here.
   // All objects in an Image are pre-marked, though, so the GC will not attempt
   // to change the returned memory.
@@ -60,6 +74,9 @@ class Image : ValueObject {
   // Returns the address of the BSS section, or nullptr if one is not available.
   // Only has meaning for instructions images from precompiled snapshots.
   uword* bss() const;
+
+  // Returns the instructions address with any auth data stripped.
+  uword instructions_address() const { return raw_memory_; }
 
   // Returns the relocated address of the isolate's instructions, or 0 if
   // one is not available. Only has meaning for instructions images from
@@ -162,6 +179,20 @@ class Image : ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Image);
 };
 
+class DataImage : public Image {
+ public:
+  explicit DataImage(const void* raw_memory) : Image(raw_memory) {}
+  explicit DataImage(const uword raw_memory) : Image(raw_memory) {}
+  DISALLOW_COPY_AND_ASSIGN(DataImage);
+};
+
+class TextImage : public Image {
+ public:
+  explicit TextImage(const void* raw_memory) : Image(Auth(raw_memory)) {}
+  explicit TextImage(const uword raw_memory) : Image(Auth(raw_memory)) {}
+  DISALLOW_COPY_AND_ASSIGN(TextImage);
+};
+
 class ImageReader : public ZoneObject {
  public:
   ImageReader(const uint8_t* data_image, const uint8_t* instructions_image);
@@ -176,6 +207,7 @@ class ImageReader : public ZoneObject {
  private:
   const uint8_t* data_image_;
   const uint8_t* instructions_image_;
+  const uint8_t* instructions_image_authed_;
 
   DISALLOW_COPY_AND_ASSIGN(ImageReader);
 };

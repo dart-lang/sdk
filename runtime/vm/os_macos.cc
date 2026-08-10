@@ -323,7 +323,7 @@ void OS::Exit(int code) {
 OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
   // First return the build ID information from the instructions image if
   // available.
-  const Image instructions_image(snapshot_instructions);
+  const TextImage instructions_image(snapshot_instructions);
   if (auto* const image_build_id = instructions_image.build_id()) {
     return {instructions_image.build_id_length(), image_build_id};
   }
