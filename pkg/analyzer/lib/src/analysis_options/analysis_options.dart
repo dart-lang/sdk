@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
@@ -610,7 +611,7 @@ final class PathPluginSource implements PluginSource {
   String toYaml({required String name}) =>
       '''
   $name:
-    path: $path
+    path: ${jsonEncode(path)}
 ''';
 }
 
