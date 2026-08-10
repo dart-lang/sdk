@@ -7,11 +7,27 @@
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:expect/expect.dart';
+
 import 'ffi_test_helpers.dart';
 
 void main() {
+  testCallback();
   testMallocFree();
   print('end of test, shutting down');
+}
+
+void testCallback() {
+  if (Platform.isWindows) {
+    // `free` not supported, so `freePtr` cannot be looked up.
+    return;
+  }
+
+  Expect.equals(freePtr, freeFinalizer.callback);
+
+  final resource = MyNativeResource();
+  resource.closeUsingCallback();
+  doGC();
 }
 
 void testMallocFree() {
@@ -64,6 +80,14 @@ class MyNativeResource implements Finalizable {
     _closed = true;
     freeFinalizer.detach(this);
     free(pointer);
+  }
+
+  /// Like [close], but obtains the finalization callback from the finalizer
+  /// itself instead of holding on to `free` separately.
+  void closeUsingCallback() {
+    _closed = true;
+    freeFinalizer.detach(this);
+    freeFinalizer.callback.asFunction<void Function(Pointer<Void>)>()(pointer);
   }
 
   void useResource() {

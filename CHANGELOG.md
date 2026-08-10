@@ -4,6 +4,13 @@
 
 ### Libraries
 
+#### `dart:ffi`
+- Added `NativeFinalizer.callback`, which returns the finalization callback the
+  finalizer was created with.
+  For more details, see SDK issue [#63811][]
+
+[#63811]: https://github.com/dart-lang/sdk/issues/63811
+
 #### `dart:js_interop`
 - The `isA<JSArray>` check now uses both `Array.isArray` and `instanceof` to
   verify if a value is an array; it is considered an array if either condition
