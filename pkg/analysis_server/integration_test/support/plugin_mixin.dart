@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import '../lsp_server/integration_tests.dart';
 
@@ -60,6 +61,25 @@ mixin PluginMixin on AbstractLspAnalysisServerIntegrationTest {
       analysisOptionsContent
         ..writeln('  $name:')
         ..writeln('    path: ${jsonEncode(pluginPath)}');
+    }
+
+    // Override paths to the plugin packages to use them from the SDK instead
+    // of trying to pull them from Pub when the plugins are started.
+    // `PluginPackageGenerator.generatePubspec` may contain a version matching
+    // the local code that has not been pushed to Pub.
+    var packages = [
+      '_fe_analyzer_shared',
+      'analysis_server_plugin',
+      'analyzer_plugin',
+      'analyzer',
+    ];
+    analysisOptionsContent.writeln('  dependency_overrides:');
+    for (var package in packages) {
+      var packagePath = _getSdkSourcePackagePath(package);
+      analysisOptionsContent.writeln('''
+    $package:
+      path: ${jsonEncode(packagePath)}
+''');
     }
 
     newFile(analysisOptionsPath, analysisOptionsContent.toString());
@@ -163,6 +183,20 @@ class _${className}Visitor extends SimpleAstVisitor<void> {
   }
 }
 ''';
+  }
+
+  /// Gets the source path to [package] in the local SDK checkout.
+  ///
+  /// This is used for dependency overrides for plugins so that they run using
+  /// the local source code and not pulled from Pub.
+  String _getSdkSourcePackagePath(String package) {
+    var libFolderUri = Isolate.resolvePackageUriSync(
+      Uri.parse('package:$package/'),
+    );
+    var rootFolderPath = pathContext.normalize(
+      pathContext.join(libFolderUri!.toFilePath(), '..'),
+    );
+    return rootFolderPath;
   }
 }
 
