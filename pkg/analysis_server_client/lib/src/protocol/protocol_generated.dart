@@ -11605,6 +11605,7 @@ enum GeneralAnalysisService {
 ///       "containingLibraryPath": optional String
 ///       "containingLibraryName": optional String
 ///       "containingClassDescription": optional String
+///       "containingExecutableDescriptions": optional List<String>
 ///       "dartdoc": optional String
 ///       "elementDescription": optional String
 ///       "elementKind": optional String
@@ -11634,10 +11635,15 @@ class HoverInformation implements HasToJson {
   /// data is omitted if the element is declared inside an HTML file.
   String? containingLibraryName;
 
-  /// A human-readable description of the class declaring the element being
-  /// referenced. This data is omitted if there is no referenced element, or if
-  /// the element is not a class member.
+  /// A human-readable description of the instance type declaring the element
+  /// being referenced. This data is omitted if there is no referenced element,
+  /// or if the element is not a instance type member.
   String? containingClassDescription;
+
+  /// A human-readable list of the executable names declaring the element being
+  /// referenced. This data is omitted if there is no referenced element, or if
+  /// the element is not declared in an executable member.
+  List<String>? containingExecutableDescriptions;
 
   /// The dartdoc associated with the referenced element. Other than the
   /// removal of the comment delimiters, including leading asterisks in the
@@ -11678,6 +11684,7 @@ class HoverInformation implements HasToJson {
     this.containingLibraryPath,
     this.containingLibraryName,
     this.containingClassDescription,
+    this.containingExecutableDescriptions,
     this.dartdoc,
     this.elementDescription,
     this.elementKind,
@@ -11725,6 +11732,14 @@ class HoverInformation implements HasToJson {
         containingClassDescription = jsonDecoder.decodeString(
           '$jsonPath.containingClassDescription',
           json['containingClassDescription'],
+        );
+      }
+      List<String>? containingExecutableDescriptions;
+      if (json.containsKey('containingExecutableDescriptions')) {
+        containingExecutableDescriptions = jsonDecoder.decodeList(
+          '$jsonPath.containingExecutableDescriptions',
+          json['containingExecutableDescriptions'],
+          jsonDecoder.decodeString,
         );
       }
       String? dartdoc;
@@ -11782,6 +11797,7 @@ class HoverInformation implements HasToJson {
         containingLibraryPath: containingLibraryPath,
         containingLibraryName: containingLibraryName,
         containingClassDescription: containingClassDescription,
+        containingExecutableDescriptions: containingExecutableDescriptions,
         dartdoc: dartdoc,
         elementDescription: elementDescription,
         elementKind: elementKind,
@@ -11811,6 +11827,12 @@ class HoverInformation implements HasToJson {
     var containingClassDescription = this.containingClassDescription;
     if (containingClassDescription != null) {
       result['containingClassDescription'] = containingClassDescription;
+    }
+    var containingExecutableDescriptions =
+        this.containingExecutableDescriptions;
+    if (containingExecutableDescriptions != null) {
+      result['containingExecutableDescriptions'] =
+          containingExecutableDescriptions;
     }
     var dartdoc = this.dartdoc;
     if (dartdoc != null) {
@@ -11854,6 +11876,11 @@ class HoverInformation implements HasToJson {
       containingLibraryPath == other.containingLibraryPath &&
       containingLibraryName == other.containingLibraryName &&
       containingClassDescription == other.containingClassDescription &&
+      listEqual(
+        containingExecutableDescriptions,
+        other.containingExecutableDescriptions,
+        (String a, String b) => a == b,
+      ) &&
       dartdoc == other.dartdoc &&
       elementDescription == other.elementDescription &&
       elementKind == other.elementKind &&
@@ -11869,6 +11896,7 @@ class HoverInformation implements HasToJson {
     containingLibraryPath,
     containingLibraryName,
     containingClassDescription,
+    Object.hashAll(containingExecutableDescriptions ?? []),
     dartdoc,
     elementDescription,
     elementKind,

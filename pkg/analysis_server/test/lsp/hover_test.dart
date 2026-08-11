@@ -517,7 +517,9 @@ void f() {
 ```dart
 String iii
 ```
-Type: `String`''';
+Type: `String`
+
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -533,7 +535,9 @@ void f() {
 ```dart
 String iii
 ```
-Type: `String`''';
+Type: `String`
+
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -655,11 +659,23 @@ f() {
   int [!^_!] = 0;
 }
 ''';
+    await assertNullHover(content);
+  }
+
+  Future<void> test_localVariable_wildcard_beforeFeature() async {
+    var content = '''
+// @dart=3.6
+f() {
+  int [!^_!] = 0;
+}
+''';
     var expected = '''
 ```dart
 int _
 ```
-Type: `int`''';
+Type: `int`
+
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -841,11 +857,21 @@ Declared in *package:test/main.dart*.
     var content = '''
 f(int [!^_!]) { }
 ''';
+    await assertNullHover(content);
+  }
+
+  Future<void> test_parameter_wildcard_beforeFeature() async {
+    var content = '''
+// @dart=3.6
+f(int [!^_!]) { }
+''';
     var expected = '''
 ```dart
 int _
 ```
-Type: `int`''';
+Type: `int`
+
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -986,17 +1012,15 @@ void f(aaa) {
     print([!aa^a!]);
   }
 }
-    ''';
+''';
 
-    var expectedHoverContent =
-        '''
+    var expectedHoverContent = '''
 ```dart
 dynamic aaa
 ```
 Type: `String`
-    '''
-            .trim();
 
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expectedHoverContent));
   }
 
@@ -1352,6 +1376,8 @@ int a
 ```
 Type: `int`
 
+Declared in `new` in `C` in *package:test/main.dart*.
+
 ---
 The field a.''';
     await assertStringContents(content, equals(expected));
@@ -1372,7 +1398,9 @@ class B extends A {
 ```dart
 int a
 ```
-Type: `int`''';
+Type: `int`
+
+Declared in `new` in `B` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -1416,7 +1444,9 @@ void foo() {
 ```dart
 Exception error
 ```
-Type: `Exception`''';
+Type: `Exception`
+
+Declared in `foo` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -1430,15 +1460,106 @@ void foo() {
 ```dart
 StackTrace stack
 ```
-Type: `StackTrace`''';
+Type: `StackTrace`
+
+Declared in `foo` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
-  Future<void> test_typeParameter() async {
+  Future<void> test_typeParameter_class() async {
     var content = '''
-class C<[!^T!]> {}
+class C<T> {
+  late [!^T!] f;
+}
 ''';
-    await assertNullHover(content);
+    var expected = '''
+```dart
+<T>
+```
+Declared in `C` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_closureInFunction() async {
+    var content = '''
+void foo() {
+  <O extends int>() {
+    late [!^O!] o;
+  };
+}
+''';
+    var expected = '''
+```dart
+<O extends int>
+```
+Declared in `<unnamed>` in `foo` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_function() async {
+    var content = '''
+void foo<T, O extends T>() {
+  foo<T, [!^O!]>();
+}
+''';
+    var expected = '''
+```dart
+<O extends T>
+```
+Declared in `foo` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_functionInFunction() async {
+    var content = '''
+void foo() {
+  void f<O extends int>() {
+    late [!^O!] o;
+  }
+}
+''';
+    var expected = '''
+```dart
+<O extends int>
+```
+Declared in `f` in `foo` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_functionTyped_parameter() async {
+    var content = '''
+void foo([!^T!] Function<T extends int>() f) {}
+''';
+    var expected = '''
+```dart
+<T extends int>
+```
+Declared in `f` in `foo` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_functionTyped_return() async {
+    var content = '''
+[!^T!] Function<T extends int>(T p) f() => <T extends int>(T p) => p;
+''';
+    var expected = '''
+```dart
+<T extends int>
+```
+Declared in `f` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_functionTyped_typedef() async {
+    var content = '''
+typedef F = [!^T!] Function<T extends int>();
+''';
+    var expected = '''
+```dart
+<T extends int>
+```
+Declared in `F` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
   }
 
   Future<void> test_typeParameter_wildcard() async {

@@ -57,10 +57,18 @@ public class HoverInformation {
   private final String containingLibraryName;
 
   /**
-   * A human-readable description of the class declaring the element being referenced. This data is
-   * omitted if there is no referenced element, or if the element is not a class member.
+   * A human-readable description of the instance type declaring the element being referenced. This
+   * data is omitted if there is no referenced element, or if the element is not a instance type
+   * member.
    */
   private final String containingClassDescription;
+
+  /**
+   * A human-readable list of the executable names declaring the element being referenced. This data
+   * is omitted if there is no referenced element, or if the element is not declared in an executable
+   * member.
+   */
+  private final List<String> containingExecutableDescriptions;
 
   /**
    * The dartdoc associated with the referenced element. Other than the removal of the comment
@@ -108,12 +116,13 @@ public class HoverInformation {
   /**
    * Constructor for {@link HoverInformation}.
    */
-  public HoverInformation(int offset, int length, String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, Boolean isDeprecated, String parameter, String propagatedType, String staticType) {
+  public HoverInformation(int offset, int length, String containingLibraryPath, String containingLibraryName, String containingClassDescription, List<String> containingExecutableDescriptions, String dartdoc, String elementDescription, String elementKind, Boolean isDeprecated, String parameter, String propagatedType, String staticType) {
     this.offset = offset;
     this.length = length;
     this.containingLibraryPath = containingLibraryPath;
     this.containingLibraryName = containingLibraryName;
     this.containingClassDescription = containingClassDescription;
+    this.containingExecutableDescriptions = containingExecutableDescriptions;
     this.dartdoc = dartdoc;
     this.elementDescription = elementDescription;
     this.elementKind = elementKind;
@@ -132,6 +141,7 @@ public class HoverInformation {
         Objects.equals(other.containingLibraryPath, containingLibraryPath) &&
         Objects.equals(other.containingLibraryName, containingLibraryName) &&
         Objects.equals(other.containingClassDescription, containingClassDescription) &&
+        Objects.equals(other.containingExecutableDescriptions, containingExecutableDescriptions) &&
         Objects.equals(other.dartdoc, dartdoc) &&
         Objects.equals(other.elementDescription, elementDescription) &&
         Objects.equals(other.elementKind, elementKind) &&
@@ -149,6 +159,7 @@ public class HoverInformation {
     String containingLibraryPath = jsonObject.get("containingLibraryPath") == null ? null : jsonObject.get("containingLibraryPath").getAsString();
     String containingLibraryName = jsonObject.get("containingLibraryName") == null ? null : jsonObject.get("containingLibraryName").getAsString();
     String containingClassDescription = jsonObject.get("containingClassDescription") == null ? null : jsonObject.get("containingClassDescription").getAsString();
+    List<String> containingExecutableDescriptions = jsonObject.get("containingExecutableDescriptions") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("containingExecutableDescriptions").getAsJsonArray());
     String dartdoc = jsonObject.get("dartdoc") == null ? null : jsonObject.get("dartdoc").getAsString();
     String elementDescription = jsonObject.get("elementDescription") == null ? null : jsonObject.get("elementDescription").getAsString();
     String elementKind = jsonObject.get("elementKind") == null ? null : jsonObject.get("elementKind").getAsString();
@@ -156,7 +167,7 @@ public class HoverInformation {
     String parameter = jsonObject.get("parameter") == null ? null : jsonObject.get("parameter").getAsString();
     String propagatedType = jsonObject.get("propagatedType") == null ? null : jsonObject.get("propagatedType").getAsString();
     String staticType = jsonObject.get("staticType") == null ? null : jsonObject.get("staticType").getAsString();
-    return new HoverInformation(offset, length, containingLibraryPath, containingLibraryName, containingClassDescription, dartdoc, elementDescription, elementKind, isDeprecated, parameter, propagatedType, staticType);
+    return new HoverInformation(offset, length, containingLibraryPath, containingLibraryName, containingClassDescription, containingExecutableDescriptions, dartdoc, elementDescription, elementKind, isDeprecated, parameter, propagatedType, staticType);
   }
 
   public static List<HoverInformation> fromJsonArray(JsonArray jsonArray) {
@@ -171,11 +182,21 @@ public class HoverInformation {
   }
 
   /**
-   * A human-readable description of the class declaring the element being referenced. This data is
-   * omitted if there is no referenced element, or if the element is not a class member.
+   * A human-readable description of the instance type declaring the element being referenced. This
+   * data is omitted if there is no referenced element, or if the element is not a instance type
+   * member.
    */
   public String getContainingClassDescription() {
     return containingClassDescription;
+  }
+
+  /**
+   * A human-readable list of the executable names declaring the element being referenced. This data
+   * is omitted if there is no referenced element, or if the element is not declared in an executable
+   * member.
+   */
+  public List<String> getContainingExecutableDescriptions() {
+    return containingExecutableDescriptions;
   }
 
   /**
@@ -277,6 +298,7 @@ public class HoverInformation {
       containingLibraryPath,
       containingLibraryName,
       containingClassDescription,
+      containingExecutableDescriptions,
       dartdoc,
       elementDescription,
       elementKind,
@@ -299,6 +321,13 @@ public class HoverInformation {
     }
     if (containingClassDescription != null) {
       jsonObject.addProperty("containingClassDescription", containingClassDescription);
+    }
+    if (containingExecutableDescriptions != null) {
+      JsonArray jsonArrayContainingExecutableDescriptions = new JsonArray();
+      for (String elt : containingExecutableDescriptions) {
+        jsonArrayContainingExecutableDescriptions.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("containingExecutableDescriptions", jsonArrayContainingExecutableDescriptions);
     }
     if (dartdoc != null) {
       jsonObject.addProperty("dartdoc", dartdoc);
@@ -342,6 +371,9 @@ public class HoverInformation {
     builder.append(", ");
     builder.append("containingClassDescription=");
     builder.append(containingClassDescription);
+    builder.append(", ");
+    builder.append("containingExecutableDescriptions=");
+    builder.append(containingExecutableDescriptions == null ? "null" : containingExecutableDescriptions.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append(", ");
     builder.append("dartdoc=");
     builder.append(dartdoc);
