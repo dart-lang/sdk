@@ -653,9 +653,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl():
-        throw StateError(
-          'Property targets are not produced for compound assignment.',
-        );
+        break;
       case UnqualifiedNameAssignmentTargetImpl target:
         var readElement = switch (target.read) {
           null => null,

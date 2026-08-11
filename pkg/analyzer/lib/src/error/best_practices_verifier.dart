@@ -298,9 +298,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _elementUsageFrontierDetector.compoundAssignment(node);
-    var target = node.target;
-    if (target is UnqualifiedNameAssignmentTarget) {
-      _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+    switch (node.target) {
+      case PropertyAssignmentTarget target:
+        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
+      case UnqualifiedNameAssignmentTarget target:
+        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
+      case InvalidAssignmentTarget():
+        break;
     }
     super.visitCompoundAssignment(node);
   }

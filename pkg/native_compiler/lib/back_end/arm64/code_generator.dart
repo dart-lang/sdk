@@ -1035,6 +1035,54 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitStoreArrayElement(StoreArrayElement instr) {
+    OperandSize sz = instr.kind.elementSize(objectLayout);
+    int offset = instr.kind.dataOffset(vmOffsets);
+    final Register arrayReg = inputReg(instr, 0);
+    Register valueReg = inputReg(instr, 2);
+
+    if (instr.kind == .uint8ClampedList) {
+      // Clamp value to [0, 0xff] range.
+      final scratchReg = temporaryReg(instr, 0);
+      _asm.cmpImmediate(valueReg, 0xff);
+      // x = value > 0xff ? 0xff : 0
+      _asm.csetm(scratchReg, .greater);
+      // y = value in range ? value : x
+      _asm.csel(scratchReg, valueReg, scratchReg, .unsignedLessOrEqual);
+      valueReg = scratchReg;
+    }
+
+    var baseReg = arrayReg;
+    final index = instr.index;
+    if (index is Constant) {
+      offset += index.value.intValue << sz.log2sizeInBytes;
+    } else {
+      final indexReg = inputReg(instr, 1);
+      _asm.add(
+        tempReg,
+        baseReg,
+        ShiftedRegOperand(indexReg, .LSL, sz.log2sizeInBytes),
+      );
+      baseReg = tempReg;
+    }
+    _asm.str(valueReg, _asm.address(baseReg, offset - heapObjectTag, sz), sz);
+
+    if (instr.kind == .fixedLengthList &&
+        !_canSkipWriteBarrier(instr.array, instr.value)) {
+      // TODO: array-specific write barrier.
+      final scratch1Reg = temporaryReg(instr, 0);
+      final scratch2Reg = temporaryReg(instr, 1);
+      _writeBarrier(
+        arrayReg,
+        valueReg,
+        scratch1Reg,
+        scratch2Reg,
+        valueCanBeSmi: _canBeSmi(instr.value),
+      );
+    }
+  }
+
+  @override
   void visitThrow(Throw instr) {
     switch (instr.kind) {
       case .exception:
@@ -1796,7 +1844,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       }
     } else {
       // Make sure length is a Smi and between 0 and maxElements.
-      _asm.tbz(lengthReg, smiBit, slowPath);
+      _asm.tbnz(lengthReg, smiBit, slowPath);
       _asm.cmpImmediate(lengthReg, maxElements << smiShift);
       _asm.b(slowPath, .unsignedGreater);
 
@@ -1851,32 +1899,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
     }
     _asm.bind(done);
-  }
-
-  @override
-  void visitSetListElement(SetListElement instr) {
-    final listReg = inputReg(instr, 0);
-    final valueReg = inputReg(instr, 2);
-    final scratch1Reg = temporaryReg(instr, 0);
-    final scratch2Reg = temporaryReg(instr, 1);
-    // TODO: support SetListElement with non-constant index
-    final index = (instr.index as Constant).value.intValue;
-    _asm.str(
-      valueReg,
-      _asm.fieldAddress(
-        listReg,
-        vmOffsets.Array_data_offset + index * objectLayout.compressedWordSize,
-      ),
-    );
-    if (!_canSkipWriteBarrier(instr.list, instr.value)) {
-      _writeBarrier(
-        listReg,
-        valueReg,
-        scratch1Reg,
-        scratch2Reg,
-        valueCanBeSmi: _canBeSmi(instr.value),
-      );
-    }
   }
 
   @override

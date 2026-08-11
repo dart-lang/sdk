@@ -518,11 +518,10 @@ test(List l) => l.length = 3;
 test(List l) => (l).length -= 2;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('(l).length -= 2')]
+    var assignment = result.findNode.compoundAssignment('(l).length -= 2');
+    check(astNodes)[assignment]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
-      ..containsSubrange(
-        astNodes[result.findNode.propertyAccess('(l).length')]!,
-      )
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('2')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);

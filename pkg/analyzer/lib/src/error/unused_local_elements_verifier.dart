@@ -541,10 +541,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     AssignmentTarget target, {
     required bool readCountsAsUse,
   }) {
-    if (target is! UnqualifiedNameAssignmentTarget) {
-      return;
-    }
-    if (target.read case NamedReadResolutionWithElement(:var element)) {
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
       if (element is SubstitutedExecutableElementImpl) {
         element = element.baseElement;
       }
@@ -582,7 +589,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       }
     }
 
-    if (target.write case NamedWriteResolutionWithElement(:var element)) {
+    if (write case NamedWriteResolutionWithElement(:var element)) {
       if (element is SubstitutedExecutableElementImpl) {
         element = element.baseElement;
       }

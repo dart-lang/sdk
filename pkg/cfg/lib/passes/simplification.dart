@@ -202,6 +202,9 @@ final class Simplification extends Pass
   Instruction visitLoadArrayElement(LoadArrayElement instr) => instr;
 
   @override
+  Instruction visitStoreArrayElement(StoreArrayElement instr) => instr;
+
+  @override
   Instruction visitThrow(Throw instr) => instr;
 
   @override
@@ -321,9 +324,6 @@ final class Simplification extends Pass
 
   @override
   Instruction visitAllocateArray(AllocateArray instr) => instr;
-
-  @override
-  Instruction visitSetListElement(SetListElement instr) => instr;
 
   @override
   Instruction visitAllocateRecord(AllocateRecord instr) => instr;

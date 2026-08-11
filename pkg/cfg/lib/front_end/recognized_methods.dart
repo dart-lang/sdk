@@ -227,7 +227,7 @@ abstract class RecognizedMethods {
 class CommonRecognizedMethods implements RecognizedMethods {
   final LibraryIndex index;
 
-  CommonRecognizedMethods() : index = GlobalContext.instance.coreTypes.index;
+  CommonRecognizedMethods() : index = GlobalContext.instance.coreLibraries;
 
   @override
   late final instanceInvocations = <ast.Member, RecognizedCallMatcher>{

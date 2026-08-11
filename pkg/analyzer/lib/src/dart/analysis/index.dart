@@ -858,10 +858,8 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case InvalidExpressionAssignmentTargetImpl():
         break;
-      case PropertyAssignmentTargetImpl():
-        throw StateError(
-          'Property targets are not produced for compound assignment.',
-        );
+      case PropertyAssignmentTargetImpl target:
+        _recordPropertyReadWriteTarget(target);
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);
     }
@@ -1199,54 +1197,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
-        var hasRelation = false;
-        switch (target.read) {
-          case GetterInvocationResolutionImpl(:var element):
-            if (element.firstFragment.enclosingFragment
-                is LibraryFragmentImpl) {
-              assembler.addPrefixForElement(element);
-            }
-            recordRelation(
-              element,
-              IndexRelationKind.IS_INVOKED_BY,
-              target.propertyName,
-              true,
-            );
-            hasRelation = true;
-          case ExecutableTearOffResolutionImpl(:var element):
-            if (element.firstFragment.enclosingFragment
-                is LibraryFragmentImpl) {
-              assembler.addPrefixForElement(element);
-            }
-            recordRelation(
-              element,
-              IndexRelationKind.IS_REFERENCED_BY,
-              target.propertyName,
-              true,
-            );
-            hasRelation = true;
-          default:
-        }
-        if (target.write case SetterInvocationResolutionImpl(:var element)) {
-          if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-            assembler.addPrefixForElement(element);
-          }
-          recordRelation(
-            element,
-            IndexRelationKind.IS_INVOKED_BY,
-            target.propertyName,
-            true,
-          );
-          hasRelation = true;
-        }
-        if (!hasRelation) {
-          assembler.addNameRelation(
-            target.propertyName.lexeme,
-            IndexRelationKind.IS_READ_WRITTEN_BY,
-            target.propertyName.offset,
-            true,
-          );
-        }
+        _recordPropertyReadWriteTarget(target);
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);
     }
@@ -1775,6 +1726,55 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       name,
       isQualified: importPrefix != null,
     );
+  }
+
+  void _recordPropertyReadWriteTarget(PropertyAssignmentTargetImpl target) {
+    var hasRelation = false;
+    switch (target.read) {
+      case GetterInvocationResolutionImpl(:var element):
+        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+          assembler.addPrefixForElement(element);
+        }
+        recordRelation(
+          element,
+          IndexRelationKind.IS_INVOKED_BY,
+          target.propertyName,
+          true,
+        );
+        hasRelation = true;
+      case ExecutableTearOffResolutionImpl(:var element):
+        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+          assembler.addPrefixForElement(element);
+        }
+        recordRelation(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          target.propertyName,
+          true,
+        );
+        hasRelation = true;
+      default:
+    }
+    if (target.write case SetterInvocationResolutionImpl(:var element)) {
+      if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+        assembler.addPrefixForElement(element);
+      }
+      recordRelation(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        target.propertyName,
+        true,
+      );
+      hasRelation = true;
+    }
+    if (!hasRelation) {
+      assembler.addNameRelation(
+        target.propertyName.lexeme,
+        IndexRelationKind.IS_READ_WRITTEN_BY,
+        target.propertyName.offset,
+        true,
+      );
+    }
   }
 
   void _recordUnqualifiedNameReadWriteTarget(

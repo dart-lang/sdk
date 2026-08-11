@@ -4706,6 +4706,41 @@ class B extends A {
     );
   }
 
+  test_searchReferences_FieldElement_ofClass_parenthesizedReceiver_compound() async {
+    var result = await resolveTestCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  (a).foo += 2;
+}
+''');
+    var field = result.findElement.field('foo');
+
+    await assertElementsReferencesText(
+      {
+        'field': field,
+        'getter': field.getter!,
+        'setter': field.setter!,
+        'num.+': result.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  (a).foo += 2;
+      ^^^ field READ_WRITE qualified
+      ^^^ getter INVOCATION qualified
+      ^^^ setter INVOCATION qualified
+          ^^ num.+ INVOCATION qualified
+}
+''',
+    );
+  }
+
   test_searchReferences_FieldElement_ofClass_parenthesizedReceiver_ifNull() async {
     var result = await resolveTestCode('''
 class A {

@@ -136,22 +136,48 @@ class AssignmentExpressionResolver {
       _resolveInvalidCompound(node, target);
       return;
     }
-    target as UnqualifiedNameAssignmentTargetImpl;
-    var targetResult = _resolver
-        .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
-    target.read = targetResult.read;
-    target.write = targetResult.write;
+    late NamedReadResolutionImpl readResolution;
+    late NamedWriteResolutionImpl writeResolution;
+    switch (target) {
+      case PropertyAssignmentTargetImpl():
+        _resolver.analyzeExpression(
+          target.receiver,
+          SharedTypeSchemaView(UnknownInferredType.instance),
+          continueNullShorting: true,
+        );
+        target.receiver = _resolver.popRewrite()!;
+        var targetResult = _resolver.resolvePropertyReadWriteAssignmentTarget(
+          target,
+        );
+        if (targetResult == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.operatorResultType = NeverTypeImpl.instance;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        target.read = readResolution = targetResult.read;
+        target.write = writeResolution = targetResult.write;
+      case UnqualifiedNameAssignmentTargetImpl():
+        var targetResult = _resolver
+            .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
+        target.read = readResolution = targetResult.read;
+        target.write = writeResolution = targetResult.write;
+        _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        throw StateError('Handled above');
+    }
 
-    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
-
-    var readType = targetResult.read.type;
+    var readType = readResolution.type;
     _resolveCompoundOperator(node, receiver: null, readType: readType);
 
     // Analyze `target op= value` as an operator invocation whose receiver has
     // the target's read type and whose surrounding context is the target's
     // write type. Flow analysis may provide a promoted write type for a
     // variable; other targets use the type accepted by their write resolution.
-    var writeResolution = targetResult.write;
     var writeContextType = writeResolution.acceptedType;
     if (writeResolution case VariableWriteResolutionImpl(:var element)) {
       writeContextType = _resolver.localVariableTypeProvider.getWriteType(

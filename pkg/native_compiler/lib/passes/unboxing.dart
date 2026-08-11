@@ -54,6 +54,8 @@ final class Unboxing extends Pass {
       Box() ||
       IndexCheck() => true,
       LoadArrayElement() => inputIndex == 1,
+      StoreArrayElement() =>
+        inputIndex == 1 || (inputIndex == 2 && instr.kind != .fixedLengthList),
       StoreField() => false, // TODO: unboxed fields,
       CallInstruction() => false, // TODO: support unboxed parameters.
       Return() => false, // TODO: support unboxed return values.
@@ -71,7 +73,7 @@ final class Unboxing extends Pass {
       UnaryDoubleOp() ||
       Unbox() ||
       IndexCheck() => true,
-      LoadArrayElement() => true, // TODO: elements of built-in Lists are boxed.
+      LoadArrayElement() => instr.kind != .fixedLengthList,
       LoadField() => false, // TODO: unboxed fields,
       Parameter() => false, // TODO: support unboxed parameters.
       CallInstruction() => false, // TODO: support unboxed return values.

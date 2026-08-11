@@ -299,6 +299,15 @@ B0 = EntryBlock()
   v22 = Constant(7)
   v23 = Constant(8)
   v24 = Constant(9)
+  v62 = Constant(UnboxedIntConstant(0))
+  v63 = Constant(UnboxedIntConstant(1))
+  v64 = Constant(UnboxedIntConstant(2))
+  v65 = Constant(UnboxedIntConstant(3))
+  v66 = Constant(UnboxedIntConstant(4))
+  v67 = Constant(UnboxedIntConstant(5))
+  v68 = Constant(UnboxedIntConstant(6))
+  v69 = Constant(UnboxedIntConstant(7))
+  v70 = Constant(UnboxedIntConstant(8))
   v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
   v2 = Parameter(x)   # RA: param[1] <- ()
   ParallelMove output(param[1] -> vloc:param[1], param[0] -> vloc:R0)
@@ -319,37 +328,37 @@ B0 = EntryBlock()
   v40 = AllocateArray fixedLengthList(v24)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove input(IntConstant(1) -> vloc:R2)
-  SetListElement(v40, v6, v14)   # RA: (R0, -, R2) temps: [R1, R3] SAFEPT{live: [R0, R1, R3], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v62, v14)   # RA: (R0, -, R2) temps: [R1, R3] SAFEPT{live: [R0, R1, R3], objects: [R0, stack[0]]}
   ParallelMove input(IntConstant(2) -> vloc:R3)
-  SetListElement(v40, v14, v15)   # RA: (R0, -, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v63, v15)   # RA: (R0, -, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
   ParallelMove input(IntConstant(3) -> vloc:R3)
-  SetListElement(v40, v15, v16)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v64, v16)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
   ParallelMove input(IntConstant(4) -> vloc:R2)
-  SetListElement(v40, v16, v19)   # RA: (R0, -, R2) temps: [R1, R3] SAFEPT{live: [R0, R1, R3], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v65, v19)   # RA: (R0, -, R2) temps: [R1, R3] SAFEPT{live: [R0, R1, R3], objects: [R0, stack[0]]}
   ParallelMove input(IntConstant(5) -> vloc:R1)
-  SetListElement(v40, v19, v20)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v66, v20)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
   ParallelMove input(IntConstant(6) -> vloc:R1)
-  SetListElement(v40, v20, v21)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v67, v21)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
   ParallelMove input(IntConstant(7) -> vloc:R1)
-  SetListElement(v40, v21, v22)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v68, v22)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
   ParallelMove input(IntConstant(8) -> vloc:R1)
-  SetListElement(v40, v22, v23)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v69, v23)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
   ParallelMove input(IntConstant(9) -> vloc:R1)
-  SetListElement(v40, v23, v24)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
+  StoreArrayElement(v40, v70, v24)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
   v50 = DirectCall _GrowableList._literal(v13, v40)   # RA: R0 <- (-, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v50)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   v51 = AllocateArray fixedLengthList(v24)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   ParallelMove output(R0 -> vloc:R2, param[1] -> R3)
-  SetListElement(v51, v6, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
-  SetListElement(v51, v14, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
-  SetListElement(v51, v15, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
-  SetListElement(v51, v16, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
-  SetListElement(v51, v19, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
-  SetListElement(v51, v20, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
-  SetListElement(v51, v21, v2)   # RA: (R2, -, R3) temps: [R1, R0] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
-  SetListElement(v51, v22, v2)   # RA: (R2, -, R3) temps: [R1, R0] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
-  SetListElement(v51, v23, v2)   # RA: (R2, -, R3) temps: [R1, R0] SAFEPT{live: [R0, R1, R2], objects: [R2, stack[0]]}
+  StoreArrayElement(v51, v62, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
+  StoreArrayElement(v51, v63, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
+  StoreArrayElement(v51, v64, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
+  StoreArrayElement(v51, v65, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
+  StoreArrayElement(v51, v66, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
+  StoreArrayElement(v51, v67, v2)   # RA: (R2, -, R3) temps: [R0, R1] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
+  StoreArrayElement(v51, v68, v2)   # RA: (R2, -, R3) temps: [R1, R0] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
+  StoreArrayElement(v51, v69, v2)   # RA: (R2, -, R3) temps: [R1, R0] SAFEPT{live: [R0, R1, R2, R3], objects: [R2, R3, stack[0]]}
+  StoreArrayElement(v51, v70, v2)   # RA: (R2, -, R3) temps: [R1, R0] SAFEPT{live: [R0, R1, R2], objects: [R2, stack[0]]}
   ParallelMove output(stack[0] -> R0)
   v61 = DirectCall _GrowableList._literal(v10, v51)   # RA: R0 <- (R0, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
   ParallelMove output(R0 -> vloc:R0)
@@ -368,10 +377,14 @@ B0 = EntryBlock()
   v19 = Constant("bb")
   v31 = Constant(ListConstant(const <dynamic>[]))
   v34 = Constant(4)
-  v36 = Constant(0)
-  v38 = Constant(1)
-  v40 = Constant(2)
-  v42 = Constant(3)
+  Constant(0)
+  Constant(1)
+  Constant(2)
+  Constant(3)
+  v51 = Constant(UnboxedIntConstant(0))
+  v52 = Constant(UnboxedIntConstant(1))
+  v53 = Constant(UnboxedIntConstant(2))
+  v54 = Constant(UnboxedIntConstant(3))
   v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
   v2 = Parameter(key)   # RA: param[1] <- ()
   v3 = Parameter(value)   # RA: param[2] <- ()
@@ -392,13 +405,13 @@ B0 = EntryBlock()
   v35 = AllocateArray fixedLengthList(v34)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(StringConstant("a") -> vloc:R2)
-  SetListElement(v35, v36, v16)   # RA: (R1, -, R2) temps: [R0, R3] SAFEPT{live: [R0, R1, R3], objects: [R1, stack[0]]}
+  StoreArrayElement(v35, v51, v16)   # RA: (R1, -, R2) temps: [R0, R3] SAFEPT{live: [R0, R1, R3], objects: [R1, stack[0]]}
   ParallelMove input(StringConstant("aa") -> vloc:R3)
-  SetListElement(v35, v38, v17)   # RA: (R1, -, R3) temps: [R2, R0] SAFEPT{live: [R0, R1, R2], objects: [R1, stack[0]]}
+  StoreArrayElement(v35, v52, v17)   # RA: (R1, -, R3) temps: [R2, R0] SAFEPT{live: [R0, R1, R2], objects: [R1, stack[0]]}
   ParallelMove input(StringConstant("b") -> vloc:R3)
-  SetListElement(v35, v40, v18)   # RA: (R1, -, R3) temps: [R2, R0] SAFEPT{live: [R0, R1, R2], objects: [R1, stack[0]]}
+  StoreArrayElement(v35, v53, v18)   # RA: (R1, -, R3) temps: [R2, R0] SAFEPT{live: [R0, R1, R2], objects: [R1, stack[0]]}
   ParallelMove input(StringConstant("bb") -> vloc:R0)
-  SetListElement(v35, v42, v19)   # RA: (R1, -, R0) temps: [R2, R3] SAFEPT{live: [R1, R2, R3], objects: [R1, stack[0]]}
+  StoreArrayElement(v35, v54, v19)   # RA: (R1, -, R0) temps: [R2, R3] SAFEPT{live: [R1, R2, R3], objects: [R1, stack[0]]}
   v44 = DirectCall Map._fromLiteral(v15, v35)   # RA: R0 <- (-, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v44)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
@@ -408,13 +421,13 @@ B0 = EntryBlock()
   ParallelMove spill(R0 -> stack[1])
   v45 = AllocateArray fixedLengthList(v34)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1]]}
   ParallelMove output(R0 -> vloc:R0, param[1] -> R3)
-  SetListElement(v45, v36, v2)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1]]}
+  StoreArrayElement(v45, v51, v2)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1]]}
   ParallelMove output(stack[1] -> R3)
-  SetListElement(v45, v38, v25)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
+  StoreArrayElement(v45, v52, v25)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
   ParallelMove output(param[3] -> R3)
-  SetListElement(v45, v40, v4)   # RA: (R0, -, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
+  StoreArrayElement(v45, v53, v4)   # RA: (R0, -, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
   ParallelMove output(param[4] -> R3)
-  SetListElement(v45, v42, v5)   # RA: (R0, -, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
+  StoreArrayElement(v45, v54, v5)   # RA: (R0, -, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0]]}
   ParallelMove output(stack[0] -> R1)
   v50 = DirectCall Map._fromLiteral(v12, v45)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
   ParallelMove output(R0 -> vloc:R0)
@@ -466,12 +479,18 @@ B0 = EntryBlock()
   v11 = Constant(", o=")
   v15 = Constant(null)
   v18 = Constant(6)
-  v20 = Constant(0)
-  v22 = Constant(1)
-  v24 = Constant(2)
-  v26 = Constant(3)
-  v28 = Constant(4)
-  v30 = Constant(5)
+  Constant(0)
+  Constant(1)
+  Constant(2)
+  Constant(3)
+  Constant(4)
+  Constant(5)
+  v33 = Constant(UnboxedIntConstant(0))
+  v34 = Constant(UnboxedIntConstant(1))
+  v35 = Constant(UnboxedIntConstant(2))
+  v36 = Constant(UnboxedIntConstant(3))
+  v37 = Constant(UnboxedIntConstant(4))
+  v38 = Constant(UnboxedIntConstant(5))
   v1 = Parameter(x)   # RA: param[0] <- ()
   v2 = Parameter(s)   # RA: param[1] <- ()
   v3 = Parameter(o)   # RA: param[2] <- ()
@@ -482,17 +501,17 @@ B0 = EntryBlock()
   v19 = AllocateArray fixedLengthList(v18)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove input(StringConstant("Hey, x=") -> vloc:R1)
-  SetListElement(v19, v20, v7)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0]}
+  StoreArrayElement(v19, v33, v7)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0]}
   ParallelMove output(param[0] -> R3)
-  SetListElement(v19, v22, v1)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
+  StoreArrayElement(v19, v34, v1)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
   ParallelMove input(StringConstant(", s=") -> vloc:R1)
-  SetListElement(v19, v24, v9)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0]}
+  StoreArrayElement(v19, v35, v9)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0]}
   ParallelMove output(param[1] -> R3)
-  SetListElement(v19, v26, v2)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
+  StoreArrayElement(v19, v36, v2)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
   ParallelMove input(StringConstant(", o=") -> vloc:R1)
-  SetListElement(v19, v28, v11)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0]}
+  StoreArrayElement(v19, v37, v11)   # RA: (R0, -, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0]}
   ParallelMove output(param[2] -> R3)
-  SetListElement(v19, v30, v3)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
+  StoreArrayElement(v19, v38, v3)   # RA: (R0, -, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
   v32 = DirectCall _StringBase._interpolate(v19)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v32)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
