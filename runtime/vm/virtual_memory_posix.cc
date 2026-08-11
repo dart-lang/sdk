@@ -20,6 +20,7 @@
 #endif
 
 #if defined(DART_HOST_OS_MACOS)
+#include <mach/mach_error.h>
 #include <mach/mach_init.h>
 #include <mach/vm_map.h>
 #endif
@@ -836,7 +837,6 @@ void VirtualMemory::DontNeed(void* address, intptr_t size) {
 }
 
 #if defined(DART_HOST_OS_MACOS)
-// TODO(52579): Reenable on Fuchsia.
 bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
   const intptr_t aligned_size = Utils::RoundUp(size(), PageSize());
   ASSERT_LESS_OR_EQUAL(aligned_size, target->size());
@@ -860,6 +860,7 @@ bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
       /*copy=*/true, &current_protection, &max_protection,
       /*inheritance=*/VM_INHERIT_NONE);
   if (status != KERN_SUCCESS) {
+    OS::PrintErr("DuplicateRX failed: %s\n", mach_error_string(status));
     return false;
   }
   ASSERT(reinterpret_cast<void*>(target_address) == target->address());

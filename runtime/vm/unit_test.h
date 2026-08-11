@@ -511,6 +511,7 @@ class AssemblerTest {
 #endif
     return result;
   }
+  uword entry_unsigned() const { return code_.EntryPoint(); }
 
 // Invoke/InvokeWithCodeAndThread is used to call assembler test functions
 // using the ABI calling convention.

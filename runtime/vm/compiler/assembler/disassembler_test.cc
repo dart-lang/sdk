@@ -23,7 +23,8 @@ ISOLATE_UNIT_TEST_CASE(Disassembler) {
   // Only verify that the disassembler does not crash.
   AssemblerTest test("Disassembler", &assembler, Thread::Current()->zone());
   test.Assemble();
-  Disassembler::Disassemble(test.entry(), test.entry() + assembler.CodeSize());
+  Disassembler::Disassemble(test.entry_unsigned(),
+                            test.entry_unsigned() + assembler.CodeSize());
 }
 
 ISOLATE_UNIT_TEST_CASE(Disassembler_InvalidInput) {
