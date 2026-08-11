@@ -38,6 +38,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../fragment.dart';
 import 'encoding.dart';
 
@@ -790,20 +791,20 @@ mixin _ConstructorEncodingMixin
 
   @override
   void registerFunctionBody(
-    Statement? body,
-    Scope? scope, {
-    required ThisVariable? thisVariable,
+    Statement? body, {
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     _encoding.registerFunctionBody(
       body: body,
-      scope: scope,
-      thisVariable: thisVariable,
+      scopeProviderInfo: scopeProviderInfo,
     );
   }
 
   @override
-  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
-    _encoding.registerNoBodyConstructor(thisVariable: thisVariable);
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
+    _encoding.registerNoBodyConstructor(scopeProviderInfo: scopeProviderInfo);
   }
 
   @override
@@ -1517,12 +1518,13 @@ abstract class ConstructorFragmentDeclaration {
   );
 
   void registerFunctionBody(
-    Statement? body,
-    Scope? scope, {
-    required ThisVariable? thisVariable,
+    Statement? body, {
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
-  void registerNoBodyConstructor({required ThisVariable? thisVariable});
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  });
 
   InternalVariable? get thisVariable;
 

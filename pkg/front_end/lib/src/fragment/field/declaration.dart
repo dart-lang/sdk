@@ -287,8 +287,8 @@ class RegularFieldDeclaration
 
   @override
   void buildBody(
-    CoreTypes coreTypes,
-    Expression? initializer, {
+    CoreTypes coreTypes, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   }) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
@@ -367,8 +367,8 @@ class RegularFieldDeclaration
         if (hasInitializerBeenComputed) {
           buildBody(
             classHierarchy.coreTypes,
-            cachedFieldInitializer,
-            scopeProviderInfo: null,
+            initializer: cachedFieldInitializer,
+            scopeProviderInfo: _scopeProviderInfoCache,
           );
         } else {
           var (
@@ -385,7 +385,7 @@ class RegularFieldDeclaration
           );
           buildBody(
             classHierarchy.coreTypes,
-            initializer,
+            initializer: initializer,
             scopeProviderInfo: scopeProviderInfo,
           );
         }
@@ -895,8 +895,8 @@ mixin FieldDeclarationMixin
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
   void buildBody(
-    CoreTypes coreTypes,
-    Expression? initializer, {
+    CoreTypes coreTypes, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   });
 
@@ -978,8 +978,8 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
   void buildBody(
-    CoreTypes coreType,
-    Expression? initializer, {
+    CoreTypes coreType, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   });
 
@@ -1013,7 +1013,7 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
       if (!hasBodyBeenBuilt) {
         buildBody(
           coreTypes,
-          _fieldInitializerCache,
+          initializer: _fieldInitializerCache,
           scopeProviderInfo: _scopeProviderInfoCache,
         );
       }
@@ -1032,13 +1032,13 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
         _hasInitializerBeenComputed = true;
         buildBody(
           coreTypes,
-          inferredInitializer,
+          initializer: inferredInitializer,
           scopeProviderInfo: inferredFieldInitializer.scopeProviderInfo,
         );
       }
     } else if (!hasBodyBeenBuilt) {
       _hasInitializerBeenComputed = true;
-      buildBody(coreTypes, null, scopeProviderInfo: null);
+      buildBody(coreTypes, initializer: null, scopeProviderInfo: null);
     }
   }
 }

@@ -483,6 +483,9 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
   tearOff.function.registerFunctionBody(
     extern.createReturnStatement(constructorInvocation),
   );
+  // TODO(cstefantsova): Verify that null should be passed for scopeProviderInfo
+  //  in the call below.
+  tearOff.function.registerScopeProviderInfo(null);
 }
 
 /// Reverse engineered typedef tear off information.

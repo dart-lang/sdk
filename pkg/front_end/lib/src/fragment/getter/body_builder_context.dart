@@ -69,14 +69,9 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   }) {
     _declaration.registerFunctionBody(
       body: body,
-      scope: scopeProviderInfo
-          // Coverage-ignore(suite): Not run.
-          ?.scope,
       asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
-      thisVariable: scopeProviderInfo
-          // Coverage-ignore(suite): Not run.
-          ?.thisVariable,
+      scopeProviderInfo: scopeProviderInfo,
     );
   }
 

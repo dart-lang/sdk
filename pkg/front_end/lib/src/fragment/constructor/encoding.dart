@@ -31,6 +31,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
@@ -92,11 +93,12 @@ abstract class ConstructorEncoding {
 
   void registerFunctionBody({
     required Statement? body,
-    Scope? scope,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
-  void registerNoBodyConstructor({required ThisVariable? thisVariable});
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  });
 
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
@@ -138,25 +140,28 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    Scope? scope,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
-    _constructor.function.scope = scope;
-    _constructor.function.thisVariable = thisVariable
-      ?..parent = _constructor.function;
+    _constructor.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   @override
-  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     if (!_isExternal) {
+      // null is passed for scopeProviderInfo in the call below since the
+      // scopeProviderInfo object is registered outside of the if-statement
+      // later in the method.
       registerFunctionBody(
         body: extern.createEmptyStatement(),
-        thisVariable: thisVariable,
+        scopeProviderInfo: null,
       );
     }
+    _constructor.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   @override
@@ -531,26 +536,28 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   @override
   void registerFunctionBody({
     required Statement? body,
-    Scope? scope,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
-    _constructor.function.scope = scope;
-    _constructor.function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = _constructor.function;
+    _constructor.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   @override
-  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     if (!_hasBuiltBody && !_isExternal) {
+      // null is passed for scopeProviderInfo below since registering of the
+      // scopeProviderInfo object is done outside of the if-statement, later in
+      // the method.
       registerFunctionBody(
         body: extern.createEmptyStatement(),
-        thisVariable: thisVariable,
+        scopeProviderInfo: null,
       );
     }
+    _constructor.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   @override
@@ -802,7 +809,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
           fileOffset: fileOffset,
           fileEndOffset: endOffset,
         ),
-        thisVariable: null,
+        scopeProviderInfo: null,
       );
     }
     _hasBuiltBody = true;

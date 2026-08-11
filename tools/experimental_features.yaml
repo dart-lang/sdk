@@ -175,6 +175,9 @@ features:
     #     2.{ print('Anonymous methods enabled: $isEven'); };
     #   }
 
+  receiver-type-inference:
+    help: "Type inference of generic receivers in non-empty contexts."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
