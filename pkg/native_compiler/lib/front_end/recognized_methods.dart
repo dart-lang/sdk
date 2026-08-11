@@ -40,19 +40,16 @@ void buildNativeMethod(
     argsShape,
     function.returnType,
   );
-  builder.addReturn();
 }
 
 /// Build IR for static getters returning constants.
 void buildConstantGetter(FlowGraphBuilder builder, ConstantValue value) {
   builder.addConstant(value);
-  builder.addReturn();
 }
 
 /// Build IR for instance field getters.
 void buildInstanceGetter(FlowGraphBuilder builder, CField field) {
   builder.addLoadInstanceField(field, checkInitialized: field.isLate);
-  builder.addReturn();
 }
 
 /// Build IR for instance field setters.
@@ -62,13 +59,16 @@ void buildInstanceSetter(FlowGraphBuilder builder, CField field) {
     checkNotInitialized: field.isLate && field.isFinal,
   );
   builder.addNullConstant();
-  builder.addReturn();
 }
 
 /// Build IR for unary int operations
 void buildUnaryIntOp(FlowGraphBuilder builder, UnaryIntOpcode op) {
   builder.addUnaryIntOp(op);
-  builder.addReturn();
+}
+
+/// Build IR for comparison operations
+void buildComparisonOp(FlowGraphBuilder builder, ComparisonOpcode op) {
+  builder.addComparison(op);
 }
 
 /// Build IR for indexed load of an array element.
@@ -86,7 +86,6 @@ void buildArrayElementGetter(
   builder.addLoadInstanceField(lengthField);
   builder.addIndexCheck();
   builder.addLoadArrayElement(kind, elemType);
-  builder.addReturn();
 }
 
 /// Build IR for indexed store to an array element.
@@ -106,7 +105,6 @@ void buildArrayElementSetter(
   builder.push(value);
   builder.addStoreArrayElement(kind);
   builder.addNullConstant();
-  builder.addReturn();
 }
 
 /// Build IR for factory constructors of typed data lists and built-in _List.
@@ -123,7 +121,6 @@ void buildArrayFactory(
         : coreTypes.nonNullableRawType(cls),
   );
   builder.addAllocateArray(kind, type, hasTypeArguments: hasTypeArguments);
-  builder.addReturn();
 }
 
 /// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
@@ -165,6 +162,10 @@ final class VmRecognizedMethods(
 
   @override
   BuildIR? getRecognizedFunctionBody(CFunction function) {
+    final commonBuilder = super.getRecognizedFunctionBody(function);
+    if (commonBuilder != null) {
+      return commonBuilder;
+    }
     final member = function.member;
     if (member.isRecognized(coreTypes)) {
       final builder = _recognizedMembers[member];
@@ -184,7 +185,7 @@ final class VmRecognizedMethods(
         };
       }
     }
-    return super.getRecognizedFunctionBody(function);
+    return null;
   }
 
   late final _recognizedMembers = <ast.Member, BuildIR>{
@@ -216,6 +217,14 @@ final class VmRecognizedMethods(
       'get:bitLength',
     ): (FlowGraphBuilder builder) {
       buildUnaryIntOp(builder, .bitLength);
+    },
+    // TODO: implement 'operator ==' instead of '_equalToInteger'
+    index.getProcedure(
+      'dart:core',
+      '_IntegerImplementation',
+      '_equalToInteger',
+    ): (FlowGraphBuilder builder) {
+      buildComparisonOp(builder, .intEqual);
     },
     index.getProcedure(
       'dart:core',

@@ -115,6 +115,14 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
           }
         }
       }
+      // Simplify identical with Smi constant to equal.
+    } else if (op == .identical || op == .notIdentical) {
+      final right = instr.right;
+      if (right is Constant &&
+          right.value.isInt &&
+          objectLayout.isSmi(right.value.intValue)) {
+        instr.op = (op == .identical) ? .equal : .notEqual;
+      }
     }
   }
 

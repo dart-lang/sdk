@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/flow_graph_builder.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -19,6 +21,13 @@ typedef BuildIR = void Function(FlowGraphBuilder builder);
 abstract class RecognizedCallMatcher {
   /// Returns non-null [BuildIR] function if call is recognized.
   BuildIR? match(List<CType> args);
+}
+
+/// Recognizes calls with arbitrary argument types.
+class const AnyArgsMatcher(final BuildIR builder)
+    implements RecognizedCallMatcher {
+  @override
+  BuildIR? match(List<CType> args) => builder;
 }
 
 /// Recognizes calls to binary [num] operations (except [num./]).
@@ -210,6 +219,40 @@ class const UnaryDoubleOp(final UnaryDoubleOpcode op)
   }
 }
 
+class const UnsafeCast() implements RecognizedCallMatcher {
+  @override
+  BuildIR? match(List<CType> args) {
+    return (FlowGraphBuilder builder) {
+      final value = builder.pop();
+      final typeArgs = builder.pop();
+      final testedType = CType.fromStaticType(switch (typeArgs) {
+        TypeArguments() => typeArgs.types.single,
+        Constant(
+          value: ConstantValue(constant: TypeArgumentsConstant(:var types)),
+        ) =>
+          types.single,
+        _ =>
+          throw 'Unexpected unsafeCast type arguments ${IrToText.instruction(typeArgs)}',
+      });
+      final typeParameters = switch (typeArgs) {
+        TypeArguments() => [
+          for (var i = 0, n = typeArgs.inputCount; i < n; ++i)
+            typeArgs.inputDefAt(i),
+        ],
+        Constant() => <Definition>[],
+        _ =>
+          throw 'Unexpected unsafeCast type arguments ${IrToText.instruction(typeArgs)}',
+      };
+      builder.push(value);
+      builder.addTypeCast(
+        testedType,
+        typeParameters: typeParameters,
+        isChecked: false,
+      );
+    };
+  }
+}
+
 /// Recognize certain Dart methods and calls based on the
 /// target and static types and build IR for them.
 abstract class RecognizedMethods {
@@ -218,6 +261,9 @@ abstract class RecognizedMethods {
 
   /// Recognized instance getter calls.
   Map<ast.Member, RecognizedCallMatcher> get instanceGetters;
+
+  /// Recognized static method calls.
+  Map<ast.Member, RecognizedCallMatcher> get staticInvocations;
 
   /// Function body of the recognized functions.
   BuildIR? getRecognizedFunctionBody(CFunction function);
@@ -366,6 +412,28 @@ class CommonRecognizedMethods implements RecognizedMethods {
     ),
   };
 
+  late final _recognizedMembers = <ast.Member, BuildIR>{
+    // dart:core
+    index.getTopLevelProcedure(
+      'dart:core',
+      'identical',
+    ): (FlowGraphBuilder builder) {
+      builder.addComparison(.identical);
+    },
+  };
+
   @override
-  BuildIR? getRecognizedFunctionBody(CFunction function) => null;
+  late final staticInvocations = <ast.Member, RecognizedCallMatcher>{
+    for (final MapEntry(key: member, value: builder)
+        in _recognizedMembers.entries)
+      member: AnyArgsMatcher(builder),
+
+    // dart:_internal
+    index.getTopLevelProcedure('dart:_internal', 'unsafeCast'):
+        const UnsafeCast(),
+  };
+
+  @override
+  BuildIR? getRecognizedFunctionBody(CFunction function) =>
+      _recognizedMembers[function.member];
 }

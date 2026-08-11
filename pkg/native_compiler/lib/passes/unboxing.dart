@@ -77,6 +77,7 @@ final class Unboxing extends Pass {
       LoadField() => false, // TODO: unboxed fields,
       Parameter() => false, // TODO: support unboxed parameters.
       CallInstruction() => false, // TODO: support unboxed return values.
+      Constant() => instr.value.isUnboxed,
       _ => false,
     };
   }
