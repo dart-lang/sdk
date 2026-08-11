@@ -33,9 +33,7 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
       return;
     }
 
-    var firstDirective = compilationUnit.directives.isEmpty
-        ? null
-        : compilationUnit.directives.first;
+    var firstDirective = compilationUnit.directives.firstOrNull;
     if (firstDirective is LibraryDirective) {
       await _moveToExistingLibraryDirective(
         builder,
@@ -71,23 +69,18 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
     });
   }
 
+  /// Creates a new unnamed library directive and moves [annotation]
+  /// immediately above it.
   Future<void> _moveToNewLibraryDirective(
     ChangeBuilder builder,
     Annotation annotation,
     CompilationUnit compilationUnit,
   ) async {
     var annotationRange = utils.getLinesRange(range.node(annotation));
-    // Create a new, unnamed library directive, and move the annotation to just
-    // above the directive.
     var token = compilationUnit.beginToken;
 
-    if (token.type == TokenType.SCRIPT_TAG) {
-      // TODO(srawlins): Handle this case.
-      return;
-    }
-
+    // Do not "move" the annotation. Just slip a library directive below it.
     if (token == annotation.beginToken) {
-      // Do not "move" the annotation. Just slip a library directive below it.
       await builder.addDartFileEdit(file, (builder) {
         var eol = builder.eol;
         builder.addSimpleInsertion(annotationRange.end, 'library;$eol$eol');
@@ -97,28 +90,42 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       var eol = builder.eol;
-      int insertionOffset;
-      String prefix;
+      var insertionOffset = 0;
+      var prefix = '';
+
+      // Move past the script tag.
+      if (token.type == TokenType.SCRIPT_TAG) {
+        insertionOffset = token.end;
+        prefix = eol;
+        token = token.next!;
+      }
+
+      // Move past headers such as copyright and language-version comments.
       Token? commentOnFirstToken = token.precedingComments;
       if (commentOnFirstToken != null) {
         while (commentOnFirstToken!.next != null) {
           commentOnFirstToken = commentOnFirstToken.next!;
         }
-        // `token` is now the last of the leading comments (perhaps a Copyright
-        // notice, a Dart language version, etc.)
         insertionOffset = commentOnFirstToken.end;
         prefix = '$eol$eol';
-      } else {
-        insertionOffset = 0;
-        prefix = '';
       }
 
-      builder.addDeletion(annotationRange);
-      var annotationText = utils.getRangeText(annotationRange);
-      builder.addSimpleInsertion(
-        insertionOffset,
-        '$prefix${annotationText}library;$eol$eol',
+      // Extend the replacement through whitespace before the next token.
+      var leadingWhitespace = utils.getRangeText(
+        range.startOffsetEndOffset(insertionOffset, annotation.offset),
       );
+      var leadingWhitespaceLength = RegExp(r'^\s*')
+          .firstMatch(leadingWhitespace)!
+          .end;
+      var insertionRange = range.startOffsetLength(
+        insertionOffset,
+        leadingWhitespaceLength,
+      );
+
+      var annotationText = utils.getRangeText(annotationRange);
+      var replacement = '$prefix${annotationText}library;$eol$eol';
+      builder.addDeletion(annotationRange);
+      builder.addSimpleReplacement(insertionRange, replacement);
     });
   }
 }
