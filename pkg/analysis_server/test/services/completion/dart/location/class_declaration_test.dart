@@ -231,6 +231,49 @@ suggestions
 ''');
   }
 
+  Future<void> test_primaryConstructor_emptyBody() async {
+    await computeSuggestions('''
+class C() ^;
+''');
+    assertResponse(r'''
+suggestions
+  extends
+    kind: keyword
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_emptyBody_afterConstructor() async {
+    await computeSuggestions('''
+class C()^;
+''');
+    assertResponse(r'''
+suggestions
+  extends
+    kind: keyword
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_emptyBody_extends() async {
+    await computeSuggestions('''
+class C() extends foo ^;
+''');
+    assertResponse(r'''
+suggestions
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
+  }
+
   Future<void> test_with() async {
     await computeSuggestions('''
 class A extends foo with bar ^
