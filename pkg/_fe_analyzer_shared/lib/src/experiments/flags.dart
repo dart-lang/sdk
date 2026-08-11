@@ -250,6 +250,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 12),
   ),
 
+  receiverTypeInference(
+    name: 'receiver-type-inference',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   recordUse(
     name: 'record-use',
     isEnabledByDefault: true,

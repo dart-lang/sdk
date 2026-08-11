@@ -615,6 +615,7 @@ package:analyzer/dart/analysis/features.dart:
     patterns (static getter: ExperimentalFeature)
     primary_constructors (static getter: ExperimentalFeature)
     private_named_parameters (static getter: ExperimentalFeature)
+    receiver_type_inference (static getter: ExperimentalFeature)
     records (static getter: ExperimentalFeature)
     sealed_class (static getter: ExperimentalFeature)
     set_literals (static getter: ExperimentalFeature)
