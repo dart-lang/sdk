@@ -71,6 +71,22 @@ class C {
 ''');
   }
 
+  test_constClass_fieldInitializer_primary() async {
+    await assertDiagnosticsFromMarkup(r'''
+class const C(int x) {
+  final y = x + 2, [!z = 0!];
+}
+''');
+  }
+
+  test_constClass_fieldInitializer_primary_usingParameter() async {
+    await assertNoDiagnostics(r'''
+class const C(int x) {
+  final int y = x + 2;
+}
+''');
+  }
+
   test_constClass_multipleConstructors() async {
     await assertNoDiagnostics(r'''
 class C {
