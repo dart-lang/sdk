@@ -7752,6 +7752,35 @@ Message _withArgumentsJsInteropFunctionToJSRequiresStaticType({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({required String conversion, required DartType type})
+>
+jsInteropFunctionToJSReturnFutureOptionalParameters = const Template(
+  "JsInteropFunctionToJSReturnFutureOptionalParameters",
+  withArguments:
+      _withArgumentsJsInteropFunctionToJSReturnFutureOptionalParameters,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropFunctionToJSReturnFutureOptionalParameters({
+  required String conversion,
+  required DartType type,
+}) {
+  var conversion_0 = conversions.validateString(conversion);
+  TypeLabeler labeler = new TypeLabeler();
+  var type_0 = labeler.labelType(type);
+  return new Message(
+    jsInteropFunctionToJSReturnFutureOptionalParameters,
+    problemMessage:
+        """Functions converted via '${conversion_0}' that return '${type_0}' cannot declare optional parameters.""" +
+        labeler.originMessages,
+    correctionMessage:
+        """Remove the declared optional parameters from the function.""",
+    arguments: {'conversion': conversion, 'type': type},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String conversion})>
 jsInteropFunctionToJSTypeParameters = const Template(
   "JsInteropFunctionToJSTypeParameters",

@@ -6116,6 +6116,13 @@ jsInteropFunctionToJSNamedParameters:
   problemMessage: "Functions converted via '#conversion' cannot declare named parameters."
   correctionMessage: "Remove the declared named parameters from the function."
 
+jsInteropFunctionToJSReturnFutureOptionalParameters:
+  parameters:
+    String conversion: The "toJS" conversion in use.
+    Type type: The Future return type.
+  problemMessage: "Functions converted via '#conversion' that return '#type' cannot declare optional parameters."
+  correctionMessage: "Remove the declared optional parameters from the function."
+
 jsInteropFunctionToJSRequiresStaticType:
   parameters:
     String conversion: The "toJS" conversion in use.

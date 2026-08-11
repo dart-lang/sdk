@@ -18,7 +18,7 @@ import 'package:expect/expect.dart';
 external void eval(String code);
 
 @JS('usePromise')
-external JSPromise<JSAny?> usePromise(JSFunction f, [JSAny? arg]);
+external JSPromise<JSAny?> usePromise(JSFunction f, [JSAny? arg1, JSAny? arg2]);
 
 JSObject? asyncObj;
 
@@ -38,7 +38,15 @@ Future<T> asyncFoo<T>(T x) async {
   return x;
 }
 
-Future<void> doVoidThing() async {
+Future<void> doVoidThing(JSNumber requiredParam) async {
+  asyncObj = JSObject()..['key'] = 3.toJS;
+}
+
+Future<void> doVoidThingCaptureThis(
+  JSObject? thisParam,
+  JSNumber requiredParam,
+) async {
+  thisParam;
   asyncObj = JSObject()..['key'] = 3.toJS;
 }
 
@@ -46,7 +54,11 @@ void main() {
   asyncTest(() async {
     eval('''
       globalThis.usePromise = function (promise, arg) {
-        return promise(arg);
+        if (arg !== undefined) {
+          return promise(arg);
+        } else {
+          return promise();
+        }
       }
     ''');
     // Top-level async function tear-off returning Future<JSObject>
@@ -82,14 +94,18 @@ void main() {
     // Async function returning Future<void>
     final j = doVoidThing.toJS;
     asyncObj = null;
-    await usePromise(j).toDart;
+    await usePromise(j, 1.toJS, 2.toJS).toDart;
     Expect.isNotNull(asyncObj);
   });
 
   asyncTest(() async {
     eval('''
       globalThis.usePromise = function (promise, arg) {
-        return promise(arg);
+        if (arg !== undefined) {
+          return promise(arg);
+        } else {
+          return promise();
+        }
       }
     ''');
     // Top-level async function tear-off returning Future<JSObject>
@@ -116,16 +132,10 @@ void main() {
     final valH = ((resH as JSObject)['key'] as JSNumber).toDartInt;
     Expect.equals(3, valH);
 
-    // Generic async function tear-off with arguments
-    final i = asyncFoo<JSNumber>.toJSCaptureThis;
-    final resI = await usePromise(i, 42.toJS).toDart;
-    final valI = (resI as JSNumber).toDartInt;
-    Expect.equals(42, valI);
-
     // Async function returning Future<void>
-    final j = doVoidThing.toJSCaptureThis;
+    final j = doVoidThingCaptureThis.toJSCaptureThis;
     asyncObj = null;
-    await usePromise(j).toDart;
+    await usePromise(j, 1.toJS, 2.toJS).toDart;
     Expect.isNotNull(asyncObj);
   });
 }

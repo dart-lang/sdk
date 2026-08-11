@@ -21,6 +21,8 @@ Future<dynamic> badFunc4() async {
   return 2;
 }
 
+Future<void> optionalFunc([JSNumber? x]) async {}
+
 void main() {
   badFunc.toJS;
   //      ^
@@ -37,6 +39,9 @@ void main() {
   (() async => 3).toJS;
   //              ^
   // [web] Calling 'toJS' on a function returning 'Future<T>' requires 'T' to be a subtype of 'JSAny?' or 'void'.
+  optionalFunc.toJS;
+  //           ^
+  // [web] Functions converted via 'toJS' that return 'Future<void>' cannot declare optional parameters.
   badFunc.toJSCaptureThis;
   //      ^
   // [web] Calling 'toJS' on a function returning 'Future<T>' requires 'T' to be a subtype of 'JSAny?' or 'void'.
@@ -52,4 +57,7 @@ void main() {
   (() async => 3).toJSCaptureThis;
   //              ^
   // [web] Calling 'toJS' on a function returning 'Future<T>' requires 'T' to be a subtype of 'JSAny?' or 'void'.
+  optionalFunc.toJSCaptureThis;
+  //           ^
+  // [web] Functions converted via 'toJSCaptureThis' that return 'Future<void>' cannot declare optional parameters.
 }

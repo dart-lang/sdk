@@ -84,6 +84,7 @@ front_end/JsInteropExternalExtensionMemberOnTypeInvalid/example: missingExample 
 front_end/JsInteropExternalExtensionMemberWithStaticDisallowed/example: missingExample # Web compiler specific
 front_end/JsInteropExternalMemberNotJSAnnotated/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSNamedParameters/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSReturnFutureOptionalParameters/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSRequiresStaticType/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSTypeParameters/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSTypeViolation/example: missingExample
