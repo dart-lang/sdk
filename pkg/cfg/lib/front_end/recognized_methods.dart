@@ -21,6 +21,13 @@ abstract class RecognizedCallMatcher {
   BuildIR? match(List<CType> args);
 }
 
+/// Recognizes calls with arbitrary argument types.
+class const AnyArgsMatcher(final BuildIR builder)
+    implements RecognizedCallMatcher {
+  @override
+  BuildIR? match(List<CType> args) => builder;
+}
+
 /// Recognizes calls to binary [num] operations (except [num./]).
 class const BinaryNumOp(
   final BinaryIntOpcode intOp,
@@ -219,6 +226,9 @@ abstract class RecognizedMethods {
   /// Recognized instance getter calls.
   Map<ast.Member, RecognizedCallMatcher> get instanceGetters;
 
+  /// Recognized static method calls.
+  Map<ast.Member, RecognizedCallMatcher> get staticInvocations;
+
   /// Function body of the recognized functions.
   BuildIR? getRecognizedFunctionBody(CFunction function);
 }
@@ -366,6 +376,24 @@ class CommonRecognizedMethods implements RecognizedMethods {
     ),
   };
 
+  late final _recognizedMembers = <ast.Member, BuildIR>{
+    // dart:core
+    index.getTopLevelProcedure(
+      'dart:core',
+      'identical',
+    ): (FlowGraphBuilder builder) {
+      builder.addComparison(.identical);
+    },
+  };
+
   @override
-  BuildIR? getRecognizedFunctionBody(CFunction function) => null;
+  late final staticInvocations = <ast.Member, RecognizedCallMatcher>{
+    for (final MapEntry(key: member, value: builder)
+        in _recognizedMembers.entries)
+      member: AnyArgsMatcher(builder),
+  };
+
+  @override
+  BuildIR? getRecognizedFunctionBody(CFunction function) =>
+      _recognizedMembers[function.member];
 }

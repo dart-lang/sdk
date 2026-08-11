@@ -139,6 +139,14 @@ final class Simplification extends Pass
         default:
       }
     }
+    // Simplify identical to equal/intEqual.
+    if (instr.op == .identical || instr.op == .notIdentical) {
+      if (!left.type.canBeNum || !right.type.canBeNum) {
+        instr.op = instr.op == .identical ? .equal : .notEqual;
+      } else if (left.type is IntType && right.type is IntType) {
+        instr.op = instr.op == .identical ? .intEqual : .intNotEqual;
+      }
+    }
     return instr;
   }
 

@@ -303,6 +303,9 @@ class AstToIr extends ast.RecursiveVisitor {
         builder.addLoadLocal(param);
       }
       recognizedBodyBuilder(builder);
+      if (builder.hasOpenBlock) {
+        builder.addReturn();
+      }
       return;
     }
     _translateNode(functionNode.body);
@@ -674,6 +677,14 @@ class AstToIr extends ast.RecursiveVisitor {
     final target = functionRegistry.getFunction(node.target);
     final inputCount = _translateArguments(null, args);
     if (_handleUnreachableExpression(inputCount)) return;
+    final matcher = recognizedMethods.staticInvocations[node.target];
+    if (matcher != null) {
+      final snippet = matcher.match(_argumentTypes(null, args));
+      if (snippet != null) {
+        snippet(builder);
+        return;
+      }
+    }
     builder.addDirectCall(
       target,
       inputCount,

@@ -418,7 +418,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case ComparisonOpcode.intLessOrEqual:
       case ComparisonOpcode.intGreater:
       case ComparisonOpcode.intGreaterOrEqual:
-        final (operand, negated) = _generateAddSubRightOperand(instr, right);
+        final (operand, negated) = _generateAddSubRightOperand(
+          instr,
+          right,
+          isUnboxed: instr.op.isIntComparison,
+        );
         if (negated) {
           _asm.cmn(left, operand);
         } else {
@@ -441,11 +445,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   (Operand, bool negated) _generateAddSubRightOperand(
     Instruction instr,
-    Definition right,
-  ) {
+    Definition right, {
+    required bool isUnboxed,
+  }) {
     if (right is Constant) {
       if (right.value.isInt) {
-        final value = right.value.intValue;
+        int value = right.value.intValue;
+        if (!isUnboxed) {
+          value = value << smiShift;
+        }
         if (value == 0) {
           return (ZR, false);
         } else if (_asm.canEncodeImm12(value)) {
@@ -518,7 +526,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .intGreater:
       case .intGreaterOrEqual:
         final left = inputReg(instr, 0);
-        final (operand, negated) = _generateAddSubRightOperand(instr, right);
+        final (operand, negated) = _generateAddSubRightOperand(
+          instr,
+          right,
+          isUnboxed: instr.op.isIntComparison,
+        );
         if (negated) {
           _asm.cmn(left, operand);
         } else {
@@ -546,13 +558,69 @@ final class Arm64CodeGenerator extends CodeGenerator {
         break;
       case .identical:
       case .notIdentical:
-        _asm.unimplemented(
-          'Unimplemented: code generation for Comparison ${instr.op}',
-        );
+        _generateIdentical(instr);
+        break;
     }
     _asm.loadConstant(result, ConstantValue.fromBool(true));
     _asm.loadConstant(tempReg, ConstantValue.fromBool(false));
     _asm.csel(result, result, tempReg, instr.op.conditionCode);
+  }
+
+  void _generateIdentical(Comparison instr) {
+    assert((instr.op == .identical) || (instr.op == .notIdentical));
+    final leftReg = inputReg(instr, 0);
+    final rightReg = inputReg(instr, 1);
+    final scratch1Reg = temporaryReg(instr, 0);
+    final scratch2Reg = temporaryReg(instr, 1);
+    final done = Label();
+    final notDouble = Label();
+    final compareValues = Label();
+
+    // Same value => identical.
+    _asm.cmp(leftReg, rightReg);
+    _asm.b(done, .equal); // Z is set.
+
+    // Any Smi => not identical.
+    _asm.and(tempReg, leftReg, rightReg);
+    _asm.tbz(tempReg, smiBit, done); // Z is not set (from previous cmp).
+
+    _asm.loadClassId(scratch1Reg, leftReg);
+    _asm.loadClassId(scratch2Reg, rightReg);
+
+    // Different class ids => not identical.
+    _asm.cmp(scratch1Reg, scratch2Reg);
+    _asm.b(done, .notEqual); // Z is not set.
+
+    _asm.cmpImmediate(scratch1Reg, ClassId.DoubleCid.index);
+    _asm.b(notDouble, .notEqual);
+
+    _asm.ldr(
+      scratch1Reg,
+      _asm.fieldAddress(leftReg, vmOffsets.Double_value_offset),
+    );
+    _asm.ldr(
+      scratch2Reg,
+      _asm.fieldAddress(rightReg, vmOffsets.Double_value_offset),
+    );
+    _asm.b(compareValues);
+
+    _asm.bind(notDouble);
+    _asm.cmpImmediate(scratch1Reg, ClassId.MintCid.index);
+    _asm.b(done, .notEqual); // Z is not set.
+
+    _asm.ldr(
+      scratch1Reg,
+      _asm.fieldAddress(leftReg, vmOffsets.Mint_value_offset),
+    );
+    _asm.ldr(
+      scratch2Reg,
+      _asm.fieldAddress(rightReg, vmOffsets.Mint_value_offset),
+    );
+
+    _asm.bind(compareValues);
+    _asm.cmp(scratch1Reg, scratch2Reg);
+
+    _asm.bind(done);
   }
 
   @override
@@ -2082,6 +2150,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         final (rightOperand, negated) = _generateAddSubRightOperand(
           instr,
           right,
+          isUnboxed: true,
         );
         if ((instr.op == .sub) == negated) {
           _asm.add(resultReg, leftReg, rightOperand);

@@ -131,13 +131,23 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
-  InstructionConstraints? visitComparison(Comparison instr) =>
-      InstructionConstraints(
+  InstructionConstraints? visitComparison(Comparison instr) {
+    final op = instr.op;
+    if (op == .identical || op == .notIdentical) {
+      return const InstructionConstraints(
         anyCpuRegister,
-        instr.op.isDoubleComparison
+        [anyCpuRegister, anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister],
+      );
+    } else {
+      return InstructionConstraints(
+        anyCpuRegister,
+        op.isDoubleComparison
             ? [anyFpuRegister, anyFpuRegisterOrZero(instr.right)]
             : [anyCpuRegister, anyRegisterOrImmediate(instr.right)],
       );
+    }
+  }
 
   @override
   InstructionConstraints? visitReturn(Return instr) =>
