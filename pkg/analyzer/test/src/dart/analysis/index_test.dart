@@ -5186,6 +5186,28 @@ void useGetter(Object? x) {
 ''');
   }
 
+  test_GetterElement_ofClass_parenthesizedReceiver_read() async {
+    var result = await _indexTestCode('''
+class A {
+  int get foo => 0;
+  void useGetter() {
+    (this).foo;
+  }
+}''');
+
+    var element = result.findElement.getter('foo');
+
+    assertElementIndexText(result, element, r'''
+class A {
+  int get foo => 0;
+  void useGetter() {
+    (this).foo;
+           ^^^ IS_INVOKED_BY qualified
+  }
+}
+''');
+  }
+
   test_GetterElement_ofClass_static() async {
     var result = await _indexTestCode('''
 import 'test.dart' as p;

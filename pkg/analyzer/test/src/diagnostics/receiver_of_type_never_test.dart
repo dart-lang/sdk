@@ -1379,19 +1379,33 @@ PrefixedIdentifier
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '').toString;
-//           ^^^^^^^^^
-// [diag.deadCode] Dead code.
+//^^^^^^^^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: ThrowExpression
       throwKeyword: throw
       expression2: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: .
+  propertyName: toString
+  resolution: <null>
+  staticType: Never
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
         literal: ''
       staticType: Never
     rightParenthesis: )
@@ -1399,9 +1413,9 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: toString
-    element: dart:core::@class::Object::@method::toString
-    staticType: String Function()
-  staticType: String Function()
+    element: <null>
+    staticType: Never
+  staticType: Never
 ''');
   }
 
@@ -1409,15 +1423,15 @@ PropertyAccess
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '').hashCode;
-//           ^^^^^^^^^
-// [diag.deadCode] Dead code.
+//^^^^^^^^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: ThrowExpression
       throwKeyword: throw
@@ -1427,11 +1441,25 @@ PropertyAccess
     rightParenthesis: )
     staticType: Never
   operator: .
+  propertyName: hashCode
+  resolution: <null>
+  staticType: Never
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    element: dart:core::@class::Object::@getter::hashCode
-    staticType: int
-  staticType: int
+    element: <null>
+    staticType: Never
+  staticType: Never
 ''');
   }
 }

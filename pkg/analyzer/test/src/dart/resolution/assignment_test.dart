@@ -3655,8 +3655,8 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: PropertyAssignmentTarget
-    receiver: PropertyAccess
-      target2: ParenthesizedExpression
+    receiver: PropertyExtraction
+      receiver: ParenthesizedExpression
         leftParenthesis: (
         expression2: SimpleIdentifier
           token: a
@@ -3665,10 +3665,11 @@ DirectAssignment
         rightParenthesis: )
         staticType: A
       operator: .
-      propertyName: SimpleIdentifier
-        token: x
+      propertyName: x
+      resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::x
-        staticType: B
+        invokeType: B Function()
+        type: B
       staticType: B
     operator: .
     propertyName: y

@@ -3595,8 +3595,8 @@ class A() {
     _assertSource(code, node);
   }
 
-  void test_visitPropertyAccess() {
-    var code = '(foo).bar';
+  void test_visitPropertyAccess_conditional() {
+    var code = 'foo?.bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
@@ -3604,12 +3604,12 @@ final x = $code;
     _assertSource(code, node);
   }
 
-  void test_visitPropertyAccess_conditional() {
-    var code = 'foo?.bar';
+  void test_visitPropertyExtraction() {
+    var code = '(foo).bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singlePropertyAccess;
+    var node = parseResult.findNode.singlePropertyExtraction;
     _assertSource(code, node);
   }
 

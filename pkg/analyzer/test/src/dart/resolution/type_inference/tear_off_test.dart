@@ -74,8 +74,8 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ConstructorInvocation
+  function2: PropertyExtraction
+    receiver: ConstructorInvocation
       keyword: new
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
@@ -87,7 +87,14 @@ FunctionReference
         leftParenthesis: (
         rightParenthesis: )
       staticType: C
-    target(v1): InstanceCreationExpression
+    operator: .
+    propertyName: f
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::C::@method::f
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  function(v1): PropertyAccess
+    target: InstanceCreationExpression
       keyword: new
       constructorName: ConstructorName
         type: NamedType

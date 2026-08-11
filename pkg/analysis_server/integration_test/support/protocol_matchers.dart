@@ -1065,6 +1065,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
 ///       "containingLibraryPath": optional String
 ///       "containingLibraryName": optional String
 ///       "containingClassDescription": optional String
+///       "containingExecutableDescriptions": optional List<String>
 ///       "dartdoc": optional String
 ///       "elementDescription": optional String
 ///       "elementKind": optional String
@@ -1081,6 +1082,7 @@ final Matcher isHoverInformation = LazyMatcher(
       'containingLibraryPath': isString,
       'containingLibraryName': isString,
       'containingClassDescription': isString,
+      'containingExecutableDescriptions': isListOf(isString),
       'dartdoc': isString,
       'elementDescription': isString,
       'elementKind': isString,

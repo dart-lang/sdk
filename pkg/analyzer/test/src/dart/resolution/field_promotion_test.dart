@@ -30,12 +30,28 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.propertyAccess('._foo;');
+    var node = result.findNode.propertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    rightParenthesis: )
+    staticType: C
+  operator: .
+  propertyName: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
@@ -596,12 +612,28 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.propertyAccess('._foo;');
+    var node = result.findNode.propertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    rightParenthesis: )
+    staticType: C
+  operator: .
+  propertyName: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C

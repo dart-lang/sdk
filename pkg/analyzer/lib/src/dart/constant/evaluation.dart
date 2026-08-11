@@ -1235,8 +1235,9 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       if (prefixElement is! InterfaceElement) {
         var propertyAccessResult = _evaluatePropertyAccess(
           prefixResult,
-          node.identifier,
           node,
+          propertyName: node.identifier.name,
+          propertyElement: node.identifier.element,
           isNullAware: false,
         );
         if (propertyAccessResult != null) {
@@ -1286,8 +1287,9 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
 
       var propertyAccessResult = _evaluatePropertyAccess(
         prefixResult,
-        node.propertyName,
         node,
+        propertyName: node.propertyName.name,
+        propertyElement: node.propertyName.element,
         isNullAware: node.isNullAware,
       );
       if (propertyAccessResult != null) {
@@ -1300,6 +1302,27 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       identifier: node.propertyName,
       element: node.propertyName.element,
     );
+  }
+
+  @override
+  Constant visitPropertyExtraction(covariant PropertyExtractionImpl node) {
+    var targetResult = evaluateConstant(node.receiver);
+    if (targetResult is! DartObjectImpl) {
+      return targetResult;
+    }
+
+    var propertyElement = switch (node.resolution) {
+      NamedReadResolutionWithElementImpl(:var element) => element,
+      _ => null,
+    };
+    return _evaluatePropertyAccess(
+          targetResult,
+          node,
+          propertyName: node.propertyName.lexeme,
+          propertyElement: propertyElement,
+          isNullAware: false,
+        ) ??
+        InvalidConstant.genericError(node: node);
   }
 
   @override
@@ -1904,15 +1927,15 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   /// Attempt to evaluate a constant property access.
   ///
   /// Return a valid [DartObjectImpl] if the given [targetResult] represents a
-  /// `String` and the [identifier] is `length`, an [InvalidConstant] if there's
+  /// `String` and the [propertyName] is `length`, an [InvalidConstant] if there's
   /// an error, and `null` otherwise.
   Constant? _evaluatePropertyAccess(
     DartObjectImpl targetResult,
-    SimpleIdentifier identifier,
     AstNode errorNode, {
+    required String propertyName,
+    required Element? propertyElement,
     required bool isNullAware,
   }) {
-    var propertyElement = identifier.element;
     if (propertyElement is GetterElement && propertyElement.isStatic) {
       return null;
     }
@@ -1934,7 +1957,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     var targetType = targetResult.type;
 
     // Evaluate a constant that reads the length of a `String`.
-    if (identifier.name == 'length') {
+    if (propertyName == 'length') {
       if (targetType is InterfaceType && targetType.isDartCoreString) {
         return _dartObjectComputer.stringLength(errorNode, targetResult);
       } else if (targetType.isDartCoreNull && isNullAware) {
@@ -1942,8 +1965,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       }
     }
 
-    var element = identifier.element;
-    if (element != null && element is ExecutableElement && element.isStatic) {
+    if (propertyElement is ExecutableElement && propertyElement.isStatic) {
       return null;
     }
 
@@ -1951,7 +1973,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     return InvalidConstant.forEntity(
       entity: errorNode,
       locatableDiagnostic: diag.constEvalPropertyAccess.withArguments(
-        propertyName: identifier.name,
+        propertyName: propertyName,
         type: targetType.getDisplayString(),
       ),
     );

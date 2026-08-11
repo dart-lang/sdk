@@ -238,6 +238,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyExtraction(PropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node);
+    super.visitPropertyExtraction(node);
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
   }
@@ -278,6 +288,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
           } else if (target is PrefixedIdentifier) {
             errorEntity = target.identifier;
           } else if (target is PropertyAccess) {
+            errorEntity = target.propertyName;
+          } else if (target is PropertyExtraction) {
             errorEntity = target.propertyName;
           } else if (target is SimpleIdentifier) {
             errorEntity = target;

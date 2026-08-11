@@ -4155,6 +4155,36 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitPropertyExtraction(
+    covariant PropertyExtractionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+
+    analyzeExpression(
+      node.receiver,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+      continueNullShorting: true,
+    );
+    node.receiver = popRewrite()!;
+
+    var (:expressionInfo, :resolution, :type) = _propertyElementResolver
+        .resolvePropertyExtraction(node);
+    node.resolution = resolution;
+    node.recordStaticType(type, resolver: this);
+    flowAnalysis.storeExpressionInfo(node, expressionInfo);
+
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitRecordLiteral(
     covariant RecordLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,

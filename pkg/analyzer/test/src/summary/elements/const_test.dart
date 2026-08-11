@@ -4476,14 +4476,15 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PropertyAccess
-              target2: SimpleStringLiteral
+            PropertyExtraction
+              receiver: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
-              propertyName: SimpleIdentifier
-                token: length @16
+              propertyName: length @16
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -9952,8 +9953,8 @@ library
         #F5 hasInitializer isConst isOriginDeclaration isStatic v3 (nameOffset:63) (firstTokenOffset:63) (offset:63)
           element: <testLibrary>::@topLevelVariable::v3
           initializer: expression_2
-            PropertyAccess
-              target2: ParenthesizedExpression
+            PropertyExtraction
+              receiver: ParenthesizedExpression
                 leftParenthesis: ( @68
                 expression2: BinaryOperatorInvocation
                   leftOperand: SimpleStringLiteral
@@ -9976,10 +9977,11 @@ library
                 rightParenthesis: ) @82
                 staticType: String
               operator: . @83
-              propertyName: SimpleIdentifier
-                token: length @84
+              propertyName: length @84
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F6
       getters

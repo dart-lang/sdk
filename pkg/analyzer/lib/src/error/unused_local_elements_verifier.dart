@@ -357,6 +357,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyExtraction(PropertyExtraction node) {
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitPropertyExtraction(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -537,20 +543,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     usedElements.addElement(element);
   }
 
-  void _useReadWriteAssignmentTarget(
-    AssignmentTarget target, {
+  void _useNamedReadResolution(
+    NamedReadResolution? read, {
     required bool readCountsAsUse,
   }) {
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      _ => null,
-    };
     if (read case NamedReadResolutionWithElement(:var element)) {
       if (element is SubstitutedExecutableElementImpl) {
         element = element.baseElement;
@@ -588,6 +584,24 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         }
       }
     }
+  }
+
+  void _useReadWriteAssignmentTarget(
+    AssignmentTarget target, {
+    required bool readCountsAsUse,
+  }) {
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+
+    _useNamedReadResolution(read, readCountsAsUse: readCountsAsUse);
 
     if (write case NamedWriteResolutionWithElement(:var element)) {
       if (element is SubstitutedExecutableElementImpl) {

@@ -169,9 +169,28 @@ void f() async {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: PropertyAccess
-    target2: PropertyAccess
-      target2: IntegerLiteral
+  expression2: PropertyExtraction
+    receiver: PropertyExtraction
+      receiver: IntegerLiteral
+        literal: 0
+        staticType: int
+      operator: .
+      propertyName: isEven
+      resolution: GetterInvocationResolution
+        element: dart:core::@class::int::@getter::isEven
+        invokeType: bool Function()
+        type: bool
+      staticType: bool
+    operator: .
+    propertyName: unresolved
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  expression(v1): PropertyAccess
+    target: PropertyAccess
+      target: IntegerLiteral
         literal: 0
         staticType: int
       operator: .

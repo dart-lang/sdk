@@ -11,7 +11,12 @@ import 'test_support.dart';
 void main() {
   late DapTestSession dap;
   setUp(() async {
-    dap = await DapTestSession.setUp(additionalArgs: ['--test']);
+    dap = await DapTestSession.setUp(
+      additionalArgs: ['--test'],
+      // Enable verbose logging to try and track down flakes on bots:
+      // https://github.com/dart-lang/sdk/issues/63988
+      forceVerboseLogging: true,
+    );
     // For "dart run test:test" to work we must always have a cwd set.
     dap.client.defaultCwd = dap.testAppDir.path;
     await dap.addPackageDependency(dap.testAppDir, 'test');

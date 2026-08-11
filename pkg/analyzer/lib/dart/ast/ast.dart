@@ -249,6 +249,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         PrimaryConstructorName,
         PropertyAccess,
         PropertyAssignmentTarget,
+        PropertyExtraction,
         RecordFieldReadResolution,
         RecordLiteral,
         RecordLiteralField,

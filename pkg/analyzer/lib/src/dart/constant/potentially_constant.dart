@@ -177,6 +177,10 @@ class _Collector {
       return _propertyAccess(node);
     }
 
+    if (node is PropertyExtraction) {
+      return _propertyExtraction(node);
+    }
+
     if (node is AsExpression) {
       if (featureSet.isEnabled(Feature.non_nullable)) {
         if (!isPotentiallyConstantTypeExpression(node.type)) {
@@ -362,6 +366,15 @@ class _Collector {
         }
         return;
       }
+    }
+
+    nodes.add(node);
+  }
+
+  void _propertyExtraction(PropertyExtraction node) {
+    if (node.propertyName.lexeme == 'length') {
+      collect(node.receiver);
+      return;
     }
 
     nodes.add(node);

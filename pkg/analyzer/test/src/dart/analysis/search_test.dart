@@ -6814,6 +6814,26 @@ void useGetter(Object? x) {
 ''');
   }
 
+  test_searchReferences_GetterElement_ofClass_parenthesizedReceiver_read() async {
+    var result = await resolveTestCode('''
+class A {
+  int get foo => 0;
+  void useGetter() {
+    (this).foo;
+  }
+}''');
+    var element = result.findElement.getter('foo');
+    await assertElementReferencesText(element, r'''
+class A {
+  int get foo => 0;
+  void useGetter() {
+    (this).foo;
+           ^^^ INVOCATION qualified
+  }
+}
+''');
+  }
+
   test_searchReferences_GetterElement_ofClass_static() async {
     var result = await resolveTestCode('''
 import 'test.dart' as p;

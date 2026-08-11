@@ -314,6 +314,22 @@ class SharedInteropTransformer extends Transformer {
       return invocation;
     }
 
+    if (funcType.positionalParameters.length >
+        funcType.requiredParameterCount) {
+      _diagnosticReporter.report(
+        diag.jsInteropFunctionToJSReturnFutureOptionalParameters.withArguments(
+          conversion: invocation.target == _functionToJSCaptureThis
+              ? 'toJSCaptureThis'
+              : 'toJS',
+          type: futureType,
+        ),
+        invocation.fileOffset,
+        invocation.name.text.length,
+        invocation.location?.file,
+      );
+      return invocation;
+    }
+
     final typeArgument = futureType.typeArguments[0];
     final isVoid = typeArgument is VoidType;
 
@@ -367,7 +383,7 @@ class SharedInteropTransformer extends Transformer {
     );
 
     return StaticInvocation(
-      _functionToJS,
+      invocation.target,
       Arguments([funcExpr], types: [newFuncType]),
     )..fileOffset = invocation.fileOffset;
   }

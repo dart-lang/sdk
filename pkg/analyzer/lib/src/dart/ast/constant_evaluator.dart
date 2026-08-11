@@ -666,6 +666,10 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
   Object? visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
 
   @override
+  Object? visitPropertyExtraction(PropertyExtraction node) =>
+      _getConstantValue(null);
+
+  @override
   Object? visitSetOrMapLiteral(SetOrMapLiteral node) {
     // There are a lot of constants that this class does not support, so we
     // didn't add support for set literals. As a result, this assumes that we're

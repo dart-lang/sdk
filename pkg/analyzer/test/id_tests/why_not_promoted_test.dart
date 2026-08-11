@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -65,6 +66,14 @@ class _WhyNotPromotedDataExtractor extends AstDataExtractor<String?> {
       return 'notPromoted($nonPromotionReason)';
     }
     return _flowResult.nonPromotionReasonTargets[node];
+  }
+
+  @override
+  String? computeTokenValue(Id id, Token token) {
+    var nonPromotionReason = _flowResult.nonPromotionReasons[token];
+    return nonPromotionReason == null
+        ? null
+        : 'notPromoted($nonPromotionReason)';
   }
 }
 

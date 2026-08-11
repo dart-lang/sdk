@@ -1730,12 +1730,12 @@ test(int i) => i.isEven;
     check(runInterpreter(result, [2])).equals(true);
   }
 
-  test_propertyGet_propertyAccess() async {
+  test_propertyGet_propertyExtraction() async {
     var result = await resolveTestCodeWithDiagnostics('''
 test() => 'foo'.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.propertyAccess("'foo'.length")]
+    check(astNodes)[result.findNode.propertyExtraction("'foo'.length")]
         .containsSubrange(astNodes[result.findNode.stringLiteral("'foo'")]!);
     check(runInterpreter(result, [])).equals(3);
   }

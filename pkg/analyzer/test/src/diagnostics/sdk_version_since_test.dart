@@ -613,12 +613,27 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.foo');
+    var node = result.findNode.propertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: ExecutableTearOffResolution
+    element: dart:foo::@class::A::@method::foo
+    type: void Function()
+  staticType: void Function()
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A

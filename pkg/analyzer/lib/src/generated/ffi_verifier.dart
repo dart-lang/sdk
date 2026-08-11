@@ -436,6 +436,28 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElementImpl(:var element) => element,
+      _ => null,
+    };
+    if (element != null) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement.isNativeStructPointerExtension ||
+          enclosingElement.isNativeUnionPointerExtension) {
+        if (element.name == 'ref') {
+          _validateRefPropertyExtraction(node);
+        }
+      } else if (enclosingElement.isAddressOfExtension) {
+        if (element.name == 'address') {
+          _validateAddressPropertyExtraction(node, element);
+        }
+      }
+    }
+    super.visitPropertyExtraction(node);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var declared in node.variables.variables) {
       var declaredElement = declared.declaredFragment?.element;
@@ -1153,7 +1175,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   /// Check that .address is only used in argument lists passed to native leaf
   /// calls.
-  void _validateAddressPosition(Expression node, AstNode errorNode) {
+  void _validateAddressPosition(Expression node, SyntacticEntity errorNode) {
     var parent = node.parent2;
     // Since we are allowing .address.cast(), we need to traverse up one level
     // to get the ffi Invocation (.cast() nested down one level the expression)
@@ -1188,11 +1210,21 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
 
+  void _validateAddressPropertyExtraction(
+    PropertyExtraction node,
+    Element element,
+  ) {
+    var errorNode = node.propertyName;
+    _validateAddressPosition(node, errorNode);
+    var extensionName = element.enclosingElement?.name;
+    _validateAddressReceiver(node, extensionName, node.receiver, errorNode);
+  }
+
   void _validateAddressReceiver(
     Expression node,
     String? extensionName,
     Expression? receiver,
-    AstNode errorNode,
+    SyntacticEntity errorNode,
   ) {
     if (_addressOfCompoundExtensionNames.contains(extensionName) ||
         _addressOfTypedDataExtensionNames.contains(extensionName)) {
@@ -2096,6 +2128,17 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   void _validateRefPropertyAccess(PropertyAccessImpl node) {
     var targetType = node.realTarget2.typeOrThrow;
+    if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
+      _diagnosticReporter.report(
+        diag.nonConstantTypeArgument
+            .withArguments(executableName: 'ref')
+            .at(node),
+      );
+    }
+  }
+
+  void _validateRefPropertyExtraction(PropertyExtractionImpl node) {
+    var targetType = node.receiver.typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
