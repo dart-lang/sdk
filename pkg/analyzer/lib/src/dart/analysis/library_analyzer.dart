@@ -45,7 +45,6 @@ import 'package:analyzer/src/error/redeclare_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/error/unicode_text_verifier.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
-import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -163,17 +162,7 @@ class LibraryAnalyzer {
           : null;
 
       // TODO(scheglov): We don't need to do this for the whole unit.
-      var elementWalker = ElementWalker.forCompilationUnit(
-        libraryFragment,
-        libraryFilePath: _library.file.path,
-        unitFilePath: file.path,
-      );
-      parsedUnit.accept2(
-        ElementBindingVisitor.forAnalysis(
-          fragment: libraryFragment,
-          walker: elementWalker,
-        ),
-      );
+      parsedUnit.accept2(ElementBindingVisitor(libraryFragment));
       parsedUnit.accept2(
         ResolutionVisitor(
           libraryFragment: libraryFragment,
@@ -841,17 +830,7 @@ class LibraryAnalyzer {
     TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
         _testingData != null ? TypeConstraintGenerationDataForTesting() : null;
 
-    var elementWalker = ElementWalker.forCompilationUnit(
-      libraryFragment,
-      libraryFilePath: _library.file.path,
-      unitFilePath: fileAnalysis.file.path,
-    );
-    unit.accept2(
-      ElementBindingVisitor.forAnalysis(
-        fragment: libraryFragment,
-        walker: elementWalker,
-      ),
-    );
+    unit.accept2(ElementBindingVisitor(libraryFragment));
 
     var docImportLibraries = [
       for (var import in _library.docLibraryImports)

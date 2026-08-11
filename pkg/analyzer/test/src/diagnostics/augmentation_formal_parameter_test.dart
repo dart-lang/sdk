@@ -667,6 +667,24 @@ abstract class A {
 ''');
   }
 
+  test_class_primaryConstructor_field_rn1D__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A({var int n1 = 0}) {}
+//    ^
+// [context 1] The declaration being augmented.
+//               ^^
+// [context 2] The formal parameter is here.
+
+augment class A {
+  augment A(int p1);
+//              ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 0.
+//                ^
+// [diag.augmentationNamedFormalParameterMissing][context 2] The augmentation is missing the named formal parameter 'n1' from the declaration.
+}
+''');
+  }
+
   test_class_staticMethod_rn1__rn1_rn2() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
