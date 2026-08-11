@@ -5,10 +5,13 @@
 ### Libraries
 
 #### `dart:js_interop`
+
 - The `isA<JSArray>` check now uses both `Array.isArray` and `instanceof` to
   verify if a value is an array; it is considered an array if either condition
   returns true.
   For more details, see SDK issue [#62699][]
+
+- Added `jsThrow`, which throws an error without any Dart wrappers.
 
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 
