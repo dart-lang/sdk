@@ -1360,8 +1360,17 @@ class Resolver {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
+      // TODO(cstefantsova): Verify that the scope object shouldn't be passed
+      //  along with the thisVariable in the ScopeProviderInfo object in the
+      //  call below.
+      ScopeProviderInfo? scopeProviderInfo;
+      if (internalThisVariable?.astVariable case var thisVariable?) {
+        scopeProviderInfo = new ScopeProviderInfo(
+          kind: ScopeProviderInfoKind.FunctionNodeWithThis,
+        )..thisVariable = thisVariable;
+      }
       bodyBuilderContext.registerNoBodyConstructor(
-        thisVariable: internalThisVariable?.astVariable,
+        scopeProviderInfo: scopeProviderInfo,
       );
     } else if (body != null &&
         bodyBuilderContext.isMixinClass &&

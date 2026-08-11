@@ -391,7 +391,9 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers that the constructor has no body.
-  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     throw new UnsupportedError("${runtimeType}.registerNoBodyConstructor");
   }
 

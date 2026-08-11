@@ -512,6 +512,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _lateGetter!.function.registerFunctionBody(
       _createGetterBody(coreTypes, _fragment.name, initializer),
     );
+    _lateGetter!.function.registerScopeProviderInfo(scopeProviderInfo);
     // The initializer is copied from [_field] to [_lateGetter] so we copy the
     // property to reflect whether the getter contains super calls.
     _lateGetter!.containsSuperCalls = _field!.containsSuperCalls;
@@ -524,10 +525,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
           _lateSetter!.function.positionalParameters.first,
         ),
       );
+      _lateSetter!.function.registerScopeProviderInfo(scopeProviderInfo);
     }
-    _field?.scope =
-        // Coverage-ignore(suite): Not run.
-        scopeProviderInfo?.scope;
   }
 
   @override

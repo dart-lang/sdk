@@ -8,6 +8,7 @@ import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
+import '../type_inference/context_allocation_strategy.dart';
 import '../builder/library_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import 'external_ast_helper.dart' as extern;
@@ -413,5 +414,12 @@ extension FunctionNodeExtension on FunctionNode {
     this.asyncMarker = asyncModifier.kind;
     this.dartAsyncMarker = asyncModifier.kind;
     this.emittedValueType = emittedValueType;
+  }
+
+  void registerScopeProviderInfo(ScopeProviderInfo? scopeProviderInfo) {
+    if (scopeProviderInfo != null) {
+      this.thisVariable = scopeProviderInfo.thisVariable?..parent = this;
+      this.scope = scopeProviderInfo.scope;
+    }
   }
 }

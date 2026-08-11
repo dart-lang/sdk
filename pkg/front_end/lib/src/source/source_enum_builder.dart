@@ -518,6 +518,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
           ),
         ),
       );
+      // TODO(cstefantsova): Verify that null should be passed for
+      //  scopeProviderInfo in the call below.
+      _procedure.function.registerScopeProviderInfo(null);
     } else {
       ClassBuilder enumClass =
           _underscoreEnumTypeBuilder.declaration as ClassBuilder;
@@ -541,6 +544,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
           ]),
         ),
       );
+      // TODO(cstefantsova): Verify that null should be passed for
+      //  scopeProviderInfo in the call below.
+      _procedure.function.registerScopeProviderInfo(null);
     }
   }
 

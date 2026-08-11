@@ -71,14 +71,9 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
       compilerContext: _builder.libraryBuilder.loader.target.context,
       problemReporting: _builder.libraryBuilder,
       body: body,
-      scope: scopeProviderInfo
-          // Coverage-ignore(suite): Not run.
-          ?.scope,
       asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
-      thisVariable: scopeProviderInfo
-          // Coverage-ignore(suite): Not run.
-          ?.thisVariable,
+      scopeProviderInfo: scopeProviderInfo,
     );
   }
 
