@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -36,8 +37,8 @@ MemberId computeMemberId(Element element) {
   );
 }
 
-/// Abstract IR visitor for computing data corresponding to a node or element,
-/// and record it with a generic [Id]
+/// Abstract IR visitor for computing data corresponding to a node, token, or
+/// element, and recording it with a generic [Id].
 abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
     with DataRegistry<T> {
   final Uri uri;
@@ -88,6 +89,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
+  void computeForToken(Token token, NodeId? id) {
+    if (id == null) return;
+    T? value = computeTokenValue(id, token);
+    registerValue(uri, token.offset, id, value, token);
+  }
+
   void computeForVariableDeclaration(VariableDeclaration node, NodeId? id) {
     if (id == null) return;
     T? value = computeNodeValue(id, node);
@@ -98,6 +105,9 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
   ///
   /// If `null` is returned, [node] has no associated data.
   T? computeNodeValue(Id id, AstNode node);
+
+  /// Computes the data corresponding to [token], if any.
+  T? computeTokenValue(Id id, Token token) => null;
 
   Id createClassId(Declaration node) {
     var element = node.declaredFragment!.element;
@@ -209,6 +219,15 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
   void visitNullAwareElement(NullAwareElement node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitNullAwareElement(node);
+  }
+
+  @override
+  void visitPropertyExtraction(PropertyExtraction node) {
+    // The property name is token-valued, but is a source location to which
+    // `IdKind.node` annotations can be attached.
+    var propertyName = node.propertyName;
+    computeForToken(propertyName, NodeId(propertyName.offset, IdKind.node));
+    super.visitPropertyExtraction(node);
   }
 
   @override

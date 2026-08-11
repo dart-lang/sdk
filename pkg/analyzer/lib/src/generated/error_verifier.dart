@@ -2033,6 +2033,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
+    _constArgumentsVerifier.visitPropertyExtraction(node);
+    _checkUseVerifier.checkPropertyExtraction(node);
+    super.visitPropertyExtraction(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {

@@ -4700,7 +4700,7 @@ MethodInvocation
     int
 ''');
 
-    var node2 = result.findNode.simple('f;');
+    var node2 = result.findNodeV1.simple('f;');
     assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: f

@@ -852,6 +852,18 @@ class AstBuilder extends StackListener {
             identifier: identifierOrInvoke,
           ),
         );
+      } else if (receiver != null &&
+          _featureSet.isEnabled(Feature.constructor_tearoffs) &&
+          dot.type == TokenType.PERIOD &&
+          identifierOrInvoke.name != 'call' &&
+          _isSupportedPropertyReceiver(receiver)) {
+        push(
+          PropertyExtractionImpl(
+            receiver: receiver,
+            operator: dot,
+            propertyName: identifierOrInvoke.token,
+          ),
+        );
       } else {
         push(
           PropertyAccessImpl(
@@ -3707,11 +3719,13 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(rhs);
-    var propertyReceiver = switch (lhs) {
+    var property = switch (lhs) {
+      PropertyExtractionImpl(:var receiver, :var operator, :var propertyName) =>
+        (receiver, operator, propertyName),
       PropertyAccessImpl(target2: var receiver?, operator: var operator)
           when operator.type == TokenType.PERIOD &&
-              _isSupportedPropertyAssignmentReceiver(receiver) =>
-        receiver,
+              _isSupportedPropertyReceiver(receiver) =>
+        (receiver, operator, lhs.propertyName.token),
       _ => null,
     };
     if (!isAssignable && token.type == TokenType.EQ) {
@@ -3730,12 +3744,11 @@ class AstBuilder extends StackListener {
           value: rhs,
         ),
       );
-    } else if (propertyReceiver != null) {
-      lhs as PropertyAccessImpl;
+    } else if (property != null) {
       var target = PropertyAssignmentTargetImpl(
-        receiver: propertyReceiver,
-        operator: lhs.operator,
-        propertyName: lhs.propertyName.token,
+        receiver: property.$1,
+        operator: property.$2,
+        propertyName: property.$3,
       );
       if (token.type == TokenType.EQ) {
         push(DirectAssignmentImpl(target: target, operator: token, value: rhs));
@@ -5767,6 +5780,13 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPostfixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
+    if (expression is PropertyExtractionImpl) {
+      expression = PropertyAccessImpl(
+        target2: expression.receiver,
+        operator: expression.operator,
+        propertyName: SimpleIdentifierImpl(token: expression.propertyName),
+      );
+    }
     if (!expression.isAssignable) {
       // This error is also reported by the body builder.
       handleRecoverableError(
@@ -5797,6 +5817,13 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPrefixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
+    if (expression is PropertyExtractionImpl) {
+      expression = PropertyAccessImpl(
+        target2: expression.receiver,
+        operator: expression.operator,
+        propertyName: SimpleIdentifierImpl(token: expression.propertyName),
+      );
+    }
     if (!expression.isAssignable) {
       // This error is also reported by the body builder.
       handleRecoverableError(
@@ -6482,13 +6509,13 @@ class AstBuilder extends StackListener {
     );
   }
 
-  /// Whether [receiver] is in the property-assignment migration slice.
+  /// Whether [receiver] is in the property migration slice.
   ///
   /// Parentheses establish an expression boundary even when the expression
   /// inside them requires resolution. Ordinary property accesses preserve a
   /// supported root, while other postfix operations remain on their existing
   /// AST shapes until they are migrated explicitly.
-  bool _isSupportedPropertyAssignmentReceiver(ExpressionImpl receiver) {
+  bool _isSupportedPropertyReceiver(ExpressionImpl receiver) {
     switch (receiver) {
       case LiteralImpl():
       case ParenthesizedExpressionImpl():
@@ -6497,7 +6524,9 @@ class AstBuilder extends StackListener {
         return true;
       case PropertyAccessImpl(target2: var target?, operator: var operator)
           when operator.type == TokenType.PERIOD:
-        return _isSupportedPropertyAssignmentReceiver(target);
+        return _isSupportedPropertyReceiver(target);
+      case PropertyExtractionImpl(:var receiver):
+        return _isSupportedPropertyReceiver(receiver);
       default:
         return false;
     }

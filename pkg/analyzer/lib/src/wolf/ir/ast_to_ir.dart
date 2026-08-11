@@ -12,9 +12,11 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show
         AssignmentTargetImpl,
+        GetterInvocationResolutionImpl,
         IncrementOrDecrementExpressionImpl,
         InvalidExpressionAssignmentTargetImpl,
         PropertyAssignmentTargetImpl,
+        PropertyExtractionImpl,
         UnqualifiedNameAssignmentTargetImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
@@ -993,6 +995,20 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
     // Stack: BLOCK(1)? target
     return _PropertyAccessTemplates(node.propertyName);
+  }
+
+  @override
+  _LValueTemplates visitPropertyExtraction(
+    covariant PropertyExtractionImpl node,
+  ) {
+    dispatchNode(node.receiver, terminateNullShorting: false);
+    return _PropertyAccessTemplates.direct(
+      name: node.propertyName.lexeme,
+      readElement: switch (node.resolution) {
+        GetterInvocationResolutionImpl(:var element) => element,
+        _ => null,
+      },
+    );
   }
 
   @override

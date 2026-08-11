@@ -1164,6 +1164,8 @@ class AstBinaryReader {
         return _readPropertyAccess();
       case Tag.PropertyAssignmentTarget:
         return _readPropertyAssignmentTarget();
+      case Tag.PropertyExtraction:
+        return _readPropertyExtraction();
       case Tag.RecordLiteral:
         return _readRecordLiteral();
       case Tag.RecordLiteralNamedField:
@@ -1371,6 +1373,20 @@ class AstBinaryReader {
     );
     node.read = _reader.readOptionalObject(_readNamedReadResolution);
     node.write = _reader.readOptionalObject(_readNamedWriteResolution);
+    return node;
+  }
+
+  PropertyExtraction _readPropertyExtraction() {
+    var receiver = _readNode() as ExpressionImpl;
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var propertyName = _readStringReference();
+    var node = PropertyExtractionImpl(
+      receiver: receiver,
+      operator: Tokens.fromType(operatorType),
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
+    _readExpressionResolution(node);
     return node;
   }
 

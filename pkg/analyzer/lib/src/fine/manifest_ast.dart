@@ -442,6 +442,16 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyExtraction(PropertyExtraction node) {
+    node.visitChildren2(this);
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _addElement(element);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {

@@ -1376,6 +1376,40 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
+    switch (node.resolution) {
+      case GetterInvocationResolutionImpl(:var element):
+        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+          assembler.addPrefixForElement(element);
+        }
+        recordRelation(
+          element,
+          IndexRelationKind.IS_INVOKED_BY,
+          node.propertyName,
+          true,
+        );
+      case ExecutableTearOffResolutionImpl(:var element):
+        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+          assembler.addPrefixForElement(element);
+        }
+        recordRelation(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          node.propertyName,
+          true,
+        );
+      default:
+        assembler.addNameRelation(
+          node.propertyName.lexeme,
+          IndexRelationKind.IS_READ_BY,
+          node.propertyName.offset,
+          true,
+        );
+    }
+    node.receiver.accept2(this);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {

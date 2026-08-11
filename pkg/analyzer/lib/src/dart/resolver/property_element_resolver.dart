@@ -404,6 +404,106 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   ({
+    ExpressionInfo? expressionInfo,
+    NamedReadResolutionImpl? resolution,
+    TypeImpl type,
+  })
+  resolvePropertyExtraction(PropertyExtractionImpl node) {
+    var receiver = node.receiver;
+    var receiverType = receiver.typeOrThrow;
+
+    if (receiverType is NeverType) {
+      diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+      return (expressionInfo: null, resolution: null, type: receiverType);
+    }
+
+    if (receiverType is VoidType) {
+      diagnosticReporter.report(diag.useOfVoidResult.at(node.propertyName));
+      var resolution = InvalidNamedReadResolutionImpl(
+        candidates: const [],
+        recovery: null,
+        type: InvalidTypeImpl.instance,
+      );
+      return (
+        expressionInfo: null,
+        resolution: resolution,
+        type: resolution.type,
+      );
+    }
+
+    var result = _resolver.typePropertyResolver.resolve(
+      receiver: receiver,
+      receiverType: receiverType,
+      name: node.propertyName.lexeme,
+      hasRead: true,
+      hasWrite: false,
+      propertyErrorEntity: node.propertyName,
+      nameErrorEntity: node.propertyName,
+      parentNode: node.parent2,
+    );
+
+    var readElement = result.getter2;
+    _checkForStaticMember2(
+      target: receiver,
+      propertyName: node.propertyName.lexeme,
+      propertyNameEntity: node.propertyName,
+      element: readElement,
+    );
+
+    if (result.needsGetterError) {
+      diagnosticReporter.report(
+        diag.undefinedGetter
+            .withArguments(
+              memberName: node.propertyName.lexeme,
+              type: receiverType,
+            )
+            .at(node.propertyName),
+      );
+    }
+
+    var recordField = result.recordField;
+    var readType = switch (readElement) {
+      InternalPropertyAccessorElement(:var returnType) => returnType,
+      InternalMethodElement(:var type) => type,
+      _ => recordField?.type,
+    };
+    ExpressionInfo? expressionInfo;
+    if (readType != null) {
+      if (_resolver.flowAnalysis.flow case var flow?) {
+        var (wrappedPromotedType, readExpressionInfo) = flow.propertyGet(
+          ExpressionPropertyTarget(
+            _resolver.flowAnalysis.getExpressionInfo(receiver),
+          ),
+          node.propertyName.lexeme,
+          readElement,
+          SharedTypeView(readType),
+        );
+        expressionInfo = readExpressionInfo;
+        readType = wrappedPromotedType?.unwrapTypeView<TypeImpl>() ?? readType;
+      }
+    }
+
+    var resolution = _createPropertyReadResolution(
+      element: readElement,
+      recordField: recordField,
+      type: readType,
+    );
+    resolution ??= _typeSystem.isDynamicBounded(receiverType)
+        ? DynamicPropertyReadResolutionImpl()
+        : InvalidNamedReadResolutionImpl(
+            candidates: [?readElement, ?result.setter2],
+            recovery: null,
+            type: InvalidTypeImpl.instance,
+          );
+
+    return (
+      expressionInfo: expressionInfo,
+      resolution: resolution,
+      type: resolution.type,
+    );
+  }
+
+  ({
     NamedReadResolutionImpl read,
     NamedWriteResolutionImpl write,
     ExpressionInfo? readExpressionInfo,

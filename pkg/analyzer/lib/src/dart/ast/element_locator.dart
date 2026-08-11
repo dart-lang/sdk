@@ -730,6 +730,14 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitPropertyExtraction(PropertyExtraction node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      return element;
+    }
+    return null;
+  }
+
+  @override
   Element? visitStringLiteral(StringLiteral node) {
     var parent = node.parent2;
     if (parent is ExportDirective) {

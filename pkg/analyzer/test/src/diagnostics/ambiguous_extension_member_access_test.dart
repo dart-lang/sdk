@@ -51,10 +51,21 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
 PropertyAccess
-  target2: IntegerLiteral
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -81,10 +92,21 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E1::@getter::a
+    invokeType: void Function()
+    type: void
+  staticType: void
 PropertyAccess
-  target2: IntegerLiteral
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -113,10 +135,21 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
 PropertyAccess
-  target2: IntegerLiteral
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -145,10 +178,21 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
 PropertyAccess
-  target2: IntegerLiteral
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .

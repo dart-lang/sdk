@@ -124,6 +124,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       }
     } else if (node is PropertyAssignmentTarget) {
       errorEntity = node.propertyName;
+    } else if (node is PropertyExtraction) {
+      errorEntity = node.propertyName;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -572,6 +574,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       }
     } else if (node is PropertyAssignmentTarget) {
       errorEntity = node.propertyName;
+    } else if (node is PropertyExtraction) {
+      errorEntity = node.propertyName;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -821,6 +825,12 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void patternField(PatternField node) {
     checkUsage(node.element, node);
+  }
+
+  void propertyExtraction(PropertyExtraction node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, node);
+    }
   }
 
   void redirectingConstructorInvocation(RedirectingConstructorInvocation node) {

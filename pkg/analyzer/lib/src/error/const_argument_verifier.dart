@@ -111,6 +111,15 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyExtraction(PropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkTearoff(node, element);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {

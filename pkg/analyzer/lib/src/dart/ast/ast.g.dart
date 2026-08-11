@@ -752,6 +752,9 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitPropertyAssignmentTarget(PropertyAssignmentTarget node);
 
+  @experimental
+  R? visitPropertyExtraction(PropertyExtraction node);
+
   R? visitRecordLiteral(RecordLiteral node);
 
   R? visitRecordLiteralNamedField(RecordLiteralNamedField node);

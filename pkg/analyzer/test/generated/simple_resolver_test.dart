@@ -604,7 +604,7 @@ void main() {
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    var node3 = result.findNode.simple('x;');
+    var node3 = result.findNodeV1.simple('x;');
     assertResolvedNodeText(node3, r'''
 SimpleIdentifier
   token: x

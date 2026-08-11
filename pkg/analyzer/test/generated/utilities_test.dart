@@ -1507,17 +1507,17 @@ class B<U>.b(double b) {}
     );
   }
 
-  void test_propertyAccess() {
+  void test_propertyExtraction() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (a).foo;
   (b).bar;
 }
 ''');
-    _assertReplacementForChildren<PropertyAccess>(
-      destination: parseResult.findNode.propertyAccess('(a)'),
-      source: parseResult.findNode.propertyAccess('(b)'),
-      childAccessors: [(node) => node.target2!, (node) => node.propertyName],
+    _assertReplacementForChildren<PropertyExtraction>(
+      destination: parseResult.findNode.propertyExtraction('(a)'),
+      source: parseResult.findNode.propertyExtraction('(b)'),
+      childAccessors: [(node) => node.receiver],
     );
   }
 

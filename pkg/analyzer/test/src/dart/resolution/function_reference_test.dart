@@ -1699,10 +1699,26 @@ void foo(A a) {
     var node = result.findNode.functionReference('f<String>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+  function2: PropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::foo::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: f
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::f
+      invokeType: List<int> Function()
+      type: List<int>
+    staticType: List<int>
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::foo::@formalParameter::a
         staticType: A
@@ -1912,10 +1928,26 @@ void f(A a) {
     var node = result.findNode.functionReference('foo<double>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+  function2: PropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
@@ -1953,8 +1985,8 @@ void f(A? a, A b) {
     var node = result.findNode.functionReference('(a ?? b).foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+  function2: PropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: IfNull
         leftOperand: SimpleIdentifier
@@ -1968,6 +2000,31 @@ FunctionReference
           staticType: A
         staticType: A
       expression(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A?
+        operator: ??
+        rightOperand: SimpleIdentifier
+          token: b
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::b
+          staticType: A
+        element: <null>
+        staticInvokeType: null
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: BinaryExpression
         leftOperand: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
@@ -2001,6 +2058,23 @@ FunctionReference
   typeArgumentTypes
     int
 ''');
+  }
+
+  test_instanceMethod_explicitReceiver_otherExpression_tooManyTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  void foo<T>(T a) {}
+}
+
+void f(A a) {
+  (a).foo<int, String>;
+//       ^^^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsElement] The method 'foo' is declared with 1 type parameters, but 2 type arguments are given.
+}
+''');
+
+    var node = result.findNode.functionReference('foo<int, String>');
+    assertType(node, 'void Function(dynamic)');
   }
 
   test_instanceMethod_explicitReceiver_parameter_promoted() async {
@@ -2084,8 +2158,19 @@ var a = [].foo.call<int>;
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: PropertyAccess
-    target2: PropertyAccess
-      target2: ListLiteral
+    target2: PropertyExtraction
+      receiver: ListLiteral
+        leftBracket: [
+        rightBracket: ]
+        staticType: List<dynamic>
+      operator: .
+      propertyName: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@extension::#0::@method::foo
+        type: void Function<T>(T)
+      staticType: void Function<T>(T)
+    target(v1): PropertyAccess
+      target: ListLiteral
         leftBracket: [
         rightBracket: ]
         staticType: List<dynamic>
@@ -5121,10 +5206,26 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('(c).f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+  function2: PropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        staticType: C
+      rightParenthesis: )
+      staticType: C
+    operator: .
+    propertyName: f
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::f
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::foo::@formalParameter::c
         staticType: C

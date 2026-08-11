@@ -289,12 +289,30 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: S
+    rightParenthesis: )
+    staticType: S
+  operator: .
+  propertyName: test
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::Test::@getter::test
+      substitution: {T: S}
+    invokeType: S Function(S) Function()
+    type: S Function(S)
+  staticType: S Function(S)
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: S

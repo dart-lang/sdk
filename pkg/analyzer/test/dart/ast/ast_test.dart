@@ -1280,10 +1280,10 @@ void f() {
   void test_isNullAware_regularPropertyAccess() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
-  (a).foo;
+  (a).call;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('foo');
+    var invocation = parseResult.findNode.propertyAccess('call');
     expect(invocation.isNullAware, isFalse);
   }
 

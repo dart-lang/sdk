@@ -48,6 +48,12 @@ class UseResultVerifier {
     _check(node, element);
   }
 
+  void checkPropertyExtraction(PropertyExtractionImpl node) {
+    if (node.resolution case NamedReadResolutionWithElementImpl(:var element)) {
+      _check(node, element);
+    }
+  }
+
   void checkSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
@@ -224,6 +230,7 @@ class UseResultVerifier {
         parent is PatternAssignment ||
         parent is PatternVariableDeclaration ||
         parent is PropertyAccess ||
+        parent is PropertyExtraction ||
         parent is RecordLiteral ||
         parent is RecordLiteralNamedField ||
         parent is ReturnStatement ||

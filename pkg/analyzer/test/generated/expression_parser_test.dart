@@ -516,10 +516,18 @@ var v = (x).y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: x
+    rightParenthesis: )
+  operator: .
+  propertyName: y
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: x
     rightParenthesis: )
   operator: .

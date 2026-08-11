@@ -1268,6 +1268,21 @@ void main() {
 ''');
   }
 
+  test_method_result_targetedProperty_parenthesized() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  String foo() => '';
+}
+
+void main() {
+  (A().foo()).hashCode;
+}
+''');
+  }
+
   test_method_result_thrown() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';

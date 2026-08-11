@@ -924,6 +924,9 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
+  @experimental
+  void addPropertyExtraction(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addRecordLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addRecordLiteralNamedField(

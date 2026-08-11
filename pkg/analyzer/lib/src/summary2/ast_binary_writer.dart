@@ -718,6 +718,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
+    _writeByte(Tag.PropertyExtraction);
+    _writeNode(node.receiver);
+    _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
+    _writeStringReference(node.propertyName.lexeme);
+    _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitRecordLiteral(RecordLiteral node) {
     _writeByte(Tag.RecordLiteral);
     _writeByte(AstBinaryFlags.encode(isConst: node.constKeyword != null));

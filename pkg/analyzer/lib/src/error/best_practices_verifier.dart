@@ -858,6 +858,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitPropertyExtraction(PropertyExtraction node) {
+    _elementUsageFrontierDetector.propertyExtraction(node);
+    _invalidAccessVerifier.verifyPropertyExtraction(node);
+    super.visitPropertyExtraction(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -1907,6 +1914,16 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void verifyPropertyExtraction(PropertyExtraction node) {
+    var element = switch (node.resolution) {
+      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _verify(node: node, nameToken: node.propertyName, element: element);
+  }
+
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     if (element == null || _inCurrentLibrary(element)) return;
@@ -2195,6 +2212,9 @@ class _InvalidAccessVerifier {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is PropertyAssignmentTarget) {
+      name = node.propertyName.lexeme;
+      errorEntity = node.propertyName;
+    } else if (node is PropertyExtraction) {
       name = node.propertyName.lexeme;
       errorEntity = node.propertyName;
     } else if (node is UnqualifiedNameAssignmentTarget) {
