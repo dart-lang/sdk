@@ -78,6 +78,10 @@ deprecated_lint_with_replacement:
     We should be able to replace the deprecated lint rule with its replacement.
 duplicate_rule:
   status: hasFix
+exclude_invalid_glob:
+  status: needsFix
+  notes: |-
+    Remove the leading forward slash.
 include_file_not_found:
   status: noFix
   notes: |-

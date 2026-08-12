@@ -317,6 +317,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.equalKeysInMap,
   diag.equalKeysInMapPattern,
   diag.equalityCannotBeEqualityOperand,
+  diag.excludeInvalidGlob,
   diag.expectedCaseOrDefault,
   diag.expectedCatchClauseBody,
   diag.expectedClassBody,

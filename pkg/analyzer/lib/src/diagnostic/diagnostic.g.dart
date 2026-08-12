@@ -4928,6 +4928,24 @@ const DiagnosticWithoutArguments equalKeysInMapPattern =
       expectedTypes: [],
     );
 
+/// A warning code indicating that an exclude glob pattern is invalid.
+///
+/// Parameters:
+/// String pattern: the glob pattern
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String pattern})
+>
+excludeInvalidGlob = DiagnosticWithArguments(
+  name: 'exclude_invalid_glob',
+  problemMessage:
+      "The exclude glob pattern '{0}' shouldn't start with a forward slash.",
+  correctionMessage: "Remove the leading forward slash.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'exclude_invalid_glob',
+  withArguments: _withArgumentsExcludeInvalidGlob,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments expectedCaseOrDefault =
     DiagnosticWithoutArgumentsImpl(
@@ -19840,6 +19858,12 @@ LocatableDiagnostic _withArgumentsEnumWithAbstractMember({
     methodName,
     enclosingClass,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsExcludeInvalidGlob({
+  required String pattern,
+}) {
+  return LocatableDiagnosticImpl(diag.excludeInvalidGlob, [pattern]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedInstead({required String expected}) {
