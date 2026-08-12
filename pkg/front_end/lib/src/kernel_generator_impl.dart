@@ -133,9 +133,6 @@ Future<InternalCompilerResult> generateKernelInternal(
 
       kernelTarget.benchmarker
       // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.precompileMacros);
-      kernelTarget.benchmarker
-      // Coverage-ignore(suite): Not run.
       ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
       return _buildInternal(
         compilerContext,

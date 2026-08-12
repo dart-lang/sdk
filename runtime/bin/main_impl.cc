@@ -416,12 +416,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-  if (Options::load_module_snapshot() != nullptr) {
-    auto snapshot =
-        Snapshot::TryReadAppSnapshot(Options::load_module_snapshot());
+  for (const char* filename : Options::load_module_snapshots()) {
+    auto snapshot = Snapshot::TryReadAppSnapshot(filename);
     if (snapshot == nullptr) {
-      Syslog::PrintErr("Unable to load module snapshot %s.\n",
-                       Options::load_module_snapshot());
+      Syslog::PrintErr("Unable to load module snapshot %s.\n", filename);
       Dart_ExitScope();
       Dart_ShutdownIsolate();
       return nullptr;

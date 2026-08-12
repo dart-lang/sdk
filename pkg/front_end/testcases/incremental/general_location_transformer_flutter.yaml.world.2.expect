@@ -24,8 +24,6 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     static synthetic method _#new#tearOff() → main::Foo
       return new main::Foo::•($creationLocationd_0dea112b090073317d4: #C8);
-    synthetic no-such-method-forwarder set dart.developer::_location(dart.developer::CreationLocation? value) → void
-      return throw{for-error-handling} dart.core::NoSuchMethodError::withInvocation(this, new dart.core::_Invocation::setter(#C9, value));
   }
 }
 constants  {
@@ -37,7 +35,6 @@ constants  {
   #C6 = 7.0
   #C7 = "Foo"
   #C8 = dart.developer::CreationLocation {file:#C4, line:#C5, column:#C6, name:#C7}
-  #C9 = #org-dartlang-test:///main.dart::_location=
 }
 
 

@@ -10,18 +10,16 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     static synthetic method _#new#tearOff({wid::Widget? child = #C1}) → main::MyWidget
       return new main::MyWidget::•(child: child, $creationLocationd_0dea112b090073317d4: #C6);
-    synthetic no-such-method-forwarder set dart.developer::_location(dart.developer::CreationLocation? value) → void
-      return throw{for-error-handling} dart.core::NoSuchMethodError::withInvocation(this, new dart.core::_Invocation::setter(#C7, value));
   }
   static method main() → void {
-    main::MyWidget w1 = new main::MyWidget::•(child: new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: #C11), $creationLocationd_0dea112b090073317d4: #C13);
-    const main::MyWidget w2 = #C20;
-    const main::MyWidget w3 = #C22;
+    main::MyWidget w1 = new main::MyWidget::•(child: new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: #C10), $creationLocationd_0dea112b090073317d4: #C12);
+    const main::MyWidget w2 = #C19;
+    const main::MyWidget w3 = #C21;
   }
 }
 library from "org-dartlang-test:///widget.dart" as wid {
 
-  @#C24
+  @#C23
   abstract class Widget extends dart.core::Object implements dart.developer::_HasCreationLocation /*hasConstConstructor*/  {
     final field dart.developer::CreationLocation? dart.developer::_location;
     const constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C1}) → wid::Widget
@@ -36,9 +34,9 @@ library from "org-dartlang-test:///widget.dart" as wid {
       : super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static synthetic method _#new#tearOff() → wid::StandardWidget
-      return new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: #C27);
+      return new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: #C26);
     static synthetic method _#named#tearOff(dart.core::String name) → wid::StandardWidget
-      return new wid::StandardWidget::named(name, $creationLocationd_0dea112b090073317d4: #C29);
+      return new wid::StandardWidget::named(name, $creationLocationd_0dea112b090073317d4: #C28);
   }
 }
 constants  {
@@ -48,29 +46,28 @@ constants  {
   #C4 = 9.0
   #C5 = "MyWidget"
   #C6 = dart.developer::CreationLocation {file:#C2, line:#C3, column:#C4, name:#C5}
-  #C7 = #org-dartlang-test:///main.dart::_location=
-  #C8 = 10.0
-  #C9 = 28.0
-  #C10 = "StandardWidget"
-  #C11 = dart.developer::CreationLocation {file:#C2, line:#C8, column:#C9, name:#C10}
-  #C12 = 12.0
-  #C13 = dart.developer::CreationLocation {file:#C2, line:#C8, column:#C12, name:#C5}
-  #C14 = 11.0
-  #C15 = 45.0
-  #C16 = dart.developer::CreationLocation {file:#C2, line:#C14, column:#C15, name:#C10}
-  #C17 = wid::StandardWidget {_location:#C16}
-  #C18 = 14.0
-  #C19 = dart.developer::CreationLocation {file:#C2, line:#C14, column:#C18, name:#C5}
-  #C20 = main::MyWidget {child:#C17, _location:#C19}
-  #C21 = dart.developer::CreationLocation {file:#C2, line:#C12, column:#C18, name:#C5}
-  #C22 = main::MyWidget {child:#C20, _location:#C21}
-  #C23 = "track-creation-locations"
-  #C24 = dart.core::pragma {name:#C23, options:#C1}
-  #C25 = "org-dartlang-test:///widget.dart"
-  #C26 = 7.0
-  #C27 = dart.developer::CreationLocation {file:#C25, line:#C26, column:#C4, name:#C10}
-  #C28 = 8.0
-  #C29 = dart.developer::CreationLocation {file:#C25, line:#C28, column:#C4, name:#C10}
+  #C7 = 10.0
+  #C8 = 28.0
+  #C9 = "StandardWidget"
+  #C10 = dart.developer::CreationLocation {file:#C2, line:#C7, column:#C8, name:#C9}
+  #C11 = 12.0
+  #C12 = dart.developer::CreationLocation {file:#C2, line:#C7, column:#C11, name:#C5}
+  #C13 = 11.0
+  #C14 = 45.0
+  #C15 = dart.developer::CreationLocation {file:#C2, line:#C13, column:#C14, name:#C9}
+  #C16 = wid::StandardWidget {_location:#C15}
+  #C17 = 14.0
+  #C18 = dart.developer::CreationLocation {file:#C2, line:#C13, column:#C17, name:#C5}
+  #C19 = main::MyWidget {child:#C16, _location:#C18}
+  #C20 = dart.developer::CreationLocation {file:#C2, line:#C11, column:#C17, name:#C5}
+  #C21 = main::MyWidget {child:#C19, _location:#C20}
+  #C22 = "track-creation-locations"
+  #C23 = dart.core::pragma {name:#C22, options:#C1}
+  #C24 = "org-dartlang-test:///widget.dart"
+  #C25 = 7.0
+  #C26 = dart.developer::CreationLocation {file:#C24, line:#C25, column:#C4, name:#C9}
+  #C27 = 8.0
+  #C28 = dart.developer::CreationLocation {file:#C24, line:#C27, column:#C4, name:#C9}
 }
 
 
