@@ -887,6 +887,24 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_exclude_startsWithForwardSlash() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  exclude:
+    - /test/**
+//    ^^^^^^^^
+// [diag.excludeInvalidGlob] The exclude glob pattern '/test/**' shouldn't start with a forward slash.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: /test/**
+''');
+  }
+
   test_analyzer_invalid_notMap() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer: 7

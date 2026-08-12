@@ -25,10 +25,11 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    // TODO(srawlins): Support PrimaryConstructorBody.
-    var constructor = coveringNode
-        ?.thisOrAncestorOfType<ConstructorDeclaration>();
+    var constructor =
+        coveringNode?.thisOrAncestorOfType<ConstructorDeclaration>() ??
+        coveringNode?.thisOrAncestorOfType<PrimaryConstructorBody>();
     if (constructor == null) return;
+
     var body =
         constructor.thisOrAncestorOfType<BlockClassBody>() ??
         constructor.thisOrAncestorOfType<BlockEnumBody>();

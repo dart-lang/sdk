@@ -1673,7 +1673,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
   // We can't instrument the runtime.
   memory_.FlushAll();
 
-  ASSERT(Utils::IsAligned(get_register(SPREG), OS::ActivationFrameAlignment()));
+  ASSERT(Utils::IsAligned(get_register(R31), OS::ActivationFrameAlignment()));
 
   SimulatorSetjmpBuffer buffer(this);
   if (!DART_SETJMP(buffer.buffer_)) {

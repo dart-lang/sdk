@@ -215,6 +215,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
   __ ReserveAlignedFrameSpace(0);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
@@ -233,6 +234,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(R0);
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 

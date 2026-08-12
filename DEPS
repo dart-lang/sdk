@@ -83,7 +83,7 @@ vars = {
   "clang_version": "git_revision:dde579becf31add55c5a473f28fd010df36d2490",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:64cfb8344ec3e8585a89a3836716a026e2771fcb",
+  "gn_version": "git_revision:d5594ca84e69ea33223e41b49ac2736b27feae33",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -102,7 +102,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "9926156a583cec3d22d521232b31c70fa9a87dc1",
-  "boringssl_rev": "619e6bc3deda4e0d2fe4ad3fc439ae4fc1e00caf",
+  "boringssl_rev": "7976725593fe5d36a4d7a9f89990ecfde2c90dd3",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "21f1838f3a9b138ac377efb953ca5a53c8832e75",

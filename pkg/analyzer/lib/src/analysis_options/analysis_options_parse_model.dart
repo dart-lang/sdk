@@ -646,6 +646,13 @@ final class _ParsedExcludesData {
     for (var node in excludes.nodes) {
       if (node.stringValue case var pattern?) {
         patterns.add(pattern);
+        if (pattern.startsWith('/')) {
+          reporter.report(
+            diag.excludeInvalidGlob
+                .withArguments(pattern: pattern)
+                .atSourceSpan(node.span),
+          );
+        }
       } else {
         reporter.report(
           diag.invalidSectionFormat

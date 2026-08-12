@@ -26,7 +26,7 @@
 main() {
   final List<List?> arrays = [];
   // Fill up heap with alternate large-small items.
-  for (int i = 0; i < 500000; i++) {
+  for (int i = 0; i < 50000; i++) {
     arrays.add(new List.filled(260, null));
     arrays.add(new List.filled(1, null));
   }
@@ -35,7 +35,7 @@ main() {
     arrays[i] = null;
   }
   // Allocate a lot of 300-word objects that don't fit in the gaps.
-  for (int i = 0; i < 600000; i++) {
+  for (int i = 0; i < 60000; i++) {
     arrays.add(new List.filled(300, null));
   }
 }

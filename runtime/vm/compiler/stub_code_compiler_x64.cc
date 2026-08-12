@@ -332,6 +332,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
   __ movq(RAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
@@ -350,6 +351,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(RAX);
 
   __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
