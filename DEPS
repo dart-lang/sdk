@@ -83,7 +83,7 @@ vars = {
   "clang_version": "git_revision:dde579becf31add55c5a473f28fd010df36d2490",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:64cfb8344ec3e8585a89a3836716a026e2771fcb",
+  "gn_version": "git_revision:d5594ca84e69ea33223e41b49ac2736b27feae33",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
