@@ -92,7 +92,6 @@ lane
 libraries.json
 list.filled
 loadlibrary
-macro
 member(s)
 memorytype
 migrate

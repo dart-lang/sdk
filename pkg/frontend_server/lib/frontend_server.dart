@@ -928,7 +928,6 @@ class FrontendCompiler implements CompilerInterface {
       );
       final String? depfile = options['depfile'];
       if (depfile != null) {
-        // TODO(https://dartbug.com/55246): track macro deps when available.
         await writeDepfile(
           compilerOptions.fileSystem,
           compiledSources,

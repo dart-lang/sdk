@@ -462,10 +462,6 @@ class KernelTarget {
 
         benchmarker
         // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
-
-        benchmarker
-        // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_computeVariances);
         loader.computeVariances(loader.sourceLibraryBuilders);
 

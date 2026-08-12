@@ -1926,8 +1926,6 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
   //  outline/general/multiple_class_patches/main
   //  outline/general/patch_extends_implements/main
   //  outline/nnbd/platform_optional_parameters/main
-  //  pkg/front_end/test/macros/application/macro_application_test.dart -p \
-  //    subtypes.dart
   static const bool doTestLocation = false;
 
   void testLocation(TreeNode node) {
