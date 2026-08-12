@@ -796,13 +796,39 @@ typedef F = void Function(^final int);
     await assertNoAssist();
   }
 
-  @FailingTest(
-    reason: '''
-This functionality is disabled in `AddTypeAnnotation._forSimpleFormalParameter`
-because `writeType` is writing the names of the parameters when it shouldn't.
-''',
-  )
-  Future<void> test_parameter_functionType() async {
+  Future<void> test_parameter_functionType_requiredNamedParameter() async {
+    await resolveTestCode('''
+foo(f(void Function({required int value}) p)) {}
+void f() {
+  foo((^test) {});
+}
+''');
+    await assertHasAssist('''
+foo(f(void Function({required int value}) p)) {}
+void f() {
+  foo((void Function({required int value}) test) {});
+}
+''');
+  }
+
+  Future<void>
+  test_parameter_functionType_requiredPositionalParameter_withName() async {
+    await resolveTestCode('''
+foo(f(void Function(int value) p)) {}
+void f() {
+  foo((^test) {});
+}
+''');
+    await assertHasAssist('''
+foo(f(void Function(int value) p)) {}
+void f() {
+  foo((void Function(int value) test) {});
+}
+''');
+  }
+
+  Future<void>
+  test_parameter_functionType_requiredPositionalParameter_withoutName() async {
     await resolveTestCode('''
 foo(f(void Function(int) p)) {}
 void f() {

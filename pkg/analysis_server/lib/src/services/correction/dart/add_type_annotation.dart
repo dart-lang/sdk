@@ -160,7 +160,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     //  parameter, it would be nice to copy down the type from the overridden
     //  method.
     if (type is! InterfaceType &&
-        // type is! FunctionType &&
+        type is! FunctionType &&
         type is! RecordType) {
       return;
     }
