@@ -125,7 +125,6 @@ group("runtime_precompiled") {
   }
   if (dart_dynamic_modules) {
     deps += [ "utils/dart2bytecode:dart2bytecode_snapshot" ]
-    deps += [ "utils/modular_aot_compiler:modular_aot_compiler_snapshot" ]
     deps += [ "utils/dynamic_module_runner:dynamic_module_runner_snapshot" ]
   }
   if (include_experimental_vm_service && dart_target_arch != "ia32" &&
@@ -179,6 +178,13 @@ group("dart2wasm_benchmark") {
   deps = [
     ":dart2wasm_platform",
     "third_party/binaryen:wasm-opt",
+  ]
+}
+
+group("modular_aot_compiler") {
+  deps = [
+    ":runtime_precompiled",
+    "utils/modular_aot_compiler",
   ]
 }
 
