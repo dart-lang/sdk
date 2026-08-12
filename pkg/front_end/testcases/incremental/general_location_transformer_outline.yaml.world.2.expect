@@ -10,8 +10,6 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     static synthetic method _#new#tearOff({wid::Widget? child}) → main::MyWidget
       return new main::MyWidget::•(child: child, $creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::_(file: "org-dartlang-test:///main.dart", line: 4, column: 9, name: "MyWidget"));
-    synthetic no-such-method-forwarder set dart.developer::_location(dart.developer::CreationLocation? value) → void
-      return throw{for-error-handling} dart.core::NoSuchMethodError::withInvocation(this, new dart.core::_Invocation::setter(#_location=, value));
   }
   static method main() → void
     ;
