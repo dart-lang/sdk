@@ -851,9 +851,11 @@ extension CheckHelper on ProblemReporting {
         typeParameter.location?.file != null) {
       // It looks like when parameters come from augmentation libraries, they
       // don't have a reportable location.
-      MessageCode message = diag.incorrectTypeArgumentVariable;
+      MessageCode message;
       if (isVariancePosition) {
         message = diag.incorrectVariancePositionVariable;
+      } else {
+        message = diag.incorrectTypeArgumentVariable;
       }
       (context ??= <LocatedMessage>[]).add(
         message.withLocation(
