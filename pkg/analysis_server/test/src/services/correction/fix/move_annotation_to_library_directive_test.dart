@@ -59,7 +59,7 @@ void f(Completer c) {}
   }
 
   Future<void>
-  test_noExistingLibraryDirective_annotherAnnotationIsFirst() async {
+  test_noExistingLibraryDirective_anotherAnnotationIsFirst() async {
     await resolveTestCode('''
 @deprecated
 @pragma('dart2js:late:trust')
@@ -116,7 +116,6 @@ import 'dart:async';
 
 void f(Completer c) {}
 ''');
-    // TODO(srawlins): Fix the 4 newlines below; should be 2.
     await assertHasFix('''
 // Comment 1.
 
@@ -125,7 +124,50 @@ void f(Completer c) {}
 @pragma('dart2js:late:trust')
 library;
 
+@deprecated
+import 'dart:async';
 
+void f(Completer c) {}
+''');
+  }
+
+  Future<void> test_noExistingLibraryDirective_scriptTag() async {
+    await resolveTestCode('''
+#!/usr/bin/env dart
+@pragma('dart2js:late:trust')
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+    await assertHasFix('''
+#!/usr/bin/env dart
+@pragma('dart2js:late:trust')
+library;
+
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+  }
+
+  Future<void>
+  test_noExistingLibraryDirective_scriptTag_withCommentsAndAnnotations() async {
+    await resolveTestCode('''
+#!/usr/bin/env dart
+// Copyright notice.
+
+@deprecated
+@pragma('dart2js:late:trust')
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+    await assertHasFix('''
+#!/usr/bin/env dart
+// Copyright notice.
+
+@pragma('dart2js:late:trust')
+library;
 
 @deprecated
 import 'dart:async';
