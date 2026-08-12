@@ -127,10 +127,6 @@ multiple_plugins:
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
-plugins_in_inner_options:
-  status: needsFix
-  notes: |-
-    The fix is to delete the 'plugins' section.
 recursive_include_file:
   status: noFix
   notes: |-

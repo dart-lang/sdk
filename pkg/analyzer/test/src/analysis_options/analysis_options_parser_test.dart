@@ -4938,8 +4938,6 @@ version: 0.0.1
       innerOptionsFile: '''
 plugins:
   one: ^1.0.0
-//^^^^^^^^^^^
-// [diag.pluginsInInnerOptions] Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace.
 ''',
     });
 
