@@ -7462,9 +7462,7 @@ static void EmitSanCall(FlowGraphCompiler* compiler,
 #if defined(TARGET_ARCH_RISCV64)
   __ MoveRegister(FAR_TMP, PP);
 #endif
-#if defined(TARGET_ARCH_ARM64)
-  __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
-#else
+#if !defined(TARGET_ARCH_ARM64)
   __ ReserveAlignedFrameSpace(0);
 #endif
   auto& entry = move_parameters();
@@ -7482,9 +7480,6 @@ static void EmitSanCall(FlowGraphCompiler* compiler,
   __ MoveRegister(PP, FAR_TMP);
 #endif
   __ MoveRegister(SPREG, saved_sp);
-#if defined(TARGET_ARCH_ARM64)
-  __ SetupCSPFromThread(THR);
-#endif
   __ PopRegisters(spill_set);
 }
 
