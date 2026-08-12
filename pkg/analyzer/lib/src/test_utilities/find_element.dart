@@ -11,10 +11,10 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
-class FindElement2 extends _FindElementBase {
+class FindElement extends _FindElementBase {
   final CompilationUnit unit;
 
-  FindElement2(this.unit);
+  FindElement(this.unit);
 
   @override
   LibraryFragment get libraryFragment => unit.declaredFragment!;
