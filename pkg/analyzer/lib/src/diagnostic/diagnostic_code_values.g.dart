@@ -899,7 +899,6 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.patternVariableSharedCaseScopeNotAllCases,
   diag.permissionImpliesUnsupportedHardware,
   diag.platformValueDisallowed,
-  diag.pluginsInInnerOptions,
   diag.positionalAfterNamedArgument,
   diag.positionalFieldInObjectPattern,
   diag.positionalParameterOutsideGroup,

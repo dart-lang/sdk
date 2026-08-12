@@ -129,10 +129,10 @@ vars = {
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
   "core_rev": "4a5ae2bc9db1f39fac071f1a6fade64bd155f734",
-  "dartdoc_rev": "1fd02f73cfb2ade871f9ff9b96e7475fb81d5ce8",
+  "dartdoc_rev": "8be851e2bfc5e4cfc0c7ec6f64b1a89699bf6456",
   "ecosystem_rev": "ed9c592c1d35106c0a8a52044426515017a60646",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "9cb80c77562569705dd2089839a5526c5318c321",
+  "http_rev": "a9176ac97402a42e1b275a26eb20a9deaec92184",
   "i18n_rev": "e1b5a798f8922bb27bbc6d858748ece6f9a19f02",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
@@ -142,8 +142,8 @@ vars = {
   "shelf_rev": "fb3f931d2c158d794e83c1b76b7be4b625db3c28",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "dd426d439da9d399975a3455d4d507bce9fec01b",
-  "tools_rev": "f3ec9ed5a7b25dfef256bea9827dc1f81c8c7afc",
+  "test_rev": "55b186ddcad50fe4808226e0b681875dda6dd123",
+  "tools_rev": "d644cdabe20233a344fc0eb1f5cbd1cc3388ad9d",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
   "web_rev": "f1b9d561850355efd81b24fdbfd226dbe805d415",
   "webdriver_rev": "3a711ebb36871eac997c5d5d2429f7414873dc63",

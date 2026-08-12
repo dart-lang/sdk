@@ -282,11 +282,7 @@ plugins:
 
     // We only report one file in the conflict, not the second.
     var nestedErrors = filesErrors[nestedOptionsFile]!;
-
-    // TODO(srawlins): This is temporary. By the end of this arc of work, we
-    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
-    expect(nestedErrors, hasLength(1));
-    expect(nestedErrors[0].code, 'plugins_in_inner_options');
+    expect(nestedErrors, isEmpty);
   }
 
   Future<void> test_plugin_conflict_different_versions() async {
@@ -313,10 +309,7 @@ plugins:
 
     // We only report one file in the conflict, not the second.
     var nestedErrors = filesErrors[nestedOptionsFile]!;
-    // TODO(srawlins): This is temporary. By the end of this arc of work, we
-    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
-    expect(nestedErrors, hasLength(1));
-    expect(nestedErrors[0].code, 'plugins_in_inner_options');
+    expect(nestedErrors, isEmpty);
   }
 
   Future<void> test_plugin_conflict_resolved_on_update() async {
@@ -338,10 +331,8 @@ plugins:
     await pumpEventQueue();
 
     expect(filesErrors[optionsFile]!, hasLength(1));
-    // TODO(srawlins): This is temporary. By the end of this arc of work, we
-    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
-    expect(filesErrors[nestedOptionsFile]!, hasLength(1));
-    expect(filesErrors[nestedOptionsFile]![0].code, 'plugins_in_inner_options');
+    // We only report one file in the conflict, not the second.
+    expect(filesErrors[nestedOptionsFile]!, isEmpty);
 
     newAnalysisOptionsYamlFile(join(testPackageRootPath, 'sub'), '''
 plugins:
@@ -352,10 +343,7 @@ plugins:
     await waitForTasksFinished();
 
     expect(filesErrors[optionsFile]!, isEmpty);
-    // TODO(srawlins): This is temporary. By the end of this arc of work, we
-    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
-    expect(filesErrors[nestedOptionsFile]!, hasLength(1));
-    expect(filesErrors[nestedOptionsFile]![0].code, 'plugins_in_inner_options');
+    expect(filesErrors[nestedOptionsFile]!, isEmpty);
   }
 
   Future<void> test_plugin_no_conflict_different_plugins() async {
@@ -380,10 +368,7 @@ plugins:
     expect(rootErrors, isEmpty);
 
     var nestedErrors = filesErrors[nestedOptionsFile]!;
-    // TODO(srawlins): This is temporary. By the end of this arc of work, we
-    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
-    expect(nestedErrors, hasLength(1));
-    expect(nestedErrors[0].code, 'plugins_in_inner_options');
+    expect(nestedErrors, isEmpty);
   }
 
   Future<void> test_plugin_no_conflict_identical_sources() async {
@@ -408,9 +393,6 @@ plugins:
     expect(rootErrors, isEmpty);
 
     var nestedErrors = filesErrors[nestedOptionsFile]!;
-    // TODO(srawlins): This is temporary. By the end of this arc of work, we
-    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
-    expect(nestedErrors, hasLength(1));
-    expect(nestedErrors[0].code, 'plugins_in_inner_options');
+    expect(nestedErrors, isEmpty);
   }
 }

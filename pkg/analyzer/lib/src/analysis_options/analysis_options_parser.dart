@@ -577,7 +577,6 @@ final class _ParseRequest {
       file,
       () => _ParsedFileData.parse(
         file,
-        contextRoot: contextRoot,
         sdkVersionConstraint: sdkVersionConstraint,
         isInitialFile: isInitialFile,
       ),

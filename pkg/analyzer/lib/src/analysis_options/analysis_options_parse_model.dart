@@ -684,7 +684,6 @@ final class _ParsedFileData {
 
   factory _ParsedFileData.parse(
     _ParsedFileNode file, {
-    required Folder contextRoot,
     required VersionConstraint? sdkVersionConstraint,
     required bool isInitialFile,
   }) {
@@ -716,8 +715,6 @@ final class _ParsedFileData {
     var plugins = _ParsedPluginsData.parse(
       yamlMap?.valueAt(AnalysisOptionsFileKeys.plugins),
       file: file.file,
-      contextRoot: contextRoot,
-      isInitialFile: isInitialFile,
       reporter: reporter,
     );
 
@@ -1516,8 +1513,6 @@ final class _ParsedPluginsData {
   factory _ParsedPluginsData.parse(
     YamlNode? plugins, {
     required File file,
-    required Folder contextRoot,
-    required bool isInitialFile,
     required DiagnosticReporter reporter,
   }) {
     if (plugins == null) {
@@ -1536,14 +1531,6 @@ final class _ParsedPluginsData {
           );
       }
       return _ParsedPluginsData._(clearsExisting: true);
-    }
-
-    if (file.parent != contextRoot && isInitialFile) {
-      reporter.report(
-        diag.pluginsInInnerOptions
-            .withArguments(contextRoot: contextRoot.path)
-            .atSourceSpan(plugins.span),
-      );
     }
 
     var configurations = <PluginConfiguration>[];

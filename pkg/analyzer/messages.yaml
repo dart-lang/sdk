@@ -578,6 +578,7 @@ AnalysisOptionsWarningCode:
     type: staticWarning
     parameters:
       String contextRoot: the root of the analysis context
+    removedIn: "3.14"
     problemMessage: "Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace."
     correctionMessage: "Try specifying plugins in an analysis options file at '#contextRoot'."
     hasPublishedDocs: true
