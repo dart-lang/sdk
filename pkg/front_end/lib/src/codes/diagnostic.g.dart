@@ -5731,11 +5731,11 @@ const MessageCode incorrectTypeArgumentVariable = const MessageCode(
       """This is the type variable whose bound isn't conformed to.""",
 );
 
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode incorrectVariancePositionVariable = const MessageCode(
   "IncorrectVariancePositionVariable",
   severity: CfeSeverity.context,
-  problemMessage:
-      """This is the type variable which is referenced from an invalid position.""",
+  problemMessage: """This is the type variable which is referenced from an invalid position.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
