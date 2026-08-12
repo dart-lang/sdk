@@ -737,6 +737,8 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.notAType: [ChangeTo.classOrMixin],
   diag.notInitializedNonNullableInstanceField: [
     AddLate.new,
+    CreateConstructorForFinalFields.requiredNamed,
+    CreateConstructorForFinalFields.requiredPositional,
     MakeVariableNullable.new,
   ],
   diag.notInitializedNonNullableVariable: [
