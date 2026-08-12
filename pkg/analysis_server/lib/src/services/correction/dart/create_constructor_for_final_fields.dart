@@ -113,6 +113,11 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       var type = variableList.type?.type;
       var hasNonNullableType =
           type != null && typeSystem.isPotentiallyNonNullable(type);
+      // A nullable non-final field without an initializer is already valid
+      // Dart (it defaults to `null`); don't force it into the constructor.
+      if (!variableList.isFinal && !hasNonNullableType) {
+        continue;
+      }
 
       for (var field in variableList.variables) {
         var typeAnnotation = variableList.type;
@@ -175,7 +180,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       builder.insertConstructor(classDeclaration, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
-        builder.write('const ');
+        if (fixContext.canBeConst) {
+          builder.write('const ');
+        }
         if (isEnabled(Feature.primary_constructors)) {
           builder.write('new');
         } else {
@@ -229,7 +236,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       builder.insertConstructor(classDeclaration, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
-        builder.write('const ');
+        if (fixContext.canBeConst) {
+          builder.write('const ');
+        }
         if (isEnabled(Feature.primary_constructors)) {
           builder.write('new');
         } else {
@@ -528,6 +537,11 @@ class _FixContext {
     }
     return null;
   }
+
+  /// Whether a generated constructor initializing [variableLists] can be
+  /// `const`. A `const` constructor requires every instance field to be
+  /// final, so this is false as soon as a non-final field is included.
+  bool get canBeConst => variableLists.every((e) => e.isFinal);
 }
 
 enum _Style {
@@ -544,7 +558,13 @@ enum _Style {
 extension on List<ClassMember> {
   Iterable<VariableDeclarationList> get interestingVariableLists =>
       whereType<FieldDeclaration>()
+          .where(
+            (e) =>
+                !e.isStatic &&
+                e.abstractKeyword == null &&
+                e.externalKeyword == null,
+          )
           .map((e) => e.fields)
-          .where((e) => e.isFinal && !e.isLate)
+          .where((e) => !e.isLate)
           .toList();
 }
