@@ -58,6 +58,13 @@ DEFINE_FLAG(charp,
             nullptr,
             "The minimum OS version required for MacOS/iOS Mach-O snapshots");
 
+#if defined(DART_TARGET_OS_MACOS_IOS)
+DEFINE_FLAG(bool,
+            macho_ios_simulator,
+            false,
+            "Whether to mark Mach-O snapshots as targeting the iOS Simulator");
+#endif
+
 DEFINE_FLAG(charp,
             macho_rpath,
             nullptr,
@@ -1342,7 +1349,8 @@ class MachOBuildVersion : public MachOCommand {
 
   uint32_t platform() const {
 #if defined(DART_TARGET_OS_MACOS_IOS)
-    return mach_o::PLATFORM_IOS;
+    return FLAG_macho_ios_simulator ? mach_o::PLATFORM_IOSSIMULATOR
+                                    : mach_o::PLATFORM_IOS;
 #else
     return mach_o::PLATFORM_MACOS;
 #endif
