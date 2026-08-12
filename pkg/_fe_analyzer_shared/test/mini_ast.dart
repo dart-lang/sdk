@@ -2152,7 +2152,11 @@ class Harness {
         // if the unit test is deliberately trying to exercise a member lookup
         // that should find nothing, please use `addMember` to store an
         // explicit `null` value in the `_members` map.
-        fail('Unknown member query: $query');
+        fail(
+          'Unknown member query: $query. Either update '
+          'Harness._coreMemberTypes or call Harness.addMember from the top of '
+          'the test.',
+        );
     }
   }
 
