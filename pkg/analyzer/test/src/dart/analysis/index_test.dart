@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
@@ -7993,7 +7993,7 @@ final class _IndexResult {
 
   _IndexResult(this.resolvedUnit, this.index);
 
-  FindElement2 get findElement => resolvedUnit.findElement;
+  FindElement get findElement => resolvedUnit.findElement;
 }
 
 final class _IndexTextBuilder {

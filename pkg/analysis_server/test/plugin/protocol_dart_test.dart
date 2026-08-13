@@ -28,7 +28,7 @@ class ConvertElementTest extends AbstractSingleUnitTest {
 abstract class [!_A!] {}
 class B<K, V> {}''');
     {
-      var engineElement = findElement2.class_('_A');
+      var engineElement = findElement.class_('_A');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.CLASS);
@@ -47,7 +47,7 @@ class B<K, V> {}''');
       );
     }
     {
-      var engineElement = findElement2.class_('B');
+      var engineElement = findElement.class_('B');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.CLASS);
@@ -62,7 +62,7 @@ class B<K, V> {}''');
 class A {
   const A.[!myConstructor!](int a, [String? b]);
 }''');
-    var engineElement = findElement2.constructor('myConstructor');
+    var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
@@ -87,7 +87,7 @@ class A {
   const A.myConstructor(int a, {int? b, required int c});
 }''');
 
-    var engineElement = findElement2.constructor('myConstructor');
+    var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.parameters, '(int a, {required int c, int? b})');
@@ -102,7 +102,7 @@ class A {
   const A.myConstructor(int a, {int? b, required int d, required int c});
 }''');
 
-    var engineElement = findElement2.constructor('myConstructor');
+    var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(
@@ -121,7 +121,7 @@ class A {
   const A.myConstructor(int a, {int b, required int d, required int c, int a});
 }''');
 
-    var engineElement = findElement2.constructor('myConstructor');
+    var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(
@@ -148,7 +148,7 @@ class A {
 enum [!_E1!] { one, two }
 enum E2 { three, four }''');
     {
-      var engineElement = findElement2.enum_('_E1');
+      var engineElement = findElement.enum_('_E1');
       expect(engineElement.metadata.hasDeprecated, isTrue);
       // create notification Element
       var element = convertElement(engineElement);
@@ -169,7 +169,7 @@ enum E2 { three, four }''');
       );
     }
     {
-      var engineElement = findElement2.enum_('E2');
+      var engineElement = findElement.enum_('E2');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM);
@@ -185,7 +185,7 @@ enum E2 { three, four }''');
 enum _E1 { /*[0*/one/*0]*/, two }
 enum E2 { /*[1*/three/*1]*/, four }''');
     {
-      var engineElement = findElement2.field('one');
+      var engineElement = findElement.field('one');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
@@ -207,7 +207,7 @@ enum E2 { /*[1*/three/*1]*/, four }''');
       );
     }
     {
-      var engineElement = findElement2.field('three');
+      var engineElement = findElement.field('three');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
@@ -223,7 +223,7 @@ enum E2 { /*[1*/three/*1]*/, four }''');
       expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      var engineElement = findElement2.field('values', of: 'E2');
+      var engineElement = findElement.field('values', of: 'E2');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -247,7 +247,7 @@ enum E2 { /*[1*/three/*1]*/, four }''');
 class A {
   static const [!myField!] = 42;
 }''');
-    var engineElement = findElement2.field('myField');
+    var engineElement = findElement.field('myField');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.FIELD);
@@ -267,7 +267,7 @@ class A {
     await resolveTestCode('''
 typedef F<T> = int Function(String x);
 ''');
-    var engineElement = findElement2.typeAlias('F');
+    var engineElement = findElement.typeAlias('F');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.TYPE_ALIAS);
@@ -290,7 +290,7 @@ typedef F<T> = int Function(String x);
     await resolveTestCode('''
 typedef F<T> = Map<int, T>;
 ''');
-    var engineElement = findElement2.typeAlias('F');
+    var engineElement = findElement.typeAlias('F');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.TYPE_ALIAS);
@@ -314,7 +314,7 @@ typedef F<T> = Map<int, T>;
     await resolveTestCode('''
 typedef int F<T>(String x);
 ''');
-    var engineElement = findElement2.typeAlias('F');
+    var engineElement = findElement.typeAlias('F');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.TYPE_ALIAS);
@@ -339,7 +339,7 @@ typedef int F<T>(String x);
 class A {
   String get [!myGetter!] => 42;
 }''');
-    var engineElement = findElement2.getter('myGetter');
+    var engineElement = findElement.getter('myGetter');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.GETTER);
@@ -363,7 +363,7 @@ void f() {
     break myLabel;
   }
 }''');
-    var engineElement = findElement2.label('myLabel');
+    var engineElement = findElement.label('myLabel');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.LABEL);
@@ -386,7 +386,7 @@ class A {
     return [];
   }
 }''');
-    var engineElement = findElement2.method('myMethod');
+    var engineElement = findElement.method('myMethod');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.METHOD);
@@ -407,7 +407,7 @@ class A {
 mixin A {}
 ''');
     {
-      var engineElement = findElement2.mixin('A');
+      var engineElement = findElement.mixin('A');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.MIXIN);
@@ -431,7 +431,7 @@ mixin A {}
 class A {
   set [!mySetter!](String x) {}
 }''');
-    var engineElement = findElement2.setter('mySetter');
+    var engineElement = findElement.setter('mySetter');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.SETTER);

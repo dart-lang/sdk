@@ -2323,7 +2323,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    var element = findElement2.field('field');
+    var element = findElement.field('field');
     createRenameRefactoringForElement2(element);
     expect(refactoring.refactoringName, 'Rename Field');
     expect(refactoring.oldName, 'field');
@@ -2803,7 +2803,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    var element = findElement2.field('field');
+    var element = findElement.field('field');
     createRenameRefactoringForElement2(element);
     expect(refactoring.refactoringName, 'Rename Field');
     expect(refactoring.oldName, 'field');
@@ -2833,7 +2833,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    var element = findElement2.field('field');
+    var element = findElement.field('field');
     createRenameRefactoringForElement2(element);
     expect(refactoring.refactoringName, 'Rename Field');
     expect(refactoring.oldName, 'field');

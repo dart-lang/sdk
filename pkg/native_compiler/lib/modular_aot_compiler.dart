@@ -16,7 +16,10 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalArguments,
         parseExperimentalFlags,
         resolveInputUri;
-import 'package:kernel/ast.dart' as ast show Component;
+import 'package:kernel/ast.dart' as ast show Component, Library;
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:native_compiler/compilation_set.dart';
@@ -181,6 +184,7 @@ Future<void> main(List<String> arguments) async {
 Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final ArgResults options = _argParser.parse(arguments);
   final String? platformKernel = options['platform'];
+  final bool compilePlatform = options['compile-platform'];
 
   if (options['help']) {
     print(_usage);
@@ -188,13 +192,14 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   }
 
   final String? input = options.rest.singleOrNull;
-  if (input == null || platformKernel == null) {
+  if ((input == null && !compilePlatform) || platformKernel == null) {
     print(_usage);
     return badUsageExitCode;
   }
 
   final String outputFileName =
-      options['output'] ?? "$input.$snapshotExtension";
+      options['output'] ??
+      "${compilePlatform ? platformKernel : input}.$snapshotExtension";
   final String? packages = options['packages'];
   final String targetName = options['target'];
   final String? fileSystemScheme = options['filesystem-scheme'];
@@ -217,7 +222,6 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
 
   final TargetCPU targetCPU = TargetCPU.fromName(options['target-arch']);
   final ImageFormat imageFormat = ImageFormat.fromName(options['image-format']);
-  final bool compilePlatform = options['compile-platform'];
 
   final String? printFlowGraph = options['print-flow-graph'];
   final bool printFlowGraphAfterEveryPass =
@@ -229,78 +233,99 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     fileSystemRoots,
   );
 
-  final Uri? packagesUri = packages != null ? resolveInputUri(packages) : null;
-
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
 
-  final additionalDillModules = <Uri>[];
-  if (importDill != null) {
-    additionalDillModules.add(Uri.base.resolveUri(new Uri.file(importDill)));
-  }
+  final ast.Component component;
+  final List<ast.Library> libraries;
+  final CoreTypes coreTypes;
+  final ClassHierarchy classHierarchy;
+  final Iterable<Uri> compiledSources;
 
-  final verbosity = Verbosity.parseArgument(messageVerbosity);
-  final errorPrinter = ErrorPrinter(verbosity, println: print);
-  final errorDetector = ErrorDetector(previousErrorHandler: errorPrinter.call);
+  if (compilePlatform) {
+    component = ast.Component();
+    final entry = fileSystem.entityForUri(platformKernelUri);
+    final bytes = await entry.readAsBytes();
+    BinaryBuilder(bytes).readComponent(component);
 
-  Uri mainUri = resolveInputUri(input);
-  if (packagesUri != null) {
-    mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
-  }
+    libraries = component.libraries;
+    coreTypes = CoreTypes(component);
+    classHierarchy = ClassHierarchy(component, coreTypes);
+    compiledSources = [platformKernelUri];
+  } else {
+    final Uri? packagesUri = packages != null
+        ? resolveInputUri(packages)
+        : null;
 
-  final compilerOptions = CompilerOptions()
-    ..sdkSummary = platformKernelUri
-    ..fileSystem = fileSystem
-    ..additionalDillModules = additionalDillModules
-    ..packagesFileUri = packagesUri
-    ..explicitExperimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(experimentalFlags),
-      onError: print,
-    )
-    ..onDiagnostic = (CfeDiagnosticMessage m) {
-      errorDetector(m);
+    final additionalDillModules = <Uri>[];
+    if (importDill != null) {
+      additionalDillModules.add(Uri.base.resolveUri(new Uri.file(importDill)));
     }
-    ..embedSourceText = false
-    ..invocationModes = InvocationMode.parseArguments(cfeInvocationModes)
-    ..verbosity = verbosity
-    ..target = createFrontEndTarget(
-      targetName,
-      trackCreationLocations: trackCreationLocations,
-      supportMirrors: false,
-      isClosureContextLoweringEnabled: useAstScopes,
+
+    final verbosity = Verbosity.parseArgument(messageVerbosity);
+    final errorPrinter = ErrorPrinter(verbosity, println: print);
+    final errorDetector = ErrorDetector(
+      previousErrorHandler: errorPrinter.call,
     );
 
-  if (compilerOptions.target == null) {
-    print('Failed to create front-end target $targetName.');
-    return badUsageExitCode;
+    Uri mainUri = resolveInputUri(input!);
+    if (packagesUri != null) {
+      mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
+    }
+
+    final compilerOptions = CompilerOptions()
+      ..sdkSummary = platformKernelUri
+      ..fileSystem = fileSystem
+      ..additionalDillModules = additionalDillModules
+      ..packagesFileUri = packagesUri
+      ..explicitExperimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(experimentalFlags),
+        onError: print,
+      )
+      ..onDiagnostic = (CfeDiagnosticMessage m) {
+        errorDetector(m);
+      }
+      ..embedSourceText = false
+      ..invocationModes = InvocationMode.parseArguments(cfeInvocationModes)
+      ..verbosity = verbosity
+      ..target = createFrontEndTarget(
+        targetName,
+        trackCreationLocations: trackCreationLocations,
+        supportMirrors: false,
+        isClosureContextLoweringEnabled: useAstScopes,
+      );
+
+    if (compilerOptions.target == null) {
+      print('Failed to create front-end target $targetName.');
+      return badUsageExitCode;
+    }
+
+    final results = await compileToKernel(
+      KernelCompilationArguments(
+        source: mainUri,
+        options: compilerOptions,
+        requireMain: false,
+        includePlatform: false,
+        environmentDefines: Map.of(environmentDefines),
+        enableAsserts: enableAsserts,
+      ),
+    );
+
+    errorPrinter.printCompilationMessages();
+
+    if (errorDetector.hasCompilationErrors || results.component == null) {
+      return compileTimeErrorExitCode;
+    }
+
+    component = results.component!;
+    libraries = component.libraries
+        .where((lib) => !results.loadedLibraries.contains(lib))
+        .toList();
+    coreTypes = results.coreTypes!;
+    classHierarchy = results.classHierarchy!;
+    compiledSources = results.compiledSources!;
   }
 
-  final results = await compileToKernel(
-    KernelCompilationArguments(
-      source: mainUri,
-      options: compilerOptions,
-      requireMain: false,
-      includePlatform: false,
-      environmentDefines: Map.of(environmentDefines),
-      enableAsserts: enableAsserts,
-    ),
-  );
-
-  errorPrinter.printCompilationMessages();
-
-  final ast.Component? component = results.component;
-  if (errorDetector.hasCompilationErrors || component == null) {
-    return compileTimeErrorExitCode;
-  }
-
-  final libraries = compilePlatform
-      ? component.libraries
-      : component.libraries
-            .where((lib) => !results.loadedLibraries.contains(lib))
-            .toList();
-  final typeEnvironment = TypeEnvironment(
-    results.coreTypes!,
-    results.classHierarchy!,
-  );
+  final typeEnvironment = TypeEnvironment(coreTypes, classHierarchy);
   final coreLibraries = LibraryIndex.coreLibraries(component);
   final config = DevelopmentCompilerConfiguration(
     targetCPU,
@@ -328,7 +353,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   if (depfile != null) {
     await writeDepfile(
       fileSystem,
-      results.compiledSources!,
+      compiledSources,
       depfileTarget ?? outputFileName,
       depfile,
     );

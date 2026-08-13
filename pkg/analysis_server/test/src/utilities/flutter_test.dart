@@ -442,19 +442,19 @@ class NotFlutter {}
 abstract class NotWidget extends State {}
 ''');
 
-    var myStatelessWidget = findElement2.class_('MyStatelessWidget');
+    var myStatelessWidget = findElement.class_('MyStatelessWidget');
     expect(myStatelessWidget.isWidget, isTrue);
 
-    var myStatefulWidget = findElement2.class_('MyStatefulWidget');
+    var myStatefulWidget = findElement.class_('MyStatefulWidget');
     expect(myStatefulWidget.isWidget, isTrue);
 
-    var myContainer = findElement2.class_('MyContainer');
+    var myContainer = findElement.class_('MyContainer');
     expect(myContainer.isWidget, isTrue);
 
-    var notFlutter = findElement2.class_('NotFlutter');
+    var notFlutter = findElement.class_('NotFlutter');
     expect(notFlutter.isWidget, isFalse);
 
-    var notWidget = findElement2.class_('NotWidget');
+    var notWidget = findElement.class_('NotWidget');
     expect(notWidget.isWidget, isFalse);
   }
 

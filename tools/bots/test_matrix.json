@@ -1418,7 +1418,7 @@
             "--dart-dynamic-modules",
             "runtime",
             "utils/dart2bytecode",
-            "utils/modular_aot_compiler"
+            "modular_aot_compiler"
           ]
         },
         {

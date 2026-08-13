@@ -19,7 +19,6 @@ class RemoveUnusedFieldTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedField;
 
-  @FailingTest(reason: 'Unimplemented')
   Future<void> test_enumValue_notUsed_noReference() async {
     await resolveTestCode(r'''
 enum _E { a, b, c }
