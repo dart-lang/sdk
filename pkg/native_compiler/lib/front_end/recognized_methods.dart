@@ -123,6 +123,68 @@ void buildArrayFactory(
   builder.addAllocateArray(kind, type, hasTypeArguments: hasTypeArguments);
 }
 
+/// Build IR for ThreadLocal._hasValue.
+void buildThreadLocalHasValue(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  // if (id >= Thread.threadLocals.length) return false;
+  final id = builder.stackTop;
+  final array = builder.addLoadExternalField(
+    objectLayout.Thread_threadLocals,
+    hasObject: false,
+  );
+  builder.addLoadInstanceField(objectLayout.Array_length);
+  builder.addComparison(.intGreaterOrEqual);
+
+  final failBlock = builder.newTargetBlock();
+  final continueBlock = builder.newTargetBlock();
+  builder.addBranch(failBlock, continueBlock);
+
+  // if (Thread.threadLocals[id] == sentinel) return false;
+  builder.startBlock(continueBlock);
+  builder.push(array);
+  builder.push(id);
+  builder.addLoadArrayElement(.fixedLengthList, const LateValueType());
+  builder.addSentinelConstant();
+  builder.addComparison(.equal);
+
+  final failBlock2 = builder.newTargetBlock();
+  final continueBlock2 = builder.newTargetBlock();
+  builder.addBranch(failBlock2, continueBlock2);
+
+  // Otherwise return true;
+  builder.startBlock(continueBlock2);
+  builder.addBoolConstant(true);
+  builder.addReturn();
+
+  final returnFalseBlock = builder.newJoinBlock();
+  builder.startBlock(failBlock);
+  builder.addGoto(returnFalseBlock);
+  builder.startBlock(failBlock2);
+  builder.addGoto(returnFalseBlock);
+
+  builder.startBlock(returnFalseBlock);
+  builder.addBoolConstant(false);
+  builder.addReturn();
+}
+
+/// Build IR for ThreadLocal._getValue.
+void buildThreadLocalGetValue(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  // return Thread.threadLocals[id];
+  final id = builder.pop();
+  builder.addLoadExternalField(
+    objectLayout.Thread_threadLocals,
+    hasObject: false,
+  );
+  builder.push(id);
+  builder.addLoadArrayElement(.fixedLengthList, const LateValueType());
+  builder.addTypeCast(const TopType(), isChecked: false);
+}
+
 /// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
 void buildUnimplementedRecognizedMethod(
   FlowGraphBuilder builder,
@@ -470,5 +532,22 @@ final class VmRecognizedMethods(
           index.getClass('dart:typed_data', '${arrayKind.elementName}List'),
         );
       },
+
+    // dart:_vm
+    index.getProcedure(
+      'dart:_vm',
+      'ThreadLocal',
+      '_hasValue',
+    ): (FlowGraphBuilder builder) {
+      buildThreadLocalHasValue(builder, objectLayout);
+    },
+
+    index.getProcedure(
+      'dart:_vm',
+      'ThreadLocal',
+      '_getValue',
+    ): (FlowGraphBuilder builder) {
+      buildThreadLocalGetValue(builder, objectLayout);
+    },
   };
 }

@@ -3818,7 +3818,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: x
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +

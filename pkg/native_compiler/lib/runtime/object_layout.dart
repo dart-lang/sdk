@@ -240,6 +240,19 @@ class ObjectLayout {
     isFinal: true,
   );
 
+  // External non-Dart fields.
+  late final ast.Class _threadClass = ast.Class(
+    name: '#Thread',
+    supertype: ast.Supertype(_coreTypes.objectClass, const []),
+    fileUri: ast.dummyUri,
+  )..parent = _vmLibrary;
+  late final CField Thread_threadLocals = _createBuiltInField(
+    _threadClass,
+    'threadLocals',
+    _coreTypes.listNonNullableRawType,
+    vmOffsets.Thread_thread_locals_offset,
+  );
+
   // Layout of built-in instances is specified either as
   // 'int size' or '(int size, int typeArgsOffset)' if class is generic.
 
@@ -272,12 +285,15 @@ class ObjectLayout {
     ),
   };
 
+  late final Map<String, Object> _dartVmInstanceLayout = {'#Thread': 0};
+
   late final ast.Library _typedDataLibrary = _libraryIndex.getLibrary(
     'dart:typed_data',
   );
   late final ast.Library _compactHashLibrary = _libraryIndex.getLibrary(
     'dart:_compact_hash',
   );
+  late final ast.Library _vmLibrary = _libraryIndex.getLibrary('dart:_vm');
 
   bool _computeLayoutOfBuiltInClass(ast.Class cls) {
     final library = cls.enclosingLibrary;
@@ -291,6 +307,8 @@ class ObjectLayout {
       layout = _dartTypedDataInstanceLayout[cls.name];
     } else if (library == _compactHashLibrary) {
       layout = _dartCompactHashInstanceLayout[cls.name];
+    } else if (library == _vmLibrary) {
+      layout = _dartVmInstanceLayout[cls.name];
     }
     // TODO: add built-in classes from dart:ffi
     if (layout != null) {

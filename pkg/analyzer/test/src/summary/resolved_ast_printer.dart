@@ -2055,6 +2055,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     if (node case ExpressionImpl expression) {
       var v1 = V1Projection.toV1Expression(expression);
       if (!identical(v1, expression)) {
+        _sink.writeWithIndent('V1: ');
         writeNode(v1);
       }
     }

@@ -630,7 +630,7 @@ PropertyExtraction
     element: dart:foo::@class::A::@method::foo
     type: void Function()
   staticType: void Function()
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier

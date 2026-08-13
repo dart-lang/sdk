@@ -261,11 +261,13 @@ class _WebSocketProtocolTransformer
 
   final _WebSocketPerMessageDeflate? _deflate;
   final _WebSocketTimelineLogger? _timelineLogger;
+  final _WebSocketProfileData? _profile;
   _WebSocketProtocolTransformer([
     this._serverSide = false,
     this._deflate,
     this._maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
     this._timelineLogger,
+    this._profile,
   ]);
 
   Stream<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/> bind(
@@ -522,10 +524,18 @@ class _WebSocketProtocolTransformer
       switch (_currentMessageType) {
         case _WebSocketMessageType.TEXT:
           _timelineLogger?.logReceive(_WebSocketOpcode.TEXT, bytes.length);
+          _profile?.recordReceive(
+            payloadSize: bytes.length,
+            opcode: _WebSocketOpcode.TEXT,
+          );
           _eventSink!.add(utf8.decode(bytes));
 
         case _WebSocketMessageType.BINARY:
           _timelineLogger?.logReceive(_WebSocketOpcode.BINARY, bytes.length);
+          _profile?.recordReceive(
+            payloadSize: bytes.length,
+            opcode: _WebSocketOpcode.BINARY,
+          );
           _eventSink!.add(bytes);
       }
       _currentMessageType = _WebSocketMessageType.NONE;
@@ -568,6 +578,11 @@ class _WebSocketProtocolTransformer
           closeCode: closeCode,
           reason: closeReason,
         );
+        _profile?.finishConnection(
+          direction: _WebSocketTrafficDirection.inbound,
+          closeCode: closeCode,
+          reason: closeReason,
+        );
         _eventSink!.close();
         break;
 
@@ -577,6 +592,10 @@ class _WebSocketProtocolTransformer
           payload.length,
           _WebSocketTrafficDirection.inbound,
         );
+        _profile?.recordPing(
+          payloadSize: payload.length,
+          direction: _WebSocketTrafficDirection.inbound,
+        );
         _eventSink!.add(_WebSocketPing(payload));
 
       case _WebSocketOpcode.PONG:
@@ -584,6 +603,10 @@ class _WebSocketProtocolTransformer
         _timelineLogger?.logPong(
           payload.length,
           _WebSocketTrafficDirection.inbound,
+        );
+        _profile?.recordPong(
+          payloadSize: payload.length,
+          direction: _WebSocketTrafficDirection.inbound,
         );
         _eventSink!.add(_WebSocketPong(payload));
     }
@@ -723,6 +746,9 @@ class _WebSocketTransformerImpl
           true,
           deflate,
           maxPayloadLength,
+          request.requestedUri.replace(
+            scheme: socket is SecureSocket ? 'wss' : 'ws',
+          ),
         ),
       );
     }
@@ -963,6 +989,10 @@ class _WebSocketOutgoingTransformer
         message.payload?.length ?? 0,
         _WebSocketTrafficDirection.outbound,
       );
+      webSocket._profile?.recordPong(
+        payloadSize: message.payload?.length ?? 0,
+        direction: _WebSocketTrafficDirection.outbound,
+      );
       addFrame(_WebSocketOpcode.PONG, message.payload);
       return;
     }
@@ -970,6 +1000,10 @@ class _WebSocketOutgoingTransformer
       webSocket._timelineLogger.logPing(
         message.payload?.length ?? 0,
         _WebSocketTrafficDirection.outbound,
+      );
+      webSocket._profile?.recordPing(
+        payloadSize: message.payload?.length ?? 0,
+        direction: _WebSocketTrafficDirection.outbound,
       );
       addFrame(_WebSocketOpcode.PING, message.payload);
       return;
@@ -1002,6 +1036,9 @@ class _WebSocketOutgoingTransformer
       opcode = _WebSocketOpcode.TEXT;
     }
     webSocket._timelineLogger.logSend(opcode, payloadBytes);
+
+    webSocket._profile?.recordSend(payloadSize: payloadBytes, opcode: opcode);
+
     addFrame(opcode, data);
   }
 
@@ -1023,6 +1060,11 @@ class _WebSocketOutgoingTransformer
       ];
     }
     webSocket._timelineLogger.logClose(
+      direction: _WebSocketTrafficDirection.outbound,
+      closeCode: code,
+      reason: reason,
+    );
+    webSocket._profile?.finishConnection(
       direction: _WebSocketTrafficDirection.outbound,
       closeCode: code,
       reason: reason,
@@ -1206,6 +1248,7 @@ class _WebSocketConsumer implements StreamConsumer {
           },
           onError: (Object error, StackTrace stackTrace) {
             webSocket._timelineLogger.logError(error);
+            webSocket._profile?.finishWithError(error);
             _closed = true;
             _cancel();
             if (error is ArgumentError) {
@@ -1301,6 +1344,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   Timer? _pingTimer;
   late _WebSocketConsumer _consumer;
   late final _WebSocketTimelineLogger _timelineLogger;
+  _WebSocketProfileData? _profile;
 
   int? _outCloseCode;
   String? _outCloseReason;
@@ -1444,6 +1488,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
               false,
               deflate,
               maxPayloadLength,
+              uri,
             );
           });
         })
@@ -1503,6 +1548,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     this._serverSide = false,
     _WebSocketPerMessageDeflate? deflate,
     int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
+    Uri? connectionUri,
   ]) : _controller = StreamController(sync: true) {
     _consumer = _WebSocketConsumer(this, _socket);
     _sink = _StreamSinkImpl(_consumer);
@@ -1510,11 +1556,25 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     _deflate = deflate;
     _timelineLogger = _WebSocketTimelineLogger(_serviceId);
 
+    _profile = WebSocketProfiler.startConnection(
+      _serviceId,
+      connectionUri ??
+          Uri(
+            scheme: _socket is SecureSocket ? 'wss' : 'ws',
+            host: _socket.remoteAddress.address,
+            port: _socket.remotePort,
+          ),
+      protocol: protocol,
+    );
+
+    _profile?.connectionOpened();
+
     var transformer = _WebSocketProtocolTransformer(
       _serverSide,
       deflate,
       maxPayloadLength,
       _timelineLogger,
+      _profile,
     );
 
     var subscription = _subscription = transformer
@@ -1532,6 +1592,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           },
           onError: (Object error, StackTrace stackTrace) {
             _timelineLogger.logError(error);
+            _profile?.finishWithError(error);
             _closeTimer?.cancel();
             if (error is FormatException) {
               _close(WebSocketStatus.invalidFramePayloadData);
@@ -1557,6 +1618,12 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             // Protocol close, use close code from transformer.
             _closeCode = transformer.closeCode;
             _closeReason = transformer.closeReason;
+            _profile?.finishConnection(
+              direction: _WebSocketTrafficDirection.inbound,
+              closeCode: transformer.closeCode,
+              reason: transformer.closeReason,
+            );
+
             _controller.close();
           },
           cancelOnError: true,
@@ -1655,6 +1722,11 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         // Reuse code and reason from the local close.
         _closeCode = _outCloseCode;
         _closeReason = _outCloseReason;
+        _profile?.finishConnection(
+          direction: _WebSocketTrafficDirection.outbound,
+          closeCode: _outCloseCode,
+          reason: _outCloseReason,
+        );
         _subscription?.cancel();
         _controller.close();
         _webSockets.remove(_serviceId);

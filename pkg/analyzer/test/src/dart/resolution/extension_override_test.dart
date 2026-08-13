@@ -816,7 +816,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -888,7 +888,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
@@ -965,7 +965,7 @@ PostfixIncrement
   element: <null>
   operatorResultType: dynamic
   staticType: InvalidType
-PostfixExpression
+V1: PostfixExpression
   operand: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -1039,7 +1039,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: package:test/lib.dart::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -1122,7 +1122,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: package:test/lib.dart::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p

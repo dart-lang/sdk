@@ -60,7 +60,7 @@ LogicalNot
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: bool
   staticType: bool
-PrefixExpression
+V1: PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
@@ -89,7 +89,7 @@ LogicalNot
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
   staticType: bool
-PrefixExpression
+V1: PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
@@ -129,7 +129,7 @@ LogicalNot
       staticType: bool
     staticType: bool?
   staticType: bool
-PrefixExpression
+V1: PrefixExpression
   operator: !
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -167,7 +167,7 @@ LogicalNot
     superKeyword: super
     staticType: A
   staticType: bool
-PrefixExpression
+V1: PrefixExpression
   operator: !
   operand: SuperExpression
     superKeyword: super
@@ -202,7 +202,7 @@ PrefixIncrement
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: PrefixExpression
     operator: ++
@@ -247,7 +247,7 @@ PrefixIncrement
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: a
@@ -294,7 +294,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: IndexExpression
     target: SimpleIdentifier
@@ -351,7 +351,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: IndexExpression
     target: SuperExpression
@@ -405,7 +405,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: IndexExpression
     target: ThisExpression
@@ -448,7 +448,7 @@ PrefixIncrement
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -481,7 +481,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <null>
   staticType: dynamic
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: a
@@ -523,7 +523,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: dart:core::@class::int::@method::unary-
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -559,7 +559,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: dart:core::@class::int::@method::unary-
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: x
@@ -594,7 +594,7 @@ PrefixIncrement
   element: <testLibrary>::@class::A::@method::+
   operatorResultType: Object
   staticType: Object
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -647,7 +647,7 @@ PrefixIncrement
   element: <testLibrary>::@extension::Ext::@method::+
   operatorResultType: InvalidType
   staticType: InvalidType
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: ExtensionOverride
     name: Ext
@@ -692,7 +692,7 @@ PrefixIncrement
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: int
@@ -736,7 +736,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int?
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -789,7 +789,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -842,7 +842,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -896,7 +896,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -966,7 +966,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: InstanceCreationExpression
@@ -1029,7 +1029,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: SuperExpression
@@ -1079,7 +1079,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: ThisExpression
@@ -1118,7 +1118,7 @@ PrefixIncrement
   element: dart:core::@class::double::@method::+
   operatorResultType: double
   staticType: double
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1151,7 +1151,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1184,7 +1184,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: num
   staticType: num
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1219,7 +1219,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: num
   staticType: num
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1259,7 +1259,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1296,7 +1296,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1333,7 +1333,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1372,7 +1372,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1408,7 +1408,7 @@ PrefixIncrement
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SuperExpression
     superKeyword: super
@@ -1461,7 +1461,7 @@ PrefixIncrement
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SwitchExpression
     switchKeyword: switch
@@ -1515,7 +1515,7 @@ PrefixIncrement
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1561,7 +1561,7 @@ UnaryOperatorInvocation
   unaryOperator: bitwiseComplement
   element: dart:core::@class::int::@method::~
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ~
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -1597,7 +1597,7 @@ UnaryOperatorInvocation
   unaryOperator: bitwiseComplement
   element: dart:core::@class::int::@method::~
   staticType: int
-PrefixExpression
+V1: PrefixExpression
   operator: ~
   operand: SimpleIdentifier
     token: x

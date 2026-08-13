@@ -4928,7 +4928,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::C::@constructor::new
     substitution: {T: int}
   staticType: C<int> Function(int)
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: C

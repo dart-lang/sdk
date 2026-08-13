@@ -1082,6 +1082,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitLoadExternalField(LoadExternalField instr) {
+    final valueReg = outputReg(instr);
+    final objectReg = instr.hasObject ? inputReg(instr, 0) : threadReg;
+    _asm.ldr(
+      valueReg,
+      _asm.address(objectReg, objectLayout.getFieldOffset(instr.field)),
+    );
+  }
+
+  @override
   void visitLoadArrayElement(LoadArrayElement instr) {
     OperandSize sz = instr.kind.elementSize(objectLayout);
     int offset = instr.kind.dataOffset(vmOffsets);

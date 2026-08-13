@@ -400,7 +400,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: A
@@ -441,7 +441,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: A
@@ -481,7 +481,7 @@ PropertyExtraction
     element: <testLibrary>::@class::A::@method::foo
     type: void Function()
   staticType: void Function()
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: A
@@ -638,7 +638,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: A
@@ -674,7 +674,7 @@ PropertyExtraction
     element: <testLibrary>::@class::A::@method::foo
     type: void Function(int)
   staticType: void Function(int)
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: A
@@ -711,7 +711,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: A
@@ -752,7 +752,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: X
@@ -1086,7 +1086,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1135,7 +1135,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1186,7 +1186,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1237,7 +1237,7 @@ PropertyExtraction
     invokeType: double Function()
     type: double
   staticType: double
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1278,7 +1278,7 @@ PropertyExtraction
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1321,7 +1321,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1364,7 +1364,7 @@ PropertyExtraction
     invokeType: Type Function()
     type: Type
   staticType: Type
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1406,7 +1406,7 @@ PropertyExtraction
     element: dart:core::@class::Object::@method::toString
     type: String Function()
   staticType: String Function()
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1454,7 +1454,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1505,7 +1505,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1600,7 +1600,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1700,7 +1700,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1971,7 +1971,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2016,7 +2016,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2061,7 +2061,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2108,7 +2108,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2202,7 +2202,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2251,7 +2251,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2796,7 +2796,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
@@ -2849,7 +2849,7 @@ PropertyExtraction
     invokeType: bool Function()
     type: bool
   staticType: bool
-PropertyAccess
+V1: PropertyAccess
   target: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2900,7 +2900,7 @@ PropertyExtraction
     element: <testLibrary>::@class::A::@method::foo
     type: void Function(int)
   staticType: void Function(int)
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2944,7 +2944,7 @@ PropertyExtraction
   propertyName: foo
   resolution: <null>
   staticType: Never
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2995,7 +2995,7 @@ PropertyExtraction
   resolution: RecordFieldReadResolution
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: RecordLiteral
@@ -3042,7 +3042,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: SimpleStringLiteral
     literal: 'foo'
   operator: .
@@ -3236,7 +3236,7 @@ PropertyExtraction
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -3283,7 +3283,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -3348,7 +3348,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier

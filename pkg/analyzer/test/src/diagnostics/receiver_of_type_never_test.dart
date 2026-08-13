@@ -56,7 +56,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: <null>
   staticType: Never
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ParenthesizedExpression
     leftParenthesis: (
     expression: ThrowExpression
@@ -120,7 +120,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: <null>
   staticType: Never
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -195,7 +195,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: Never
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -255,7 +255,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: dart:core::@class::Object::@method::==
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -328,7 +328,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -413,7 +413,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: Never
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ParenthesizedExpression
     leftParenthesis: (
     expression: ThrowExpression
@@ -1026,7 +1026,7 @@ PostfixIncrement
   element: <null>
   operatorResultType: Never
   staticType: Never
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -1061,7 +1061,7 @@ PostfixIncrement
   element: <null>
   operatorResultType: dynamic
   staticType: Never?
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -1097,7 +1097,7 @@ PrefixIncrement
   element: <null>
   operatorResultType: Never
   staticType: Never
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1132,7 +1132,7 @@ PrefixIncrement
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1400,7 +1400,7 @@ PropertyExtraction
   propertyName: toString
   resolution: <null>
   staticType: Never
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: ThrowExpression
@@ -1484,7 +1484,7 @@ PropertyExtraction
   propertyName: hashCode
   resolution: <null>
   staticType: Never
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: ThrowExpression
