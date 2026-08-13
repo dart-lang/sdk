@@ -250,6 +250,17 @@ int f(E x) {
 ''', filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchExpression);
   }
 
+  Future<void> test_incomplete_switchExpression() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+int f(E e) => switch(e
+''');
+    await assertNoFix(
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.nonExhaustiveSwitchExpression,
+    );
+  }
+
   Future<void> test_num_anyDouble_intProperty() async {
     await resolveTestCode('''
 int f(num x) {
@@ -830,12 +841,6 @@ void f(my.E e) {
 ''');
   }
 
-  @FailingTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/49759',
-    reason:
-        'Expects no fix but produces a fix that adds the cases '
-        '(but does not fix the incomplete code)',
-  )
   Future<void> test_incomplete_switchStatement() async {
     await resolveTestCode(r'''
 enum E {a, b, c}

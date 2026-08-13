@@ -27,6 +27,12 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
+    if (node is SwitchExpression && node.rightParenthesis.isSynthetic) {
+      return;
+    }
+    if (node is SwitchStatement && node.rightParenthesis.isSynthetic) {
+      return;
+    }
 
     var diagnostic = this.diagnostic;
     if (diagnostic is! Diagnostic) {
