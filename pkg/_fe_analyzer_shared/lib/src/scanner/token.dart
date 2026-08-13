@@ -47,6 +47,7 @@ class BeginToken extends SimpleToken {
    * Initialize a newly created token to have the given [type] at the given
    * [offset].
    */
+  @pragma('vm:prefer-inline')
   BeginToken(TokenType type, int offset, [CommentToken? precedingComment])
     : super(type, offset, precedingComment) {
     assert(
@@ -884,6 +885,7 @@ class SimpleToken extends SyntacticEntity implements Token {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
+  @pragma('vm:prefer-inline')
   SimpleToken(TokenType type, int offset, [this._precedingComment])
     : _typeAndOffset = (((offset + 1) << 8) | type.index) {
     // See https://github.com/dart-lang/sdk/issues/50048 for details.

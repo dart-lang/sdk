@@ -77,6 +77,7 @@ class StringScanner extends AbstractScanner {
   }
 
   @override
+  @pragma('vm:prefer-inline')
   @pragma('vm:unsafe:no-bounds-checks')
   int advance() {
     // Always increment so scanOffset goes past the end.

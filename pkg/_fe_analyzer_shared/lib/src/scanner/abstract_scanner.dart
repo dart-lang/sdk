@@ -276,6 +276,7 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
+  @pragma('vm:prefer-inline')
   void appendSubstringToken(
     TokenType type,
     int start,
@@ -348,6 +349,7 @@ abstract class AbstractScanner implements Scanner {
    * An operator token represent operators like ':', '.', ';', '&&', '==', '--',
    * '=>', etc.
    */
+  @pragma('vm:prefer-inline')
   void appendPrecedenceToken(TokenType type) {
     appendToken(new Token(type, tokenStart, comments));
   }
@@ -556,6 +558,7 @@ abstract class AbstractScanner implements Scanner {
    * Appends a token that begins a new group, represented by [type].
    * Group begin tokens are '{', '(', '[', '<' and '${'.
    */
+  @pragma('vm:prefer-inline')
   void appendBeginGroup(TokenType type) {
     BeginToken token = new BeginToken(type, tokenStart, comments);
     appendToken(token);
@@ -875,6 +878,7 @@ abstract class AbstractScanner implements Scanner {
    * something which cannot possibly be part of a type parameter/argument
    * list, like the '=' in the above example.
    */
+  @pragma('vm:prefer-inline')
   void discardOpenLt() {
     while (!groupingStack.isEmpty && groupingStack.head.kind == LT_TOKEN) {
       groupingStack = groupingStack.tail!;
@@ -2045,6 +2049,7 @@ abstract class AbstractScanner implements Scanner {
   /**
    * Append the given token to the [tail] of the current stream of tokens.
    */
+  @pragma('vm:prefer-inline')
   void appendToken(Token token) {
     tail.next = token;
     token.previous = tail;
@@ -2592,6 +2597,7 @@ class LineStarts extends Object with ListMixin<int> {
 
   // Specialize methods from [ListMixin].
   @override
+  @pragma('vm:prefer-inline')
   void add(int value) {
     if (arrayLength >= array.length) {
       grow(/* newLengthMinimum = */ 0);
