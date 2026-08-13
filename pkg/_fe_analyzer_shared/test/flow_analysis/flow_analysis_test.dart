@@ -9712,6 +9712,22 @@ main() {
         ]);
       });
 
+      test('guarded with logical or join', () {
+        var x1 = Var('x', identity: 'x1');
+        var x2 = Var('x', identity: 'x2');
+        var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+        h.run([
+          switchExpr(expr('int?'), [
+            x1
+                .pattern(type: 'int?')
+                .nullCheck
+                .or(x2.pattern(type: 'int?'))
+                .when(expr('bool'))
+                .thenExpr(checkNotPromoted(x)),
+          ]),
+        ]);
+      });
+
       group('guard promotes later cases:', () {
         test('when pattern fully covers the scrutinee type', () {
           // `case _ when x == null:` promotes `x` to non-null in later cases,
