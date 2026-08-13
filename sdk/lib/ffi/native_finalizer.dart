@@ -360,6 +360,15 @@ abstract final class NativeFinalizer {
   /// current isolate group but will not have a current isolate.
   external factory NativeFinalizer(Pointer<NativeFinalizerFunction> callback);
 
+  /// The finalization callback this finalizer was created with.
+  ///
+  /// An object that eagerly releases the native resource it owns, for example
+  /// in a `dispose` method, can [detach] from this finalizer and then run the
+  /// callback itself with [NativeFunctionPointer.asFunction], instead of
+  /// separately keeping track of the callback.
+  @Since('3.14')
+  Pointer<NativeFinalizerFunction> get callback;
+
   /// Attaches this finalizer to [value].
   ///
   /// When [value] is no longer accessible to the program,
