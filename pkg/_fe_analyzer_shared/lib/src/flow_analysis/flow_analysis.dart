@@ -730,10 +730,8 @@ abstract class FlowAnalysis<
   /// [AssignedVariables.endNode] for the for statement.
   ///
   /// [offset] is the last source offset that should be considered to be prior
-  /// to entry into the `for`. The offset of any character in the `for` keyword
-  /// (or `await` keyword, if present) should work, since no expressions can
-  /// appear in this range, but the first such character is probably the best
-  /// choice.
+  /// to entry into the loop condition. The offset of the first `;` in the
+  /// for-loop is probably the best choice.
   void for_conditionBegin(Node node, {int offset = 0});
 
   /// Call this method just after visiting the updaters of a conventional "for"
