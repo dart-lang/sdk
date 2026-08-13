@@ -2151,6 +2151,7 @@ typedef A = E;
 ''');
   }
 
+  // TODO(fshcheglov): Think why on constructor, not extension type as a whole?
   test_extensionTypePrivate_publicConstructor() async {
     await resolveTestCodeWithDiagnostics('''
 extension type _E(int i) {

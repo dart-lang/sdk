@@ -46,7 +46,8 @@ ClassDeclaration
     leftBracket: {
     members
       ConstructorDeclaration
-        typeName: SimpleIdentifier
+        typeName2: C
+        typeName(v1): SimpleIdentifier
           token: C
         parameters: FormalParameterList
           leftParenthesis: (
@@ -548,7 +549,8 @@ class C {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   period: .
   name: new
@@ -571,7 +573,8 @@ class C {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   period: .
   name: new
@@ -819,7 +822,8 @@ class C {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   period: .
   name: new
@@ -841,7 +845,8 @@ class C {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -874,7 +879,8 @@ class C {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -919,7 +925,8 @@ class C {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -958,7 +965,8 @@ class C {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -1008,7 +1016,8 @@ class C extends B {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -1041,7 +1050,8 @@ class C {
     var node = parseResult.findNode.constructor('named');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   period: .
   name: named

@@ -109,7 +109,6 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
     _scopeContext.visitConstructorDeclaration(
       node,
       visitor: this,
-      visitTypeName: (_) {},
       visitInitializers: (_) {},
       visitFactoryRedirectionTarget: (_) {},
     );

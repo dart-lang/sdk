@@ -1472,6 +1472,7 @@ package:analyzer/dart/ast/ast.dart:
     redirectedConstructor (getter: ConstructorName?)
     separator (getter: Token?)
     typeName (getter: SimpleIdentifier?)
+    typeName2 (getter: Token?, experimental)
   ConstructorFieldInitializer (class extends Object implements ConstructorInitializer, abstract, final):
     equals (getter: Token)
     expression (getter: Expression)

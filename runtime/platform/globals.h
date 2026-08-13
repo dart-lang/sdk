@@ -756,10 +756,6 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #error Target architecture detection failed.
 #endif
 
-#if defined(TARGET_ARCH_IA32)
-#error Architecture is no longer supported(dartbug.com/49969).
-#endif
-
 // The ordering between DART_TARGET_OS_MACOS_IOS and DART_TARGET_OS_MACOS
 // below is important, since the latter is sometimes defined when the former
 // is, and sometimes not (e.g., ffi tests), so we need to test the former

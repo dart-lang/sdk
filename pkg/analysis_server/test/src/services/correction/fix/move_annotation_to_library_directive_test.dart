@@ -58,20 +58,48 @@ void f(Completer c) {}
 ''');
   }
 
-  Future<void>
-  test_noExistingLibraryDirective_anotherAnnotationIsFirst() async {
+  Future<void> test_noExistingLibraryDirective_annotationOnDeclaration() async {
     await resolveTestCode('''
 @deprecated
 @pragma('dart2js:late:trust')
-import 'dart:async';
-
-void f(Completer c) {}
+class C {}
 ''');
     await assertHasFix('''
 @pragma('dart2js:late:trust')
 library;
 
 @deprecated
+class C {}
+''');
+  }
+
+  Future<void>
+  test_noExistingLibraryDirective_annotationOnDeclaration_withMetadata() async {
+    await resolveTestCode('''
+@deprecated
+@immutable
+class C {}
+''');
+    // There is no `library_annotations` diagnostic on `@deprecated`.
+    await assertNoFix();
+  }
+
+  Future<void>
+  test_noExistingLibraryDirective_anotherAnnotationIsFirst() async {
+    await resolveTestCode('''
+@deprecated
+@pragma('dart2js:late:trust')
+/// Doc comment.
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+    await assertHasFix('''
+@deprecated
+@pragma('dart2js:late:trust')
+/// Doc comment.
+library;
+
 import 'dart:async';
 
 void f(Completer c) {}
@@ -121,13 +149,125 @@ void f(Completer c) {}
 
 // Comment 2.
 
+@deprecated
 @pragma('dart2js:late:trust')
 library;
 
-@deprecated
 import 'dart:async';
 
 void f(Completer c) {}
+''');
+  }
+
+  Future<void>
+  test_noExistingLibraryDirective_documentationCommentIsFirst() async {
+    await resolveTestCode('''
+/// Doc comment.
+@deprecated
+@pragma('dart2js:late:trust')
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+    await assertHasFix('''
+/// Doc comment.
+@deprecated
+@pragma('dart2js:late:trust')
+library;
+
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+  }
+
+  Future<void>
+  test_noExistingLibraryDirective_firstDirective_mixedTargets() async {
+    writeTestPackageConfig(meta: true);
+    await resolveTestCode('''
+@LibraryOnly()
+@ImportOnly()
+import 'dart:async';
+
+import 'package:meta/meta_meta.dart';
+
+Completer? completer;
+
+@Target({TargetKind.library})
+class LibraryOnly {
+  const LibraryOnly();
+}
+
+@Target({TargetKind.importDirective})
+class ImportOnly {
+  const ImportOnly();
+}
+''');
+    await assertHasFix('''
+@LibraryOnly()
+library;
+
+@ImportOnly()
+import 'dart:async';
+
+import 'package:meta/meta_meta.dart';
+
+Completer? completer;
+
+@Target({TargetKind.library})
+class LibraryOnly {
+  const LibraryOnly();
+}
+
+@Target({TargetKind.importDirective})
+class ImportOnly {
+  const ImportOnly();
+}
+''');
+  }
+
+  Future<void>
+  test_noExistingLibraryDirective_firstDirective_mixedTargets_reversed() async {
+    writeTestPackageConfig(meta: true);
+    await resolveTestCode('''
+@ImportOnly()
+@LibraryOnly()
+import 'dart:async';
+
+import 'package:meta/meta_meta.dart';
+
+Completer? completer;
+
+@Target({TargetKind.library})
+class LibraryOnly {
+  const LibraryOnly();
+}
+
+@Target({TargetKind.importDirective})
+class ImportOnly {
+  const ImportOnly();
+}
+''');
+    await assertHasFix('''
+@LibraryOnly()
+library;
+
+@ImportOnly()
+import 'dart:async';
+
+import 'package:meta/meta_meta.dart';
+
+Completer? completer;
+
+@Target({TargetKind.library})
+class LibraryOnly {
+  const LibraryOnly();
+}
+
+@Target({TargetKind.importDirective})
+class ImportOnly {
+  const ImportOnly();
+}
 ''');
   }
 
@@ -156,6 +296,7 @@ void f(Completer c) {}
 #!/usr/bin/env dart
 // Copyright notice.
 
+/// Doc comment.
 @deprecated
 @pragma('dart2js:late:trust')
 import 'dart:async';
@@ -166,10 +307,11 @@ void f(Completer c) {}
 #!/usr/bin/env dart
 // Copyright notice.
 
+/// Doc comment.
+@deprecated
 @pragma('dart2js:late:trust')
 library;
 
-@deprecated
 import 'dart:async';
 
 void f(Completer c) {}

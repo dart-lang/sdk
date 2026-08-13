@@ -816,7 +816,8 @@ CompilationUnit
         members
           ConstructorDeclaration
             constKeyword: const
-            typeName: SimpleIdentifier
+            typeName2: A
+            typeName(v1): SimpleIdentifier
               token: A
             parameters: FormalParameterList
               leftParenthesis: (

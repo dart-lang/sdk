@@ -568,7 +568,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: Foo
+  typeName(v1): SimpleIdentifier
     token: Foo
   parameters: FormalParameterList
     leftParenthesis: (
@@ -1196,7 +1197,8 @@ ConstructorDeclaration
   documentationComment: Comment
     tokens
       /// Doc
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -1215,7 +1217,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -2806,7 +2809,8 @@ class C {
 ConstructorDeclaration
   constKeyword: const
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -2845,7 +2849,8 @@ class C {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -2870,7 +2875,8 @@ class C {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -2896,7 +2902,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -2963,7 +2970,8 @@ ConstructorDeclaration
   externalKeyword: external
   constKeyword: const
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -2983,7 +2991,8 @@ class C {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   period: .
   name: foo
@@ -3009,7 +3018,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -3067,7 +3077,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -3088,7 +3099,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   period: .
   name: foo
@@ -3128,7 +3140,8 @@ CompilationUnit
         members
           ConstructorDeclaration
             constKeyword: const
-            typeName: SimpleIdentifier
+            typeName2: <empty> <synthetic>
+            typeName(v1): SimpleIdentifier
               token: <empty> <synthetic>
             parameters: FormalParameterList
               leftParenthesis: (
@@ -3177,7 +3190,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: /
+            typeName(v1): SimpleIdentifier
               token: /
             parameters: FormalParameterList
               leftParenthesis: (
@@ -3208,7 +3222,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -3238,7 +3253,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -3264,7 +3280,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -3283,7 +3300,8 @@ class C {
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (

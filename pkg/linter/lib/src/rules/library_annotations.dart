@@ -39,9 +39,7 @@ class _Visitor(final LibraryAnnotations rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    if (node.directives.isNotEmpty) {
-      firstDirective = node.directives.first;
-    }
+    firstDirective = node.directives.firstOrNull;
     for (var directive in node.directives) {
       if (directive is PartOfDirective) return;
 

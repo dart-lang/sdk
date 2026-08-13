@@ -102,14 +102,12 @@ class ScopeContext {
   void visitConstructorDeclaration(
     ConstructorDeclarationImpl node, {
     required AstVisitor2 visitor,
-    void Function(SimpleIdentifierImpl)? visitTypeName,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
     void Function(ConstructorReference2Impl)? visitFactoryRedirectionTarget,
   }) {
     var fragment = node.declaredFragment!;
 
     node.metadata.accept2(visitor);
-    node.typeName?.visitWithOverride(visitor, visitTypeName);
     node.parameters.accept2(visitor);
 
     withScope(_constructorInitializerScope(fragment), () {

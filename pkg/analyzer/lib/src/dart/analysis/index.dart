@@ -868,10 +868,21 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
 
   @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+    // TODO(fshcheglov): Consider removing the index entry.
+    var element = node.declaredFragment!.element;
+    if (node.typeName2 case var typeName?
+        when typeName.lexeme == element.enclosingElement.name) {
+      recordRelation(
+        element.enclosingElement,
+        IndexRelationKind.IS_REFERENCED_BY,
+        typeName,
+        false,
+      );
+    }
+
     // If the constructor does not have an explicit `super` constructor
     // invocation, it implicitly invokes the unnamed constructor.
     if (node.initializers.none((e) => e is SuperConstructorInvocation)) {
-      var element = node.declaredFragment!.element;
       var superConstructor = element.superConstructor;
       if (superConstructor != null) {
         var range = node.errorRange;

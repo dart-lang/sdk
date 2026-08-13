@@ -2569,7 +2569,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         checkUnreachableNode(node);
         node.documentationComment?.accept2(this);
         node.metadata.accept2(this);
-        node.typeName?.accept2(this);
         node.parameters.accept2(this);
 
         flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);

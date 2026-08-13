@@ -102,8 +102,8 @@ class MemberDuplicateDefinitionVerifier {
           }
 
           // Skip if the typeName is wrong.
-          if (member.typeName case var typeName?) {
-            if (typeName.name != firstFragment.name) {
+          if (member.typeName2 case var typeName?) {
+            if (typeName.lexeme != firstFragment.name) {
               continue;
             }
           }
