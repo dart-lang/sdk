@@ -88,10 +88,10 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-
   A();
 
   A._();
+
   X() {}
 
   Y() {}
@@ -259,6 +259,66 @@ enum E {
   a;
   E();
   void m() {}
+}
+''');
+  }
+
+  Future<void> test_noBlankLineAfterOpeningBrace() async {
+    await resolveTestCode('''
+class A {
+  final String foo;
+
+  const A({required this.foo});
+}
+''');
+    await assertHasFix('''
+class A {
+  const A({required this.foo});
+
+  final String foo;
+}
+''');
+  }
+
+  Future<void> test_enum_noBlankLineAfterSemicolon() async {
+    await resolveTestCode('''
+enum A {
+  bar('Open'),
+  baz('Accepted Provisionally');
+
+  final String value;
+
+  const A(this.value);
+}
+''');
+    await assertHasFix('''
+enum A {
+  bar('Open'),
+  baz('Accepted Provisionally');
+  const A(this.value);
+
+  final String value;
+}
+''');
+  }
+
+  Future<void> test_enum_blankLineMovesFromOldGapToAfterConstructor() async {
+    await resolveTestCode('''
+enum A {
+  bar('Open'),
+  baz('Accepted Provisionally');
+  final String value;
+
+  const A(this.value);
+}
+''');
+    await assertHasFix('''
+enum A {
+  bar('Open'),
+  baz('Accepted Provisionally');
+  const A(this.value);
+
+  final String value;
 }
 ''');
   }
