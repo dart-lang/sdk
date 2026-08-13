@@ -91,7 +91,8 @@ class B {
     var node = result.findNode.constructorDeclaration('B(');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -180,7 +181,8 @@ class C {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -234,7 +236,8 @@ class C {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -293,7 +296,8 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -344,7 +348,8 @@ class B<U> {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -419,7 +424,8 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -470,7 +476,8 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -515,7 +522,8 @@ class B<U> {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -582,7 +590,8 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null

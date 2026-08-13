@@ -1504,7 +1504,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: A
+            typeName(v1): SimpleIdentifier
               token: A
             parameters: FormalParameterList
               leftParenthesis: (
@@ -3024,7 +3025,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3058,7 +3060,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3096,7 +3099,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: ( <synthetic>
@@ -3128,7 +3132,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3164,7 +3169,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: named

@@ -111,6 +111,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
+    if (node.typeName2 case var typeName?) {
+      if (typeName.lexeme == element.enclosingElement.name) {
+        _useIdentifierElement(element.enclosingElement);
+      }
+    }
+
     var factoryRedirectionTarget = node.factoryRedirectionTarget;
     if (factoryRedirectionTarget != null) {
       var redirectedElement = factoryRedirectionTarget.element;

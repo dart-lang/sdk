@@ -588,7 +588,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     node.documentationComment?.accept2(this);
-    node.typeName?.accept2(this);
     _bindFormalParameters(node.parameters, fragment.formalParameters);
 
     _withElementHolder(ElementHolder(fragment), () {

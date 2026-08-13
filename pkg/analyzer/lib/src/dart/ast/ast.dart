@@ -9639,7 +9639,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
   Token? get name;
 
   /// The token for the `new` keyword, or `null` if the keyword is absent, so
-  /// either [factoryKeyword] is not `null`, or the old syntax with [typeName]
+  /// either [factoryKeyword] is not `null`, or the old syntax with [typeName2]
   /// is used.
   Token? get newKeyword;
 
@@ -9664,7 +9664,14 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// The name of the enclosing type, e.g. `C` in `C() {}` or `C.named() {}`.
   ///
   /// Or `null` if uses new syntax with [newKeyword] or [factoryKeyword].
+  @ToBeDeprecated('Use typeName2 instead.')
   SimpleIdentifier? get typeName;
+
+  /// The name of the enclosing type, e.g. `C` in `C() {}` or `C.named() {}`.
+  ///
+  /// Or `null` if uses new syntax with [newKeyword] or [factoryKeyword].
+  @experimental
+  Token? get typeName2;
 }
 
 @GenerateNodeImpl(
@@ -9674,7 +9681,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
     GenerateNodeProperty('constKeyword', tokenGroupId: 0, isTokenFinal: false),
     GenerateNodeProperty('factoryKeyword', tokenGroupId: 0),
     GenerateNodeProperty('newKeyword', tokenGroupId: 0),
-    GenerateNodeProperty('typeName'),
+    GenerateNodeProperty('typeName2'),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty('parameters'),
@@ -9707,7 +9714,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   final Token? newKeyword;
 
   @generated
-  SimpleIdentifierImpl? _typeName;
+  @override
+  final Token? typeName2;
 
   @generated
   @override
@@ -9735,6 +9743,13 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   FunctionBodyImpl _body;
 
+  late final SimpleIdentifierImpl? _typeName = switch (typeName2) {
+    var typeName? => _becomeParentOf1(
+      SimpleIdentifierImpl.v1Projection(token: typeName),
+    ),
+    _ => null,
+  };
+
   @override
   ConstructorFragmentImpl? declaredFragment;
 
@@ -9754,7 +9769,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required this.constKeyword,
     required this.factoryKeyword,
     required this.newKeyword,
-    required SimpleIdentifierImpl? typeName,
+    required this.typeName2,
     required this.period,
     required this.name,
     required FormalParameterListImpl parameters,
@@ -9762,11 +9777,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required List<ConstructorInitializerImpl> initializers,
     required ConstructorReference2Impl? factoryRedirectionTarget,
     required FunctionBodyImpl body,
-  }) : _typeName = typeName,
-       _parameters = parameters,
+  }) : _parameters = parameters,
        _factoryRedirectionTarget = factoryRedirectionTarget,
        _body = body {
-    _becomeParentOf12(typeName);
     _becomeParentOf12(parameters);
     this.initializers._initialize(this, initializers);
     _becomeParentOf2(factoryRedirectionTarget);
@@ -9790,7 +9803,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   SourceRange get errorRange {
-    var startEntity = typeName ?? (newKeyword ?? factoryKeyword)!;
+    var startEntity = typeName2 ?? (newKeyword ?? factoryKeyword)!;
     var endEntity = name ?? startEntity;
     return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
@@ -9822,8 +9835,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
         case var result?) {
       return result;
     }
-    if (typeName case var typeName?) {
-      return typeName.beginToken;
+    if (typeName2 case var typeName2?) {
+      return typeName2;
     }
     if (period case var period?) {
       return period;
@@ -9878,13 +9891,14 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   ConstructorNameImpl? get redirectedConstructor =>
       _becomeParentOf1(factoryRedirectionTarget?.constructorName);
 
-  @generated
   @override
-  SimpleIdentifierImpl? get typeName => _typeName;
-
-  @generated
-  set typeName(SimpleIdentifierImpl? typeName) {
-    _typeName = _becomeParentOf12(typeName);
+  SimpleIdentifierImpl? get typeName {
+    var result = _typeName;
+    var fragment = declaredFragment;
+    if (result != null && fragment != null) {
+      result.element = fragment.element.enclosingElement;
+    }
+    return result;
   }
 
   @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
@@ -9913,7 +9927,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addToken('constKeyword', constKeyword)
     ..addToken('factoryKeyword', factoryKeyword)
     ..addToken('newKeyword', newKeyword)
-    ..addNode('typeName', typeName)
+    ..addToken('typeName2', typeName2)
     ..addToken('period', period)
     ..addToken('name', name)
     ..addNode('parameters', parameters)
@@ -9944,10 +9958,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(typeName, oldNode)) {
-      typeName = null;
-      return;
-    }
     if (identical(parameters, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'parameters'.");
     }
@@ -9969,10 +9979,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(typeName, oldNode)) {
-      typeName = newNode as SimpleIdentifierImpl?;
-      return;
-    }
     if (identical(parameters, oldNode)) {
       parameters = newNode as FormalParameterListImpl;
       return;
@@ -10008,7 +10014,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     _visitCommentAndAnnotations2(visitor);
-    typeName?.accept2(visitor);
     parameters.accept2(visitor);
     initializers.accept2(visitor);
     factoryRedirectionTarget?.accept2(visitor);
@@ -10024,20 +10029,12 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(SimpleIdentifierImpl)? visitTypeName,
     void Function(FormalParameterListImpl)? visitParameters,
     void Function(NodeListImpl<ConstructorInitializerImpl>)? visitInitializers,
     void Function(ConstructorReference2Impl)? visitFactoryRedirectionTarget,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
     _visitCommentAndAnnotations2(visitor);
-    if (typeName case var typeName?) {
-      if (visitTypeName != null) {
-        visitTypeName(typeName);
-      } else {
-        typeName.accept2(visitor);
-      }
-    }
     if (visitParameters != null) {
       visitParameters(parameters);
     } else {
@@ -10097,11 +10094,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
-    }
-    if (typeName case var typeName?) {
-      if (typeName._containsOffset(rangeOffset, rangeEnd)) {
-        return typeName;
-      }
     }
     if (parameters._containsOffset(rangeOffset, rangeEnd)) {
       return parameters;

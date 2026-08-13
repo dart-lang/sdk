@@ -778,9 +778,9 @@ class _InfoBuilder {
       ),
       newKeywordOffset: node.newKeyword?.offset,
       factoryKeywordOffset: node.factoryKeyword?.offset,
-      typeNameOffset: node.typeName?.offset,
+      typeNameOffset: node.typeName2?.offset,
       periodOffset: node.period?.offset,
-      nameEnd: (node.name ?? node.typeName)?.end,
+      nameEnd: (node.name ?? node.typeName2)?.end,
       thisKeywordOffset: null,
     );
   }

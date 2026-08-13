@@ -698,6 +698,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
+    var typeName = node.typeName2;
+
+    if (node.factoryKeyword != null &&
+        typeName != null &&
+        typeName.lexeme != element.enclosingElement.name) {
+      diagnosticReporter.report(diag.invalidFactoryNameNotAClass.at(typeName));
+    }
 
     _checkAugmentationWithoutDeclaration(declaredFragment, node.augmentKeyword);
     _checkForConstructorAugmentationModifierMismatch(node, declaredFragment);

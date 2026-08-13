@@ -523,6 +523,26 @@ Prefixes: (unprefixed),p
 ''');
   }
 
+  test_ClassElement_reference_constructorDeclaration() async {
+    var result = await _indexTestCode(r'''
+class A {
+  A();
+  A.named();
+}
+''');
+
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
+class A {
+  A();
+  ^ IS_REFERENCED_BY
+  A.named();
+  ^ IS_REFERENCED_BY
+}
+''');
+  }
+
   test_ClassElement_reference_definedInSdk() async {
     var result = await _indexTestCode(r'''
 import 'dart:math';

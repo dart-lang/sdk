@@ -97,10 +97,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
     } else if (fragment is ConstructorFragment) {
       var token = switch (node) {
         ConstructorDeclaration() =>
-          node.name ??
-              node.typeName?.token ??
-              node.newKeyword ??
-              node.factoryKeyword,
+          node.name ?? node.typeName2 ?? node.newKeyword ?? node.factoryKeyword,
         PrimaryConstructorDeclaration() =>
           node.constructorName?.name ?? node.typeName,
         _ => null,

@@ -1416,7 +1416,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         node.initializers.any((e) => e is RedirectingConstructorInvocation);
     fragment.isComplete = node.isComplete;
     fragment.metadata = _buildMetadata(node.metadata);
-    fragment.typeName = node.typeName?.name;
+    fragment.typeName = node.typeName2?.lexeme;
 
     if (_enclosingContext.fragment is EnumFragmentImpl &&
         fragment.isGenerative &&

@@ -28,7 +28,8 @@ class A {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -60,7 +61,8 @@ class A {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -91,7 +93,8 @@ class A {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -123,7 +126,8 @@ class A {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -154,7 +158,8 @@ class A {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -186,7 +191,8 @@ class A {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -222,7 +228,8 @@ class A {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -258,7 +265,8 @@ class A {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (

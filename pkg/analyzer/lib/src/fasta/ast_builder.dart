@@ -6093,7 +6093,7 @@ class AstBuilder extends StackListener {
       );
     }
 
-    SimpleIdentifierImpl? typeNameIdentifier;
+    Token? typeName;
     Token? period;
     Token? constructorNameToken;
 
@@ -6105,14 +6105,14 @@ class AstBuilder extends StackListener {
         if (newKeyword != null) {
           constructorNameToken = preliminaryName.token;
         } else {
-          typeNameIdentifier = preliminaryName;
+          typeName = preliminaryName.token;
         }
       case PrefixedIdentifierImpl():
-        typeNameIdentifier = preliminaryName.prefix;
+        typeName = preliminaryName.prefix.token;
         period = preliminaryName.period;
         constructorNameToken = preliminaryName.identifier.token;
       case _OperatorName():
-        typeNameIdentifier = preliminaryName.name;
+        typeName = preliminaryName.name.token;
       default:
         throw UnimplementedError(
           'name is an instance of ${preliminaryName.runtimeType} in endClassConstructor',
@@ -6148,7 +6148,7 @@ class AstBuilder extends StackListener {
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: null,
       newKeyword: modifiers?.newKeyword,
-      typeName: typeNameIdentifier,
+      typeName2: typeName,
       period: period,
       name: constructorNameToken,
       parameters: parameters,
@@ -6202,7 +6202,7 @@ class AstBuilder extends StackListener {
       );
     }
 
-    SimpleIdentifierImpl? typeNameIdentifier;
+    Token? typeName;
     Token? period;
     Token? constructorNameToken;
     switch (preliminaryName) {
@@ -6218,15 +6218,15 @@ class AstBuilder extends StackListener {
           // whose name is `C`.
           var enclosingClassName = _classLikeBuilder?.name;
           if (enclosingClassName?.lexeme == preliminaryName.token.lexeme) {
-            typeNameIdentifier = preliminaryName;
+            typeName = preliminaryName.token;
           } else {
             constructorNameToken = preliminaryName.token;
           }
         } else {
-          typeNameIdentifier = preliminaryName;
+          typeName = preliminaryName.token;
         }
       case PrefixedIdentifierImpl():
-        typeNameIdentifier = preliminaryName.prefix;
+        typeName = preliminaryName.prefix.token;
         period = preliminaryName.period;
         constructorNameToken = preliminaryName.identifier.token;
     }
@@ -6239,7 +6239,7 @@ class AstBuilder extends StackListener {
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: factoryKeyword,
       newKeyword: null,
-      typeName: typeNameIdentifier,
+      typeName2: typeName,
       period: period,
       name: constructorNameToken,
       parameters: parameters,

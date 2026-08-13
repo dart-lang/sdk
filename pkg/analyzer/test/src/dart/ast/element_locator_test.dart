@@ -340,13 +340,13 @@ class A {
 ''');
   }
 
-  test_locate_Identifier_constructor_unnamed() async {
+  test_locate_Identifier_constructor_unnamed_v1Projection() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
 }
 ''');
-    var node = result.findNode.simple('A()');
+    var node = result.findNode.constructor('A()').typeName!;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -1334,19 +1334,6 @@ class A {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::bar
-''');
-  }
-
-  test_locate_Identifier_constructor_unnamed() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  A();
-}
-''');
-    var node = result.findNode.simple('A()');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::A::@constructor::new
 ''');
   }
 

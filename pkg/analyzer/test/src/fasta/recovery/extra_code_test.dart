@@ -423,7 +423,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: A
+            typeName(v1): SimpleIdentifier
               token: A
             parameters: FormalParameterList
               leftParenthesis: (
@@ -455,7 +456,8 @@ CompilationUnit
             body: EmptyFunctionBody
               semicolon: ;
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: A
+            typeName(v1): SimpleIdentifier
               token: A
             period: .
             name: a
@@ -467,7 +469,8 @@ CompilationUnit
                 leftBracket: {
                 rightBracket: }
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: A
+            typeName(v1): SimpleIdentifier
               token: A
             period: .
             name: b
@@ -790,7 +793,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: Foo
+            typeName(v1): SimpleIdentifier
               token: Foo
             parameters: FormalParameterList
               leftParenthesis: (

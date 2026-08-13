@@ -260,7 +260,8 @@ extension type const A.named(int it) {
 ConstructorDeclaration
   constKeyword: const
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -481,7 +482,8 @@ extension type A(int it) {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -542,7 +544,8 @@ extension type A.named(int it) {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -608,7 +611,8 @@ extension type A(int it) {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -650,7 +654,8 @@ extension type A.named(int it) {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -4597,7 +4602,8 @@ ExtensionTypeDeclaration
     leftBracket: {
     members
       ConstructorDeclaration
-        typeName: SimpleIdentifier
+        typeName2: A
+        typeName(v1): SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
@@ -4685,7 +4691,8 @@ ExtensionTypeDeclaration
     members
       ConstructorDeclaration
         constKeyword: const
-        typeName: SimpleIdentifier
+        typeName2: A
+        typeName(v1): SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
