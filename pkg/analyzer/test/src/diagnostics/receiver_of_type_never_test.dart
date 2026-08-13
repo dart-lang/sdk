@@ -1419,6 +1419,46 @@ PropertyAccess
 ''');
   }
 
+  test_propertyAssignment_direct_never_alias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+typedef N = Never;
+
+void f(N x) {
+  (x).foo = 0;
+//^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//          ^^
+// [diag.deadCode] Dead code.
+}
+''');
+  }
+
+  test_propertyAssignment_readWrite_never_alias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+typedef N = Never;
+
+void f(N x) {
+  (x).foo += 0;
+//^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//           ^^
+// [diag.deadCode] Dead code.
+}
+''');
+  }
+
+  test_propertyExtraction_never_alias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+typedef N = Never;
+
+void f(N x) {
+  (x).foo;
+//^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+}
+''');
+  }
+
   test_throw_getter_hashCode() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {

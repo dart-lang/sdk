@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -337,7 +338,8 @@ class PropertyElementResolver with ScopeHelpers {
     var receiver = node.receiver;
     var receiverType = receiver.typeOrThrow;
 
-    if (receiverType is NeverType) {
+    if (receiverType is NeverType &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
     }
@@ -412,7 +414,8 @@ class PropertyElementResolver with ScopeHelpers {
     var receiver = node.receiver;
     var receiverType = receiver.typeOrThrow;
 
-    if (receiverType is NeverType) {
+    if (receiverType is NeverType &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return (expressionInfo: null, resolution: null, type: receiverType);
     }
@@ -512,7 +515,8 @@ class PropertyElementResolver with ScopeHelpers {
     var receiver = node.receiver;
     var receiverType = receiver.typeOrThrow;
 
-    if (receiverType is NeverType) {
+    if (receiverType is NeverType &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
     }

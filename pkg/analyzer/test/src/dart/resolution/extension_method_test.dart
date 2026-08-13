@@ -4338,10 +4338,21 @@ extension E on C {
   int m() => this.a;
 }
 ''');
-    var node = result.findNode.propertyAccess('this.a');
+    var node = result.findNode.propertyExtraction('this.a');
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4363,10 +4374,21 @@ extension E on C {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4795,8 +4817,8 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ThisExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: C
     operator: .
@@ -4806,7 +4828,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@class::C::@setter::a::@formalParameter::_
     staticType: int
@@ -4833,8 +4855,8 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ThisExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: C
     operator: .
@@ -4844,7 +4866,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
@@ -4884,10 +4906,20 @@ extension E on C {
   get c => this.a;
 }
 ''');
-    var node = result.findNode.propertyAccess('this.a;');
+    var node = result.findNode.propertyExtraction('this.a;');
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: a
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@extension::E::@method::a
+    type: void Function(int)
+  staticType: void Function(int)
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .

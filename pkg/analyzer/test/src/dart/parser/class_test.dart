@@ -605,6 +605,36 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_newHead_unnamed_fieldInitializer_explicitThis() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  new () : this.x = 0;
+}
+''');
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: x
+      fieldName(v1): SimpleIdentifier
+        token: x
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_constructor_newHead_unnamed_formalParameters() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {

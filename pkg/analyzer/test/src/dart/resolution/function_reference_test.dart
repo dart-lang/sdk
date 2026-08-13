@@ -592,6 +592,68 @@ FunctionReference
 ''');
   }
 
+  test_extensionMethod_explicitReceiver_neverQ() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E<T> on T {
+  T foo<U>() => throw 0;
+}
+
+void f(Never? x) {
+  (x).foo<int>;
+}
+''');
+
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function2: PropertyExtraction
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: Never?
+      rightParenthesis: )
+      staticType: Never?
+    operator: .
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@extension::E::@method::foo
+        substitution: {T: Never?, U: U}
+      type: Never? Function<U>()
+    staticType: Never? Function<U>()
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: Never?
+      rightParenthesis: )
+      staticType: Never?
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@extension::E::@method::foo
+        substitution: {T: Never?, U: U}
+      staticType: Never? Function<U>()
+    staticType: Never? Function<U>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: Never? Function()
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_extensionMethod_explicitReceiver_this() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {}
@@ -608,8 +670,18 @@ extension E on A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ThisExpression
+  function2: PropertyExtraction
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
@@ -2366,8 +2438,18 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ThisExpression
+  function2: PropertyExtraction
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
