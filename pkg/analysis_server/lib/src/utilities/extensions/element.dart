@@ -5,6 +5,11 @@
 import 'package:analyzer/dart/element/element.dart';
 
 extension ClassElementExtensions on ClassElement {
+  /// Return `true` if this element represents the class `LinkedHashSet` from
+  /// `dart:collection`.
+  bool get isDartCollectionLinkedHashSet =>
+      name == 'LinkedHashSet' && library.isDartCollection;
+
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
   bool get isDartCoreIterable => name == 'Iterable' && library.isDartCore;
@@ -83,6 +88,11 @@ extension FragmentExtensions on Fragment {
       current = enclosing;
     }
   }
+}
+
+extension LibraryElementExtensions on LibraryElement {
+  /// Return `true` if this element represents `dart:collection`.
+  bool get isDartCollection => uri.toString() == 'dart:collection';
 }
 
 extension MethodElementExtensions on MethodElement {
