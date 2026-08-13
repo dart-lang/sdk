@@ -261,6 +261,27 @@ int f(E e) => switch(e
     );
   }
 
+  Future<void> test_nullable_unhandledNull() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+int f(E? e) => switch (e) {
+  E.a => 0,
+  E.b => 1,
+};
+''');
+    await assertHasFix('''
+enum E {a, b, c}
+int f(E? e) => switch (e) {
+  E.a => 0,
+  E.b => 1,
+  // TODO: Handle this case.
+  E.c => throw UnimplementedError(),
+  // TODO: Handle this case.
+  null => throw UnimplementedError(),
+};
+''');
+  }
+
   Future<void> test_num_anyDouble_intProperty() async {
     await resolveTestCode('''
 int f(num x) {
@@ -903,10 +924,6 @@ void f(E? e) {
 ''');
   }
 
-  @FailingTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/49759',
-    reason: 'Puts the null case second-to-last instead of last',
-  )
   Future<void> test_nullable_unhandledNull() async {
     await resolveTestCode('''
 enum E {a, b, c}

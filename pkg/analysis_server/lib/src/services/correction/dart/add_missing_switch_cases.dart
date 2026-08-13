@@ -54,6 +54,17 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     // https://github.com/dart-lang/sdk/issues/62426
     patternPartsList = patternPartsList.toList();
 
+    // Keep `null` after the cases for values of the nullable type.
+    var nullPatterns = <List<MissingPatternPart>>[];
+    patternPartsList.removeWhere((parts) {
+      if (parts case [MissingPatternTextPart(text: 'null')]) {
+        nullPatterns.add(parts);
+        return true;
+      }
+      return false;
+    });
+    patternPartsList.addAll(nullPatterns);
+
     // It is possible that a missing pattern is unrepresentable at the location
     // of the switch. For instance, an enum with a private member can't be
     // matched outside of its library.
