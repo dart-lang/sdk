@@ -121,7 +121,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: InvalidType
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType

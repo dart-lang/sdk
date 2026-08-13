@@ -124,7 +124,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::g::@formalParameter::a
@@ -244,7 +244,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::g::@formalParameter::a
@@ -323,7 +323,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: num
   staticType: num
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::g::@formalParameter::a
@@ -397,7 +397,7 @@ CompoundAssignment
   element: <null>
   operatorResultType: dynamic
   staticType: dynamic
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -526,7 +526,7 @@ IfNullAssignment
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   staticType: Object
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -574,7 +574,7 @@ IfNullAssignment
     element: <testLibrary>::@function::f::@formalParameter::listNum
     staticType: List<num>
   staticType: Object
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o1
     element: <testLibrary>::@function::f::@formalParameter::o1
@@ -620,7 +620,7 @@ IfNullAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: void
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -1322,7 +1322,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SuperExpression
     superKeyword: super
     staticType: A
@@ -1428,7 +1428,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: BinaryExpression
     leftOperand: IntegerLiteral
       literal: 1
@@ -1599,7 +1599,7 @@ DirectAssignment
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: double
   staticType: double
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: ParenthesizedExpression
     leftParenthesis: (
     expression: BinaryExpression
@@ -1711,7 +1711,7 @@ IfNullAssignment
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   staticType: num
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
@@ -1769,7 +1769,7 @@ DirectAssignment
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
@@ -1876,7 +1876,7 @@ IfNullAssignment
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   staticType: num
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PrefixExpression
     operator: ++
     operand: SimpleIdentifier
@@ -1934,7 +1934,7 @@ DirectAssignment
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PrefixExpression
     operator: ++
     operand: SimpleIdentifier
@@ -1994,7 +1994,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: C
     element: <null>
@@ -2043,7 +2043,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: C
     element: <null>
@@ -2096,7 +2096,7 @@ IfNullAssignment
     typeArgumentTypes
       int?
   staticType: int?
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::g::@formalParameter::a
@@ -2600,7 +2600,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2722,7 +2722,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2802,7 +2802,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2871,7 +2871,7 @@ IfNullAssignment
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2936,7 +2936,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2999,7 +2999,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: Never
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3172,7 +3172,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3246,7 +3246,7 @@ CompoundAssignment
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3310,7 +3310,7 @@ CompoundAssignment
   element: <null>
   operatorResultType: dynamic
   staticType: dynamic
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3371,7 +3371,7 @@ IfNullAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: dynamic
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3454,7 +3454,7 @@ IfNullAssignment
     correspondingParameter: <null>
     staticType: Never Function()
   staticType: void Function()
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3536,7 +3536,7 @@ IfNullAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: Object
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3606,7 +3606,7 @@ CompoundAssignment
   element: <null>
   operatorResultType: Never
   staticType: Never
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3683,7 +3683,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@class::B::@setter::y::@formalParameter::_
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: PropertyAccess
       target: ParenthesizedExpression
@@ -3759,7 +3759,7 @@ IfNullAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -3831,7 +3831,7 @@ CompoundAssignment
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -4991,7 +4991,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ThisExpression
       thisKeyword: this
@@ -5050,7 +5050,7 @@ IfNullAssignment
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ThisExpression
       thisKeyword: this
@@ -5105,7 +5105,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ThisExpression
       thisKeyword: this
@@ -5165,7 +5165,7 @@ DirectAssignment
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -5231,7 +5231,7 @@ DirectAssignment
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -5287,7 +5287,7 @@ DirectAssignment
     superKeyword: super
     staticType: A
   staticType: A
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@class::A::@method::f::@formalParameter::a
@@ -5331,7 +5331,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::value
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -5382,7 +5382,7 @@ DirectAssignment
       substitution: {T: num}
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -5431,7 +5431,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::value
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -5480,7 +5480,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -5529,7 +5529,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -5576,7 +5576,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -5629,7 +5629,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -5676,7 +5676,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -5724,7 +5724,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: num
   staticType: num
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: x@51
@@ -5767,7 +5767,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: x@51
@@ -5812,7 +5812,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: x@57
@@ -5857,7 +5857,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: x@57
@@ -5900,7 +5900,7 @@ IfNullAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: num
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -5957,7 +5957,7 @@ IfNullAssignment
     correspondingParameter: <null>
     staticType: C
   staticType: A
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -6010,7 +6010,7 @@ IfNullAssignment
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: int
   staticType: num
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -6092,7 +6092,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -6135,7 +6135,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: double
   staticType: double
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -6178,7 +6178,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: bool
   staticType: bool
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -6222,7 +6222,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -6277,7 +6277,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6338,7 +6338,7 @@ IfNullAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: Object
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6393,7 +6393,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6440,7 +6440,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6485,7 +6485,7 @@ DirectAssignment
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: <empty> <synthetic>
     element: <null>
@@ -6535,7 +6535,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6587,7 +6587,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6650,7 +6650,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: num
   staticType: num
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6718,7 +6718,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6767,7 +6767,7 @@ IfNullAssignment
     correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6821,7 +6821,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6871,7 +6871,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6932,7 +6932,7 @@ IfNullAssignment
     correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_
     staticType: C
   staticType: A
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -6991,7 +6991,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -7045,7 +7045,7 @@ CompoundAssignment
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
     element: <null>
@@ -7092,7 +7092,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
     element: <null>
@@ -7135,7 +7135,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@setter::x::@formalParameter::value
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -7180,7 +7180,7 @@ DirectAssignment
     correspondingParameter: <testLibrary>::@setter::x::@formalParameter::value
     staticType: bool
   staticType: bool
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -7227,7 +7227,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -7279,7 +7279,7 @@ CompoundAssignment
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: int
     element: <null>
@@ -7324,7 +7324,7 @@ DirectAssignment
     correspondingParameter: <null>
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: int
     element: <null>
@@ -7374,7 +7374,7 @@ CompoundAssignment
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -7419,7 +7419,7 @@ DirectAssignment
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <null>
@@ -7477,7 +7477,7 @@ f(Object? o, C2<double> c2) {
     baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
   staticType: B1<Object?>
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o
     element: <testLibrary>::@function::f::@formalParameter::o
@@ -7526,7 +7526,7 @@ f(Object? o1, Object? o2, int? i) {
     element: <testLibrary>::@function::f::@formalParameter::i
     staticType: int?
   staticType: num?
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o2
     element: <testLibrary>::@function::f::@formalParameter::o2
@@ -7580,7 +7580,7 @@ IfNullAssignment
     staticType: C2
   correspondingParameter: <testLibrary>::@function::contextB1::@formalParameter::b1
   staticType: B1
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o
     element: <testLibrary>::@function::f::@formalParameter::o

@@ -814,7 +814,7 @@ CompoundAssignment
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -863,7 +863,7 @@ CompoundAssignment
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1808,7 +1808,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@class::C::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1848,7 +1848,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
@@ -1889,7 +1889,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1932,7 +1932,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2246,7 +2246,7 @@ PostfixIncrement
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -2281,7 +2281,7 @@ PostfixIncrement
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: int Function(int)
   staticType: int Function(int)
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
@@ -2317,7 +2317,7 @@ PostfixIncrement
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -2355,7 +2355,7 @@ PostfixIncrement
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: A?
   staticType: A?
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2393,7 +2393,7 @@ PrefixIncrement
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
@@ -2428,7 +2428,7 @@ PrefixIncrement
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: int Function(int)
   staticType: int Function(int)
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: f
@@ -2464,7 +2464,7 @@ PrefixIncrement
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
@@ -2502,7 +2502,7 @@ PrefixIncrement
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: A?
   staticType: A?
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: a
@@ -2540,7 +2540,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@class::C::@method::unary-
   staticType: C
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
@@ -2571,7 +2571,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: void
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: f
@@ -2603,7 +2603,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: C
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
@@ -2637,7 +2637,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: A?
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: a
@@ -4351,7 +4351,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4387,7 +4387,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4505,7 +4505,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@class::C::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4542,7 +4542,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4705,7 +4705,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@class::C::@method::unary-
   staticType: void
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: ThisExpression
     thisKeyword: this
@@ -4733,7 +4733,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: void
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: ThisExpression
     thisKeyword: this
@@ -4918,7 +4918,7 @@ PropertyExtraction
     element: <testLibrary>::@extension::E::@method::a
     type: void Function(int)
   staticType: void Function(int)
-PropertyAccess
+V1: PropertyAccess
   target: ThisExpression
     thisKeyword: this
     staticType: C

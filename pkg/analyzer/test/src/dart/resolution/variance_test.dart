@@ -75,7 +75,7 @@ ConstructorInvocation
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: num}
   staticType: B<num>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B

@@ -41,7 +41,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
     staticType: A

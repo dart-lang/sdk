@@ -55,7 +55,7 @@ LogicalAnd
     staticInvokeType: dynamic
     staticType: dynamic
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
@@ -107,7 +107,7 @@ LogicalAnd
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -165,7 +165,7 @@ LogicalOr
     staticInvokeType: dynamic
     staticType: dynamic
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
@@ -217,7 +217,7 @@ LogicalOr
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a

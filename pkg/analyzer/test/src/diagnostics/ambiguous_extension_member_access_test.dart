@@ -64,7 +64,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: IntegerLiteral
     literal: 0
     staticType: int
@@ -105,7 +105,7 @@ PropertyExtraction
     invokeType: void Function()
     type: void
   staticType: void
-PropertyAccess
+V1: PropertyAccess
   target: IntegerLiteral
     literal: 0
     staticType: int
@@ -148,7 +148,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: IntegerLiteral
     literal: 0
     staticType: int
@@ -191,7 +191,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: IntegerLiteral
     literal: 0
     staticType: int
