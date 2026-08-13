@@ -211,7 +211,7 @@ class _MatcherBuilder {
       _buildFromExtensionOverride(node);
     } else if (node is FunctionDeclaration) {
       _addMatcher(components: [node.name.lexeme], kinds: []);
-    } else if (node is ImportDirective) {
+    } else if (node is NamespaceDirective) {
       _addMatcher(
         components: [node.uri.stringValue ?? ''],
         kinds: [ElementKind.libraryKind],
@@ -225,7 +225,7 @@ class _MatcherBuilder {
       if (parent is ArgumentList) {
         _buildFromArgumentList(parent);
       }
-      if (parent is ImportDirective && node is SimpleStringLiteral) {
+      if (parent is NamespaceDirective && node is SimpleStringLiteral) {
         _addMatcher(
           components: [node.value],
           kinds: [ElementKind.libraryKind],

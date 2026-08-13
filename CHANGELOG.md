@@ -1,3 +1,14 @@
+## 3.13.1
+
+**Released on:** Unreleased
+
+This is a patch release that:
+
+- Fixes `dart fix --apply --code=migrate_design_widgets` to replace URIs in
+  both import and export statements. (issue [#63968]).
+
+[#63968]: https://github.com/dart-lang/sdk/issues/63968
+
 ## 3.13.0
 
 **Released on:** Unreleased
