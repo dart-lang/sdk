@@ -13341,6 +13341,33 @@ main() {
       ]);
     });
   });
+
+  group('Horizontal inference:', () {
+    test('Two arguments, second argument analyzed before first', () {
+      h.addMember('C', 'm', 'void Function(void Function(), int)');
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, type: 'num', initializer: expr('num')),
+        declare(y, type: 'num', initializer: expr('num')),
+        // Promote y so that there will be an observable state change when the
+        // write capture it becomes live.
+        y.as_('int'),
+        expr('C').invokeMethod(
+          'm',
+          [
+            localFunction([
+              checkPromoted(x, 'int'),
+              checkNotPromoted(y),
+              y.write(expr('num')),
+            ]),
+            x.as_('int'),
+          ],
+          argumentVisitOrder: [1, 0],
+        ),
+      ]);
+    });
+  });
 }
 
 /// Returns the appropriate matcher for expecting an assertion error to be
