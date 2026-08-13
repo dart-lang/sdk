@@ -630,6 +630,23 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_pluginsInInnerOptions() {
+    // TODO(scheglov): Remove this test together with the
+    // `PLUGINS_IN_INNER_OPTIONS` entry in `_DiagnosticOptions.removedCodeNames`
+    // after Flutter removes its suppression.
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    plugins_in_inner_options: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    plugins_in_inner_options: ignore
+''');
+  }
+
   test_analyzer_errors_severityValues() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:

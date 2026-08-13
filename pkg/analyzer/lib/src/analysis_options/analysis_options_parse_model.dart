@@ -68,7 +68,13 @@ abstract final class _DiagnosticOptions {
   ///
   /// We don't want to report these, this breaks clients.
   // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
-  static const Set<String> removedCodeNames = {'MISSING_RETURN'};
+  static const Set<String> removedCodeNames = {
+    'MISSING_RETURN',
+    // TODO(scheglov): Remove this compatibility entry together with
+    // `test_analyzer_errors_removed_pluginsInInnerOptions` after Flutter
+    // removes its `plugins_in_inner_options` suppression.
+    'PLUGINS_IN_INNER_OPTIONS',
+  };
 
   static Set<String> currentLintCodeNames() {
     // TODO(scheglov): Move lint-code lookup behind Registry so callers don't
