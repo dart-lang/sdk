@@ -692,15 +692,36 @@ class AstBuilder extends StackListener {
       );
     }
 
+    if (initializerObject is PropertyExtractionImpl) {
+      return buildInitializerTargetExpressionRecovery(
+        initializerObject.receiver,
+        initializerObject,
+      );
+    }
+
     if (initializerObject is DirectAssignmentImpl) {
       var target = initializerObject.target;
-      if (target is! UnqualifiedNameAssignmentTargetImpl) {
-        return null;
+      Token? thisKeyword;
+      Token? period;
+      late Token fieldName;
+      switch (target) {
+        case PropertyAssignmentTargetImpl(
+          receiver: ThisExpressionImpl(thisKeyword: var writtenThisKeyword),
+          :var operator,
+          :var propertyName,
+        ):
+          thisKeyword = writtenThisKeyword;
+          period = operator;
+          fieldName = propertyName;
+        case UnqualifiedNameAssignmentTargetImpl(:var name):
+          fieldName = name;
+        default:
+          return null;
       }
       return ConstructorFieldInitializerImpl(
-        thisKeyword: null,
-        period: null,
-        fieldName2: target.name,
+        thisKeyword: thisKeyword,
+        period: period,
+        fieldName2: fieldName,
         equals: initializerObject.operator,
         expression2: initializerObject.value,
       );
@@ -772,6 +793,9 @@ class AstBuilder extends StackListener {
       } else if (target is PropertyAccessImpl) {
         argumentList = null;
         target = target.target2;
+      } else if (target is PropertyExtractionImpl) {
+        argumentList = null;
+        target = target.receiver;
       } else {
         break;
       }
@@ -6521,6 +6545,7 @@ class AstBuilder extends StackListener {
       case ParenthesizedExpressionImpl():
       case ConstructorInvocationImpl():
       case InstanceCreationExpressionImpl():
+      case ThisExpressionImpl():
         return true;
       case PropertyAccessImpl(target2: var target?, operator: var operator)
           when operator.type == TokenType.PERIOD:

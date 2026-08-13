@@ -208,8 +208,13 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PropertyAccess
-                  target2: ThisExpression
+                expression2: PropertyExtraction
+                  receiver: ThisExpression
+                    thisKeyword: this
+                  operator: .
+                  propertyName: <empty> <synthetic>
+                expression(v1): PropertyAccess
+                  target: ThisExpression
                     thisKeyword: this
                   operator: .
                   propertyName: SimpleIdentifier

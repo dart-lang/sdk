@@ -1492,6 +1492,18 @@ void f() {
     expect(identifier.isQualified, isFalse);
   }
 
+  void test_isQualified_inPropertyExtraction_name() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  void f() {
+    this.foo;
+  }
+}
+''');
+    var identifier = parseResult.findNodeV1.simple('foo');
+    expect(identifier.isQualified, isTrue);
+  }
+
   void test_isQualified_inReturnStatement() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {

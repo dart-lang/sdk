@@ -387,10 +387,21 @@ augment class A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -417,10 +428,21 @@ augment class A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -447,10 +469,20 @@ augment class A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function()
+  staticType: void Function()
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -593,10 +625,21 @@ class A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -619,10 +662,20 @@ class A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function(int)
+  staticType: void Function(int)
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -645,10 +698,21 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -675,10 +739,21 @@ extension type X(B it) implements A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: X
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
 PropertyAccess
-  target2: ThisExpression
+  target: ThisExpression
     thisKeyword: this
     staticType: X
   operator: .

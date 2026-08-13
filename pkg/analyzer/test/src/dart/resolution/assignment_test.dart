@@ -4966,11 +4966,34 @@ class A {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ThisExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
@@ -4980,7 +5003,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -4989,6 +5012,120 @@ AssignmentExpression
   writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_this_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int? get x => 0;
+  set x(num _) {}
+
+  void f() {
+    this.x ??= 2;
+  }
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('x ??= 2');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: PropertyAssignmentTarget
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int? Function()
+      type: int?
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  operator: ??=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
+    staticType: int
+  staticType: int
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
+    staticType: int
+  readElement: <testLibrary>::@class::A::@getter::x
+  readType: int?
+  writeElement: <testLibrary>::@class::A::@setter::x
+  writeType: num
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_this_simple() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set x(num _) {}
+
+  void f() {
+    this.x = 2;
+  }
+}
+''');
+
+    var node = result.findNode.directAssignment('x = 2');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: PropertyAssignmentTarget
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: x
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  operator: =
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
+    staticType: int
+  staticType: int
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@setter::x
+  writeType: num
+  element: <null>
   staticType: int
 ''');
   }
