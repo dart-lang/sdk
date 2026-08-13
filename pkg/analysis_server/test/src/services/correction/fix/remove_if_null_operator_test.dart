@@ -140,13 +140,16 @@ class UnnecessaryNullInIfNullOperatorsBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.unnecessary_null_in_if_null_operators;
 
-  @failingTest
+  Future<void> test_allNull() async {
+    await resolveTestCode('''
+var a = null ?? null ?? null;
+''');
+    await assertHasFix('''
+var a = null;
+''');
+  }
+
   Future<void> test_null_null_left() async {
-    // The fix only addresses one null and results in:
-    //
-    //     var b = null ?? a;
-    //
-    // (not incorrect but not complete).
     await resolveTestCode('''
 var a = '';
 var b = null ?? null ?? a;
