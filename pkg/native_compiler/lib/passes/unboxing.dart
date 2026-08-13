@@ -52,7 +52,8 @@ final class Unboxing extends Pass {
       BinaryDoubleOp() ||
       UnaryDoubleOp() ||
       Box() ||
-      IndexCheck() => true,
+      IndexCheck() ||
+      LoadExternalField() => true,
       LoadArrayElement() => inputIndex == 1,
       StoreArrayElement() =>
         inputIndex == 1 || (inputIndex == 2 && instr.kind != .fixedLengthList),
@@ -74,6 +75,7 @@ final class Unboxing extends Pass {
       Unbox() ||
       IndexCheck() => true,
       LoadArrayElement() => instr.kind != .fixedLengthList,
+      LoadExternalField() => instr.field.type is IntType,
       LoadField() => false, // TODO: unboxed fields,
       Parameter() => false, // TODO: support unboxed parameters.
       CallInstruction() => false, // TODO: support unboxed return values.

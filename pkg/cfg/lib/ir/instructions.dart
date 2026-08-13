@@ -1911,6 +1911,26 @@ final class ExternalCall extends CallInstruction with BackendInstruction {
   R accept<R>(InstructionVisitor<R> v) => v.visitExternalCall(this);
 }
 
+/// Load value from a field of a non-Dart object.
+final class LoadExternalField extends LoadField with BackendInstruction {
+  LoadExternalField(
+    super.graph,
+    super.sourcePosition,
+    super.field, {
+    Definition? object,
+  }) : super(inputCount: object != null ? 1 : 0, checkInitialized: false) {
+    if (object != null) {
+      setInputAt(0, object);
+    }
+  }
+
+  bool get hasObject => inputCount > 0;
+  Definition? get object => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalField(this);
+}
+
 /// Allocate an array (built-in list or typed data list) of given length.
 ///
 /// When creating built-in lists, [AllocateArray] can optionally take type arguments
